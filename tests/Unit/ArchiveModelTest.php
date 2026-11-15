@@ -26,9 +26,9 @@ function archive_files(): array
     $machine->write("$data/backups/iar/demo-ada-love-noassets-20261019-101500.iar", 'iar');
     $machine->write("$data/backups/oar/demo-alpha-Plaza-perm_CM-publish-20261019-111500.oar", 'oar');
     $machine->write("$data/backups/oar/demo-alpha-20261019-121500.oar", 'oar');
-    $backups = rtrim($machine->environment->layout->dataRoot(), '/') . '/backups/admin';
-    $machine->write("$backups/demo-alpha-20261019-131500-logs.tar.gz", 'tgz');
-    $machine->write("$backups/other-20261019-131500.tar.gz", 'tgz');
+    $backups = $machine->environment->layout->backupRoot();
+    $machine->write("$backups/demo/alpha/demo-alpha-20261019-131500-logs.tar.gz", 'tgz');
+    $machine->write("$backups/other/other-20261019-131500.tar.gz", 'tgz');
 
     return [$machine, (object) ['all' => Archive::all($machine->environment, ['sort' => 'name'])->items()]];
 }

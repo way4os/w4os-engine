@@ -43,7 +43,9 @@ final class Archive extends InstalledModel
     public static function all(Environment $environment, array $options = []): Collection
     {
         $archives = [];
-        $backups = rtrim($environment->layout->dataRoot(), '/') . '/backups/admin';
+        $backups = $environment->layout->backupRoot();
+        // The earlier place of the backups, beside the data
+        $earlier = rtrim($environment->layout->dataRoot(), '/') . '/backups/admin';
         $nicks = [];
         foreach (Grid::all($environment)->items() as $grid) {
             $nicks[] = $grid->nick();
@@ -55,7 +57,8 @@ final class Archive extends InstalledModel
         }
         // A backup is named after its grid
         usort($nicks, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
-        foreach (glob("$backups/*.tar.gz") ?: [] as $file) {
+        $files = [...(glob("$earlier/*.tar.gz") ?: []), ...(glob("$backups/*/*.tar.gz") ?: []), ...(glob("$backups/*/*/*.tar.gz") ?: [])];
+        foreach ($files as $file) {
             foreach ($nicks as $nick) {
                 if (str_starts_with(basename($file), "$nick-")) {
                     $archives[] = self::named($environment, $nick, self::BACKUP, $file);

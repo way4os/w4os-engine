@@ -13,7 +13,7 @@ namespace OpenSim\Config;
 final class PackagedProfiles
 {
     /** What a profile of a release takes from [Defaults]: the locations of the install, and who runs the instances. */
-    private const INHERITED = ['DirectoryLayout', 'CoreRoot', 'EtcRoot', 'VarRoot', 'LogsRoot', 'CacheRoot', 'DataRoot', 'SystemUser'];
+    private const INHERITED = ['DirectoryLayout', 'CoreRoot', 'EtcRoot', 'VarRoot', 'LogsRoot', 'CacheRoot', 'DataRoot', 'BackupRoot', 'SystemUser'];
 
     public function __construct(private readonly string $conf = '/etc/opensim/opensim.conf', private readonly string $coresRoot = '/usr/share/opensim')
     {

@@ -75,7 +75,12 @@ final class SystemLayout
             }
         }
         $etc = $layout->etcRoot();
-        foreach ([$etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot()] as $dir) {
+        $folders = [$etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot()];
+        // The backup root is made when it is the default one; a chosen one (a mount) is the administrator's
+        if ($layout->get('BackupRoot') === '') {
+            $folders[] = $layout->backupRoot();
+        }
+        foreach ($folders as $dir) {
             if (!is_dir($dir) && !@mkdir($dir, 0o755, true)) {
                 $this->ui->error(sprintf(_('Could not create %s.'), $dir));
 
@@ -111,7 +116,7 @@ final class SystemLayout
         $packaged = Core::latest(self::PACKAGED_CORES) !== null || (PHP_OS_FAMILY === 'Linux' && ShellService::commandExists('dpkg'));
         $coreRoot = $packaged ? self::PACKAGED_CORES : $layout->coreRoot();
         $lines = ['[Defaults]', 'DirectoryLayout = ' . DirectoryLayout::SYSTEM, 'CoreRoot = ' . $coreRoot];
-        foreach (['EtcRoot', 'VarRoot', 'LogsRoot', 'CacheRoot', 'DataRoot'] as $key) {
+        foreach (['EtcRoot', 'VarRoot', 'LogsRoot', 'CacheRoot', 'DataRoot', 'BackupRoot'] as $key) {
             $lines[] = "$key = " . ($layout->get($key) !== '' ? $layout->get($key) : ($roots[$key] ?? ''));
         }
         $lines[] = "SystemUser = $user";

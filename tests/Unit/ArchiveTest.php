@@ -23,6 +23,7 @@ function archive_install(): array
     mkdir("$root/data/alpha/alpha_sim1", 0o755, true);
     mkdir("$root/data/alpha/backups/oar", 0o755, true);
     mkdir("$root/logs", 0o755, true);
+    mkdir("$root/backups", 0o755, true);
     file_put_contents(
         "$grid/Robust.HG.ini",
         "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=alpha_robust;User ID=opensim;Password=secret;Old Guids=true;\"\n",
@@ -440,7 +441,7 @@ describe('opensim backup', function () {
         $files = $backup->run(['alpha']);
 
         expect($files)
-            ->toBe(["{$profile['DataRoot']}/backups/admin/alpha-20261003-101500.tar.gz"])
+            ->toBe(["{$profile['root']}/backups/alpha/alpha-20261003-101500.tar.gz"])
             ->and(substr(sprintf('%o', fileperms($files[0])), -3))
             ->toBe('640')
             ->and($dumped)
@@ -468,6 +469,26 @@ describe('opensim backup', function () {
             "{$profile['EtcRoot']}/grids/alpha/Robust.HG.ini",
         );
     });
+
+    test('go to a folder of the backup root per grid and per simulator, which must exist', function () {
+        $profile = archive_install();
+        $make = static fn(array $profile, array $refs): array => (new BackupService(
+            EnvironmentFake::with($profile),
+            static function (array $db, string $file): void {
+                file_put_contents($file, 'dump');
+            },
+            static function (string $message): void {},
+            '20261003-101500',
+        ))->run($refs);
+
+        expect($make($profile, ['alpha'])[0])
+            ->toBe("{$profile['root']}/backups/alpha/alpha-20261003-101500.tar.gz")
+            ->and($make($profile, ['alpha', 'sim1'])[0])
+            ->toBe("{$profile['root']}/backups/alpha/sim1/alpha-sim1-20261003-101500.tar.gz");
+
+        exec('rm -rf ' . escapeshellarg("{$profile['root']}/backups"));
+        expect(fn() => $make($profile, ['alpha']))->toThrow(RuntimeException::class, 'is the storage mounted');
+    })->depends('holds config, data and databases');
 
     test('takes the archives of the users and the logs when asked', function () {
         $profile = archive_install();
@@ -533,7 +554,7 @@ describe('opensim backup', function () {
             $make($stamp);
         }
 
-        expect(count(glob("{$profile['DataRoot']}/backups/admin/alpha-*.tar.gz")))->toBe(3);
+        expect(count(glob("{$profile['root']}/backups/alpha/alpha-*.tar.gz")))->toBe(3);
     })->depends('holds config, data and databases');
 
     test('removes the older ones with --keep, series by series', function () {
@@ -552,7 +573,7 @@ describe('opensim backup', function () {
         $make('20261002-100000');
         $make('20261003-100000', ['keep' => 2]);
 
-        expect(array_values(array_diff(scandir("{$profile['DataRoot']}/backups/admin"), ['.', '..'])))->toBe([
+        expect(array_values(array_diff(scandir("{$profile['root']}/backups/alpha"), ['.', '..'])))->toBe([
             'alpha-20261001-110000-logs.tar.gz',
             'alpha-20261002-100000.tar.gz',
             'alpha-20261003-100000.tar.gz',
@@ -571,7 +592,7 @@ describe('opensim backup', function () {
         );
 
         expect(fn() => $backup->run(['alpha']))->toThrow(RuntimeException::class, 'dump failed');
-        $left = array_diff(scandir("{$profile['DataRoot']}/backups/admin") ?: [], ['.', '..']);
+        $left = array_diff(scandir("{$profile['root']}/backups/alpha") ?: [], ['.', '..']);
         expect($left)->toBe([]);
     })->depends('holds config, data and databases');
 });

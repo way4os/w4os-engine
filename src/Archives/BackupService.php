@@ -39,10 +39,10 @@ final class BackupService
         $this->stamp = $stamp !== '' ? $stamp : Archives::stamp();
     }
 
-    /** Where the backups go when nothing says: beside the data of the grids, not in it */
+    /** Where the backups go when nothing says: the backup root of the install (BackupRoot), never the data */
     public function defaultOutput(): string
     {
-        return rtrim($this->environment->layout->dataRoot(), '/') . '/backups/admin';
+        return $this->environment->layout->backupRoot();
     }
 
     /**
@@ -84,7 +84,13 @@ final class BackupService
         $etc = rtrim($this->environment->layout->etcRoot(), '/');
         $grid = Grid::find($this->environment, $nick) ?? throw new \RuntimeException("grid '$nick' is not known here");
         $model = Grid::at($this->environment, $grid->directory());
-        $output = rtrim($options['output'] ?? $this->defaultOutput(), '/');
+        // The backup root has a folder per grid, and one per simulator in it; an output asked for is used as it is
+        $output = isset($options['output'])
+            ? rtrim($options['output'], '/')
+            : $this->defaultOutput() . "/$nick" . ($slug !== null ? '/' . $this->simulatorName($nick, $slug) : '');
+        if (!isset($options['output']) && !is_dir($root = $this->defaultOutput())) {
+            throw new \RuntimeException("the backup root $root does not exist (is the storage mounted?)");
+        }
         if (!is_dir($output) && !@mkdir($output, 0o750, true) && !is_dir($output)) {
             throw new \RuntimeException("cannot make the folder $output");
         }

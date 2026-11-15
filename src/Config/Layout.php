@@ -66,6 +66,7 @@ final class Layout
         'LogsRoot',
         'CacheRoot',
         'DataRoot',
+        'BackupRoot',
         'SystemUser',
         'ModulesRoot',
         'EnabledModules',
@@ -180,6 +181,21 @@ final class Layout
     public function dataRoot(): string
     {
         return $this->get('DataRoot');
+    }
+
+    /**
+     * Where the backups of the administrator go, never inside the data: BackupRoot, else /var/backups/opensim for the system
+     * layout, else a `backups` folder beside the data.
+     */
+    public function backupRoot(): string
+    {
+        if (($root = $this->get('BackupRoot')) !== '') {
+            return rtrim($root, '/');
+        }
+
+        return $this->etcRoot() === '/etc/opensim'
+            ? '/var/backups/opensim'
+            : dirname(rtrim($this->dataRoot() !== '' ? $this->dataRoot() : $this->stateRoot(), '/')) . '/backups';
     }
 
     /** The folder for what the engine writes while running (state, caches): the var root, else the data one. */

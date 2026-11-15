@@ -164,6 +164,7 @@ describe('layouts of an install', function () {
                 'LogsRoot' => '/var/log/opensim',
                 'CacheRoot' => '/var/cache/opensim',
                 'DataRoot' => '/var/lib/opensim/data',
+                'BackupRoot' => '/var/backups/opensim',
             ])
             ->and(OpenSim\Config\DirectoryLayout::roots('bundled', '/opt/opensim', '0.9.3.0')['DataRoot'])
             ->toBe('/opt/opensim/var/data')
@@ -171,5 +172,14 @@ describe('layouts of an install', function () {
             ->toBe('/home/me/opensim-0.9.3.0/bin')
             ->and(OpenSim\Config\DirectoryLayout::roots('system'))
             ->not->toHaveKey('CoreDirectory');
+    });
+
+    test('keep the backups out of the data', function () {
+        expect((new Layout(['EtcRoot' => '/etc/opensim', 'DataRoot' => '/var/lib/opensim/data']))->backupRoot())
+            ->toBe('/var/backups/opensim')
+            ->and((new Layout(['EtcRoot' => '/x/etc', 'DataRoot' => '/x/var/data']))->backupRoot())
+            ->toBe('/x/var/backups')
+            ->and((new Layout(['EtcRoot' => '/etc/opensim', 'BackupRoot' => '/var/backups/localhost/opensim/']))->backupRoot())
+            ->toBe('/var/backups/localhost/opensim');
     });
 });

@@ -38,7 +38,7 @@ final class DirectoryLayout
 
     /**
      * The folders of a layout, named as in opensim.conf: CoreRoot, CoreDirectory (when the version is known), EtcRoot, VarRoot,
-     * LogsRoot, CacheRoot, DataRoot.
+     * LogsRoot, CacheRoot, DataRoot, BackupRoot.
      *
      * @param string $base the base directory of the bundled and flat layouts
      * @param string $version the version of the core, for its directory
@@ -55,6 +55,7 @@ final class DirectoryLayout
                 'LogsRoot' => '/var/log/opensim',
                 'CacheRoot' => '/var/cache/opensim',
                 'DataRoot' => '/var/lib/opensim/data',
+                'BackupRoot' => '/var/backups/opensim',
             ],
             self::BUNDLED => [
                 'CoreRoot' => "$base/core",
@@ -64,6 +65,7 @@ final class DirectoryLayout
                 'LogsRoot' => "$base/var/logs",
                 'CacheRoot' => "$base/var/cache",
                 'DataRoot' => "$base/var/data",
+                'BackupRoot' => "$base/var/backups",
             ],
             self::FLAT => $version === ''
                 ? []
