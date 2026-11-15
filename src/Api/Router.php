@@ -330,11 +330,19 @@ final class Router
         $document = $this->document($body, $parsed);
         if ($document === null) {
             return Response::problem(
-                new Problem(400, 'Bad request', 'The body is not a JSON document', instance: $path),
+                new Problem(
+                    400,
+                    'Bad request',
+                    'The body is not a JSON document',
+                    instance: $path,
+                    code: 'invalid-document',
+                ),
             );
         }
         if ($document !== [] && !is_array($document['data'] ?? null)) {
-            return Response::problem(new Problem(400, 'Bad request', "The document has no 'data'", instance: $path));
+            return Response::problem(
+                new Problem(400, 'Bad request', "The document has no 'data'", instance: $path, code: 'invalid-document'),
+            );
         }
         $given = $document['data']['type'] ?? $type;
         if ($given !== $type) {
@@ -344,6 +352,7 @@ final class Router
                     'Conflict',
                     "The resource is of type '$given', this address takes '$type'",
                     instance: $path,
+                    code: 'type-conflict',
                 ),
             );
         }

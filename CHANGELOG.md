@@ -8,6 +8,12 @@
 - feature (api): sign an avatar in with its name or its email and its password (`POST /grids/{grid}/sign-ins`)
 - feature (api): avatar models, picked by the `[Models]` rule of w4os (`GET /grids/{grid}/avatar-models`); a new avatar made with `model` wears a copy of its outfit and appearance
 - feature (api): forgotten password and confirmation of the email of a new avatar, one-time tokens mailed with a link or given to the caller (`/grids/{grid}/password-resets`, `/grids/{grid}/email-confirmations`, `confirmEmail` of a new avatar)
+- feature (api): every problem has a stable `code` (`name-taken`, `email-unconfirmed`, `account-disabled`...) for the sites to tell it in their language
+- feature (api): `send: false` for a new avatar whose email is confirmed, the token given in `meta.confirmation`
+- feature (api): a new email of an avatar is confirmed before it changes (`confirmEmail` of a change)
+- feature (avatars): the names w4os keeps (Default, Test, Admin, the grid name) are refused for a new avatar, unless `reservedName`; its password and email are checked
+- fix (avatars): the profile is made when the avatar has none yet, and a change is made all or not at all
+- feature (assets): the picture of nothing of w4os, bundled, for a model without a picture and a missing asset
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 

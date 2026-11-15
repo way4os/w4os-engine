@@ -10,7 +10,9 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Data\Collection;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
+use OpenSim\Data\OSPDO;
 use OpenSim\Exceptions\ChannelUnavailable;
+use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Provisioning\AccountWriter;
 use OpenSim\Provisioning\GridAccounts;
 use OpenSim\Hypergrid\Destination;
@@ -64,6 +66,26 @@ final class Avatar extends Model
         'level' => 'UserLevel',
         'active' => 'active',
     ];
+
+    /** A profile as the grid makes it when an avatar opens it the first time (MySQLUserProfilesData). */
+    private const NEW_PROFILE = [
+        'profilePartner' => '00000000-0000-0000-0000-000000000000',
+        'profileAllowPublish' => '0',
+        'profileMaturePublish' => '0',
+        'profileURL' => '',
+        'profileWantToMask' => 0,
+        'profileWantToText' => '',
+        'profileSkillsMask' => 0,
+        'profileSkillsText' => '',
+        'profileLanguages' => '',
+        'profileImage' => '00000000-0000-0000-0000-000000000000',
+        'profileAboutText' => '',
+        'profileFirstImage' => '00000000-0000-0000-0000-000000000000',
+        'profileFirstText' => '',
+    ];
+
+    /** The parts of a name a new avatar cannot have, as w4os keeps them (beside the name of the grid). */
+    public const RESERVED_NAMES = ['Default', 'Test', 'Admin'];
 
     /** What of a profile can be changed, by name: the column of userprofile. */
     private const PROFILE_SETTINGS = [
@@ -319,6 +341,25 @@ final class Avatar extends Model
         return max(array_map('strlen', explode(' ', $name))) > 63 ? _('too long (63 max)') : null;
     }
 
+    /**
+     * The name of a new avatar of a grid, as w4os takes it: a name (validateName) that has no part w4os keeps, in any case: Default
+     * (the avatar models), Test, Admin, and the name of the grid without its spaces.
+     *
+     * @param string $grid the name of the grid, '' when it has none
+     */
+    public static function validateNewName(mixed $value, string $grid = ''): ?string
+    {
+        $wrong = self::validateName($value);
+        if ($wrong !== null) {
+            return $wrong;
+        }
+        $reserved = array_filter(array_map('strtolower', [...self::RESERVED_NAMES, str_replace(' ', '', $grid)]));
+
+        return array_intersect(explode(' ', strtolower(trim((string) $value))), $reserved) !== []
+            ? sprintf(_('reserved (%s and the name of the grid)'), implode(', ', self::RESERVED_NAMES))
+            : null;
+    }
+
     /** The name in Latin letters without accents (the viewers lose the accents), every alphabet transliterated. */
     public static function normalizeName(string $name): string
     {
@@ -365,8 +406,9 @@ final class Avatar extends Model
      * @param array<string,mixed> $values `name` ("First Last") or `firstName` and `lastName`, `email`, and `password` or `passwordHash`
      *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
      *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
-     *        `active` false for an account that cannot log in yet
-     * @throws \InvalidArgumentException for a name that is not one, a missing password, a name taken
+     *        `active` false for an account that cannot log in yet; `reservedName` true for a name w4os keeps (a model: Default...)
+     * @throws InvalidValue for a name that is not one or is reserved or taken, a missing or wrong password, a wrong email, a model
+     *         that is not one; its reason says which
      * @throws ChannelUnavailable when a database cannot be reached or refuses
      */
     public static function create(GridConfig $config, array $values): static
@@ -375,14 +417,28 @@ final class Avatar extends Model
             ? array_pad(explode(' ', trim((string) $values['name']), 2), 2, '')
             : [(string) ($values['firstName'] ?? ''), (string) ($values['lastName'] ?? '')];
         if (self::validateName("$first $last") !== null) {
-            throw new \InvalidArgumentException(
+            throw InvalidValue::because(
+                'name-invalid',
                 "'$first $last' is not the name of an avatar: a first and a last name, letters, digits and -",
             );
+        }
+        if (
+            !Result::isTrue($values['reservedName'] ?? false) &&
+            ($wrong = self::validateNewName("$first $last", (string) $config->find('GridInfoService', 'gridname'))) !==
+                null
+        ) {
+            throw InvalidValue::because('name-reserved', "the name '$first $last' is $wrong");
         }
         $hash = isset($values['passwordHash']) ? (array) $values['passwordHash'] : null;
         $password = (string) ($values['password'] ?? '');
         if ($hash === null && $password === '') {
-            throw new \InvalidArgumentException("the avatar '$first $last' needs a password");
+            throw InvalidValue::because('password-required', "the avatar '$first $last' needs a password");
+        }
+        if ($hash === null && ($wrong = self::validatePassword($password)) !== null) {
+            throw InvalidValue::because('password-invalid', "the password is $wrong");
+        }
+        if (self::validateEmail($values['email'] ?? '') !== null) {
+            throw InvalidValue::because('email-invalid', "'{$values['email']}' is not an email");
         }
         $uuid = isset($values['uuid']) ? strtolower((string) $values['uuid']) : null;
         if ($uuid !== null && !Uuid::isValid($uuid)) {
@@ -396,13 +452,13 @@ final class Avatar extends Model
                 'l' => $last,
             ]) > 0
         ) {
-            throw new \InvalidArgumentException("an avatar called '$first $last' exists already");
+            throw InvalidValue::because('name-taken', "an avatar called '$first $last' exists already");
         }
         $outfit = null;
         if (trim((string) ($values['model'] ?? '')) !== '') {
             $model =
                 AvatarModel::find($config, trim((string) $values['model'])) ??
-                throw new \InvalidArgumentException("'{$values['model']}' is not an avatar model of the grid");
+                throw InvalidValue::because('model-unknown', "'{$values['model']}' is not an avatar model of the grid");
             $outfit = $model->outfit();
         }
 
@@ -459,10 +515,12 @@ final class Avatar extends Model
 
     /**
      * Change an avatar. The account: `email`, `title`, `level`, `active`; the password: `password`; the home: `home` (the id of a
-     * region); the profile it has: `about`, `profileUrl`, `wants`, `skills`, `languages`, `firstLife`. The name does not change.
+     * region); the profile: `about`, `profileUrl`, `wants`, `skills`, `languages`, `firstLife`, the profile being made as the grid
+     * makes it when the avatar has none yet. The name does not change. All is changed or nothing: the values are checked first, and
+     * each database is written in a transaction.
      *
-     * @throws ChannelUnavailable when a database cannot be reached, or the avatar has no profile to change
-     * @throws \InvalidArgumentException for a value that is not one of these
+     * @throws ChannelUnavailable when a database cannot be reached or refuses: nothing is changed
+     * @throws InvalidValue for a value that is not one of these, an empty password, an email that is not one
      */
     public function update(array $values): void
     {
@@ -472,99 +530,163 @@ final class Avatar extends Model
                 !isset(self::PROFILE_SETTINGS[$name]) &&
                 !in_array($name, ['password', 'home'], true)
             ) {
-                throw new \InvalidArgumentException("an avatar has no changeable '$name'");
+                throw InvalidValue::because('field-unknown', "an avatar has no changeable '$name'");
             }
         }
         if (isset($values['password']) && (string) $values['password'] === '') {
-            throw new \InvalidArgumentException('a password cannot be empty');
+            throw InvalidValue::because('password-required', 'a password cannot be empty');
         }
-        $action = 'change ' . $this->name();
+        if (isset($values['email']) && self::validateEmail($values['email']) !== null) {
+            throw InvalidValue::because('email-invalid', "'{$values['email']}' is not an email");
+        }
+        $id = $this->id();
+        $writes = [];
 
         $account = array_intersect_key($values, self::ACCOUNT_SETTINGS);
         if ($account !== []) {
             $set = [];
-            $params = ['id' => $this->id()];
+            $params = ['id' => $id];
             foreach ($account as $name => $value) {
                 $set[] = self::ACCOUNT_SETTINGS[$name] . " = :$name";
-                $params[$name] = $name === 'active' ? (int) (bool) $value : $value;
+                $params[$name] = $name === 'active' ? (int) (bool) $value : (is_string($value) ? trim($value) : $value);
             }
-            self::connect($this->config, 'UserAccountService', null, $action)->prepareAndExecute(
-                'UPDATE UserAccounts SET ' . implode(', ', $set) . ' WHERE PrincipalID = :id',
-                $params,
-            );
+            $writes[] = [
+                'UserAccountService',
+                static fn(OSPDO $pdo) => self::run(
+                    $pdo,
+                    'UPDATE UserAccounts SET ' . implode(', ', $set) . ' WHERE PrincipalID = :id',
+                    $params,
+                ),
+            ];
         }
-
         if (isset($values['password'])) {
-            $this->setPassword((string) $values['password'], $action);
+            $writes[] = ['AuthenticationService', self::passwordWrite($id, (string) $values['password'])];
         }
         if (isset($values['home'])) {
-            self::setHome($this->config, $this->id(), (string) $values['home']);
+            $writes[] = ['GridUserService', self::homeWrite($id, (string) $values['home'])];
         }
-
         $profile = array_intersect_key($values, self::PROFILE_SETTINGS);
         if ($profile !== []) {
-            $pdo = self::connect($this->config, Database::Profiles, null, $action);
-            if (
-                (int) $pdo->get_var('SELECT COUNT(*) FROM userprofile WHERE useruuid = :id', ['id' => $this->id()]) ===
-                0
-            ) {
-                throw ChannelUnavailable::for(
-                    $action,
-                    'the avatar has no profile yet: the grid makes it when the avatar opens it',
+            $writes[] = [Database::Profiles, self::profileWrite($id, $profile)];
+        }
+
+        self::writeAll($this->config, $writes, 'change ' . $this->name());
+    }
+
+    /**
+     * Write in the databases of their services, all or nothing: a transaction in each database, committed once every write is made.
+     *
+     * @param list<array{0:string,1:\Closure(OSPDO):mixed}> $writes the service (or Database::...) and what is written in its database
+     * @throws ChannelUnavailable when a database cannot be reached or refuses: what was written is rolled back
+     */
+    private static function writeAll(GridConfig $config, array $writes, string $action): void
+    {
+        $open = [];
+        try {
+            foreach ($writes as [$what, $write]) {
+                $pdo = self::connect($config, $what, null, $action);
+                if (!isset($open[spl_object_id($pdo)]) && !$pdo->inTransaction()) {
+                    $pdo->beginTransaction();
+                    $open[spl_object_id($pdo)] = $pdo;
+                }
+                $write($pdo);
+            }
+            foreach ($open as $pdo) {
+                $pdo->commit();
+            }
+        } catch (\Throwable $e) {
+            foreach ($open as $pdo) {
+                $pdo->inTransaction() && $pdo->rollBack();
+            }
+
+            throw $e instanceof \PDOException ? ChannelUnavailable::for($action, $e->getMessage()) : $e;
+        }
+    }
+
+    /** A statement that throws when the database refuses it (OSPDO's helpers only log it). */
+    private static function run(OSPDO $pdo, string $sql, array $params): \PDOStatement
+    {
+        $statement = $pdo->prepare($sql);
+        $statement->execute($params);
+
+        return $statement;
+    }
+
+    /** Whether a row is there, in a statement that counts it. */
+    private static function exists(OSPDO $pdo, string $sql, string $id): bool
+    {
+        return (int) self::run($pdo, $sql, ['id' => $id])->fetchColumn() > 0;
+    }
+
+    /** The password, as Robust keeps it: a new salt and the hash of the password with it. */
+    private static function passwordWrite(string $id, string $password): \Closure
+    {
+        return static function (OSPDO $pdo) use ($id, $password): void {
+            $salt = bin2hex(random_bytes(16));
+            $params = ['id' => $id, 'h' => AccountWriter::passwordHash($password, $salt), 's' => $salt];
+            if (self::exists($pdo, 'SELECT COUNT(*) FROM auth WHERE UUID = :id', $id)) {
+                self::run($pdo, 'UPDATE auth SET passwordHash = :h, passwordSalt = :s WHERE UUID = :id', $params);
+
+                return;
+            }
+            self::run(
+                $pdo,
+                'INSERT INTO auth (UUID, passwordHash, passwordSalt, webLoginKey, accountType) VALUES (:id, :h, :s, :k, :t)',
+                $params + ['k' => '00000000-0000-0000-0000-000000000000', 't' => 'UserAccount'],
+            );
+        };
+    }
+
+    /** The home of an avatar: the region and the position Robust gives to a home. */
+    private static function homeWrite(string $id, string $regionId): \Closure
+    {
+        return static function (OSPDO $pdo) use ($id, $regionId): void {
+            $params = ['id' => $id, 'r' => $regionId, 'p' => GridAccounts::HOME_POSITION, 'l' => '<0,1,0>'];
+            self::run(
+                $pdo,
+                self::exists($pdo, 'SELECT COUNT(*) FROM GridUser WHERE UserID = :id', $id)
+                    ? 'UPDATE GridUser SET HomeRegionID = :r, HomePosition = :p, HomeLookAt = :l WHERE UserID = :id'
+                    : 'INSERT INTO GridUser (UserID, HomeRegionID, HomePosition, HomeLookAt) VALUES (:id, :r, :p, :l)',
+                $params,
+            );
+        };
+    }
+
+    /**
+     * The profile of an avatar, made first when the grid has not made it yet (the avatar never opened it): with the values the grid
+     * gives a new one, every column of userprofile being required.
+     *
+     * @param array<string,mixed> $profile values by the names of PROFILE_SETTINGS
+     */
+    private static function profileWrite(string $id, array $profile): \Closure
+    {
+        return static function (OSPDO $pdo) use ($id, $profile): void {
+            if (!self::exists($pdo, 'SELECT COUNT(*) FROM userprofile WHERE useruuid = :id', $id)) {
+                $new = ['useruuid' => $id] + self::NEW_PROFILE;
+                self::run(
+                    $pdo,
+                    'INSERT INTO userprofile (' .
+                        implode(', ', array_keys($new)) .
+                        ') VALUES (:' .
+                        implode(', :', array_keys($new)) .
+                        ')',
+                    $new,
                 );
             }
             $set = [];
-            $params = ['id' => $this->id()];
+            $params = ['id' => $id];
             foreach ($profile as $name => $value) {
                 $set[] = self::PROFILE_SETTINGS[$name] . " = :$name";
                 $params[$name] = (string) $value;
             }
-            $pdo->prepareAndExecute('UPDATE userprofile SET ' . implode(', ', $set) . ' WHERE useruuid = :id', $params);
-        }
+            self::run($pdo, 'UPDATE userprofile SET ' . implode(', ', $set) . ' WHERE useruuid = :id', $params);
+        };
     }
 
-    /** The password, as Robust keeps it: a new salt and the hash of the password with it. */
-    private function setPassword(string $password, string $action): void
-    {
-        $pdo = self::connect($this->config, 'AuthenticationService', null, $action);
-        $salt = bin2hex(random_bytes(16));
-        $hash = AccountWriter::passwordHash($password, $salt);
-        $changed = $pdo->prepareAndExecute('UPDATE auth SET passwordHash = :h, passwordSalt = :s WHERE UUID = :id', [
-            'h' => $hash,
-            's' => $salt,
-            'id' => $this->id(),
-        ]);
-        if ($changed !== false && $changed->rowCount() > 0) {
-            return;
-        }
-        $pdo->prepareAndExecute(
-            'INSERT INTO auth (UUID, passwordHash, passwordSalt, webLoginKey, accountType) VALUES (:id, :h, :s, :k, :t)',
-            [
-                'id' => $this->id(),
-                'h' => $hash,
-                's' => $salt,
-                'k' => '00000000-0000-0000-0000-000000000000',
-                't' => 'UserAccount',
-            ],
-        );
-    }
-
-    /** The home of an avatar: the region and the position Robust gives to a home. */
+    /** The home of an avatar that is made. */
     private static function setHome(GridConfig $config, string $id, string $regionId): void
     {
-        $pdo = self::connect($config, 'GridUserService', null, 'set the home of ' . $id);
-        $params = ['id' => $id, 'r' => $regionId, 'p' => GridAccounts::HOME_POSITION, 'l' => '<0,1,0>'];
-        $changed = $pdo->prepareAndExecute(
-            'UPDATE GridUser SET HomeRegionID = :r, HomePosition = :p, HomeLookAt = :l WHERE UserID = :id',
-            $params,
-        );
-        if ($changed !== false && $changed->rowCount() > 0) {
-            return;
-        }
-        $pdo->prepareAndExecute(
-            'INSERT INTO GridUser (UserID, HomeRegionID, HomePosition, HomeLookAt) VALUES (:id, :r, :p, :l)',
-            $params,
-        );
+        self::writeAll($config, [['GridUserService', self::homeWrite($id, $regionId)]], 'set the home of ' . $id);
     }
 
     public function enable(): bool

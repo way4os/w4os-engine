@@ -14,6 +14,7 @@ use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
 use OpenSim\Models\Avatar;
 use OpenSim\Exceptions\ChannelUnavailable;
+use OpenSim\Exceptions\InvalidValue;
 
 /** A grid folder whose Robust says its web address and its databases. */
 function avatar_grid(string $extra = ''): GridConfig
@@ -491,18 +492,106 @@ describe('An avatar that is changed', function () {
         );
     });
 
-    test('has no profile to change before the grid made it, and an empty password is refused', function () {
-        avatars_in(avatar_creation_database());
+    test('has its profile made when the grid has not made it yet, as Robust makes it', function () {
+        $pdo = avatar_creation_database();
+        // The profiles as Robust makes them: every column required, none with a default
+        $pdo->exec('DROP TABLE userprofile');
+        $pdo->exec(
+            'CREATE TABLE userprofile (useruuid VARCHAR(36) NOT NULL PRIMARY KEY, profilePartner VARCHAR(36) NOT NULL, profileAllowPublish BINARY(1) NOT NULL, profileMaturePublish BINARY(1) NOT NULL, profileURL VARCHAR(255) NOT NULL, profileWantToMask INT NOT NULL, profileWantToText TEXT NOT NULL, profileSkillsMask INT NOT NULL, profileSkillsText TEXT NOT NULL, profileLanguages TEXT NOT NULL, profileImage VARCHAR(36) NOT NULL, profileAboutText TEXT NOT NULL, profileFirstImage VARCHAR(36) NOT NULL, profileFirstText TEXT NOT NULL)',
+        );
+        avatars_in($pdo);
         $bob = Avatar::find(avatar_grid(), 'Bob Root');
 
-        expect(fn() => $bob->update(['about' => 'x']))
-            ->toThrow(ChannelUnavailable::class, 'no profile')
-            ->and(fn() => $bob->update(['password' => '']))
+        $bob->update(['about' => 'Hi', 'email' => 'bob@new.example.org']);
+        $bob->update(['wants' => 'a boat']);
+        $row = $pdo->get_row('SELECT * FROM userprofile WHERE useruuid = :id', ['id' => $bob->id()], PDO::FETCH_ASSOC);
+        $detail = Avatar::find(avatar_grid(), 'Bob Root')->detail();
+
+        expect($row)
+            ->toMatchArray([
+                'profileAboutText' => 'Hi',
+                'profileWantToText' => 'a boat',
+                'profilePartner' => '00000000-0000-0000-0000-000000000000',
+                'profileImage' => '00000000-0000-0000-0000-000000000000',
+                'profileURL' => '',
+                'profileSkillsText' => '',
+            ])
+            ->and($detail['email'])
+            ->toBe('bob@new.example.org')
+            ->and($detail['about'])
+            ->toBe('Hi');
+    });
+
+    test('is changed all or not at all: nothing changes when a part cannot be written', function () {
+        $pdo = avatar_creation_database();
+        $pdo->exec("CREATE TRIGGER refuse BEFORE UPDATE ON userprofile BEGIN SELECT RAISE(ABORT, 'refused'); END");
+        avatars_in($pdo);
+        $config = avatar_grid();
+        $ada = Avatar::find($config, 'Ada Love');
+
+        expect(fn() => $ada->update(['email' => 'ada@new.example.org', 'password' => 'brand-new', 'about' => 'x']))
+            ->toThrow(ChannelUnavailable::class)
+            ->and(Avatar::find($config, 'Ada Love')->detail()['email'])
+            ->toBe('ada@example.org')
+            ->and($pdo->get_var('SELECT passwordHash FROM auth WHERE UUID = :id', ['id' => $ada->id()]))
+            ->toBe('old')
+            ->and(fn() => $ada->update(['password' => '']))
             ->toThrow(InvalidArgumentException::class);
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
 describe('An avatar that is made', function () {
+    test('has no part of its name w4os keeps: Default, Test, Admin, the name of the grid, in any case', function () {
+        expect(Avatar::validateName('Admin Person'))
+            ->toBeNull()
+            ->and(Avatar::validateNewName('Admin Person'))
+            ->toContain('reserved')
+            ->and(Avatar::validateNewName('jane TEST'))
+            ->toContain('reserved')
+            ->and(Avatar::validateNewName('Jane Mygrid', 'My Grid'))
+            ->toContain('reserved')
+            ->and(Avatar::validateNewName('Jane Doe', 'My Grid'))
+            ->toBeNull()
+            ->and(Avatar::validateNewName('Defaulter Doe'))
+            ->toBeNull()
+            ->and(Avatar::validateNewName('Jane'))
+            ->toContain('invalid');
+    });
+
+    test('is refused a reserved name, but for whoever says it is one on purpose (a model)', function () {
+        avatars_in(avatar_creation_database());
+        $config = avatar_grid("[GridInfoService]\n gridname = \"My Grid\"\n");
+        $refusal = static function (array $values) use ($config): ?InvalidValue {
+            try {
+                Avatar::create($config, $values + ['password' => 'secret']);
+            } catch (InvalidValue $e) {
+                return $e;
+            }
+
+            return null;
+        };
+
+        expect($refusal(['name' => 'Default Jane'])?->reason)
+            ->toBe('name-reserved')
+            ->and($refusal(['name' => 'Jane MYGRID'])?->reason)
+            ->toBe('name-reserved')
+            ->and($refusal(['name' => 'Jane'])?->reason)
+            ->toBe('name-invalid')
+            ->and($refusal(['name' => 'Ada Love'])?->reason)
+            ->toBe('name-taken')
+            ->and($refusal(['name' => 'Jane Doe', 'password' => ''])?->reason)
+            ->toBe('password-required')
+            ->and($refusal(['name' => 'Jane Doe', 'password' => 'no'])?->reason)
+            ->toBe('password-invalid')
+            ->and($refusal(['name' => 'Jane Doe', 'email' => 'not an email'])?->reason)
+            ->toBe('email-invalid')
+            ->and($refusal(['name' => 'Jane Doe', 'model' => 'Nobody'])?->reason)
+            ->toBe('model-unknown')
+            ->and(Avatar::create($config, ['name' => 'Default Jane', 'password' => 'secret', 'reservedName' => true]))
+            ->name()
+            ->toBe('Default Jane');
+    });
+
     test('has its account, its password, its inventory and its outfit, each in its table', function () {
         $pdo = avatar_creation_database();
         avatars_in($pdo);
@@ -569,13 +658,13 @@ describe('An avatar that is made', function () {
             avatars_in(avatar_creation_database());
             $config = avatar_grid();
 
-            expect(fn() => Avatar::create($config, ['name' => 'Single', 'password' => 'x']))
+            expect(fn() => Avatar::create($config, ['name' => 'Single', 'password' => 'secret']))
                 ->toThrow(InvalidArgumentException::class, 'not the name')
-                ->and(fn() => Avatar::create($config, ['name' => 'Ada Love', 'password' => 'x']))
+                ->and(fn() => Avatar::create($config, ['name' => 'Ada Love', 'password' => 'secret']))
                 ->toThrow(InvalidArgumentException::class, 'exists already')
                 ->and(fn() => Avatar::create($config, ['name' => 'No Password']))
                 ->toThrow(InvalidArgumentException::class, 'needs a password')
-                ->and(fn() => Avatar::create($config, ['name' => 'Bad Uuid', 'password' => 'x', 'uuid' => 'nope']))
+                ->and(fn() => Avatar::create($config, ['name' => 'Bad Uuid', 'password' => 'secret', 'uuid' => 'nope']))
                 ->toThrow(InvalidArgumentException::class, 'not a UUID')
                 ->and(Avatar::find($config, 'Bad Uuid'))
                 ->toBeNull();
@@ -586,7 +675,7 @@ describe('An avatar that is made', function () {
         avatars_in(avatar_creation_database());
         Connections::using(static fn() => null);
 
-        expect(fn() => Avatar::create(avatar_grid(), ['name' => 'Lost Soul', 'password' => 'x']))->toThrow(
+        expect(fn() => Avatar::create(avatar_grid(), ['name' => 'Lost Soul', 'password' => 'secret']))->toThrow(
             ChannelUnavailable::class,
         );
     });
@@ -706,7 +795,7 @@ describe('An avatar made in a grid whose services have their own databases', fun
                 "[InventoryService]\n ConnectionString = \"Data Source=localhost;Database=inventory;User ID=os;Password=pw;\"\n",
         );
 
-        $new = Avatar::create($config, ['name' => 'Split Rows', 'password' => 'x']);
+        $new = Avatar::create($config, ['name' => 'Split Rows', 'password' => 'secret']);
 
         expect((int) $accounts->get_var('SELECT COUNT(*) FROM UserAccounts'))
             ->toBe(1)

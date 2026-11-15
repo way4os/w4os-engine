@@ -49,8 +49,9 @@ final class AccountImporter
 
                 return is_string($id) && preg_match('/^[0-9a-fA-F-]{36}$/', $id) === 1 ? $id : null;
             },
+            // The accounts of a list exist elsewhere: their names are taken as they are, reserved or not
             static function (Grid $grid, array $values) use ($config): void {
-                Avatar::create($config($grid), $values);
+                Avatar::create($config($grid), $values + ['reservedName' => true]);
             },
         );
     }

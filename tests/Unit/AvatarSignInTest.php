@@ -13,6 +13,7 @@ use OpenSim\Api\Router;
 use OpenSim\Data\Connections;
 use OpenSim\Data\OSPDO;
 use OpenSim\Provisioning\AccountWriter;
+use OpenSim\SignIn\AvatarTokens;
 use OpenSim\SignIn\DatabaseAuthenticator;
 use OpenSim\SignIn\SignInResult;
 
@@ -134,12 +135,39 @@ describe('The API, for the sign-in of an avatar', function () {
             ->toBe('urn:opensim:problem:sign-in-refused')
             ->and($refused->document['detail'])
             ->toBe('The name or the password is wrong.')
+            ->and($refused->document['code'])
+            ->toBe('sign-in-refused')
             ->and($inactive->status)
             ->toBe(403)
             ->and($inactive->document['detail'])
             ->toContain('not active')
+            ->and($inactive->document['code'])
+            ->toBe('account-disabled')
             ->and($nothing->status)
-            ->toBe(400);
+            ->toBe(400)
+            ->and($nothing->document['code'])
+            ->toBe('invalid-request');
+    });
+
+    test('tells an avatar that waits for the confirmation of its email from one a manager disabled', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        $tokens = new AvatarTokens($pdo, new OpenSim\Testing\ClockFake());
+        $tokens->issue(CY, AvatarTokens::EMAIL_CONFIRMATION, 60, 'cy@example.org');
+
+        $waiting = (new DatabaseAuthenticator(avatar_grid()))->authenticate('Cy Gone', 'cy-secret');
+        $answer = (new Router(machine_api(avatar_grid())))->post('/grids/demo/sign-ins', [
+            'data' => ['type' => 'sign-ins', 'attributes' => ['name' => 'Cy Gone', 'password' => 'cy-secret']],
+        ]);
+
+        expect($waiting->code)
+            ->toBe('email-unconfirmed')
+            ->and($answer->status)
+            ->toBe(403)
+            ->and($answer->document['code'])
+            ->toBe('email-unconfirmed')
+            ->and($answer->document['detail'])
+            ->toContain('not confirmed');
     });
 
     test('is unavailable without a database, and unknown for a grid that is not here', function () {

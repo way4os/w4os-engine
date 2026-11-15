@@ -10,19 +10,30 @@ use OpenSim\Models\Asset;
 use OpenSim\Models\Grid;
 use OpenSim\Models\Image;
 use OpenSim\Network\GridInfoReader;
+use OpenSim\Provisioning\ResourceRegistry;
 use OpenSim\Support\FileCache;
 use OpenSim\Text\Uuid;
 
 /**
  * The assets of a grid for the web: asked by their id, as a picture in the format of a page when they are images, whatever the type (texture, TGA, JPEG: the grid keeps
  * them as JPEG 2000), as they are for the other types. What the grid gave and what was converted are kept for a day; an id that
- * is nothing, or an asset that cannot be had or converted, is the picture of nothing.
+ * is nothing, or an asset that cannot be had or converted, is the picture of nothing: the one of the kit (w4os's), else a transparent
+ * pixel.
  *
  *     $web = WebAssets::for($grid);
  *     ['data' => $bytes, 'mime' => $type] = $web->get('cb2052ae-d161-43e9-b11b-c834217823cd', 'png');
  */
 final class WebAssets
 {
+    /**
+     * The id w4os gives the picture of what has none (W4OS_NOTFOUND_IMG): no grid has it, it is the picture of nothing of the kit,
+     * found.
+     */
+    public const PLACEHOLDER = '201ce950-aa38-46d8-a8f1-4396e9d6be00';
+
+    /** The picture of nothing of the kit, in its share folder (the one of w4os). */
+    public const PLACEHOLDER_FILE = 'share/images/assets-no-img.png';
+
     /** A transparent pixel: what is shown for what has no picture, when nothing better is given. */
     private const NOTHING = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
@@ -51,7 +62,20 @@ final class WebAssets
             new FileCache("$folder/sources", 86400, $grid->environment()->clock),
             $converter ?? new ImagickConverter(),
             $grid->environment()->http,
+            self::placeholderFile(),
         );
+    }
+
+    /** The picture of nothing of the kit, null when it is not installed. */
+    public static function placeholderFile(): ?string
+    {
+        foreach (ResourceRegistry::roots() as $root) {
+            if (is_file($root . '/' . self::PLACEHOLDER_FILE)) {
+                return $root . '/' . self::PLACEHOLDER_FILE;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -70,6 +94,9 @@ final class WebAssets
         $name = $width !== null ? "$id-$width.$format" : "$id.$format";
         if (!Uuid::isValid($id)) {
             return $this->nothing();
+        }
+        if ($id === self::PLACEHOLDER) {
+            return ['found' => true] + $this->nothing();
         }
         if (($done = $this->converted->get($name)) !== null) {
             return [

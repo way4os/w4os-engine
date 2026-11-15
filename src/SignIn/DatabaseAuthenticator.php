@@ -9,6 +9,7 @@ use OpenSim\Data\Connections;
 use OpenSim\Data\OSPDO;
 use OpenSim\Models\Avatar as AvatarModel;
 use OpenSim\Provisioning\AccountWriter;
+use OpenSim\Runtime\SystemClock;
 
 /**
  * Signs an avatar of the grid in with the databases of its services: the account by its name ("First Last", "First.Last") or its
@@ -61,7 +62,12 @@ final class DatabaseAuthenticator implements AvatarAuthenticator
                     continue;
                 }
                 if ((int) ($row['active'] ?? 1) !== 1) {
-                    return SignInResult::refused(_('The account is not active'));
+                    return self::waitsForConfirmation($auth, (string) $row['PrincipalID'])
+                        ? SignInResult::refused(
+                            _('The account is not active: its email is not confirmed yet'),
+                            'email-unconfirmed',
+                        )
+                        : SignInResult::refused(_('The account is not active'), 'account-disabled');
                 }
 
                 return SignInResult::granted(
@@ -86,6 +92,16 @@ final class DatabaseAuthenticator implements AvatarAuthenticator
     public function opensSession(): bool
     {
         return false;
+    }
+
+    /** Whether an account that is not active waits for the confirmation of its email, rather than being disabled by a manager. */
+    private static function waitsForConfirmation(OSPDO $auth, string $id): bool
+    {
+        try {
+            return (new AvatarTokens($auth, new SystemClock()))->pending($id, AvatarTokens::EMAIL_CONFIRMATION);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /** Whether the password is the one Robust keeps for the account: MD5(MD5(password) + ':' + salt). */

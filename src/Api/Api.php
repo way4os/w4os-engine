@@ -7,6 +7,7 @@ namespace OpenSim\Api;
 use OpenSim\Result;
 use OpenSim\Config\GridConfig;
 use OpenSim\Exceptions\ChannelUnavailable;
+use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Exceptions\NotFound;
 use OpenSim\Interfaces\ModelInterface;
 use OpenSim\Assets\ConverterInterface;
@@ -256,7 +257,10 @@ final class Api
             $confirm = $type === 'avatars' && Result::isTrue($attributes['confirmEmail'] ?? false);
             if ($confirm) {
                 if (!Avatar::validEmail(trim((string) ($attributes['email'] ?? '')))) {
-                    throw new \InvalidArgumentException('an avatar whose email is to be confirmed needs an email');
+                    throw InvalidValue::because(
+                        'email-required',
+                        'an avatar whose email is to be confirmed needs an email',
+                    );
                 }
                 $attributes['active'] = false;
             }
@@ -265,11 +269,11 @@ final class Api
                 : $class::create($this->gridConfig((string) $grid), $attributes);
             $meta = [];
             if ($confirm && $created instanceof Avatar) {
-                $given = $this->access((string) $grid)->requestEmailConfirmation(
-                    $created,
-                    self::link($attributes),
+                $send = !Result::isFalse($attributes['send'] ?? true);
+                $meta = self::confirmation(
+                    $this->access((string) $grid)->requestEmailConfirmation($created, self::link($attributes), $send),
+                    $send,
                 );
-                $meta['emailConfirmation'] = $given['sent'] ? 'sent' : 'not sent';
             }
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -297,11 +301,36 @@ final class Api
             if ($model instanceof Response) {
                 return $model;
             }
+            // A new email of an avatar waits for its confirmation: it is checked before anything changes, and changed by its token
+            $email = null;
+            $options = [];
+            if ($model instanceof Avatar) {
+                $options = array_intersect_key($attributes, ['confirmEmail' => 1, 'link' => 1, 'send' => 1]);
+                $attributes = array_diff_key($attributes, $options);
+                if (Result::isTrue($options['confirmEmail'] ?? false) && array_key_exists('email', $attributes)) {
+                    $asked = trim((string) $attributes['email']);
+                    unset($attributes['email']);
+                    if (!Avatar::validEmail($asked)) {
+                        throw InvalidValue::because('email-invalid', "'$asked' is not an email");
+                    }
+                    if (strtolower($asked) !== strtolower((string) ($model->detail()['email'] ?? ''))) {
+                        $email = $asked;
+                    }
+                }
+            }
             if (array_key_exists('enabled', $attributes)) {
                 Result::isTrue($attributes['enabled']) ? $model->enable() : $model->disable();
                 unset($attributes['enabled']);
             }
             $attributes !== [] && $model->update($attributes);
+            $meta = [];
+            if ($email !== null) {
+                $send = !Result::isFalse($options['send'] ?? true);
+                $meta = self::confirmation(
+                    $this->access((string) $grid)->requestEmailChange($model, $email, self::link($options), $send),
+                    $send,
+                );
+            }
             $model = $this->find($type, $id, $grid, $instance);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -309,7 +338,10 @@ final class Api
 
         return $model instanceof Response
             ? $model
-            : Response::document(['data' => self::resource($type, $model, $grid), 'links' => ['self' => $instance]]);
+            : Response::document(
+                ['data' => self::resource($type, $model, $grid), 'links' => ['self' => $instance]] +
+                    ($meta !== [] ? ['meta' => $meta] : []),
+            );
     }
 
     /** Delete a resource, when a channel can. */
@@ -352,9 +384,10 @@ final class Api
             }
             if (!$result->isGranted() || $result->avatar === null) {
                 return Response::problem(
-                    new Problem(
+                    Problem::coded(
                         403,
                         'Refused',
+                        $result->code !== '' ? $result->code : 'sign-in-refused',
                         $result->reason !== '' ? $result->reason . '.' : 'The name or the password is wrong.',
                         'urn:opensim:problem:sign-in-refused',
                         $instance,
@@ -456,7 +489,16 @@ final class Api
             $send = !Result::isFalse($attributes['send'] ?? true);
             $given = $access->requestEmailConfirmation($avatar, self::link($attributes), $send);
             if ($send && !$given['sent']) {
-                throw ChannelUnavailable::for('send the mail', 'the mail system of the machine refused it');
+                return Response::problem(
+                    Problem::coded(
+                        503,
+                        'Not available',
+                        'mail-failed',
+                        'cannot send the mail: the mail system of the machine refused it',
+                        'urn:opensim:problem:channel-unavailable',
+                        $instance,
+                    ),
+                );
             }
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -1046,6 +1088,30 @@ final class Api
         );
     }
 
+    /**
+     * What is said of the confirmation of an email, in the meta of the avatar: `emailConfirmation` sent, not sent (the mail failed)
+     * or given, and the token in `confirmation` when it is given instead of mailed.
+     *
+     * @param array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string} $given
+     * @return array<string,mixed>
+     */
+    private static function confirmation(array $given, bool $send): array
+    {
+        if ($send) {
+            return ['emailConfirmation' => $given['sent'] ? 'sent' : 'not sent'];
+        }
+
+        return [
+            'emailConfirmation' => 'given',
+            'confirmation' => [
+                'token' => $given['token'],
+                'expires' => $given['expires'],
+                'link' => $given['link'],
+                'email' => $given['email'],
+            ],
+        ];
+    }
+
     /** The page that takes a token, as the caller gives it. @param array<string,mixed> $attributes */
     private static function link(array $attributes): ?string
     {
@@ -1057,7 +1123,7 @@ final class Api
     /**
      * A token given back instead of mailed, as a resource of the type of the operation.
      *
-     * @param array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool} $given
+     * @param array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string} $given
      * @return array<string,mixed>
      */
     private static function given(string $type, array $given): array

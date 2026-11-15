@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Assets\WebAssets;
 use OpenSim\Config\GridConfig;
 use OpenSim\Data\Collection;
 use OpenSim\Data\Connections;
@@ -26,7 +27,7 @@ use OpenSim\Text\Uuid;
 final class AvatarModel extends Model
 {
     /** The picture of a model that has none: the "image not found" texture w4os shows. */
-    public const PLACEHOLDER = '201ce950-aa38-46d8-a8f1-4396e9d6be00';
+    public const PLACEHOLDER = WebAssets::PLACEHOLDER;
 
     private const ZERO = '00000000-0000-0000-0000-000000000000';
 

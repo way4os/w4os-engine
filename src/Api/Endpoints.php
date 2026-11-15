@@ -39,7 +39,7 @@ final class Endpoints
             [
                 'name' => 'Avatar access',
                 'description' =>
-                    "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them; a forgotten password; the confirmation of the email of a new avatar.\n\nA forgotten password and a confirmation are a one-time token, kept hashed in the database of the passwords (`avatar_tokens`), mailed to the avatar with a link to the page that takes it: the `link` the caller gives (`{token}` in it is replaced by the token, else `token=` is added), else the page of the grid (`password` of `[GridInfoService]` for a password, `register` for a confirmation). The mail gives the token as a code too. Whoever cannot mail it (no mail system, an administrator, an agent that delivers it otherwise) sends `send: false` and gets the token instead. The mails come from `MailSender` of `[Helpers]`, else no-reply@ the host of the grid.\n\nA token is valid once: a day for a password, two days for a confirmation (the avatar may ask for another one). An avatar has one token at a time for each.",
+                    "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them; a forgotten password; the confirmation of the email of a new avatar, or of a new email (`confirmEmail` of a change of an avatar: the email changes once it is confirmed).\n\nEvery problem has a `code` that says what went wrong, for a site to tell it in its own language: `sign-in-refused`, `account-disabled` (a manager disabled it), `email-unconfirmed` (it waits for the confirmation of its email), `name-reserved`, `name-taken`, `token-refused`... (see the Problem schema). The `detail` is the English one.\n\nA forgotten password and a confirmation are a one-time token, kept hashed in the database of the passwords (`avatar_tokens`), mailed to the avatar with a link to the page that takes it: the `link` the caller gives (`{token}` in it is replaced by the token, else `token=` is added), else the page of the grid (`password` of `[GridInfoService]` for a password, `register` for a confirmation). The mail gives the token as a code too. Whoever cannot mail it (no mail system, an administrator, an agent that delivers it otherwise) sends `send: false` and gets the token instead. The mails come from `MailSender` of `[Helpers]`, else no-reply@ the host of the grid.\n\nA token is valid once: a day for a password, two days for a confirmation (the avatar may ask for another one). An avatar has one token at a time for each.",
             ],
             [
                 'name' => 'Health',
@@ -719,7 +719,7 @@ final class Endpoints
             'sign-ins',
             'signIn',
             'Sign an avatar in',
-            'Checks the name (`First Last`, `First.Last`) or the email of an avatar of the grid, and its password, against what Robust keeps; no session is opened in the world. The avatar when they are right. A wrong name and a wrong password are refused alike; an account that is not active is refused once its password is right, and the problem says so. An email several avatars share signs in the oldest of them whose password it is.',
+            'Checks the name (`First Last`, `First.Last`) or the email of an avatar of the grid, and its password, against what Robust keeps; no session is opened in the world. The avatar when they are right. A wrong name and a wrong password are refused alike (`sign-in-refused`); an account that is not active is refused once its password is right, and the code says why: `email-unconfirmed` while it waits for the confirmation of its email, else `account-disabled`. An email several avatars share signs in the oldest of them whose password it is.',
             [
                 'name' => ['string', 'First Last, or First.Last'],
                 'email' => ['string', 'The email of the avatar, instead of its name'],
@@ -738,7 +738,9 @@ final class Endpoints
                     ],
                 ],
                 '400' => Contract::problem('No name or email, or no password'),
-                '403' => Contract::problem('The name or the password is wrong, or the account is not active'),
+                '403' => Contract::problem(
+                    'The name or the password is wrong (`sign-in-refused`), or the account is not active (`email-unconfirmed`, `account-disabled`)',
+                ),
                 '404' => Contract::problem('The grid is not known here'),
                 '503' => Contract::problem('The database of the accounts cannot be reached'),
             ],
@@ -861,7 +863,7 @@ final class Endpoints
             'email-confirmations',
             'confirmEmail',
             'Confirm an email',
-            'Confirms the email of the avatar a token was given to, and activates the avatar: it can log in. The token is valid once, and only for the email the avatar has.',
+            'Confirms the email a token was given for, once. The token of a new avatar activates it: it can log in; it is valid only for the email the avatar has. The token of a new email (`confirmEmail` of a change of the avatar) changes its email, the avatar staying as active as it is.',
             ['token' => ['string', 'The token of the mail']],
             [
                 '200' => $avatar,

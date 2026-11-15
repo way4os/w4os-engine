@@ -230,23 +230,40 @@ final class Contract
                 'active' => ['boolean', 'The account can log in (the default)'],
                 'confirmEmail' => [
                     'boolean',
-                    'The avatar is made inactive and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says whether the mail was sent',
+                    'The avatar is made inactive and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`',
                 ],
                 'link' => ['string', 'With confirmEmail: the page that takes the token, `{token}` in it'],
+                'send' => [
+                    'boolean',
+                    'With confirmEmail, false: the token is not mailed but given in `meta.confirmation` (`token`, `expires`, `link`, `email`), for whoever delivers it',
+                ],
+                'reservedName' => [
+                    'boolean',
+                    'The name may have a part w4os keeps (Default, Test, Admin, the name of the grid): an avatar model, made on purpose. Without it such a name is refused (`name-reserved`)',
+                ],
             ],
             'writable' => [
-                'email' => ['string', ''],
+                'email' => ['string', 'Changed at once, or once it is confirmed with confirmEmail'],
                 'title' => ['string', ''],
                 'level' => ['integer', ''],
                 'active' => ['boolean', ''],
                 'password' => ['string', 'A new password'],
                 'home' => ['string', 'The UUID of the home region'],
-                'about' => ['string', 'Of the profile the avatar has'],
+                'about' => ['string', 'Of its profile, made when the avatar has none yet'],
                 'profileUrl' => ['string', ''],
                 'wants' => ['string', ''],
                 'skills' => ['string', ''],
                 'languages' => ['string', ''],
                 'firstLife' => ['string', ''],
+                'confirmEmail' => [
+                    'boolean',
+                    'The new email is not changed but mailed a token to confirm it (see Avatar access), which changes it; the avatar stays as active as it is. `meta.emailConfirmation` says `sent`, `not sent` or `given`',
+                ],
+                'link' => ['string', 'With confirmEmail: the page that takes the token, `{token}` in it'],
+                'send' => [
+                    'boolean',
+                    'With confirmEmail, false: the token is given in `meta.confirmation` instead of mailed',
+                ],
             ],
             'deletable' => true,
         ],
@@ -484,12 +501,26 @@ final class Contract
             'Problem' => [
                 'type' => 'object',
                 'description' => 'RFC 9457 problem details',
-                'required' => ['title', 'status'],
+                'required' => ['title', 'status', 'code'],
                 'properties' => [
                     'type' => ['type' => 'string', 'description' => 'A URN that names the kind of problem'],
                     'title' => ['type' => 'string'],
                     'status' => ['type' => 'integer'],
-                    'detail' => ['type' => 'string'],
+                    'code' => [
+                        'type' => 'string',
+                        'enum' => array_keys(Problem::CODES),
+                        'description' =>
+                            'What went wrong, stable: what a site tells its people in its own language (the detail is the English one). ' .
+                            implode(
+                                '; ',
+                                array_map(
+                                    static fn(string $code, string $says): string => "`$code`: $says",
+                                    array_keys(Problem::CODES),
+                                    Problem::CODES,
+                                ),
+                            ),
+                    ],
+                    'detail' => ['type' => 'string', 'description' => 'What went wrong, in English'],
                     'instance' => ['type' => 'string', 'description' => 'The address that was asked'],
                 ],
             ],
@@ -557,7 +588,7 @@ final class Contract
                     'responses' => [
                         '201' => self::documentResponse('Made; its address is in the Location header', $schema, false),
                         '400' => self::problem(
-                            'A value is wrong: a name that is not one, one that is taken, no password',
+                            'A value is wrong, `code` says which: a name that is not one, reserved or taken, no password or a wrong one, a wrong email, an unknown model',
                         ),
                         '503' => self::problem('A database cannot be reached'),
                     ],

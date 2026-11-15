@@ -6,6 +6,7 @@ namespace OpenSim\SignIn;
 
 use OpenSim\Config\GridConfig;
 use OpenSim\Data\Connections;
+use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Models\Avatar;
 use OpenSim\Runtime\ClockInterface;
 use OpenSim\Services\MailerInterface;
@@ -51,7 +52,7 @@ final class AvatarAccess
      * @param string $login "First Last", "First.Last", or an email (every avatar that has it)
      * @param ?string $link the page that takes the token (see the class)
      * @param bool $send mail it; false gives the token to the caller and mails nothing
-     * @return list<array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool}> none when the name or the email is nobody's
+     * @return list<array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}> none when the name or the email is nobody's
      * @throws \InvalidArgumentException for a link that is not a web address
      * @throws \OpenSim\Exceptions\ChannelUnavailable when the databases cannot be reached
      */
@@ -93,7 +94,7 @@ final class AvatarAccess
     {
         $wrong = Avatar::validatePassword($password);
         if ($wrong !== null) {
-            throw new \InvalidArgumentException("the password is $wrong");
+            throw InvalidValue::because('password-invalid', "the password is $wrong");
         }
         $given = $this->tokens()->redeem($token, AvatarTokens::PASSWORD_RESET);
         $avatar = $given === null ? null : Avatar::find($this->config, $given['avatar']);
@@ -116,14 +117,14 @@ final class AvatarAccess
      * it, or one that waits for it (a new token replaces the last). An avatar an administrator disabled is never given one: its token
      * would activate it.
      *
-     * @return array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool}
+     * @return array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}
      * @throws \InvalidArgumentException for an avatar that has no email, or a link that is not a web address
      */
     public function requestEmailConfirmation(Avatar $avatar, ?string $link = null, bool $send = true): array
     {
         $email = (string) ($avatar->detail()['email'] ?? '');
         if (!Avatar::validEmail($email)) {
-            throw new \InvalidArgumentException("the avatar {$avatar->name()} has no email to confirm");
+            throw InvalidValue::because('email-required', "the avatar {$avatar->name()} has no email to confirm");
         }
 
         return $this->give(
@@ -144,14 +145,52 @@ final class AvatarAccess
     }
 
     /**
-     * Confirm the email of the avatar a token was given to, once: the avatar is activated. A token for an email the avatar does not
-     * have any more is refused.
+     * Give a token to confirm a new email of an avatar, mailed to that email unless `send` is false: the avatar keeps its email until
+     * the new one is confirmed, as WordPress does for w4os. The avatar stays as active as it is.
+     *
+     * @return array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}
+     * @throws \InvalidArgumentException for an email that is not one, or a link that is not a web address
+     */
+    public function requestEmailChange(Avatar $avatar, string $email, ?string $link = null, bool $send = true): array
+    {
+        $email = trim($email);
+        if (!Avatar::validEmail($email)) {
+            throw InvalidValue::because('email-invalid', "'$email' is not an email");
+        }
+
+        return $this->give(
+            $avatar,
+            AvatarTokens::EMAIL_CHANGE,
+            self::CONFIRMATION_TTL,
+            $email,
+            $link ?? $this->config->find('GridInfoService', 'register'),
+            $send,
+            sprintf(_('[%1$s] Confirm the new email of %2$s'), $this->grid, $avatar->name()),
+            sprintf(
+                _('Someone asked to change the email of the avatar %1$s on %2$s to this one. Confirm it to make the change. If it was not you, ignore this mail: nothing changes.'),
+                $avatar->name(),
+                $this->grid,
+            ),
+            _('Confirm the email'),
+        );
+    }
+
+    /**
+     * Confirm the email of the avatar a token was given to, once. A new avatar is activated; an avatar that asked for a new email
+     * gets it, and stays as active as it is. A token for an email the avatar does not have any more is refused.
      *
      * @return ?Avatar the avatar, null when the token is not valid or expired
      */
     public function confirmEmail(string $token): ?Avatar
     {
         $tokens = $this->tokens();
+        $change = $tokens->redeem($token, AvatarTokens::EMAIL_CHANGE);
+        if ($change !== null) {
+            $avatar = Avatar::find($this->config, $change['avatar']);
+            $avatar?->update(['email' => $change['email']]);
+
+            return $avatar === null ? null : Avatar::find($this->config, $avatar->id());
+        }
         $given = $tokens->redeem($token, AvatarTokens::EMAIL_CONFIRMATION);
         $avatar = $given === null ? null : Avatar::find($this->config, $given['avatar']);
         if ($avatar === null || strtolower((string) ($avatar->detail()['email'] ?? '')) !== strtolower($given['email'])) {
@@ -164,7 +203,7 @@ final class AvatarAccess
     }
 
     /**
-     * @return array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool}
+     * @return array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}
      */
     private function give(
         Avatar $avatar,
@@ -179,7 +218,7 @@ final class AvatarAccess
     ): array {
         $link = $link !== null && trim($link) !== '' ? trim($link) : null;
         if ($link !== null && preg_match('#^https?://[^\s"<>]+$#i', $link) !== 1) {
-            throw new \InvalidArgumentException("'$link' is not a web address");
+            throw InvalidValue::because('link-invalid', "'$link' is not a web address");
         }
         $token = $this->tokens()->issue($avatar->id(), $purpose, $ttl, $email);
         $expires = (int) $this->clock->time() + $ttl;
@@ -205,7 +244,14 @@ final class AvatarAccess
             $sent || error_log("opensim: the mail to {$avatar->name()} ($purpose) could not be sent");
         }
 
-        return ['avatar' => $avatar, 'token' => $token, 'expires' => $expires, 'link' => $url, 'sent' => $sent];
+        return [
+            'avatar' => $avatar,
+            'token' => $token,
+            'expires' => $expires,
+            'link' => $url,
+            'sent' => $sent,
+            'email' => $email,
+        ];
     }
 
     /**

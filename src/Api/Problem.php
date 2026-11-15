@@ -6,15 +6,56 @@ namespace OpenSim\Api;
 
 use OpenSim\Exceptions\ChannelUnavailable;
 use OpenSim\Exceptions\InstanceFailed;
+use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Exceptions\NotFound;
 
 /**
  * What went wrong, told as RFC 9457 asks (`application/problem+json`): a status, a title, what happened, and where. The same
  * problem for the command line, the HTTP API and the PHP library: the exception says it, the adapter shows it.
+ *
+ * Every problem has a `code` (an extension member), one of CODES: what a site or an application tells its people in its own
+ * language, the `detail` being the English one. The `type` names the kind of problem, the code says which one it is.
  */
 final class Problem
 {
     public const CONTENT_TYPE = 'application/problem+json';
+
+    /** The codes of the problems, and what each says. */
+    public const CODES = [
+        'not-found' => 'What is asked is not there (a grid, a resource, an avatar)',
+        'invalid-request' => 'A value of the request is wrong, the detail says which',
+        'invalid-document' => 'The body is not a JSON:API document',
+        'type-conflict' => 'The type of the resource of the body is not the one of the address',
+        'unauthorized' => 'The operation needs an API key',
+        'method-not-allowed' => 'The address does not take this method',
+        'channel-unavailable' => 'Nothing can do it now: a database, a simulator, a file cannot be reached',
+        'instance-failed' => 'An instance (Robust, a simulator) failed',
+        'internal-error' => 'The server failed, the log says why',
+        'sign-in-refused' => 'The name (or the email) or the password is wrong',
+        'account-disabled' => 'The password is right, but a manager disabled the account',
+        'email-unconfirmed' => 'The password is right, but the account waits for the confirmation of its email',
+        'name-invalid' => 'The name is not a first and a last name of letters, digits and -',
+        'name-reserved' => 'A part of the name is reserved: Default, Test, Admin, the name of the grid',
+        'name-taken' => 'An avatar has this name already',
+        'password-required' => 'A password is needed',
+        'password-invalid' => 'The password is too short, too long, or has a double quote',
+        'email-invalid' => 'The email is not an address',
+        'email-required' => 'An email is needed to be confirmed',
+        'model-unknown' => 'The model is not an avatar model of the grid',
+        'link-invalid' => 'The link is not a web address',
+        'field-unknown' => 'A value given cannot be changed',
+        'token-refused' => 'The token is not valid, was used, or has expired',
+        'no-confirmation-pending' => 'The avatar does not wait for the confirmation of its email',
+        'mail-failed' => 'The mail could not be sent',
+    ];
+
+    /** The code of a problem that has none of its own, by its status (else invalid-request, or internal-error for the server). */
+    private const STATUS_CODES = [
+        401 => 'unauthorized',
+        404 => 'not-found',
+        405 => 'method-not-allowed',
+        503 => 'channel-unavailable',
+    ];
 
     /**
      * @param array<string,mixed> $extensions members of its own, beside the standard ones
@@ -26,7 +67,20 @@ final class Problem
         public readonly string $type = 'about:blank',
         public readonly ?string $instance = null,
         public readonly array $extensions = [],
+        public readonly ?string $code = null,
     ) {}
+
+    /** A problem with a code of its own. */
+    public static function coded(
+        int $status,
+        string $title,
+        string $code,
+        string $detail,
+        string $type,
+        ?string $instance = null,
+    ): self {
+        return new self($status, $title, $detail, $type, $instance, [], $code);
+    }
 
     /** What is asked is not there. */
     public static function notFound(string $what, ?string $instance = null): self
@@ -51,6 +105,8 @@ final class Problem
                 $error->getMessage(),
                 'urn:opensim:problem:invalid-request',
                 $instance,
+                [],
+                $error instanceof InvalidValue ? $error->reason : 'invalid-request',
             ),
             $error instanceof InstanceFailed => new self(
                 500,
@@ -86,11 +142,25 @@ final class Problem
                 'type' => $this->type,
                 'title' => $this->title,
                 'status' => $this->status,
+                'code' => $this->code(),
                 'detail' => $this->detail,
                 'instance' => $this->instance,
             ] + $this->extensions,
             static fn($value): bool => $value !== null && $value !== '',
         );
+    }
+
+    /** The code of the problem: its own, else the one its type names, else the one of its status. */
+    public function code(): string
+    {
+        if ($this->code !== null) {
+            return $this->code;
+        }
+        $named = str_starts_with($this->type, 'urn:opensim:problem:') ? substr($this->type, 20) : '';
+
+        return isset(self::CODES[$named])
+            ? $named
+            : self::STATUS_CODES[$this->status] ?? ($this->status >= 500 ? 'internal-error' : 'invalid-request');
     }
 
     public function json(): string

@@ -24,6 +24,9 @@ final class AvatarTokens
     public const PASSWORD_RESET = 'password-reset';
     public const EMAIL_CONFIRMATION = 'email-confirmation';
 
+    /** A new email an avatar asked for, kept in the token until it is confirmed. */
+    public const EMAIL_CHANGE = 'email-change';
+
     private const TABLE = 'avatar_tokens';
 
     private bool $ready = false;

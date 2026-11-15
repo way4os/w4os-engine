@@ -411,6 +411,157 @@ describe('The API, for the confirmation of the email of a new avatar', function 
     });
 });
 
+describe('The API, for a new avatar whose email is confirmed by whoever delivers the token', function () {
+    test('gives the token instead of mailing it when it is asked (send=false)', function () {
+        avatars_in(signin_database());
+        [$router, $mailer] = access_api();
+
+        $made = $router->post(
+            '/grids/demo/avatars',
+            access_body('avatars', [
+                'name' => 'New Person',
+                'email' => 'new@example.org',
+                'password' => 'secret',
+                'confirmEmail' => true,
+                'send' => false,
+                'link' => 'https://site.example.org/confirm/{token}',
+            ]),
+        );
+        $given = $made->document['meta']['confirmation'] ?? [];
+        $confirmed = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $given['token'] ?? '']),
+        );
+
+        expect($made->status)
+            ->toBe(201)
+            ->and($made->document['meta']['emailConfirmation'])
+            ->toBe('given')
+            ->and($given)
+            ->toMatchArray(['expires' => 1_800_172_800, 'email' => 'new@example.org'])
+            ->and($given['link'])
+            ->toBe('https://site.example.org/confirm/' . $given['token'])
+            ->and($mailer->sent)
+            ->toBe([])
+            ->and($confirmed->status)
+            ->toBe(200);
+    });
+});
+
+describe('The API, for a change of the email of an avatar', function () {
+    test('keeps the email until the new one is confirmed with the link mailed to it', function () {
+        avatars_in(signin_database());
+        [$router, $mailer] = access_api();
+
+        $asked = $router->patch(
+            '/grids/demo/avatars/' . ADA,
+            access_body('avatars', [
+                'email' => 'ada@new.example.org',
+                'about' => 'Changed',
+                'confirmEmail' => true,
+                'link' => 'https://site.example.org/confirm',
+            ]),
+        );
+        $token = $mailer->token();
+        $confirmed = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $token]),
+        );
+
+        expect($asked->status)
+            ->toBe(200)
+            ->and($asked->document['data']['attributes']['email'])
+            ->toBe('ada@example.org')
+            ->and($asked->document['data']['attributes']['about'])
+            ->toBe('Changed')
+            ->and($asked->document['meta'])
+            ->toBe(['emailConfirmation' => 'sent'])
+            ->and($mailer->sent[0]['to'])
+            ->toBe('ada@new.example.org')
+            ->and($mailer->sent[0]['html'])
+            ->toContain('href="https://site.example.org/confirm?token=' . $token . '"')
+            ->and($confirmed->status)
+            ->toBe(200)
+            ->and($confirmed->document['data']['attributes']['email'])
+            ->toBe('ada@new.example.org')
+            ->and((new DatabaseAuthenticator(avatar_grid()))->authenticate('Ada Love', 'ada-secret')->isGranted())
+            ->toBeTrue();
+    });
+
+    test('never activates an avatar a manager disabled, and gives the token when it is asked', function () {
+        avatars_in(signin_database());
+        [$router, $mailer] = access_api();
+
+        $asked = $router->patch(
+            '/grids/demo/avatars/' . CY,
+            access_body('avatars', ['email' => 'cy@new.example.org', 'confirmEmail' => true, 'send' => false]),
+        );
+        $confirmed = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $asked->document['meta']['confirmation']['token'] ?? '']),
+        );
+        $invalid = $router->patch(
+            '/grids/demo/avatars/' . CY,
+            access_body('avatars', ['email' => 'not an email', 'confirmEmail' => true]),
+        );
+
+        expect($asked->document['meta']['emailConfirmation'])
+            ->toBe('given')
+            ->and($mailer->sent)
+            ->toBe([])
+            ->and($confirmed->document['data']['attributes']['email'])
+            ->toBe('cy@new.example.org')
+            ->and($confirmed->document['data']['attributes']['active'])
+            ->toBeFalse()
+            ->and($invalid->status)
+            ->toBe(400)
+            ->and($invalid->document['code'])
+            ->toBe('email-invalid');
+    });
+});
+
+describe('The problems of the access of the avatars', function () {
+    test('each say a stable code, beside the English detail', function () {
+        avatars_in(signin_database());
+        $mailer = new MailerFake();
+        [$router] = access_api(mailer: $mailer);
+        $post = static fn(string $path, string $type, array $attributes) => $router->post(
+            "/grids/demo/$path",
+            access_body($type, $attributes),
+        );
+        $code = static fn($answer): ?string => $answer->document['code'] ?? null;
+
+        $new = ['name' => 'New Person', 'email' => 'new@example.org', 'password' => 'secret', 'confirmEmail' => true];
+        $codes = [
+            'name-reserved' => $post('avatars', 'avatars', ['name' => 'Admin Person', 'password' => 'secret']),
+            'name-taken' => $post('avatars', 'avatars', ['name' => 'Ada Love', 'password' => 'secret']),
+            'email-required' => $post('avatars', 'avatars', ['email' => ''] + $new),
+            'link-invalid' => $post('password-resets', 'password-resets', [
+                'name' => 'Ada Love',
+                'link' => 'javascript:x',
+            ]),
+            'token-refused' => $post('password-resets/complete', 'password-resets', [
+                'token' => 'nope',
+                'password' => 'brand-new',
+            ]),
+            'password-invalid' => $post('password-resets/complete', 'password-resets', [
+                'token' => 'nope',
+                'password' => 'no',
+            ]),
+            'no-confirmation-pending' => $post('email-confirmations', 'email-confirmations', ['avatar' => CY]),
+            'field-unknown' => $router->patch(
+                '/grids/demo/avatars/' . ADA,
+                access_body('avatars', ['firstName' => 'Eve']),
+            ),
+        ];
+        $mailer->broken = true;
+        $post('avatars', 'avatars', $new);
+        $codes['mail-failed'] = $post('email-confirmations', 'email-confirmations', ['avatar' => 'New Person']);
+
+        expect(array_map($code, $codes))->toBe(array_combine(array_keys($codes), array_keys($codes)));
+    });
+});
+
 describe('The contract, for the access of the avatars', function () {
     test('has the four operations, closed, and the confirmation of a new avatar', function () {
         $paths = OpenSim\Api\Contract::document()['paths'];
@@ -440,6 +591,6 @@ describe('The contract, for the access of the avatars', function () {
                     'properties'
                 ]['data']['properties']['attributes']['properties'],
             )
-            ->toHaveKeys(['confirmEmail', 'link']);
+            ->toHaveKeys(['confirmEmail', 'link', 'send', 'reservedName']);
     });
 });

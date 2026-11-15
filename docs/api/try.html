@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "f8f9870",
+        "version": "7e139eb",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -106,7 +106,7 @@
         },
         {
             "name": "Avatar access",
-            "description": "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them; a forgotten password; the confirmation of the email of a new avatar.\n\nA forgotten password and a confirmation are a one-time token, kept hashed in the database of the passwords (`avatar_tokens`), mailed to the avatar with a link to the page that takes it: the `link` the caller gives (`{token}` in it is replaced by the token, else `token=` is added), else the page of the grid (`password` of `[GridInfoService]` for a password, `register` for a confirmation). The mail gives the token as a code too. Whoever cannot mail it (no mail system, an administrator, an agent that delivers it otherwise) sends `send: false` and gets the token instead. The mails come from `MailSender` of `[Helpers]`, else no-reply@ the host of the grid.\n\nA token is valid once: a day for a password, two days for a confirmation (the avatar may ask for another one). An avatar has one token at a time for each."
+            "description": "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them; a forgotten password; the confirmation of the email of a new avatar, or of a new email (`confirmEmail` of a change of an avatar: the email changes once it is confirmed).\n\nEvery problem has a `code` that says what went wrong, for a site to tell it in its own language: `sign-in-refused`, `account-disabled` (a manager disabled it), `email-unconfirmed` (it waits for the confirmation of its email), `name-reserved`, `name-taken`, `token-refused`... (see the Problem schema). The `detail` is the English one.\n\nA forgotten password and a confirmation are a one-time token, kept hashed in the database of the passwords (`avatar_tokens`), mailed to the avatar with a link to the page that takes it: the `link` the caller gives (`{token}` in it is replaced by the token, else `token=` is added), else the page of the grid (`password` of `[GridInfoService]` for a password, `register` for a confirmation). The mail gives the token as a code too. Whoever cannot mail it (no mail system, an administrator, an agent that delivers it otherwise) sends `send: false` and gets the token instead. The mails come from `MailSender` of `[Helpers]`, else no-reply@ the host of the grid.\n\nA token is valid once: a day for a password, two days for a confirmation (the avatar may ask for another one). An avatar has one token at a time for each."
         },
         {
             "name": "Health",
@@ -1180,11 +1180,19 @@
                                                     },
                                                     "confirmEmail": {
                                                         "type": "boolean",
-                                                        "description": "The avatar is made inactive and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says whether the mail was sent"
+                                                        "description": "The avatar is made inactive and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`"
                                                     },
                                                     "link": {
                                                         "type": "string",
                                                         "description": "With confirmEmail: the page that takes the token, `{token}` in it"
+                                                    },
+                                                    "send": {
+                                                        "type": "boolean",
+                                                        "description": "With confirmEmail, false: the token is not mailed but given in `meta.confirmation` (`token`, `expires`, `link`, `email`), for whoever delivers it"
+                                                    },
+                                                    "reservedName": {
+                                                        "type": "boolean",
+                                                        "description": "The name may have a part w4os keeps (Default, Test, Admin, the name of the grid): an avatar model, made on purpose. Without it such a name is refused (`name-reserved`)"
                                                     }
                                                 }
                                             }
@@ -1212,7 +1220,7 @@
                         }
                     },
                     "400": {
-                        "description": "A value is wrong: a name that is not one, one that is taken, no password",
+                        "description": "A value is wrong, `code` says which: a name that is not one, reserved or taken, no password or a wrong one, a wrong email, an unknown model",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
@@ -1328,7 +1336,8 @@
                                                 "type": "object",
                                                 "properties": {
                                                     "email": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "description": "Changed at once, or once it is confirmed with confirmEmail"
                                                     },
                                                     "title": {
                                                         "type": "string"
@@ -1349,7 +1358,7 @@
                                                     },
                                                     "about": {
                                                         "type": "string",
-                                                        "description": "Of the profile the avatar has"
+                                                        "description": "Of its profile, made when the avatar has none yet"
                                                     },
                                                     "profileUrl": {
                                                         "type": "string"
@@ -1365,6 +1374,18 @@
                                                     },
                                                     "firstLife": {
                                                         "type": "string"
+                                                    },
+                                                    "confirmEmail": {
+                                                        "type": "boolean",
+                                                        "description": "The new email is not changed but mailed a token to confirm it (see Avatar access), which changes it; the avatar stays as active as it is. `meta.emailConfirmation` says `sent`, `not sent` or `given`"
+                                                    },
+                                                    "link": {
+                                                        "type": "string",
+                                                        "description": "With confirmEmail: the page that takes the token, `{token}` in it"
+                                                    },
+                                                    "send": {
+                                                        "type": "boolean",
+                                                        "description": "With confirmEmail, false: the token is given in `meta.confirmation` instead of mailed"
                                                     }
                                                 }
                                             }
@@ -5089,7 +5110,7 @@
                     "Avatar access"
                 ],
                 "summary": "Sign an avatar in",
-                "description": "Checks the name (`First Last`, `First.Last`) or the email of an avatar of the grid, and its password, against what Robust keeps; no session is opened in the world. The avatar when they are right. A wrong name and a wrong password are refused alike; an account that is not active is refused once its password is right, and the problem says so. An email several avatars share signs in the oldest of them whose password it is.",
+                "description": "Checks the name (`First Last`, `First.Last`) or the email of an avatar of the grid, and its password, against what Robust keeps; no session is opened in the world. The avatar when they are right. A wrong name and a wrong password are refused alike (`sign-in-refused`); an account that is not active is refused once its password is right, and the code says why: `email-unconfirmed` while it waits for the confirmation of its email, else `account-disabled`. An email several avatars share signs in the oldest of them whose password it is.",
                 "parameters": [
                     {
                         "name": "grid",
@@ -5164,7 +5185,7 @@
                         }
                     },
                     "403": {
-                        "description": "The name or the password is wrong, or the account is not active",
+                        "description": "The name or the password is wrong (`sign-in-refused`), or the account is not active (`email-unconfirmed`, `account-disabled`)",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
@@ -5676,7 +5697,7 @@
                     "Avatar access"
                 ],
                 "summary": "Confirm an email",
-                "description": "Confirms the email of the avatar a token was given to, and activates the avatar: it can log in. The token is valid once, and only for the email the avatar has.",
+                "description": "Confirms the email a token was given for, once. The token of a new avatar activates it: it can log in; it is valid only for the email the avatar has. The token of a new email (`confirmEmail` of a change of the avatar) changes its email, the avatar staying as active as it is.",
                 "parameters": [
                     {
                         "name": "grid",
@@ -5782,7 +5803,8 @@
                 "description": "RFC 9457 problem details",
                 "required": [
                     "title",
-                    "status"
+                    "status",
+                    "code"
                 ],
                 "properties": {
                     "type": {
@@ -5795,8 +5817,40 @@
                     "status": {
                         "type": "integer"
                     },
+                    "code": {
+                        "type": "string",
+                        "enum": [
+                            "not-found",
+                            "invalid-request",
+                            "invalid-document",
+                            "type-conflict",
+                            "unauthorized",
+                            "method-not-allowed",
+                            "channel-unavailable",
+                            "instance-failed",
+                            "internal-error",
+                            "sign-in-refused",
+                            "account-disabled",
+                            "email-unconfirmed",
+                            "name-invalid",
+                            "name-reserved",
+                            "name-taken",
+                            "password-required",
+                            "password-invalid",
+                            "email-invalid",
+                            "email-required",
+                            "model-unknown",
+                            "link-invalid",
+                            "field-unknown",
+                            "token-refused",
+                            "no-confirmation-pending",
+                            "mail-failed"
+                        ],
+                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
+                    },
                     "detail": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "What went wrong, in English"
                     },
                     "instance": {
                         "type": "string",

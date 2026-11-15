@@ -20,6 +20,8 @@ final class SignInResult
         public readonly string $reason = '',
         /** What more the grid told when it granted the sign-in. */
         public readonly array $details = [],
+        /** Why it is refused, as a code of the problems of the API (Problem::CODES): `sign-in-refused`, `account-disabled`... */
+        public readonly string $code = '',
     ) {}
 
     public static function granted(Avatar $avatar, array $details = []): self
@@ -27,10 +29,13 @@ final class SignInResult
         return new self(self::GRANTED, $avatar, '', $details);
     }
 
-    /** @param string $reason why, when the password is right (an account that is not active); none for a wrong name or password */
-    public static function refused(string $reason = ''): self
+    /**
+     * @param string $reason why, when the password is right (an account that is not active); none for a wrong name or password
+     * @param string $code the same as a code: `account-disabled`, `email-unconfirmed`; `sign-in-refused` for a wrong one
+     */
+    public static function refused(string $reason = '', string $code = 'sign-in-refused'): self
     {
-        return new self(self::REFUSED, null, $reason);
+        return new self(self::REFUSED, null, $reason, [], $code);
     }
 
     public static function unavailable(string $reason): self

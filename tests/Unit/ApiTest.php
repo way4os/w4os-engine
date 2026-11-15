@@ -177,9 +177,20 @@ describe('The API', function () {
                     'type' => 'urn:opensim:problem:instance-failed',
                 ])
                 ->and(Problem::from(new RuntimeException('/secret/path password'))->toArray())
-                ->toBe(['type' => 'about:blank', 'title' => 'Internal error', 'status' => 500])
+                ->toBe([
+                    'type' => 'about:blank',
+                    'title' => 'Internal error',
+                    'status' => 500,
+                    'code' => 'internal-error',
+                ])
                 ->and(Problem::from(new RuntimeException('private detail'), '/setups/steps')->toArray())
-                ->toBe(['type' => 'about:blank', 'title' => 'Internal error', 'status' => 500, 'instance' => '/setups/steps'])
+                ->toBe([
+                    'type' => 'about:blank',
+                    'title' => 'Internal error',
+                    'status' => 500,
+                    'code' => 'internal-error',
+                    'instance' => '/setups/steps',
+                ])
                 ->and(json_decode(Problem::from(new InvalidArgumentException('x'), '/grids')->json(), true)['instance'])
                 ->toBe('/grids');
         },
@@ -246,7 +257,7 @@ describe('The API, for the resources of a grid', function () {
         );
         $id = $made->document['data']['id'];
         $changed = $api->update('avatars', $id, ['level' => 5, 'active' => false, 'password' => 'other'], grid: 'demo');
-        $taken = $api->create('avatars', ['name' => 'Api Person', 'password' => 'x'], grid: 'demo');
+        $taken = $api->create('avatars', ['name' => 'Api Person', 'password' => 'secret'], grid: 'demo');
         $unknown = $api->update('avatars', $id, ['nonsense' => 1], grid: 'demo');
         $deleted = $api->delete('avatars', $id, grid: 'demo');
 
@@ -703,5 +714,62 @@ describe('The endpoints of a fixed format', function () {
             '/grid_status',
             '/grid_status.rss',
         );
+    });
+});
+
+describe('The problems of the API', function () {
+    test('each say a stable code, the ones the contract lists', function () {
+        $router = new OpenSim\Api\Router(machine_api(), authenticator: new OpenSim\Security\Locked());
+        $open = new OpenSim\Api\Router(machine_api());
+        $codes = [
+            'not-found' => Problem::from(OpenSim\Exceptions\NotFound::for('thing'))->toArray(),
+            'invalid-request' => Problem::from(new InvalidArgumentException('wrong'))->toArray(),
+            'channel-unavailable' => Problem::from(ChannelUnavailable::for('do it'))->toArray(),
+            'internal-error' => (static function (): array {
+                // The failure goes to the log, kept out of the output of the tests
+                $log = ini_set('error_log', test_tmp() . '/problem.log');
+                try {
+                    return Problem::from(new RuntimeException('secret'))->toArray();
+                } finally {
+                    ini_set('error_log', (string) $log);
+                }
+            })(),
+            'name-taken' => Problem::from(OpenSim\Exceptions\InvalidValue::because('name-taken', 'taken'))->toArray(),
+            'unauthorized' => $router->get('/grids')->document,
+            'method-not-allowed' => $open->route('PUT', '/grids')->document,
+            'invalid-document' => $open->post('/grids/demo/avatars', '{nope')->document,
+            'type-conflict' => $open->post('/grids/demo/avatars', ['data' => ['type' => 'regions', 'attributes' => []]])
+                ->document,
+        ];
+        $schema = Contract::document()['components']['schemas']['Problem']['properties']['code'] ?? [];
+
+        expect(array_map(static fn(array $problem): ?string => $problem['code'] ?? null, $codes))
+            ->toBe(array_combine(array_keys($codes), array_keys($codes)))
+            ->and($schema['enum'] ?? [])
+            ->toBe(array_keys(Problem::CODES))
+            ->and(array_diff(array_keys($codes), $schema['enum'] ?? []))
+            ->toBe([]);
+    });
+});
+
+describe('The pictures of the avatar models', function () {
+    test('the one of a model without a picture is the picture of nothing of the kit, found', function () {
+        Connections::using(static fn() => asset_database());
+        $api = new Api((new Machine())->environment, null, static fn(Grid $grid): GridConfig => asset_config());
+        $calls = [];
+
+        $placeholder = $api->media('demo', OpenSim\Models\AvatarModel::PLACEHOLDER, 'jpg', asset_converter($calls));
+        $missing = $api->media('demo', 'ffffffff-0000-4000-8000-000000000001', 'jpg', asset_converter($calls));
+
+        expect($placeholder->status)
+            ->toBe(200)
+            ->and($placeholder->headers['Content-Type'])
+            ->toBe('image/png')
+            ->and($placeholder->body())
+            ->toBe(file_get_contents(dirname(__DIR__, 2) . '/share/images/assets-no-img.png'))
+            ->and($missing->status)
+            ->toBe(404)
+            ->and($missing->body())
+            ->toBe($placeholder->body());
     });
 });
