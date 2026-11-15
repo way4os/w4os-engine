@@ -54,7 +54,7 @@ describe('numbers of a grid', function () {
             'active_users' => 4,
             'total_users' => 2,
             'regions' => 3,
-            'area' => 0.39,
+            'area' => 0.393216,
         ]);
     })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
@@ -75,7 +75,7 @@ describe('numbers of a grid', function () {
                 'active_users' => 4,
                 'total_users' => 2,
                 'regions' => 3,
-                'area' => 0.39,
+                'area' => 0.393216,
             ]);
         },
     )->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');

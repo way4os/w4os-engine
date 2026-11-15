@@ -95,9 +95,8 @@ final class Stats
                 'zero' => $zero,
             ]),
             'regions' => (int) $one($grid, 'SELECT COUNT(*) FROM regions'),
-            'area' => ($area = $one($grid, 'SELECT ROUND(SUM(sizeX * sizeY) / 1000000.0, 2) FROM regions'))
-                ? (float) $area
-                : 0,
+            // Square kilometers, exact (a region of 256 m is 0.065536)
+            'area' => ($area = $one($grid, 'SELECT SUM(sizeX * sizeY) FROM regions')) ? (int) $area / 1000000 : 0,
         ];
     }
 }
