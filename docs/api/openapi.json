@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "e3aa001",
+        "version": "51cff2b",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -39,7 +39,11 @@
         },
         {
             "name": "Avatars",
-            "description": "Read from the databases of the grid, each in the one of its service. An avatar is made with its account, its password, its inventory and its default outfit. Its name does not change."
+            "description": "Read from the databases of the grid, each in the one of its service. An avatar is made with its account, its password, its inventory and its default outfit, or the outfit of an avatar model. Its name does not change."
+        },
+        {
+            "name": "Avatar models",
+            "description": "The avatars a new avatar can look like: it wears a copy of the outfit and the appearance of the model it is made from (`model` of a new avatar). The models are the active avatars the rule of `[Models]` picks: `Match` is `first` (the first name is `MatchPattern`), `last` (the last name is), `any` (either, the default) or `uuid` (the avatars of `List`); `MatchPattern` is `Default` by default. A model is made in the console of Robust, dressed in a viewer and given a profile picture; it is never the avatar of a person.\n\n`picture` is the asset to show (`/grids/{grid}/assets/{picture}.jpg`): its profile picture, else a placeholder."
         },
         {
             "name": "Regions",
@@ -140,6 +144,7 @@
             "name": "Grid",
             "tags": [
                 "Avatars",
+                "Avatar models",
                 "Regions",
                 "Parcels",
                 "Estates",
@@ -1149,6 +1154,10 @@
                                                     "home": {
                                                         "type": "string",
                                                         "description": "The UUID of the home region"
+                                                    },
+                                                    "model": {
+                                                        "type": "string",
+                                                        "description": "The UUID or the name of an avatar model (`/grids/{grid}/avatar-models`): the avatar wears a copy of its outfit instead of the default one"
                                                     }
                                                 }
                                             }
@@ -1428,6 +1437,116 @@
                     },
                     "503": {
                         "description": "No channel can delete it now",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/grids/{grid}/avatar-models": {
+            "get": {
+                "operationId": "listAvatarModels",
+                "tags": [
+                    "Avatar models"
+                ],
+                "summary": "List avatar-models",
+                "description": "The avatar models of a grid.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The avatar-models",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AvatarModels"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The application has none, or the grid is not known here",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/grids/{grid}/avatar-models/{id}": {
+            "get": {
+                "operationId": "getAvatarModel",
+                "tags": [
+                    "Avatar models"
+                ],
+                "summary": "Get avatar model",
+                "description": "One of the avatar-models by its id.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The resource",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvatarModels"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "There is none with this id",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
@@ -5840,6 +5959,76 @@
                                     "string",
                                     "null"
                                 ]
+                            }
+                        }
+                    },
+                    "links": {
+                        "type": "object",
+                        "properties": {
+                            "self": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "AvatarModels": {
+                "type": "object",
+                "description": "The avatar models of a grid",
+                "required": [
+                    "type",
+                    "id",
+                    "attributes"
+                ],
+                "properties": {
+                    "type": {
+                        "const": "avatar-models"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "description": "Its UUID"
+                            },
+                            "name": {
+                                "type": "string",
+                                "description": "First Last"
+                            },
+                            "slug": {
+                                "type": "string",
+                                "description": "first-last"
+                            },
+                            "firstName": {
+                                "type": "string"
+                            },
+                            "lastName": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string",
+                                "description": "The name to show, without the pattern of the rule (Default Ruth is Ruth)"
+                            },
+                            "profileImage": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The UUID of its profile picture"
+                            },
+                            "picture": {
+                                "type": "string",
+                                "description": "The UUID of the picture to show: its profile picture, else a placeholder"
+                            },
+                            "about": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The text of its profile"
                             }
                         }
                     },

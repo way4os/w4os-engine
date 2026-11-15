@@ -410,6 +410,7 @@ describe('The contract', function () {
                     'Services',
                     'Archives',
                     'Avatars',
+                    'AvatarModels',
                     'Regions',
                     'Parcels',
                     'Estates',
@@ -461,6 +462,8 @@ describe('The contract', function () {
         ];
         Connections::using(static fn() => avatar_creation_database());
         $details['avatars'] = first_attributes(machine_api(avatar_grid())->list('avatars', [], grid: 'demo'));
+        Connections::using(static fn() => model_database());
+        $details['avatar-models'] = first_attributes(machine_api(avatar_grid())->list('avatar-models', [], grid: 'demo'));
         Connections::using(static fn() => region_database());
         $details['regions'] = first_attributes(machine_api(region_config())->list('regions', [], grid: 'demo'));
         parcels_in(parcel_databases());
@@ -497,6 +500,8 @@ describe('The contract', function () {
         $service = $grid->service('asset');
         Connections::using(static fn() => avatar_creation_database());
         $avatar = first_attributes(machine_api(avatar_grid())->list('avatars', [], grid: 'demo'));
+        Connections::using(static fn() => model_database());
+        $model = machine_api(avatar_grid())->list('avatar-models', [], grid: 'demo')->document['data'];
         Connections::using(static fn() => region_database());
         $region = first_attributes(machine_api(region_config())->list('regions', [], grid: 'demo'));
         parcels_in(parcel_databases());
@@ -519,13 +524,15 @@ describe('The contract', function () {
                 'grids' => $grid->detail(),
                 'services' => $service->detail(),
                 'avatars' => $avatar,
+                'avatar-models' => $model[1]['attributes'],
+                'avatar-models without a picture' => $model[2]['attributes'],
                 'regions' => $region,
                 'parcels' => $parcel,
                 'estates' => $estate,
             ]
             as $type => $detail
         ) {
-            foreach (Contract::attributes($type) as $name => [$kind]) {
+            foreach (Contract::attributes(explode(' ', $type)[0]) as $name => [$kind]) {
                 $check = $types[rtrim($kind, '?')];
                 $check($detail[$name]) ||
                     (str_ends_with($kind, '?') && $detail[$name] === null) ||

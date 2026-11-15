@@ -135,6 +135,8 @@ final class AccountWriter
      * see (no account has them).
      *
      * @param ?string $uuid the id of the account, a new one when none is given
+     * @param ?array{name:string,appearance:list<array{0:string,1:string}>,items:array<string,array<string,mixed>>} $outfit the
+     *        outfit of an avatar model (AvatarModel::outfit()), worn instead of the default one when it has an appearance
      * @return array{id:string,tables:array<string,list<string>>} table => statements
      */
     public function tables(
@@ -144,13 +146,21 @@ final class AccountWriter
         string $password,
         ?array $hash = null,
         ?string $uuid = null,
+        ?array $outfit = null,
     ): array {
-        $made = $this->rows($first, $last, $email, $password, null, $hash, $uuid);
+        $made = $this->rows($first, $last, $email, $password, null, $hash, $uuid, $outfit);
         $tables = [];
         foreach ($made['rows'] as [$table, $sql]) {
             $tables[$table][] = $sql;
         }
-        $order = ['inventoryfolders' => 0, 'inventoryitems' => 1, 'auth' => 2, 'GridUser' => 3, 'UserAccounts' => 4];
+        $order = [
+            'inventoryfolders' => 0,
+            'inventoryitems' => 1,
+            'Avatars' => 2,
+            'auth' => 3,
+            'GridUser' => 4,
+            'UserAccounts' => 5,
+        ];
         uksort($tables, static fn(string $a, string $b): int => ($order[$a] ?? 9) <=> ($order[$b] ?? 9));
 
         return ['id' => $made['id'], 'tables' => $tables];
@@ -167,6 +177,7 @@ final class AccountWriter
         ?string $homeRegionId,
         ?array $hash,
         ?string $uuid = null,
+        ?array $outfit = null,
     ): array {
         $q = [self::class, 'quote'];
         $id = $uuid ?? ($this->uuid)();
@@ -212,6 +223,11 @@ final class AccountWriter
             $rows[] = ['inventoryfolders', $statement];
         }
 
+        if ($outfit !== null && $outfit['appearance'] !== []) {
+            array_push($rows, ...$this->modelOutfit($id, $outfit, $folders, $now));
+
+            return ['id' => $id, 'rows' => $rows];
+        }
         foreach (self::OUTFIT as [$name, $asset, $folder, $assetType, $wearable]) {
             $item = ($this->uuid)();
             $rows[] = [
@@ -235,6 +251,101 @@ final class AccountWriter
         }
 
         return ['id' => $id, 'rows' => $rows];
+    }
+
+    /**
+     * The outfit of a model, the way w4os copies it: each item the model wears copied in a folder "<model> outfit" of the body
+     * parts, a link to it in the Current Outfit, and the appearance of the model pointing at the copies. A wearable or an attachment
+     * whose item the model does not have any more is left out.
+     *
+     * @param array{name:string,appearance:list<array{0:string,1:string}>,items:array<string,array<string,mixed>>} $outfit
+     * @param array<string,string> $folders name => id, for the top folders
+     * @return list<array{0:string,1:string}>
+     */
+    private function modelOutfit(string $user, array $outfit, array $folders, int $now): array
+    {
+        $rows = [];
+        $folder = ($this->uuid)();
+        $rows[] = [
+            'inventoryfolders',
+            $this->folder($user, $folder, $folders['Body Parts'], $outfit['name'] . ' outfit', -1),
+        ];
+        $copies = [];
+        foreach ($outfit['items'] as $from => $item) {
+            $copies[strtolower((string) $from)] = $copy = ($this->uuid)();
+            $rows[] = [
+                'inventoryitems',
+                self::insert(
+                    'inventoryitems',
+                    ['inventoryID' => $copy, 'avatarID' => $user, 'parentFolderID' => $folder] + $item,
+                ),
+            ];
+            $rows[] = [
+                'inventoryitems',
+                self::insert(
+                    'inventoryitems',
+                    [
+                        'inventoryID' => ($this->uuid)(),
+                        'avatarID' => $user,
+                        'parentFolderID' => $folders['Current Outfit'],
+                        'assetID' => $copy,
+                        'assetType' => self::ASSET_LINK,
+                        'creationDate' => $now,
+                    ] + $item,
+                ),
+            ];
+        }
+        foreach ($outfit['appearance'] as [$name, $value]) {
+            if (str_starts_with($name, 'Wearable ')) {
+                [$item, $asset] = array_pad(explode(':', $value, 2), 2, '');
+                if (!isset($copies[strtolower($item)])) {
+                    continue;
+                }
+                $value = $copies[strtolower($item)] . ':' . $asset;
+            } elseif (str_starts_with($name, '_ap_')) {
+                $items = array_values(
+                    array_filter(
+                        array_map(
+                            static fn(string $item): ?string => $copies[strtolower(trim($item))] ?? null,
+                            explode(',', $value),
+                        ),
+                    ),
+                );
+                if ($items === []) {
+                    continue;
+                }
+                $value = implode(',', $items);
+            }
+            $rows[] = [
+                'Avatars',
+                'INSERT INTO Avatars (PrincipalID, Name, Value) VALUES (' .
+                implode(', ', [self::quote($user), self::quote($name), self::quote($value)]) .
+                ')',
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * A row as it is, in a statement: the numbers as numbers, null as NULL, the rest quoted.
+     *
+     * @param array<string,mixed> $values column => value
+     */
+    private static function insert(string $table, array $values): string
+    {
+        $columns = array_map(static fn(string $column): string => preg_replace('/[^A-Za-z0-9_]/', '', $column), array_keys($values));
+        $quoted = array_map(
+            static fn(mixed $value): string => match (true) {
+                $value === null => 'NULL',
+                is_int($value), is_float($value) => (string) $value,
+                is_bool($value) => $value ? '1' : '0',
+                default => self::quote((string) $value),
+            },
+            array_values($values),
+        );
+
+        return "INSERT INTO $table (" . implode(', ', $columns) . ') VALUES (' . implode(', ', $quoted) . ')';
     }
 
     /**

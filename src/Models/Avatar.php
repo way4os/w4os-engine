@@ -357,12 +357,13 @@ final class Avatar extends Model
     }
 
     /**
-     * Make an avatar: its account, its password, its inventory with the default outfit, and its home when it is given. Each is
-     * written in the database of its service (the accounts, the passwords, the inventories may be in different ones), the account
-     * last so that nothing shows of an avatar that could not be made.
+     * Make an avatar: its account, its password, its inventory with the default outfit (or the one of a model), and its home when it
+     * is given. Each is written in the database of its service (the accounts, the passwords, the inventories may be in different
+     * ones), the account last so that nothing shows of an avatar that could not be made.
      *
      * @param array<string,mixed> $values `name` ("First Last") or `firstName` and `lastName`, `email`, and `password` or `passwordHash`
-     *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known
+     *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
+     *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one
      * @throws \InvalidArgumentException for a name that is not one, a missing password, a name taken
      * @throws ChannelUnavailable when a database cannot be reached or refuses
      */
@@ -395,6 +396,13 @@ final class Avatar extends Model
         ) {
             throw new \InvalidArgumentException("an avatar called '$first $last' exists already");
         }
+        $outfit = null;
+        if (trim((string) ($values['model'] ?? '')) !== '') {
+            $model =
+                AvatarModel::find($config, trim((string) $values['model'])) ??
+                throw new \InvalidArgumentException("'{$values['model']}' is not an avatar model of the grid");
+            $outfit = $model->outfit();
+        }
 
         $made = AccountWriter::standard()->tables(
             $first,
@@ -403,6 +411,7 @@ final class Avatar extends Model
             $password,
             $hash,
             $uuid,
+            $outfit,
         );
         // Each database gets its rows in one transaction: the tables of the same database go together (the usual case: one)
         $groups = [];

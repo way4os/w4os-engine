@@ -16,6 +16,7 @@ use OpenSim\Assets\WebAssets;
 use OpenSim\Models\Archive;
 use OpenSim\Models\Asset;
 use OpenSim\Models\Avatar;
+use OpenSim\Models\AvatarModel;
 use OpenSim\Models\Estate;
 use OpenSim\Models\Grid;
 use OpenSim\Provisioning\QuickSetup;
@@ -74,6 +75,7 @@ final class Api
     /** The resources of a grid: read in its databases and its files, at `/grids/{grid}/{type}`. */
     public const GRID_RESOURCES = [
         'avatars' => Avatar::class,
+        'avatar-models' => AvatarModel::class,
         'regions' => Region::class,
         'parcels' => Parcel::class,
         'estates' => Estate::class,

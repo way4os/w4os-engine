@@ -6,6 +6,7 @@
 - feature (backup): BackupRoot setting, backups in a folder per grid and simulator outside the data
 - feature (backup): OAR of every region of the running simulators in the backup root
 - feature (api): sign an avatar in with its name or its email and its password (`POST /grids/{grid}/sign-ins`)
+- feature (api): avatar models, picked by the `[Models]` rule of w4os (`GET /grids/{grid}/avatar-models`); a new avatar made with `model` wears a copy of its outfit and appearance
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 

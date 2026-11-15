@@ -23,7 +23,7 @@ final class Contract
      * for what the application that uses the engine provides (its tasks, the forms of its setup).
      */
     /** The resources whose list is whole: not searched, sorted or paged. */
-    private const UNPAGED = ['tasks', 'forms', 'destinations', 'fonts'];
+    private const UNPAGED = ['tasks', 'forms', 'destinations', 'fonts', 'avatar-models'];
 
     public const RESOURCES = [
         'grids' => [
@@ -173,7 +173,7 @@ final class Contract
             'scope' => 'grid',
             'summary' => 'The avatars of a grid',
             'description' =>
-                'Read from the databases of the grid, each in the one of its service. An avatar is made with its account, its password, its inventory and its default outfit. Its name does not change.',
+                'Read from the databases of the grid, each in the one of its service. An avatar is made with its account, its password, its inventory and its default outfit, or the outfit of an avatar model. Its name does not change.',
             'attributes' => [
                 'uuid' => ['string', 'Its UUID'],
                 'name' => ['string', 'First Last'],
@@ -223,6 +223,10 @@ final class Contract
                 'passwordHash' => ['object', 'hash and salt of a password that is moved'],
                 'uuid' => ['string', 'The UUID of an account that is moved'],
                 'home' => ['string', 'The UUID of the home region'],
+                'model' => [
+                    'string',
+                    'The UUID or the name of an avatar model (`/grids/{grid}/avatar-models`): the avatar wears a copy of its outfit instead of the default one',
+                ],
             ],
             'writable' => [
                 'email' => ['string', ''],
@@ -239,6 +243,25 @@ final class Contract
                 'firstLife' => ['string', ''],
             ],
             'deletable' => true,
+        ],
+        'avatar-models' => [
+            'scope' => 'grid',
+            'summary' => 'The avatar models of a grid',
+            'description' =>
+                "The avatars a new avatar can look like: it wears a copy of the outfit and the appearance of the model it is made from (`model` of a new avatar). The models are the active avatars the rule of `[Models]` picks: `Match` is `first` (the first name is `MatchPattern`), `last` (the last name is), `any` (either, the default) or `uuid` (the avatars of `List`); `MatchPattern` is `Default` by default. A model is made in the console of Robust, dressed in a viewer and given a profile picture; it is never the avatar of a person.\n\n`picture` is the asset to show (`/grids/{grid}/assets/{picture}.jpg`): its profile picture, else a placeholder.",
+            'attributes' => [
+                'uuid' => ['string', 'Its UUID'],
+                'name' => ['string', 'First Last'],
+                'slug' => ['string', 'first-last'],
+                'firstName' => ['string', ''],
+                'lastName' => ['string', ''],
+                'label' => ['string', 'The name to show, without the pattern of the rule (Default Ruth is Ruth)'],
+                'profileImage' => ['string?', 'The UUID of its profile picture'],
+                'picture' => ['string', 'The UUID of the picture to show: its profile picture, else a placeholder'],
+                'about' => ['string?', 'The text of its profile'],
+            ],
+            'filters' => [],
+            'writable' => [],
         ],
         'regions' => [
             'scope' => 'grid',
