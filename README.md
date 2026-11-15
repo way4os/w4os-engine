@@ -128,6 +128,23 @@ require 'vendor/autoload.php';   // PSR-4: OpenSim\ is src/; the gettext stand-i
 
 `OpenSim\Container\Podman` manages Podman containers without a shell. Pass a connection explicitly when targeting a remote Podman service; `bin/opensim-container.php` is the command-line adapter for Bash callers (`vendor/bin/opensim-container.php` when installed as a Composer dependency). Container integration tests are opt-in with `PODMAN_INTEGRATION=1`; `CONTAINER_CONNECTION` selects the Podman connection and `PODMAN_TEST_IMAGE` can select the test image.
 
+### The texts of the websites of a grid
+
+The texts a website of the grid shows its people (registration, sign-in, account, lost password, email confirmation, the avatars of the grid, and one per `code` of the problems of the API) are in gettext files, one source for every site (the Grav plugin, w4os): `share/languages/opensim-engine.pot` and `opensim-engine-<locale>.po` for cy_GB, de_DE, fr_FR, it_IT, nl_NL and pt_BR. The engine does not translate them: a site turns them into its own format.
+
+Each text has a stable key, the `msgctxt` of the files; the text of a problem code is `error_` and the code with `_` for `-`:
+
+```php
+use OpenSim\I18n\Catalog;
+
+Catalog::messages('fr_FR');            // ['register_title' => 'Créer mon avatar', ...]: the translated texts only
+Catalog::messages('en');               // every text, in English (Catalog::MESSAGES): the fallback
+Catalog::errorKey($problem['code']);   // 'error_name_taken'
+Catalog::LOCALES;                      // the languages; Catalog::file('fr') is the path of the .po
+```
+
+Placeholders are the ones of printf (`%s`, `%1$s`). A text that is not translated yet is left out, so that the site shows the English one.
+
 ## Documentation
 
 - **[Developer Guide](DEVELOPERS.md)** - Architecture rules and patterns

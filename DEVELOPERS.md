@@ -48,6 +48,16 @@ The addresses are in the contract (`docs/api/`), with the format OpenSimulator a
 
 `Api\Router` holds the addresses of the API without a transport (`route($method, $path, $query, $body)`, and `get()`, `post()`, `patch()`, `delete()` for a program that calls it as a library); its adapters are thin: `Api\Handler` for a web host (PSR-15), `Api\Cli` for the command line (`opensim api GET /grids/demo/monitor`). `Api\Handler` is the API as a PSR-15 handler (`new Handler($api, $responseFactory, $streamFactory, base: '/api')`): the engine requires the PSR interfaces only, the application brings the implementation of the messages (the tests use nyholm/psr7). Its addresses are the ones of the contract, which it serves at `/openapi.json`. A host that serves one grid gives it as `grid:` and its endpoints lose the `/grids/{grid}` (`/motd`, `/destinations`, `/avatars`): these are the standard addresses of the services the catalog calls `standard`.
 
+## Translations
+
+The texts of the websites of a grid are written in English in `OpenSim\I18n\Catalog::MESSAGES`, each with its key; the bridges know them by these keys, so a key does not change. `composer translations` (gettext tools: `msgmerge`) makes `share/languages/opensim-engine.pot` from it and merges every `.po` with it: a text whose English changed keeps its translation, fuzzy until a translator checks it (Poedit, Weblate), and a fuzzy one is not given to the sites. A test fails when the .pot is not the one of `MESSAGES`, or when a problem code of `Problem::CODES` has no text.
+
+A new language is an entry of `Catalog::LOCALES`, then `composer translations`. `--seed` fills the texts not translated yet from other gettext files with the same English text, word for word (no guess): the .po files were seeded from w4os and the helpers this way:
+
+```bash
+php dev/translations.php --seed ~/Projects/w4os/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po
+```
+
 ## The options of a grid
 
 An option (search, economy, offline messages, extended OSSL, whatever an administrator invents) is a preset, and so is what the grid has by default without being asked (the profiles, the addresses the viewers are told of the helpers, the bakes, the groups, the offline messages of Robust): the same folders, with `Offer = false` so that the setup does not list them: a folder with an `option.conf` and the ini files it changes, in `<etc>/presets/<name>/` (the administrator's, which wins) or `share/presets/<name>/` (the ones of the kit). No option is code: `OpenSim\Provisioning\GridOptions` lays each ini of the folder over the file of the grid that has the same name, at the setup and later (`opensim enable|disable <grid> <option>`):
