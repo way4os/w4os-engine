@@ -32,6 +32,9 @@ final class Catalog
 
     /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s). */
     public const MESSAGES = [
+        // Home
+        'welcome_title' => 'Welcome to %s',
+
         // Registration
         'register_title' => 'Create My Avatar',
         'register_text' => 'Choose a name below. This is how people will see you in-world.',

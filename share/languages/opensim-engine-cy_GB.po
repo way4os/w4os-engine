@@ -6,6 +6,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#, php-format
+msgctxt "welcome_title"
+msgid "Welcome to %s"
+msgstr "Croeso i %s"
+
 msgctxt "register_title"
 msgid "Create My Avatar"
 msgstr "Creu Fy Avatar"
