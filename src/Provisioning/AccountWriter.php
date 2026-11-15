@@ -137,6 +137,7 @@ final class AccountWriter
      * @param ?string $uuid the id of the account, a new one when none is given
      * @param ?array{name:string,appearance:list<array{0:string,1:string}>,items:array<string,array<string,mixed>>} $outfit the
      *        outfit of an avatar model (AvatarModel::outfit()), worn instead of the default one when it has an appearance
+     * @param bool $active the account can log in (false: it waits for the confirmation of its email)
      * @return array{id:string,tables:array<string,list<string>>} table => statements
      */
     public function tables(
@@ -147,8 +148,9 @@ final class AccountWriter
         ?array $hash = null,
         ?string $uuid = null,
         ?array $outfit = null,
+        bool $active = true,
     ): array {
-        $made = $this->rows($first, $last, $email, $password, null, $hash, $uuid, $outfit);
+        $made = $this->rows($first, $last, $email, $password, null, $hash, $uuid, $outfit, $active);
         $tables = [];
         foreach ($made['rows'] as [$table, $sql]) {
             $tables[$table][] = $sql;
@@ -178,6 +180,7 @@ final class AccountWriter
         ?array $hash,
         ?string $uuid = null,
         ?array $outfit = null,
+        bool $active = true,
     ): array {
         $q = [self::class, 'quote'];
         $id = $uuid ?? ($this->uuid)();
@@ -200,7 +203,7 @@ final class AccountWriter
                 0,
                 0,
                 $q(''),
-                1,
+                $active ? 1 : 0,
             ]) .
             ')',
         ];

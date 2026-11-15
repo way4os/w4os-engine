@@ -44,6 +44,7 @@ use OpenSim\Services\SearchRegistry;
 use OpenSim\Services\SearchTables;
 use OpenSim\Services\XmlRpc;
 use OpenSim\Scheduling\Scheduler;
+use OpenSim\SignIn\AvatarAccess;
 use OpenSim\SignIn\DatabaseAuthenticator;
 use OpenSim\SignIn\SignInResult;
 
@@ -252,9 +253,24 @@ final class Api
             if ($class === null) {
                 return Response::problem(Problem::notFound("kind of resource called '$type'", $instance));
             }
+            $confirm = $type === 'avatars' && Result::isTrue($attributes['confirmEmail'] ?? false);
+            if ($confirm) {
+                if (!Avatar::validEmail(trim((string) ($attributes['email'] ?? '')))) {
+                    throw new \InvalidArgumentException('an avatar whose email is to be confirmed needs an email');
+                }
+                $attributes['active'] = false;
+            }
             $created = isset(self::RESOURCES[$type])
                 ? $class::create($this->environment, $attributes)
                 : $class::create($this->gridConfig((string) $grid), $attributes);
+            $meta = [];
+            if ($confirm && $created instanceof Avatar) {
+                $given = $this->access((string) $grid)->requestEmailConfirmation(
+                    $created,
+                    self::link($attributes),
+                );
+                $meta['emailConfirmation'] = $given['sent'] ? 'sent' : 'not sent';
+            }
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -263,7 +279,8 @@ final class Api
         return new Response(
             201,
             ['Content-Type' => Response::JSON_API, 'Location' => $self],
-            ['data' => self::resource($type, $created, $grid), 'links' => ['self' => $self]],
+            ['data' => self::resource($type, $created, $grid), 'links' => ['self' => $self]] +
+                ($meta !== [] ? ['meta' => $meta] : []),
         );
     }
 
@@ -353,6 +370,122 @@ final class Api
         $self = self::path('avatars', $avatar->id(), $grid);
 
         return Response::document(['data' => self::resource('avatars', $avatar, $grid), 'links' => ['self' => $self]]);
+    }
+
+    /**
+     * Give a token to choose a new password to the avatars a name or an email is: mailed to them (202, the same answer whether the
+     * name or the email is someone's or not), or given back when `send` is false (for whoever delivers it: an administrator).
+     *
+     * @param array<string,mixed> $attributes `name` or `email`, `link` (the page that takes the token, `{token}` in it), `send`
+     */
+    public function requestPasswordReset(string $grid, array $attributes): Response
+    {
+        $instance = '/grids/' . rawurlencode($grid) . '/password-resets';
+        try {
+            $login = trim((string) ($attributes['name'] ?? ($attributes['email'] ?? '')));
+            if ($login === '') {
+                throw new \InvalidArgumentException('a forgotten password needs the name or the email of the avatar');
+            }
+            $send = !Result::isFalse($attributes['send'] ?? true);
+            $given = $this->access($grid)->requestPasswordReset($login, self::link($attributes), $send);
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        if ($send) {
+            return Response::document(
+                ['meta' => ['message' => 'When an avatar has this name or this email, a mail was sent to it.']],
+                202,
+            );
+        }
+
+        return $given === []
+            ? Response::problem(Problem::notFound("avatar called '$login'", $instance))
+            : Response::document([
+                'data' => array_map(static fn(array $one): array => self::given('password-resets', $one), $given),
+                'links' => ['self' => $instance],
+            ]);
+    }
+
+    /**
+     * Choose a new password with the token of a forgotten password, once. The avatar, or a problem 403 when the token is refused.
+     *
+     * @param array<string,mixed> $attributes `token` and `password`
+     */
+    public function resetPassword(string $grid, array $attributes): Response
+    {
+        $instance = '/grids/' . rawurlencode($grid) . '/password-resets/complete';
+        try {
+            $avatar = $this->access($grid)->resetPassword(
+                (string) ($attributes['token'] ?? ''),
+                (string) ($attributes['password'] ?? ''),
+            );
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return $this->avatarOrRefusal($avatar, $grid, $instance);
+    }
+
+    /**
+     * Give again a token to confirm the email of an avatar that waits for it: mailed (202, 503 when the mail cannot be sent), or
+     * given back when `send` is false. An avatar that does not wait for it (an administrator disabled it) is a conflict.
+     *
+     * @param array<string,mixed> $attributes `avatar` (its UUID or its name), `link`, `send`
+     */
+    public function requestEmailConfirmation(string $grid, array $attributes): Response
+    {
+        $instance = '/grids/' . rawurlencode($grid) . '/email-confirmations';
+        try {
+            $access = $this->access($grid);
+            $id = trim((string) ($attributes['avatar'] ?? ''));
+            $avatar = $id === '' ? null : Avatar::find($this->gridConfig($grid), $id);
+            if ($avatar === null) {
+                return Response::problem(Problem::notFound("avatar called '$id'", $instance));
+            }
+            if (!$access->waitsForConfirmation($avatar)) {
+                return Response::problem(
+                    new Problem(
+                        409,
+                        'Conflict',
+                        "The avatar {$avatar->name()} has no email confirmation pending.",
+                        'urn:opensim:problem:no-confirmation-pending',
+                        $instance,
+                    ),
+                );
+            }
+            $send = !Result::isFalse($attributes['send'] ?? true);
+            $given = $access->requestEmailConfirmation($avatar, self::link($attributes), $send);
+            if ($send && !$given['sent']) {
+                throw ChannelUnavailable::for('send the mail', 'the mail system of the machine refused it');
+            }
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return $send
+            ? Response::document(['meta' => ['message' => 'A mail was sent to the avatar.']], 202)
+            : Response::document([
+                'data' => [self::given('email-confirmations', $given)],
+                'links' => ['self' => $instance],
+            ]);
+    }
+
+    /**
+     * Confirm the email of an avatar with the token of its mail, once: the avatar is activated. The avatar, or a problem 403 when
+     * the token is refused.
+     *
+     * @param array<string,mixed> $attributes `token`
+     */
+    public function confirmEmail(string $grid, array $attributes): Response
+    {
+        $instance = '/grids/' . rawurlencode($grid) . '/email-confirmations/complete';
+        try {
+            $avatar = $this->access($grid)->confirmEmail((string) ($attributes['token'] ?? ''));
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return $this->avatarOrRefusal($avatar, $grid, $instance);
     }
 
     /**
@@ -895,6 +1028,74 @@ final class Api
         }
 
         return $model;
+    }
+
+    /** What lets the avatars of a grid of this machine back in: its tokens and its mails. */
+    private function access(string $nick): AvatarAccess
+    {
+        $grid = Grid::find($this->environment, $nick) ?? throw NotFound::for("grid called '$nick'");
+        $config = ($this->config)($grid) ?? throw NotFound::for("config of the grid '$nick' on this machine");
+        $sender = $config->find('Helpers', 'MailSender') ?? 'no-reply@' . $grid->baseHostname();
+
+        return new AvatarAccess(
+            $config,
+            $grid->name(),
+            $grid->name() . " <$sender>",
+            $this->mailer ?? new PhpMailer(),
+            $this->environment->clock,
+        );
+    }
+
+    /** The page that takes a token, as the caller gives it. @param array<string,mixed> $attributes */
+    private static function link(array $attributes): ?string
+    {
+        $link = trim((string) ($attributes['link'] ?? ''));
+
+        return $link !== '' ? $link : null;
+    }
+
+    /**
+     * A token given back instead of mailed, as a resource of the type of the operation.
+     *
+     * @param array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool} $given
+     * @return array<string,mixed>
+     */
+    private static function given(string $type, array $given): array
+    {
+        $avatar = $given['avatar'];
+
+        return [
+            'type' => $type,
+            'id' => $avatar->id(),
+            'attributes' => [
+                'avatar' => $avatar->id(),
+                'name' => $avatar->name(),
+                'email' => $avatar->detail()['email'] ?? null,
+                'token' => $given['token'],
+                'expires' => $given['expires'],
+                'link' => $given['link'],
+                'sent' => $given['sent'],
+            ],
+        ];
+    }
+
+    /** The avatar a token was taken for, or the problem that says the token is refused. */
+    private function avatarOrRefusal(?Avatar $avatar, string $grid, string $instance): Response
+    {
+        if ($avatar === null) {
+            return Response::problem(
+                new Problem(
+                    403,
+                    'Refused',
+                    'The token is not valid, or it has expired.',
+                    'urn:opensim:problem:token-refused',
+                    $instance,
+                ),
+            );
+        }
+        $self = self::path('avatars', $avatar->id(), $grid);
+
+        return Response::document(['data' => self::resource('avatars', $avatar, $grid), 'links' => ['self' => $self]]);
     }
 
     /** The config of a grid of this machine. */

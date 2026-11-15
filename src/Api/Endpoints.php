@@ -39,7 +39,7 @@ final class Endpoints
             [
                 'name' => 'Avatar access',
                 'description' =>
-                    'What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them.',
+                    "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them; a forgotten password; the confirmation of the email of a new avatar.\n\nA forgotten password and a confirmation are a one-time token, kept hashed in the database of the passwords (`avatar_tokens`), mailed to the avatar with a link to the page that takes it: the `link` the caller gives (`{token}` in it is replaced by the token, else `token=` is added), else the page of the grid (`password` of `[GridInfoService]` for a password, `register` for a confirmation). The mail gives the token as a code too. Whoever cannot mail it (no mail system, an administrator, an agent that delivers it otherwise) sends `send: false` and gets the token instead. The mails come from `MailSender` of `[Helpers]`, else no-reply@ the host of the grid.\n\nA token is valid once: a day for a password, two days for a confirmation (the avatar may ask for another one). An avatar has one token at a time for each.",
             ],
             [
                 'name' => 'Health',
@@ -741,6 +741,133 @@ final class Endpoints
                 '403' => Contract::problem('The name or the password is wrong, or the account is not active'),
                 '404' => Contract::problem('The grid is not known here'),
                 '503' => Contract::problem('The database of the accounts cannot be reached'),
+            ],
+        );
+
+        $avatar = [
+            'description' => 'The avatar',
+            'content' => [
+                Response::JSON_API => [
+                    'schema' => [
+                        'type' => 'object',
+                        'properties' => ['data' => ['$ref' => '#/components/schemas/Avatars']],
+                    ],
+                ],
+            ],
+        ];
+        $tokens = static fn(string $type): array => [
+            'description' => 'The token, not mailed (`send: false`)',
+            'content' => [
+                Response::JSON_API => [
+                    'schema' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'data' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'type' => ['const' => $type],
+                                        'id' => ['type' => 'string', 'description' => 'The UUID of the avatar'],
+                                        'attributes' => [
+                                            'type' => 'object',
+                                            'properties' => [
+                'avatar' => ['type' => 'string', 'description' => 'The UUID of the avatar'],
+                'name' => ['type' => 'string'],
+                'email' => ['type' => ['string', 'null']],
+                'token' => ['type' => 'string', 'description' => 'The token, 32 hexadecimal characters'],
+                'expires' => ['type' => 'integer', 'description' => 'When it expires (Unix time)'],
+                'link' => ['type' => ['string', 'null'], 'description' => 'The link with the token'],
+                'sent' => ['type' => 'boolean', 'description' => 'It was mailed'],
+            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $accepted = static fn(string $description): array => [
+            'description' => $description,
+            'content' => [
+                Response::JSON_API => [
+                    'schema' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'meta' => ['type' => 'object', 'properties' => ['message' => ['type' => 'string']]],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $paths['/grids/{grid}/password-resets']['post'] = self::action(
+            'password-resets',
+            'requestPasswordReset',
+            'Forgotten password',
+            'Gives a token to choose a new password to the avatar a name is, or to every avatar an email is: mailed to it with a link, or given back with `send: false`. The answer to a mail is the same whether the name or the email is someone\'s or not.',
+            [
+                'name' => ['string', 'First Last, or First.Last'],
+                'email' => ['string', 'The email of the avatar, instead of its name: every avatar that has it'],
+                'link' => ['string', 'The page that takes the token, `{token}` in it: https://example.org/reset?key={token}'],
+                'send' => ['boolean', 'Mail it (the default); false gives the token and mails nothing'],
+            ],
+            [
+                '200' => $tokens('password-resets'),
+                '202' => $accepted('Mailed, when the name or the email is someone\'s'),
+                '400' => Contract::problem('No name or email, or a link that is not a web address'),
+                '404' => Contract::problem('The grid is not known here; with `send: false`, nobody has the name or the email'),
+                '503' => Contract::problem('The databases of the accounts or of the passwords cannot be reached'),
+            ],
+        );
+        $paths['/grids/{grid}/password-resets/complete']['post'] = self::action(
+            'password-resets',
+            'resetPassword',
+            'New password',
+            'Changes the password of the avatar a token of a forgotten password was given to. The token is valid once; a password that is not one is refused before the token is taken.',
+            [
+                'token' => ['string', 'The token of the mail'],
+                'password' => ['string', 'The new password: 6 to 16 characters, no double quote'],
+            ],
+            [
+                '200' => $avatar,
+                '400' => Contract::problem('The password is not one'),
+                '403' => Contract::problem('The token is not valid, or it has expired'),
+                '404' => Contract::problem('The grid is not known here'),
+                '503' => Contract::problem('The databases of the accounts or of the passwords cannot be reached'),
+            ],
+        );
+        $paths['/grids/{grid}/email-confirmations']['post'] = self::action(
+            'email-confirmations',
+            'requestEmailConfirmation',
+            'Confirm an email again',
+            'Gives a new token to confirm its email to an avatar that waits for it (made with `confirmEmail`, not confirmed yet): mailed to it with a link, or given back with `send: false`. The token it had is replaced. An avatar that does not wait for it, an administrator disabled it for instance, is never given one: it would activate it.',
+            [
+                'avatar' => ['string', 'The UUID or the name of the avatar'],
+                'link' => ['string', 'The page that takes the token, `{token}` in it'],
+                'send' => ['boolean', 'Mail it (the default); false gives the token and mails nothing'],
+            ],
+            [
+                '200' => $tokens('email-confirmations'),
+                '202' => $accepted('Mailed'),
+                '400' => Contract::problem('The avatar has no email, or the link is not a web address'),
+                '404' => Contract::problem('The grid or the avatar is not known here'),
+                '409' => Contract::problem('The avatar does not wait for the confirmation of its email'),
+                '503' => Contract::problem('A database cannot be reached, or the mail cannot be sent'),
+            ],
+        );
+        $paths['/grids/{grid}/email-confirmations/complete']['post'] = self::action(
+            'email-confirmations',
+            'confirmEmail',
+            'Confirm an email',
+            'Confirms the email of the avatar a token was given to, and activates the avatar: it can log in. The token is valid once, and only for the email the avatar has.',
+            ['token' => ['string', 'The token of the mail']],
+            [
+                '200' => $avatar,
+                '403' => Contract::problem('The token is not valid, or it has expired'),
+                '404' => Contract::problem('The grid is not known here'),
+                '503' => Contract::problem('The databases of the accounts or of the passwords cannot be reached'),
             ],
         );
 

@@ -11,7 +11,10 @@ namespace OpenSim\Api;
  *     opensim api GET /grids/demo/monitor?format=text
  *     opensim api GET /grids filter[hypergrid]=yes sort=-name
  *     opensim api PATCH /simulators/alpha enabled=false
- *     opensim api POST /grids/demo/avatars name="Ada Love" password=secret
+ *     opensim api POST /grids/demo/avatars name="Ada Love" password=secret model="Default Ruth"
+ *     opensim api POST /grids/demo/sign-ins name="Ada Love" password=secret
+ *     opensim api POST /grids/demo/password-resets name="Ada Love" send=false     # the token, for whoever gives it
+ *     opensim api POST /grids/demo/password-resets/complete token=... password=new-secret
  *     opensim api POST /grids/demo/search/query --data=@call.xml
  *
  * The words after the path are the arguments of the address (`key=value`, `filter[x]=y`), or the attributes of the resource for a POST

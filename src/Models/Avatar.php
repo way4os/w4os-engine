@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Result;
 use OpenSim\Text\Uuid;
 use OpenSim\Config\GridConfig;
 use OpenSim\Data\Collection;
@@ -363,7 +364,8 @@ final class Avatar extends Model
      *
      * @param array<string,mixed> $values `name` ("First Last") or `firstName` and `lastName`, `email`, and `password` or `passwordHash`
      *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
-     *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one
+     *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
+     *        `active` false for an account that cannot log in yet
      * @throws \InvalidArgumentException for a name that is not one, a missing password, a name taken
      * @throws ChannelUnavailable when a database cannot be reached or refuses
      */
@@ -412,6 +414,7 @@ final class Avatar extends Model
             $hash,
             $uuid,
             $outfit,
+            !array_key_exists('active', $values) || Result::isTrue($values['active']),
         );
         // Each database gets its rows in one transaction: the tables of the same database go together (the usual case: one)
         $groups = [];

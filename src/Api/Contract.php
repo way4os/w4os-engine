@@ -227,6 +227,12 @@ final class Contract
                     'string',
                     'The UUID or the name of an avatar model (`/grids/{grid}/avatar-models`): the avatar wears a copy of its outfit instead of the default one',
                 ],
+                'active' => ['boolean', 'The account can log in (the default)'],
+                'confirmEmail' => [
+                    'boolean',
+                    'The avatar is made inactive and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says whether the mail was sent',
+                ],
+                'link' => ['string', 'With confirmEmail: the page that takes the token, `{token}` in it'],
             ],
             'writable' => [
                 'email' => ['string', ''],

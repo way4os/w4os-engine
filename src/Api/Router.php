@@ -170,6 +170,8 @@ final class Router
                         'info',
                         'monitor',
                         'sign-ins',
+                        'password-resets',
+                        'email-confirmations',
                     ],
                     true,
                 ))
@@ -237,6 +239,21 @@ final class Router
             $routes = [
                 'POST' => fn() => $this->check($body, $parsed, $path, 'sign-ins') ??
                     $this->api->signIn($grid, $this->attributes($body, $parsed)),
+            ];
+        } elseif (
+            $grid !== null &&
+            in_array($tail[0] ?? '', ['password-resets', 'email-confirmations'], true) &&
+            (count($tail) === 1 || $tail === [$tail[0], 'complete'])
+        ) {
+            $type = $tail[0];
+            $template = "/grids/{grid}/$type" . (count($tail) === 2 ? '/complete' : '');
+            $call = [
+                'password-resets' => ['requestPasswordReset', 'resetPassword'],
+                'email-confirmations' => ['requestEmailConfirmation', 'confirmEmail'],
+            ][$type][count($tail) - 1];
+            $routes = [
+                'POST' => fn() => $this->check($body, $parsed, $path, $type) ??
+                    $this->api->$call($grid, $this->attributes($body, $parsed)),
             ];
         } elseif ($grid === null && $segments === ['setups', 'quick']) {
             $template = '/setups/quick';
