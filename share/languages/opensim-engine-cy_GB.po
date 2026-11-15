@@ -209,8 +209,8 @@ msgid "Current password"
 msgstr "Cyfrinair presennol"
 
 msgctxt "account_title"
-msgid "My Avatar"
-msgstr "Fy Avatar"
+msgid "Avatar Profile"
+msgstr "Proffil Avatar"
 
 msgctxt "born"
 msgid "Born"

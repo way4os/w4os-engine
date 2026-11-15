@@ -211,8 +211,8 @@ msgid "Current password"
 msgstr "Aktuelles Passwort"
 
 msgctxt "account_title"
-msgid "My Avatar"
-msgstr "Mein Avatar"
+msgid "Avatar Profile"
+msgstr "Avatar-Profil"
 
 msgctxt "born"
 msgid "Born"

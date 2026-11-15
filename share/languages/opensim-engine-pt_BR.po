@@ -208,8 +208,8 @@ msgid "Current password"
 msgstr "Senha atual"
 
 msgctxt "account_title"
-msgid "My Avatar"
-msgstr "Meu Avatar"
+msgid "Avatar Profile"
+msgstr "Perfil do avatar"
 
 msgctxt "born"
 msgid "Born"

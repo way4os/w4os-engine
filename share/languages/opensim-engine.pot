@@ -177,7 +177,7 @@ msgid "Current password"
 msgstr ""
 
 msgctxt "account_title"
-msgid "My Avatar"
+msgid "Avatar Profile"
 msgstr ""
 
 msgctxt "born"

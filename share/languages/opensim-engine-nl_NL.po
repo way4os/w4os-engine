@@ -209,8 +209,8 @@ msgid "Current password"
 msgstr "Huidig wachtwoord"
 
 msgctxt "account_title"
-msgid "My Avatar"
-msgstr "Mijn Avatar"
+msgid "Avatar Profile"
+msgstr "Avatarprofiel"
 
 msgctxt "born"
 msgid "Born"

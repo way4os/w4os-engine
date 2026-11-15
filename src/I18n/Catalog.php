@@ -79,7 +79,7 @@ final class Catalog
         'current_password' => 'Current password',
 
         // My avatar
-        'account_title' => 'My Avatar',
+        'account_title' => 'Avatar Profile',
         'born' => 'Born',
         'profile_title' => 'Profile',
         'profile_text' => 'What other people see of you in-world (the picture and the interests are set in the viewer).',
