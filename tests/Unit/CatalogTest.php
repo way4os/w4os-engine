@@ -41,18 +41,9 @@ describe('the catalog of the texts of the sites', function () {
             ->and(Catalog::messages('es'))->toBe([]);
     });
 
-    test('gives the translations not checked yet when asked', function () {
-        $checked = Catalog::messages('fr_FR');
-        $all = Catalog::messages('fr_FR', fuzzy: true);
-
-        expect(count($all))->toBeGreaterThan(count($checked))
-            ->and(array_intersect_key($all, $checked))->toBe($checked)
-            ->and(array_diff_key($all, Catalog::MESSAGES))->toBe([]);
-    });
-
     test('keeps the placeholders of a text in its translations', function () {
         foreach (Catalog::LOCALES as $locale) {
-            foreach (Catalog::messages($locale, fuzzy: true) as $key => $text) {
+            foreach (Catalog::messages($locale) as $key => $text) {
                 preg_match_all('/%(\d+\$)?s/', Catalog::MESSAGES[$key], $source);
                 preg_match_all('/%(\d+\$)?s/', $text, $translated);
                 sort($source[0]);

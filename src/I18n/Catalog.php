@@ -192,10 +192,10 @@ final class Catalog
      * The texts in a language, by key: the translated ones only (a bridge falls back on the English ones). An unknown language
      * gives none; `en` gives the English texts.
      *
-     * @param bool $fuzzy with the translations a translator did not check yet
+     * @param bool $fuzzy with the fuzzy ones (a translation whose English changed since)
      * @return array<string,string>
      */
-    public static function messages(string $locale, bool $fuzzy = false): array
+    public static function messages(string $locale, bool $fuzzy = true): array
     {
         if (self::locale($locale) === self::SOURCE) {
             return self::MESSAGES;

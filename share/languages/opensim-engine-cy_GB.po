@@ -1,4 +1,3 @@
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: opensim-engine\n"
@@ -11,7 +10,6 @@ msgctxt "register_title"
 msgid "Create My Avatar"
 msgstr "Creu Fy Avatar"
 
-#, fuzzy
 msgctxt "register_text"
 msgid "Choose a name below. This is how people will see you in-world."
 msgstr "Dewiswch enw isod. Dyma sut bydd pobl yn eich gweld yn y byd rhithwir."
@@ -20,7 +18,6 @@ msgctxt "register_button"
 msgid "Create My Avatar"
 msgstr "Creu Fy Avatar"
 
-#, fuzzy
 msgctxt "have_avatar"
 msgid "Already have an avatar?"
 msgstr "Oes gennych chi avatar yn barod?"
@@ -45,16 +42,18 @@ msgctxt "password_confirm"
 msgid "Confirm password"
 msgstr "Cadarnhau cyfrinair"
 
-#, fuzzy
 msgctxt "password_help"
-msgid "6 to 16 characters, without double quote. The same password logs you in here and in-world."
-msgstr "6 i 16 nod, heb ddyfynnod dwbl. Mae’r un cyfrinair yn eich mewngofnodi yma ac yn y byd rhithwir."
+msgid ""
+"6 to 16 characters, without double quote. The same password logs you in here "
+"and in-world."
+msgstr ""
+"6 i 16 nod, heb ddyfynnod dwbl. Mae’r un cyfrinair yn eich mewngofnodi yma "
+"ac yn y byd rhithwir."
 
 msgctxt "model"
 msgid "Choose the first outfit for your avatar."
 msgstr "Dewiswch y gwisg gyntaf ar gyfer eich avatar."
 
-#, fuzzy
 msgctxt "model_help"
 msgid "You can always change your appearance in-world."
 msgstr "Gallwch bob amser newid eich ymddangosiad yn y byd rhithwir."
@@ -64,57 +63,71 @@ msgctxt "terms_agree"
 msgid "I agree to the terms on page %s."
 msgstr "Rwy'n cytuno i'r telerau ar dudalen %s."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "registered"
 msgid "Avatar %s created successfully. Log in with its name or your email."
 msgstr "Avatar %s wedi’i greu. Mewngofnodwch gyda’i enw neu eich ebost."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "registered_confirm"
-msgid "Avatar %s created. A message is on its way to your address: click the link inside to confirm it, that is what activates your avatar."
-msgstr "Avatar %s wedi’i greu. Mae neges ar ei ffordd i’ch cyfeiriad: cliciwch y ddolen ynddi i’w gadarnhau, dyna sy’n gweithredu eich avatar."
+msgid ""
+"Avatar %s created. A message is on its way to your address: click the link "
+"inside to confirm it, that is what activates your avatar."
+msgstr ""
+"Avatar %s wedi’i greu. Mae neges ar ei ffordd i’ch cyfeiriad: cliciwch y "
+"ddolen ynddi i’w gadarnhau, dyna sy’n gweithredu eich avatar."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "registered_not_sent"
-msgid "Avatar %s created, but the confirmation mail could not be sent. Ask for a new one below, or contact the managers of the grid."
-msgstr "Avatar %s wedi’i greu, ond doedd dim modd anfon yr ebost cadarnhau. Gofynnwch am un newydd isod, neu cysylltwch â rheolwyr y grid."
+msgid ""
+"Avatar %s created, but the confirmation mail could not be sent. Ask for a "
+"new one below, or contact the managers of the grid."
+msgstr ""
+"Avatar %s wedi’i greu, ond doedd dim modd anfon yr ebost cadarnhau. "
+"Gofynnwch am un newydd isod, neu cysylltwch â rheolwyr y grid."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "registered_test"
-msgid "Avatar %1$s created. Test site, no mail: confirm it with this link: %2$s"
-msgstr "Avatar %1$s wedi’i greu. Safle prawf, dim ebost: cadarnhewch gyda’r ddolen hon: %2$s"
+msgid ""
+"Avatar %1$s created. Test site, no mail: confirm it with this link: %2$s"
+msgstr ""
+"Avatar %1$s wedi’i greu. Safle prawf, dim ebost: cadarnhewch gyda’r ddolen "
+"hon: %2$s"
 
-#, fuzzy
 msgctxt "confirm_title"
 msgid "Confirm your email"
 msgstr "Cadarnhewch eich ebost"
 
-#, fuzzy
 msgctxt "confirm_text"
-msgid "Your avatar is active once you click the link of the mail we sent you. Nothing within a few minutes? Have a look in the spam folder."
-msgstr "Mae eich avatar yn weithredol cyn gynted ag y byddwch yn clicio’r ddolen yn yr ebost a anfonwyd atoch. Dim byd ar ôl ychydig funudau? Edrychwch yn y ffolder sbam."
+msgid ""
+"Your avatar is active once you click the link of the mail we sent you. "
+"Nothing within a few minutes? Have a look in the spam folder."
+msgstr ""
+"Mae eich avatar yn weithredol cyn gynted ag y byddwch yn clicio’r ddolen yn "
+"yr ebost a anfonwyd atoch. Dim byd ar ôl ychydig funudau? Edrychwch yn y "
+"ffolder sbam."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "confirmed"
-msgid "Your email is confirmed, %s is active. You can log in now, here and in-world."
-msgstr "Mae eich ebost wedi’i gadarnhau, mae %s yn weithredol. Gallwch fewngofnodi nawr, yma ac yn y byd rhithwir."
+msgid ""
+"Your email is confirmed, %s is active. You can log in now, here and in-world."
+msgstr ""
+"Mae eich ebost wedi’i gadarnhau, mae %s yn weithredol. Gallwch fewngofnodi "
+"nawr, yma ac yn y byd rhithwir."
 
-#, fuzzy
 msgctxt "resend_title"
 msgid "Get a new link"
 msgstr "Cael dolen newydd"
 
-#, fuzzy
 msgctxt "resend_button"
 msgid "Send a new link"
 msgstr "Anfon dolen newydd"
 
-#, fuzzy
 msgctxt "confirm_resent"
 msgid "A new link is on its way."
 msgstr "Mae dolen newydd ar ei ffordd."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "confirm_resent_test"
 msgid "Test site, no mail: confirm with this link: %s"
 msgstr "Safle prawf, dim ebost: cadarnhewch gyda’r ddolen hon: %s"
@@ -131,7 +144,6 @@ msgctxt "logout"
 msgid "Logout"
 msgstr "Allgofnodi"
 
-#, fuzzy
 msgctxt "login"
 msgid "Avatar name or email"
 msgstr "Enw avatar neu ebost"
@@ -140,56 +152,58 @@ msgctxt "forgot_title"
 msgid "Lost Password"
 msgstr "Cyfrinair Coll"
 
-#, fuzzy
 msgctxt "forgot_text"
-msgid "Type the name of your avatar or your email: you will get a link to choose a new password."
-msgstr "Teipiwch enw eich avatar neu eich ebost: byddwch yn cael dolen i ddewis cyfrinair newydd."
+msgid ""
+"Type the name of your avatar or your email: you will get a link to choose a "
+"new password."
+msgstr ""
+"Teipiwch enw eich avatar neu eich ebost: byddwch yn cael dolen i ddewis "
+"cyfrinair newydd."
 
-#, fuzzy
 msgctxt "forgot_button"
 msgid "Send me a link"
 msgstr "Anfonwch ddolen ataf"
 
-#, fuzzy
 msgctxt "forgot_sent"
-msgid "If an avatar has this name or this email, a link is on its way to its address."
-msgstr "Os oes gan avatar yr enw neu’r ebost hwn, mae dolen ar ei ffordd i’w gyfeiriad."
+msgid ""
+"If an avatar has this name or this email, a link is on its way to its "
+"address."
+msgstr ""
+"Os oes gan avatar yr enw neu’r ebost hwn, mae dolen ar ei ffordd i’w "
+"gyfeiriad."
 
-#, fuzzy
 msgctxt "forgot_test"
-msgid "Test site, no mail: the link of a new password is not shown here, the engine API gives it (send: false)."
-msgstr "Safle prawf, dim ebost: nid yw dolen cyfrinair newydd yn cael ei dangos yma, mae API yr engine yn ei rhoi (send: false)."
+msgid ""
+"Test site, no mail: the link of a new password is not shown here, the engine "
+"API gives it (send: false)."
+msgstr ""
+"Safle prawf, dim ebost: nid yw dolen cyfrinair newydd yn cael ei dangos yma, "
+"mae API yr engine yn ei rhoi (send: false)."
 
 msgctxt "reset_title"
 msgid "Reset Password"
 msgstr "Ailosod cyfrinair"
 
-#, fuzzy
 msgctxt "reset_text"
 msgid "Choose the new password of your avatar."
 msgstr "Dewiswch gyfrinair newydd eich avatar."
 
-#, fuzzy
 msgctxt "reset_no_token"
 msgid "This page opens from the link of the mail you received."
 msgstr "Mae’r dudalen hon yn agor o’r ddolen yn yr ebost a gawsoch."
 
-#, fuzzy
 msgctxt "reset_button"
 msgid "Save the new password"
 msgstr "Cadw’r cyfrinair newydd"
 
-#, fuzzy
 msgctxt "reset_done"
 msgid "Your password is changed. You can log in with it now."
 msgstr "Mae eich cyfrinair wedi newid. Gallwch fewngofnodi gydag ef nawr."
 
-#, fuzzy
 msgctxt "new_password"
 msgid "New password"
 msgstr "Cyfrinair newydd"
 
-#, fuzzy
 msgctxt "current_password"
 msgid "Current password"
 msgstr "Cyfrinair presennol"
@@ -206,10 +220,13 @@ msgctxt "profile_title"
 msgid "Profile"
 msgstr "Proffil"
 
-#, fuzzy
 msgctxt "profile_text"
-msgid "What other people see of you in-world (the picture and the interests are set in the viewer)."
-msgstr "Yr hyn y mae eraill yn ei weld ohonoch yn y byd rhithwir (mae’r llun a’r diddordebau’n cael eu gosod yn y gwyliwr)."
+msgid ""
+"What other people see of you in-world (the picture and the interests are set "
+"in the viewer)."
+msgstr ""
+"Yr hyn y mae eraill yn ei weld ohonoch yn y byd rhithwir (mae’r llun a’r "
+"diddordebau’n cael eu gosod yn y gwyliwr)."
 
 msgctxt "about"
 msgid "About"
@@ -231,17 +248,14 @@ msgctxt "first_life"
 msgid "Real Life"
 msgstr "Bywyd go iawn"
 
-#, fuzzy
 msgctxt "profile_url"
 msgid "Web page"
 msgstr "Tudalen we"
 
-#, fuzzy
 msgctxt "save_button"
 msgid "Save"
 msgstr "Cadw"
 
-#, fuzzy
 msgctxt "profile_saved"
 msgid "Your profile is saved."
 msgstr "Mae eich proffil wedi’i gadw."
@@ -250,27 +264,32 @@ msgctxt "password_title"
 msgid "Password"
 msgstr "Cyfrinair"
 
-#, fuzzy
 msgctxt "password_button"
 msgid "Change the password"
 msgstr "Newid y cyfrinair"
 
-#, fuzzy
 msgctxt "password_saved"
 msgid "Your password is changed."
 msgstr "Mae eich cyfrinair wedi newid."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "email_pending"
-msgid "Your profile is saved. A link is on its way to %s: click it to make it your email."
-msgstr "Mae eich proffil wedi’i gadw. Mae dolen ar ei ffordd i %s: cliciwch hi i’w wneud yn ebost i chi."
+msgid ""
+"Your profile is saved. A link is on its way to %s: click it to make it your "
+"email."
+msgstr ""
+"Mae eich proffil wedi’i gadw. Mae dolen ar ei ffordd i %s: cliciwch hi i’w "
+"wneud yn ebost i chi."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "email_pending_test"
-msgid "Your profile is saved. Test site, no mail: confirm %1$s with this link: %2$s"
-msgstr "Mae eich proffil wedi’i gadw. Safle prawf, dim ebost: cadarnhewch %1$s gyda’r ddolen hon: %2$s"
+msgid ""
+"Your profile is saved. Test site, no mail: confirm %1$s with this link: %2$s"
+msgstr ""
+"Mae eich proffil wedi’i gadw. Safle prawf, dim ebost: cadarnhewch %1$s "
+"gyda’r ddolen hon: %2$s"
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "email_changed"
 msgid "Your email is now %s."
 msgstr "Eich ebost yw %s nawr."
@@ -279,12 +298,10 @@ msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatars"
 
-#, fuzzy
 msgctxt "search_avatars"
 msgid "Name or email"
 msgstr "Enw neu ebost"
 
-#, fuzzy
 msgctxt "search"
 msgid "Search"
 msgstr "Chwilio"
@@ -293,7 +310,7 @@ msgctxt "no_avatars"
 msgid "No result"
 msgstr "Dim canlyniad"
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "avatars_count"
 msgid "%s avatars"
 msgstr "%s avatar"
@@ -310,7 +327,6 @@ msgctxt "created"
 msgid "Created"
 msgstr "Creuwyd"
 
-#, fuzzy
 msgctxt "actions"
 msgid "Actions"
 msgstr "Gweithredoedd"
@@ -327,12 +343,10 @@ msgctxt "active"
 msgid "Active"
 msgstr "Gweithgar"
 
-#, fuzzy
 msgctxt "inactive"
 msgid "Inactive"
 msgstr "Anweithredol"
 
-#, fuzzy
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Galluogi"
@@ -341,47 +355,43 @@ msgctxt "action_disable"
 msgid "Disable"
 msgstr "Dad-ddisodli"
 
-#, fuzzy
 msgctxt "action_reset"
 msgid "Password link"
 msgstr "Dolen cyfrinair"
 
-#, fuzzy
 msgctxt "action_delete"
 msgid "Delete"
 msgstr "Dileu"
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "delete_confirm"
 msgid "Delete %s for good, with its inventory?"
 msgstr "Dileu %s am byth, gyda’i stocrestr?"
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "manage_enable"
 msgid "%s is enabled."
 msgstr "Mae %s wedi’i alluogi."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "manage_disable"
 msgid "%s is disabled."
 msgstr "Mae %s wedi’i analluogi."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
 msgstr "Mae dolen i ddewis cyfrinair newydd ar ei ffordd at %s."
 
-#, fuzzy, php-format
+#, php-format
 msgctxt "manage_delete"
 msgid "%s is deleted."
 msgstr "Mae %s wedi’i ddileu."
 
-#, fuzzy
 msgctxt "error_required"
 msgid "Please fill in every field."
 msgstr "Llenwch bob maes os gwelwch yn dda."
 
-#, fuzzy
 msgctxt "error_password_match"
 msgid "The two passwords are not the same."
 msgstr "Nid yw’r ddau gyfrinair yr un fath."
@@ -391,142 +401,134 @@ msgctxt "error_terms"
 msgid "You must agree to the terms on page %s."
 msgstr "You must agree to the terms on page %s."
 
-#, fuzzy
 msgctxt "error_current_password"
 msgid "The current password is wrong."
 msgstr "Mae’r cyfrinair presennol yn anghywir."
 
-#, fuzzy
 msgctxt "error_forbidden"
 msgid "This is not allowed."
 msgstr "Nid yw hyn wedi’i ganiatáu."
 
-#, fuzzy
 msgctxt "error_nonce"
 msgid "This page has expired, please try again."
 msgstr "Mae’r dudalen hon wedi dod i ben, rhowch gynnig arall arni."
 
-#, fuzzy
 msgctxt "error_not_found"
 msgid "There is no such avatar."
 msgstr "Nid yw’r avatar hwn yn bodoli."
 
-#, fuzzy
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
 msgstr "Nid yw hyn yn bosibl."
 
-#, fuzzy
 msgctxt "error_invalid_document"
 msgid "This cannot be done."
 msgstr "Nid yw hyn yn bosibl."
 
-#, fuzzy
 msgctxt "error_type_conflict"
 msgid "This cannot be done."
 msgstr "Nid yw hyn yn bosibl."
 
-#, fuzzy
 msgctxt "error_unauthorized"
 msgid "The grid cannot be reached right now. Please try again later."
-msgstr "Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes ymlaen."
+msgstr ""
+"Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes "
+"ymlaen."
 
-#, fuzzy
 msgctxt "error_method_not_allowed"
 msgid "This cannot be done."
 msgstr "Nid yw hyn yn bosibl."
 
-#, fuzzy
 msgctxt "error_channel_unavailable"
 msgid "The grid cannot be reached right now. Please try again later."
-msgstr "Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes ymlaen."
+msgstr ""
+"Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes "
+"ymlaen."
 
-#, fuzzy
 msgctxt "error_instance_failed"
 msgid "The grid cannot be reached right now. Please try again later."
-msgstr "Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes ymlaen."
+msgstr ""
+"Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes "
+"ymlaen."
 
-#, fuzzy
 msgctxt "error_internal_error"
 msgid "The grid cannot be reached right now. Please try again later."
-msgstr "Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes ymlaen."
+msgstr ""
+"Does dim modd cyrraedd y grid ar hyn o bryd. Rhowch gynnig arall arni nes "
+"ymlaen."
 
-#, fuzzy
 msgctxt "error_sign_in_refused"
 msgid "The name or the password is wrong."
 msgstr "Mae’r enw neu’r cyfrinair yn anghywir."
 
-#, fuzzy
 msgctxt "error_account_disabled"
 msgid "This avatar is disabled. Contact the managers of the grid."
 msgstr "Mae’r avatar hwn wedi’i analluogi. Cysylltwch â rheolwyr y grid."
 
-#, fuzzy
 msgctxt "error_email_unconfirmed"
-msgid "This avatar is not active yet: confirm your email with the link of the mail we sent you."
-msgstr "Nid yw’r avatar hwn yn weithredol eto: cadarnhewch eich ebost gyda’r ddolen a anfonwyd atoch."
+msgid ""
+"This avatar is not active yet: confirm your email with the link of the mail "
+"we sent you."
+msgstr ""
+"Nid yw’r avatar hwn yn weithredol eto: cadarnhewch eich ebost gyda’r ddolen "
+"a anfonwyd atoch."
 
-#, fuzzy
 msgctxt "error_name_invalid"
-msgid "The first and the last name are made of letters, digits and hyphens, without accents."
-msgstr "Mae’r enw cyntaf a’r cyfenw wedi’u gwneud o lythrennau, digidau a chysylltnodau, heb acenion."
+msgid ""
+"The first and the last name are made of letters, digits and hyphens, without "
+"accents."
+msgstr ""
+"Mae’r enw cyntaf a’r cyfenw wedi’u gwneud o lythrennau, digidau a "
+"chysylltnodau, heb acenion."
 
-#, fuzzy
 msgctxt "error_name_reserved"
 msgid "This name is reserved, please choose another one."
 msgstr "Mae’r enw hwn wedi’i gadw, dewiswch un arall."
 
-#, fuzzy
 msgctxt "error_name_taken"
 msgid "An avatar already has this name, please choose another one."
 msgstr "Mae gan avatar yr enw hwn yn barod, dewiswch un arall."
 
-#, fuzzy
 msgctxt "error_password_required"
 msgid "Please fill in every field."
 msgstr "Llenwch bob maes os gwelwch yn dda."
 
-#, fuzzy
 msgctxt "error_password_invalid"
 msgid "The password must have 6 to 16 characters, without double quote."
 msgstr "Rhaid i’r cyfrinair fod rhwng 6 ac 16 nod, heb ddyfynnod dwbl."
 
-#, fuzzy
 msgctxt "error_email_invalid"
 msgid "This email address is not valid."
 msgstr "Nid yw’r cyfeiriad ebost hwn yn ddilys."
 
-#, fuzzy
 msgctxt "error_email_required"
 msgid "This avatar has no email address."
 msgstr "Nid oes gan yr avatar hwn gyfeiriad ebost."
 
-#, fuzzy
 msgctxt "error_model_unknown"
 msgid "This outfit is not available, please choose another one."
 msgstr "Nid yw’r wisg hon ar gael, dewiswch un arall."
 
-#, fuzzy
 msgctxt "error_link_invalid"
 msgid "This cannot be done."
 msgstr "Nid yw hyn yn bosibl."
 
-#, fuzzy
 msgctxt "error_field_unknown"
 msgid "This cannot be done."
 msgstr "Nid yw hyn yn bosibl."
 
-#, fuzzy
 msgctxt "error_token_refused"
-msgid "This link does not work: it has expired or it was already used. Ask for a new one."
-msgstr "Nid yw’r ddolen hon yn gweithio: mae wedi dod i ben neu wedi’i defnyddio eisoes. Gofynnwch am un newydd."
+msgid ""
+"This link does not work: it has expired or it was already used. Ask for a "
+"new one."
+msgstr ""
+"Nid yw’r ddolen hon yn gweithio: mae wedi dod i ben neu wedi’i defnyddio "
+"eisoes. Gofynnwch am un newydd."
 
-#, fuzzy
 msgctxt "error_no_confirmation_pending"
 msgid "This avatar does not wait for the confirmation of its email."
 msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 
-#, fuzzy
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
