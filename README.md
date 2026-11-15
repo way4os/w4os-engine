@@ -139,6 +139,7 @@ use OpenSim\I18n\Catalog;
 
 Catalog::messages('fr_FR');            // ['register_title' => 'Créer mon avatar', ...]: the translated texts only
 Catalog::messages('en');               // every text, in English (Catalog::MESSAGES): the fallback
+Catalog::messages('fr_FR', fuzzy: true); // with the translations not checked yet (fuzzy)
 Catalog::errorKey($problem['code']);   // 'error_name_taken'
 Catalog::LOCALES;                      // the languages; Catalog::file('fr') is the path of the .po
 ```

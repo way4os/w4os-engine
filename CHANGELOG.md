@@ -14,7 +14,7 @@
 - feature (avatars): the names w4os keeps (Default, Test, Admin, the grid name) are refused for a new avatar, unless `reservedName`; its password and email are checked
 - fix (avatars): the profile is made when the avatar has none yet, and a change is made all or not at all
 - feature (assets): the picture of nothing of w4os, bundled, for a model without a picture and a missing asset
-- feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
+- feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os, the other translations of the Grav plugin fuzzy until reviewed) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 

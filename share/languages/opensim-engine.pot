@@ -387,7 +387,7 @@ msgid "This cannot be done."
 msgstr ""
 
 msgctxt "error_unauthorized"
-msgid "This is not allowed."
+msgid "The grid cannot be reached right now. Please try again later."
 msgstr ""
 
 msgctxt "error_method_not_allowed"
@@ -403,7 +403,7 @@ msgid "The grid cannot be reached right now. Please try again later."
 msgstr ""
 
 msgctxt "error_internal_error"
-msgid "Something went wrong. Please try again later."
+msgid "The grid cannot be reached right now. Please try again later."
 msgstr ""
 
 msgctxt "error_sign_in_refused"
@@ -431,7 +431,7 @@ msgid "An avatar already has this name, please choose another one."
 msgstr ""
 
 msgctxt "error_password_required"
-msgid "Please choose a password."
+msgid "Please fill in every field."
 msgstr ""
 
 msgctxt "error_password_invalid"

@@ -52,7 +52,7 @@ The addresses are in the contract (`docs/api/`), with the format OpenSimulator a
 
 The texts of the websites of a grid are written in English in `OpenSim\I18n\Catalog::MESSAGES`, each with its key; the bridges know them by these keys, so a key does not change. `composer translations` (gettext tools: `msgmerge`) makes `share/languages/opensim-engine.pot` from it and merges every `.po` with it: a text whose English changed keeps its translation, fuzzy until a translator checks it (Poedit, Weblate), and a fuzzy one is not given to the sites. A test fails when the .pot is not the one of `MESSAGES`, or when a problem code of `Problem::CODES` has no text.
 
-A new language is an entry of `Catalog::LOCALES`, then `composer translations`. `--seed` fills the texts not translated yet from other gettext files with the same English text, word for word (no guess): the .po files were seeded from w4os and the helpers this way:
+A new language is an entry of `Catalog::LOCALES`, then `composer translations`. `--seed` fills the texts not translated yet from other gettext files with the same English text, word for word (no guess): the .po files were seeded from w4os and the helpers this way (the other translations of the Grav plugin were then brought in fuzzy, for a translator to review):
 
 ```bash
 php dev/translations.php --seed ~/Projects/w4os/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po

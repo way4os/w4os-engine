@@ -13,16 +13,16 @@ msgstr "Criar meu avatar"
 
 msgctxt "register_text"
 msgid "Choose a name below. This is how people will see you in-world."
-msgstr ""
-"Escolha um nome abaixo. É assim que as pessoas vão te ver no mundo virtual."
+msgstr "Escolha um nome abaixo. É assim que as pessoas vão te ver no mundo virtual."
 
 msgctxt "register_button"
 msgid "Create My Avatar"
 msgstr "Criar meu avatar"
 
+#, fuzzy
 msgctxt "have_avatar"
 msgid "Already have an avatar?"
-msgstr ""
+msgstr "Já tem um avatar?"
 
 msgctxt "first_name"
 msgid "First name"
@@ -44,11 +44,10 @@ msgctxt "password_confirm"
 msgid "Confirm password"
 msgstr "Confirmar senha"
 
+#, fuzzy
 msgctxt "password_help"
-msgid ""
-"6 to 16 characters, without double quote. The same password logs you in here "
-"and in-world."
-msgstr ""
+msgid "6 to 16 characters, without double quote. The same password logs you in here and in-world."
+msgstr "De 6 a 16 caracteres, sem aspas duplas. A mesma senha te conecta aqui e no mundo virtual."
 
 msgctxt "model"
 msgid "Choose the first outfit for your avatar."
@@ -63,63 +62,60 @@ msgctxt "terms_agree"
 msgid "I agree to the terms on page %s."
 msgstr "Eu concordo com os termos na página %s."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "registered"
 msgid "Avatar %s created successfully. Log in with its name or your email."
-msgstr ""
+msgstr "Avatar %s criado. Entre com o nome dele ou com seu email."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "registered_confirm"
-msgid ""
-"Avatar %s created. A message is on its way to your address: click the link "
-"inside to confirm it, that is what activates your avatar."
-msgstr ""
+msgid "Avatar %s created. A message is on its way to your address: click the link inside to confirm it, that is what activates your avatar."
+msgstr "Avatar %s criado. Uma mensagem está a caminho do seu endereço: clique no link dela para confirmá-lo, é isso que ativa o seu avatar."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "registered_not_sent"
-msgid ""
-"Avatar %s created, but the confirmation mail could not be sent. Ask for a "
-"new one below, or contact the managers of the grid."
-msgstr ""
+msgid "Avatar %s created, but the confirmation mail could not be sent. Ask for a new one below, or contact the managers of the grid."
+msgstr "Avatar %s criado, mas o email de confirmação não pôde ser enviado. Peça um novo abaixo, ou fale com os gestores do grid."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "registered_test"
-msgid ""
-"Avatar %1$s created. Test site, no mail: confirm it with this link: %2$s"
-msgstr ""
+msgid "Avatar %1$s created. Test site, no mail: confirm it with this link: %2$s"
+msgstr "Avatar %1$s criado. Site de teste, sem email: confirme com este link: %2$s"
 
+#, fuzzy
 msgctxt "confirm_title"
 msgid "Confirm your email"
-msgstr ""
+msgstr "Confirme seu email"
 
+#, fuzzy
 msgctxt "confirm_text"
-msgid ""
-"Your avatar is active once you click the link of the mail we sent you. "
-"Nothing within a few minutes? Have a look in the spam folder."
-msgstr ""
+msgid "Your avatar is active once you click the link of the mail we sent you. Nothing within a few minutes? Have a look in the spam folder."
+msgstr "Seu avatar fica ativo assim que você clicar no link do email que enviamos. Nada depois de alguns minutos? Veja na pasta de spam."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "confirmed"
-msgid ""
-"Your email is confirmed, %s is active. You can log in now, here and in-world."
-msgstr ""
+msgid "Your email is confirmed, %s is active. You can log in now, here and in-world."
+msgstr "Seu email está confirmado, %s está ativo. Você já pode entrar, aqui e no mundo virtual."
 
+#, fuzzy
 msgctxt "resend_title"
 msgid "Get a new link"
-msgstr ""
+msgstr "Receber um novo link"
 
+#, fuzzy
 msgctxt "resend_button"
 msgid "Send a new link"
-msgstr ""
+msgstr "Enviar um novo link"
 
+#, fuzzy
 msgctxt "confirm_resent"
 msgid "A new link is on its way."
-msgstr ""
+msgstr "Um novo link está a caminho."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "confirm_resent_test"
 msgid "Test site, no mail: confirm with this link: %s"
-msgstr ""
+msgstr "Site de teste, sem email: confirme com este link: %s"
 
 msgctxt "avatar_name"
 msgid "Avatar Name"
@@ -133,63 +129,68 @@ msgctxt "logout"
 msgid "Logout"
 msgstr "Sair"
 
+#, fuzzy
 msgctxt "login"
 msgid "Avatar name or email"
-msgstr ""
+msgstr "Nome do avatar ou email"
 
 msgctxt "forgot_title"
 msgid "Lost Password"
 msgstr "Esqueci minha senha"
 
+#, fuzzy
 msgctxt "forgot_text"
-msgid ""
-"Type the name of your avatar or your email: you will get a link to choose a "
-"new password."
-msgstr ""
+msgid "Type the name of your avatar or your email: you will get a link to choose a new password."
+msgstr "Digite o nome do seu avatar ou seu email: você vai receber um link para escolher uma nova senha."
 
+#, fuzzy
 msgctxt "forgot_button"
 msgid "Send me a link"
-msgstr ""
+msgstr "Me envie um link"
 
+#, fuzzy
 msgctxt "forgot_sent"
-msgid ""
-"If an avatar has this name or this email, a link is on its way to its "
-"address."
-msgstr ""
+msgid "If an avatar has this name or this email, a link is on its way to its address."
+msgstr "Se um avatar tem este nome ou este email, um link está a caminho do endereço dele."
 
+#, fuzzy
 msgctxt "forgot_test"
-msgid ""
-"Test site, no mail: the link of a new password is not shown here, the engine "
-"API gives it (send: false)."
-msgstr ""
+msgid "Test site, no mail: the link of a new password is not shown here, the engine API gives it (send: false)."
+msgstr "Site de teste, sem email: o link de uma nova senha não aparece aqui, a API do engine o fornece (send: false)."
 
 msgctxt "reset_title"
 msgid "Reset Password"
 msgstr "Redefinir senha"
 
+#, fuzzy
 msgctxt "reset_text"
 msgid "Choose the new password of your avatar."
-msgstr ""
+msgstr "Escolha a nova senha do seu avatar."
 
+#, fuzzy
 msgctxt "reset_no_token"
 msgid "This page opens from the link of the mail you received."
-msgstr ""
+msgstr "Esta página abre pelo link do email que você recebeu."
 
+#, fuzzy
 msgctxt "reset_button"
 msgid "Save the new password"
-msgstr ""
+msgstr "Salvar a nova senha"
 
+#, fuzzy
 msgctxt "reset_done"
 msgid "Your password is changed. You can log in with it now."
-msgstr ""
+msgstr "Sua senha foi alterada. Você já pode entrar com ela."
 
+#, fuzzy
 msgctxt "new_password"
 msgid "New password"
-msgstr ""
+msgstr "Nova senha"
 
+#, fuzzy
 msgctxt "current_password"
 msgid "Current password"
-msgstr ""
+msgstr "Senha atual"
 
 msgctxt "account_title"
 msgid "My Avatar"
@@ -203,11 +204,10 @@ msgctxt "profile_title"
 msgid "Profile"
 msgstr "Perfil"
 
+#, fuzzy
 msgctxt "profile_text"
-msgid ""
-"What other people see of you in-world (the picture and the interests are set "
-"in the viewer)."
-msgstr ""
+msgid "What other people see of you in-world (the picture and the interests are set in the viewer)."
+msgstr "O que os outros veem de você no mundo virtual (a foto e os interesses se definem no viewer)."
 
 msgctxt "about"
 msgid "About"
@@ -229,68 +229,72 @@ msgctxt "first_life"
 msgid "Real Life"
 msgstr "Vida Real"
 
+#, fuzzy
 msgctxt "profile_url"
 msgid "Web page"
-msgstr ""
+msgstr "Página web"
 
+#, fuzzy
 msgctxt "save_button"
 msgid "Save"
-msgstr ""
+msgstr "Salvar"
 
+#, fuzzy
 msgctxt "profile_saved"
 msgid "Your profile is saved."
-msgstr ""
+msgstr "Seu perfil foi salvo."
 
 msgctxt "password_title"
 msgid "Password"
 msgstr "Senha"
 
+#, fuzzy
 msgctxt "password_button"
 msgid "Change the password"
-msgstr ""
+msgstr "Alterar a senha"
 
+#, fuzzy
 msgctxt "password_saved"
 msgid "Your password is changed."
-msgstr ""
+msgstr "Sua senha foi alterada."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "email_pending"
-msgid ""
-"Your profile is saved. A link is on its way to %s: click it to make it your "
-"email."
-msgstr ""
+msgid "Your profile is saved. A link is on its way to %s: click it to make it your email."
+msgstr "Seu perfil foi salvo. Um link está a caminho de %s: clique nele para que seja o seu email."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "email_pending_test"
-msgid ""
-"Your profile is saved. Test site, no mail: confirm %1$s with this link: %2$s"
-msgstr ""
+msgid "Your profile is saved. Test site, no mail: confirm %1$s with this link: %2$s"
+msgstr "Seu perfil foi salvo. Site de teste, sem email: confirme %1$s com este link: %2$s"
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "email_changed"
 msgid "Your email is now %s."
-msgstr ""
+msgstr "Seu email agora é %s."
 
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatares"
 
+#, fuzzy
 msgctxt "search_avatars"
 msgid "Name or email"
-msgstr ""
+msgstr "Nome ou email"
 
+#, fuzzy
 msgctxt "search"
 msgid "Search"
-msgstr ""
+msgstr "Buscar"
 
 msgctxt "no_avatars"
 msgid "No result"
 msgstr "Nenhum resultado"
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "avatars_count"
 msgid "%s avatars"
-msgstr ""
+msgstr "%s avatares"
 
 msgctxt "status"
 msgid "Status"
@@ -304,9 +308,10 @@ msgctxt "created"
 msgid "Created"
 msgstr "Criado"
 
+#, fuzzy
 msgctxt "actions"
 msgid "Actions"
-msgstr ""
+msgstr "Ações"
 
 msgctxt "god"
 msgid "God"
@@ -320,178 +325,206 @@ msgctxt "active"
 msgid "Active"
 msgstr "Ativo"
 
+#, fuzzy
 msgctxt "inactive"
 msgid "Inactive"
-msgstr ""
+msgstr "Inativo"
 
+#, fuzzy
 msgctxt "action_enable"
 msgid "Enable"
-msgstr ""
+msgstr "Ativar"
 
 msgctxt "action_disable"
 msgid "Disable"
 msgstr "Desativar"
 
+#, fuzzy
 msgctxt "action_reset"
 msgid "Password link"
-msgstr ""
+msgstr "Link de senha"
 
+#, fuzzy
 msgctxt "action_delete"
 msgid "Delete"
-msgstr ""
+msgstr "Excluir"
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "delete_confirm"
 msgid "Delete %s for good, with its inventory?"
-msgstr ""
+msgstr "Excluir %s de vez, com o inventário?"
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "manage_enable"
 msgid "%s is enabled."
-msgstr ""
+msgstr "%s foi ativado."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "manage_disable"
 msgid "%s is disabled."
-msgstr ""
+msgstr "%s foi desativado."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
-msgstr ""
+msgstr "Um link para escolher uma nova senha está a caminho de %s."
 
-#, php-format
+#, fuzzy, php-format
 msgctxt "manage_delete"
 msgid "%s is deleted."
-msgstr ""
+msgstr "%s foi excluído."
 
+#, fuzzy
 msgctxt "error_required"
 msgid "Please fill in every field."
-msgstr ""
+msgstr "Preencha todos os campos."
 
+#, fuzzy
 msgctxt "error_password_match"
 msgid "The two passwords are not the same."
-msgstr ""
+msgstr "As duas senhas não são iguais."
 
 #, php-format
 msgctxt "error_terms"
 msgid "You must agree to the terms on page %s."
 msgstr "Você precisa concordar com os termos na página %s."
 
+#, fuzzy
 msgctxt "error_current_password"
 msgid "The current password is wrong."
-msgstr ""
+msgstr "A senha atual está errada."
 
+#, fuzzy
 msgctxt "error_forbidden"
 msgid "This is not allowed."
-msgstr ""
+msgstr "Não é permitido."
 
+#, fuzzy
 msgctxt "error_nonce"
 msgid "This page has expired, please try again."
-msgstr ""
+msgstr "Esta página expirou, tente de novo."
 
+#, fuzzy
 msgctxt "error_not_found"
 msgid "There is no such avatar."
-msgstr ""
+msgstr "Este avatar não existe."
 
+#, fuzzy
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
-msgstr ""
+msgstr "Não é possível."
 
+#, fuzzy
 msgctxt "error_invalid_document"
 msgid "This cannot be done."
-msgstr ""
+msgstr "Não é possível."
 
+#, fuzzy
 msgctxt "error_type_conflict"
 msgid "This cannot be done."
-msgstr ""
+msgstr "Não é possível."
 
+#, fuzzy
 msgctxt "error_unauthorized"
-msgid "This is not allowed."
-msgstr ""
+msgid "The grid cannot be reached right now. Please try again later."
+msgstr "O grid não responde no momento. Tente de novo mais tarde."
 
+#, fuzzy
 msgctxt "error_method_not_allowed"
 msgid "This cannot be done."
-msgstr ""
+msgstr "Não é possível."
 
+#, fuzzy
 msgctxt "error_channel_unavailable"
 msgid "The grid cannot be reached right now. Please try again later."
-msgstr ""
+msgstr "O grid não responde no momento. Tente de novo mais tarde."
 
+#, fuzzy
 msgctxt "error_instance_failed"
 msgid "The grid cannot be reached right now. Please try again later."
-msgstr ""
+msgstr "O grid não responde no momento. Tente de novo mais tarde."
 
+#, fuzzy
 msgctxt "error_internal_error"
-msgid "Something went wrong. Please try again later."
-msgstr ""
+msgid "The grid cannot be reached right now. Please try again later."
+msgstr "O grid não responde no momento. Tente de novo mais tarde."
 
+#, fuzzy
 msgctxt "error_sign_in_refused"
 msgid "The name or the password is wrong."
-msgstr ""
+msgstr "O nome ou a senha está errado."
 
+#, fuzzy
 msgctxt "error_account_disabled"
 msgid "This avatar is disabled. Contact the managers of the grid."
-msgstr ""
+msgstr "Este avatar está desativado. Fale com os gestores do grid."
 
+#, fuzzy
 msgctxt "error_email_unconfirmed"
-msgid ""
-"This avatar is not active yet: confirm your email with the link of the mail "
-"we sent you."
-msgstr ""
+msgid "This avatar is not active yet: confirm your email with the link of the mail we sent you."
+msgstr "Este avatar ainda não está ativo: confirme seu email com o link que enviamos."
 
+#, fuzzy
 msgctxt "error_name_invalid"
-msgid ""
-"The first and the last name are made of letters, digits and hyphens, without "
-"accents."
-msgstr ""
+msgid "The first and the last name are made of letters, digits and hyphens, without accents."
+msgstr "O nome e o sobrenome são feitos de letras, números e hífens, sem acentos."
 
+#, fuzzy
 msgctxt "error_name_reserved"
 msgid "This name is reserved, please choose another one."
-msgstr ""
+msgstr "Este nome é reservado, escolha outro."
 
+#, fuzzy
 msgctxt "error_name_taken"
 msgid "An avatar already has this name, please choose another one."
-msgstr ""
+msgstr "Um avatar já tem este nome, escolha outro."
 
+#, fuzzy
 msgctxt "error_password_required"
-msgid "Please choose a password."
-msgstr ""
+msgid "Please fill in every field."
+msgstr "Preencha todos os campos."
 
+#, fuzzy
 msgctxt "error_password_invalid"
 msgid "The password must have 6 to 16 characters, without double quote."
-msgstr ""
+msgstr "A senha deve ter de 6 a 16 caracteres, sem aspas duplas."
 
+#, fuzzy
 msgctxt "error_email_invalid"
 msgid "This email address is not valid."
-msgstr ""
+msgstr "Este endereço de email não é válido."
 
+#, fuzzy
 msgctxt "error_email_required"
 msgid "This avatar has no email address."
-msgstr ""
+msgstr "Este avatar não tem endereço de email."
 
+#, fuzzy
 msgctxt "error_model_unknown"
 msgid "This outfit is not available, please choose another one."
-msgstr ""
+msgstr "Este traje não está disponível, escolha outro."
 
+#, fuzzy
 msgctxt "error_link_invalid"
 msgid "This cannot be done."
-msgstr ""
+msgstr "Não é possível."
 
+#, fuzzy
 msgctxt "error_field_unknown"
 msgid "This cannot be done."
-msgstr ""
+msgstr "Não é possível."
 
+#, fuzzy
 msgctxt "error_token_refused"
-msgid ""
-"This link does not work: it has expired or it was already used. Ask for a "
-"new one."
-msgstr ""
+msgid "This link does not work: it has expired or it was already used. Ask for a new one."
+msgstr "Este link não funciona: expirou ou já foi usado. Peça um novo."
 
+#, fuzzy
 msgctxt "error_no_confirmation_pending"
 msgid "This avatar does not wait for the confirmation of its email."
-msgstr ""
+msgstr "Este avatar não aguarda a confirmação do email."
 
+#, fuzzy
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
-msgstr ""
+msgstr "O email não pôde ser enviado. Tente de novo mais tarde."

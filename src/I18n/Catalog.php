@@ -135,18 +135,18 @@ final class Catalog
         'error_invalid_request' => 'This cannot be done.',
         'error_invalid_document' => 'This cannot be done.',
         'error_type_conflict' => 'This cannot be done.',
-        'error_unauthorized' => 'This is not allowed.',
+        'error_unauthorized' => 'The grid cannot be reached right now. Please try again later.',
         'error_method_not_allowed' => 'This cannot be done.',
         'error_channel_unavailable' => 'The grid cannot be reached right now. Please try again later.',
         'error_instance_failed' => 'The grid cannot be reached right now. Please try again later.',
-        'error_internal_error' => 'Something went wrong. Please try again later.',
+        'error_internal_error' => 'The grid cannot be reached right now. Please try again later.',
         'error_sign_in_refused' => 'The name or the password is wrong.',
         'error_account_disabled' => 'This avatar is disabled. Contact the managers of the grid.',
         'error_email_unconfirmed' => 'This avatar is not active yet: confirm your email with the link of the mail we sent you.',
         'error_name_invalid' => 'The first and the last name are made of letters, digits and hyphens, without accents.',
         'error_name_reserved' => 'This name is reserved, please choose another one.',
         'error_name_taken' => 'An avatar already has this name, please choose another one.',
-        'error_password_required' => 'Please choose a password.',
+        'error_password_required' => 'Please fill in every field.',
         'error_password_invalid' => 'The password must have 6 to 16 characters, without double quote.',
         'error_email_invalid' => 'This email address is not valid.',
         'error_email_required' => 'This avatar has no email address.',
@@ -192,9 +192,10 @@ final class Catalog
      * The texts in a language, by key: the translated ones only (a bridge falls back on the English ones). An unknown language
      * gives none; `en` gives the English texts.
      *
+     * @param bool $fuzzy with the translations a translator did not check yet
      * @return array<string,string>
      */
-    public static function messages(string $locale): array
+    public static function messages(string $locale, bool $fuzzy = false): array
     {
         if (self::locale($locale) === self::SOURCE) {
             return self::MESSAGES;
@@ -205,7 +206,7 @@ final class Catalog
         }
         $messages = [];
         foreach (PoFile::read((string) file_get_contents($file)) as $entry) {
-            if ($entry['context'] !== '' && $entry['translation'] !== '' && !$entry['fuzzy'] && isset(self::MESSAGES[$entry['context']])) {
+            if ($entry['context'] !== '' && $entry['translation'] !== '' && ($fuzzy || !$entry['fuzzy']) && isset(self::MESSAGES[$entry['context']])) {
                 $messages[$entry['context']] = $entry['translation'];
             }
         }
