@@ -3,6 +3,7 @@
 use OpenSim\Archives\ArchiveRunner;
 use OpenSim\Archives\Archives;
 use OpenSim\Archives\BackupService;
+use OpenSim\Archives\OarBackup;
 use OpenSim\Archives\Instances;
 use OpenSim\Testing\EnvironmentFake;
 
@@ -469,6 +470,39 @@ describe('opensim backup', function () {
             "{$profile['EtcRoot']}/grids/alpha/Robust.HG.ini",
         );
     });
+
+    test('save the OAR of each region of the simulators that run, skipping the others', function () {
+        $profile = archive_install();
+        $said = [];
+        $calls = [];
+        $backup = new OarBackup(
+            EnvironmentFake::with($profile),
+            static function (array $arguments) use (&$calls): array {
+                $calls[] = $arguments;
+
+                return str_contains($arguments[5], 'Welcome') ? [0, $arguments[5]] : [1, null];
+            },
+            static fn(string $link): bool => str_contains($link, 'sim1'),
+            static function (string $message) use (&$said): void {
+                $said[] = $message;
+            },
+            '20261003-101500',
+        );
+        $result = $backup->run(['alpha'], ['keep' => 4]);
+
+        expect($result['saved'])
+            ->toBe(["{$profile['root']}/backups/alpha/sim1/alpha-sim1-Welcome-20261003-101500.oar"])
+            ->and($result['skipped'])
+            ->toBe(1)
+            ->and($result['failed'])
+            ->toBe(0)
+            ->and($calls)
+            ->toHaveCount(1)
+            ->and($calls[0])
+            ->toBe(['oar', 'alpha', 'alpha_sim1', '--region', 'Welcome', $result['saved'][0], '--keep', '4'])
+            ->and(implode("\n", $said))
+            ->toContain('alpha_sim2 is not running');
+    })->depends('holds config, data and databases');
 
     test('go to a folder of the backup root per grid and per simulator, which must exist', function () {
         $profile = archive_install();

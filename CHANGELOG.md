@@ -4,6 +4,7 @@
 
 - update: install container-tools as a sibling package
 - feature (backup): BackupRoot setting, backups in a folder per grid and simulator outside the data
+- feature (backup): OAR of every region of the running simulators in the backup root
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 
