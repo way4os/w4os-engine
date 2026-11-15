@@ -480,7 +480,14 @@ describe('opensim backup', function () {
             static function (array $arguments) use (&$calls): array {
                 $calls[] = $arguments;
 
-                return str_contains($arguments[5], 'Welcome') ? [0, $arguments[5]] : [1, null];
+                if (!str_contains($arguments[5], 'Welcome')) {
+                    return [1, null];
+                }
+                mkdir(dirname($arguments[5]), 0750, true);
+                file_put_contents($arguments[5], 'oar');
+                chmod($arguments[5], 0700);
+
+                return [0, $arguments[5]];
             },
             static fn(string $link): bool => str_contains($link, 'sim1'),
             static function (string $message) use (&$said): void {
@@ -492,6 +499,8 @@ describe('opensim backup', function () {
 
         expect($result['saved'])
             ->toBe(["{$profile['root']}/backups/alpha/sim1/alpha-sim1-Welcome-20261003-101500.oar"])
+            ->and(fileperms($result['saved'][0]) & 0777)
+            ->toBe(0640)
             ->and($result['skipped'])
             ->toBe(1)
             ->and($result['failed'])

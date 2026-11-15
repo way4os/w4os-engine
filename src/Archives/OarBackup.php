@@ -99,6 +99,9 @@ final class OarBackup
             }
             [$code, $made] = ($this->save)($arguments);
             if ($code === 0 && $made !== null) {
+                if (is_file($made)) {
+                    chmod($made, 0640);
+                }
                 $result['saved'][] = $made;
             } else {
                 ($this->say)("region $region of $slug was not saved");
