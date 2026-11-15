@@ -43,6 +43,8 @@ use OpenSim\Services\SearchRegistry;
 use OpenSim\Services\SearchTables;
 use OpenSim\Services\XmlRpc;
 use OpenSim\Scheduling\Scheduler;
+use OpenSim\SignIn\DatabaseAuthenticator;
+use OpenSim\SignIn\SignInResult;
 
 /**
  * What the machine offers as resources, listed, read and changed the way JSON:API says, the errors told as problems (RFC 9457). The
@@ -306,6 +308,49 @@ final class Api
         }
 
         return new Response(204, [], []);
+    }
+
+    /**
+     * Sign an avatar of a grid in: its name (or its email) and its password, checked in the databases of the grid. The avatar when
+     * they are right, a problem 403 when they are not (the same for an unknown avatar and a wrong password), or when the account is
+     * not active.
+     *
+     * @param array<string,mixed> $attributes `name` ("First Last") or `email`, and `password`
+     */
+    public function signIn(string $grid, array $attributes): Response
+    {
+        $instance = '/grids/' . rawurlencode($grid) . '/sign-ins';
+        try {
+            $config = $this->gridConfig($grid);
+            $login = trim((string) ($attributes['name'] ?? ($attributes['email'] ?? '')));
+            $password = (string) ($attributes['password'] ?? '');
+            if ($login === '' || $password === '') {
+                throw new \InvalidArgumentException('a sign-in needs a name or an email, and a password');
+            }
+            $result = (new DatabaseAuthenticator($config))->authenticate($login, $password);
+            if ($result->status === SignInResult::UNAVAILABLE) {
+                throw ChannelUnavailable::for('sign the avatar in', $result->reason);
+            }
+            if (!$result->isGranted() || $result->avatar === null) {
+                return Response::problem(
+                    new Problem(
+                        403,
+                        'Refused',
+                        $result->reason !== '' ? $result->reason . '.' : 'The name or the password is wrong.',
+                        'urn:opensim:problem:sign-in-refused',
+                        $instance,
+                    ),
+                );
+            }
+            $avatar =
+                Avatar::find($config, $result->avatar->id) ??
+                throw ChannelUnavailable::for('sign the avatar in', 'the account cannot be read back');
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        $self = self::path('avatars', $avatar->id(), $grid);
+
+        return Response::document(['data' => self::resource('avatars', $avatar, $grid), 'links' => ['self' => $self]]);
     }
 
     /**

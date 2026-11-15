@@ -16,7 +16,7 @@ final class SignInResult
     private function __construct(
         public readonly string $status,
         public readonly ?Avatar $avatar = null,
-        /** What was wrong when the grid is unavailable. */
+        /** What was wrong when the grid is unavailable, or why a sign-in whose password is right is refused. */
         public readonly string $reason = '',
         /** What more the grid told when it granted the sign-in. */
         public readonly array $details = [],
@@ -27,9 +27,10 @@ final class SignInResult
         return new self(self::GRANTED, $avatar, '', $details);
     }
 
-    public static function refused(): self
+    /** @param string $reason why, when the password is right (an account that is not active); none for a wrong name or password */
+    public static function refused(string $reason = ''): self
     {
-        return new self(self::REFUSED);
+        return new self(self::REFUSED, null, $reason);
     }
 
     public static function unavailable(string $reason): self

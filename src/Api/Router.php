@@ -169,6 +169,7 @@ final class Router
                         'addresses',
                         'info',
                         'monitor',
+                        'sign-ins',
                     ],
                     true,
                 ))
@@ -231,6 +232,12 @@ final class Router
         } elseif ($grid !== null && $tail === ['motd']) {
             $template = '/grids/{grid}/motd';
             $routes = ['GET' => fn() => $this->api->motd($grid, (string) ($query['username'] ?? ''))];
+        } elseif ($grid !== null && $tail === ['sign-ins']) {
+            $template = '/grids/{grid}/sign-ins';
+            $routes = [
+                'POST' => fn() => $this->check($body, $parsed, $path, 'sign-ins') ??
+                    $this->api->signIn($grid, $this->attributes($body, $parsed)),
+            ];
         } elseif ($grid === null && $segments === ['setups', 'quick']) {
             $template = '/setups/quick';
             $routes = [

@@ -37,6 +37,11 @@ final class Endpoints
                     'The messages for the avatars who are not there, with the module V1 of the simulators (`OfflineMessageModule = OfflineMessageModule`, `OfflineMessageURL` of `[Messaging]`), which posts them here in XML. The messages are kept in the table of the offline messages of Robust, the one its module V2 uses; an avatar who asked for it in their viewer also gets them by email. The other choice is the module V2 and the service of Robust, which needs none of this: with the helpers, the messages are mailed on request and none is lost; with Robust, nothing more is run, no mail is sent and 25 messages are kept per avatar.',
             ],
             [
+                'name' => 'Avatar access',
+                'description' =>
+                    'What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them.',
+            ],
+            [
                 'name' => 'Health',
                 'description' => 'Whether the grid and its web services answer as they should.',
             ],
@@ -710,8 +715,46 @@ final class Endpoints
             ],
         ];
 
+        $paths['/grids/{grid}/sign-ins']['post'] = self::action(
+            'sign-ins',
+            'signIn',
+            'Sign an avatar in',
+            'Checks the name (`First Last`, `First.Last`) or the email of an avatar of the grid, and its password, against what Robust keeps; no session is opened in the world. The avatar when they are right. A wrong name and a wrong password are refused alike; an account that is not active is refused once its password is right, and the problem says so. An email several avatars share signs in the oldest of them whose password it is.',
+            [
+                'name' => ['string', 'First Last, or First.Last'],
+                'email' => ['string', 'The email of the avatar, instead of its name'],
+                'password' => ['string', ''],
+            ],
+            [
+                '200' => [
+                    'description' => 'The avatar',
+                    'content' => [
+                        Response::JSON_API => [
+                            'schema' => [
+                                'type' => 'object',
+                                'properties' => ['data' => ['$ref' => '#/components/schemas/Avatars']],
+                            ],
+                        ],
+                    ],
+                ],
+                '400' => Contract::problem('No name or email, or no password'),
+                '403' => Contract::problem('The name or the password is wrong, or the account is not active'),
+                '404' => Contract::problem('The grid is not known here'),
+                '503' => Contract::problem('The database of the accounts cannot be reached'),
+            ],
+        );
+
         $groups = [
-            'Grid' => ['Addresses', 'Message of the day', 'Search', 'Economy', 'Offline messages', 'Health', 'Monitor'],
+            'Grid' => [
+                'Addresses',
+                'Message of the day',
+                'Avatar access',
+                'Search',
+                'Economy',
+                'Offline messages',
+                'Health',
+                'Monitor',
+            ],
             'Application' => ['Text images', 'Setup'],
             'Helpers pages' => ['Pages'],
             'Robust' => ['Grid info'],
@@ -825,6 +868,55 @@ final class Endpoints
             'description' =>
                 'The gatekeeper of the grid the search is made for (`grid.example.org:8002`), when the search is shared: only its places are answered',
             'schema' => ['type' => 'string'],
+        ];
+    }
+
+    /**
+     * An operation of a grid that is not a resource but takes a JSON:API document: `{data: {type, attributes}}`.
+     *
+     * @param array<string,array{0:string,1:string}> $fields the attributes it takes: type and description
+     * @param array<string,mixed> $responses
+     * @return array<string,mixed>
+     */
+    private static function action(
+        string $type,
+        string $operationId,
+        string $summary,
+        string $description,
+        array $fields,
+        array $responses,
+    ): array {
+        $properties = [];
+        foreach ($fields as $name => [$kind, $text]) {
+            $properties[$name] = ['type' => $kind] + ($text !== '' ? ['description' => $text] : []);
+        }
+
+        return [
+            'operationId' => $operationId,
+            'tags' => ['Avatar access'],
+            'summary' => $summary,
+            'description' => $description,
+            'parameters' => [Contract::gridParameter()],
+            'requestBody' => [
+                'required' => true,
+                'content' => [
+                    Response::JSON_API => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'type' => ['const' => $type],
+                                        'attributes' => ['type' => 'object', 'properties' => $properties],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'responses' => $responses,
         ];
     }
 

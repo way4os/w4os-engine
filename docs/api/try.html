@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "89d6562",
+        "version": "e3aa001",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -101,6 +101,10 @@
             "description": "The messages for the avatars who are not there, with the module V1 of the simulators (`OfflineMessageModule = OfflineMessageModule`, `OfflineMessageURL` of `[Messaging]`), which posts them here in XML. The messages are kept in the table of the offline messages of Robust, the one its module V2 uses; an avatar who asked for it in their viewer also gets them by email. The other choice is the module V2 and the service of Robust, which needs none of this: with the helpers, the messages are mailed on request and none is lost; with Robust, nothing more is run, no mail is sent and 25 messages are kept per avatar."
         },
         {
+            "name": "Avatar access",
+            "description": "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them."
+        },
+        {
             "name": "Health",
             "description": "Whether the grid and its web services answer as they should."
         },
@@ -158,6 +162,7 @@
                 "Destinations",
                 "Addresses",
                 "Message of the day",
+                "Avatar access",
                 "Search",
                 "Economy",
                 "Offline messages",
@@ -4935,6 +4940,120 @@
                     },
                     "400": {
                         "description": "The body is not a JSON document",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/grids/{grid}/sign-ins": {
+            "post": {
+                "operationId": "signIn",
+                "tags": [
+                    "Avatar access"
+                ],
+                "summary": "Sign an avatar in",
+                "description": "Checks the name (`First Last`, `First.Last`) or the email of an avatar of the grid, and its password, against what Robust keeps; no session is opened in the world. The avatar when they are right. A wrong name and a wrong password are refused alike; an account that is not active is refused once its password is right, and the problem says so. An email several avatars share signs in the oldest of them whose password it is.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "const": "sign-ins"
+                                            },
+                                            "attributes": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "First Last, or First.Last"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "description": "The email of the avatar, instead of its name"
+                                                    },
+                                                    "password": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The avatar",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Avatars"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No name or email, or no password",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The name or the password is wrong, or the account is not active",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid is not known here",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "The database of the accounts cannot be reached",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
