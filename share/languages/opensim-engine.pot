@@ -78,17 +78,17 @@ msgstr ""
 
 #, php-format
 msgctxt "registered_confirm"
-msgid "Avatar %s created. A message is on its way to your address: click the link inside to confirm it, that is what activates your avatar."
+msgid "Almost there: click the link of the mail sent to your address to create %s."
 msgstr ""
 
 #, php-format
 msgctxt "registered_not_sent"
-msgid "Avatar %s created, but the confirmation mail could not be sent. Ask for a new one below, or contact the managers of the grid."
+msgid "Almost there, but the confirmation mail could not be sent. Ask for a new one below to create %s, or contact the managers of the grid."
 msgstr ""
 
 #, php-format
 msgctxt "registered_test"
-msgid "Avatar %1$s created. Test site, no mail: confirm it with this link: %2$s"
+msgid "Almost there. Test site, no mail: create %1$s with this link: %2$s"
 msgstr ""
 
 msgctxt "confirm_title"
@@ -96,12 +96,12 @@ msgid "Confirm your email"
 msgstr ""
 
 msgctxt "confirm_text"
-msgid "Your avatar is active once you click the link of the mail we sent you. Nothing within a few minutes? Have a look in the spam folder."
+msgid "Your avatar is created once you click the link of the mail we sent you. Nothing within a few minutes? Have a look in the spam folder."
 msgstr ""
 
 #, php-format
 msgctxt "confirmed"
-msgid "Your email is confirmed, %s is active. You can log in now, here and in-world."
+msgid "Your email is confirmed, %s is ready. You can log in now, here and in-world."
 msgstr ""
 
 msgctxt "resend_title"
