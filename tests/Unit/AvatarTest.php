@@ -346,7 +346,7 @@ describe('avatars', function () {
             ->and($sortable)
             ->toBe(['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'status', 'role', 'god', 'technical', 'online']);
+            ->toBe(['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'online']);
     });
 
     test('are found by their UUID or their name', function () {
@@ -416,7 +416,7 @@ describe('What a list of avatars offers', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'],
-                'filters' => ['active', 'status', 'role', 'god', 'technical', 'online'],
+                'filters' => ['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'online'],
             ])
             ->and(
                 Avatar::capabilities(
@@ -427,7 +427,7 @@ describe('What a list of avatars offers', function () {
             )
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active'],
-                'filters' => ['active', 'status', 'role', 'god', 'technical'],
+                'filters' => ['active', 'status', 'role', 'god', 'technical', 'model', 'email'],
             ]);
     });
 });
@@ -657,6 +657,37 @@ describe('An avatar that is made', function () {
             ->toBe('Default Jane');
     });
 
+    test('has a capital to each part of a name it is given, as w4os makes it, before it is checked', function () {
+        avatars_in(avatar_creation_database());
+        $config = avatar_grid();
+        $refusal = static function (string $name) use ($config): ?string {
+            try {
+                Avatar::create($config, ['name' => $name, 'password' => 'secret']);
+            } catch (InvalidValue $e) {
+                return $e->reason;
+            }
+
+            return null;
+        };
+
+        expect(Avatar::create($config, ['name' => 'bart simpson', 'password' => 'secret'])->name())
+            ->toBe('Bart Simpson')
+            ->and(Avatar::create($config, ['firstName' => 'LISA', 'lastName' => 'sIMPSON', 'password' => 'secret'])->name())
+            ->toBe('Lisa Simpson')
+            ->and($refusal('ada love'))
+            ->toBe('name-taken')
+            ->and($refusal('admin person'))
+            ->toBe('name-reserved')
+            ->and(Avatar::create($config, ['name' => 'jane doe', 'password' => 'secret', 'reservedName' => true])->name())
+            ->toBe('jane doe')
+            ->and(array_map(Avatar::capitalizeName(...), ['mcFLY marty', 'jean-PIERRE dupont', '2pac shakur', 'Ada Love']))
+            ->toBe(['Mcfly Marty', 'Jean-Pierre Dupont', '2pac Shakur', 'Ada Love'])
+            ->and(Avatar::normalizeName('élodie dupré'))
+            ->toBe('Elodie Dupre')
+            ->and(Avatar::find($config, 'Ada Love')->name())
+            ->toBe('Ada Love');
+    });
+
     test('has its account, its password, its inventory and its outfit, each in its table', function () {
         $pdo = avatar_creation_database();
         avatars_in($pdo);
@@ -806,7 +837,7 @@ describe('avatars of a grid whose services have their own databases', function (
             ->and($list->applied())
             ->toBe([])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'status', 'role', 'god', 'technical'])
+            ->toBe(['active', 'status', 'role', 'god', 'technical', 'model', 'email'])
             ->and($ada->isOnline())
             ->toBeTrue()
             ->and($ada->lastSeen()->getTimestamp())

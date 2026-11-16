@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: f9182b7
+  version: 8a7eaf8
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -760,6 +760,22 @@ paths:
             enum:
               - 'yes'
               - 'no'
+        -
+          name: 'filter[model]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - 'yes'
+              - 'no'
+        -
+          name: 'filter[email]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - 'yes'
+              - 'no'
       responses:
         200:
           description: 'A page of the avatars'
@@ -811,7 +827,7 @@ paths:
                   properties:
                     attributes:
                       type: object
-                      properties: { name: { type: string, description: 'First Last (or firstName and lastName)' }, email: { type: string }, password: { type: string, description: 'The password (or passwordHash)' }, passwordHash: { type: object, description: 'hash and salt of a password that is moved' }, uuid: { type: string, description: 'The UUID of an account that is moved' }, home: { type: string, description: 'The UUID of the home region' }, model: { type: string, description: 'The UUID or the name of an avatar model (`/grids/{grid}/avatar-models`): the avatar wears a copy of its outfit instead of the default one' }, active: { type: boolean, description: 'The account can log in (the default); false: disabled' }, confirmEmail: { type: boolean, description: 'Nothing is made yet: everything is checked, the registration is kept (name, email, model, the password hashed) and mailed a token to confirm its email, which makes the avatar, active (see Avatar access). The answer is 202, a `registrations` resource; `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`. Only name, email, password, model and reservedName are taken' }, link: { type: string, description: 'With confirmEmail: the page that takes the token, `{token}` in it' }, send: { type: boolean, description: 'With confirmEmail, false: the token is not mailed but given in `meta.confirmation` (`token`, `expires`, `link`, `email`), for whoever delivers it' }, reservedName: { type: boolean, description: 'The name may have a part w4os keeps (Default, Test, Admin, the name of the grid): an avatar model, made on purpose. Without it such a name is refused (`name-reserved`)' } }
+                      properties: { name: { type: string, description: 'First Last (or firstName and lastName): each part gets a capital and the rest small letters, as w4os makes it (bart simpson is Bart Simpson), unless reservedName' }, email: { type: string }, password: { type: string, description: 'The password (or passwordHash)' }, passwordHash: { type: object, description: 'hash and salt of a password that is moved' }, uuid: { type: string, description: 'The UUID of an account that is moved' }, home: { type: string, description: 'The UUID of the home region' }, model: { type: string, description: 'The UUID or the name of an avatar model (`/grids/{grid}/avatar-models`): the avatar wears a copy of its outfit instead of the default one' }, active: { type: boolean, description: 'The account can log in (the default); false: disabled' }, confirmEmail: { type: boolean, description: 'Nothing is made yet: everything is checked, the registration is kept (name, email, model, the password hashed) and mailed a token to confirm its email, which makes the avatar, active (see Avatar access). The answer is 202, a `registrations` resource; `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`. Only name, email, password, model and reservedName are taken' }, link: { type: string, description: 'With confirmEmail: the page that takes the token, `{token}` in it' }, send: { type: boolean, description: 'With confirmEmail, false: the token is not mailed but given in `meta.confirmation` (`token`, `expires`, `link`, `email`), for whoever delivers it' }, reservedName: { type: boolean, description: 'The name may have a part w4os keeps (Default, Test, Admin, the name of the grid): an avatar model, made on purpose. Without it such a name is refused (`name-reserved`)' } }
       responses:
         201:
           description: 'Made; its address is in the Location header'

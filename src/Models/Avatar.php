@@ -444,10 +444,30 @@ final class Avatar extends Model
             : null;
     }
 
-    /** The name in Latin letters without accents (the viewers lose the accents), every alphabet transliterated. */
+    /**
+     * A new name in Latin letters without accents (the viewers lose the accents), every alphabet transliterated, a capital to each
+     * part (capitalizeName()).
+     */
     public static function normalizeName(string $name): string
     {
-        return Slug::latin($name, self::NAME_PUNCTUATION);
+        return self::capitalizeName(Slug::latin($name, self::NAME_PUNCTUATION));
+    }
+
+    /**
+     * Each part of a new name with a capital and the rest in small letters, as w4os makes it: "bart SIMPSON" is "Bart Simpson"; each
+     * piece of a hyphenated part too ("jean-PIERRE" is "Jean-Pierre", w4os has no hyphen).
+     */
+    public static function capitalizeName(string $name): string
+    {
+        $capital = static fn(string $piece): string => ucfirst(strtolower($piece));
+
+        return implode(
+            ' ',
+            array_map(
+                static fn(string $part): string => implode(self::NAME_PUNCTUATION, array_map($capital, explode(self::NAME_PUNCTUATION, $part))),
+                explode(' ', trim($name)),
+            ),
+        );
     }
 
     /**
@@ -496,6 +516,10 @@ final class Avatar extends Model
         [$first, $last] = isset($values['name'])
             ? array_pad(explode(' ', trim((string) $values['name']), 2), 2, '')
             : [(string) ($values['firstName'] ?? ''), (string) ($values['lastName'] ?? '')];
+        // A name a person chooses gets its capitals; a reserved one (a model, an account that is moved) is kept as it is given
+        if (!Result::isTrue($values['reservedName'] ?? false)) {
+            [$first, $last] = [self::capitalizeName($first), self::capitalizeName($last)];
+        }
         if (self::validateName("$first $last") !== null) {
             throw InvalidValue::because(
                 'name-invalid',
@@ -563,6 +587,7 @@ final class Avatar extends Model
      *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
      *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
      *        `status` (STATUSES), or `active` false for a disabled one; `reservedName` true for a name w4os keeps (a model: Default...)
+     *        or an account that is moved: its name is kept as it is given, any other gets its capitals (capitalizeName())
      * @throws InvalidValue for a name that is not one or is reserved or taken, a missing or wrong password, a wrong email, a model
      *         that is not one; its reason says which
      * @throws ChannelUnavailable when a database cannot be reached or refuses
@@ -1109,7 +1134,7 @@ final class Avatar extends Model
         $accounts = self::connect($config, 'UserAccountService', null, 'read the avatars');
         $joined = self::joined($config);
         [$sortName, $direction] = self::sort((string) ($options['sort'] ?? 'name'), $joined);
-        [$where, $params, $applied] = self::conditions($options, $joined);
+        [$where, $params, $applied] = self::conditions($options, $joined, AvatarModel::condition($config, 'u.'));
 
         $from = self::from($joined);
         $total = (int) $accounts->get_var("SELECT COUNT(*) FROM $from$where", $params);
@@ -1226,6 +1251,8 @@ final class Avatar extends Model
             'role' => array_keys(self::ROLES),
             'god' => $yesNo,
             'technical' => $yesNo,
+            'model' => $yesNo,
+            'email' => $yesNo,
         ] +
             ($joined ? ['online' => $yesNo] : []);
     }
@@ -1280,7 +1307,7 @@ final class Avatar extends Model
      * @param array<string,mixed> $options
      * @return array{0:string,1:array<string,string>,2:array<string,string>} the WHERE, its parameters, the filters applied
      */
-    private static function conditions(array $options, bool $joined): array
+    private static function conditions(array $options, bool $joined, ?array $model = null): array
     {
         $where = [];
         $params = [];
@@ -1313,11 +1340,18 @@ final class Avatar extends Model
                     'yes' => "(u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",
                     'no' => "NOT (u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",
                 ],
+                // The avatar models of the grid, as AvatarModel picks them
+                'model' => $model === null ? [] : ['yes' => "($model[0])", 'no' => "NOT ($model[0])"],
+                'email' => [
+                    'yes' => "(u.Email IS NOT NULL AND u.Email <> '')",
+                    'no' => "(u.Email IS NULL OR u.Email = '')",
+                ],
             ] + ($joined ? ['online' => ['yes' => "g.Online = 'true'", 'no' => "(g.Online IS NULL OR g.Online <> 'true')"]] : []);
         foreach ((array) ($options['filters'] ?? []) as $name => $value) {
             if (is_string($value) && isset($filters[$name][$value])) {
                 $where[] = $filters[$name][$value];
                 $applied[$name] = $value;
+                $name === 'model' && ($params += $model[1] ?? []);
             }
         }
 

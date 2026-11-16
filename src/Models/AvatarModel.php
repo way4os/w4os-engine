@@ -204,34 +204,48 @@ final class AvatarModel extends Model
      * @param ?array{0:string,1:array<string,string>} $only a condition on UserAccounts and its parameters
      * @return list<self>
      */
-    private static function read(GridConfig $config, ?array $only): array
+    /**
+     * The condition on UserAccounts the rule of the models is, active accounts only, for a query of the models or of the avatars that
+     * are not (Avatar, `filter[model]`).
+     *
+     * @param string $prefix the alias of UserAccounts in the query (`u.`)
+     * @return array{0:string,1:array<string,string>} the condition and its parameters
+     */
+    public static function condition(GridConfig $config, string $prefix = ''): array
     {
-        $accounts = self::connect($config, 'UserAccountService', null, 'read the avatar models');
         [$match, $pattern, $list] = self::rule($config);
         $params = [];
         $condition = match ($match) {
             'uuid' => $list === []
                 ? '1 = 0'
-                : 'PrincipalID IN (' .
-                    implode(', ', array_map(static fn(int $i): string => ":m$i", array_keys($list))) .
+                : "{$prefix}PrincipalID IN (" .
+                    implode(', ', array_map(static fn(int $i): string => ":model$i", array_keys($list))) .
                     ')',
-            'first' => 'FirstName = :pattern',
-            'last' => 'LastName = :pattern',
-            default => '(FirstName = :pattern OR LastName = :pattern)',
+            'first' => "{$prefix}FirstName = :model_pattern",
+            'last' => "{$prefix}LastName = :model_pattern",
+            default => "({$prefix}FirstName = :model_pattern OR {$prefix}LastName = :model_pattern)",
         };
         if ($match === 'uuid') {
             foreach ($list as $i => $uuid) {
-                $params["m$i"] = $uuid;
+                $params["model$i"] = $uuid;
             }
         } else {
-            $params['pattern'] = $pattern;
+            $params['model_pattern'] = $pattern;
         }
+
+        return ["{$prefix}active = 1 AND $condition", $params];
+    }
+
+    private static function read(GridConfig $config, ?array $only): array
+    {
+        $accounts = self::connect($config, 'UserAccountService', null, 'read the avatar models');
+        [$condition, $params] = self::condition($config);
         if ($only !== null) {
             $condition .= ' AND ' . $only[0];
             $params += $only[1];
         }
         $rows = $accounts->get_results(
-            "SELECT PrincipalID, FirstName, LastName FROM UserAccounts WHERE active = 1 AND $condition ORDER BY FirstName, LastName",
+            "SELECT PrincipalID, FirstName, LastName FROM UserAccounts WHERE $condition ORDER BY FirstName, LastName",
             $params,
             \PDO::FETCH_ASSOC,
         ) ?:

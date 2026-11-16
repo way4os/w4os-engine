@@ -383,6 +383,26 @@ describe('The API, for a new avatar whose email is to be confirmed', function ()
             ->toBe([]);
     });
 
+    test('gives the name its capitals before it checks it, as the avatar will have it', function () {
+        avatars_in(signin_database());
+        [$router] = access_api();
+        $ask = static fn(string $name) => $router->post(
+            '/grids/demo/avatars',
+            access_body('avatars', [
+                'name' => $name,
+                'email' => 'new@example.org',
+                'password' => 'secret',
+                'confirmEmail' => true,
+                'send' => false,
+            ]),
+        )->document;
+
+        expect($ask('bart simpson')['data']['attributes'])
+            ->toMatchArray(['name' => 'Bart Simpson', 'firstName' => 'Bart', 'lastName' => 'Simpson'])
+            ->and($ask('ada LOVE')['code'] ?? null)
+            ->toBe('name-taken');
+    });
+
     test('keeps no name before its link: the first confirmed gets it, the other link says it is taken', function () {
         $pdo = signin_database();
         avatars_in($pdo);

@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "f9182b7",
+        "version": "8a7eaf8",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1087,6 +1087,28 @@
                                 "no"
                             ]
                         }
+                    },
+                    {
+                        "name": "filter[model]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[email]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
                     }
                 ],
                 "responses": {
@@ -1165,7 +1187,7 @@
                                                 "properties": {
                                                     "name": {
                                                         "type": "string",
-                                                        "description": "First Last (or firstName and lastName)"
+                                                        "description": "First Last (or firstName and lastName): each part gets a capital and the rest small letters, as w4os makes it (bart simpson is Bart Simpson), unless reservedName"
                                                     },
                                                     "email": {
                                                         "type": "string"

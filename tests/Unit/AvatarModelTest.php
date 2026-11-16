@@ -234,6 +234,24 @@ describe('An avatar made from a model', function () {
     });
 });
 
+describe('The avatars of a grid, without its models', function () {
+    test('are the newest people: no model, no technical account, an email', function () {
+        avatars_in(model_database());
+        $config = avatar_grid();
+        $names = static fn(array $filters, string $sort = 'name') => array_column(
+            Avatar::all($config, ['filters' => $filters, 'sort' => $sort])->array(),
+            'name',
+        );
+
+        expect($names(['model' => 'yes']))
+            ->toBe(['Default Roth', 'Default Ruth', 'Jane Default'])
+            ->and($names(['model' => 'no', 'email' => 'yes', 'technical' => 'no'], 'created desc'))
+            ->toBe(['Ada Love', 'Cy Gone', 'Bob Root'])
+            ->and($names(['email' => 'no']))
+            ->toBe(['Default Off', 'Default Roth', 'Default Ruth', 'Jane Default']);
+    });
+});
+
 describe('The API, for the avatar models', function () {
     test('lists them whole, reads one, and makes an avatar from one', function () {
         avatars_in(model_database());

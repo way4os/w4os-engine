@@ -231,9 +231,11 @@ final class Contract
                 'online' => ['yes', 'no'],
                 'god' => ['yes', 'no'],
                 'technical' => ['yes', 'no'],
+                'model' => ['yes', 'no'],
+                'email' => ['yes', 'no'],
             ],
             'create' => [
-                'name' => ['string', 'First Last (or firstName and lastName)'],
+                'name' => ['string', 'First Last (or firstName and lastName): each part gets a capital and the rest small letters, as w4os makes it (bart simpson is Bart Simpson), unless reservedName'],
                 'email' => ['string', ''],
                 'password' => ['string', 'The password (or passwordHash)'],
                 'passwordHash' => ['object', 'hash and salt of a password that is moved'],
