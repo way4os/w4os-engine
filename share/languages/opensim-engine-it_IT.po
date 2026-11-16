@@ -625,7 +625,7 @@ msgstr "Modello di avatar"
 
 msgctxt "filter_technical"
 msgid "Service account"
-msgstr "Account del servizio"
+msgstr "Account di servizio"
 
 msgctxt "filter_active"
 msgid "Can log in"
@@ -641,7 +641,7 @@ msgstr "Regione"
 
 msgctxt "column_size"
 msgid "Size"
-msgstr "Dimensioni"
+msgstr "Dimensione"
 
 msgctxt "column_owner"
 msgid "Owner"
@@ -657,7 +657,7 @@ msgstr "Regione predefinita"
 
 msgctxt "filter_fallback"
 msgid "Fallback region"
-msgstr "Regione di fallback"
+msgstr "Regione di riserva"
 
 msgctxt "filter_hyperlink"
 msgid "Hypergrid link"
@@ -666,6 +666,214 @@ msgstr "Collegamento hypergrid"
 msgctxt "filter_simulator"
 msgid "Simulator"
 msgstr "Simulatore"
+
+msgctxt "column_name"
+msgid "Name"
+msgstr "Nome"
+
+msgctxt "column_nick"
+msgid "Nick"
+msgstr "Nome breve"
+
+msgctxt "column_address"
+msgid "Address"
+msgstr "Indirizzo"
+
+msgctxt "column_enabled"
+msgid "Enabled"
+msgstr "Attivato"
+
+msgctxt "filter_remote"
+msgid "On another machine"
+msgstr "Su un'altra macchina"
+
+msgctxt "filter_hypergrid"
+msgid "Hypergrid"
+msgstr "Hypergrid"
+
+msgctxt "column_grid"
+msgid "Grid"
+msgstr "Griglia"
+
+msgctxt "column_port"
+msgid "Port"
+msgstr "Porta"
+
+msgctxt "column_running"
+msgid "Running"
+msgstr "In esecuzione"
+
+msgctxt "column_service"
+msgid "Service"
+msgstr "Servizio"
+
+msgctxt "column_provider"
+msgid "Served by"
+msgstr "Fornito da"
+
+msgctxt "filter_served"
+msgid "Served"
+msgstr "Fornito"
+
+msgctxt "port_private"
+msgid "Private"
+msgstr "Privata"
+
+msgctxt "port_public"
+msgid "Public"
+msgstr "Pubblica"
+
+msgctxt "port_web"
+msgid "Web"
+msgstr "Web"
+
+msgctxt "column_file"
+msgid "File"
+msgstr "File"
+
+msgctxt "column_kind"
+msgid "Kind"
+msgstr "Tipo"
+
+msgctxt "column_date"
+msgid "Date"
+msgstr "Data"
+
+msgctxt "kind_iar"
+msgid "Inventory (IAR)"
+msgstr "Inventario (IAR)"
+
+msgctxt "kind_oar"
+msgid "Region (OAR)"
+msgstr "Regione (OAR)"
+
+msgctxt "kind_backup"
+msgid "Backup"
+msgstr "Backup"
+
+msgctxt "column_area"
+msgid "Area"
+msgstr "Superficie"
+
+msgctxt "column_traffic"
+msgid "Traffic"
+msgstr "Traffico"
+
+msgctxt "column_for_sale"
+msgid "For sale"
+msgstr "In vendita"
+
+msgctxt "column_in_search"
+msgid "In search"
+msgstr "Nella ricerca"
+
+msgctxt "column_regions"
+msgid "Regions"
+msgstr "Regioni"
+
+msgctxt "column_type"
+msgid "Type"
+msgstr "Tipo"
+
+msgctxt "filter_local"
+msgid "Local"
+msgstr "Locale"
+
+msgctxt "filter_temporary"
+msgid "Temporary"
+msgstr "Temporaneo"
+
+msgctxt "asset_texture"
+msgid "Texture"
+msgstr "Texture"
+
+msgctxt "asset_sound"
+msgid "Sound"
+msgstr "Suono"
+
+msgctxt "asset_calling_card"
+msgid "Calling card"
+msgstr "Biglietto da visita"
+
+msgctxt "asset_landmark"
+msgid "Landmark"
+msgstr "Punto di riferimento"
+
+msgctxt "asset_clothing"
+msgid "Clothing"
+msgstr "Vestiario"
+
+msgctxt "asset_object"
+msgid "Object"
+msgstr "Oggetto"
+
+msgctxt "asset_notecard"
+msgid "Notecard"
+msgstr "Biglietto"
+
+msgctxt "asset_folder"
+msgid "Folder"
+msgstr "Cartella"
+
+msgctxt "asset_script"
+msgid "Script"
+msgstr "Script"
+
+msgctxt "asset_script_bytecode"
+msgid "Compiled script"
+msgstr "Script compilato"
+
+msgctxt "asset_texture_tga"
+msgid "Texture (TGA)"
+msgstr "Texture (TGA)"
+
+msgctxt "asset_body_part"
+msgid "Body part"
+msgstr "Parte del corpo"
+
+msgctxt "asset_sound_wav"
+msgid "Sound (WAV)"
+msgstr "Suono (WAV)"
+
+msgctxt "asset_image_tga"
+msgid "Image (TGA)"
+msgstr "Immagine (TGA)"
+
+msgctxt "asset_image_jpeg"
+msgid "Image (JPEG)"
+msgstr "Immagine (JPEG)"
+
+msgctxt "asset_animation"
+msgid "Animation"
+msgstr "Animazione"
+
+msgctxt "asset_gesture"
+msgid "Gesture"
+msgstr "Gesto"
+
+msgctxt "asset_simstate"
+msgid "Region state"
+msgstr "Stato della regione"
+
+msgctxt "asset_link"
+msgid "Link"
+msgstr "Collegamento"
+
+msgctxt "asset_link_folder"
+msgid "Folder link"
+msgstr "Collegamento a cartella"
+
+msgctxt "asset_mesh"
+msgid "Mesh"
+msgstr "Mesh"
+
+msgctxt "asset_settings"
+msgid "Environment settings"
+msgstr "Impostazioni ambiente"
+
+msgctxt "asset_material"
+msgid "Material"
+msgstr "Materiale"
 
 msgctxt "error_required"
 msgid "Please fill in every field."

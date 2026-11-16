@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Data\Listing;
 use OpenSim\Config\ConnectionString;
 use OpenSim\Console\ConsoleInterface;
 use OpenSim\Controllers\OpenSimController;
@@ -216,10 +217,8 @@ final class Simulator extends InstalledModel
         foreach (Grid::all($environment)->items() as $grid) {
             array_push($simulators, ...$grid->simulators());
         }
-        $yesNo = static fn(\Closure $is): array => [
-            static fn(self $simulator, string $value): bool => $is($simulator) === ($value === 'yes'),
-            ['yes', 'no'],
-        ];
+        $yesNo = static fn(\Closure $is): \Closure => static fn(self $simulator, string $value): bool => $is($simulator) ===
+            ($value === 'yes');
 
         return self::paged(
             $simulators,
@@ -233,17 +232,37 @@ final class Simulator extends InstalledModel
                 'grid' => static fn(self $simulator): string => (string) $simulator->grid()?->nick(),
             ],
             [
-                'grid' => [static fn(self $simulator, string $nick): bool => $simulator->grid()?->nick() === $nick, []],
+                'grid' => static fn(self $simulator, string $nick): bool => $simulator->grid()?->nick() === $nick,
                 'enabled' => $yesNo(static fn(self $simulator): bool => $simulator->isEnabled()),
                 'running' => $yesNo(static fn(self $simulator): bool => $simulator->isRunning()),
             ],
+            self::listing(),
+        );
+    }
+
+    /** What the list of the simulators shows (Listing). */
+    public static function listing(): Listing
+    {
+        [$method, $path] = ['PATCH', '/simulators/{id}'];
+
+        return new Listing(
             [
-                ['name' => 'name', 'label' => _('Name'), 'sortable' => true],
-                ['name' => 'grid', 'label' => _('Grid'), 'sortable' => true],
-                ['name' => 'uri', 'label' => _('Address')],
-                ['name' => 'port', 'label' => _('Port'), 'sortable' => true],
-                ['name' => 'enabled', 'label' => _('Enabled')],
-                ['name' => 'running', 'label' => _('Running')],
+                Listing::column('name', 'column_name', sort: 'name'),
+                Listing::column('grid', 'column_grid', sort: 'grid'),
+                Listing::column('uri', 'column_address'),
+                Listing::column('httpPort', 'column_port', 'number', 'port'),
+                Listing::column('enabled', 'column_enabled', 'boolean'),
+                Listing::column('running', 'column_running', 'boolean'),
+            ],
+            [
+                Listing::filter('grid', 'column_grid', [], 'grid'),
+                Listing::filter('enabled', 'column_enabled'),
+                Listing::filter('running', 'column_running'),
+            ],
+            ['slug', 'uri', 'grid'],
+            [
+                Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], ['enabled' => [false]]),
+                Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], ['enabled' => [true]]),
             ],
         );
     }

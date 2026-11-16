@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Data\Listing;
 use OpenSim\Result;
 use OpenSim\Config\GridConfig;
 use OpenSim\Data\Collection;
@@ -263,19 +264,36 @@ class Asset extends Model
             'perPage' => $perPage,
             'sort' => strtolower("$sort $direction"),
             'search' => trim((string) ($options['search'] ?? '')),
-            'columns' => [
-                ['name' => 'name', 'label' => _('Name'), 'sortable' => true],
-                ['name' => 'type', 'label' => _('Type'), 'sortable' => true],
-                ['name' => 'size', 'label' => _('Size'), 'sortable' => true],
-                ['name' => 'created', 'label' => _('Created'), 'sortable' => true],
-            ],
-            'filters' => [
-                'type' => array_column(self::TYPES, 0),
-                'local' => ['yes', 'no'],
-                'temporary' => ['yes', 'no'],
-            ],
+            'columns' => self::listing()->columns(),
+            'filters' => self::listing()->filterValues(),
             'applied' => $applied,
         ]);
+    }
+
+    /** What the list of the assets shows (Listing): the text of a type is `asset_` and the type, - as _. */
+    public static function listing(): Listing
+    {
+        $types = array_column(self::TYPES, 0);
+
+        return new Listing(
+            [
+                Listing::column('name', 'column_name', sort: 'name'),
+                Listing::column('type', 'column_type', sort: 'type'),
+                Listing::column('size', 'column_size', 'size', 'size'),
+                Listing::column('created', 'created', 'date', 'created'),
+            ],
+            [
+                Listing::filter(
+                    'type',
+                    'column_type',
+                    array_combine($types, array_map(static fn(string $type): string => 'asset_' . str_replace('-', '_', $type), $types)),
+                ),
+                Listing::filter('local', 'filter_local'),
+                Listing::filter('temporary', 'filter_temporary'),
+            ],
+            ['name', 'description'],
+            moreSorts: ['accessed'],
+        );
     }
 
     public static function find(GridConfig $config, string $id): ?static

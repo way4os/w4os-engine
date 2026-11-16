@@ -626,6 +626,214 @@ msgctxt "filter_simulator"
 msgid "Simulator"
 msgstr ""
 
+msgctxt "column_name"
+msgid "Name"
+msgstr ""
+
+msgctxt "column_nick"
+msgid "Nick"
+msgstr ""
+
+msgctxt "column_address"
+msgid "Address"
+msgstr ""
+
+msgctxt "column_enabled"
+msgid "Enabled"
+msgstr ""
+
+msgctxt "filter_remote"
+msgid "On another machine"
+msgstr ""
+
+msgctxt "filter_hypergrid"
+msgid "Hypergrid"
+msgstr ""
+
+msgctxt "column_grid"
+msgid "Grid"
+msgstr ""
+
+msgctxt "column_port"
+msgid "Port"
+msgstr ""
+
+msgctxt "column_running"
+msgid "Running"
+msgstr ""
+
+msgctxt "column_service"
+msgid "Service"
+msgstr ""
+
+msgctxt "column_provider"
+msgid "Served by"
+msgstr ""
+
+msgctxt "filter_served"
+msgid "Served"
+msgstr ""
+
+msgctxt "port_private"
+msgid "Private"
+msgstr ""
+
+msgctxt "port_public"
+msgid "Public"
+msgstr ""
+
+msgctxt "port_web"
+msgid "Web"
+msgstr ""
+
+msgctxt "column_file"
+msgid "File"
+msgstr ""
+
+msgctxt "column_kind"
+msgid "Kind"
+msgstr ""
+
+msgctxt "column_date"
+msgid "Date"
+msgstr ""
+
+msgctxt "kind_iar"
+msgid "Inventory (IAR)"
+msgstr ""
+
+msgctxt "kind_oar"
+msgid "Region (OAR)"
+msgstr ""
+
+msgctxt "kind_backup"
+msgid "Backup"
+msgstr ""
+
+msgctxt "column_area"
+msgid "Area"
+msgstr ""
+
+msgctxt "column_traffic"
+msgid "Traffic"
+msgstr ""
+
+msgctxt "column_for_sale"
+msgid "For sale"
+msgstr ""
+
+msgctxt "column_in_search"
+msgid "In search"
+msgstr ""
+
+msgctxt "column_regions"
+msgid "Regions"
+msgstr ""
+
+msgctxt "column_type"
+msgid "Type"
+msgstr ""
+
+msgctxt "filter_local"
+msgid "Local"
+msgstr ""
+
+msgctxt "filter_temporary"
+msgid "Temporary"
+msgstr ""
+
+msgctxt "asset_texture"
+msgid "Texture"
+msgstr ""
+
+msgctxt "asset_sound"
+msgid "Sound"
+msgstr ""
+
+msgctxt "asset_calling_card"
+msgid "Calling card"
+msgstr ""
+
+msgctxt "asset_landmark"
+msgid "Landmark"
+msgstr ""
+
+msgctxt "asset_clothing"
+msgid "Clothing"
+msgstr ""
+
+msgctxt "asset_object"
+msgid "Object"
+msgstr ""
+
+msgctxt "asset_notecard"
+msgid "Notecard"
+msgstr ""
+
+msgctxt "asset_folder"
+msgid "Folder"
+msgstr ""
+
+msgctxt "asset_script"
+msgid "Script"
+msgstr ""
+
+msgctxt "asset_script_bytecode"
+msgid "Compiled script"
+msgstr ""
+
+msgctxt "asset_texture_tga"
+msgid "Texture (TGA)"
+msgstr ""
+
+msgctxt "asset_body_part"
+msgid "Body part"
+msgstr ""
+
+msgctxt "asset_sound_wav"
+msgid "Sound (WAV)"
+msgstr ""
+
+msgctxt "asset_image_tga"
+msgid "Image (TGA)"
+msgstr ""
+
+msgctxt "asset_image_jpeg"
+msgid "Image (JPEG)"
+msgstr ""
+
+msgctxt "asset_animation"
+msgid "Animation"
+msgstr ""
+
+msgctxt "asset_gesture"
+msgid "Gesture"
+msgstr ""
+
+msgctxt "asset_simstate"
+msgid "Region state"
+msgstr ""
+
+msgctxt "asset_link"
+msgid "Link"
+msgstr ""
+
+msgctxt "asset_link_folder"
+msgid "Folder link"
+msgstr ""
+
+msgctxt "asset_mesh"
+msgid "Mesh"
+msgstr ""
+
+msgctxt "asset_settings"
+msgid "Environment settings"
+msgstr ""
+
+msgctxt "asset_material"
+msgid "Material"
+msgstr ""
+
 msgctxt "error_required"
 msgid "Please fill in every field."
 msgstr ""

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 92474c3
+  version: 69109f3
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -179,12 +179,20 @@ paths:
           in: query
           schema:
             type: string
+          description: 'Looks in nick, name, baseHostname'
         -
           name: sort
           in: query
           description: 'A column, `-` before it for the descending order'
           schema:
             type: string
+            enum:
+              - name
+              - nick
+              - port
+              - '-name'
+              - '-nick'
+              - '-port'
         -
           name: 'page[number]'
           in: query
@@ -247,6 +255,89 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: column_name
+            type: text
+            sort: name
+          -
+            name: nick
+            label: column_nick
+            type: text
+            sort: nick
+          -
+            name: baseHostname
+            label: column_address
+            type: text
+          -
+            name: enabled
+            label: column_enabled
+            type: boolean
+        sort:
+          default: name
+          values:
+            - name
+            - nick
+            - port
+          descending: '-'
+        search:
+          - nick
+          - name
+          - baseHostname
+        filters:
+          -
+            name: remote
+            label: filter_remote
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+          -
+            name: enabled
+            label: column_enabled
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+          -
+            name: hypergrid
+            label: filter_hypergrid
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+        actions:
+          -
+            name: enable
+            label: action_enable
+            method: PATCH
+            path: '/grids/{id}'
+            body:
+              enabled: true
+            when:
+              enabled:
+                - false
+          -
+            name: disable
+            label: action_disable
+            method: PATCH
+            path: '/grids/{id}'
+            body:
+              enabled: false
+            when:
+              enabled:
+                - true
   '/grids/{id}':
     get:
       operationId: getGrid
@@ -343,12 +434,20 @@ paths:
           in: query
           schema:
             type: string
+          description: 'Looks in slug, uri, grid'
         -
           name: sort
           in: query
           description: 'A column, `-` before it for the descending order'
           schema:
             type: string
+            enum:
+              - name
+              - grid
+              - port
+              - '-name'
+              - '-grid'
+              - '-port'
         -
           name: 'page[number]'
           in: query
@@ -361,6 +460,27 @@ paths:
           schema:
             type: integer
             minimum: 0
+        -
+          name: 'filter[grid]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[enabled]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - 'yes'
+              - 'no'
+        -
+          name: 'filter[running]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - 'yes'
+              - 'no'
       responses:
         200:
           description: 'A page of the simulators'
@@ -387,6 +507,92 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: column_name
+            type: text
+            sort: name
+          -
+            name: grid
+            label: column_grid
+            type: text
+            sort: grid
+          -
+            name: uri
+            label: column_address
+            type: text
+          -
+            name: httpPort
+            label: column_port
+            type: number
+            sort: port
+          -
+            name: enabled
+            label: column_enabled
+            type: boolean
+          -
+            name: running
+            label: column_running
+            type: boolean
+        sort:
+          default: name
+          values:
+            - name
+            - grid
+            - port
+          descending: '-'
+        search:
+          - slug
+          - uri
+          - grid
+        filters:
+          -
+            name: grid
+            label: column_grid
+            format: grid
+          -
+            name: enabled
+            label: column_enabled
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+          -
+            name: running
+            label: column_running
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+        actions:
+          -
+            name: enable
+            label: action_enable
+            method: PATCH
+            path: '/simulators/{id}'
+            body:
+              enabled: true
+            when:
+              enabled:
+                - false
+          -
+            name: disable
+            label: action_disable
+            method: PATCH
+            path: '/simulators/{id}'
+            body:
+              enabled: false
+            when:
+              enabled:
+                - true
   '/simulators/{id}':
     get:
       operationId: getSimulator
@@ -483,12 +689,20 @@ paths:
           in: query
           schema:
             type: string
+          description: 'Looks in key, name, url, grid'
         -
           name: sort
           in: query
           description: 'A column, `-` before it for the descending order'
           schema:
             type: string
+            enum:
+              - name
+              - grid
+              - key
+              - '-name'
+              - '-grid'
+              - '-key'
         -
           name: 'page[number]'
           in: query
@@ -544,6 +758,64 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: column_service
+            type: text
+            sort: name
+          -
+            name: grid
+            label: column_grid
+            type: text
+            sort: grid
+          -
+            name: url
+            label: column_address
+            type: link
+            link: url
+          -
+            name: provider
+            label: column_provider
+            type: text
+        sort:
+          default: name
+          values:
+            - name
+            - grid
+            - key
+          descending: '-'
+        search:
+          - key
+          - name
+          - url
+          - grid
+        filters:
+          -
+            name: served
+            label: filter_served
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+          -
+            name: port
+            label: column_port
+            values:
+              -
+                value: private
+                label: port_private
+              -
+                value: public
+                label: port_public
+              -
+                value: web
+                label: port_web
+        actions: []
   '/services/{id}':
     get:
       operationId: getService
@@ -587,12 +859,22 @@ paths:
           in: query
           schema:
             type: string
+          description: 'Looks in name, grid, kind'
         -
           name: sort
           in: query
           description: 'A column, `-` before it for the descending order'
           schema:
             type: string
+            enum:
+              - name
+              - grid
+              - size
+              - modified
+              - '-name'
+              - '-grid'
+              - '-size'
+              - '-modified'
         -
           name: 'page[number]'
           in: query
@@ -614,6 +896,11 @@ paths:
               - iar
               - oar
               - backup
+        -
+          name: 'filter[grid]'
+          in: query
+          schema:
+            type: string
       responses:
         200:
           description: 'A page of the archives'
@@ -640,6 +927,63 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: column_file
+            type: text
+            sort: name
+          -
+            name: grid
+            label: column_grid
+            type: text
+            sort: grid
+          -
+            name: kind
+            label: column_kind
+            type: text
+          -
+            name: size
+            label: column_size
+            type: size
+            sort: size
+          -
+            name: modified
+            label: column_date
+            type: date
+            sort: modified
+        sort:
+          default: modified
+          values:
+            - name
+            - grid
+            - size
+            - modified
+          descending: '-'
+        search:
+          - name
+          - grid
+          - kind
+        filters:
+          -
+            name: kind
+            label: column_kind
+            values:
+              -
+                value: iar
+                label: kind_iar
+              -
+                value: oar
+                label: kind_oar
+              -
+                value: backup
+                label: kind_backup
+          -
+            name: grid
+            label: column_grid
+            format: grid
+        actions: []
   '/archives/{id}':
     get:
       operationId: getArchive
@@ -704,12 +1048,14 @@ paths:
               - lastSeen
               - created
               - active
+              - online
               - '-name'
               - '-email'
               - '-level'
               - '-lastSeen'
               - '-created'
               - '-active'
+              - '-online'
         -
           name: 'page[number]'
           in: query
@@ -868,6 +1214,7 @@ paths:
             - lastSeen
             - created
             - active
+            - online
           descending: '-'
         search:
           - name
@@ -1635,12 +1982,24 @@ paths:
           in: query
           schema:
             type: string
+          description: 'Looks in name, description'
         -
           name: sort
           in: query
           description: 'A column, `-` before it for the descending order'
           schema:
             type: string
+            enum:
+              - name
+              - area
+              - dwell
+              - claimed
+              - price
+              - '-name'
+              - '-area'
+              - '-dwell'
+              - '-claimed'
+              - '-price'
         -
           name: 'page[number]'
           in: query
@@ -1661,6 +2020,24 @@ paths:
             enum:
               - 'yes'
               - 'no'
+        -
+          name: 'filter[forSale]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - 'yes'
+              - 'no'
+        -
+          name: 'filter[region]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[owner]'
+          in: query
+          schema:
+            type: string
       responses:
         200:
           description: 'A page of the parcels'
@@ -1687,6 +2064,81 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: column_name
+            type: text
+            sort: name
+          -
+            name: regionName
+            label: column_region
+            type: text
+          -
+            name: ownerName
+            label: column_owner
+            type: text
+          -
+            name: area
+            label: column_area
+            type: number
+            sort: area
+          -
+            name: dwell
+            label: column_traffic
+            type: number
+            sort: dwell
+          -
+            name: forSale
+            label: column_for_sale
+            type: boolean
+          -
+            name: shownInSearch
+            label: column_in_search
+            type: boolean
+        sort:
+          default: name
+          values:
+            - name
+            - area
+            - dwell
+            - claimed
+            - price
+          descending: '-'
+        search:
+          - name
+          - description
+        filters:
+          -
+            name: shown
+            label: column_in_search
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+          -
+            name: forSale
+            label: column_for_sale
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+          -
+            name: region
+            label: column_region
+            format: uuid
+          -
+            name: owner
+            label: column_owner
+            format: uuid
+        actions: []
   '/grids/{grid}/parcels/{id}':
     get:
       operationId: getParcel
@@ -1744,12 +2196,22 @@ paths:
           in: query
           schema:
             type: string
+          description: 'Looks in name'
         -
           name: sort
           in: query
           description: 'A column, `-` before it for the descending order'
           schema:
             type: string
+            enum:
+              - name
+              - owner
+              - regions
+              - id
+              - '-name'
+              - '-owner'
+              - '-regions'
+              - '-id'
         -
           name: 'page[number]'
           in: query
@@ -1762,6 +2224,21 @@ paths:
           schema:
             type: integer
             minimum: 0
+        -
+          name: 'filter[simulator]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[owner]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[region]'
+          in: query
+          schema:
+            type: string
       responses:
         200:
           description: 'A page of the estates'
@@ -1788,6 +2265,51 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: column_name
+            type: text
+            sort: name
+          -
+            name: ownerName
+            label: column_owner
+            type: text
+            sort: owner
+          -
+            name: simulator
+            label: filter_simulator
+            type: text
+          -
+            name: regionCount
+            label: column_regions
+            type: number
+            sort: regions
+        sort:
+          default: name
+          values:
+            - name
+            - owner
+            - regions
+            - id
+          descending: '-'
+        search:
+          - name
+        filters:
+          -
+            name: simulator
+            label: filter_simulator
+            format: simulator
+          -
+            name: owner
+            label: column_owner
+            format: uuid
+          -
+            name: region
+            label: column_region
+            format: uuid
+        actions: []
   '/grids/{grid}/estates/{id}':
     get:
       operationId: getEstate
@@ -1845,12 +2367,24 @@ paths:
           in: query
           schema:
             type: string
+          description: 'Looks in name, description'
         -
           name: sort
           in: query
           description: 'A column, `-` before it for the descending order'
           schema:
             type: string
+            enum:
+              - name
+              - type
+              - size
+              - created
+              - accessed
+              - '-name'
+              - '-type'
+              - '-size'
+              - '-created'
+              - '-accessed'
         -
           name: 'page[number]'
           in: query
@@ -1871,10 +2405,27 @@ paths:
             enum:
               - texture
               - sound
-              - notecard
-              - script
+              - calling-card
+              - landmark
+              - clothing
               - object
+              - notecard
+              - folder
+              - script
+              - script-bytecode
+              - texture-tga
+              - body-part
+              - sound-wav
+              - image-tga
+              - image-jpeg
+              - animation
+              - gesture
+              - simstate
+              - link
+              - link-folder
               - mesh
+              - settings
+              - material
         -
           name: 'filter[local]'
           in: query
@@ -1917,6 +2468,135 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: column_name
+            type: text
+            sort: name
+          -
+            name: type
+            label: column_type
+            type: text
+            sort: type
+          -
+            name: size
+            label: column_size
+            type: size
+            sort: size
+          -
+            name: created
+            label: created
+            type: date
+            sort: created
+        sort:
+          default: name
+          values:
+            - name
+            - type
+            - size
+            - created
+            - accessed
+          descending: '-'
+        search:
+          - name
+          - description
+        filters:
+          -
+            name: type
+            label: column_type
+            values:
+              -
+                value: texture
+                label: asset_texture
+              -
+                value: sound
+                label: asset_sound
+              -
+                value: calling-card
+                label: asset_calling_card
+              -
+                value: landmark
+                label: asset_landmark
+              -
+                value: clothing
+                label: asset_clothing
+              -
+                value: object
+                label: asset_object
+              -
+                value: notecard
+                label: asset_notecard
+              -
+                value: folder
+                label: asset_folder
+              -
+                value: script
+                label: asset_script
+              -
+                value: script-bytecode
+                label: asset_script_bytecode
+              -
+                value: texture-tga
+                label: asset_texture_tga
+              -
+                value: body-part
+                label: asset_body_part
+              -
+                value: sound-wav
+                label: asset_sound_wav
+              -
+                value: image-tga
+                label: asset_image_tga
+              -
+                value: image-jpeg
+                label: asset_image_jpeg
+              -
+                value: animation
+                label: asset_animation
+              -
+                value: gesture
+                label: asset_gesture
+              -
+                value: simstate
+                label: asset_simstate
+              -
+                value: link
+                label: asset_link
+              -
+                value: link-folder
+                label: asset_link_folder
+              -
+                value: mesh
+                label: asset_mesh
+              -
+                value: settings
+                label: asset_settings
+              -
+                value: material
+                label: asset_material
+          -
+            name: local
+            label: filter_local
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+          -
+            name: temporary
+            label: filter_temporary
+            values:
+              -
+                value: 'yes'
+                label: 'yes'
+              -
+                value: 'no'
+                label: 'no'
+        actions: []
   '/grids/{grid}/assets/{id}':
     get:
       operationId: getAsset
@@ -6087,6 +6767,9 @@ components:
             regions:
               type: array
               description: 'The UUIDs of its regions'
+            regionCount:
+              type: integer
+              description: 'How many regions it has'
             managers:
               type: array
             users:

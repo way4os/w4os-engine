@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Data\Listing;
 use OpenSim\Data\Collection;
 use OpenSim\Runtime\Environment;
 
@@ -79,19 +80,34 @@ final class Archive extends InstalledModel
                 'grid' => static fn(self $archive): string => $archive->grid,
             ],
             [
-                'kind' => [
-                    static fn(self $archive, string $value): bool => $archive->kind === $value,
-                    [self::IAR, self::OAR, self::BACKUP],
-                ],
-                'grid' => [static fn(self $archive, string $value): bool => $archive->grid === $value, []],
+                'kind' => static fn(self $archive, string $value): bool => $archive->kind === $value,
+                'grid' => static fn(self $archive, string $value): bool => $archive->grid === $value,
+            ],
+            self::listing(),
+        );
+    }
+
+    /** What the list of the archives shows (Listing). */
+    public static function listing(): Listing
+    {
+        return new Listing(
+            [
+                Listing::column('name', 'column_file', sort: 'name'),
+                Listing::column('grid', 'column_grid', sort: 'grid'),
+                Listing::column('kind', 'column_kind'),
+                Listing::column('size', 'column_size', 'size', 'size'),
+                Listing::column('modified', 'column_date', 'date', 'modified'),
             ],
             [
-                ['name' => 'name', 'label' => _('File'), 'sortable' => true],
-                ['name' => 'grid', 'label' => _('Grid'), 'sortable' => true],
-                ['name' => 'kind', 'label' => _('Kind')],
-                ['name' => 'size', 'label' => _('Size'), 'sortable' => true],
-                ['name' => 'modified', 'label' => _('Date'), 'sortable' => true],
+                Listing::filter('kind', 'column_kind', [
+                    self::IAR => 'kind_iar',
+                    self::OAR => 'kind_oar',
+                    self::BACKUP => 'kind_backup',
+                ]),
+                Listing::filter('grid', 'column_grid', [], 'grid'),
             ],
+            ['name', 'grid', 'kind'],
+            sort: 'modified',
         );
     }
 

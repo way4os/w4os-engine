@@ -460,7 +460,7 @@ describe('What a list of avatars offers', function () {
     test('is the visits too when the accounts and the visits are in one database', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
-                'sortable' => ['name', 'email', 'level', 'lastSeen', 'created', 'active'],
+                'sortable' => ['name', 'email', 'level', 'lastSeen', 'created', 'active', 'online'],
                 'filters' => ['status', 'role', 'online', 'published', 'email', 'model', 'technical', 'god', 'active'],
             ])
             ->and(

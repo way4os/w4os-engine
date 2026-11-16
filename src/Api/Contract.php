@@ -69,7 +69,6 @@ final class Contract
                 'simulators' => ['array?', 'The names of its simulators'],
                 'announcement' => ['object?', 'What the grid says of itself at get_grid_info'],
             ],
-            'filters' => ['remote' => ['yes', 'no'], 'enabled' => ['yes', 'no'], 'hypergrid' => ['yes', 'no']],
             'writable' => [
                 'enabled' => ['boolean', 'Enable or disable the grid (its Robust); a running grid is not stopped'],
             ],
@@ -100,7 +99,6 @@ final class Contract
                 'regionsDirectory' => ['string?', 'The folder of its regions'],
                 'core' => ['string?', 'The OpenSimulator release it runs'],
             ],
-            'filters' => [],
             'writable' => [
                 'enabled' => ['boolean', 'Enable or disable the simulator; a running simulator is not stopped'],
             ],
@@ -144,7 +142,6 @@ final class Contract
                     'Where its address comes from: provider, simulator, live (the running grid), config, default (where the helpers answer)',
                 ],
             ],
-            'filters' => ['served' => ['yes', 'no'], 'port' => [Service::PRIVATE, Service::PUBLIC, Service::WEB]],
             'writable' => [],
         ],
         'archives' => [
@@ -170,7 +167,6 @@ final class Contract
                 'logs' => ['boolean?', 'With the logs, for a backup'],
                 'archives' => ['boolean?', 'With the archives of the users, for a backup'],
             ],
-            'filters' => ['kind' => ['iar', 'oar', 'backup']],
             'writable' => [],
         ],
         'avatars' => [
@@ -399,7 +395,6 @@ final class Contract
                 'music' => ['string?', ''],
                 'media' => ['string?', ''],
             ],
-            'filters' => ['shown' => ['yes', 'no']],
             'writable' => [],
         ],
         'estates' => [
@@ -433,12 +428,12 @@ final class Contract
                 'abuseEmail' => ['string?', ''],
                 'abuseEmailToOwner' => ['boolean', ''],
                 'regions' => ['array', 'The UUIDs of its regions'],
+                'regionCount' => ['integer', 'How many regions it has'],
                 'managers' => ['array', ''],
                 'users' => ['array', ''],
                 'groups' => ['array', ''],
                 'bans' => ['array', ''],
             ],
-            'filters' => [],
             'writable' => [],
         ],
         'assets' => [
@@ -461,11 +456,6 @@ final class Contract
                 'created' => ['integer?', 'Unix time'],
                 'accessed' => ['integer?', 'Unix time'],
                 'size' => ['integer?', 'Bytes of its data'],
-            ],
-            'filters' => [
-                'type' => ['texture', 'sound', 'notecard', 'script', 'object', 'mesh'],
-                'local' => ['yes', 'no'],
-                'temporary' => ['yes', 'no'],
             ],
             'writable' => [],
         ],

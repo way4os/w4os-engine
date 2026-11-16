@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Data\Listing;
 use OpenSim\Config\GridConfig;
 use OpenSim\Controllers\AbstractController;
 use OpenSim\Controllers\RobustController;
@@ -545,10 +546,7 @@ final class Service extends InstalledModel
     /** @param list<self> $services */
     private static function collect(array $services, array $options): Collection
     {
-        $yesNo = [
-            static fn(self $service, string $value): bool => $service->isServed() === ($value === 'yes'),
-            ['yes', 'no'],
-        ];
+        $yesNo = static fn(self $service, string $value): bool => $service->isServed() === ($value === 'yes');
 
         return self::paged(
             $services,
@@ -563,17 +561,32 @@ final class Service extends InstalledModel
             ],
             [
                 'served' => $yesNo,
-                'port' => [
-                    static fn(self $service, string $value): bool => $service->port() === $value,
-                    [self::PRIVATE, self::PUBLIC, self::WEB],
-                ],
+                'port' => static fn(self $service, string $value): bool => $service->port() === $value,
+            ],
+            self::listing(),
+        );
+    }
+
+    /** What the list of the services shows (Listing). */
+    public static function listing(): Listing
+    {
+        return new Listing(
+            [
+                Listing::column('name', 'column_service', sort: 'name'),
+                Listing::column('grid', 'column_grid', sort: 'grid'),
+                Listing::column('url', 'column_address', 'link', more: ['link' => 'url']),
+                Listing::column('provider', 'column_provider'),
             ],
             [
-                ['name' => 'name', 'label' => _('Service'), 'sortable' => true],
-                ['name' => 'grid', 'label' => _('Grid'), 'sortable' => true],
-                ['name' => 'url', 'label' => _('Address')],
-                ['name' => 'provider', 'label' => _('Served by')],
+                Listing::filter('served', 'filter_served'),
+                Listing::filter('port', 'column_port', [
+                    self::PRIVATE => 'port_private',
+                    self::PUBLIC => 'port_public',
+                    self::WEB => 'port_web',
+                ]),
             ],
+            ['key', 'name', 'url', 'grid'],
+            moreSorts: ['key'],
         );
     }
 

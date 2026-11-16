@@ -625,7 +625,7 @@ msgstr "Model afatar"
 
 msgctxt "filter_technical"
 msgid "Service account"
-msgstr "Cyfrif Gwasanaeth"
+msgstr "Cyfrif gwasanaeth"
 
 msgctxt "filter_active"
 msgid "Can log in"
@@ -653,7 +653,7 @@ msgstr "Rolau"
 
 msgctxt "filter_default"
 msgid "Default region"
-msgstr "Rhanbarth Ragoson"
+msgstr "Rhanbarth diofyn"
 
 msgctxt "filter_fallback"
 msgid "Fallback region"
@@ -665,7 +665,215 @@ msgstr "Dolen hypergrid"
 
 msgctxt "filter_simulator"
 msgid "Simulator"
-msgstr "Simulator"
+msgstr "Efelychydd"
+
+msgctxt "column_name"
+msgid "Name"
+msgstr "Enw"
+
+msgctxt "column_nick"
+msgid "Nick"
+msgstr "Llysenw"
+
+msgctxt "column_address"
+msgid "Address"
+msgstr "Cyfeiriad"
+
+msgctxt "column_enabled"
+msgid "Enabled"
+msgstr "Galluogwyd"
+
+msgctxt "filter_remote"
+msgid "On another machine"
+msgstr "Ar beiriant arall"
+
+msgctxt "filter_hypergrid"
+msgid "Hypergrid"
+msgstr "Hypergrid"
+
+msgctxt "column_grid"
+msgid "Grid"
+msgstr "Grid"
+
+msgctxt "column_port"
+msgid "Port"
+msgstr "Porth"
+
+msgctxt "column_running"
+msgid "Running"
+msgstr "Yn rhedeg"
+
+msgctxt "column_service"
+msgid "Service"
+msgstr "Gwasanaeth"
+
+msgctxt "column_provider"
+msgid "Served by"
+msgstr "Wedi'i weini gan"
+
+msgctxt "filter_served"
+msgid "Served"
+msgstr "Wedi'i weini"
+
+msgctxt "port_private"
+msgid "Private"
+msgstr "Preifat"
+
+msgctxt "port_public"
+msgid "Public"
+msgstr "Cyhoeddus"
+
+msgctxt "port_web"
+msgid "Web"
+msgstr "Gwe"
+
+msgctxt "column_file"
+msgid "File"
+msgstr "Ffeil"
+
+msgctxt "column_kind"
+msgid "Kind"
+msgstr "Math"
+
+msgctxt "column_date"
+msgid "Date"
+msgstr "Dyddiad"
+
+msgctxt "kind_iar"
+msgid "Inventory (IAR)"
+msgstr "Rhestr eiddo (IAR)"
+
+msgctxt "kind_oar"
+msgid "Region (OAR)"
+msgstr "Rhanbarth (OAR)"
+
+msgctxt "kind_backup"
+msgid "Backup"
+msgstr "Copi wrth gefn"
+
+msgctxt "column_area"
+msgid "Area"
+msgstr "Arwynebedd"
+
+msgctxt "column_traffic"
+msgid "Traffic"
+msgstr "Traffig"
+
+msgctxt "column_for_sale"
+msgid "For sale"
+msgstr "Ar werth"
+
+msgctxt "column_in_search"
+msgid "In search"
+msgstr "Yn y chwiliad"
+
+msgctxt "column_regions"
+msgid "Regions"
+msgstr "Rhanbarthau"
+
+msgctxt "column_type"
+msgid "Type"
+msgstr "Math"
+
+msgctxt "filter_local"
+msgid "Local"
+msgstr "Lleol"
+
+msgctxt "filter_temporary"
+msgid "Temporary"
+msgstr "Dros dro"
+
+msgctxt "asset_texture"
+msgid "Texture"
+msgstr "Gwead"
+
+msgctxt "asset_sound"
+msgid "Sound"
+msgstr "Sain"
+
+msgctxt "asset_calling_card"
+msgid "Calling card"
+msgstr "Cerdyn galw"
+
+msgctxt "asset_landmark"
+msgid "Landmark"
+msgstr "Tirnod"
+
+msgctxt "asset_clothing"
+msgid "Clothing"
+msgstr "Dillad"
+
+msgctxt "asset_object"
+msgid "Object"
+msgstr "Gwrthrych"
+
+msgctxt "asset_notecard"
+msgid "Notecard"
+msgstr "Cerdyn nodiadau"
+
+msgctxt "asset_folder"
+msgid "Folder"
+msgstr "Ffolder"
+
+msgctxt "asset_script"
+msgid "Script"
+msgstr "Sgript"
+
+msgctxt "asset_script_bytecode"
+msgid "Compiled script"
+msgstr "Sgript wedi'i grynhoi"
+
+msgctxt "asset_texture_tga"
+msgid "Texture (TGA)"
+msgstr "Gwead (TGA)"
+
+msgctxt "asset_body_part"
+msgid "Body part"
+msgstr "Rhan o'r corff"
+
+msgctxt "asset_sound_wav"
+msgid "Sound (WAV)"
+msgstr "Sain (WAV)"
+
+msgctxt "asset_image_tga"
+msgid "Image (TGA)"
+msgstr "Delwedd (TGA)"
+
+msgctxt "asset_image_jpeg"
+msgid "Image (JPEG)"
+msgstr "Delwedd (JPEG)"
+
+msgctxt "asset_animation"
+msgid "Animation"
+msgstr "Animeiddiad"
+
+msgctxt "asset_gesture"
+msgid "Gesture"
+msgstr "Ystum"
+
+msgctxt "asset_simstate"
+msgid "Region state"
+msgstr "Cyflwr y rhanbarth"
+
+msgctxt "asset_link"
+msgid "Link"
+msgstr "Dolen"
+
+msgctxt "asset_link_folder"
+msgid "Folder link"
+msgstr "Dolen ffolder"
+
+msgctxt "asset_mesh"
+msgid "Mesh"
+msgstr "Rhwyll"
+
+msgctxt "asset_settings"
+msgid "Environment settings"
+msgstr "Gosodiadau amgylchedd"
+
+msgctxt "asset_material"
+msgid "Material"
+msgstr "Defnydd"
 
 msgctxt "error_required"
 msgid "Please fill in every field."

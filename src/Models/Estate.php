@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Data\Listing;
 use OpenSim\Text\Uuid;
 use OpenSim\Config\ConnectionString;
 use OpenSim\Config\GridConfig;
@@ -269,6 +270,7 @@ final class Estate extends Model
             'abuseEmail' => ($row['AbuseEmail'] ?? '') !== '' ? $row['AbuseEmail'] : null,
             'abuseEmailToOwner' => $flag('AbuseEmailToEstateOwner'),
             'regions' => $this->regions(),
+            'regionCount' => count($this->regions()),
             'managers' => $this->managers(),
             'users' => $this->users(),
             'groups' => $this->groups(),
@@ -370,7 +372,7 @@ final class Estate extends Model
             'sort' => "$sortName $direction",
             'search' => trim((string) ($options['search'] ?? '')),
             'columns' => self::columns(),
-            'filters' => ['simulator' => [], 'owner' => [], 'region' => []],
+            'filters' => self::listing()->filterValues(),
             'applied' => $applied,
         ]);
     }
@@ -408,12 +410,27 @@ final class Estate extends Model
      */
     public static function columns(): array
     {
-        return [
-            ['name' => 'name', 'label' => _('Name'), 'sortable' => true],
-            ['name' => 'ownerName', 'label' => _('Owner'), 'sortable' => true],
-            ['name' => 'simulator', 'label' => _('Simulator')],
-            ['name' => 'regionCount', 'label' => _('Regions'), 'sortable' => true],
-        ];
+        return self::listing()->columns();
+    }
+
+    /** What the list of the estates shows (Listing). */
+    public static function listing(): Listing
+    {
+        return new Listing(
+            [
+                Listing::column('name', 'column_name', sort: 'name'),
+                Listing::column('ownerName', 'column_owner', sort: 'owner'),
+                Listing::column('simulator', 'filter_simulator'),
+                Listing::column('regionCount', 'column_regions', 'number', 'regions'),
+            ],
+            [
+                Listing::filter('simulator', 'filter_simulator', [], 'simulator'),
+                Listing::filter('owner', 'column_owner', [], 'uuid'),
+                Listing::filter('region', 'column_region', [], 'uuid'),
+            ],
+            ['name'],
+            moreSorts: ['id'],
+        );
     }
 
     /**

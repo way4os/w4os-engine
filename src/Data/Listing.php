@@ -59,6 +59,7 @@ final class Listing
      * @param list<string> $search the attributes the search looks in
      * @param list<array<string,mixed>> $actions made by action()
      * @param string $sort the sort of a list that asks for none, `-` before it for the descending order
+     * @param list<string> $moreSorts the sorts it takes that no column shows
      */
     public function __construct(
         public readonly array $columns,
@@ -66,6 +67,7 @@ final class Listing
         public readonly array $search = [],
         public readonly array $actions = [],
         public readonly string $sort = 'name',
+        public readonly array $moreSorts = [],
     ) {}
 
     /**
@@ -168,7 +170,7 @@ final class Listing
     /** The sorts a list takes, `-` before one for the descending order. */
     public function sorts(): array
     {
-        return array_values(array_unique(array_column($this->columns, 'sort')));
+        return array_values(array_unique([...array_column($this->columns, 'sort'), ...$this->moreSorts]));
     }
 
     /**

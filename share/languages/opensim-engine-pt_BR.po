@@ -622,7 +622,7 @@ msgstr "Modelo de avatar"
 
 msgctxt "filter_technical"
 msgid "Service account"
-msgstr "Conta de Serviço"
+msgstr "Conta de serviço"
 
 msgctxt "filter_active"
 msgid "Can log in"
@@ -650,11 +650,11 @@ msgstr "Funções"
 
 msgctxt "filter_default"
 msgid "Default region"
-msgstr "Região Padrão"
+msgstr "Região padrão"
 
 msgctxt "filter_fallback"
 msgid "Fallback region"
-msgstr "Região de Reserva"
+msgstr "Região de reserva"
 
 msgctxt "filter_hyperlink"
 msgid "Hypergrid link"
@@ -663,6 +663,214 @@ msgstr "Link de hypergrid"
 msgctxt "filter_simulator"
 msgid "Simulator"
 msgstr "Simulador"
+
+msgctxt "column_name"
+msgid "Name"
+msgstr "Nome"
+
+msgctxt "column_nick"
+msgid "Nick"
+msgstr "Apelido"
+
+msgctxt "column_address"
+msgid "Address"
+msgstr "Endereço"
+
+msgctxt "column_enabled"
+msgid "Enabled"
+msgstr "Ativado"
+
+msgctxt "filter_remote"
+msgid "On another machine"
+msgstr "Em outra máquina"
+
+msgctxt "filter_hypergrid"
+msgid "Hypergrid"
+msgstr "Hypergrid"
+
+msgctxt "column_grid"
+msgid "Grid"
+msgstr "Grid"
+
+msgctxt "column_port"
+msgid "Port"
+msgstr "Porta"
+
+msgctxt "column_running"
+msgid "Running"
+msgstr "Em execução"
+
+msgctxt "column_service"
+msgid "Service"
+msgstr "Serviço"
+
+msgctxt "column_provider"
+msgid "Served by"
+msgstr "Servido por"
+
+msgctxt "filter_served"
+msgid "Served"
+msgstr "Servido"
+
+msgctxt "port_private"
+msgid "Private"
+msgstr "Privada"
+
+msgctxt "port_public"
+msgid "Public"
+msgstr "Pública"
+
+msgctxt "port_web"
+msgid "Web"
+msgstr "Web"
+
+msgctxt "column_file"
+msgid "File"
+msgstr "Arquivo"
+
+msgctxt "column_kind"
+msgid "Kind"
+msgstr "Tipo"
+
+msgctxt "column_date"
+msgid "Date"
+msgstr "Data"
+
+msgctxt "kind_iar"
+msgid "Inventory (IAR)"
+msgstr "Inventário (IAR)"
+
+msgctxt "kind_oar"
+msgid "Region (OAR)"
+msgstr "Região (OAR)"
+
+msgctxt "kind_backup"
+msgid "Backup"
+msgstr "Backup"
+
+msgctxt "column_area"
+msgid "Area"
+msgstr "Área"
+
+msgctxt "column_traffic"
+msgid "Traffic"
+msgstr "Tráfego"
+
+msgctxt "column_for_sale"
+msgid "For sale"
+msgstr "À venda"
+
+msgctxt "column_in_search"
+msgid "In search"
+msgstr "Na busca"
+
+msgctxt "column_regions"
+msgid "Regions"
+msgstr "Regiões"
+
+msgctxt "column_type"
+msgid "Type"
+msgstr "Tipo"
+
+msgctxt "filter_local"
+msgid "Local"
+msgstr "Local"
+
+msgctxt "filter_temporary"
+msgid "Temporary"
+msgstr "Temporário"
+
+msgctxt "asset_texture"
+msgid "Texture"
+msgstr "Textura"
+
+msgctxt "asset_sound"
+msgid "Sound"
+msgstr "Som"
+
+msgctxt "asset_calling_card"
+msgid "Calling card"
+msgstr "Cartão de visita"
+
+msgctxt "asset_landmark"
+msgid "Landmark"
+msgstr "Marco"
+
+msgctxt "asset_clothing"
+msgid "Clothing"
+msgstr "Roupa"
+
+msgctxt "asset_object"
+msgid "Object"
+msgstr "Objeto"
+
+msgctxt "asset_notecard"
+msgid "Notecard"
+msgstr "Nota"
+
+msgctxt "asset_folder"
+msgid "Folder"
+msgstr "Pasta"
+
+msgctxt "asset_script"
+msgid "Script"
+msgstr "Script"
+
+msgctxt "asset_script_bytecode"
+msgid "Compiled script"
+msgstr "Script compilado"
+
+msgctxt "asset_texture_tga"
+msgid "Texture (TGA)"
+msgstr "Textura (TGA)"
+
+msgctxt "asset_body_part"
+msgid "Body part"
+msgstr "Parte do corpo"
+
+msgctxt "asset_sound_wav"
+msgid "Sound (WAV)"
+msgstr "Som (WAV)"
+
+msgctxt "asset_image_tga"
+msgid "Image (TGA)"
+msgstr "Imagem (TGA)"
+
+msgctxt "asset_image_jpeg"
+msgid "Image (JPEG)"
+msgstr "Imagem (JPEG)"
+
+msgctxt "asset_animation"
+msgid "Animation"
+msgstr "Animação"
+
+msgctxt "asset_gesture"
+msgid "Gesture"
+msgstr "Gesto"
+
+msgctxt "asset_simstate"
+msgid "Region state"
+msgstr "Estado da região"
+
+msgctxt "asset_link"
+msgid "Link"
+msgstr "Link"
+
+msgctxt "asset_link_folder"
+msgid "Folder link"
+msgstr "Link de pasta"
+
+msgctxt "asset_mesh"
+msgid "Mesh"
+msgstr "Mesh"
+
+msgctxt "asset_settings"
+msgid "Environment settings"
+msgstr "Configurações de ambiente"
+
+msgctxt "asset_material"
+msgid "Material"
+msgstr "Material"
 
 msgctxt "error_required"
 msgid "Please fill in every field."

@@ -623,7 +623,7 @@ msgstr "Avatarmodel"
 
 msgctxt "filter_technical"
 msgid "Service account"
-msgstr "Service Account"
+msgstr "Serviceaccount"
 
 msgctxt "filter_active"
 msgid "Can log in"
@@ -651,11 +651,11 @@ msgstr "Rollen"
 
 msgctxt "filter_default"
 msgid "Default region"
-msgstr "Standaard Regio"
+msgstr "Standaardregio"
 
 msgctxt "filter_fallback"
 msgid "Fallback region"
-msgstr "Reserve Regio"
+msgstr "Terugvalregio"
 
 msgctxt "filter_hyperlink"
 msgid "Hypergrid link"
@@ -664,6 +664,214 @@ msgstr "Hypergrid-link"
 msgctxt "filter_simulator"
 msgid "Simulator"
 msgstr "Simulator"
+
+msgctxt "column_name"
+msgid "Name"
+msgstr "Naam"
+
+msgctxt "column_nick"
+msgid "Nick"
+msgstr "Korte naam"
+
+msgctxt "column_address"
+msgid "Address"
+msgstr "Adres"
+
+msgctxt "column_enabled"
+msgid "Enabled"
+msgstr "Ingeschakeld"
+
+msgctxt "filter_remote"
+msgid "On another machine"
+msgstr "Op een andere machine"
+
+msgctxt "filter_hypergrid"
+msgid "Hypergrid"
+msgstr "Hypergrid"
+
+msgctxt "column_grid"
+msgid "Grid"
+msgstr "Grid"
+
+msgctxt "column_port"
+msgid "Port"
+msgstr "Poort"
+
+msgctxt "column_running"
+msgid "Running"
+msgstr "Actief"
+
+msgctxt "column_service"
+msgid "Service"
+msgstr "Dienst"
+
+msgctxt "column_provider"
+msgid "Served by"
+msgstr "Geleverd door"
+
+msgctxt "filter_served"
+msgid "Served"
+msgstr "Geleverd"
+
+msgctxt "port_private"
+msgid "Private"
+msgstr "Privé"
+
+msgctxt "port_public"
+msgid "Public"
+msgstr "Openbaar"
+
+msgctxt "port_web"
+msgid "Web"
+msgstr "Web"
+
+msgctxt "column_file"
+msgid "File"
+msgstr "Bestand"
+
+msgctxt "column_kind"
+msgid "Kind"
+msgstr "Soort"
+
+msgctxt "column_date"
+msgid "Date"
+msgstr "Datum"
+
+msgctxt "kind_iar"
+msgid "Inventory (IAR)"
+msgstr "Inventaris (IAR)"
+
+msgctxt "kind_oar"
+msgid "Region (OAR)"
+msgstr "Regio (OAR)"
+
+msgctxt "kind_backup"
+msgid "Backup"
+msgstr "Back-up"
+
+msgctxt "column_area"
+msgid "Area"
+msgstr "Oppervlakte"
+
+msgctxt "column_traffic"
+msgid "Traffic"
+msgstr "Verkeer"
+
+msgctxt "column_for_sale"
+msgid "For sale"
+msgstr "Te koop"
+
+msgctxt "column_in_search"
+msgid "In search"
+msgstr "In het zoeken"
+
+msgctxt "column_regions"
+msgid "Regions"
+msgstr "Regio's"
+
+msgctxt "column_type"
+msgid "Type"
+msgstr "Type"
+
+msgctxt "filter_local"
+msgid "Local"
+msgstr "Lokaal"
+
+msgctxt "filter_temporary"
+msgid "Temporary"
+msgstr "Tijdelijk"
+
+msgctxt "asset_texture"
+msgid "Texture"
+msgstr "Textuur"
+
+msgctxt "asset_sound"
+msgid "Sound"
+msgstr "Geluid"
+
+msgctxt "asset_calling_card"
+msgid "Calling card"
+msgstr "Visitekaartje"
+
+msgctxt "asset_landmark"
+msgid "Landmark"
+msgstr "Landmark"
+
+msgctxt "asset_clothing"
+msgid "Clothing"
+msgstr "Kleding"
+
+msgctxt "asset_object"
+msgid "Object"
+msgstr "Object"
+
+msgctxt "asset_notecard"
+msgid "Notecard"
+msgstr "Notitie"
+
+msgctxt "asset_folder"
+msgid "Folder"
+msgstr "Map"
+
+msgctxt "asset_script"
+msgid "Script"
+msgstr "Script"
+
+msgctxt "asset_script_bytecode"
+msgid "Compiled script"
+msgstr "Gecompileerd script"
+
+msgctxt "asset_texture_tga"
+msgid "Texture (TGA)"
+msgstr "Textuur (TGA)"
+
+msgctxt "asset_body_part"
+msgid "Body part"
+msgstr "Lichaamsdeel"
+
+msgctxt "asset_sound_wav"
+msgid "Sound (WAV)"
+msgstr "Geluid (WAV)"
+
+msgctxt "asset_image_tga"
+msgid "Image (TGA)"
+msgstr "Afbeelding (TGA)"
+
+msgctxt "asset_image_jpeg"
+msgid "Image (JPEG)"
+msgstr "Afbeelding (JPEG)"
+
+msgctxt "asset_animation"
+msgid "Animation"
+msgstr "Animatie"
+
+msgctxt "asset_gesture"
+msgid "Gesture"
+msgstr "Gebaar"
+
+msgctxt "asset_simstate"
+msgid "Region state"
+msgstr "Regiotoestand"
+
+msgctxt "asset_link"
+msgid "Link"
+msgstr "Link"
+
+msgctxt "asset_link_folder"
+msgid "Folder link"
+msgstr "Maplink"
+
+msgctxt "asset_mesh"
+msgid "Mesh"
+msgstr "Mesh"
+
+msgctxt "asset_settings"
+msgid "Environment settings"
+msgstr "Omgevingsinstellingen"
+
+msgctxt "asset_material"
+msgid "Material"
+msgstr "Materiaal"
 
 msgctxt "error_required"
 msgid "Please fill in every field."

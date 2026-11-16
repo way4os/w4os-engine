@@ -43,8 +43,10 @@
 - feature (i18n): texts that change with a number, as gettext has them (msgid_plural, the `Plural-Forms` of each language): `Catalog::plural()`, `Catalog::plurals()`, `PoFile::plural()`; `profile_name`, `profile_age_today`, `profile_age_days` and `profile_groups` for the 2nd Life tab of a profile
 - feature (i18n): `dashboard_title` for the admin dashboard of a site
 - feature (api): `x-list` on the list operations of the avatars and the regions: the columns in their order (attribute, display type, label as a catalog key, sort), the sorts, what the search looks in, the filters and their values with their labels, and the actions of a row (operation, body, when it applies). `Listing` is its single source in each model (`Avatar::listing()`, `Region::listing()`): the filters and the sort values of the contract and the columns of a list (CSV) come from it. Catalog keys for the titles of the columns and of the filters, in every language
+- feature (api): `x-list` on the lists of the grids, the simulators, the services, the archives, the parcels, the estates and the assets too, each from its model's `listing()`; the filters of their list operation come from it (the contract no longer lists them apart). `sort` of every list operation is an enum of the sorts it takes. Catalog keys for their columns, filters and the types of the assets (`asset_` and the type)
+- feature (estates): `regionCount`, how many regions an estate has
 - feature (regions): `filter[owner]` (a UUID) and `filter[simulator]` (the regions its files describe), and `teleport`, the hop:// address of a region on its grid
-- change (avatars, regions): the columns of their list (CSV, `meta.columns`) are the ones a site shows: avatars name, email, role, lastSeen, created, status; regions mapImage, name, location, size, ownerName, roles, online, lastSeen, teleport
+- change (lists): the columns of a list (CSV, `meta.columns`) are the ones its `listing()` shows: avatars name, email, role, lastSeen, created, status; regions mapImage, name, location, size, ownerName, roles, online, lastSeen, teleport; grids baseHostname instead of uri; simulators httpPort instead of port (it was empty)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 

@@ -452,16 +452,31 @@ describe('The contract', function () {
         },
     );
 
-    test('describes the lists of avatars and regions as their models do (x-list), with the keys of the catalog', function () {
+    test('describes the list of each model as the model does (x-list), with the keys of the catalog', function () {
         $paths = Contract::document()['paths'];
+        $described = array_keys(array_filter(
+            $paths,
+            static fn(array $operations): bool => isset($operations['get']['x-list']),
+        ));
         $avatars = $paths['/grids/{grid}/avatars']['get'];
         $regions = $paths['/grids/{grid}/regions']['get'];
         $parameters = static fn(array $operation): array => array_column($operation['parameters'], 'schema', 'name');
         $keys = [];
-        foreach ($paths as $operations) {
+        $unknown = [];
+        foreach ($paths as $path => $operations) {
             foreach ($operations as $operation) {
                 if (isset($operation['x-list'])) {
                     $listing = $operation['x-list'];
+                    // What it shows and asks of a row is an attribute of the resource
+                    $named = array_column($listing['columns'], 'name');
+                    foreach ($listing['columns'] as $column) {
+                        array_push($named, ...array_values(array_intersect_key($column, ['picture' => 1, 'tag' => 1, 'link' => 1])));
+                    }
+                    foreach ($listing['actions'] as $action) {
+                        array_push($named, ...array_keys($action['when'] ?? []), ...$action['requires'] ?? []);
+                    }
+                    $attributes = array_keys(Contract::attributes(basename($path)));
+                    array_push($unknown, ...array_map(static fn(string $name): string => basename($path) . ".$name", array_diff($named, $attributes)));
                     array_push(
                         $keys,
                         ...array_column($listing['columns'], 'label'),
@@ -497,7 +512,7 @@ describe('The contract', function () {
             ->and($avatars['x-list']['sort'])
             ->toBe([
                 'default' => '-created',
-                'values' => ['name', 'email', 'level', 'lastSeen', 'created', 'active'],
+                'values' => ['name', 'email', 'level', 'lastSeen', 'created', 'active', 'online'],
                 'descending' => '-',
             ])
             ->and($avatars['x-list']['search'])
@@ -552,6 +567,26 @@ describe('The contract', function () {
             ->toContain('filter[simulator]', 'filter[default]', 'filter[fallback]')
             ->and($regions['x-list']['columns'][8])
             ->toBe(['name' => 'teleport', 'label' => 'profile_teleport', 'type' => 'hop'])
+            ->and($described)
+            ->toEqualCanonicalizing([
+                '/grids',
+                '/simulators',
+                '/services',
+                '/archives',
+                '/grids/{grid}/avatars',
+                '/grids/{grid}/regions',
+                '/grids/{grid}/parcels',
+                '/grids/{grid}/estates',
+                '/grids/{grid}/assets',
+            ])
+            ->and($paths['/grids']['get']['x-list']['actions'][0]['path'])
+            ->toBe('/grids/{id}')
+            ->and($paths['/grids/{grid}/assets']['get']['x-list']['filters'][0]['values'][0])
+            ->toBe(['value' => 'texture', 'label' => 'asset_texture'])
+            ->and($paths['/grids/{grid}/parcels']['get']['x-list']['sort']['values'])
+            ->toBe(['name', 'area', 'dwell', 'claimed', 'price'])
+            ->and($unknown)
+            ->toBe([])
             ->and($keys)
             ->not->toBeEmpty()
             ->and(array_values(array_diff(array_unique($keys), array_keys(\OpenSim\I18n\Catalog::MESSAGES))))

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Data\Listing;
 use OpenSim\Config\ConfigReader;
 use OpenSim\Config\ConnectionString;
 use OpenSim\Config\GridConfig;
@@ -550,10 +551,8 @@ final class Grid extends InstalledModel
             $grid = new self($environment, $directory);
             $grid->isKnown() && ($grids[] = $grid);
         }
-        $yesNo = static fn(\Closure $is): array => [
-            static fn(self $grid, string $value): bool => $is($grid) === ($value === 'yes'),
-            ['yes', 'no'],
-        ];
+        $yesNo = static fn(\Closure $is): \Closure => static fn(self $grid, string $value): bool => $is($grid) ===
+            ($value === 'yes');
 
         return self::paged(
             $grids,
@@ -569,12 +568,31 @@ final class Grid extends InstalledModel
                 'enabled' => $yesNo(static fn(self $grid): bool => $grid->isEnabled()),
                 'hypergrid' => $yesNo(static fn(self $grid): bool => $grid->isHypergrid()),
             ],
+            self::listing(),
+        );
+    }
+
+    /** What the list of the grids shows (Listing). */
+    public static function listing(): Listing
+    {
+        return new Listing(
             [
-                ['name' => 'name', 'label' => _('Name'), 'sortable' => true],
-                ['name' => 'nick', 'label' => _('Nick'), 'sortable' => true],
-                ['name' => 'uri', 'label' => _('Address')],
-                ['name' => 'enabled', 'label' => _('Enabled')],
+                Listing::column('name', 'column_name', sort: 'name'),
+                Listing::column('nick', 'column_nick', sort: 'nick'),
+                Listing::column('baseHostname', 'column_address'),
+                Listing::column('enabled', 'column_enabled', 'boolean'),
             ],
+            [
+                Listing::filter('remote', 'filter_remote'),
+                Listing::filter('enabled', 'column_enabled'),
+                Listing::filter('hypergrid', 'filter_hypergrid'),
+            ],
+            ['nick', 'name', 'baseHostname'],
+            [
+                Listing::action('enable', 'action_enable', 'PATCH', '/grids/{id}', ['enabled' => true], ['enabled' => [false]]),
+                Listing::action('disable', 'action_disable', 'PATCH', '/grids/{id}', ['enabled' => false], ['enabled' => [true]]),
+            ],
+            moreSorts: ['port'],
         );
     }
 

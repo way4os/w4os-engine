@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenSim\Models;
 
 use OpenSim\Data\Collection;
+use OpenSim\Data\Listing;
 use OpenSim\Exceptions\ChannelUnavailable;
 use OpenSim\Interfaces\InstalledModelInterface;
 use OpenSim\Runtime\Environment;
@@ -83,8 +84,8 @@ abstract class InstalledModel implements InstalledModelInterface
      * @param array<string,mixed> $options search, sort ("name", "port desc"), filters, page, perPage (0: all)
      * @param \Closure(static):string $text what a search looks in
      * @param array<string,\Closure(static):(int|float|string)> $sorts the value of each column that can be sorted; the first is the default
-     * @param array<string,array{0:\Closure(static,string):bool,1:list<string>}> $filters what each filter asks of a model, and the values it takes
-     * @param list<array{name:string,label:string,sortable?:bool}> $columns
+     * @param array<string,\Closure(static,string):bool> $filters what each filter of the listing asks of a model
+     * @param Listing $listing what the list shows: its columns and the values of its filters
      */
     protected static function paged(
         array $items,
@@ -92,7 +93,7 @@ abstract class InstalledModel implements InstalledModelInterface
         \Closure $text,
         array $sorts,
         array $filters,
-        array $columns,
+        Listing $listing,
     ): Collection {
         foreach (
             preg_split('/\s+/', trim((string) ($options['search'] ?? '')), -1, PREG_SPLIT_NO_EMPTY) ?: []
@@ -103,7 +104,7 @@ abstract class InstalledModel implements InstalledModelInterface
         $applied = [];
         foreach ((array) ($options['filters'] ?? []) as $name => $value) {
             if (isset($filters[$name]) && (string) $value !== '') {
-                $ask = $filters[$name][0];
+                $ask = $filters[$name];
                 $items = array_filter($items, static fn($model): bool => $ask($model, (string) $value));
                 $applied[$name] = (string) $value;
             }
@@ -142,8 +143,8 @@ abstract class InstalledModel implements InstalledModelInterface
             'perPage' => $perPage,
             'sort' => "$sortName $direction",
             'search' => trim((string) ($options['search'] ?? '')),
-            'columns' => $columns,
-            'filters' => array_map(static fn(array $filter): array => $filter[1], $filters),
+            'columns' => $listing->columns(),
+            'filters' => $listing->filterValues(),
             'applied' => $applied,
         ]);
     }

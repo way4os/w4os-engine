@@ -646,7 +646,7 @@ msgstr "Größe"
 
 msgctxt "column_owner"
 msgid "Owner"
-msgstr "Besitzer"
+msgstr "Eigentümer"
 
 msgctxt "column_roles"
 msgid "Roles"
@@ -658,7 +658,7 @@ msgstr "Standardregion"
 
 msgctxt "filter_fallback"
 msgid "Fallback region"
-msgstr "Fallback-Region"
+msgstr "Ausweichregion"
 
 msgctxt "filter_hyperlink"
 msgid "Hypergrid link"
@@ -667,6 +667,214 @@ msgstr "Hypergrid-Link"
 msgctxt "filter_simulator"
 msgid "Simulator"
 msgstr "Simulator"
+
+msgctxt "column_name"
+msgid "Name"
+msgstr "Name"
+
+msgctxt "column_nick"
+msgid "Nick"
+msgstr "Kurzname"
+
+msgctxt "column_address"
+msgid "Address"
+msgstr "Adresse"
+
+msgctxt "column_enabled"
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgctxt "filter_remote"
+msgid "On another machine"
+msgstr "Auf einem anderen Rechner"
+
+msgctxt "filter_hypergrid"
+msgid "Hypergrid"
+msgstr "Hypergrid"
+
+msgctxt "column_grid"
+msgid "Grid"
+msgstr "Grid"
+
+msgctxt "column_port"
+msgid "Port"
+msgstr "Port"
+
+msgctxt "column_running"
+msgid "Running"
+msgstr "Läuft"
+
+msgctxt "column_service"
+msgid "Service"
+msgstr "Dienst"
+
+msgctxt "column_provider"
+msgid "Served by"
+msgstr "Bereitgestellt von"
+
+msgctxt "filter_served"
+msgid "Served"
+msgstr "Bereitgestellt"
+
+msgctxt "port_private"
+msgid "Private"
+msgstr "Privat"
+
+msgctxt "port_public"
+msgid "Public"
+msgstr "Öffentlich"
+
+msgctxt "port_web"
+msgid "Web"
+msgstr "Web"
+
+msgctxt "column_file"
+msgid "File"
+msgstr "Datei"
+
+msgctxt "column_kind"
+msgid "Kind"
+msgstr "Art"
+
+msgctxt "column_date"
+msgid "Date"
+msgstr "Datum"
+
+msgctxt "kind_iar"
+msgid "Inventory (IAR)"
+msgstr "Inventar (IAR)"
+
+msgctxt "kind_oar"
+msgid "Region (OAR)"
+msgstr "Region (OAR)"
+
+msgctxt "kind_backup"
+msgid "Backup"
+msgstr "Sicherung"
+
+msgctxt "column_area"
+msgid "Area"
+msgstr "Fläche"
+
+msgctxt "column_traffic"
+msgid "Traffic"
+msgstr "Besucher"
+
+msgctxt "column_for_sale"
+msgid "For sale"
+msgstr "Zu verkaufen"
+
+msgctxt "column_in_search"
+msgid "In search"
+msgstr "In der Suche"
+
+msgctxt "column_regions"
+msgid "Regions"
+msgstr "Regionen"
+
+msgctxt "column_type"
+msgid "Type"
+msgstr "Typ"
+
+msgctxt "filter_local"
+msgid "Local"
+msgstr "Lokal"
+
+msgctxt "filter_temporary"
+msgid "Temporary"
+msgstr "Temporär"
+
+msgctxt "asset_texture"
+msgid "Texture"
+msgstr "Textur"
+
+msgctxt "asset_sound"
+msgid "Sound"
+msgstr "Sound"
+
+msgctxt "asset_calling_card"
+msgid "Calling card"
+msgstr "Visitenkarte"
+
+msgctxt "asset_landmark"
+msgid "Landmark"
+msgstr "Landmarke"
+
+msgctxt "asset_clothing"
+msgid "Clothing"
+msgstr "Kleidung"
+
+msgctxt "asset_object"
+msgid "Object"
+msgstr "Objekt"
+
+msgctxt "asset_notecard"
+msgid "Notecard"
+msgstr "Notizkarte"
+
+msgctxt "asset_folder"
+msgid "Folder"
+msgstr "Ordner"
+
+msgctxt "asset_script"
+msgid "Script"
+msgstr "Skript"
+
+msgctxt "asset_script_bytecode"
+msgid "Compiled script"
+msgstr "Kompiliertes Skript"
+
+msgctxt "asset_texture_tga"
+msgid "Texture (TGA)"
+msgstr "Textur (TGA)"
+
+msgctxt "asset_body_part"
+msgid "Body part"
+msgstr "Körperteil"
+
+msgctxt "asset_sound_wav"
+msgid "Sound (WAV)"
+msgstr "Sound (WAV)"
+
+msgctxt "asset_image_tga"
+msgid "Image (TGA)"
+msgstr "Bild (TGA)"
+
+msgctxt "asset_image_jpeg"
+msgid "Image (JPEG)"
+msgstr "Bild (JPEG)"
+
+msgctxt "asset_animation"
+msgid "Animation"
+msgstr "Animation"
+
+msgctxt "asset_gesture"
+msgid "Gesture"
+msgstr "Geste"
+
+msgctxt "asset_simstate"
+msgid "Region state"
+msgstr "Regionszustand"
+
+msgctxt "asset_link"
+msgid "Link"
+msgstr "Link"
+
+msgctxt "asset_link_folder"
+msgid "Folder link"
+msgstr "Ordnerlink"
+
+msgctxt "asset_mesh"
+msgid "Mesh"
+msgstr "Mesh"
+
+msgctxt "asset_settings"
+msgid "Environment settings"
+msgstr "Umgebungseinstellungen"
+
+msgctxt "asset_material"
+msgid "Material"
+msgstr "Material"
 
 msgctxt "error_required"
 msgid "Please fill in every field."

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Data\Listing;
 use OpenSim\Text\Uuid;
 use OpenSim\Exceptions\ChannelUnavailable;
 use OpenSim\Config\GridConfig;
@@ -305,7 +306,7 @@ final class Parcel extends Model
             'sort' => "$sortName $direction",
             'search' => trim((string) ($options['search'] ?? '')),
             'columns' => self::columns(),
-            'filters' => ['shown' => ['yes', 'no'], 'forSale' => ['yes', 'no'], 'region' => [], 'owner' => []],
+            'filters' => self::listing()->filterValues(),
             'applied' => $applied,
         ]);
     }
@@ -357,27 +358,38 @@ final class Parcel extends Model
         return null;
     }
 
+    /** What the list of the parcels shows (Listing). */
+    public static function listing(): Listing
+    {
+        return new Listing(
+            [
+                Listing::column('name', 'column_name', sort: 'name'),
+                Listing::column('regionName', 'column_region'),
+                Listing::column('ownerName', 'column_owner'),
+                Listing::column('area', 'column_area', 'number', 'area'),
+                Listing::column('dwell', 'column_traffic', 'number', 'dwell'),
+                Listing::column('forSale', 'column_for_sale', 'boolean'),
+                Listing::column('shownInSearch', 'column_in_search', 'boolean'),
+            ],
+            [
+                Listing::filter('shown', 'column_in_search'),
+                Listing::filter('forSale', 'column_for_sale'),
+                Listing::filter('region', 'column_region', [], 'uuid'),
+                Listing::filter('owner', 'column_owner', [], 'uuid'),
+            ],
+            ['name', 'description'],
+            moreSorts: ['claimed', 'price'],
+        );
+    }
+
     /**
      * The columns of a list.
      *
-     * @return list<array{name:string,label:string,sortable?:bool}>
+     * @return list<array{name:string,label:string,sortable:bool}>
      */
     public static function columns(): array
     {
-        $columns = [
-            ['name' => 'name', 'label' => _('Name')],
-            ['name' => 'regionName', 'label' => _('Region')],
-            ['name' => 'ownerName', 'label' => _('Owner')],
-            ['name' => 'area', 'label' => _('Area')],
-            ['name' => 'dwell', 'label' => _('Traffic')],
-            ['name' => 'forSale', 'label' => _('For sale')],
-            ['name' => 'shownInSearch', 'label' => _('In search')],
-        ];
-
-        return array_map(
-            static fn(array $column): array => $column + ['sortable' => isset(self::SORTS[$column['name']])],
-            $columns,
-        );
+        return self::listing()->columns();
     }
 
     /** The name of a parcel, typed: any text, 63 bytes at most (an accent takes two). */

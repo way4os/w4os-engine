@@ -1479,7 +1479,7 @@ final class Avatar extends Model
             );
         }
 
-        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created');
+        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : []);
     }
 
     /**
