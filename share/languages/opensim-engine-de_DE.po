@@ -336,6 +336,10 @@ msgctxt "profile_other"
 msgid "Other"
 msgstr "Sonstiges"
 
+msgctxt "profile_sections"
+msgid "Profile sections"
+msgstr "Bereiche des Profils"
+
 msgctxt "profile_tab_second_life"
 msgid "2nd Life"
 msgstr "2. Leben"
@@ -367,7 +371,8 @@ msgstr "Meine Notizen"
 #, php-format
 msgctxt "interests_removed"
 msgid "The viewer no longer shows this section (removed in version %s)."
-msgstr "Der Viewer zeigt diesen Bereich nicht mehr an (in Version %s entfernt)."
+msgstr ""
+"Der Viewer zeigt diesen Bereich nicht mehr an (in Version %s entfernt)."
 
 msgctxt "save_button"
 msgid "Save"

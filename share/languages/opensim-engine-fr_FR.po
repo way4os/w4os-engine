@@ -334,6 +334,10 @@ msgctxt "profile_other"
 msgid "Other"
 msgstr "Autre"
 
+msgctxt "profile_sections"
+msgid "Profile sections"
+msgstr "Sections du profil"
+
 msgctxt "profile_tab_second_life"
 msgid "2nd Life"
 msgstr "Vie SL"

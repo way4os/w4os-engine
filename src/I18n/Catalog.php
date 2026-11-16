@@ -117,7 +117,8 @@ final class Catalog
         'edit_profile' => 'Edit profile',
         // The free text under the check boxes of the wants and the skills
         'profile_other' => 'Other',
-        // The tabs of a profile, as the legacy profile of Firestorm has them
+        // The tabs of a profile, as the legacy profile of Firestorm has them, and what names them for a screen reader
+        'profile_sections' => 'Profile sections',
         'profile_tab_second_life' => '2nd Life',
         'profile_tab_web' => 'Web',
         'profile_tab_interests' => 'Interests',

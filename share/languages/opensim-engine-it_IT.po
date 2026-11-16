@@ -335,6 +335,10 @@ msgctxt "profile_other"
 msgid "Other"
 msgstr "Altro"
 
+msgctxt "profile_sections"
+msgid "Profile sections"
+msgstr "Sezioni del profilo"
+
 msgctxt "profile_tab_second_life"
 msgid "2nd Life"
 msgstr "Second Life"

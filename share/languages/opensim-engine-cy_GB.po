@@ -332,6 +332,10 @@ msgctxt "profile_other"
 msgid "Other"
 msgstr "Arall"
 
+msgctxt "profile_sections"
+msgid "Profile sections"
+msgstr "Adrannau’r proffil"
+
 msgctxt "profile_tab_second_life"
 msgid "2nd Life"
 msgstr "Ail fywyd"
@@ -363,7 +367,8 @@ msgstr "Fy nodiadau"
 #, php-format
 msgctxt "interests_removed"
 msgid "The viewer no longer shows this section (removed in version %s)."
-msgstr "Nid yw’r gwyliwr yn dangos yr adran hon mwyach (tynnwyd yn fersiwn %s)."
+msgstr ""
+"Nid yw’r gwyliwr yn dangos yr adran hon mwyach (tynnwyd yn fersiwn %s)."
 
 msgctxt "save_button"
 msgid "Save"
