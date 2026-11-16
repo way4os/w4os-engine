@@ -847,6 +847,33 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
     });
 });
 
+describe('The API, for the publication of a profile', function () {
+    test('sets or clears "show in search", the first bit of the account, and no other', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        [$router] = access_api();
+        $change = static fn(string $id, array $attributes) => $router->patch(
+            "/grids/demo/avatars/$id",
+            ['data' => ['type' => 'avatars', 'id' => $id, 'attributes' => $attributes]],
+        )->document['data']['attributes'] ?? [];
+        $flags = static fn(string $id): int => (int) $pdo->get_var('SELECT UserFlags FROM UserAccounts WHERE PrincipalID = :id', ['id' => $id]);
+        $pdo->exec("UPDATE UserAccounts SET UserFlags = 6 WHERE PrincipalID = '" . ADA . "'");
+
+        $published = $change(ADA, ['published' => true]);
+        $on = $flags(ADA);
+        $hidden = $change(ADA, ['published' => false, 'about' => 'Changed']);
+
+        expect([$published['published'], $on])
+            ->toBe([true, 7])
+            ->and([$hidden['published'], $hidden['about'], $flags(ADA)])
+            ->toBe([false, 'Changed', 6])
+            ->and($change(CY, ['published' => 'yes'])['published'] ?? null)
+            ->toBeTrue()
+            ->and($change(CY, ['published' => true])['status'] ?? null)
+            ->toBe('disabled');
+    });
+});
+
 describe('The API, for the role of an avatar', function () {
     test('a manager gives a role: its own level, kept by a disabled avatar until it is enabled', function () {
         $pdo = signin_database();

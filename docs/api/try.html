@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "ed79bc6",
+        "version": "901ba25",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1490,6 +1490,10 @@
                                                     "password": {
                                                         "type": "string",
                                                         "description": "A new password: 6 to 16 characters, without double quote, as at the registration (`password-invalid`)"
+                                                    },
+                                                    "published": {
+                                                        "type": "boolean",
+                                                        "description": "Its profile is public, \"show in search\" in the viewer (the first bit of UserFlags); a viewer that has the avatar sees the change once the caches of its simulator let it go"
                                                     },
                                                     "wantsList": {
                                                         "type": "array",

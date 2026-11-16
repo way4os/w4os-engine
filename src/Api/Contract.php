@@ -283,6 +283,10 @@ final class Contract
                 'active' => ['boolean', 'true: active (a pending avatar too: its confirmation token is forgotten); false: disabled'],
                 'status' => ['string', '`active`, `disabled` or `pending`; a `pending` avatar that becomes another forgets its confirmation token'],
                 'password' => ['string', 'A new password: 6 to 16 characters, without double quote, as at the registration (`password-invalid`)'],
+                'published' => [
+                    'boolean',
+                    'Its profile is public, "show in search" in the viewer (the first bit of UserFlags); a viewer that has the avatar sees the change once the caches of its simulator let it go',
+                ],
                 'wantsList' => [
                     'array',
                     'The check boxes of what it wants: their names (build, explore, meet, group, buy, sell, be-hired, hire), or their number as the viewer keeps it',

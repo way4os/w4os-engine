@@ -119,6 +119,8 @@ final class Avatar extends Model
         'level' => 'UserLevel',
         'active' => 'active',
         'status' => 'active',
+        // The box "show in search": the first bit of UserFlags (PUBLISHED_FLAG), written with the state
+        'published' => 'UserFlags',
     ];
 
     /** A profile as the grid makes it when an avatar opens it the first time (MySQLUserProfilesData). */
@@ -758,7 +760,7 @@ final class Avatar extends Model
     }
 
     /**
-     * Change an avatar. The account: `email`, `title`, `level` or `role` (the level of the role, or the one given with it when it is of
+     * Change an avatar. The account: `email`, `title`, `published` ("show in search"), `level` or `role` (the level of the role, or the one given with it when it is of
      * that role), `active`; the password: `password`; the home: `home` (the id of a
      * region); the profile: `about`, `profileUrl`, `wants`, `skills`, `languages`, `firstLife`, the profile being made as the grid
      * makes it when the avatar has none yet. The name does not change. All is changed or nothing: the values are checked first, and
@@ -812,7 +814,7 @@ final class Avatar extends Model
             throw InvalidValue::because('email-invalid', "'{$values['email']}' is not an email");
         }
         // The state is read again: this avatar may have been changed since it was read (enabled, then its level changed)
-        $state = ['active' => 1, 'status' => 1, 'level' => 1];
+        $state = ['active' => 1, 'status' => 1, 'level' => 1, 'published' => 1];
         $current = array_intersect_key($values, $state) !== [] ? static::find($this->config, $this->id()) ?? $this : $this;
         $was = $current->status();
         $status = self::requestedStatus($values, $was);
@@ -834,6 +836,11 @@ final class Avatar extends Model
             $params['flags'] = $status === 'pending'
                 ? $current->flags() | self::PENDING_FLAG
                 : $current->flags() & ~self::PENDING_FLAG;
+            if (array_key_exists('published', $values)) {
+                $params['flags'] = Result::isTrue($values['published'])
+                    ? $params['flags'] | self::PUBLISHED_FLAG
+                    : $params['flags'] & ~self::PUBLISHED_FLAG;
+            }
             $writes[] = [
                 'UserAccountService',
                 static fn(OSPDO $pdo) => self::run(
