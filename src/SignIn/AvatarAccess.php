@@ -57,13 +57,14 @@ final class AvatarAccess
     /**
      * Give a token to choose a new password to the avatars a name or an email is, mailed to them unless `send` is false. Nothing
      * tells a name nobody has from one that has an avatar, but what is given back. An avatar without an email (the models, the
-     * technical accounts) is refused, mailed or not: it has no link.
+     * technical accounts) has no link: left out silently when it is mailed, refused when its token is asked (`send` false).
      *
      * @param string $login "First Last", "First.Last", or an email (every avatar that has it)
      * @param ?string $link the page that takes the token (see the class)
      * @param bool $send mail it; false gives the token to the caller and mails nothing
      * @return list<array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}> none when the name or the email is nobody's
-     * @throws \InvalidArgumentException for a link that is not a web address, an avatar without an email (`email-required`)
+     * @throws \InvalidArgumentException for a link that is not a web address, an avatar without an email whose token is asked
+     *         (`email-required`)
      * @throws \OpenSim\Exceptions\ChannelUnavailable when the databases cannot be reached
      */
     public function requestPasswordReset(string $login, ?string $link = null, bool $send = true): array
@@ -71,8 +72,12 @@ final class AvatarAccess
         $given = [];
         foreach ($this->avatars($login) as $avatar) {
             $email = (string) ($avatar->detail()['email'] ?? '');
-            // An avatar without an email (a model, a technical account, by convention) has no link to choose a password
+            // An avatar without an email (a model, a technical account, by convention) has no link to choose a password: mailed, it
+            // is left out silently (the answer does not tell such an account exists); asked for its token, it is refused
             if (!Avatar::validEmail($email)) {
+                if ($send) {
+                    continue;
+                }
                 throw InvalidValue::because('email-required', "the avatar {$avatar->name()} has no email: no link can be given to it");
             }
             $given[] = $this->give(

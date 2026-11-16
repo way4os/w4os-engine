@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 97a6e95
+  version: 7638f42
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -4352,7 +4352,7 @@ paths:
       tags:
         - 'Avatar access'
       summary: 'Forgotten password'
-      description: "Gives a token to choose a new password to the avatar a name is, or to every avatar an email is: mailed to it with a link, or given back with `send: false`. The answer to a mail is the same whether the name or the email is someone's or not. An avatar without an email (the models, the technical accounts, by convention) has no link: it is refused (`email-required`)."
+      description: "Gives a token to choose a new password to the avatar a name is, or to every avatar an email is: mailed to it with a link, or given back with `send: false`. The answer to a mail is the same whether the name or the email is someone's or not. An avatar without an email (the models, the technical accounts, by convention) has no link: mailed, it is left out with the same answer (it does not tell such an account exists); with `send: false`, it is refused (`email-required`)."
       parameters:
         -
           name: grid
@@ -4401,7 +4401,7 @@ paths:
                     properties:
                       message: { type: string }
         400:
-          description: 'No name or email, a link that is not a web address, or an avatar without an email (`email-required`)'
+          description: 'No name or email, a link that is not a web address, or with `send: false` an avatar without an email (`email-required`)'
           content:
             application/problem+json:
               schema:

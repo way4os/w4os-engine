@@ -270,7 +270,7 @@ describe('The API, for a forgotten password', function () {
             ->toBe(200);
     });
 
-    test('refuses an avatar without an email, a model or a technical account: there is no link to give it', function () {
+    test('has no link for an avatar without an email, a model or a technical account: silent when mailed, refused when its token is asked', function () {
         $pdo = signin_database();
         $pdo->exec("INSERT INTO UserAccounts (PrincipalID, FirstName, LastName, Email, Created, active) VALUES ('44444444-4444-4444-8444-444444444444', 'Default', 'Ruth', '', 1500000000, 1)");
         avatars_in($pdo);
@@ -284,7 +284,7 @@ describe('The API, for a forgotten password', function () {
         $given = $ask(['send' => false]);
 
         expect([$mailed->status, $mailed->document['code'] ?? null])
-            ->toBe([400, 'email-required'])
+            ->toBe([202, null])
             ->and([$given->status, $given->document['code'] ?? null])
             ->toBe([400, 'email-required'])
             ->and($mailer->sent)
