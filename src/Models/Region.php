@@ -12,8 +12,10 @@ use OpenSim\Config\IniEditor;
 use OpenSim\Data\Collection;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
+use OpenSim\Data\Listing;
 use OpenSim\Data\OSPDO;
 use OpenSim\Exceptions\ChannelUnavailable;
+use OpenSim\Hypergrid\Destination;
 use OpenSim\Provisioning\Slug;
 
 /**
@@ -141,6 +143,14 @@ final class Region extends Model
     public function simulator(): string
     {
         return (string) ($this->local['simulator'] ?? '');
+    }
+
+    /** Its hop:// address on the grid, null for a link to a region of another grid or when the address of the grid is not known. */
+    public function teleport(): ?string
+    {
+        $host = $this->isHyperlink() ? null : $this->config->gridUri();
+
+        return $host === null || $host === '' ? null : (string) Destination::format($host . ':' . $this->name(), 8);
     }
 
     /** The file that describes it in its simulator, empty when the config does not know it. */
@@ -293,6 +303,7 @@ final class Region extends Model
             'lastSeen' => ((int) ($row['last_seen'] ?? 0)) ?: null,
             'access' => isset($row['access']) ? (int) $row['access'] : null,
             'mapImage' => $row['regionMapTexture'] ?? null,
+            'teleport' => $this->teleport(),
             'sources' => $this->sources(),
             'simulator' => $this->simulator() ?: null,
             'file' => $this->file() ?: null,
@@ -566,8 +577,15 @@ final class Region extends Model
                 return false;
             }
         }
-        foreach ($filters as $filter) {
-            if ($filter === 'yes') {
+        foreach ($filters as $name => $filter) {
+            $asked = trim((string) $filter);
+            $kept = match ($name) {
+                // What only the grid knows of a region: its owner
+                'owner' => $asked === '',
+                'simulator' => $asked === '' || $asked === $this->simulator(),
+                default => $asked !== 'yes',
+            };
+            if (!$kept) {
                 return false;
             }
         }
@@ -697,6 +715,27 @@ final class Region extends Model
                 $applied[$name] = $asked[$name];
             }
         }
+        $owner = strtolower(trim((string) ($asked['owner'] ?? '')));
+        if ($owner !== '') {
+            $where[] = 'LOWER(r.PrincipalID) = :owner';
+            $params['owner'] = $owner;
+            $applied['owner'] = $owner;
+        }
+        // The regions the files of a simulator describe
+        $simulator = trim((string) ($asked['simulator'] ?? ''));
+        if ($simulator !== '') {
+            $uuids = array_values(array_unique(array_filter(array_map(
+                static fn(self $region): string => strtolower((string) $region->uuid()),
+                static::configured($config, $simulator),
+            ))));
+            foreach ($uuids as $i => $uuid) {
+                $params["s$i"] = $uuid;
+            }
+            $where[] = $uuids === []
+                ? '0 = 1'
+                : 'LOWER(r.uuid) IN (' . implode(', ', array_map(static fn(int $i): string => ":s$i", array_keys($uuids))) . ')';
+            $applied['simulator'] = $simulator;
+        }
         $clause = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
 
         $total = (int) $pdo->get_var("SELECT COUNT(*) FROM regions r$clause", $params);
@@ -720,7 +759,7 @@ final class Region extends Model
             'sort' => "$sortName $direction",
             'search' => trim((string) ($options['search'] ?? '')),
             'columns' => self::columns(),
-            'filters' => array_fill_keys(array_keys($filters), ['yes', 'no']),
+            'filters' => self::listing()->filterValues(),
             'applied' => $applied,
         ]);
     }
@@ -773,27 +812,47 @@ final class Region extends Model
         return isset($rows[0]) ? new self($config, $rows[0]) : null;
     }
 
+    /** What the list of the regions shows (Listing). */
+    public static function listing(): Listing
+    {
+        [$method, $path] = ['PATCH', '/grids/{grid}/regions/{id}'];
+
+        return new Listing(
+            [
+                Listing::column('mapImage', 'column_map', 'map'),
+                Listing::column('name', 'column_region', sort: 'name'),
+                Listing::column('location', 'profile_location', sort: 'location'),
+                Listing::column('size', 'column_size', 'size', 'size'),
+                Listing::column('ownerName', 'column_owner'),
+                Listing::column('roles', 'column_roles', 'list', 'flags'),
+                Listing::column('online', 'online', 'boolean'),
+                Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
+                Listing::column('teleport', 'profile_teleport', 'hop'),
+            ],
+            [
+                Listing::filter('online', 'online'),
+                Listing::filter('default', 'filter_default'),
+                Listing::filter('fallback', 'filter_fallback'),
+                Listing::filter('hyperlink', 'filter_hyperlink'),
+                Listing::filter('owner', 'column_owner', [], 'uuid'),
+                Listing::filter('simulator', 'filter_simulator', [], 'simulator'),
+            ],
+            ['name'],
+            [
+                Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], ['enabled' => [false]]),
+                Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], ['enabled' => [true]]),
+            ],
+        );
+    }
+
     /**
      * The columns of a list.
      *
-     * @return list<array{name:string,label:string,sortable?:bool}>
+     * @return list<array{name:string,label:string,sortable:bool}>
      */
     public static function columns(): array
     {
-        $columns = [
-            ['name' => 'name', 'label' => _('Name')],
-            ['name' => 'location', 'label' => _('Location')],
-            ['name' => 'size', 'label' => _('Size')],
-            ['name' => 'owner', 'label' => _('Owner')],
-            ['name' => 'flags', 'label' => _('Flags')],
-            ['name' => 'online', 'label' => _('Online')],
-            ['name' => 'lastSeen', 'label' => _('Last seen')],
-        ];
-
-        return array_map(
-            static fn(array $column): array => $column + ['sortable' => isset(self::SORTS[$column['name']])],
-            $columns,
-        );
+        return self::listing()->columns();
     }
 
     /** What a flag is called for a person ("Default Region"). */

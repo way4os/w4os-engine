@@ -2,12 +2,12 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "a74f9fb",
+        "version": "92474c3",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
         },
-        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
+        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts). The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
     },
     "servers": [
         {
@@ -992,14 +992,29 @@
                         "in": "query",
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "description": "Looks in name, email"
                     },
                     {
                         "name": "sort",
                         "in": "query",
                         "description": "A column, `-` before it for the descending order",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "email",
+                                "level",
+                                "lastSeen",
+                                "created",
+                                "active",
+                                "-name",
+                                "-email",
+                                "-level",
+                                "-lastSeen",
+                                "-created",
+                                "-active"
+                            ]
                         }
                     },
                     {
@@ -1016,17 +1031,6 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 0
-                        }
-                    },
-                    {
-                        "name": "filter[active]",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
-                            ]
                         }
                     },
                     {
@@ -1067,29 +1071,7 @@
                         }
                     },
                     {
-                        "name": "filter[god]",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "filter[technical]",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "filter[model]",
+                        "name": "filter[published]",
                         "in": "query",
                         "schema": {
                             "type": "string",
@@ -1111,7 +1093,40 @@
                         }
                     },
                     {
-                        "name": "filter[published]",
+                        "name": "filter[model]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[technical]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[god]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[active]",
                         "in": "query",
                         "schema": {
                             "type": "string",
@@ -1164,6 +1179,258 @@
                             }
                         }
                     }
+                },
+                "x-list": {
+                    "columns": [
+                        {
+                            "name": "name",
+                            "label": "avatar_name",
+                            "type": "text",
+                            "sort": "name",
+                            "picture": "profileImage",
+                            "tag": "online",
+                            "tagLabel": "online"
+                        },
+                        {
+                            "name": "email",
+                            "label": "email",
+                            "type": "email",
+                            "sort": "email"
+                        },
+                        {
+                            "name": "role",
+                            "label": "role",
+                            "type": "role",
+                            "sort": "level"
+                        },
+                        {
+                            "name": "lastSeen",
+                            "label": "last_seen",
+                            "type": "date",
+                            "sort": "lastSeen"
+                        },
+                        {
+                            "name": "created",
+                            "label": "created",
+                            "type": "date",
+                            "sort": "created"
+                        },
+                        {
+                            "name": "status",
+                            "label": "status",
+                            "type": "status",
+                            "sort": "active"
+                        }
+                    ],
+                    "sort": {
+                        "default": "-created",
+                        "values": [
+                            "name",
+                            "email",
+                            "level",
+                            "lastSeen",
+                            "created",
+                            "active"
+                        ],
+                        "descending": "-"
+                    },
+                    "search": [
+                        "name",
+                        "email"
+                    ],
+                    "filters": [
+                        {
+                            "name": "status",
+                            "label": "status",
+                            "values": [
+                                {
+                                    "value": "active",
+                                    "label": "status_active"
+                                },
+                                {
+                                    "value": "disabled",
+                                    "label": "status_disabled"
+                                },
+                                {
+                                    "value": "pending",
+                                    "label": "status_pending"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "role",
+                            "label": "role",
+                            "values": [
+                                {
+                                    "value": "resident",
+                                    "label": "role_resident"
+                                },
+                                {
+                                    "value": "god-like",
+                                    "label": "role_god_like"
+                                },
+                                {
+                                    "value": "customer-service",
+                                    "label": "role_customer_service"
+                                },
+                                {
+                                    "value": "liaison",
+                                    "label": "role_liaison"
+                                },
+                                {
+                                    "value": "god",
+                                    "label": "role_god"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "online",
+                            "label": "online",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "published",
+                            "label": "show_in_search",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "email",
+                            "label": "filter_email",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "model",
+                            "label": "filter_model",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "technical",
+                            "label": "filter_technical",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "god",
+                            "label": "god",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "active",
+                            "label": "filter_active",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "name": "enable",
+                            "label": "action_enable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "status": "active"
+                            },
+                            "when": {
+                                "status": [
+                                    "disabled",
+                                    "pending"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "disable",
+                            "label": "action_disable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "status": "disabled"
+                            },
+                            "when": {
+                                "status": [
+                                    "active"
+                                ]
+                            },
+                            "notSelf": true
+                        },
+                        {
+                            "name": "reset",
+                            "label": "action_reset",
+                            "method": "POST",
+                            "path": "/grids/{grid}/password-resets",
+                            "body": {
+                                "name": "{name}"
+                            },
+                            "when": {
+                                "status": [
+                                    "active"
+                                ]
+                            },
+                            "requires": [
+                                "email"
+                            ]
+                        }
+                    ]
                 }
             },
             "post": {
@@ -1765,14 +2032,27 @@
                         "in": "query",
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "description": "Looks in name"
                     },
                     {
                         "name": "sort",
                         "in": "query",
                         "description": "A column, `-` before it for the descending order",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "location",
+                                "size",
+                                "flags",
+                                "lastSeen",
+                                "-name",
+                                "-location",
+                                "-size",
+                                "-flags",
+                                "-lastSeen"
+                            ]
                         }
                     },
                     {
@@ -1803,6 +2083,28 @@
                         }
                     },
                     {
+                        "name": "filter[default]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[fallback]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
+                    },
+                    {
                         "name": "filter[hyperlink]",
                         "in": "query",
                         "schema": {
@@ -1811,6 +2113,20 @@
                                 "yes",
                                 "no"
                             ]
+                        }
+                    },
+                    {
+                        "name": "filter[owner]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[simulator]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -1856,6 +2172,172 @@
                             }
                         }
                     }
+                },
+                "x-list": {
+                    "columns": [
+                        {
+                            "name": "mapImage",
+                            "label": "column_map",
+                            "type": "map"
+                        },
+                        {
+                            "name": "name",
+                            "label": "column_region",
+                            "type": "text",
+                            "sort": "name"
+                        },
+                        {
+                            "name": "location",
+                            "label": "profile_location",
+                            "type": "text",
+                            "sort": "location"
+                        },
+                        {
+                            "name": "size",
+                            "label": "column_size",
+                            "type": "size",
+                            "sort": "size"
+                        },
+                        {
+                            "name": "ownerName",
+                            "label": "column_owner",
+                            "type": "text"
+                        },
+                        {
+                            "name": "roles",
+                            "label": "column_roles",
+                            "type": "list",
+                            "sort": "flags"
+                        },
+                        {
+                            "name": "online",
+                            "label": "online",
+                            "type": "boolean"
+                        },
+                        {
+                            "name": "lastSeen",
+                            "label": "last_seen",
+                            "type": "date",
+                            "sort": "lastSeen"
+                        },
+                        {
+                            "name": "teleport",
+                            "label": "profile_teleport",
+                            "type": "hop"
+                        }
+                    ],
+                    "sort": {
+                        "default": "name",
+                        "values": [
+                            "name",
+                            "location",
+                            "size",
+                            "flags",
+                            "lastSeen"
+                        ],
+                        "descending": "-"
+                    },
+                    "search": [
+                        "name"
+                    ],
+                    "filters": [
+                        {
+                            "name": "online",
+                            "label": "online",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "default",
+                            "label": "filter_default",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "fallback",
+                            "label": "filter_fallback",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "hyperlink",
+                            "label": "filter_hyperlink",
+                            "values": [
+                                {
+                                    "value": "yes",
+                                    "label": "yes"
+                                },
+                                {
+                                    "value": "no",
+                                    "label": "no"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "owner",
+                            "label": "column_owner",
+                            "format": "uuid"
+                        },
+                        {
+                            "name": "simulator",
+                            "label": "filter_simulator",
+                            "format": "simulator"
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "name": "enable",
+                            "label": "action_enable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/regions/{id}",
+                            "body": {
+                                "enabled": true
+                            },
+                            "when": {
+                                "enabled": [
+                                    false
+                                ]
+                            }
+                        },
+                        {
+                            "name": "disable",
+                            "label": "action_disable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/regions/{id}",
+                            "body": {
+                                "enabled": false
+                            },
+                            "when": {
+                                "enabled": [
+                                    true
+                                ]
+                            }
+                        }
+                    ]
                 }
             }
         },
@@ -7423,7 +7905,15 @@
                                 "type": [
                                     "string",
                                     "null"
-                                ]
+                                ],
+                                "description": "The UUID of its map tile"
+                            },
+                            "teleport": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "Its hop:// address on the grid; null for a link to a region of another grid"
                             },
                             "sources": {
                                 "type": "array",

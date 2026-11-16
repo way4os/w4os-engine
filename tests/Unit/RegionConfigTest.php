@@ -33,6 +33,28 @@ function region_config_grid(): array
     return [$dir, GridConfig::fromFolder($dir)];
 }
 
+describe('regions of a simulator', function () {
+    test('are the ones of the grid its files describe', function () {
+        [, $config] = region_config_grid();
+        $pdo = new \OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $pdo->exec(
+            'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, PrincipalID CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
+        );
+        $pdo->exec("INSERT INTO regions (uuid, regionName, locX, locY) VALUES
+            ('607c44e9-3d01-45eb-a07e-937dc72dbadb', 'Plaza', 307200, 307456),
+            ('aaaaaaaa-0000-0000-0000-000000000001', 'Welcome', 256000, 256000)");
+        \OpenSim\Data\Connections::using(static fn() => $pdo);
+        $names = static fn(string $simulator) => array_column(
+            Region::all($config, ['filters' => ['simulator' => $simulator]])->array(),
+            'name',
+        );
+
+        expect([$names('alpha'), $names('beta'), $names('nowhere'), $names('')])
+            ->toBe([['Plaza'], [], [], ['Plaza', 'Welcome']]);
+        \OpenSim\Data\Connections::using(null);
+    });
+});
+
 describe('region of the config', function () {
     test('is read from its file: name, place, size, port, address, simulator', function () {
         [, $config] = region_config_grid();

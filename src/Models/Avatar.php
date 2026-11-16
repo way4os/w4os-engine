@@ -10,6 +10,8 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Data\Collection;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
+use OpenSim\Data\Listing;
+use OpenSim\I18n\Catalog;
 use OpenSim\Data\OSPDO;
 use OpenSim\Exceptions\ChannelUnavailable;
 use OpenSim\Exceptions\InvalidValue;
@@ -1411,39 +1413,83 @@ final class Avatar extends Model
         $joined = self::joined($config);
 
         return [
-            'sortable' => array_column(
-                array_filter(self::columns($joined), static fn(array $column): bool => $column['sortable']),
-                'name',
-            ),
+            'sortable' => self::listing($joined)->sorts(),
             'filters' => array_keys(self::filters($joined)),
         ];
     }
 
     /**
+     * What the list of the avatars shows (Listing): the visits (last seen, online) need the accounts and the visits in one database.
+     */
+    public static function listing(bool $joined = true): Listing
+    {
+        $columns = [
+            Listing::column('name', 'avatar_name', sort: 'name', more: [
+                'picture' => 'profileImage',
+                'tag' => 'online',
+                'tagLabel' => 'online',
+            ]),
+            Listing::column('email', 'email', 'email', 'email'),
+            Listing::column('role', 'role', 'role', 'level'),
+            Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
+            Listing::column('created', 'created', 'date', 'created'),
+            Listing::column('status', 'status', 'status', 'active'),
+        ];
+        $statuses = array_combine(self::STATUSES, array_map(Catalog::statusKey(...), self::STATUSES));
+        $roles = array_combine(array_keys(self::ROLES), array_map(Catalog::roleKey(...), array_keys(self::ROLES)));
+        $filters = [
+            Listing::filter('status', 'status', $statuses),
+            Listing::filter('role', 'role', $roles),
+            ...($joined ? [Listing::filter('online', 'online')] : []),
+            Listing::filter('published', 'show_in_search'),
+            Listing::filter('email', 'filter_email'),
+            Listing::filter('model', 'filter_model'),
+            Listing::filter('technical', 'filter_technical'),
+            Listing::filter('god', 'god'),
+            Listing::filter('active', 'filter_active'),
+        ];
+        [$method, $path] = ['PATCH', '/grids/{grid}/avatars/{id}'];
+        $actions = [
+            Listing::action('enable', 'action_enable', $method, $path, ['status' => 'active'], ['status' => ['disabled', 'pending']]),
+            Listing::action(
+                'disable',
+                'action_disable',
+                $method,
+                $path,
+                ['status' => 'disabled'],
+                ['status' => ['active']],
+                more: ['notSelf' => true],
+            ),
+            Listing::action(
+                'reset',
+                'action_reset',
+                'POST',
+                '/grids/{grid}/password-resets',
+                ['name' => '{name}'],
+                ['status' => ['active']],
+                ['email'],
+            ),
+        ];
+        if (!$joined) {
+            $columns = array_map(
+                static fn(array $column): array => in_array($column['sort'] ?? '', self::NEEDS_VISITS, true)
+                    ? array_diff_key($column, ['sort' => true])
+                    : $column,
+                $columns,
+            );
+        }
+
+        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created');
+    }
+
+    /**
      * The columns of a list.
      *
-     * @return list<array{name:string,label:string,sortable?:bool}>
+     * @return list<array{name:string,label:string,sortable:bool}>
      */
     public static function columns(bool $joined = true): array
     {
-        $columns = [
-            ['name' => 'name', 'label' => _('Name')],
-            ['name' => 'email', 'label' => _('Email')],
-            ['name' => 'created', 'label' => _('Created')],
-            ['name' => 'level', 'label' => _('Level')],
-            ['name' => 'active', 'label' => _('Active')],
-            ['name' => 'online', 'label' => _('Online')],
-            ['name' => 'lastSeen', 'label' => _('Last seen')],
-        ];
-
-        return array_map(
-            static fn(array $column): array => $column + [
-                'sortable' =>
-                    isset(self::SORTS[$column['name']]) &&
-                    ($joined || !in_array($column['name'], self::NEEDS_VISITS, true)),
-            ],
-            $columns,
-        );
+        return self::listing($joined)->columns();
     }
 
     /**
@@ -1453,19 +1499,7 @@ final class Avatar extends Model
      */
     private static function filters(bool $joined): array
     {
-        $yesNo = ['yes', 'no'];
-
-        return [
-            'active' => $yesNo,
-            'status' => self::STATUSES,
-            'role' => array_keys(self::ROLES),
-            'god' => $yesNo,
-            'technical' => $yesNo,
-            'model' => $yesNo,
-            'email' => $yesNo,
-            'published' => $yesNo,
-        ] +
-            ($joined ? ['online' => $yesNo] : []);
+        return self::listing($joined)->filterValues();
     }
 
     /** Whether the accounts, the visits and the profiles are in one database. */

@@ -213,6 +213,23 @@ final class Catalog
         'manage_reset' => 'A link to choose a new password is on its way to %s.',
         'manage_saved' => '%s is saved.',
 
+        // The lists of the models (Listing): the titles of their columns and of their filters, the values of a filter
+        'yes' => 'Yes',
+        'no' => 'No',
+        'filter_email' => 'With an email',
+        'filter_model' => 'Avatar model',
+        'filter_technical' => 'Service account',
+        'filter_active' => 'Can log in',
+        'column_map' => 'Map',
+        'column_region' => 'Region',
+        'column_size' => 'Size',
+        'column_owner' => 'Owner',
+        'column_roles' => 'Roles',
+        'filter_default' => 'Default region',
+        'filter_fallback' => 'Fallback region',
+        'filter_hyperlink' => 'Hypergrid link',
+        'filter_simulator' => 'Simulator',
+
         // What the forms check
         'error_required' => 'Please fill in every field.',
         'error_password_match' => 'The two passwords are not the same.',

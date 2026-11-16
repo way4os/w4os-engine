@@ -550,7 +550,7 @@ final class Service extends InstalledModel
             ['yes', 'no'],
         ];
 
-        return self::listing(
+        return self::paged(
             $services,
             $options,
             static fn(

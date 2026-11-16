@@ -221,7 +221,7 @@ final class Simulator extends InstalledModel
             ['yes', 'no'],
         ];
 
-        return self::listing(
+        return self::paged(
             $simulators,
             $options,
             static fn(

@@ -555,7 +555,7 @@ final class Grid extends InstalledModel
             ['yes', 'no'],
         ];
 
-        return self::listing(
+        return self::paged(
             $grids,
             $options,
             static fn(self $grid): string => "{$grid->nick()} {$grid->name()} {$grid->hostPort()}",

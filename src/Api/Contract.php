@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenSim\Api;
 
 use OpenSim\Assets\Logos;
+use OpenSim\Data\Listing;
 use OpenSim\Models\Service;
 use Symfony\Component\Yaml\Yaml;
 
@@ -18,7 +19,8 @@ final class Contract
 {
     /**
      * The resources: where they are, what they are for, their attributes (`name => [type, description]`, `?` after the type for a value
-     * that may be null), the filters of their list and the values these take, and what can be written.
+     * that may be null), the filters of their list and the values these take (unless their model describes its list: Contract::listing()),
+     * and what can be written.
      *
      * `scope` is `grid` for the resources of a grid (`/grids/{grid}/<type>`), `machine` for the ones of the machine, `application`
      * for what the application that uses the engine provides (its tasks, the forms of its setup).
@@ -231,17 +233,6 @@ final class Contract
                 'firstImage' => ['string?', ''],
                 'firstLife' => ['string?', ''],
             ],
-            'filters' => [
-                'active' => ['yes', 'no'],
-                'status' => ['active', 'disabled', 'pending'],
-                'role' => ['resident', 'god-like', 'customer-service', 'liaison', 'god'],
-                'online' => ['yes', 'no'],
-                'god' => ['yes', 'no'],
-                'technical' => ['yes', 'no'],
-                'model' => ['yes', 'no'],
-                'email' => ['yes', 'no'],
-                'published' => ['yes', 'no'],
-            ],
             'create' => [
                 'name' => ['string', 'First Last (or firstName and lastName). All in small letters or all in capitals, each part gets a capital and the rest small letters (bart simpson and BART SIMPSON are Bart Simpson); capitals and small letters mixed are kept as typed (McFly, JeanPaul deLuxe), and so is a reservedName'],
                 'email' => ['string', ''],
@@ -363,7 +354,8 @@ final class Contract
                 'hyperlink' => ['boolean', 'A link to a region of another grid'],
                 'lastSeen' => ['integer?', ''],
                 'access' => ['integer?', 'The access level of the region'],
-                'mapImage' => ['string?', ''],
+                'mapImage' => ['string?', 'The UUID of its map tile'],
+                'teleport' => ['string?', 'Its hop:// address on the grid; null for a link to a region of another grid'],
                 'sources' => ['array', 'The grid, the config of a simulator, the search'],
                 'simulator' => ['string?', 'The simulator that has it'],
                 'file' => ['string?', 'Its file in the simulator'],
@@ -373,7 +365,6 @@ final class Contract
                     'Its file ends in .ini; null for a region of the grid with no file of this machine',
                 ],
             ],
-            'filters' => ['online' => ['yes', 'no'], 'hyperlink' => ['yes', 'no']],
             'writable' => [
                 'enabled' => ['boolean', 'Enable or disable the region (its file); the simulator has to restart'],
             ],
@@ -587,19 +578,20 @@ final class Contract
             $schemas[$schema] = self::schema($type);
             $base = $resource['scope'] === 'grid' ? "/grids/{grid}/$type" : "/$type";
             $parameters = $resource['scope'] === 'grid' ? [self::gridParameter()] : [];
+            $listing = self::listing($type);
             if (!in_array($type, self::UNPAGED, true)) {
                 $paths[$base]['get'] = [
                     'operationId' => "list$schema",
                     'tags' => [$tag],
                     'summary' => "List $type",
                     'description' => $resource['summary'] . ', searched, filtered, sorted and paged.',
-                    'parameters' => [...$parameters, ...self::listParameters($resource['filters'])],
+                    'parameters' => [...$parameters, ...self::listParameters($listing?->filterValues() ?? $resource['filters'] ?? [], $listing)],
                     'responses' => [
                         '200' => self::documentResponse("A page of the $type", $schema, true),
                         '404' => self::problem('The grid is not known here'),
                         '503' => self::problem('What the list is read from is not available'),
                     ],
-                ];
+                ] + ($listing === null ? [] : ['x-list' => $listing->document()]);
             } else {
                 $paths[$base]['get'] = [
                     'operationId' => "list$schema",
@@ -869,7 +861,7 @@ final class Contract
                 'version' => $version,
                 'license' => ['name' => 'AGPL-3.0-or-later', 'identifier' => 'AGPL-3.0-or-later'],
                 'description' =>
-                    "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server.",
+                    "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts). The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server.",
             ],
             'servers' => [['url' => '/', 'description' => 'Where the application that uses the engine mounts the API']],
             // Closed unless an operation says it is open (`security: []`)
@@ -968,18 +960,35 @@ final class Contract
     }
 
     /**
+     * What the list of a resource shows, as its model describes it (Listing): `x-list` of its list operation. Null for a resource
+     * whose model does not describe it.
+     */
+    public static function listing(string $type): ?Listing
+    {
+        $class = Api::RESOURCES[$type] ?? Api::GRID_RESOURCES[$type] ?? null;
+
+        return $class !== null && method_exists($class, 'listing') ? $class::listing() : null;
+    }
+
+    /**
      * @param array<string,list<string>> $filters
      * @return list<array<string,mixed>>
      */
-    private static function listParameters(array $filters): array
+    private static function listParameters(array $filters, ?Listing $listing = null): array
     {
+        $sorts = $listing?->sorts() ?? [];
         $parameters = [
-            ['name' => 'search', 'in' => 'query', 'schema' => ['type' => 'string']],
+            [
+                'name' => 'search',
+                'in' => 'query',
+                'schema' => ['type' => 'string'],
+            ] + ($listing === null || $listing->search === [] ? [] : ['description' => 'Looks in ' . implode(', ', $listing->search)]),
             [
                 'name' => 'sort',
                 'in' => 'query',
                 'description' => 'A column, `-` before it for the descending order',
-                'schema' => ['type' => 'string'],
+                'schema' => ['type' => 'string'] +
+                    ($sorts === [] ? [] : ['enum' => [...$sorts, ...array_map(static fn(string $sort): string => "-$sort", $sorts)]]),
             ],
             ['name' => 'page[number]', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 1]],
             ['name' => 'page[size]', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 0]],
@@ -988,7 +997,7 @@ final class Contract
             $parameters[] = [
                 'name' => "filter[$name]",
                 'in' => 'query',
-                'schema' => ['type' => 'string', 'enum' => $values],
+                'schema' => ['type' => 'string'] + ($values === [] ? [] : ['enum' => $values]),
             ];
         }
 

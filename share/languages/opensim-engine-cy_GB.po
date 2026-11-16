@@ -607,6 +607,66 @@ msgctxt "manage_saved"
 msgid "%s is saved."
 msgstr "Mae %s wedi’i gadw."
 
+msgctxt "yes"
+msgid "Yes"
+msgstr "Ie"
+
+msgctxt "no"
+msgid "No"
+msgstr "Na"
+
+msgctxt "filter_email"
+msgid "With an email"
+msgstr "Gydag e-bost"
+
+msgctxt "filter_model"
+msgid "Avatar model"
+msgstr "Model afatar"
+
+msgctxt "filter_technical"
+msgid "Service account"
+msgstr "Cyfrif Gwasanaeth"
+
+msgctxt "filter_active"
+msgid "Can log in"
+msgstr "Gall fewngofnodi"
+
+msgctxt "column_map"
+msgid "Map"
+msgstr "Map"
+
+msgctxt "column_region"
+msgid "Region"
+msgstr "Rhanbarth"
+
+msgctxt "column_size"
+msgid "Size"
+msgstr "Maint"
+
+msgctxt "column_owner"
+msgid "Owner"
+msgstr "Perchennog"
+
+msgctxt "column_roles"
+msgid "Roles"
+msgstr "Rolau"
+
+msgctxt "filter_default"
+msgid "Default region"
+msgstr "Rhanbarth Ragoson"
+
+msgctxt "filter_fallback"
+msgid "Fallback region"
+msgstr "Rhanbarth wrth gefn"
+
+msgctxt "filter_hyperlink"
+msgid "Hypergrid link"
+msgstr "Dolen hypergrid"
+
+msgctxt "filter_simulator"
+msgid "Simulator"
+msgstr "Simulator"
+
 msgctxt "error_required"
 msgid "Please fill in every field."
 msgstr "Llenwch bob maes os gwelwch yn dda."

@@ -452,6 +452,112 @@ describe('The contract', function () {
         },
     );
 
+    test('describes the lists of avatars and regions as their models do (x-list), with the keys of the catalog', function () {
+        $paths = Contract::document()['paths'];
+        $avatars = $paths['/grids/{grid}/avatars']['get'];
+        $regions = $paths['/grids/{grid}/regions']['get'];
+        $parameters = static fn(array $operation): array => array_column($operation['parameters'], 'schema', 'name');
+        $keys = [];
+        foreach ($paths as $operations) {
+            foreach ($operations as $operation) {
+                if (isset($operation['x-list'])) {
+                    $listing = $operation['x-list'];
+                    array_push(
+                        $keys,
+                        ...array_column($listing['columns'], 'label'),
+                        ...array_column($listing['filters'], 'label'),
+                        ...array_column($listing['actions'], 'label'),
+                    );
+                    foreach ($listing['filters'] as $filter) {
+                        array_push($keys, ...array_column($filter['values'] ?? [], 'label'));
+                    }
+                }
+            }
+        }
+
+        expect($avatars['x-list']['columns'][0])
+            ->toBe([
+                'name' => 'name',
+                'label' => 'avatar_name',
+                'type' => 'text',
+                'sort' => 'name',
+                'picture' => 'profileImage',
+                'tag' => 'online',
+                'tagLabel' => 'online',
+            ])
+            ->and(array_column($avatars['x-list']['columns'], 'type', 'name'))
+            ->toBe([
+                'name' => 'text',
+                'email' => 'email',
+                'role' => 'role',
+                'lastSeen' => 'date',
+                'created' => 'date',
+                'status' => 'status',
+            ])
+            ->and($avatars['x-list']['sort'])
+            ->toBe([
+                'default' => '-created',
+                'values' => ['name', 'email', 'level', 'lastSeen', 'created', 'active'],
+                'descending' => '-',
+            ])
+            ->and($avatars['x-list']['search'])
+            ->toBe(['name', 'email'])
+            ->and($avatars['x-list']['filters'][0])
+            ->toBe([
+                'name' => 'status',
+                'label' => 'status',
+                'values' => [
+                    ['value' => 'active', 'label' => 'status_active'],
+                    ['value' => 'disabled', 'label' => 'status_disabled'],
+                    ['value' => 'pending', 'label' => 'status_pending'],
+                ],
+            ])
+            ->and($avatars['x-list']['actions'])
+            ->toBe([
+                [
+                    'name' => 'enable',
+                    'label' => 'action_enable',
+                    'method' => 'PATCH',
+                    'path' => '/grids/{grid}/avatars/{id}',
+                    'body' => ['status' => 'active'],
+                    'when' => ['status' => ['disabled', 'pending']],
+                ],
+                [
+                    'name' => 'disable',
+                    'label' => 'action_disable',
+                    'method' => 'PATCH',
+                    'path' => '/grids/{grid}/avatars/{id}',
+                    'body' => ['status' => 'disabled'],
+                    'when' => ['status' => ['active']],
+                    'notSelf' => true,
+                ],
+                [
+                    'name' => 'reset',
+                    'label' => 'action_reset',
+                    'method' => 'POST',
+                    'path' => '/grids/{grid}/password-resets',
+                    'body' => ['name' => '{name}'],
+                    'when' => ['status' => ['active']],
+                    'requires' => ['email'],
+                ],
+            ])
+            // The parameters of the list are the ones the model describes
+            ->and($parameters($avatars)['filter[role]'])
+            ->toBe(['type' => 'string', 'enum' => ['resident', 'god-like', 'customer-service', 'liaison', 'god']])
+            ->and($parameters($avatars)['sort']['enum'])
+            ->toContain('created', '-created')
+            ->and($parameters($regions)['filter[owner]'])
+            ->toBe(['type' => 'string'])
+            ->and(array_keys($parameters($regions)))
+            ->toContain('filter[simulator]', 'filter[default]', 'filter[fallback]')
+            ->and($regions['x-list']['columns'][8])
+            ->toBe(['name' => 'teleport', 'label' => 'profile_teleport', 'type' => 'hop'])
+            ->and($keys)
+            ->not->toBeEmpty()
+            ->and(array_values(array_diff(array_unique($keys), array_keys(\OpenSim\I18n\Catalog::MESSAGES))))
+            ->toBe([]);
+    });
+
     test('is written in JSON and in YAML, the pages of the documentation being made from it', function () {
         expect(json_decode(Contract::json('2'), true)['info']['version'])
             ->toBe('2')

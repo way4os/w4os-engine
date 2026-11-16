@@ -42,6 +42,9 @@
 - feature (avatars): the groups an avatar shows in its profile, by name, with the title it wears and the insignia (`Avatar::groups()`, `GET /grids/{grid}/avatars/{id}/groups`); none when the grid has no groups
 - feature (i18n): texts that change with a number, as gettext has them (msgid_plural, the `Plural-Forms` of each language): `Catalog::plural()`, `Catalog::plurals()`, `PoFile::plural()`; `profile_name`, `profile_age_today`, `profile_age_days` and `profile_groups` for the 2nd Life tab of a profile
 - feature (i18n): `dashboard_title` for the admin dashboard of a site
+- feature (api): `x-list` on the list operations of the avatars and the regions: the columns in their order (attribute, display type, label as a catalog key, sort), the sorts, what the search looks in, the filters and their values with their labels, and the actions of a row (operation, body, when it applies). `Listing` is its single source in each model (`Avatar::listing()`, `Region::listing()`): the filters and the sort values of the contract and the columns of a list (CSV) come from it. Catalog keys for the titles of the columns and of the filters, in every language
+- feature (regions): `filter[owner]` (a UUID) and `filter[simulator]` (the regions its files describe), and `teleport`, the hop:// address of a region on its grid
+- change (avatars, regions): the columns of their list (CSV, `meta.columns`) are the ones a site shows: avatars name, email, role, lastSeen, created, status; regions mapImage, name, location, size, ownerName, roles, online, lastSeen, teleport
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 

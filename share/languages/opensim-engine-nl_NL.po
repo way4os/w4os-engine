@@ -605,6 +605,66 @@ msgctxt "manage_saved"
 msgid "%s is saved."
 msgstr "%s is opgeslagen."
 
+msgctxt "yes"
+msgid "Yes"
+msgstr "Ja"
+
+msgctxt "no"
+msgid "No"
+msgstr "Nee"
+
+msgctxt "filter_email"
+msgid "With an email"
+msgstr "Met een e-mail"
+
+msgctxt "filter_model"
+msgid "Avatar model"
+msgstr "Avatarmodel"
+
+msgctxt "filter_technical"
+msgid "Service account"
+msgstr "Service Account"
+
+msgctxt "filter_active"
+msgid "Can log in"
+msgstr "Kan inloggen"
+
+msgctxt "column_map"
+msgid "Map"
+msgstr "Kaart"
+
+msgctxt "column_region"
+msgid "Region"
+msgstr "Regio"
+
+msgctxt "column_size"
+msgid "Size"
+msgstr "Grootte"
+
+msgctxt "column_owner"
+msgid "Owner"
+msgstr "Eigenaar"
+
+msgctxt "column_roles"
+msgid "Roles"
+msgstr "Rollen"
+
+msgctxt "filter_default"
+msgid "Default region"
+msgstr "Standaard Regio"
+
+msgctxt "filter_fallback"
+msgid "Fallback region"
+msgstr "Reserve Regio"
+
+msgctxt "filter_hyperlink"
+msgid "Hypergrid link"
+msgstr "Hypergrid-link"
+
+msgctxt "filter_simulator"
+msgid "Simulator"
+msgstr "Simulator"
+
 msgctxt "error_required"
 msgid "Please fill in every field."
 msgstr "Vul alle velden in."

@@ -86,7 +86,7 @@ abstract class InstalledModel implements InstalledModelInterface
      * @param array<string,array{0:\Closure(static,string):bool,1:list<string>}> $filters what each filter asks of a model, and the values it takes
      * @param list<array{name:string,label:string,sortable?:bool}> $columns
      */
-    protected static function listing(
+    protected static function paged(
         array $items,
         array $options,
         \Closure $text,

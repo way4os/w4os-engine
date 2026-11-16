@@ -606,6 +606,66 @@ msgctxt "manage_saved"
 msgid "%s is saved."
 msgstr "%s est enregistré."
 
+msgctxt "yes"
+msgid "Yes"
+msgstr "Oui"
+
+msgctxt "no"
+msgid "No"
+msgstr "Non"
+
+msgctxt "filter_email"
+msgid "With an email"
+msgstr "Avec un e-mail"
+
+msgctxt "filter_model"
+msgid "Avatar model"
+msgstr "Modèle d'avatar"
+
+msgctxt "filter_technical"
+msgid "Service account"
+msgstr "Compte de service"
+
+msgctxt "filter_active"
+msgid "Can log in"
+msgstr "Peut se connecter"
+
+msgctxt "column_map"
+msgid "Map"
+msgstr "Carte"
+
+msgctxt "column_region"
+msgid "Region"
+msgstr "Région"
+
+msgctxt "column_size"
+msgid "Size"
+msgstr "Taille"
+
+msgctxt "column_owner"
+msgid "Owner"
+msgstr "Propriétaire"
+
+msgctxt "column_roles"
+msgid "Roles"
+msgstr "Rôles"
+
+msgctxt "filter_default"
+msgid "Default region"
+msgstr "Région par défaut"
+
+msgctxt "filter_fallback"
+msgid "Fallback region"
+msgstr "Région de secours"
+
+msgctxt "filter_hyperlink"
+msgid "Hypergrid link"
+msgstr "Lien hypergrid"
+
+msgctxt "filter_simulator"
+msgid "Simulator"
+msgstr "Simulateur"
+
 msgctxt "error_required"
 msgid "Please fill in every field."
 msgstr "Merci de remplir tous les champs."

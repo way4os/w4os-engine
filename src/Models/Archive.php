@@ -68,7 +68,7 @@ final class Archive extends InstalledModel
             }
         }
 
-        return self::listing(
+        return self::paged(
             $archives,
             $options,
             static fn(self $archive): string => "{$archive->name()} {$archive->grid} {$archive->kind}",

@@ -207,6 +207,63 @@ describe('Regions', function () {
             ->toBe(['Garden', 'Quiet Harbour', 'Welcome']);
     });
 
+    test('are filtered by their owner, and give their hop address on the grid', function () {
+        Connections::using(static fn() => region_database());
+        $config = region_config();
+        $names = static fn(array $filters) => array_column(
+            Region::all($config, ['filters' => $filters])->array(),
+            'name',
+        );
+        $teleports = array_column(Region::all($config, ['filters' => ['hyperlink' => 'yes']])->array(), 'teleport');
+
+        expect($names(['owner' => '11111111-1111-1111-1111-111111111111']))
+            ->toBe(['Garden', 'Welcome'])
+            ->and($names(['owner' => '11111111-1111-1111-1111-111111111111', 'online' => 'no']))
+            ->toBe([])
+            ->and(Region::all($config, ['filters' => ['owner' => '11111111-1111-1111-1111-111111111111']])->applied())
+            ->toBe(['hyperlink' => 'no', 'owner' => '11111111-1111-1111-1111-111111111111'])
+            ->and(Region::find($config, 'Quiet Harbour')->detail()['teleport'])
+            ->toBe('hop://play.example.org:8002/Quiet+Harbour')
+            ->and($teleports)
+            ->toBe([null]);
+    });
+
+    test('describe their list: columns, sorts, filters, search and actions, with the keys of the catalog', function () {
+        $listing = Region::listing();
+
+        expect(array_column($listing->columns, 'type', 'name'))
+            ->toBe([
+                'mapImage' => 'map',
+                'name' => 'text',
+                'location' => 'text',
+                'size' => 'size',
+                'ownerName' => 'text',
+                'roles' => 'list',
+                'online' => 'boolean',
+                'lastSeen' => 'date',
+                'teleport' => 'hop',
+            ])
+            ->and($listing->sorts())
+            ->toBe(['name', 'location', 'size', 'flags', 'lastSeen'])
+            ->and($listing->filterValues())
+            ->toBe([
+                'online' => ['yes', 'no'],
+                'default' => ['yes', 'no'],
+                'fallback' => ['yes', 'no'],
+                'hyperlink' => ['yes', 'no'],
+                'owner' => [],
+                'simulator' => [],
+            ])
+            ->and($listing->filters[4])
+            ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid'])
+            ->and(array_column($listing->actions, 'body', 'name'))
+            ->toBe(['enable' => ['enabled' => true], 'disable' => ['enabled' => false]])
+            ->and(array_diff($listing->keys(), array_keys(\OpenSim\I18n\Catalog::MESSAGES)))
+            ->toBe([])
+            ->and(array_column(Region::columns(), 'label', 'name')['name'])
+            ->toBe('Region');
+    });
+
     test('are searched, sorted and paged', function () {
         Connections::using(static fn() => region_database());
         $config = region_config();
