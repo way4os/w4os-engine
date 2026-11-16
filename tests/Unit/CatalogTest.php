@@ -36,12 +36,46 @@ describe('the catalog of the texts of the sites', function () {
         expect(file_get_contents(Catalog::template()))->toBe(Catalog::pot());
     });
 
-    test('ships every language, in the keys and English texts of the template', function () {
+    test('ships every language, in the keys and English texts of the template, and how it picks the form of a number', function () {
+        // A text that changes with a number has its singular as msgid, the text of MESSAGES as msgid_plural
+        $english = array_replace(Catalog::MESSAGES, Catalog::SINGULARS);
         foreach (Catalog::LOCALES as $locale) {
-            $entries = PoFile::read((string) file_get_contents(Catalog::file($locale)));
+            $content = (string) file_get_contents(Catalog::file($locale));
+            // A long line of the header is cut in several strings
+            $header = str_replace("\"\n\"", '', $content);
+            $entries = PoFile::read($content);
             $current = array_filter($entries, fn($entry) => isset(Catalog::MESSAGES[$entry['context']]));
-            expect(array_column($current, 'source', 'context'))->toBe(Catalog::MESSAGES, $locale);
+            $plurals = array_filter($current, fn($entry) => isset($entry['plural']));
+            expect(array_column($current, 'source', 'context'))
+                ->toBe($english, $locale)
+                ->and(array_column($plurals, 'plural', 'context'))
+                ->toBe(array_intersect_key(Catalog::MESSAGES, Catalog::SINGULARS), $locale)
+                ->and($header)
+                ->toContain('Plural-Forms: ' . Catalog::PLURAL_FORMS[$locale] . '\\n"');
         }
+    });
+
+    test('picks the form of a number as each language does, the English one when a language has none', function () {
+        $days = static fn(string $locale, int $n): string => Catalog::plural($locale, 'profile_age_days', $n);
+
+        expect([$days('en', 1), $days('en', 0), $days('en', 3)])
+            ->toBe(['%d day', '%d days', '%d days'])
+            ->and([$days('fr', 0), $days('fr', 1), $days('fr', 2)])
+            ->toBe(['%d jour', '%d jour', '%d jours'])
+            ->and([$days('de', 0), $days('de', 1), $days('de', 2)])
+            ->toBe(['%d Tage', '%d Tag', '%d Tage'])
+            ->and([$days('cy', 1), $days('cy', 2), $days('cy', 3)])
+            ->toBe(['%d diwrnod', '%d ddiwrnod', '%d diwrnod'])
+            ->and($days('es', 1))
+            ->toBe('%d day')
+            ->and(Catalog::plural('fr', 'profile_name', 3))
+            ->toBe('Nom')
+            ->and(Catalog::messages('fr')['profile_age_days'])
+            ->toBe('%d jours')
+            ->and(Catalog::plurals('fr')['profile_age_days'])
+            ->toBe(['%d jour', '%d jours'])
+            ->and(array_keys(Catalog::PLURAL_FORMS))
+            ->toBe(['en', ...Catalog::LOCALES]);
     });
 
     test('gives the texts of a language by key, the translated ones only', function () {
@@ -104,6 +138,26 @@ describe('a gettext file', function () {
             ['context' => 'long', 'source' => 'A "quoted" text on two lines', 'translation' => 'Un texte "cité" sur deux lignes', 'fuzzy' => false],
             ['context' => 'glued', 'source' => 'No blank line before', 'translation' => '', 'fuzzy' => false],
         ]);
+    });
+
+    test('reads the forms of a text that changes with a number', function () {
+        $po = <<<'PO'
+            msgctxt "days"
+            msgid "%d day"
+            msgid_plural "%d days"
+            msgstr[0] "%d jour"
+            msgstr[1] "%d jours"
+            msgctxt "next"
+            msgid "Next"
+            msgstr "Suivant"
+            PO;
+
+        expect(PoFile::read($po))->toBe([
+            ['context' => 'days', 'source' => '%d day', 'translation' => '%d jour', 'fuzzy' => false, 'plural' => '%d days', 'forms' => ['%d jour', '%d jours']],
+            ['context' => 'next', 'source' => 'Next', 'translation' => 'Suivant', 'fuzzy' => false],
+        ])
+            ->and(PoFile::read(PoFile::plural('days', '%d day', '%d days', ['', ''], ['php-format'])))
+            ->toBe([['context' => 'days', 'source' => '%d day', 'translation' => '', 'fuzzy' => false, 'plural' => '%d days', 'forms' => ['', '']]]);
     });
 
     test('writes an entry that it reads back', function () {

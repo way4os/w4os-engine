@@ -242,6 +242,31 @@ final class Endpoints
                 '404' => Contract::problem('The grid or the avatar is not known here'),
             ],
         ];
+        $paths['/grids/{grid}/avatars/{id}/groups']['get'] = [
+            'operationId' => 'listAvatarGroups',
+            'tags' => ['Avatars'],
+            'summary' => 'Groups of an avatar',
+            'description' =>
+                'The groups the profile of the avatar shows (the ones it chose to show in the viewer), by name, from the groups tables of the grid (the module Groups of the core). Who may see them is the site\'s to decide: the engine only asks for its API key. None when the grid has no groups.',
+            'parameters' => [Contract::gridParameter(), $avatar],
+            'responses' => [
+                '200' => [
+                    'description' => 'The groups',
+                    'content' => $items('groups', [
+                        'name' => ['type' => 'string'],
+                        'title' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The title the avatar wears in the group (the one of its role), null without one',
+                        ],
+                        'picture' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The UUID of the asset of the insignia of the group (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one',
+                        ],
+                    ]),
+                ],
+                '404' => Contract::problem('The grid or the avatar is not known here'),
+            ],
+        ];
         $paths['/grids/{grid}/info']['get'] = [
             'operationId' => 'getInfo',
             'tags' => ['Addresses'],

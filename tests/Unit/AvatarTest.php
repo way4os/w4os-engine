@@ -477,6 +477,49 @@ describe('account of the services of the grid', function () {
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
+/** The tables of the groups of the grid (the module Groups of the core), Ada in three groups and Bob in one. */
+function groups_in(OSPDO $pdo): void
+{
+    $pdo->exec('CREATE TABLE os_groups_groups (GroupID CHAR(36), Name VARCHAR(255), InsigniaID CHAR(36))');
+    $pdo->exec('CREATE TABLE os_groups_membership (GroupID CHAR(36), PrincipalID VARCHAR(255), SelectedRoleID CHAR(36), ListInProfile INT)');
+    $pdo->exec('CREATE TABLE os_groups_roles (GroupID CHAR(36), RoleID CHAR(36), Name VARCHAR(255), Title VARCHAR(255))');
+    $pdo->exec("INSERT INTO os_groups_groups VALUES
+        ('g1', 'Builders', 'aaaaaaaa-0000-4000-8000-000000000002'),
+        ('g2', 'Artists', '00000000-0000-0000-0000-000000000000'),
+        ('g3', 'Secret Club', ''),
+        ('g4', 'Bobs', '')");
+    $pdo->exec("INSERT INTO os_groups_roles VALUES
+        ('g1', 'r1', 'Owners', 'Chief Builder'),
+        ('g2', '00000000-0000-0000-0000-000000000000', 'Everyone', '')");
+    $pdo->exec("INSERT INTO os_groups_membership VALUES
+        ('g1', '11111111-1111-1111-1111-111111111111', 'r1', 1),
+        ('g2', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 1),
+        ('g3', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 0),
+        ('g4', '22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 1)");
+}
+
+describe('groups of an avatar', function () {
+    test('are the ones it shows in its profile, by name, with the title it wears and the insignia', function () {
+        $pdo = avatar_database();
+        groups_in($pdo);
+        avatars_in($pdo);
+
+        expect(Avatar::find(avatar_grid(), 'Ada Love')->groups())
+            ->toBe([
+                ['id' => 'g2', 'name' => 'Artists', 'title' => null, 'picture' => null],
+                ['id' => 'g1', 'name' => 'Builders', 'title' => 'Chief Builder', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002'],
+            ])
+            ->and(array_column(Avatar::find(avatar_grid(), 'Bob Root')->groups(), 'name'))
+            ->toBe(['Bobs']);
+    });
+
+    test('are none when the grid has no groups', function () {
+        avatars_in(avatar_database());
+
+        expect(Avatar::find(avatar_grid(), 'Ada Love')->groups())->toBe([]);
+    });
+})->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
+
 describe('picks and the classifieds of an avatar', function () {
     test('are what it published and what has not expired', function () {
         avatars_in(avatar_database());

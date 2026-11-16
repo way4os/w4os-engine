@@ -5,6 +5,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #, php-format
 msgctxt "welcome_title"
@@ -393,6 +394,21 @@ msgstr "Créés et modifiés dans le viewer."
 msgctxt "profile_none"
 msgid "None."
 msgstr "Aucun."
+
+msgctxt "profile_name"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "profile_age_today"
+msgid "Joined today"
+msgstr "Inscrit aujourd’hui"
+
+#, php-format
+msgctxt "profile_age_days"
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] "%d jour"
+msgstr[1] "%d jours"
 
 msgctxt "profile_no_description"
 msgid "No description given."

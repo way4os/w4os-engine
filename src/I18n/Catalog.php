@@ -18,6 +18,10 @@ use OpenSim\Api\Problem;
  *     Catalog::messages('en');      // the English texts
  *     Catalog::file('fr_FR');       // share/languages/opensim-engine-fr_FR.po
  *     Catalog::statusKey('pending'); // status_pending; roleKey('god-like'): role_god_like, the texts of an avatar's status and role
+ *     Catalog::plural('fr_FR', 'profile_age_days', 1); // '%d jour': a text that changes with a number, in the form of that number
+ *
+ * A text that changes with a number has its English singular in SINGULARS, its plural in MESSAGES; the gettext files have it as
+ * msgid and msgid_plural, a form for each that the language has (PLURAL_FORMS, the `Plural-Forms` of their header).
  *
  * To change a text, edit MESSAGES, then run `composer translations` (the .pot, and the .po files merged with it).
  */
@@ -31,7 +35,25 @@ final class Catalog
     /** The languages of the catalog. */
     public const LOCALES = ['cy_GB', 'de_DE', 'fr_FR', 'it_IT', 'nl_NL', 'pt_BR'];
 
-    /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s). */
+    /**
+     * How each language picks the form of a number, as gettext says it (`Plural-Forms`). Catalog::pluralIndex() is the same rule.
+     */
+    public const PLURAL_FORMS = [
+        'en' => 'nplurals=2; plural=(n != 1);',
+        'cy_GB' => 'nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;',
+        'de_DE' => 'nplurals=2; plural=(n != 1);',
+        'fr_FR' => 'nplurals=2; plural=(n > 1);',
+        'it_IT' => 'nplurals=2; plural=(n != 1);',
+        'nl_NL' => 'nplurals=2; plural=(n != 1);',
+        'pt_BR' => 'nplurals=2; plural=(n > 1);',
+    ];
+
+    /** The texts that change with a number, by key: their English singular (MESSAGES has their plural). */
+    public const SINGULARS = [
+        'profile_age_days' => '%d day',
+    ];
+
+    /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s, %d). */
     public const MESSAGES = [
         // Home
         'welcome_title' => 'Welcome to %s',
@@ -136,6 +158,10 @@ final class Catalog
         // The picks and the classifieds, which only a viewer makes and changes, and a tab of a profile that has nothing
         'profile_viewer_only' => 'Created and edited in the viewer.',
         'profile_none' => 'None.',
+        // The 2nd Life tab of a profile: the name, the age of the account (profile_age_days changes with the number)
+        'profile_name' => 'Name',
+        'profile_age_today' => 'Joined today',
+        'profile_age_days' => '%d days',
         // A pick or a classified: what the viewer shows of each, and the end of a classified
         'profile_no_description' => 'No description given.',
         'profile_location' => 'Location',
@@ -268,7 +294,8 @@ final class Catalog
 
     /**
      * The texts in a language, by key: the translated ones only (a bridge falls back on the English ones). An unknown language
-     * gives none; `en` gives the English texts.
+     * gives none; `en` gives the English texts. A text that changes with a number is in the form of several (ten): the others are
+     * Catalog::plurals().
      *
      * @param bool $fuzzy with the fuzzy ones (a translation whose English changed since)
      * @return array<string,string>
@@ -284,12 +311,64 @@ final class Catalog
         }
         $messages = [];
         foreach (PoFile::read((string) file_get_contents($file)) as $entry) {
-            if ($entry['context'] !== '' && $entry['translation'] !== '' && ($fuzzy || !$entry['fuzzy']) && isset(self::MESSAGES[$entry['context']])) {
-                $messages[$entry['context']] = $entry['translation'];
+            $translation = isset($entry['forms']) ? $entry['forms'][self::pluralIndex($locale, 10)] ?? '' : $entry['translation'];
+            if ($entry['context'] !== '' && $translation !== '' && ($fuzzy || !$entry['fuzzy']) && isset(self::MESSAGES[$entry['context']])) {
+                $messages[$entry['context']] = $translation;
             }
         }
 
         return $messages;
+    }
+
+    /**
+     * The forms of the texts that change with a number, in a language, by key: the translated ones only, in the order of its
+     * `Plural-Forms` (PLURAL_FORMS). `en` gives the English singular and plural.
+     *
+     * @return array<string,list<string>>
+     */
+    public static function plurals(string $locale, bool $fuzzy = true): array
+    {
+        $locale = self::locale($locale);
+        if ($locale === self::SOURCE) {
+            $keys = array_keys(self::SINGULARS);
+
+            return array_combine($keys, array_map(static fn(string $key): array => [self::SINGULARS[$key], self::MESSAGES[$key]], $keys));
+        }
+        $file = self::file($locale);
+        $plurals = [];
+        foreach (is_file($file) ? PoFile::read((string) file_get_contents($file)) : [] as $entry) {
+            if (isset($entry['forms'], self::SINGULARS[$entry['context']]) && !in_array('', $entry['forms'], true) && ($fuzzy || !$entry['fuzzy'])) {
+                $plurals[$entry['context']] = $entry['forms'];
+            }
+        }
+
+        return $plurals;
+    }
+
+    /**
+     * A text in the form of a number, in a language: translated, else in English. A text that does not change with a number is
+     * the one of Catalog::messages(). The number is not put in: the text is the one to format (sprintf($text, $n)).
+     */
+    public static function plural(string $locale, string $key, int $n): string
+    {
+        if (!isset(self::SINGULARS[$key])) {
+            return self::messages($locale)[$key] ?? self::MESSAGES[$key] ?? $key;
+        }
+        $forms = self::plurals($locale)[$key] ?? null;
+
+        return $forms === null
+            ? ($n === 1 ? self::SINGULARS[$key] : self::MESSAGES[$key])
+            : $forms[self::pluralIndex($locale, $n)] ?? end($forms);
+    }
+
+    /** The form a number takes in a language: the rule of its `Plural-Forms` (PLURAL_FORMS), the English one for another. */
+    public static function pluralIndex(string $locale, int $n): int
+    {
+        return match (self::locale($locale)) {
+            'cy_GB' => $n === 1 ? 0 : ($n === 2 ? 1 : ($n !== 8 && $n !== 11 ? 2 : 3)),
+            'fr_FR', 'pt_BR' => $n > 1 ? 1 : 0,
+            default => $n !== 1 ? 1 : 0,
+        };
     }
 
     /** A language as the files name it: fr, fr-FR, fr_FR.UTF-8 give fr_FR; pt-br gives pt_BR; en and en_US give en. */
@@ -321,11 +400,15 @@ final class Catalog
             'MIME-Version: 1.0',
             'Content-Type: text/plain; charset=UTF-8',
             'Content-Transfer-Encoding: 8bit',
+            'Plural-Forms: ' . self::PLURAL_FORMS[self::SOURCE],
             '',
         ]));
         $entries = [];
         foreach (self::MESSAGES as $key => $text) {
-            $entries[] = PoFile::entry($key, $text, '', str_contains($text, '%') ? ['php-format'] : []);
+            $flags = str_contains($text, '%') ? ['php-format'] : [];
+            $entries[] = isset(self::SINGULARS[$key])
+                ? PoFile::plural($key, self::SINGULARS[$key], $text, ['', ''], $flags)
+                : PoFile::entry($key, $text, '', $flags);
         }
 
         return "# The texts of the websites of a grid. Made from OpenSim\\I18n\\Catalog::MESSAGES by `composer translations`.\n"

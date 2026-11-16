@@ -39,8 +39,15 @@ foreach (Catalog::LOCALES as $locale) {
             'MIME-Version: 1.0',
             'Content-Type: text/plain; charset=UTF-8',
             'Content-Transfer-Encoding: 8bit',
+            'Plural-Forms: ' . Catalog::PLURAL_FORMS[$locale],
             '',
         ])));
+    }
+    // The header says how the language picks the form of a number (msgmerge keeps the header of the file): added when it has none
+    $content = (string) file_get_contents($file);
+    if (!str_contains($content, '"Plural-Forms:')) {
+        $rule = '"Plural-Forms: ' . Catalog::PLURAL_FORMS[$locale] . '\\n"';
+        file_put_contents($file, (string) preg_replace('/^("Content-Transfer-Encoding:.*")$/m', '$1' . "\n" . addcslashes($rule, '\\$'), $content, 1));
     }
 
     // The seeds become a compendium in the catalog's own keys, that msgmerge takes for the texts not translated yet
@@ -59,8 +66,9 @@ foreach (Catalog::LOCALES as $locale) {
     }
     $compendium = [];
     foreach (Catalog::MESSAGES as $key => $text) {
-        // A text in the very same letter case wins over another case
-        $translation = $exact[$text] ?? $known[$normal($text)] ?? null;
+        // A text in the very same letter case wins over another case; a text that changes with a number is translated here, not
+        // seeded: the seeds have one form of it
+        $translation = isset(Catalog::SINGULARS[$key]) ? null : $exact[$text] ?? $known[$normal($text)] ?? null;
         $translation === null || $compendium[] = PoFile::entry($key, $text, $translation);
     }
     $options = '--no-fuzzy-matching';

@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "28290e8",
+        "version": "a74f9fb",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -3663,6 +3663,97 @@
                                                             "expires": {
                                                                 "type": "integer",
                                                                 "description": "When it expires, Unix time"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid or the avatar is not known here",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/grids/{grid}/avatars/{id}/groups": {
+            "get": {
+                "operationId": "listAvatarGroups",
+                "tags": [
+                    "Avatars"
+                ],
+                "summary": "Groups of an avatar",
+                "description": "The groups the profile of the avatar shows (the ones it chose to show in the viewer), by name, from the groups tables of the grid (the module Groups of the core). Who may see them is the site's to decide: the engine only asks for its API key. None when the grid has no groups.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The UUID or the name of the avatar",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The groups",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "const": "groups"
+                                                    },
+                                                    "id": {
+                                                        "type": "string",
+                                                        "description": "Its UUID"
+                                                    },
+                                                    "attributes": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "title": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ],
+                                                                "description": "The title the avatar wears in the group (the one of its role), null without one"
+                                                            },
+                                                            "picture": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ],
+                                                                "description": "The UUID of the asset of the insignia of the group (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one"
                                                             }
                                                         }
                                                     }

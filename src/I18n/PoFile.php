@@ -5,23 +5,33 @@ declare(strict_types=1);
 namespace OpenSim\I18n;
 
 /**
- * Reads and writes the entries of a gettext file (.po, .pot): the context, the text, its translation, and whether it is fuzzy.
- * Plural forms and obsolete entries (#~) are left out: the catalog has none.
+ * Reads and writes the entries of a gettext file (.po, .pot): the context, the text, its translation, and whether it is fuzzy; for
+ * a text that changes with a number, its plural (msgid_plural) and its forms (msgstr[0], msgstr[1]...). Obsolete entries (#~) are
+ * left out.
  */
 final class PoFile
 {
     /**
-     * The entries of a gettext file, the header (empty msgid) left out.
+     * The entries of a gettext file, the header (empty msgid) left out. An entry with a plural has its forms, and its first form
+     * as its translation.
      *
-     * @return list<array{context:string,source:string,translation:string,fuzzy:bool}>
+     * @return list<array{context:string,source:string,translation:string,fuzzy:bool,plural?:string,forms?:list<string>}>
      */
     public static function read(string $content): array
     {
         $entries = [];
         $entry = self::blank();
         $field = null;
+        $form = 0;
         $flush = static function () use (&$entries, &$entry): void {
             if ($entry['source'] !== '') {
+                if ($entry['plural'] === '') {
+                    unset($entry['plural'], $entry['forms']);
+                } else {
+                    ksort($entry['forms']);
+                    $entry['forms'] = array_values($entry['forms']);
+                    $entry['translation'] = $entry['forms'][0] ?? '';
+                }
                 $entries[] = $entry;
             }
             $entry = self::blank();
@@ -36,15 +46,16 @@ final class PoFile
                 $entry['fuzzy'] = $entry['fuzzy'] || in_array('fuzzy', array_map('trim', explode(',', substr($line, 2))), true);
             } elseif (str_starts_with($line, '#')) {
                 continue;
-            } elseif (preg_match('/^(msgctxt|msgid|msgstr)\s+(".*")$/', $line, $match)) {
-                if ($match[1] === 'msgctxt' || ($match[1] === 'msgid' && $field === 'translation')) {
+            } elseif (preg_match('/^(msgctxt|msgid_plural|msgid|msgstr)(?:\[(\d+)\])?\s+(".*")$/', $line, $match)) {
+                if (($match[1] === 'msgctxt' || $match[1] === 'msgid') && in_array($field, ['translation', 'forms'], true)) {
                     // A new entry that no empty line announced
-                    $field === 'translation' && $flush();
+                    $flush();
                 }
-                $field = ['msgctxt' => 'context', 'msgid' => 'source', 'msgstr' => 'translation'][$match[1]];
-                $entry[$field] = self::unquote($match[2]);
+                $field = $match[2] !== '' ? 'forms' : ['msgctxt' => 'context', 'msgid' => 'source', 'msgid_plural' => 'plural', 'msgstr' => 'translation'][$match[1]];
+                $form = (int) $match[2];
+                $field === 'forms' ? $entry['forms'][$form] = self::unquote($match[3]) : $entry[$field] = self::unquote($match[3]);
             } elseif ($field !== null && str_starts_with($line, '"')) {
-                $entry[$field] .= self::unquote($line);
+                $field === 'forms' ? $entry['forms'][$form] .= self::unquote($line) : $entry[$field] .= self::unquote($line);
             }
         }
         $flush();
@@ -65,10 +76,29 @@ final class PoFile
             . 'msgstr ' . self::quote($translation) . "\n";
     }
 
-    /** @return array{context:string,source:string,translation:string,fuzzy:bool} */
+    /**
+     * An entry of a text that changes with a number, as gettext writes it: its singular, its plural, a translation for each form.
+     *
+     * @param list<string> $forms
+     * @param list<string> $flags php-format, fuzzy...
+     */
+    public static function plural(string $context, string $singular, string $plural, array $forms, array $flags = []): string
+    {
+        $entry = ($flags !== [] ? '#, ' . implode(', ', $flags) . "\n" : '')
+            . ($context !== '' ? 'msgctxt ' . self::quote($context) . "\n" : '')
+            . 'msgid ' . self::quote($singular) . "\n"
+            . 'msgid_plural ' . self::quote($plural) . "\n";
+        foreach ($forms as $i => $form) {
+            $entry .= "msgstr[$i] " . self::quote($form) . "\n";
+        }
+
+        return $entry;
+    }
+
+    /** @return array{context:string,source:string,translation:string,fuzzy:bool,plural:string,forms:array<int,string>} */
     private static function blank(): array
     {
-        return ['context' => '', 'source' => '', 'translation' => '', 'fuzzy' => false];
+        return ['context' => '', 'source' => '', 'translation' => '', 'fuzzy' => false, 'plural' => '', 'forms' => []];
     }
 
     private static function quote(string $text): string

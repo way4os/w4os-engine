@@ -376,6 +376,38 @@ final class Avatar extends Model
     }
 
     /**
+     * The groups it shows in its profile (the box of each group in the viewer, ListInProfile), by name: each with the title it
+     * wears in the group (the one of its role, null without one) and the insignia of the group (`picture`, null without one).
+     * None when the grid has no groups.
+     *
+     * @return list<array{id:string,name:string,title:?string,picture:?string}>
+     */
+    public function groups(): array
+    {
+        $pdo = Connections::pdo($this->config, Database::forTable('os_groups_membership') ?? Database::Robust);
+        if ($pdo === null || !$pdo->tables_exist(['os_groups_groups', 'os_groups_membership', 'os_groups_roles'])) {
+            return [];
+        }
+        $rows = $pdo->get_results(
+            'SELECT g.GroupID, g.Name, g.InsigniaID, r.Title FROM os_groups_membership m'
+                . ' JOIN os_groups_groups g ON g.GroupID = m.GroupID'
+                . ' LEFT JOIN os_groups_roles r ON r.GroupID = m.GroupID AND r.RoleID = m.SelectedRoleID'
+                . ' WHERE m.PrincipalID = :id AND m.ListInProfile = 1 ORDER BY g.Name',
+            ['id' => $this->id()],
+            \PDO::FETCH_ASSOC,
+        );
+
+        return array_map(static fn(array $row): array => [
+            'id' => (string) $row['GroupID'],
+            'name' => (string) $row['Name'],
+            'title' => trim((string) ($row['Title'] ?? '')) === '' ? null : (string) $row['Title'],
+            'picture' => trim((string) ($row['InsigniaID'] ?? '')) === '' || Uuid::isNullKey($row['InsigniaID'])
+                ? null
+                : (string) $row['InsigniaID'],
+        ], is_array($rows) ? $rows : []);
+    }
+
+    /**
      * What the viewer shows of a pick or a classified, added to its row: `picture` (the UUID of its snapshot, null without one),
      * `parcel`, `region`, `position` (x, y, z in the region: its global position less the corner of the region, the rest of the
      * division by 256 for a region the grid does not have) and `teleport` (hop://, to the grid of its gatekeeper).
@@ -419,7 +451,7 @@ final class Avatar extends Model
      */
     private function regionCorner(string $region): ?array
     {
-        $row = Connections::pdo($this->config, Database::Robust)?->get_row(
+        $row = Connections::pdo($this->config, Database::forTable('regions') ?? Database::Robust)?->get_row(
             'SELECT locX, locY FROM regions WHERE regionName = :name',
             ['name' => $region],
             \PDO::FETCH_ASSOC,

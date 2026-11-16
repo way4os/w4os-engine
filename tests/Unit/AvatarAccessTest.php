@@ -903,6 +903,33 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
     });
 });
 
+describe('The API, for the groups of an avatar', function () {
+    test('lists the groups its profile shows, with the title it wears', function () {
+        $pdo = signin_database();
+        groups_in($pdo);
+        avatars_in($pdo);
+        [$router] = access_api();
+
+        $groups = $router->get('/grids/demo/avatars/Ada%20Love/groups');
+
+        expect($groups->status)
+            ->toBe(200)
+            ->and($groups->document['data'])
+            ->toBe([
+                ['type' => 'groups', 'id' => 'g2', 'attributes' => ['name' => 'Artists', 'title' => null, 'picture' => null]],
+                [
+                    'type' => 'groups',
+                    'id' => 'g1',
+                    'attributes' => ['name' => 'Builders', 'title' => 'Chief Builder', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002'],
+                ],
+            ])
+            ->and($router->get('/grids/demo/avatars/Nobody%20Here/groups')->status)
+            ->toBe(404)
+            ->and(array_keys(OpenSim\Api\Contract::document()['paths']))
+            ->toContain('/grids/{grid}/avatars/{id}/groups');
+    });
+});
+
 describe('The API, for the publication of a profile', function () {
     test('sets or clears "show in search", the first bit of the account, and no other', function () {
         $pdo = signin_database();

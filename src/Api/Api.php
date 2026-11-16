@@ -93,7 +93,7 @@ final class Api
     public const FORMS = ['grid', 'remote-grid', 'simulator', 'region'];
 
     /** What the profile of an avatar lists, asked under it: `/grids/{grid}/avatars/{id}/picks`. */
-    public const AVATAR_ITEMS = ['picks', 'classifieds'];
+    public const AVATAR_ITEMS = ['picks', 'classifieds', 'groups'];
 
     /** @var \Closure(Grid):?GridConfig the config of a grid, from its folder unless the caller says otherwise */
     private \Closure $config;
@@ -247,8 +247,9 @@ final class Api
     }
 
     /**
-     * What the profile of an avatar lists (Api::AVATAR_ITEMS): the picks it shows, the classifieds that have not expired. The picture
-     * of each is the UUID of its asset (`/grids/{grid}/assets/{id}.{format}` shows it), null without one.
+     * What the profile of an avatar lists (Api::AVATAR_ITEMS): the picks it shows, the classifieds that have not expired, the
+     * groups it shows. The picture of each is the UUID of its asset (`/grids/{grid}/assets/{id}.{format}` shows it), null without
+     * one.
      */
     public function avatarItems(string $grid, string $id, string $kind): Response
     {
@@ -258,7 +259,11 @@ final class Api
             if ($avatar === null) {
                 return Response::problem(Problem::notFound("avatar called '$id'", $instance));
             }
-            $rows = $kind === 'picks' ? $avatar->picks() : $avatar->classifieds((int) $this->environment->clock->time());
+            $rows = match ($kind) {
+                'picks' => $avatar->picks(),
+                'groups' => $avatar->groups(),
+                default => $avatar->classifieds((int) $this->environment->clock->time()),
+            };
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1356,13 +1361,16 @@ final class Api
     }
 
     /**
-     * A pick or a classified, from its row (Avatar::picks(), Avatar::classifieds()).
+     * A pick, a classified or a group, from its row (Avatar::picks(), Avatar::classifieds(), Avatar::groups()).
      *
      * @param array<string,mixed> $row
      * @return array{type:string,id:string,attributes:array<string,mixed>}
      */
     private static function avatarItem(string $kind, array $row): array
     {
+        if ($kind === 'groups') {
+            return ['type' => 'groups', 'id' => $row['id'], 'attributes' => array_diff_key($row, ['id' => true])];
+        }
         $attributes = [
             'name' => (string) ($row['name'] ?? ''),
             'description' => (string) ($row['description'] ?? ''),
