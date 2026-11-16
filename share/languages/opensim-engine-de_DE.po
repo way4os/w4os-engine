@@ -367,8 +367,8 @@ msgid "Disabled"
 msgstr "Deaktiviert"
 
 msgctxt "status_pending"
-msgid "Waiting for email confirmation"
-msgstr "Wartet auf die Bestätigung seiner E-Mail"
+msgid "Pending"
+msgstr "Ausstehend"
 
 msgctxt "action_enable"
 msgid "Enable"
@@ -540,6 +540,10 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#~ msgctxt "status_pending"
+#~ msgid "Waiting for email confirmation"
+#~ msgstr "Wartet auf die Bestätigung seiner E-Mail"
 
 #~ msgctxt "active"
 #~ msgid "Active"

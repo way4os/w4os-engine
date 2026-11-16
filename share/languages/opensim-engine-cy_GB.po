@@ -365,8 +365,8 @@ msgid "Disabled"
 msgstr "Analluogwyd"
 
 msgctxt "status_pending"
-msgid "Waiting for email confirmation"
-msgstr "Yn aros i'w ebost gael ei gadarnhau"
+msgid "Pending"
+msgstr "Yn aros"
 
 msgctxt "action_enable"
 msgid "Enable"
@@ -539,6 +539,10 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#~ msgctxt "status_pending"
+#~ msgid "Waiting for email confirmation"
+#~ msgstr "Yn aros i'w ebost gael ei gadarnhau"
 
 #~ msgctxt "active"
 #~ msgid "Active"

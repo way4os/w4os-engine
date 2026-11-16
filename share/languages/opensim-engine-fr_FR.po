@@ -364,8 +364,8 @@ msgid "Disabled"
 msgstr "Désactivé"
 
 msgctxt "status_pending"
-msgid "Waiting for email confirmation"
-msgstr "En attente de la confirmation de son e-mail"
+msgid "Pending"
+msgstr "En attente"
 
 msgctxt "action_enable"
 msgid "Enable"
@@ -531,6 +531,10 @@ msgstr "Cet avatar n’attend pas de confirmation de son e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Le message n’a pas pu partir. Merci de réessayer plus tard."
+
+#~ msgctxt "status_pending"
+#~ msgid "Waiting for email confirmation"
+#~ msgstr "En attente de la confirmation de son e-mail"
 
 #~ msgctxt "active"
 #~ msgid "Active"

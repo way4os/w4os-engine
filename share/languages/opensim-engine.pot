@@ -322,7 +322,7 @@ msgid "Disabled"
 msgstr ""
 
 msgctxt "status_pending"
-msgid "Waiting for email confirmation"
+msgid "Pending"
 msgstr ""
 
 msgctxt "action_enable"

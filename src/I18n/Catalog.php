@@ -121,7 +121,7 @@ final class Catalog
         // The status of an avatar, as the API says it (Avatar::STATUSES): status_ and the status
         'status_active' => 'Active',
         'status_disabled' => 'Disabled',
-        'status_pending' => 'Waiting for email confirmation',
+        'status_pending' => 'Pending',
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
         'action_reset' => 'Send a password reset link',
