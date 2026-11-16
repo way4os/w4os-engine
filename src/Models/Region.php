@@ -846,15 +846,15 @@ final class Region extends Model
 
         return new Listing(
             [
-                Listing::column('mapImage', 'column_map', 'map', more: ['default' => 'place']),
-                Listing::column('name', 'column_region', sort: 'name'),
+                Listing::column('name', 'column_region', sort: 'name', more: ['picture' => 'mapImage', 'default' => 'place']),
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('size', 'column_size', 'size', 'size'),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
                 Listing::column('roles', 'column_roles', 'list', 'flags', ['values' => Listing::values(self::roleKeys(true))]),
                 Listing::column('online', 'online', 'boolean'),
                 Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
-                Listing::column('teleport', 'profile_teleport', 'hop'),
+                // Its address (host:port:name), linked to the teleport there
+                Listing::column('uri', 'column_address', 'link', more: ['link' => 'teleport']),
             ],
             [
                 Listing::filter('flags', 'column_flags', self::flagKeys(true), more: ['multiple' => true, 'dynamic' => true]),
@@ -898,9 +898,9 @@ final class Region extends Model
                 ItemForm::shown('roles', 'column_roles', 'list', 'region', ['values' => Listing::values(self::roleKeys(true))]),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
                 ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
-                ItemForm::shown('teleport', 'profile_teleport', 'hop', 'region'),
+                ItemForm::shown('uri', 'column_address', 'link', 'region', ['link' => 'teleport']),
                 ItemForm::shown('simulator', 'filter_simulator', 'text', 'simulator', $here),
-                ItemForm::shown('serverUri', 'column_address', 'text', 'simulator'),
+                ItemForm::shown('serverUri', 'column_server', 'text', 'simulator'),
                 ItemForm::shown('file', 'column_file', 'text', 'simulator', $here),
                 // Known only when this machine has its file: hidden otherwise, with the actions that change it
                 ItemForm::field(

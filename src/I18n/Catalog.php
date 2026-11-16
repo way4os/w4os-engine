@@ -267,6 +267,7 @@ final class Catalog
         'column_name' => 'Name',
         'column_nick' => 'Nick',
         'column_address' => 'Address',
+        'column_server' => 'Server',
         'column_enabled' => 'Enabled',
         'filter_remote' => 'On another machine',
         'filter_hypergrid' => 'Hypergrid',

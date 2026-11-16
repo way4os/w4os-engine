@@ -804,6 +804,10 @@ msgctxt "column_address"
 msgid "Address"
 msgstr "Cyfeiriad"
 
+msgctxt "column_server"
+msgid "Server"
+msgstr "Gweinydd"
+
 msgctxt "column_enabled"
 msgid "Enabled"
 msgstr "Galluogwyd"

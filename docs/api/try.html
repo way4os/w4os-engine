@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "844e8bf",
+        "version": "f148876",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -2978,16 +2978,12 @@
                 "x-list": {
                     "columns": [
                         {
-                            "name": "mapImage",
-                            "label": "column_map",
-                            "type": "map",
-                            "default": "place"
-                        },
-                        {
                             "name": "name",
                             "label": "column_region",
                             "type": "text",
-                            "sort": "name"
+                            "sort": "name",
+                            "picture": "mapImage",
+                            "default": "place"
                         },
                         {
                             "name": "location",
@@ -3072,9 +3068,10 @@
                             "sort": "lastSeen"
                         },
                         {
-                            "name": "teleport",
-                            "label": "profile_teleport",
-                            "type": "hop"
+                            "name": "uri",
+                            "label": "column_address",
+                            "type": "link",
+                            "link": "teleport"
                         }
                     ],
                     "sort": {
@@ -3384,11 +3381,12 @@
                             "readOnly": true
                         },
                         {
-                            "name": "teleport",
-                            "label": "profile_teleport",
-                            "type": "hop",
+                            "name": "uri",
+                            "label": "column_address",
+                            "type": "link",
                             "group": "region",
-                            "readOnly": true
+                            "readOnly": true,
+                            "link": "teleport"
                         },
                         {
                             "name": "simulator",
@@ -3404,7 +3402,7 @@
                         },
                         {
                             "name": "serverUri",
-                            "label": "column_address",
+                            "label": "column_server",
                             "type": "text",
                             "group": "simulator",
                             "readOnly": true
@@ -9353,7 +9351,8 @@
                                 "type": [
                                     "string",
                                     "null"
-                                ]
+                                ],
+                                "description": "Its address, host:port:name, as a viewer and another grid reach it (its hop:// link is `teleport`)"
                             },
                             "location": {
                                 "type": "string",

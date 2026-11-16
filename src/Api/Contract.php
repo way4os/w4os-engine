@@ -330,7 +330,7 @@ final class Contract
                 'uuid' => ['string', ''],
                 'name' => ['string', ''],
                 'slug' => ['string', ''],
-                'uri' => ['string?', ''],
+                'uri' => ['string?', 'Its address, host:port:name, as a viewer and another grid reach it (its hop:// link is `teleport`)'],
                 'location' => ['string', 'x,y on the map, in regions'],
                 'x' => ['integer', ''],
                 'y' => ['integer', ''],

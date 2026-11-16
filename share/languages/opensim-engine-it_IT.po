@@ -799,6 +799,10 @@ msgctxt "column_address"
 msgid "Address"
 msgstr "Indirizzo"
 
+msgctxt "column_server"
+msgid "Server"
+msgstr "Server"
+
 msgctxt "column_enabled"
 msgid "Enabled"
 msgstr "Attivato"

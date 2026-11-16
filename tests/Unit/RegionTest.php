@@ -287,7 +287,6 @@ describe('Regions', function () {
 
         expect(array_column($listing->columns, 'type', 'name'))
             ->toBe([
-                'mapImage' => 'map',
                 'name' => 'text',
                 'location' => 'text',
                 'size' => 'size',
@@ -295,7 +294,7 @@ describe('Regions', function () {
                 'roles' => 'list',
                 'online' => 'boolean',
                 'lastSeen' => 'date',
-                'teleport' => 'hop',
+                'uri' => 'link',
             ])
             ->and($listing->sorts())
             ->toBe(['name', 'location', 'size', 'flags', 'lastSeen'])
@@ -309,16 +308,17 @@ describe('Regions', function () {
             ])
             ->and(array_intersect_key($listing->filters[0], ['multiple' => 1, 'dynamic' => 1]))
             ->toBe(['multiple' => true, 'dynamic' => true])
-            ->and($listing->columns[5]['values'][8])
+            ->and($listing->columns[4]['values'][8])
             ->toBe([
                 'value' => 'DefaultHGRegion',
                 'label' => 'region_flag_default_hg_region',
                 'description' => 'region_flag_default_hg_region_help',
             ])
-            ->and(array_column($listing->columns[5]['values'], 'value'))
+            ->and(array_column($listing->columns[4]['values'], 'value'))
             ->toBe(Region::flagNames(2047))
-            ->and($listing->columns[0]['default'])
-            ->toBe('place')
+            // The map tile of the region beside its name, as the picture of an avatar
+            ->and(array_intersect_key($listing->columns[0], ['picture' => 1, 'default' => 1]))
+            ->toBe(['picture' => 'mapImage', 'default' => 'place'])
             ->and($listing->filters[1])
             ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid'])
             ->and(array_column($listing->actions, 'body', 'name'))

@@ -796,6 +796,10 @@ msgctxt "column_address"
 msgid "Address"
 msgstr "Adres"
 
+msgctxt "column_server"
+msgid "Server"
+msgstr "Server"
+
 msgctxt "column_enabled"
 msgid "Enabled"
 msgstr "Ingeschakeld"
