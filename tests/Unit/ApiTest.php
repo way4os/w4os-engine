@@ -586,7 +586,7 @@ describe('The contract', function () {
             ->and($parameters($regions)['filter[owner]'])
             ->toBe(['type' => 'string'])
             ->and(array_keys($parameters($regions)))
-            ->toContain('filter[simulator]', 'filter[default]', 'filter[fallback]')
+            ->toContain('filter[simulator]', 'filter[flags]', 'filter[owner]')
             ->and($regions['x-list']['columns'][8])
             ->toBe(['name' => 'teleport', 'label' => 'profile_teleport', 'type' => 'hop'])
             ->and($described)

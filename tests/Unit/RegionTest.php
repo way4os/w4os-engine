@@ -63,6 +63,22 @@ describe('flags of a region', function () {
         ])->toBe([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]);
     });
 
+    test('are named as OpenSimulator names them (OpenSim.Framework.RegionFlags, the regions table), not as LSL does', function () {
+        expect(Region::FLAGS)->toBe([
+            1 => 'DefaultRegion',
+            2 => 'FallbackRegion',
+            4 => 'RegionOnline',
+            8 => 'NoDirectLogin',
+            16 => 'Persistent',
+            32 => 'LockedOut',
+            64 => 'NoMove',
+            128 => 'Reservation',
+            256 => 'Authenticate',
+            512 => 'Hyperlink',
+            1024 => 'DefaultHGRegion',
+        ]);
+    });
+
     test('have the name the config of Robust gives them, and a label to show', function () {
         expect(Region::flagName(Region::DEFAULT_HGREGION))
             ->toBe('DefaultHGRegion')
@@ -116,7 +132,7 @@ describe('Regions', function () {
             ->and($list->total())
             ->toBe(3)
             ->and($list->applied())
-            ->toBe(['hyperlink' => 'no']);
+            ->toBe([]);
 
         $welcome = $list->last()->detail();
         expect($welcome['uuid'])
@@ -185,27 +201,37 @@ describe('Regions', function () {
             ->toBe(1700000000);
     });
 
-    test('are filtered, a link to another grid only when asked', function () {
+    test('are filtered by their flags, any of the ones asked, a link to another grid only when asked', function () {
         Connections::using(static fn() => region_database());
         $config = region_config();
         $names = static fn(array $filters) => array_column(
             Region::all($config, ['filters' => $filters])->array(),
             'name',
         );
+        $list = Region::all($config, ['filters' => ['flags' => 'DefaultRegion, DefaultHGRegion']]);
 
-        expect($names(['online' => 'yes']))
+        expect($names([]))
+            ->toBe(['Garden', 'Quiet Harbour', 'Welcome'])
+            ->and($names(['flags' => 'RegionOnline']))
             ->toBe(['Garden', 'Welcome'])
-            ->and($names(['online' => 'no']))
-            ->toBe(['Quiet Harbour'])
-            ->and($names(['default' => 'yes']))
+            ->and(array_column($list->array(), 'name'))
             ->toBe(['Quiet Harbour', 'Welcome'])
-            ->and($names(['fallback' => 'yes']))
+            ->and($list->applied())
+            ->toBe(['flags' => 'DefaultRegion,DefaultHGRegion'])
+            ->and($names(['flags' => 'FallbackRegion']))
             ->toBe(['Garden'])
-            ->and($names(['hyperlink' => 'yes']))
+            ->and($names(['flags' => 'Hyperlink']))
             ->toBe(['Far Away'])
-            ->and(fn() => $names(['hyperlink' => 'bogus']))
+            ->and($names(['flags' => 'Persistent,Hyperlink']))
+            ->toBe(['Far Away', 'Garden', 'Quiet Harbour'])
+            ->and($names(['flags' => 'NoMove']))
+            ->toBe([])
+            // The flags the regions have now, in the order of the table: the values of the filter that give something
+            ->and($list->available())
+            ->toBe(['flags' => ['DefaultRegion', 'FallbackRegion', 'RegionOnline', 'Persistent', 'Hyperlink', 'DefaultHGRegion']])
+            ->and(fn() => $names(['flags' => 'DefaultRegion,Bogus']))
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
-            ->and(fn() => $names(['nonsense' => 'yes']))
+            ->and(fn() => $names(['online' => 'yes']))
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'));
     });
 
@@ -216,14 +242,14 @@ describe('Regions', function () {
             Region::all($config, ['filters' => $filters])->array(),
             'name',
         );
-        $teleports = array_column(Region::all($config, ['filters' => ['hyperlink' => 'yes']])->array(), 'teleport');
+        $teleports = array_column(Region::all($config, ['filters' => ['flags' => 'Hyperlink']])->array(), 'teleport');
 
         expect($names(['owner' => '11111111-1111-1111-1111-111111111111']))
             ->toBe(['Garden', 'Welcome'])
-            ->and($names(['owner' => '11111111-1111-1111-1111-111111111111', 'online' => 'no']))
-            ->toBe([])
+            ->and($names(['owner' => '11111111-1111-1111-1111-111111111111', 'flags' => 'DefaultHGRegion']))
+            ->toBe(['Welcome'])
             ->and(Region::all($config, ['filters' => ['owner' => '11111111-1111-1111-1111-111111111111']])->applied())
-            ->toBe(['hyperlink' => 'no', 'owner' => '11111111-1111-1111-1111-111111111111'])
+            ->toBe(['owner' => '11111111-1111-1111-1111-111111111111'])
             ->and(Region::find($config, 'Quiet Harbour')->detail()['teleport'])
             ->toBe('hop://play.example.org:8002/Quiet+Harbour')
             ->and($teleports)
@@ -274,15 +300,18 @@ describe('Regions', function () {
             ->and($listing->sorts())
             ->toBe(['name', 'location', 'size', 'flags', 'lastSeen'])
             ->and($listing->filterValues())
+            ->toBe(['flags' => array_values(Region::FLAGS), 'owner' => [], 'simulator' => []])
+            ->and($listing->filters[0]['values'][0])
             ->toBe([
-                'online' => ['yes', 'no'],
-                'default' => ['yes', 'no'],
-                'fallback' => ['yes', 'no'],
-                'hyperlink' => ['yes', 'no'],
-                'owner' => [],
-                'simulator' => [],
+                'value' => 'DefaultRegion',
+                'label' => 'region_flag_default_region',
+                'description' => 'region_flag_default_region_help',
             ])
-            ->and($listing->filters[4])
+            ->and(array_intersect_key($listing->filters[0], ['multiple' => 1, 'dynamic' => 1]))
+            ->toBe(['multiple' => true, 'dynamic' => true])
+            ->and($listing->columns[5]['labels']['DefaultHGRegion'])
+            ->toBe('region_flag_default_hg_region')
+            ->and($listing->filters[1])
             ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid'])
             ->and(array_column($listing->actions, 'body', 'name'))
             ->toBe(['enable' => ['enabled' => true], 'disable' => ['enabled' => false]])

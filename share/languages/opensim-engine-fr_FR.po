@@ -678,17 +678,101 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Rôles"
 
-msgctxt "filter_default"
+msgctxt "column_flags"
+msgid "Flags"
+msgstr "Indicateurs"
+
+msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Région par défaut"
 
-msgctxt "filter_fallback"
+msgctxt "region_flag_default_hg_region"
+msgid "Default hypergrid region"
+msgstr "Région par défaut de l'hypergrid"
+
+msgctxt "region_flag_fallback_region"
 msgid "Fallback region"
 msgstr "Région de repli"
 
-msgctxt "filter_hyperlink"
+msgctxt "region_flag_no_direct_login"
+msgid "No direct login"
+msgstr "Pas de connexion directe"
+
+msgctxt "region_flag_persistent"
+msgid "Persistent"
+msgstr "Persistante"
+
+msgctxt "region_flag_locked_out"
+msgid "Locked out"
+msgstr "Verrouillée"
+
+msgctxt "region_flag_reservation"
+msgid "Reservation"
+msgstr "Réservation"
+
+msgctxt "region_flag_no_move"
+msgid "No move"
+msgstr "Immobile"
+
+msgctxt "region_flag_authenticate"
+msgid "Authenticate"
+msgstr "Authentification"
+
+msgctxt "region_flag_region_online"
+msgid "Online"
+msgstr "En ligne"
+
+msgctxt "region_flag_hyperlink"
 msgid "Hypergrid link"
 msgstr "Lien hypergrid"
+
+msgctxt "region_flag_default_region_help"
+msgid ""
+"Where avatars arrive when they do not ask for a region; one at random when "
+"there are several."
+msgstr "Où arrivent les avatars qui ne demandent pas de région ; une au hasard s'il y en a plusieurs."
+
+msgctxt "region_flag_fallback_region_help"
+msgid "Where avatars are sent when the region they ask for is down."
+msgstr "Où sont envoyés les avatars quand la région demandée est arrêtée."
+
+msgctxt "region_flag_region_online_help"
+msgid ""
+"The region is running: set when it comes online, unset when it leaves the "
+"grid."
+msgstr "La région tourne : posé quand elle arrive en ligne, retiré quand elle quitte la grille."
+
+msgctxt "region_flag_no_direct_login_help"
+msgid "Avatars cannot log in to it directly by its name."
+msgstr "Les avatars ne peuvent pas s'y connecter directement par son nom."
+
+msgctxt "region_flag_persistent_help"
+msgid "Kept in the list of the grid when it leaves."
+msgstr "Gardée dans la liste de la grille quand elle la quitte."
+
+msgctxt "region_flag_locked_out_help"
+msgid "The region is not allowed to register."
+msgstr "La région n'a pas le droit de s'enregistrer."
+
+msgctxt "region_flag_no_move_help"
+msgid "The region cannot be moved on the map."
+msgstr "La région ne peut pas être déplacée sur la carte."
+
+msgctxt "region_flag_reservation_help"
+msgid "An inactive reservation of a place on the map."
+msgstr "Une réservation inactive d'une place sur la carte."
+
+msgctxt "region_flag_authenticate_help"
+msgid "Visitors must be authenticated."
+msgstr "Les visiteurs doivent être authentifiés."
+
+msgctxt "region_flag_hyperlink_help"
+msgid "A link to a region of another grid."
+msgstr "Un lien vers une région d'une autre grille."
+
+msgctxt "region_flag_default_hg_region_help"
+msgid "Where visitors from other grids arrive, for hypergrid teleports only."
+msgstr "Où arrivent les visiteurs d'autres grilles, pour les téléportations hypergrid seulement."
 
 msgctxt "filter_simulator"
 msgid "Simulator"
@@ -1064,6 +1148,18 @@ msgstr "Cet avatar n’attend pas de confirmation de son e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Le message n’a pas pu partir. Merci de réessayer plus tard."
+
+#~ msgctxt "filter_hyperlink"
+#~ msgid "Hypergrid link"
+#~ msgstr "Lien hypergrid"
+
+#~ msgctxt "filter_default"
+#~ msgid "Default region"
+#~ msgstr "Région par défaut"
+
+#~ msgctxt "filter_fallback"
+#~ msgid "Fallback region"
+#~ msgstr "Région de repli"
 
 #~ msgctxt "first_life"
 #~ msgid "Real Life"

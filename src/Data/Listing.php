@@ -94,20 +94,59 @@ final class Listing
      * A filter: its name in `filter[<name>]`, the key of its title, and its values with the keys of their texts in their order. A
      * filter without values takes any value of the format it says (`uuid`, or what identifies a resource: `simulator`...).
      *
-     * @param array<string,string> $values value => key of its text
+     * @param array<string,string|array{0:string,1:string}> $values value => key of its text, or the keys of its text and of what
+     *        explains it (`description`, a tooltip)
+     * @param array<string,mixed> $more `multiple`: it takes several of its values at once, separated by commas, and keeps what has
+     *        any of them; `dynamic`: the values the data has now are in `meta.available.<name>` of the list, the others give nothing
      */
-    public static function filter(string $name, string $label, array $values = self::YES_NO, ?string $format = null): array
-    {
+    public static function filter(
+        string $name,
+        string $label,
+        array $values = self::YES_NO,
+        ?string $format = null,
+        array $more = [],
+    ): array {
         return ['name' => $name, 'label' => $label] +
             ($values === []
                 ? ['format' => $format ?? 'string']
                 : [
                     'values' => array_map(
-                        static fn(string $value, string $key): array => ['value' => $value, 'label' => $key],
-                        array_keys($values),
+                        static fn(string $value, string|array $key): array => ['value' => $value] +
+                            (is_array($key) ? ['label' => $key[0], 'description' => $key[1]] : ['label' => $key]),
+                        array_map('strval', array_keys($values)),
                         $values,
                     ),
-                ]);
+                ]) +
+            $more;
+    }
+
+    /** Whether a filter takes several values at once. */
+    public function multiple(string $name): bool
+    {
+        foreach ($this->filters as $filter) {
+            if ($filter['name'] === $name) {
+                return (bool) ($filter['multiple'] ?? false);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The values a filter asks for: the value, or each of the values of a filter that takes several.
+     *
+     * @return list<string>
+     */
+    public function asked(string $name, mixed $value): array
+    {
+        $value = is_scalar($value) ? trim((string) $value) : '';
+        if ($value === '') {
+            return [];
+        }
+
+        return $this->multiple($name)
+            ? array_values(array_filter(array_map('trim', explode(',', $value)), static fn(string $one): bool => $one !== ''))
+            : [$value];
     }
 
     /**
@@ -156,14 +195,13 @@ final class Listing
                     'filter-unknown',
                     "'$name' is not a filter of this list: " . implode(', ', array_keys($values)),
                 );
-            $value = is_scalar($value) ? (string) $value : '';
-            $value === '' ||
-                $values[$name] === [] ||
-                in_array($value, $values[$name], true) ||
-                throw InvalidValue::because(
-                    'filter-value-unknown',
-                    "'$value' is not a value of the filter $name: " . implode(', ', $values[$name]),
-                );
+            foreach ($values[$name] === [] ? [] : $this->asked($name, $value) as $one) {
+                in_array($one, $values[$name], true) ||
+                    throw InvalidValue::because(
+                        'filter-value-unknown',
+                        "'$one' is not a value of the filter $name: " . implode(', ', $values[$name]),
+                    );
+            }
         }
         $sort = trim((string) ($options['sort'] ?? ''));
         if ($sort === '') {
@@ -240,7 +278,12 @@ final class Listing
     {
         $keys = [...array_column($this->columns, 'label'), ...array_column($this->columns, 'tagLabel')];
         foreach ($this->filters as $filter) {
-            array_push($keys, $filter['label'], ...array_column($filter['values'] ?? [], 'label'));
+            array_push(
+                $keys,
+                $filter['label'],
+                ...array_column($filter['values'] ?? [], 'label'),
+                ...array_column($filter['values'] ?? [], 'description'),
+            );
         }
 
         return array_values(array_unique([...$keys, ...array_column($this->actions, 'label')]));

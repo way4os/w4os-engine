@@ -2,12 +2,12 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "15d20e2",
+        "version": "d02a515",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
         },
-        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
+        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it; `labels` the keys of the texts of the words of a `list`), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value; `multiple` for one that takes several values separated by commas, keeping what has any of them; `dynamic` for one whose values that give something are in `meta.available.<name>` of the list) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
     },
     "servers": [
         {
@@ -2882,48 +2882,12 @@
                         }
                     },
                     {
-                        "name": "filter[online]",
+                        "name": "filter[flags]",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "filter[default]",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "filter[fallback]",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "filter[hyperlink]",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
-                            ]
-                        }
+                            "type": "string"
+                        },
+                        "description": "One or more of DefaultRegion, FallbackRegion, RegionOnline, NoDirectLogin, Persistent, LockedOut, NoMove, Reservation, Authenticate, Hyperlink, DefaultHGRegion, separated by commas: what has any of them"
                     },
                     {
                         "name": "filter[owner]",
@@ -3028,7 +2992,18 @@
                             "name": "roles",
                             "label": "column_roles",
                             "type": "list",
-                            "sort": "flags"
+                            "sort": "flags",
+                            "labels": {
+                                "DefaultRegion": "region_flag_default_region",
+                                "FallbackRegion": "region_flag_fallback_region",
+                                "NoDirectLogin": "region_flag_no_direct_login",
+                                "Persistent": "region_flag_persistent",
+                                "LockedOut": "region_flag_locked_out",
+                                "NoMove": "region_flag_no_move",
+                                "Reservation": "region_flag_reservation",
+                                "Authenticate": "region_flag_authenticate",
+                                "DefaultHGRegion": "region_flag_default_hg_region"
+                            }
                         },
                         {
                             "name": "online",
@@ -3063,60 +3038,67 @@
                     ],
                     "filters": [
                         {
-                            "name": "online",
-                            "label": "online",
+                            "name": "flags",
+                            "label": "column_flags",
                             "values": [
                                 {
-                                    "value": "yes",
-                                    "label": "yes"
+                                    "value": "DefaultRegion",
+                                    "label": "region_flag_default_region",
+                                    "description": "region_flag_default_region_help"
                                 },
                                 {
-                                    "value": "no",
-                                    "label": "no"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "default",
-                            "label": "filter_default",
-                            "values": [
-                                {
-                                    "value": "yes",
-                                    "label": "yes"
+                                    "value": "FallbackRegion",
+                                    "label": "region_flag_fallback_region",
+                                    "description": "region_flag_fallback_region_help"
                                 },
                                 {
-                                    "value": "no",
-                                    "label": "no"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "fallback",
-                            "label": "filter_fallback",
-                            "values": [
-                                {
-                                    "value": "yes",
-                                    "label": "yes"
+                                    "value": "RegionOnline",
+                                    "label": "region_flag_region_online",
+                                    "description": "region_flag_region_online_help"
                                 },
                                 {
-                                    "value": "no",
-                                    "label": "no"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "hyperlink",
-                            "label": "filter_hyperlink",
-                            "values": [
-                                {
-                                    "value": "yes",
-                                    "label": "yes"
+                                    "value": "NoDirectLogin",
+                                    "label": "region_flag_no_direct_login",
+                                    "description": "region_flag_no_direct_login_help"
                                 },
                                 {
-                                    "value": "no",
-                                    "label": "no"
+                                    "value": "Persistent",
+                                    "label": "region_flag_persistent",
+                                    "description": "region_flag_persistent_help"
+                                },
+                                {
+                                    "value": "LockedOut",
+                                    "label": "region_flag_locked_out",
+                                    "description": "region_flag_locked_out_help"
+                                },
+                                {
+                                    "value": "NoMove",
+                                    "label": "region_flag_no_move",
+                                    "description": "region_flag_no_move_help"
+                                },
+                                {
+                                    "value": "Reservation",
+                                    "label": "region_flag_reservation",
+                                    "description": "region_flag_reservation_help"
+                                },
+                                {
+                                    "value": "Authenticate",
+                                    "label": "region_flag_authenticate",
+                                    "description": "region_flag_authenticate_help"
+                                },
+                                {
+                                    "value": "Hyperlink",
+                                    "label": "region_flag_hyperlink",
+                                    "description": "region_flag_hyperlink_help"
+                                },
+                                {
+                                    "value": "DefaultHGRegion",
+                                    "label": "region_flag_default_hg_region",
+                                    "description": "region_flag_default_hg_region_help"
                                 }
-                            ]
+                            ],
+                            "multiple": true,
+                            "dynamic": true
                         },
                         {
                             "name": "owner",
@@ -3276,7 +3258,18 @@
                             "label": "column_roles",
                             "type": "list",
                             "group": "region",
-                            "readOnly": true
+                            "readOnly": true,
+                            "labels": {
+                                "DefaultRegion": "region_flag_default_region",
+                                "FallbackRegion": "region_flag_fallback_region",
+                                "NoDirectLogin": "region_flag_no_direct_login",
+                                "Persistent": "region_flag_persistent",
+                                "LockedOut": "region_flag_locked_out",
+                                "NoMove": "region_flag_no_move",
+                                "Reservation": "region_flag_reservation",
+                                "Authenticate": "region_flag_authenticate",
+                                "DefaultHGRegion": "region_flag_default_hg_region"
+                            }
                         },
                         {
                             "name": "online",

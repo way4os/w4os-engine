@@ -125,6 +125,16 @@ final class Collection implements \Countable, \IteratorAggregate, \JsonSerializa
     }
 
     /**
+     * The values of the dynamic filters (Listing) that the data has now, by filter: the ones that give something.
+     *
+     * @return array<string,list<string>>
+     */
+    public function available(): array
+    {
+        return $this->meta['available'] ?? [];
+    }
+
+    /**
      * The items themselves.
      *
      * @return list<mixed>

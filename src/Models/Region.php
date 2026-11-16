@@ -62,6 +62,21 @@ final class Region extends Model
     public const HYPERLINK = 512;
     public const DEFAULT_HGREGION = 1024;
 
+    /** Every flag of the regions table, by its value, named as OpenSimulator does (OpenSim.Framework.RegionFlags). */
+    public const FLAGS = [
+        self::DEFAULT_REGION => 'DefaultRegion',
+        self::FALLBACK_REGION => 'FallbackRegion',
+        self::REGION_ONLINE => 'RegionOnline',
+        self::NO_DIRECT_LOGIN => 'NoDirectLogin',
+        self::PERSISTENT => 'Persistent',
+        self::LOCKED_OUT => 'LockedOut',
+        self::NO_MOVE => 'NoMove',
+        self::RESERVATION => 'Reservation',
+        self::AUTHENTICATE => 'Authenticate',
+        self::HYPERLINK => 'Hyperlink',
+        self::DEFAULT_HGREGION => 'DefaultHGRegion',
+    ];
+
     /** The flags a region can be given in the config of Robust (Region_<Name> = "DefaultRegion, Persistent"), by their name there. */
     private const NAMES = [
         self::DEFAULT_REGION => 'DefaultRegion',
@@ -531,6 +546,7 @@ final class Region extends Model
                 'columns' => $list->columns(),
                 'filters' => $list->filters(),
                 'applied' => $list->applied(),
+                'available' => $list->available(),
             ];
         } catch (ChannelUnavailable $e) {
             $problem = $e->getMessage();
@@ -585,7 +601,7 @@ final class Region extends Model
             $asked = trim((string) $filter);
             $kept = match ($name) {
                 // What only the grid knows of a region: its owner
-                'owner' => $asked === '',
+                'owner', 'flags' => $asked === '',
                 'simulator' => $asked === '' || $asked === $this->simulator(),
                 default => $asked !== 'yes',
             };
@@ -705,21 +721,16 @@ final class Region extends Model
                         implode(', ', array_map(static fn(int $i): string => ":u$i", array_keys($uuids))) .
                         ')';
         }
-        $filters = [
-            'online' => self::REGION_ONLINE,
-            'default' => self::DEFAULT_REGION | self::DEFAULT_HGREGION,
-            'fallback' => self::FALLBACK_REGION,
-            'hyperlink' => self::HYPERLINK,
-        ];
         $asked = (array) ($options['filters'] ?? []);
-        $asked['hyperlink'] = ($asked['hyperlink'] ?? '') === 'yes' ? 'yes' : 'no';
         $applied = [];
-        foreach ($filters as $name => $mask) {
-            if (in_array($asked[$name] ?? null, ['yes', 'no'], true)) {
-                $where[] = '(r.flags & ' . $mask . ($asked[$name] === 'yes' ? ') <> 0' : ') = 0');
-                $applied[$name] = $asked[$name];
-            }
+        // The regions that have any of the flags asked (DefaultRegion,DefaultHGRegion); the links to other grids only when asked
+        $flags = self::listing()->asked('flags', $asked['flags'] ?? '');
+        $mask = array_sum(array_map(static fn(string $name): int => (int) array_search($name, self::FLAGS, true), $flags));
+        if ($flags !== []) {
+            $where[] = "(r.flags & $mask) <> 0";
+            $applied['flags'] = implode(',', $flags);
         }
+        ($mask & self::HYPERLINK) !== 0 || ($where[] = '(r.flags & ' . self::HYPERLINK . ') = 0');
         $owner = strtolower(trim((string) ($asked['owner'] ?? '')));
         if ($owner !== '') {
             $where[] = 'LOWER(r.PrincipalID) = :owner';
@@ -765,6 +776,20 @@ final class Region extends Model
             'search' => trim((string) ($options['search'] ?? '')),
             'columns' => self::columns(),
             'filters' => self::listing()->filterValues(),
+            // The flags the regions of the grid have now: the values of the filter that give something
+            'available' => [
+                'flags' => array_values(
+                    array_filter(
+                        self::FLAGS,
+                        static fn(int $flag): bool => ($flag & array_reduce(
+                            $pdo->get_results('SELECT DISTINCT flags FROM regions', [], \PDO::FETCH_COLUMN),
+                            static fn(int $all, mixed $flags): int => $all | (int) $flags,
+                            0,
+                        )) !== 0,
+                        ARRAY_FILTER_USE_KEY,
+                    ),
+                ),
+            ],
             'applied' => $applied,
         ]);
     }
@@ -829,16 +854,13 @@ final class Region extends Model
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('size', 'column_size', 'size', 'size'),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
-                Listing::column('roles', 'column_roles', 'list', 'flags'),
+                Listing::column('roles', 'column_roles', 'list', 'flags', ['labels' => self::roleKeys()]),
                 Listing::column('online', 'online', 'boolean'),
                 Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
                 Listing::column('teleport', 'profile_teleport', 'hop'),
             ],
             [
-                Listing::filter('online', 'online'),
-                Listing::filter('default', 'filter_default'),
-                Listing::filter('fallback', 'filter_fallback'),
-                Listing::filter('hyperlink', 'filter_hyperlink'),
+                Listing::filter('flags', 'column_flags', self::flagKeys(true), more: ['multiple' => true, 'dynamic' => true]),
                 Listing::filter('owner', 'column_owner', [], 'uuid'),
                 Listing::filter('simulator', 'filter_simulator', [], 'simulator'),
             ],
@@ -876,7 +898,7 @@ final class Region extends Model
                 ItemForm::shown('location', 'profile_location', 'text', 'region'),
                 ItemForm::shown('size', 'column_size', 'size', 'region'),
                 ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile']),
-                ItemForm::shown('roles', 'column_roles', 'list', 'region'),
+                ItemForm::shown('roles', 'column_roles', 'list', 'region', ['labels' => self::roleKeys()]),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
                 ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
                 ItemForm::shown('teleport', 'profile_teleport', 'hop', 'region'),
@@ -888,6 +910,34 @@ final class Region extends Model
             [ItemForm::group('region', 'column_region'), ItemForm::group('simulator', 'filter_simulator')],
             self::listing()->actions,
         );
+    }
+
+    /**
+     * The flags of the regions table (FLAGS), with the keys of their texts in the catalog: `region_flag_` and the name in snake case
+     * (DefaultHGRegion: region_flag_default_hg_region), and with `_help` what it means, as OpenSimulator says it.
+     *
+     * @param bool $help the keys of what they mean too
+     * @return array<string,string|array{0:string,1:string}> name => key, or [key, key of what it means]
+     */
+    public static function flagKeys(bool $help = false): array
+    {
+        $keys = [];
+        foreach (self::FLAGS as $name) {
+            $key = 'region_flag_' . strtolower((string) preg_replace('/(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '_', $name));
+            $keys[$name] = $help ? [$key, $key . '_help'] : $key;
+        }
+
+        return $keys;
+    }
+
+    /**
+     * The roles a region can have (the flags the config of Robust gives, NAMES), with the keys of their texts in the catalog.
+     *
+     * @return array<string,string> name => key
+     */
+    public static function roleKeys(): array
+    {
+        return array_intersect_key(self::flagKeys(), array_flip(self::NAMES));
     }
 
     /** What a flag is called for a person ("Default Region"). */

@@ -638,16 +638,96 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr ""
 
-msgctxt "filter_default"
+msgctxt "column_flags"
+msgid "Flags"
+msgstr ""
+
+msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr ""
 
-msgctxt "filter_fallback"
+msgctxt "region_flag_default_hg_region"
+msgid "Default hypergrid region"
+msgstr ""
+
+msgctxt "region_flag_fallback_region"
 msgid "Fallback region"
 msgstr ""
 
-msgctxt "filter_hyperlink"
+msgctxt "region_flag_no_direct_login"
+msgid "No direct login"
+msgstr ""
+
+msgctxt "region_flag_persistent"
+msgid "Persistent"
+msgstr ""
+
+msgctxt "region_flag_locked_out"
+msgid "Locked out"
+msgstr ""
+
+msgctxt "region_flag_reservation"
+msgid "Reservation"
+msgstr ""
+
+msgctxt "region_flag_no_move"
+msgid "No move"
+msgstr ""
+
+msgctxt "region_flag_authenticate"
+msgid "Authenticate"
+msgstr ""
+
+msgctxt "region_flag_region_online"
+msgid "Online"
+msgstr ""
+
+msgctxt "region_flag_hyperlink"
 msgid "Hypergrid link"
+msgstr ""
+
+msgctxt "region_flag_default_region_help"
+msgid "Where avatars arrive when they do not ask for a region; one at random when there are several."
+msgstr ""
+
+msgctxt "region_flag_fallback_region_help"
+msgid "Where avatars are sent when the region they ask for is down."
+msgstr ""
+
+msgctxt "region_flag_region_online_help"
+msgid "The region is running: set when it comes online, unset when it leaves the grid."
+msgstr ""
+
+msgctxt "region_flag_no_direct_login_help"
+msgid "Avatars cannot log in to it directly by its name."
+msgstr ""
+
+msgctxt "region_flag_persistent_help"
+msgid "Kept in the list of the grid when it leaves."
+msgstr ""
+
+msgctxt "region_flag_locked_out_help"
+msgid "The region is not allowed to register."
+msgstr ""
+
+msgctxt "region_flag_no_move_help"
+msgid "The region cannot be moved on the map."
+msgstr ""
+
+msgctxt "region_flag_reservation_help"
+msgid "An inactive reservation of a place on the map."
+msgstr ""
+
+msgctxt "region_flag_authenticate_help"
+msgid "Visitors must be authenticated."
+msgstr ""
+
+msgctxt "region_flag_hyperlink_help"
+msgid "A link to a region of another grid."
+msgstr ""
+
+msgctxt "region_flag_default_hg_region_help"
+msgid "Where visitors from other grids arrive, for hypergrid teleports only."
 msgstr ""
 
 msgctxt "filter_simulator"

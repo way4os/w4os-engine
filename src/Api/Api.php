@@ -206,7 +206,9 @@ final class Api
                 'sort' => $collection->sort(),
                 'search' => $collection->search(),
                 'filters' => $collection->applied(),
-            ] + ($type === 'avatars' ? ['profileFlags' => Avatar::profileFlags()] : []),
+            ] +
+                ($collection->available() === [] ? [] : ['available' => $collection->available()]) +
+                ($type === 'avatars' ? ['profileFlags' => Avatar::profileFlags()] : []),
             'links' => ['self' => $instance],
         ]);
     }
