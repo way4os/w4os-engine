@@ -15,12 +15,16 @@ final class RandomName
      * from lists that have an accent. Empty when none was found, the caller proposes nothing then.
      *
      * @param \Closure(string):?string $problem returns why a name is refused, null when it is fine
+     * @param ?\Closure():string $words the names to try (default: the alliterations of RandomNameGenerator)
      */
-    public static function make(\Closure $problem): string
+    public static function make(\Closure $problem, ?\Closure $words = null): string
     {
-        $generator = new Alliteration();
+        if ($words === null) {
+            $generator = new Alliteration();
+            $words = static fn(): string => $generator->getName();
+        }
         for ($i = 0; $i < 50; $i++) {
-            $name = Slug::ascii($generator->getName());
+            $name = Slug::ascii($words());
             if ($problem($name) === null) {
                 return $name;
             }

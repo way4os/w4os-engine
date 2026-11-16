@@ -10,6 +10,9 @@ use OpenSim\Models\Grid;
 use OpenSim\Controllers\RobustController;
 use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\GridPlanner;
+use OpenSim\Provisioning\RandomName;
+use OpenSim\Provisioning\Slug;
+use Nubs\RandomNameGenerator\Alliteration;
 use OpenSim\Runtime\Environment;
 use OpenSim\Testing\Machine;
 use OpenSim\Testing\EnvironmentFake;
@@ -92,11 +95,47 @@ function robust_current(array $set): RobustController
     return new RobustController(EnvironmentFake::with([]), "$directory/Robust.ini", 'amy');
 }
 
+/** A portable grid name: words of ASCII letters, a hyphen inside a word ("Old-fashioned Owl"). */
+const PORTABLE_NAME = '/^[A-Za-z]+(?:-[A-Za-z]+)*(?: [A-Za-z]+(?:-[A-Za-z]+)*)+$/';
+
 test('proposes a portable grid name', function () {
     $name = GridPlanner::defaultName();
-    expect($name)->not->toContain("'s ")
-        ->and(Grid::validateName($name))->toBeNull()
-        ->and($name)->toMatch('/^[A-Za-z]+(?: [A-Za-z]+)+$/');
+
+    expect(Grid::validateName($name))->toBeNull()->and($name)->toMatch(PORTABLE_NAME);
+});
+
+test('proposes the first name the rule takes, in ASCII, or none', function () {
+    $from = static function (array $names): \Closure {
+        return static function () use (&$names): string {
+            return (string) array_shift($names);
+        };
+    };
+    $rule = static fn(string $name): ?string => Grid::validateName($name);
+
+    expect(RandomName::make($rule, $from(['Énergique Eel'])))
+        ->toBe('Energique Eel')
+        ->and(RandomName::make($rule, $from(['Old-Fashioned Owl'])))
+        ->toBe('Old-Fashioned Owl')
+        ->and(RandomName::make(static fn(string $name): ?string => $name === 'Taken Tern' ? 'taken' : null, $from(['Taken Tern', 'Free Finch'])))
+        ->toBe('Free Finch')
+        ->and(RandomName::make(static fn(): string => 'refused', $from([])))
+        ->toBe('');
+});
+
+test('makes, from every word of its lists, a name the rule of a grid takes', function () {
+    $lists = dirname((new ReflectionClass(Alliteration::class))->getFileName());
+    $adjectives = file("$lists/adjectives.txt", FILE_IGNORE_NEW_LINES);
+    $nouns = file("$lists/nouns.txt", FILE_IGNORE_NEW_LINES);
+    $names = [
+        ...array_map(static fn(string $word): string => ucwords("$word owl"), $adjectives),
+        ...array_map(static fn(string $word): string => ucwords("old $word"), $nouns),
+    ];
+    $refused = array_filter(
+        array_map(static fn(string $name): string => Slug::ascii($name), $names),
+        static fn(string $name): bool => Grid::validateName($name) !== null || preg_match(PORTABLE_NAME, $name) !== 1,
+    );
+
+    expect($names)->toHaveCount(count($adjectives) + count($nouns))->and($refused)->toBe([]);
 });
 
 describe('A new grid', function () {
