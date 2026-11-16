@@ -352,6 +352,18 @@ msgctxt "inactive"
 msgid "Inactive"
 msgstr "Anweithredol"
 
+msgctxt "status_active"
+msgid "Active"
+msgstr "Gweithgar"
+
+msgctxt "status_disabled"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "status_pending"
+msgid "Waiting for the confirmation of its email"
+msgstr ""
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Galluogi"
@@ -361,8 +373,8 @@ msgid "Disable"
 msgstr "Dad-ddisodli"
 
 msgctxt "action_reset"
-msgid "Password link"
-msgstr "Dolen cyfrinair"
+msgid "Send a password reset link"
+msgstr ""
 
 msgctxt "action_delete"
 msgid "Delete"
@@ -537,3 +549,7 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#~ msgctxt "action_reset"
+#~ msgid "Password link"
+#~ msgstr "Dolen cyfrinair"

@@ -351,6 +351,18 @@ msgctxt "inactive"
 msgid "Inactive"
 msgstr "Inativo"
 
+msgctxt "status_active"
+msgid "Active"
+msgstr "Ativo"
+
+msgctxt "status_disabled"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "status_pending"
+msgid "Waiting for the confirmation of its email"
+msgstr ""
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Ativar"
@@ -360,8 +372,8 @@ msgid "Disable"
 msgstr "Desativar"
 
 msgctxt "action_reset"
-msgid "Password link"
-msgstr "Link de senha"
+msgid "Send a password reset link"
+msgstr ""
 
 msgctxt "action_delete"
 msgid "Delete"
@@ -524,3 +536,7 @@ msgstr "Este avatar não aguarda a confirmação do email."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "O email não pôde ser enviado. Tente de novo mais tarde."
+
+#~ msgctxt "action_reset"
+#~ msgid "Password link"
+#~ msgstr "Link de senha"

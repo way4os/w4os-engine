@@ -309,6 +309,18 @@ msgctxt "inactive"
 msgid "Inactive"
 msgstr ""
 
+msgctxt "status_active"
+msgid "Active"
+msgstr ""
+
+msgctxt "status_disabled"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "status_pending"
+msgid "Waiting for the confirmation of its email"
+msgstr ""
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr ""
@@ -318,7 +330,7 @@ msgid "Disable"
 msgstr ""
 
 msgctxt "action_reset"
-msgid "Password link"
+msgid "Send a password reset link"
 msgstr ""
 
 msgctxt "action_delete"

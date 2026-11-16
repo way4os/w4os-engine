@@ -115,9 +115,13 @@ final class Catalog
         'online' => 'Online',
         'active' => 'Active',
         'inactive' => 'Inactive',
+        // The status of an avatar, as the API says it (Avatar::STATUSES): status_ and the status
+        'status_active' => 'Active',
+        'status_disabled' => 'Disabled',
+        'status_pending' => 'Waiting for the confirmation of its email',
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
-        'action_reset' => 'Password link',
+        'action_reset' => 'Send a password reset link',
         'action_delete' => 'Delete',
         'delete_confirm' => 'Delete %s for good, with its inventory?',
         'manage_enable' => '%s is enabled.',
@@ -165,6 +169,12 @@ final class Catalog
     public static function errorKey(string $code): string
     {
         return 'error_' . str_replace('-', '_', $code);
+    }
+
+    /** The key of the text of the status of an avatar (active, disabled, pending). */
+    public static function statusKey(string $status): string
+    {
+        return 'status_' . $status;
     }
 
     /** The text of a problem code in English (the one of `invalid-request` for a code it does not know). */

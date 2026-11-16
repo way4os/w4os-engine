@@ -13,7 +13,6 @@ use OpenSim\Api\Router;
 use OpenSim\Data\Connections;
 use OpenSim\Data\OSPDO;
 use OpenSim\Provisioning\AccountWriter;
-use OpenSim\SignIn\AvatarTokens;
 use OpenSim\SignIn\DatabaseAuthenticator;
 use OpenSim\SignIn\SignInResult;
 
@@ -152,8 +151,7 @@ describe('The API, for the sign-in of an avatar', function () {
     test('tells an avatar that waits for the confirmation of its email from one a manager disabled', function () {
         $pdo = signin_database();
         avatars_in($pdo);
-        $tokens = new AvatarTokens($pdo, new OpenSim\Testing\ClockFake());
-        $tokens->issue(CY, AvatarTokens::EMAIL_CONFIRMATION, 60, 'cy@example.org');
+        $pdo->exec('UPDATE UserAccounts SET UserFlags = ' . OpenSim\Models\Avatar::PENDING_FLAG . " WHERE PrincipalID = '" . CY . "'");
 
         $waiting = (new DatabaseAuthenticator(avatar_grid()))->authenticate('Cy Gone', 'cy-secret');
         $answer = (new Router(machine_api(avatar_grid())))->post('/grids/demo/sign-ins', [

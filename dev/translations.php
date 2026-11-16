@@ -1,8 +1,9 @@
 <?php
 /**
  * Makes the gettext files of the texts of the websites of a grid (OpenSim\I18n\Catalog): the template (.pot) from
- * Catalog::MESSAGES, and the translations (.po) of each language merged with it by msgmerge (gettext tools). A text whose English
- * changed keeps its translation, marked fuzzy for a translator to check; a text removed becomes obsolete (#~).
+ * Catalog::MESSAGES, and the translations (.po) of each language merged with it by msgmerge (gettext tools). A new text, or one
+ * whose English changed, is to translate: msgmerge does not guess it from another (its guesses are other meanings, and the sites
+ * get the fuzzy translations); the old one stays in the file, obsolete (#~), for the translator.
  *
  *     composer translations
  *     php dev/translations.php --seed ~/Projects/w4os/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po
@@ -62,11 +63,10 @@ foreach (Catalog::LOCALES as $locale) {
         $translation = $exact[$text] ?? $known[$normal($text)] ?? null;
         $translation === null || $compendium[] = PoFile::entry($key, $text, $translation);
     }
-    $options = '';
+    $options = '--no-fuzzy-matching';
     if ($seeds !== []) {
-        // The guesses of msgmerge from the seeds are other texts: only the same ones count
         file_put_contents("$scratch/$locale.po", "msgid \"\"\nmsgstr \"Content-Type: text/plain; charset=UTF-8\\n\"\n\n" . implode("\n", $compendium));
-        $options = '--no-fuzzy-matching --compendium=' . escapeshellarg("$scratch/$locale.po");
+        $options .= ' --compendium=' . escapeshellarg("$scratch/$locale.po");
     }
 
     passthru(sprintf('msgmerge --quiet --update --backup=off %s %s %s', $options, escapeshellarg($file), escapeshellarg(Catalog::template())), $status);

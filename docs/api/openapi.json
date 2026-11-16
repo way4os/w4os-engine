@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "7e139eb",
+        "version": "ac69c0f",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1161,11 +1161,11 @@
                                                     },
                                                     "active": {
                                                         "type": "boolean",
-                                                        "description": "The account can log in (the default)"
+                                                        "description": "The account can log in (the default); false: disabled"
                                                     },
                                                     "confirmEmail": {
                                                         "type": "boolean",
-                                                        "description": "The avatar is made inactive and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`"
+                                                        "description": "The avatar is made `pending` and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`"
                                                     },
                                                     "link": {
                                                         "type": "string",
@@ -1331,7 +1331,12 @@
                                                         "type": "integer"
                                                     },
                                                     "active": {
-                                                        "type": "boolean"
+                                                        "type": "boolean",
+                                                        "description": "true: active (a pending avatar too: its confirmation token is forgotten); false: disabled"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "description": "`active`, `disabled` or `pending`; a `pending` avatar that becomes another forgets its confirmation token"
                                                     },
                                                     "password": {
                                                         "type": "string",
@@ -6489,18 +6494,22 @@
                             },
                             "level": {
                                 "type": "integer",
-                                "description": "The user level, 200 and over are gods"
+                                "description": "The user level, 200 and over are gods; the one it has back when it is active again"
                             },
                             "isGod": {
                                 "type": "boolean"
                             },
                             "flags": {
                                 "type": "integer",
-                                "description": "The user flags"
+                                "description": "The user flags (bit 12: waits for the confirmation of its email)"
                             },
                             "active": {
                                 "type": "boolean",
-                                "description": "The account can log in"
+                                "description": "The account can log in (status is active)"
+                            },
+                            "status": {
+                                "type": "string",
+                                "description": "`active`: it can log in; `disabled`: a manager disabled it; `pending`: it waits for the confirmation of its email. Robust refuses the login of an avatar that is not active (its UserLevel is kept below 0, the level it had kept with it)"
                             },
                             "online": {
                                 "type": "boolean",

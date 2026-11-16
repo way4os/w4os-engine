@@ -9,7 +9,6 @@ use OpenSim\Data\Connections;
 use OpenSim\Data\OSPDO;
 use OpenSim\Models\Avatar as AvatarModel;
 use OpenSim\Provisioning\AccountWriter;
-use OpenSim\Runtime\SystemClock;
 
 /**
  * Signs an avatar of the grid in with the databases of its services: the account by its name ("First Last", "First.Last") or its
@@ -61,13 +60,11 @@ final class DatabaseAuthenticator implements AvatarAuthenticator
                 if (!self::matches($auth, (string) $row['PrincipalID'], $password)) {
                     continue;
                 }
-                if ((int) ($row['active'] ?? 1) !== 1) {
-                    return self::waitsForConfirmation($auth, (string) $row['PrincipalID'])
-                        ? SignInResult::refused(
-                            _('The account is not active: its email is not confirmed yet'),
-                            'email-unconfirmed',
-                        )
-                        : SignInResult::refused(_('The account is not active'), 'account-disabled');
+                $refused = self::refusal(
+                    AvatarModel::statusOf((int) $row['UserLevel'], (int) $row['UserFlags'], (int) ($row['active'] ?? 1)),
+                );
+                if ($refused !== null) {
+                    return $refused;
                 }
 
                 return SignInResult::granted(
@@ -94,14 +91,14 @@ final class DatabaseAuthenticator implements AvatarAuthenticator
         return false;
     }
 
-    /** Whether an account that is not active waits for the confirmation of its email, rather than being disabled by a manager. */
-    private static function waitsForConfirmation(OSPDO $auth, string $id): bool
+    /** The refusal of an account in a state that cannot sign in (Avatar::STATUSES), with its reason; null for an active one. */
+    public static function refusal(string $status): ?SignInResult
     {
-        try {
-            return (new AvatarTokens($auth, new SystemClock()))->pending($id, AvatarTokens::EMAIL_CONFIRMATION);
-        } catch (\Throwable) {
-            return false;
-        }
+        return match ($status) {
+            'pending' => SignInResult::refused(_('The account is not active: its email is not confirmed yet'), 'email-unconfirmed'),
+            'disabled' => SignInResult::refused(_('The account is not active'), 'account-disabled'),
+            default => null,
+        };
     }
 
     /** Whether the password is the one Robust keeps for the account: MD5(MD5(password) + ':' + salt). */

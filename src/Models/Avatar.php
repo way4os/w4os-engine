@@ -18,6 +18,8 @@ use OpenSim\Provisioning\GridAccounts;
 use OpenSim\Hypergrid\Destination;
 use OpenSim\Network\GridInfoCache;
 use OpenSim\Provisioning\Slug;
+use OpenSim\Runtime\SystemClock;
+use OpenSim\SignIn\AvatarTokens;
 use OpenSim\Support\Bitmask;
 
 /**
@@ -32,6 +34,17 @@ final class Avatar extends Model
 {
     /** The level of the accounts that are gods (administrators). */
     public const GOD_LEVEL = 200;
+
+    /**
+     * The states of an account: it can log in (active), a manager disabled it (disabled), it waits for the confirmation of its
+     * email (pending). A state other than active keeps the account out of the grid as Robust reads it: its UserLevel is below 0,
+     * which the login of Robust refuses (MinLoginLevel, 0 by default), the level it had being kept as -1 - level; a pending one
+     * has PENDING_FLAG in its UserFlags. `active` is 0 for both, as the search of Robust and w4os read it.
+     */
+    public const STATUSES = ['active', 'disabled', 'pending'];
+
+    /** The bit of UserFlags of an account that waits for the confirmation of its email (bit 12: OpenSimulator uses 0 to 11). */
+    public const PENDING_FLAG = 1 << 12;
 
     /** What the name of an account may have besides letters and digits. */
     private const NAME_PUNCTUATION = '-';
@@ -65,6 +78,7 @@ final class Avatar extends Model
         'title' => 'UserTitle',
         'level' => 'UserLevel',
         'active' => 'active',
+        'status' => 'active',
     ];
 
     /** A profile as the grid makes it when an avatar opens it the first time (MySQLUserProfilesData). */
@@ -182,9 +196,42 @@ final class Avatar extends Model
         return (int) ($this->row['UserFlags'] ?? 0);
     }
 
+    /** The user level, the one it has back once it is active when it is not. */
     public function level(): int
     {
-        return (int) ($this->row['UserLevel'] ?? 0);
+        return self::levelOf((int) ($this->row['UserLevel'] ?? 0));
+    }
+
+    /** active, disabled or pending (STATUSES). */
+    public function status(): string
+    {
+        return self::statusOf(
+            (int) ($this->row['UserLevel'] ?? 0),
+            (int) ($this->row['UserFlags'] ?? 0),
+            (int) ($this->row['active'] ?? 1),
+        );
+    }
+
+    /** The state of an account from its columns: its level, its flags and `active` (1 when it is not known, as Robust gives it). */
+    public static function statusOf(int $level, int $flags, int $active = 1): string
+    {
+        return match (true) {
+            ($flags & self::PENDING_FLAG) !== 0 => 'pending',
+            $level < 0 || $active === 0 => 'disabled',
+            default => 'active',
+        };
+    }
+
+    /** The level an account has when it is active, from its UserLevel. */
+    public static function levelOf(int $stored): int
+    {
+        return $stored < 0 ? -1 - $stored : $stored;
+    }
+
+    /** The UserLevel of an account of this level, active or not. */
+    public static function storedLevel(int $level, bool $active): int
+    {
+        return $active ? $level : -1 - max(0, $level);
     }
 
     public function isGod(): bool
@@ -200,7 +247,7 @@ final class Avatar extends Model
 
     public function isEnabled(): bool
     {
-        return (int) ($this->row['active'] ?? 1) !== 0;
+        return $this->status() === 'active';
     }
 
     /** Whether it is an account of the services of the grid, not a person. */
@@ -300,6 +347,7 @@ final class Avatar extends Model
             'isGod' => $this->isGod(),
             'flags' => $this->flags(),
             'active' => $this->isEnabled(),
+            'status' => $this->status(),
             'online' => $this->isOnline(),
             'lastSeen' => $this->lastSeenTime() ?: null,
             'homeRegion' => $row['HomeRegionID'] ?? null,
@@ -406,7 +454,7 @@ final class Avatar extends Model
      * @param array<string,mixed> $values `name` ("First Last") or `firstName` and `lastName`, `email`, and `password` or `passwordHash`
      *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
      *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
-     *        `active` false for an account that cannot log in yet; `reservedName` true for a name w4os keeps (a model: Default...)
+     *        `status` (STATUSES), or `active` false for a disabled one; `reservedName` true for a name w4os keeps (a model: Default...)
      * @throws InvalidValue for a name that is not one or is reserved or taken, a missing or wrong password, a wrong email, a model
      *         that is not one; its reason says which
      * @throws ChannelUnavailable when a database cannot be reached or refuses
@@ -440,6 +488,7 @@ final class Avatar extends Model
         if (self::validateEmail($values['email'] ?? '') !== null) {
             throw InvalidValue::because('email-invalid', "'{$values['email']}' is not an email");
         }
+        $status = self::requestedStatus($values, 'active');
         $uuid = isset($values['uuid']) ? strtolower((string) $values['uuid']) : null;
         if ($uuid !== null && !Uuid::isValid($uuid)) {
             throw new \InvalidArgumentException("'$uuid' is not a UUID");
@@ -470,7 +519,9 @@ final class Avatar extends Model
             $hash,
             $uuid,
             $outfit,
-            !array_key_exists('active', $values) || Result::isTrue($values['active']),
+            $status === 'active',
+            self::storedLevel(0, $status === 'active'),
+            $status === 'pending' ? self::PENDING_FLAG : 0,
         );
         // Each database gets its rows in one transaction: the tables of the same database go together (the usual case: one)
         $groups = [];
@@ -539,17 +590,29 @@ final class Avatar extends Model
         if (isset($values['email']) && self::validateEmail($values['email']) !== null) {
             throw InvalidValue::because('email-invalid', "'{$values['email']}' is not an email");
         }
+        // The state is read again: this avatar may have been changed since it was read (enabled, then its level changed)
+        $state = ['active' => 1, 'status' => 1, 'level' => 1];
+        $current = array_intersect_key($values, $state) !== [] ? static::find($this->config, $this->id()) ?? $this : $this;
+        $was = $current->status();
+        $status = self::requestedStatus($values, $was);
         $id = $this->id();
         $writes = [];
 
-        $account = array_intersect_key($values, self::ACCOUNT_SETTINGS);
-        if ($account !== []) {
+        $account = array_diff_key(array_intersect_key($values, self::ACCOUNT_SETTINGS), $state);
+        if ($account !== [] || array_intersect_key($values, $state) !== []) {
             $set = [];
             $params = ['id' => $id];
             foreach ($account as $name => $value) {
                 $set[] = self::ACCOUNT_SETTINGS[$name] . " = :$name";
-                $params[$name] = $name === 'active' ? (int) (bool) $value : (is_string($value) ? trim($value) : $value);
+                $params[$name] = is_string($value) ? trim($value) : $value;
             }
+            // The state is told by three columns together (STATUSES)
+            $set[] = 'active = :active, UserLevel = :level, UserFlags = :flags';
+            $params['active'] = $status === 'active' ? 1 : 0;
+            $params['level'] = self::storedLevel((int) ($values['level'] ?? $current->level()), $status === 'active');
+            $params['flags'] = $status === 'pending'
+                ? $current->flags() | self::PENDING_FLAG
+                : $current->flags() & ~self::PENDING_FLAG;
             $writes[] = [
                 'UserAccountService',
                 static fn(OSPDO $pdo) => self::run(
@@ -571,6 +634,37 @@ final class Avatar extends Model
         }
 
         self::writeAll($this->config, $writes, 'change ' . $this->name());
+        if ($was === 'pending' && $status !== 'pending') {
+            self::forgetConfirmation($this->config, $id);
+        }
+    }
+
+    /**
+     * The state asked in values, or the current one: `status`, or `active` (true: active, false: disabled).
+     *
+     * @throws InvalidValue for a status that is not one of STATUSES
+     */
+    private static function requestedStatus(array $values, string $current): string
+    {
+        if (array_key_exists('status', $values)) {
+            $status = strtolower(trim((string) $values['status']));
+            in_array($status, self::STATUSES, true) ||
+                throw InvalidValue::because('invalid-request', "'$status' is not a status: " . implode(', ', self::STATUSES));
+
+            return $status;
+        }
+
+        return array_key_exists('active', $values) ? (Result::isTrue($values['active']) ? 'active' : 'disabled') : $current;
+    }
+
+    /** Forget the token of the confirmation of the email of an avatar that does not wait for it any more: it would do nothing. */
+    private static function forgetConfirmation(GridConfig $config, string $id): void
+    {
+        try {
+            AvatarTokens::for($config, new SystemClock())->forget($id, AvatarTokens::EMAIL_CONFIRMATION);
+        } catch (\Throwable) {
+            // A token left is refused anyway: the avatar is not pending
+        }
     }
 
     /**
@@ -1110,8 +1204,11 @@ final class Avatar extends Model
         }
         $filters =
             [
-                'active' => ['u.active = 1', 'u.active = 0'],
-                'god' => ['u.UserLevel >= ' . self::GOD_LEVEL, 'u.UserLevel < ' . self::GOD_LEVEL],
+                'active' => ['(u.active = 1 AND u.UserLevel >= 0)', '(u.active = 0 OR u.UserLevel < 0)'],
+                'god' => [
+                    '(u.UserLevel >= ' . self::GOD_LEVEL . ' OR u.UserLevel <= ' . (-1 - self::GOD_LEVEL) . ')',
+                    '(u.UserLevel < ' . self::GOD_LEVEL . ' AND u.UserLevel > ' . (-1 - self::GOD_LEVEL) . ')',
+                ],
                 'technical' => [
                     "(u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",
                     "NOT (u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",

@@ -109,7 +109,7 @@ final class AvatarAccess
     /** Whether an avatar waits for the confirmation of its email: it was made so, and has not confirmed it yet. */
     public function waitsForConfirmation(Avatar $avatar): bool
     {
-        return $this->tokens()->pending($avatar->id(), AvatarTokens::EMAIL_CONFIRMATION);
+        return $avatar->status() === 'pending';
     }
 
     /**
@@ -176,8 +176,8 @@ final class AvatarAccess
     }
 
     /**
-     * Confirm the email of the avatar a token was given to, once. A new avatar is activated; an avatar that asked for a new email
-     * gets it, and stays as active as it is. A token for an email the avatar does not have any more is refused.
+     * Confirm the email of the avatar a token was given to, once. A new avatar that waits for it is activated (never one a manager
+     * disabled or enabled meanwhile); an avatar that asked for a new email gets it, and stays as active as it is. A token for an email the avatar does not have any more is refused.
      *
      * @return ?Avatar the avatar, null when the token is not valid or expired
      */
@@ -193,7 +193,12 @@ final class AvatarAccess
         }
         $given = $tokens->redeem($token, AvatarTokens::EMAIL_CONFIRMATION);
         $avatar = $given === null ? null : Avatar::find($this->config, $given['avatar']);
-        if ($avatar === null || strtolower((string) ($avatar->detail()['email'] ?? '')) !== strtolower($given['email'])) {
+        // An avatar a manager disabled or enabled meanwhile does not wait any more: the token does nothing
+        if (
+            $avatar === null ||
+            $avatar->status() !== 'pending' ||
+            strtolower((string) ($avatar->detail()['email'] ?? '')) !== strtolower($given['email'])
+        ) {
             return null;
         }
         $avatar->update(['active' => true]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\SignIn;
 
+use OpenSim\Models\Avatar as AvatarModel;
 use OpenSim\Network\Http;
 
 /**
@@ -45,6 +46,13 @@ final class PrivateServiceAuthenticator implements AvatarAuthenticator
             return SignInResult::refused();
         }
         $this->release($account['PrincipalID'], $token);
+        // Robust gives the level and the flags of an account, which tell its state (Avatar::STATUSES), not `active`
+        $refused = DatabaseAuthenticator::refusal(
+            AvatarModel::statusOf((int) ($account['UserLevel'] ?? 0), (int) ($account['UserFlags'] ?? 0)),
+        );
+        if ($refused !== null) {
+            return $refused;
+        }
 
         return SignInResult::granted(
             new Avatar(

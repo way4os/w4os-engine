@@ -14,6 +14,7 @@
 - feature (avatars): the names w4os keeps (Default, Test, Admin, the grid name) are refused for a new avatar, unless `reservedName`; its password and email are checked
 - fix (avatars): the profile is made when the avatar has none yet, and a change is made all or not at all
 - feature (assets): the picture of nothing of w4os, bundled, for a model without a picture and a missing asset
+- fix (avatars): an avatar a manager disabled is told disabled, not waiting for its email: the three states (`status`: active, disabled, pending) are kept in the account, a pending one has bit 12 of UserFlags; an avatar that is not active has its UserLevel below 0, so Robust refuses its login in the world (its level comes back when it is active again); enabling or disabling a pending avatar forgets its confirmation token, which never activates an avatar that is not pending
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13

@@ -448,6 +448,135 @@ describe('The API, for a new avatar whose email is confirmed by whoever delivers
     });
 });
 
+describe('The states of an avatar: active, disabled by a manager, waiting for its email', function () {
+    /** Make a new avatar that waits for the confirmation of its email, and the way to sign it in and to change it. */
+    function pending_avatar(Router $router): array
+    {
+        $made = $router->post(
+            '/grids/demo/avatars',
+            access_body('avatars', [
+                'name' => 'Lisa Simpson',
+                'email' => 'lisa@example.org',
+                'password' => 'secret',
+                'confirmEmail' => true,
+                'send' => false,
+            ]),
+        );
+        $id = $made->document['data']['id'];
+
+        return [
+            $made,
+            static fn(): string => $router->post(
+                '/grids/demo/sign-ins',
+                access_body('sign-ins', ['name' => 'Lisa Simpson', 'password' => 'secret']),
+            )->document['code'] ?? 'granted',
+            static fn(array $attributes) => $router->patch(
+                "/grids/demo/avatars/$id",
+                ['data' => ['type' => 'avatars', 'id' => $id, 'attributes' => $attributes]],
+            ),
+        ];
+    }
+
+    test('a manager disables an avatar that was waiting: it is disabled, not waiting', function () {
+        avatars_in(signin_database());
+        [$router] = access_api();
+        [$made, $signIn, $change] = pending_avatar($router);
+
+        $waiting = $signIn();
+        $enabled = $change(['enabled' => true]);
+        $granted = $signIn();
+        $disabled = $change(['enabled' => false]);
+
+        expect($made->document['data']['attributes']['status'])
+            ->toBe('pending')
+            ->and($waiting)
+            ->toBe('email-unconfirmed')
+            ->and($enabled->document['data']['attributes']['status'])
+            ->toBe('active')
+            ->and($granted)
+            ->toBe('granted')
+            ->and($disabled->document['data']['attributes']['status'])
+            ->toBe('disabled')
+            ->and($signIn())
+            ->toBe('account-disabled');
+    });
+
+    test('the link of a waiting avatar never enables it once a manager disabled it', function () {
+        avatars_in(signin_database());
+        [$router] = access_api();
+        [$made, $signIn, $change] = pending_avatar($router);
+
+        $change(['enabled' => false]);
+        $confirmed = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $made->document['meta']['confirmation']['token']]),
+        );
+        $resent = $router->post(
+            '/grids/demo/email-confirmations',
+            access_body('email-confirmations', ['avatar' => 'Lisa Simpson', 'send' => false]),
+        );
+
+        expect($confirmed->document['code'])
+            ->toBe('token-refused')
+            ->and($resent->document['code'])
+            ->toBe('no-confirmation-pending')
+            ->and($signIn())
+            ->toBe('account-disabled');
+    });
+
+    test('a manager enables a waiting avatar: its link is forgotten, it does not wait any more', function () {
+        avatars_in(signin_database());
+        [$router] = access_api();
+        [$made, $signIn, $change] = pending_avatar($router);
+
+        $change(['enabled' => true]);
+        $confirmed = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $made->document['meta']['confirmation']['token']]),
+        );
+
+        expect($confirmed->document['code'])->toBe('token-refused')->and($signIn())->toBe('granted');
+    });
+
+    test('Robust refuses the avatar in-world while it is not active, and gives its level back once it is', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        [$router] = access_api();
+        [$made, , $change] = pending_avatar($router);
+        $id = $made->document['data']['id'];
+        $row = static fn(): array => $pdo->get_row(
+            'SELECT UserLevel, UserFlags, active FROM UserAccounts WHERE PrincipalID = :id',
+            ['id' => $id],
+            PDO::FETCH_ASSOC,
+        );
+
+        $pending = $row();
+        $change(['enabled' => true, 'level' => 200]);
+        $god = $row();
+        $disabled = $change(['enabled' => false]);
+        $off = $row();
+        $back = $change(['enabled' => true]);
+
+        // MinLoginLevel is 0 by default: a negative level is refused by the login of Robust
+        expect((int) $pending['UserLevel'])
+            ->toBeLessThan(0)
+            ->and((int) $pending['UserFlags'] & Avatar::PENDING_FLAG)
+            ->toBe(Avatar::PENDING_FLAG)
+            ->and((int) $pending['active'])
+            ->toBe(0)
+            ->and((int) $god['UserLevel'])
+            ->toBe(200)
+            ->and((int) $god['UserFlags'] & Avatar::PENDING_FLAG)
+            ->toBe(0)
+            ->and((int) $off['UserLevel'])
+            ->toBeLessThan(0)
+            ->and($disabled->document['data']['attributes'])
+            ->toMatchArray(['status' => 'disabled', 'level' => 200, 'active' => false])
+            ->and($back->document['data']['attributes'])
+            ->toMatchArray(['status' => 'active', 'level' => 200, 'active' => true, 'isGod' => true]);
+    });
+});
+
 describe('The API, for a change of the email of an avatar', function () {
     test('keeps the email until the new one is confirmed with the link mailed to it', function () {
         avatars_in(signin_database());

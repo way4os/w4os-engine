@@ -262,7 +262,7 @@ final class Api
                         'an avatar whose email is to be confirmed needs an email',
                     );
                 }
-                $attributes['active'] = false;
+                $attributes['status'] = 'pending';
             }
             $created = isset(self::RESOURCES[$type])
                 ? $class::create($this->environment, $attributes)

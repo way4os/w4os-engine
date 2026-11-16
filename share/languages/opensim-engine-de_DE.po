@@ -354,6 +354,18 @@ msgctxt "inactive"
 msgid "Inactive"
 msgstr "Inaktiv"
 
+msgctxt "status_active"
+msgid "Active"
+msgstr "Aktiv"
+
+msgctxt "status_disabled"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "status_pending"
+msgid "Waiting for the confirmation of its email"
+msgstr ""
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Aktivieren"
@@ -363,8 +375,8 @@ msgid "Disable"
 msgstr "Deaktivieren"
 
 msgctxt "action_reset"
-msgid "Password link"
-msgstr "Passwort-Link"
+msgid "Send a password reset link"
+msgstr ""
 
 msgctxt "action_delete"
 msgid "Delete"
@@ -538,3 +550,7 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#~ msgctxt "action_reset"
+#~ msgid "Password link"
+#~ msgstr "Passwort-Link"

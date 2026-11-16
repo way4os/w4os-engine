@@ -352,6 +352,18 @@ msgctxt "inactive"
 msgid "Inactive"
 msgstr "Inactief"
 
+msgctxt "status_active"
+msgid "Active"
+msgstr "Actief"
+
+msgctxt "status_disabled"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "status_pending"
+msgid "Waiting for the confirmation of its email"
+msgstr ""
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Activeren"
@@ -361,8 +373,8 @@ msgid "Disable"
 msgstr "Uitschakelen"
 
 msgctxt "action_reset"
-msgid "Password link"
-msgstr "Wachtwoordlink"
+msgid "Send a password reset link"
+msgstr ""
 
 msgctxt "action_delete"
 msgid "Delete"
@@ -530,3 +542,7 @@ msgstr "Deze avatar wacht niet op de bevestiging van zijn e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "De mail kon niet worden verstuurd. Probeer het later opnieuw."
+
+#~ msgctxt "action_reset"
+#~ msgid "Password link"
+#~ msgstr "Wachtwoordlink"

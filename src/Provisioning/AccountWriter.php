@@ -137,7 +137,9 @@ final class AccountWriter
      * @param ?string $uuid the id of the account, a new one when none is given
      * @param ?array{name:string,appearance:list<array{0:string,1:string}>,items:array<string,array<string,mixed>>} $outfit the
      *        outfit of an avatar model (AvatarModel::outfit()), worn instead of the default one when it has an appearance
-     * @param bool $active the account can log in (false: it waits for the confirmation of its email)
+     * @param bool $active the account can log in
+     * @param int $level its UserLevel (below 0: Robust refuses its login)
+     * @param int $flags its UserFlags
      * @return array{id:string,tables:array<string,list<string>>} table => statements
      */
     public function tables(
@@ -149,8 +151,10 @@ final class AccountWriter
         ?string $uuid = null,
         ?array $outfit = null,
         bool $active = true,
+        int $level = 0,
+        int $flags = 0,
     ): array {
-        $made = $this->rows($first, $last, $email, $password, null, $hash, $uuid, $outfit, $active);
+        $made = $this->rows($first, $last, $email, $password, null, $hash, $uuid, $outfit, $active, $level, $flags);
         $tables = [];
         foreach ($made['rows'] as [$table, $sql]) {
             $tables[$table][] = $sql;
@@ -181,6 +185,8 @@ final class AccountWriter
         ?string $uuid = null,
         ?array $outfit = null,
         bool $active = true,
+        int $level = 0,
+        int $flags = 0,
     ): array {
         $q = [self::class, 'quote'];
         $id = $uuid ?? ($this->uuid)();
@@ -200,8 +206,8 @@ final class AccountWriter
                 $q($email),
                 $q('HomeURI= InventoryServerURI= AssetServerURI='),
                 $now,
-                0,
-                0,
+                $level,
+                $flags,
                 $q(''),
                 $active ? 1 : 0,
             ]) .
