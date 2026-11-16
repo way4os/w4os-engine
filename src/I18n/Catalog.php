@@ -265,7 +265,9 @@ final class Catalog
         'filter_simulator' => 'Simulator',
         'column_name' => 'Name',
         'column_nick' => 'Nick',
-        'column_address' => 'Address',
+        // The URI of an item (a grid, a simulator, a region: host:port...), its fixed name; the URL of a web service
+        'column_uri' => 'URI',
+        'column_url' => 'URL',
         'column_server' => 'Server',
         'column_enabled' => 'Enabled',
         'filter_remote' => 'On another machine',

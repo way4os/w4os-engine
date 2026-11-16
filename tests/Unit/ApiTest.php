@@ -589,7 +589,7 @@ describe('The contract', function () {
             ->and(array_keys($parameters($regions)))
             ->toContain('filter[simulator]', 'filter[flags]', 'filter[owner]')
             ->and($regions['x-list']['columns'][8])
-            ->toBe(['name' => 'uri', 'label' => 'column_address', 'type' => 'link', 'link' => 'teleport'])
+            ->toBe(['name' => 'uri', 'label' => 'column_uri', 'type' => 'link', 'link' => 'teleport'])
             ->and($described)
             ->toEqualCanonicalizing([
                 '/grids',

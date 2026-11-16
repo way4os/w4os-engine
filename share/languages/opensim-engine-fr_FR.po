@@ -790,9 +790,13 @@ msgctxt "column_nick"
 msgid "Nick"
 msgstr "Nom court"
 
-msgctxt "column_address"
-msgid "Address"
-msgstr "Adresse"
+msgctxt "column_uri"
+msgid "URI"
+msgstr "URI"
+
+msgctxt "column_url"
+msgid "URL"
+msgstr "URL"
 
 msgctxt "column_server"
 msgid "Server"
@@ -1156,6 +1160,10 @@ msgstr "Cet avatar n’attend pas de confirmation de son e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Le message n’a pas pu partir. Merci de réessayer plus tard."
+
+#~ msgctxt "column_address"
+#~ msgid "Address"
+#~ msgstr "Adresse"
 
 #~ msgctxt "column_flags"
 #~ msgid "Flags"

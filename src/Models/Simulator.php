@@ -249,7 +249,7 @@ final class Simulator extends InstalledModel
             [
                 Listing::column('name', 'column_name', sort: 'name'),
                 Listing::column('grid', 'column_grid', sort: 'grid'),
-                Listing::column('uri', 'column_address'),
+                Listing::column('uri', 'column_uri'),
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
                 Listing::column('enabled', 'column_enabled', 'boolean'),
                 Listing::column('running', 'column_running', 'boolean'),

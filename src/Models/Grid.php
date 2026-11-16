@@ -579,7 +579,7 @@ final class Grid extends InstalledModel
             [
                 Listing::column('name', 'column_name', sort: 'name'),
                 Listing::column('nick', 'column_nick', sort: 'nick'),
-                Listing::column('baseHostname', 'column_address'),
+                Listing::column('uri', 'column_uri'),
                 Listing::column('enabled', 'column_enabled', 'boolean'),
             ],
             [
@@ -587,7 +587,7 @@ final class Grid extends InstalledModel
                 Listing::filter('enabled', 'column_enabled'),
                 Listing::filter('hypergrid', 'filter_hypergrid'),
             ],
-            ['nick', 'name', 'baseHostname'],
+            ['nick', 'name', 'uri'],
             [
                 Listing::action('enable', 'action_enable', 'PATCH', '/grids/{id}', ['enabled' => true], ['enabled' => [false]]),
                 Listing::action('disable', 'action_disable', 'PATCH', '/grids/{id}', ['enabled' => false], ['enabled' => [true]]),
@@ -1298,6 +1298,7 @@ final class Grid extends InstalledModel
             'planned' => $this->isPlanned(),
             'enabled' => $folder ? $this->isEnabled() : null,
             'hypergrid' => $this->isHypergrid(),
+            'uri' => $this->uri(),
             'baseHostname' => $this->baseHostname(),
             'publicPort' => $this->publicPort(),
             'privatePort' => $this->privatePort(),

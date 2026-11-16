@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "273cce8",
+        "version": "4a10100",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -204,7 +204,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Looks in nick, name, baseHostname"
+                        "description": "Looks in nick, name, uri"
                     },
                     {
                         "name": "sort",
@@ -340,8 +340,8 @@
                             "sort": "nick"
                         },
                         {
-                            "name": "baseHostname",
-                            "label": "column_address",
+                            "name": "uri",
+                            "label": "column_uri",
                             "type": "text"
                         },
                         {
@@ -362,7 +362,7 @@
                     "search": [
                         "nick",
                         "name",
-                        "baseHostname"
+                        "uri"
                     ],
                     "filters": [
                         {
@@ -726,7 +726,7 @@
                         },
                         {
                             "name": "uri",
-                            "label": "column_address",
+                            "label": "column_uri",
                             "type": "text"
                         },
                         {
@@ -1107,7 +1107,7 @@
                         },
                         {
                             "name": "url",
-                            "label": "column_address",
+                            "label": "column_url",
                             "type": "link",
                             "link": "url"
                         },
@@ -3060,7 +3060,7 @@
                         },
                         {
                             "name": "uri",
-                            "label": "column_address",
+                            "label": "column_uri",
                             "type": "link",
                             "link": "teleport"
                         }
@@ -3375,7 +3375,7 @@
                         },
                         {
                             "name": "uri",
-                            "label": "column_address",
+                            "label": "column_uri",
                             "type": "link",
                             "group": "region",
                             "readOnly": true,
@@ -8518,6 +8518,13 @@
                             "hypergrid": {
                                 "type": "boolean",
                                 "description": "Open to the other grids"
+                            },
+                            "uri": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "Its URI, host:port of its login, as viewers and other grids reach it"
                             },
                             "baseHostname": {
                                 "type": "string",

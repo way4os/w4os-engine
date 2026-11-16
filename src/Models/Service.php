@@ -574,7 +574,7 @@ final class Service extends InstalledModel
             [
                 Listing::column('name', 'column_service', sort: 'name'),
                 Listing::column('grid', 'column_grid', sort: 'grid'),
-                Listing::column('url', 'column_address', 'link', more: ['link' => 'url']),
+                Listing::column('url', 'column_url', 'link', more: ['link' => 'url']),
                 Listing::column('provider', 'column_provider'),
             ],
             [

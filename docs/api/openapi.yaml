@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 273cce8
+  version: 4a10100
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -179,7 +179,7 @@ paths:
           in: query
           schema:
             type: string
-          description: 'Looks in nick, name, baseHostname'
+          description: 'Looks in nick, name, uri'
         -
           name: sort
           in: query
@@ -274,8 +274,8 @@ paths:
             type: text
             sort: nick
           -
-            name: baseHostname
-            label: column_address
+            name: uri
+            label: column_uri
             type: text
           -
             name: enabled
@@ -291,7 +291,7 @@ paths:
         search:
           - nick
           - name
-          - baseHostname
+          - uri
         filters:
           -
             name: remote
@@ -533,7 +533,7 @@ paths:
             sort: grid
           -
             name: uri
-            label: column_address
+            label: column_uri
             type: text
           -
             name: httpPort
@@ -790,7 +790,7 @@ paths:
             sort: grid
           -
             name: url
-            label: column_address
+            label: column_url
             type: link
             link: url
           -
@@ -2070,7 +2070,7 @@ paths:
             sort: lastSeen
           -
             name: uri
-            label: column_address
+            label: column_uri
             type: link
             link: teleport
         sort:
@@ -2311,7 +2311,7 @@ paths:
             readOnly: true
           -
             name: uri
-            label: column_address
+            label: column_uri
             type: link
             group: region
             readOnly: true
@@ -6400,6 +6400,11 @@ components:
             hypergrid:
               type: boolean
               description: 'Open to the other grids'
+            uri:
+              type:
+                - string
+                - 'null'
+              description: 'Its URI, host:port of its login, as viewers and other grids reach it'
             baseHostname:
               type: string
               description: 'The host its viewers log in to'

@@ -791,9 +791,13 @@ msgctxt "column_nick"
 msgid "Nick"
 msgstr "Kurzname"
 
-msgctxt "column_address"
-msgid "Address"
-msgstr "Adresse"
+msgctxt "column_uri"
+msgid "URI"
+msgstr "URI"
+
+msgctxt "column_url"
+msgid "URL"
+msgstr "URL"
 
 msgctxt "column_server"
 msgid "Server"
@@ -1165,6 +1169,10 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#~ msgctxt "column_address"
+#~ msgid "Address"
+#~ msgstr "Adresse"
 
 #~ msgctxt "column_flags"
 #~ msgid "Flags"

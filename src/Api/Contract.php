@@ -50,6 +50,7 @@ final class Contract
                     'Its Robust (or its simulator, for a standalone) is enabled: null when it is not on this machine',
                 ],
                 'hypergrid' => ['boolean', 'Open to the other grids'],
+                'uri' => ['string?', 'Its URI, host:port of its login, as viewers and other grids reach it'],
                 'baseHostname' => ['string', 'The host its viewers log in to'],
                 'publicPort' => ['integer', 'The port of the viewers and of the other grids'],
                 'privatePort' => ['integer', 'The port of its simulators'],

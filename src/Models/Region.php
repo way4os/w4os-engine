@@ -910,7 +910,7 @@ final class Region extends Model
                 Listing::column('online', 'online', 'boolean'),
                 Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
                 // Its address (host:port:name), linked to the teleport there
-                Listing::column('uri', 'column_address', 'link', more: ['link' => 'teleport']),
+                Listing::column('uri', 'column_uri', 'link', more: ['link' => 'teleport']),
             ],
             [
                 Listing::filter('flags', 'status', self::flagKeys(true), more: ['multiple' => true, 'dynamic' => true]),
@@ -954,7 +954,7 @@ final class Region extends Model
                 ItemForm::shown('roles', 'column_roles', 'list', 'region', ['values' => Listing::values(self::roleKeys(true))]),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
                 ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
-                ItemForm::shown('uri', 'column_address', 'link', 'region', ['link' => 'teleport']),
+                ItemForm::shown('uri', 'column_uri', 'link', 'region', ['link' => 'teleport']),
                 ItemForm::shown('simulator', 'filter_simulator', 'text', 'simulator', $here),
                 ItemForm::shown('serverUri', 'column_server', 'text', 'simulator'),
                 ItemForm::shown('file', 'column_file', 'text', 'simulator', $here),

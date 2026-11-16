@@ -740,8 +740,12 @@ msgctxt "column_nick"
 msgid "Nick"
 msgstr ""
 
-msgctxt "column_address"
-msgid "Address"
+msgctxt "column_uri"
+msgid "URI"
+msgstr ""
+
+msgctxt "column_url"
+msgid "URL"
 msgstr ""
 
 msgctxt "column_server"

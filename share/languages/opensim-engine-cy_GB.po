@@ -796,9 +796,13 @@ msgctxt "column_nick"
 msgid "Nick"
 msgstr "Llysenw"
 
-msgctxt "column_address"
-msgid "Address"
-msgstr "Cyfeiriad"
+msgctxt "column_uri"
+msgid "URI"
+msgstr "URI"
+
+msgctxt "column_url"
+msgid "URL"
+msgstr "URL"
 
 msgctxt "column_server"
 msgid "Server"
@@ -1171,6 +1175,10 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#~ msgctxt "column_address"
+#~ msgid "Address"
+#~ msgstr "Cyfeiriad"
 
 #~ msgctxt "column_flags"
 #~ msgid "Flags"
