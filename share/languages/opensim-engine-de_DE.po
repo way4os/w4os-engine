@@ -11,6 +11,10 @@ msgctxt "welcome_title"
 msgid "Welcome to %s"
 msgstr "Willkommen auf %s"
 
+msgctxt "guide_title"
+msgid "Destinations guide"
+msgstr "Reiseführer für Ziele"
+
 msgctxt "register_title"
 msgid "Create My Avatar"
 msgstr "Meinen Avatar erstellen"

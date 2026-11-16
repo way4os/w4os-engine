@@ -11,6 +11,10 @@ msgctxt "welcome_title"
 msgid "Welcome to %s"
 msgstr "Croeso i %s"
 
+msgctxt "guide_title"
+msgid "Destinations guide"
+msgstr "Teithlyddau Cyfeiriadau"
+
 msgctxt "register_title"
 msgid "Create My Avatar"
 msgstr "Creu Fy Avatar"

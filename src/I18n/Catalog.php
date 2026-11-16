@@ -35,6 +35,7 @@ final class Catalog
     public const MESSAGES = [
         // Home
         'welcome_title' => 'Welcome to %s',
+        'guide_title' => 'Destinations guide',
 
         // Registration
         'register_title' => 'Create My Avatar',
