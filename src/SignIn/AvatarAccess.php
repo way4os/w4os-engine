@@ -238,6 +238,7 @@ final class AvatarAccess
                 'passwordHash' => ['hash' => $request['hash'], 'salt' => $request['salt']],
                 'uuid' => $request['avatar'],
                 'reservedName' => true,
+                'published' => true,
             ] + ($model ? ['model' => $request['model']] : []));
         } catch (InvalidValue $refused) {
             $this->registrations()->forget($token);

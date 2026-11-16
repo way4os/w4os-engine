@@ -757,6 +757,20 @@ describe('An avatar that is made', function () {
             ->toBe('Ada Love');
     });
 
+    test('is public, its profile shown in search, but for a model or when it is said not to be', function () {
+        avatars_in(avatar_creation_database());
+        $config = avatar_grid();
+
+        $person = Avatar::create($config, ['name' => 'Bart Simpson', 'password' => 'secret']);
+        $model = Avatar::create($config, ['name' => 'Default Jane', 'password' => 'secret', 'reservedName' => true]);
+        $private = Avatar::create($config, ['name' => 'Mona Lisa', 'password' => 'secret', 'published' => false]);
+
+        expect([$person->isPublished(), $model->isPublished(), $private->isPublished()])
+            ->toBe([true, false, false])
+            ->and(Avatar::find($config, 'Ada Love')->isPublished())
+            ->toBeFalse();
+    });
+
     test('has its account, its password, its inventory and its outfit, each in its table', function () {
         $pdo = avatar_creation_database();
         avatars_in($pdo);

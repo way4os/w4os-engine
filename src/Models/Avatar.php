@@ -687,7 +687,8 @@ final class Avatar extends Model
      *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
      *        `status` (STATUSES), or `active` false for a disabled one; `reservedName` true for a name w4os keeps (a model: Default...)
      *        or an account that is moved: its name is kept as it is given, any other all in small letters or all in capitals gets
-     *        its capitals (capitalizeName())
+     *        its capitals (capitalizeName()); `published` false for a profile that is not public, which a new one is (PUBLISHED_FLAG),
+     *        but for a reserved name
      * @throws InvalidValue for a name that is not one or is reserved or taken, a missing or wrong password, a wrong email, a model
      *         that is not one; its reason says which
      * @throws ChannelUnavailable when a database cannot be reached or refuses
@@ -698,6 +699,10 @@ final class Avatar extends Model
         ['first' => $first, 'last' => $last, 'password' => $password, 'hash' => $hash, 'uuid' => $uuid] = $new;
         $status = $new['status'];
         $outfit = $new['model']?->outfit();
+        // A new profile is public ("show in search"), but for a reserved name (a model, an account that is moved)
+        $published = isset($values['published'])
+            ? Result::isTrue($values['published'])
+            : !Result::isTrue($values['reservedName'] ?? false);
 
         $made = AccountWriter::standard()->tables(
             $first,
@@ -709,7 +714,7 @@ final class Avatar extends Model
             $outfit,
             $status === 'active',
             self::storedLevel(0, $status === 'active'),
-            $status === 'pending' ? self::PENDING_FLAG : 0,
+            ($status === 'pending' ? self::PENDING_FLAG : 0) | ($published ? self::PUBLISHED_FLAG : 0),
         );
         // Each database gets its rows in one transaction: the tables of the same database go together (the usual case: one)
         $groups = [];

@@ -187,12 +187,10 @@ final class SimulatorProvisioner
             // The account is made: its password does not stay in the config
             if ($plan->standalone && $plan->createOwner) {
                 (new SimulatorConfig())->forgetOwnerPassword($plan->iniPath());
-                // The account of a standalone is its first: the one of its administrator
-                (new GridAccounts(new DatabaseService($this->ui), $this->ui))->setLevel(
-                    $grid,
-                    $plan->estateOwner,
-                    GridAccounts::FIRST_LEVEL,
-                );
+                // The account of a standalone is its first: the one of its administrator, its profile public as any new one
+                $accounts = new GridAccounts(new DatabaseService($this->ui), $this->ui);
+                $accounts->setLevel($grid, $plan->estateOwner, GridAccounts::FIRST_LEVEL);
+                $accounts->publish($grid, $plan->estateOwner);
             }
             if ($plan->createRegion && !$grid->isRemote() && !$this->registered($plan, $grid)) {
                 $this->failed(

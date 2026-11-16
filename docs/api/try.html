@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "add4fbe",
+        "version": "ed79bc6",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1253,6 +1253,10 @@
                                                     "send": {
                                                         "type": "boolean",
                                                         "description": "With confirmEmail, false: the token is not mailed but given in `meta.confirmation` (`token`, `expires`, `link`, `email`), for whoever delivers it"
+                                                    },
+                                                    "published": {
+                                                        "type": "boolean",
+                                                        "description": "Its profile is public (\"show in search\" in the viewer): true by default for a new avatar, false for a reservedName unless it is said"
                                                     },
                                                     "reservedName": {
                                                         "type": "boolean",

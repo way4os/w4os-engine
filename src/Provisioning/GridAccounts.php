@@ -117,6 +117,23 @@ final class GridAccounts
      *
      * @return bool|null whether it could be written, null when it cannot be told
      */
+    /** The statement that publishes the profile of an account ("show in search": the first bit of UserFlags, Avatar::PUBLISHED_FLAG). */
+    public static function publishSql(string $first, string $last): string
+    {
+        return 'UPDATE UserAccounts SET UserFlags = UserFlags | ' . Avatar::PUBLISHED_FLAG . " WHERE FirstName = '$first' AND LastName = '$last'";
+    }
+
+    /** Publish the profile of an account: a new one is public. */
+    public function publish(Grid $grid, string $name): ?bool
+    {
+        if (Avatar::validateName($name) !== null) {
+            return false;
+        }
+        [$first, $last] = explode(' ', $name);
+
+        return $this->database->select($grid->databasePlan('UserAccountService'), self::publishSql($first, $last)) !== null;
+    }
+
     public function setLevel(Grid $grid, string $name, int $level): ?bool
     {
         if (Avatar::validateName($name) !== null) {
@@ -193,6 +210,7 @@ final class GridAccounts
         for ($i = 0; $i < 24; $i++) {
             if ($this->exists($grid, $name) === true) {
                 $this->raiseHome($grid, $name);
+                $this->publish($grid, $name);
                 $level > 0 && $this->setLevel($grid, $name, $level);
 
                 return true;

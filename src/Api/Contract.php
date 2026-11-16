@@ -263,6 +263,10 @@ final class Contract
                     'boolean',
                     'With confirmEmail, false: the token is not mailed but given in `meta.confirmation` (`token`, `expires`, `link`, `email`), for whoever delivers it',
                 ],
+                'published' => [
+                    'boolean',
+                    'Its profile is public ("show in search" in the viewer): true by default for a new avatar, false for a reservedName unless it is said',
+                ],
                 'reservedName' => [
                     'boolean',
                     'The name may have a part w4os keeps (Default, Test, Admin, the name of the grid): an avatar model, made on purpose. Without it such a name is refused (`name-reserved`)',

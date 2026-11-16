@@ -107,6 +107,12 @@ describe('statements of an account', function () {
         );
     });
 
+    test('publishes the first account: a new profile is public ("show in search")', function () {
+        expect(OpenSim\Provisioning\GridAccounts::publishSql('Jane', 'Doe'))->toBe(
+            "UPDATE UserAccounts SET UserFlags = UserFlags | 1 WHERE FirstName = 'Jane' AND LastName = 'Doe'",
+        );
+    });
+
     test('keeps the password as Robust does', function () {
         $salt = str_repeat('ab', 16);
         $made = accounts_writer()->statements('Jane', 'Doe', '', 'secret');
