@@ -64,7 +64,7 @@ describe('flags of a region', function () {
     });
 
     test('are named as OpenSimulator names them (OpenSim.Framework.RegionFlags, the regions table), not as LSL does', function () {
-        expect(Region::FLAGS)->toBe([
+        expect(Region::NAMES)->toBe([
             1 => 'DefaultRegion',
             2 => 'FallbackRegion',
             4 => 'RegionOnline',
@@ -89,9 +89,9 @@ describe('flags of a region', function () {
             ->and(Region::flagValue('Nonsense'))
             ->toBe(0)
             ->and(Region::label(Region::DEFAULT_REGION))
-            ->toBe('Default Region')
+            ->toBe('Default region')
             ->and(Region::flagLabels(1029))
-            ->toBe([1 => 'Default Region', 1024 => 'Default HG Region', 4 => 'Online'])
+            ->toBe([1 => 'Default region', 4 => 'Online', 1024 => 'Default hypergrid region'])
             ->and(fn() => Region::flagName(3))
             ->toThrow(InvalidArgumentException::class)
             ->and(fn() => Region::flagName(Region::REGION_ONLINE))
@@ -110,14 +110,14 @@ describe('flags of a region', function () {
             ->and(Region::flagNames(2047))
             ->toBe([
                 'DefaultRegion',
-                'DefaultHGRegion',
                 'FallbackRegion',
                 'NoDirectLogin',
                 'Persistent',
                 'LockedOut',
-                'Reservation',
                 'NoMove',
+                'Reservation',
                 'Authenticate',
+                'DefaultHGRegion',
             ]);
     });
 });
@@ -162,7 +162,7 @@ describe('Regions', function () {
             ->and($welcome['roles'])
             ->toBe(['DefaultRegion', 'DefaultHGRegion'])
             ->and($welcome['flagLabels'])
-            ->toBe(['Default Region', 'Default HG Region', 'Online'])
+            ->toBe(['Default region', 'Online', 'Default hypergrid region'])
             ->and($welcome['lastSeen'])
             ->toBe(1700000000);
     });
@@ -300,7 +300,7 @@ describe('Regions', function () {
             ->and($listing->sorts())
             ->toBe(['name', 'location', 'size', 'flags', 'lastSeen'])
             ->and($listing->filterValues())
-            ->toBe(['flags' => array_values(Region::FLAGS), 'owner' => [], 'simulator' => []])
+            ->toBe(['flags' => array_values(Region::NAMES), 'owner' => [], 'simulator' => []])
             ->and($listing->filters[0]['values'][0])
             ->toBe([
                 'value' => 'DefaultRegion',
@@ -309,8 +309,16 @@ describe('Regions', function () {
             ])
             ->and(array_intersect_key($listing->filters[0], ['multiple' => 1, 'dynamic' => 1]))
             ->toBe(['multiple' => true, 'dynamic' => true])
-            ->and($listing->columns[5]['labels']['DefaultHGRegion'])
-            ->toBe('region_flag_default_hg_region')
+            ->and($listing->columns[5]['values'][8])
+            ->toBe([
+                'value' => 'DefaultHGRegion',
+                'label' => 'region_flag_default_hg_region',
+                'description' => 'region_flag_default_hg_region_help',
+            ])
+            ->and(array_column($listing->columns[5]['values'], 'value'))
+            ->toBe(Region::flagNames(2047))
+            ->and($listing->columns[0]['default'])
+            ->toBe('place')
             ->and($listing->filters[1])
             ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid'])
             ->and(array_column($listing->actions, 'body', 'name'))

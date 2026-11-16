@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\I18n\Catalog;
 use OpenSim\Forms\ItemForm;
 use OpenSim\Text\Uuid;
 use OpenSim\Config\ConfigReader;
@@ -62,8 +63,11 @@ final class Region extends Model
     public const HYPERLINK = 512;
     public const DEFAULT_HGREGION = 1024;
 
-    /** Every flag of the regions table, by its value, named as OpenSimulator does (OpenSim.Framework.RegionFlags). */
-    public const FLAGS = [
+    /**
+     * Every flag of the regions table, by its value, named as OpenSimulator names it (OpenSim.Framework.RegionFlags, the table of
+     * opensimulator.org/wiki/Regions_(database_table)); not the REGION_FLAG_* of LSL, which are other values.
+     */
+    public const NAMES = [
         self::DEFAULT_REGION => 'DefaultRegion',
         self::FALLBACK_REGION => 'FallbackRegion',
         self::REGION_ONLINE => 'RegionOnline',
@@ -77,18 +81,8 @@ final class Region extends Model
         self::DEFAULT_HGREGION => 'DefaultHGRegion',
     ];
 
-    /** The flags a region can be given in the config of Robust (Region_<Name> = "DefaultRegion, Persistent"), by their name there. */
-    private const NAMES = [
-        self::DEFAULT_REGION => 'DefaultRegion',
-        self::DEFAULT_HGREGION => 'DefaultHGRegion',
-        self::FALLBACK_REGION => 'FallbackRegion',
-        self::NO_DIRECT_LOGIN => 'NoDirectLogin',
-        self::PERSISTENT => 'Persistent',
-        self::LOCKED_OUT => 'LockedOut',
-        self::RESERVATION => 'Reservation',
-        self::NO_MOVE => 'NoMove',
-        self::AUTHENTICATE => 'Authenticate',
-    ];
+    /** The flags a region can be given, its roles, written by name in the config of Robust: all but what Robust sets itself. */
+    private const ROLES = (self::DEFAULT_HGREGION * 2 - 1) & ~(self::REGION_ONLINE | self::HYPERLINK);
 
     /** The size of a region that does not say it. */
     private const DEFAULT_SIZE = 256;
@@ -726,7 +720,7 @@ final class Region extends Model
         $applied = [];
         // The regions that have any of the flags asked (DefaultRegion,DefaultHGRegion); the links to other grids only when asked
         $flags = self::listing()->asked('flags', $asked['flags'] ?? '');
-        $mask = array_sum(array_map(static fn(string $name): int => (int) array_search($name, self::FLAGS, true), $flags));
+        $mask = array_sum(array_map(static fn(string $name): int => self::flagValue($name), $flags));
         if ($flags !== []) {
             $where[] = "(r.flags & $mask) <> 0";
             $applied['flags'] = implode(',', $flags);
@@ -781,7 +775,7 @@ final class Region extends Model
             'available' => [
                 'flags' => array_values(
                     array_filter(
-                        self::FLAGS,
+                        self::NAMES,
                         static fn(int $flag): bool => ($flag & array_reduce(
                             $pdo->get_results('SELECT DISTINCT flags FROM regions', [], \PDO::FETCH_COLUMN),
                             static fn(int $all, mixed $flags): int => $all | (int) $flags,
@@ -852,12 +846,12 @@ final class Region extends Model
 
         return new Listing(
             [
-                Listing::column('mapImage', 'column_map', 'map'),
+                Listing::column('mapImage', 'column_map', 'map', more: ['default' => 'place']),
                 Listing::column('name', 'column_region', sort: 'name'),
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('size', 'column_size', 'size', 'size'),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
-                Listing::column('roles', 'column_roles', 'list', 'flags', ['labels' => self::roleKeys()]),
+                Listing::column('roles', 'column_roles', 'list', 'flags', ['values' => Listing::values(self::roleKeys(true))]),
                 Listing::column('online', 'online', 'boolean'),
                 Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
                 Listing::column('teleport', 'profile_teleport', 'hop'),
@@ -895,13 +889,13 @@ final class Region extends Model
 
         return new ItemForm(
             [
-                ItemForm::shown('mapImage', 'column_map', 'map', 'region'),
+                ItemForm::shown('mapImage', 'column_map', 'map', 'region', ['default' => 'place']),
                 ItemForm::shown('name', 'column_name', 'text', 'region'),
                 ItemForm::shown('uuid', 'profile_key', 'text', 'region'),
                 ItemForm::shown('location', 'profile_location', 'text', 'region'),
                 ItemForm::shown('size', 'column_size', 'size', 'region'),
                 ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile']),
-                ItemForm::shown('roles', 'column_roles', 'list', 'region', ['labels' => self::roleKeys()]),
+                ItemForm::shown('roles', 'column_roles', 'list', 'region', ['values' => Listing::values(self::roleKeys(true))]),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
                 ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
                 ItemForm::shown('teleport', 'profile_teleport', 'hop', 'region'),
@@ -923,7 +917,7 @@ final class Region extends Model
     }
 
     /**
-     * The flags of the regions table (FLAGS), with the keys of their texts in the catalog: `region_flag_` and the name in snake case
+     * The flags of the regions table (NAMES), with the keys of their texts in the catalog: `region_flag_` and the name in snake case
      * (DefaultHGRegion: region_flag_default_hg_region), and with `_help` what it means, as OpenSimulator says it.
      *
      * @param bool $help the keys of what they mean too
@@ -932,7 +926,7 @@ final class Region extends Model
     public static function flagKeys(bool $help = false): array
     {
         $keys = [];
-        foreach (self::FLAGS as $name) {
+        foreach (self::NAMES as $name) {
             $key = 'region_flag_' . strtolower((string) preg_replace('/(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', '_', $name));
             $keys[$name] = $help ? [$key, $key . '_help'] : $key;
         }
@@ -941,13 +935,14 @@ final class Region extends Model
     }
 
     /**
-     * The roles a region can have (the flags the config of Robust gives, NAMES), with the keys of their texts in the catalog.
+     * The roles a region can have (the flags the config of Robust gives), with the keys of their texts in the catalog.
      *
-     * @return array<string,string> name => key
+     * @param bool $help the keys of what they mean too
+     * @return array<string,string|array{0:string,1:string}> name => key, or [key, key of what it means]
      */
-    public static function roleKeys(): array
+    public static function roleKeys(bool $help = false): array
     {
-        return array_intersect_key(self::flagKeys(), array_flip(self::NAMES));
+        return array_intersect_key(self::flagKeys($help), array_flip(self::flagNames(self::ROLES)));
     }
 
     /** What a flag is called for a person ("Default Region"). */
@@ -959,10 +954,12 @@ final class Region extends Model
     /** The name of a flag in the config of Robust (DefaultRegion for DEFAULT_REGION). */
     public static function flagName(int $flag): string
     {
-        return self::NAMES[$flag] ?? throw new \InvalidArgumentException("$flag is not a flag of a region");
+        return ($flag & self::ROLES) === $flag && isset(self::NAMES[$flag])
+            ? self::NAMES[$flag]
+            : throw new \InvalidArgumentException("$flag is not a flag a region can be given");
     }
 
-    /** The flag a name of the config of Robust stands for, 0 for a name that is not one. */
+    /** The flag a name stands for (DefaultRegion, Hyperlink...), 0 for a name that is not one. */
     public static function flagValue(string $name): int
     {
         return (int) array_search($name, self::NAMES, true);
@@ -975,21 +972,13 @@ final class Region extends Model
      */
     public static function flagLabels(int $flags): array
     {
-        $labels = [
-            self::DEFAULT_REGION => _('Default Region'),
-            self::DEFAULT_HGREGION => _('Default HG Region'),
-            self::FALLBACK_REGION => _('Fallback Region'),
-            self::REGION_ONLINE => _('Online'),
-            self::AUTHENTICATE => _('Authenticate'),
-            self::HYPERLINK => _('Hyperlink'),
-            self::LOCKED_OUT => _('Locked Out'),
-            self::NO_DIRECT_LOGIN => _('No Direct Login'),
-            self::NO_MOVE => _('No Move'),
-            self::PERSISTENT => _('Persistent'),
-            self::RESERVATION => _('Reservation'),
-        ];
+        $labels = [];
+        foreach (self::flagKeys() as $name => $key) {
+            $flag = self::flagValue($name);
+            ($flags & $flag) === 0 || ($labels[$flag] = Catalog::MESSAGES[$key]);
+        }
 
-        return array_filter($labels, static fn(int $flag): bool => ($flags & $flag) !== 0, ARRAY_FILTER_USE_KEY);
+        return $labels;
     }
 
     /**
@@ -1000,7 +989,7 @@ final class Region extends Model
      */
     public static function flagNames(int $flags): array
     {
-        return \OpenSim\Support\Bitmask::names($flags, self::NAMES);
+        return \OpenSim\Support\Bitmask::names($flags & self::ROLES, self::NAMES);
     }
 
     /**

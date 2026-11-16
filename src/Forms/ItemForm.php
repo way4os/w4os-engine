@@ -120,7 +120,12 @@ final class ItemForm
             ...array_column($this->actions, 'label'),
         ];
         foreach ($this->fields as $field) {
-            array_push($keys, ...array_values($field['options'] ?? []));
+            array_push(
+                $keys,
+                ...array_values($field['options'] ?? []),
+                ...array_column($field['values'] ?? [], 'label'),
+                ...array_column($field['values'] ?? [], 'description'),
+            );
         }
 
         return array_values(array_unique($keys));

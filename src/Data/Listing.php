@@ -109,15 +109,25 @@ final class Listing
         return ['name' => $name, 'label' => $label] +
             ($values === []
                 ? ['format' => $format ?? 'string']
-                : [
-                    'values' => array_map(
-                        static fn(string $value, string|array $key): array => ['value' => $value] +
-                            (is_array($key) ? ['label' => $key[0], 'description' => $key[1]] : ['label' => $key]),
-                        array_map('strval', array_keys($values)),
-                        $values,
-                    ),
-                ]) +
+                : ['values' => self::values($values)]) +
             $more;
+    }
+
+    /**
+     * Words with the keys of their texts, as a filter and a column of a `list` give them: `[{value, label, description?}]`.
+     *
+     * @param array<string,string|array{0:string,1:string}> $values value => key of its text, or the keys of its text and of what
+     *        explains it
+     * @return list<array{value:string,label:string,description?:string}>
+     */
+    public static function values(array $values): array
+    {
+        return array_map(
+            static fn(string $value, string|array $key): array => ['value' => $value] +
+                (is_array($key) ? ['label' => $key[0], 'description' => $key[1]] : ['label' => $key]),
+            array_map('strval', array_keys($values)),
+            array_values($values),
+        );
     }
 
     /** Whether a filter takes several values at once. */
@@ -277,6 +287,10 @@ final class Listing
     public function keys(): array
     {
         $keys = [...array_column($this->columns, 'label'), ...array_column($this->columns, 'tagLabel')];
+        foreach ($this->columns as $column) {
+            $values = $column['values'] ?? [];
+            array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'));
+        }
         foreach ($this->filters as $filter) {
             array_push(
                 $keys,

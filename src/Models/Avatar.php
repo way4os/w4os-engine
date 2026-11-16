@@ -1428,6 +1428,7 @@ final class Avatar extends Model
         $columns = [
             Listing::column('name', 'avatar_name', sort: 'name', more: [
                 'picture' => 'profileImage',
+                'default' => 'person',
                 'tag' => 'online',
                 'tagLabel' => 'online',
             ]),
@@ -1515,7 +1516,7 @@ final class Avatar extends Model
 
         return new ItemForm(
             [
-                ItemForm::shown('profileImage', 'profile_picture', 'picture', 'inworld'),
+                ItemForm::shown('profileImage', 'profile_picture', 'picture', 'inworld', ['default' => 'person']),
                 ItemForm::shown('name', 'avatar_name', 'text', 'inworld'),
                 ItemForm::shown('uuid', 'profile_key', 'text', 'inworld'),
                 ItemForm::shown('created', 'born', 'date', 'inworld'),
@@ -1528,7 +1529,7 @@ final class Avatar extends Model
                 ItemForm::field('skillsList', 'skills', 'checkboxes', 'interests', $flags($profile['skills']), $both),
                 ItemForm::field('skills', 'profile_other', 'string', 'interests', more: $both),
                 ItemForm::field('languages', 'languages', 'string', 'interests', more: $both),
-                ItemForm::shown('firstImage', 'profile_picture', 'picture', 'real_life'),
+                ItemForm::shown('firstImage', 'profile_picture', 'picture', 'real_life', ['default' => 'person']),
                 ItemForm::field('firstLife', 'real_life', 'text', 'real_life', more: $both),
                 ItemForm::field('email', 'email', 'email', 'account', more: $both),
                 ItemForm::field('role', 'role', 'select', 'account', $roles),

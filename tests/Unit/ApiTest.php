@@ -518,6 +518,7 @@ describe('The contract', function () {
                 'type' => 'text',
                 'sort' => 'name',
                 'picture' => 'profileImage',
+                'default' => 'person',
                 'tag' => 'online',
                 'tagLabel' => 'online',
             ])
@@ -639,7 +640,14 @@ describe('The contract', function () {
             ->and(array_column($avatar['groups'], 'name'))
             ->toBe(['inworld', 'web', 'interests', 'real_life', 'account'])
             ->and($avatar['fields'][0])
-            ->toBe(['name' => 'profileImage', 'label' => 'profile_picture', 'type' => 'picture', 'group' => 'inworld', 'readOnly' => true])
+            ->toBe([
+                'name' => 'profileImage',
+                'label' => 'profile_picture',
+                'type' => 'picture',
+                'group' => 'inworld',
+                'readOnly' => true,
+                'default' => 'person',
+            ])
             ->and(array_column($avatar['fields'], null, 'name')['role'])
             ->toBe([
                 'name' => 'role',
