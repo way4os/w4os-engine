@@ -82,17 +82,23 @@ final class AccountWriter
     /** The writer of real accounts: random ids, the time, a random salt. */
     public static function standard(): self
     {
-        return new self(
-            static function (): string {
-                $bytes = random_bytes(16);
-                $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
-                $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        return new self(self::uuid(...), static fn(): int => time(), self::salt(...));
+    }
 
-                return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
-            },
-            static fn(): int => time(),
-            static fn(): string => bin2hex(random_bytes(16)),
-        );
+    /** A new random UUID (version 4). */
+    public static function uuid(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
+    }
+
+    /** A new random salt of a password, 32 characters. */
+    public static function salt(): string
+    {
+        return bin2hex(random_bytes(16));
     }
 
     /** What Robust keeps of a password: MD5(MD5(password) + ':' + salt). */

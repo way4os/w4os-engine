@@ -254,27 +254,30 @@ final class Api
             if ($class === null) {
                 return Response::problem(Problem::notFound("kind of resource called '$type'", $instance));
             }
-            $confirm = $type === 'avatars' && Result::isTrue($attributes['confirmEmail'] ?? false);
-            if ($confirm) {
-                if (!Avatar::validEmail(trim((string) ($attributes['email'] ?? '')))) {
-                    throw InvalidValue::because(
-                        'email-required',
-                        'an avatar whose email is to be confirmed needs an email',
-                    );
-                }
-                $attributes['status'] = 'pending';
+            // A new avatar whose email is to be confirmed is only a registration until then: nothing is written in the grid
+            if ($type === 'avatars' && Result::isTrue($attributes['confirmEmail'] ?? false)) {
+                $send = !Result::isFalse($attributes['send'] ?? true);
+                $given = $this->access((string) $grid)->requestRegistration(
+                    $attributes,
+                    self::link($attributes),
+                    $send,
+                );
+
+                return Response::document(
+                    [
+                        'data' => [
+                            'type' => 'registrations',
+                            'id' => $given['id'],
+                            'attributes' => $given['registration'],
+                        ],
+                        'meta' => self::confirmation($given, $send),
+                    ],
+                    202,
+                );
             }
             $created = isset(self::RESOURCES[$type])
                 ? $class::create($this->environment, $attributes)
                 : $class::create($this->gridConfig((string) $grid), $attributes);
-            $meta = [];
-            if ($confirm && $created instanceof Avatar) {
-                $send = !Result::isFalse($attributes['send'] ?? true);
-                $meta = self::confirmation(
-                    $this->access((string) $grid)->requestEmailConfirmation($created, self::link($attributes), $send),
-                    $send,
-                );
-            }
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -283,8 +286,7 @@ final class Api
         return new Response(
             201,
             ['Content-Type' => Response::JSON_API, 'Location' => $self],
-            ['data' => self::resource($type, $created, $grid), 'links' => ['self' => $self]] +
-                ($meta !== [] ? ['meta' => $meta] : []),
+            ['data' => self::resource($type, $created, $grid), 'links' => ['self' => $self]],
         );
     }
 
@@ -472,10 +474,14 @@ final class Api
             $access = $this->access($grid);
             $id = trim((string) ($attributes['avatar'] ?? ''));
             $avatar = $id === '' ? null : Avatar::find($this->gridConfig($grid), $id);
+            $send = !Result::isFalse($attributes['send'] ?? true);
             if ($avatar === null) {
-                return Response::problem(Problem::notFound("avatar called '$id'", $instance));
-            }
-            if (!$access->waitsForConfirmation($avatar)) {
+                // A registration that waits: the avatar is not made yet
+                $given = $id === '' ? [] : $access->renewRegistration($id, self::link($attributes), $send);
+                if ($given === []) {
+                    return Response::problem(Problem::notFound("avatar called '$id'", $instance));
+                }
+            } elseif (!$access->waitsForConfirmation($avatar)) {
                 return Response::problem(
                     new Problem(
                         409,
@@ -485,10 +491,10 @@ final class Api
                         $instance,
                     ),
                 );
+            } else {
+                $given = [$access->requestEmailConfirmation($avatar, self::link($attributes), $send)];
             }
-            $send = !Result::isFalse($attributes['send'] ?? true);
-            $given = $access->requestEmailConfirmation($avatar, self::link($attributes), $send);
-            if ($send && !$given['sent']) {
+            if ($send && in_array(false, array_column($given, 'sent'), true)) {
                 return Response::problem(
                     Problem::coded(
                         503,
@@ -507,7 +513,7 @@ final class Api
         return $send
             ? Response::document(['meta' => ['message' => 'A mail was sent to the avatar.']], 202)
             : Response::document([
-                'data' => [self::given('email-confirmations', $given)],
+                'data' => array_map(static fn(array $one): array => self::given('email-confirmations', $one), $given),
                 'links' => ['self' => $instance],
             ]);
     }
@@ -1092,7 +1098,7 @@ final class Api
      * What is said of the confirmation of an email, in the meta of the avatar: `emailConfirmation` sent, not sent (the mail failed)
      * or given, and the token in `confirmation` when it is given instead of mailed.
      *
-     * @param array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string} $given
+     * @param array{token:string,expires:int,link:?string,sent:bool,email:string} $given
      * @return array<string,mixed>
      */
     private static function confirmation(array $given, bool $send): array
@@ -1123,20 +1129,18 @@ final class Api
     /**
      * A token given back instead of mailed, as a resource of the type of the operation.
      *
-     * @param array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string} $given
+     * @param array{id:string,name:string,token:string,expires:int,link:?string,sent:bool,email:string} $given
      * @return array<string,mixed>
      */
     private static function given(string $type, array $given): array
     {
-        $avatar = $given['avatar'];
-
         return [
             'type' => $type,
-            'id' => $avatar->id(),
+            'id' => $given['id'],
             'attributes' => [
-                'avatar' => $avatar->id(),
-                'name' => $avatar->name(),
-                'email' => $avatar->detail()['email'] ?? null,
+                'avatar' => $given['id'],
+                'name' => $given['name'],
+                'email' => $given['email'],
                 'token' => $given['token'],
                 'expires' => $given['expires'],
                 'link' => $given['link'],

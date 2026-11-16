@@ -235,7 +235,7 @@ final class Contract
                 'active' => ['boolean', 'The account can log in (the default); false: disabled'],
                 'confirmEmail' => [
                     'boolean',
-                    'The avatar is made `pending` and mailed a token to confirm its email, which activates it (see Avatar access); `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`',
+                    'Nothing is made yet: everything is checked, the registration is kept (name, email, model, the password hashed) and mailed a token to confirm its email, which makes the avatar, active (see Avatar access). The answer is 202, a `registrations` resource; `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given`. Only name, email, password, model and reservedName are taken',
                 ],
                 'link' => ['string', 'With confirmEmail: the page that takes the token, `{token}` in it'],
                 'send' => [
@@ -593,6 +593,7 @@ final class Contract
                     ],
                     'responses' => [
                         '201' => self::documentResponse('Made; its address is in the Location header', $schema, false),
+                    ] + (isset($resource['create']['confirmEmail']) ? ['202' => self::registrationResponse()] : []) + [
                         '400' => self::problem(
                             'A value is wrong, `code` says which: a name that is not one, reserved or taken, no password or a wrong one, a wrong email, an unknown model',
                         ),
@@ -961,6 +962,53 @@ final class Contract
                         'properties' => $list
                             ? ['data' => ['type' => 'array', 'items' => $item], 'meta' => ['type' => 'object']]
                             : ['data' => $item],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * The answer to a new avatar whose email is to be confirmed: the registration that waits for it, nothing made yet.
+     *
+     * @return array<string,mixed>
+     */
+    private static function registrationResponse(): array
+    {
+        $string = ['type' => 'string'];
+
+        return [
+            'description' =>
+                'With confirmEmail: the registration is kept, the avatar is made once its email is confirmed (see Avatar access). `meta.emailConfirmation` says `sent`, `not sent` (the mail failed) or `given` (with `meta.confirmation`)',
+            'content' => [
+                Response::JSON_API => [
+                    'schema' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'data' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'type' => ['type' => 'string', 'enum' => ['registrations']],
+                                    'id' => ['type' => 'string', 'description' => 'The UUID the avatar will have'],
+                                    'attributes' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'avatar' => $string,
+                                            'name' => $string,
+                                            'firstName' => $string,
+                                            'lastName' => $string,
+                                            'email' => $string,
+                                            'model' => ['type' => ['string', 'null'], 'description' => 'The name of the model'],
+                                            'expires' => [
+                                                'type' => 'integer',
+                                                'description' => 'When it is forgotten unless its email is confirmed (Unix time)',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                            'meta' => ['type' => 'object'],
+                        ],
                     ],
                 ],
             ],

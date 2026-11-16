@@ -8,13 +8,17 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Data\Connections;
 use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Models\Avatar;
+use OpenSim\Models\AvatarModel;
+use OpenSim\Provisioning\AccountWriter;
 use OpenSim\Runtime\ClockInterface;
 use OpenSim\Services\MailerInterface;
 
 /**
  * What lets the people of a grid back in, from any site or the command line: a forgotten password and the confirmation of the email
- * of a new avatar, each a one-time token (AvatarTokens) mailed to the avatar with a link to the page that takes it, the way WordPress
- * does it for w4os. Whoever cannot mail it (no mail system, an administrator who gives it by hand) asks for the token instead.
+ * of a new avatar, each a one-time token (AvatarTokens, Registrations) mailed to the avatar with a link to the page that takes it, the
+ * way WordPress does it for w4os. Whoever cannot mail it (no mail system, an administrator who gives it by hand) asks for the token
+ * instead. A new avatar is only a registration until its email is confirmed, as w4os makes the avatar of an account that is checked
+ * already: nothing is written in the grid for a robot or a registration nobody confirms.
  *
  * The link is the one the caller gives (`{token}` is replaced by the token, else `token=` is added to it), else the page of the grid:
  * `password` of `[GridInfoService]` for a password, `register` for a confirmation. The mail always gives the token as a code too.
@@ -31,7 +35,12 @@ final class AvatarAccess
     /** Seconds a token of the confirmation of an email is valid; the avatar may ask for another one later. */
     public const CONFIRMATION_TTL = 172800;
 
+    /** What a registration takes of the values of a new avatar: the rest is the engine's (its UUID, its status). */
+    private const REGISTRATION = ['name', 'firstName', 'lastName', 'email', 'password', 'model', 'reservedName'];
+
     private ?AvatarTokens $tokens = null;
+
+    private ?Registrations $registrations = null;
 
     /**
      * @param string $grid the name of the grid, in the mails
@@ -106,6 +115,133 @@ final class AvatarAccess
         return $avatar;
     }
 
+    /**
+     * Keep the registration of a new avatar until its email is confirmed, and give it a token to confirm it, mailed unless `send` is
+     * false. Everything is checked first, as `Avatar::create()` does (the name valid, not reserved, not taken; the password; the email;
+     * the model): what is refused keeps nothing. Nothing is written in the tables of the grid: the token makes the avatar
+     * (`confirmEmail()`). The password is kept as Robust keeps it, hashed and salted. A registration of the same name and the same email
+     * replaces the last one.
+     *
+     * @param array<string,mixed> $values `name` (or `firstName` and `lastName`), `email`, `password`, `model`, `reservedName`
+     * @return array{registration:array<string,mixed>,id:string,name:string,token:string,expires:int,link:?string,sent:bool,email:string}
+     * @throws InvalidValue for a value that is wrong, an email that is missing, a link that is not a web address
+     * @throws \OpenSim\Exceptions\ChannelUnavailable when the databases cannot be reached
+     */
+    public function requestRegistration(array $values, ?string $link = null, bool $send = true): array
+    {
+        $new = Avatar::check($this->config, array_intersect_key($values, array_flip(self::REGISTRATION)));
+        if (!Avatar::validEmail($new['email'])) {
+            throw InvalidValue::because('email-required', 'an avatar whose email is to be confirmed needs an email');
+        }
+        $page = self::page($link ?? $this->config->find('GridInfoService', 'register'));
+        $salt = AccountWriter::salt();
+        $request = [
+            'avatar' => AccountWriter::uuid(),
+            'first' => $new['first'],
+            'last' => $new['last'],
+            'email' => $new['email'],
+            'model' => $new['model']?->id() ?? '',
+            'hash' => AccountWriter::passwordHash($new['password'], $salt),
+            'salt' => $salt,
+        ];
+        $token = $this->registrations()->keep($request, self::CONFIRMATION_TTL);
+
+        return $this->registered($request + ['expires' => (int) $this->clock->time() + self::CONFIRMATION_TTL], $token, $page, $send);
+    }
+
+    /**
+     * Give a new token to the registrations of an avatar to come (a name or the UUID it will have), mailed unless `send` is false.
+     * The last token of each is refused. None when nothing waits under this name: a registration is forgotten once it expired.
+     *
+     * @return list<array{registration:array<string,mixed>,id:string,name:string,token:string,expires:int,link:?string,sent:bool,email:string}>
+     * @throws InvalidValue for a link that is not a web address
+     */
+    public function renewRegistration(string $who, ?string $link = null, bool $send = true): array
+    {
+        $page = self::page($link ?? $this->config->find('GridInfoService', 'register'));
+
+        return array_map(
+            fn(array $renewed): array => $this->registered($renewed['request'], $renewed['token'], $page, $send),
+            $this->registrations()->renew($who, self::CONFIRMATION_TTL),
+        );
+    }
+
+    /**
+     * What a registration is, as it is told: its UUID to come, its name, its email, its model, until when it waits.
+     *
+     * @param array{avatar:string,first:string,last:string,email:string,model:string,expires:int} $request
+     * @return array<string,mixed>
+     */
+    private function registration(array $request): array
+    {
+        $model = $request['model'] === '' ? null : AvatarModel::find($this->config, $request['model']);
+
+        return [
+            'avatar' => $request['avatar'],
+            'name' => "{$request['first']} {$request['last']}",
+            'firstName' => $request['first'],
+            'lastName' => $request['last'],
+            'email' => $request['email'],
+            'model' => $model?->name(),
+            'expires' => $request['expires'],
+        ];
+    }
+
+    /**
+     * @param array{avatar:string,first:string,last:string,email:string,model:string,expires:int} $request
+     * @return array{registration:array<string,mixed>,id:string,name:string,token:string,expires:int,link:?string,sent:bool,email:string}
+     */
+    private function registered(array $request, string $token, ?string $page, bool $send): array
+    {
+        $name = "{$request['first']} {$request['last']}";
+
+        return ['registration' => $this->registration($request), 'id' => $request['avatar'], 'name' => $name] +
+            $this->mail(
+                $token,
+                $request['expires'],
+                $name,
+                $request['email'],
+                $page,
+                $send,
+                sprintf(_('[%1$s] Confirm the email of %2$s'), $this->grid, $name),
+                sprintf(
+                    _('The avatar %1$s is asked for on %2$s with this email. Confirm it to make the avatar. If it was not you, ignore this mail: nothing is made.'),
+                    $name,
+                    $this->grid,
+                ),
+                _('Confirm the email'),
+            );
+    }
+
+    /**
+     * Make the avatar of a registration, active, once its email is confirmed. A name another avatar took meanwhile refuses it
+     * (`name-taken`): the registration is forgotten, the person registers again. A model that is gone gives the default outfit.
+     *
+     * @param array{avatar:string,first:string,last:string,email:string,model:string,hash:string,salt:string} $request
+     * @throws InvalidValue for a name that is taken now
+     */
+    private function register(string $token, array $request): ?Avatar
+    {
+        $model = $request['model'] !== '' && AvatarModel::find($this->config, $request['model']) !== null;
+        try {
+            $avatar = Avatar::create($this->config, [
+                'firstName' => $request['first'],
+                'lastName' => $request['last'],
+                'email' => $request['email'],
+                'passwordHash' => ['hash' => $request['hash'], 'salt' => $request['salt']],
+                'uuid' => $request['avatar'],
+                'reservedName' => true,
+            ] + ($model ? ['model' => $request['model']] : []));
+        } catch (InvalidValue $refused) {
+            $this->registrations()->forget($token);
+
+            throw $refused;
+        }
+        $this->registrations()->forget($token);
+
+        return $avatar;
+    }
+
     /** Whether an avatar waits for the confirmation of its email: it was made so, and has not confirmed it yet. */
     public function waitsForConfirmation(Avatar $avatar): bool
     {
@@ -113,9 +249,9 @@ final class AvatarAccess
     }
 
     /**
-     * Give a token to confirm the email of an avatar, mailed to it unless `send` is false: an avatar that was just made inactive for
-     * it, or one that waits for it (a new token replaces the last). An avatar an administrator disabled is never given one: its token
-     * would activate it.
+     * Give a token to confirm the email of an avatar that waits for it (made so before the registrations, or by `status` pending),
+     * mailed to it unless `send` is false; a new token replaces the last. An avatar an administrator disabled is never given one: its
+     * token would activate it.
      *
      * @return array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}
      * @throws \InvalidArgumentException for an avatar that has no email, or a link that is not a web address
@@ -176,10 +312,13 @@ final class AvatarAccess
     }
 
     /**
-     * Confirm the email of the avatar a token was given to, once. A new avatar that waits for it is activated (never one a manager
-     * disabled or enabled meanwhile); an avatar that asked for a new email gets it, and stays as active as it is. A token for an email the avatar does not have any more is refused.
+     * Confirm the email a token was given for, once. A registration makes its avatar, active (`name-taken` when its name was taken
+     * meanwhile). An avatar made waiting for it before the registrations is activated (never one a manager disabled or enabled
+     * meanwhile; a token for an email the avatar does not have any more is refused). An avatar that asked for a new email gets it, and
+     * stays as active as it is.
      *
      * @return ?Avatar the avatar, null when the token is not valid or expired
+     * @throws InvalidValue for a registration whose name was taken meanwhile
      */
     public function confirmEmail(string $token): ?Avatar
     {
@@ -191,6 +330,11 @@ final class AvatarAccess
 
             return $avatar === null ? null : Avatar::find($this->config, $avatar->id());
         }
+        $registration = $this->registrations()->find($token);
+        if ($registration !== null) {
+            return $this->register($token, $registration);
+        }
+        // An avatar made waiting for its email before the registrations
         $given = $tokens->redeem($token, AvatarTokens::EMAIL_CONFIRMATION);
         $avatar = $given === null ? null : Avatar::find($this->config, $given['avatar']);
         // An avatar a manager disabled or enabled meanwhile does not wait any more: the token does nothing
@@ -208,7 +352,7 @@ final class AvatarAccess
     }
 
     /**
-     * @return array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}
+     * @return array{avatar:Avatar,id:string,name:string,token:string,expires:int,link:?string,sent:bool,email:string}
      */
     private function give(
         Avatar $avatar,
@@ -221,18 +365,51 @@ final class AvatarAccess
         string $text,
         string $action,
     ): array {
+        $page = self::page($link);
+        $token = $this->tokens()->issue($avatar->id(), $purpose, $ttl, $email);
+        $expires = (int) $this->clock->time() + $ttl;
+
+        return ['avatar' => $avatar, 'id' => $avatar->id(), 'name' => $avatar->name()] +
+            $this->mail($token, $expires, $avatar->name(), $email, $page, $send, $subject, $text, $action);
+    }
+
+    /**
+     * The page that takes a token, checked before a token is given: null when there is none.
+     *
+     * @throws InvalidValue for a link that is not a web address
+     */
+    private static function page(?string $link): ?string
+    {
         $link = $link !== null && trim($link) !== '' ? trim($link) : null;
         if ($link !== null && preg_match('#^https?://[^\s"<>]+$#i', $link) !== 1) {
             throw InvalidValue::because('link-invalid', "'$link' is not a web address");
         }
-        $token = $this->tokens()->issue($avatar->id(), $purpose, $ttl, $email);
-        $expires = (int) $this->clock->time() + $ttl;
+
+        return $link;
+    }
+
+    /**
+     * Mail a token with the link of its page, unless `send` is false.
+     *
+     * @return array{token:string,expires:int,link:?string,sent:bool,email:string}
+     */
+    private function mail(
+        string $token,
+        int $expires,
+        string $name,
+        string $email,
+        ?string $page,
+        bool $send,
+        string $subject,
+        string $text,
+        string $action,
+    ): array {
         $url =
-            $link === null
+            $page === null
                 ? null
-                : (str_contains($link, '{token}')
-                    ? str_replace('{token}', $token, $link)
-                    : $link . (str_contains($link, '?') ? '&' : '?') . 'token=' . $token);
+                : (str_contains($page, '{token}')
+                    ? str_replace('{token}', $token, $page)
+                    : $page . (str_contains($page, '?') ? '&' : '?') . 'token=' . $token);
         $sent = false;
         if ($send) {
             $html =
@@ -246,17 +423,10 @@ final class AvatarAccess
                 self::html(sprintf(_('It is valid until %s (UTC).'), gmdate('Y-m-d H:i', $expires))) .
                 '</p>';
             $sent = $this->mailer->send($email, $subject, $html, $this->from);
-            $sent || error_log("opensim: the mail to {$avatar->name()} ($purpose) could not be sent");
+            $sent || error_log("opensim: the mail to $name ($subject) could not be sent");
         }
 
-        return [
-            'avatar' => $avatar,
-            'token' => $token,
-            'expires' => $expires,
-            'link' => $url,
-            'sent' => $sent,
-            'email' => $email,
-        ];
+        return ['token' => $token, 'expires' => $expires, 'link' => $url, 'sent' => $sent, 'email' => $email];
     }
 
     /**
@@ -290,6 +460,11 @@ final class AvatarAccess
     private function tokens(): AvatarTokens
     {
         return $this->tokens ??= AvatarTokens::for($this->config, $this->clock);
+    }
+
+    private function registrations(): Registrations
+    {
+        return $this->registrations ??= Registrations::for($this->config, $this->clock);
     }
 
     private static function html(string $text): string

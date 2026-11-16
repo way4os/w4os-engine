@@ -447,19 +447,15 @@ final class Avatar extends Model
     }
 
     /**
-     * Make an avatar: its account, its password, its inventory with the default outfit (or the one of a model), and its home when it
-     * is given. Each is written in the database of its service (the accounts, the passwords, the inventories may be in different
-     * ones), the account last so that nothing shows of an avatar that could not be made.
+     * What `create()` checks before it writes anything, the name being free: the name, the password, the email, the status, the UUID,
+     * the model. A registration checks it all the same before it keeps the request (AvatarAccess::requestRegistration).
      *
-     * @param array<string,mixed> $values `name` ("First Last") or `firstName` and `lastName`, `email`, and `password` or `passwordHash`
-     *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
-     *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
-     *        `status` (STATUSES), or `active` false for a disabled one; `reservedName` true for a name w4os keeps (a model: Default...)
-     * @throws InvalidValue for a name that is not one or is reserved or taken, a missing or wrong password, a wrong email, a model
-     *         that is not one; its reason says which
-     * @throws ChannelUnavailable when a database cannot be reached or refuses
+     * @param array<string,mixed> $values as `create()` takes them
+     * @return array{first:string,last:string,email:string,password:string,hash:?array,uuid:?string,status:string,model:?AvatarModel}
+     * @throws InvalidValue for a value that is wrong; its reason says which
+     * @throws ChannelUnavailable when the database of the accounts cannot be reached
      */
-    public static function create(GridConfig $config, array $values): static
+    public static function check(GridConfig $config, array $values): array
     {
         [$first, $last] = isset($values['name'])
             ? array_pad(explode(' ', trim((string) $values['name']), 2), 2, '')
@@ -503,18 +499,49 @@ final class Avatar extends Model
         ) {
             throw InvalidValue::because('name-taken', "an avatar called '$first $last' exists already");
         }
-        $outfit = null;
+        $model = null;
         if (trim((string) ($values['model'] ?? '')) !== '') {
             $model =
                 AvatarModel::find($config, trim((string) $values['model'])) ??
                 throw InvalidValue::because('model-unknown', "'{$values['model']}' is not an avatar model of the grid");
-            $outfit = $model->outfit();
         }
+
+        return [
+            'first' => $first,
+            'last' => $last,
+            'email' => trim((string) ($values['email'] ?? '')),
+            'password' => $password,
+            'hash' => $hash,
+            'uuid' => $uuid,
+            'status' => $status,
+            'model' => $model,
+        ];
+    }
+
+    /**
+     * Make an avatar: its account, its password, its inventory with the default outfit (or the one of a model), and its home when it
+     * is given. Each is written in the database of its service (the accounts, the passwords, the inventories may be in different
+     * ones), the account last so that nothing shows of an avatar that could not be made.
+     *
+     * @param array<string,mixed> $values `name` ("First Last") or `firstName` and `lastName`, `email`, and `password` or `passwordHash`
+     *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
+     *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
+     *        `status` (STATUSES), or `active` false for a disabled one; `reservedName` true for a name w4os keeps (a model: Default...)
+     * @throws InvalidValue for a name that is not one or is reserved or taken, a missing or wrong password, a wrong email, a model
+     *         that is not one; its reason says which
+     * @throws ChannelUnavailable when a database cannot be reached or refuses
+     */
+    public static function create(GridConfig $config, array $values): static
+    {
+        $new = self::check($config, $values);
+        ['first' => $first, 'last' => $last, 'password' => $password, 'hash' => $hash, 'uuid' => $uuid] = $new;
+        $status = $new['status'];
+        $outfit = $new['model']?->outfit();
 
         $made = AccountWriter::standard()->tables(
             $first,
             $last,
-            trim((string) ($values['email'] ?? '')),
+            $new['email'],
             $password,
             $hash,
             $uuid,

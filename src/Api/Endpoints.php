@@ -39,7 +39,7 @@ final class Endpoints
             [
                 'name' => 'Avatar access',
                 'description' =>
-                    "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them; a forgotten password; the confirmation of the email of a new avatar, or of a new email (`confirmEmail` of a change of an avatar: the email changes once it is confirmed).\n\nEvery problem has a `code` that says what went wrong, for a site to tell it in its own language: `sign-in-refused`, `account-disabled` (a manager disabled it), `email-unconfirmed` (it waits for the confirmation of its email), `name-reserved`, `name-taken`, `token-refused`... (see the Problem schema). The `detail` is the English one.\n\nA forgotten password and a confirmation are a one-time token, kept hashed in the database of the passwords (`avatar_tokens`), mailed to the avatar with a link to the page that takes it: the `link` the caller gives (`{token}` in it is replaced by the token, else `token=` is added), else the page of the grid (`password` of `[GridInfoService]` for a password, `register` for a confirmation). The mail gives the token as a code too. Whoever cannot mail it (no mail system, an administrator, an agent that delivers it otherwise) sends `send: false` and gets the token instead. The mails come from `MailSender` of `[Helpers]`, else no-reply@ the host of the grid.\n\nA token is valid once: a day for a password, two days for a confirmation (the avatar may ask for another one). An avatar has one token at a time for each.",
+                    "What a site or the command line needs to let the people of the grid in, without holding any logic: sign an avatar in with its name (or its email) and its password, checked in the databases of the grid as Robust keeps them; a forgotten password; the confirmation of the email of a new avatar (`confirmEmail` of a new avatar: it is only a registration, nothing is written in the grid until its email is confirmed), or of a new email (`confirmEmail` of a change of an avatar: the email changes once it is confirmed).\n\nEvery problem has a `code` that says what went wrong, for a site to tell it in its own language: `sign-in-refused`, `account-disabled` (a manager disabled it), `email-unconfirmed` (it waits for the confirmation of its email), `name-reserved`, `name-taken`, `token-refused`... (see the Problem schema). The `detail` is the English one.\n\nA forgotten password and a confirmation are a one-time token, kept hashed in the database of the passwords (`avatar_tokens`, and `avatar_registrations` for a new avatar, with its password hashed as Robust keeps it; an expired registration is forgotten whenever another one comes or a token is checked), mailed to the avatar with a link to the page that takes it: the `link` the caller gives (`{token}` in it is replaced by the token, else `token=` is added), else the page of the grid (`password` of `[GridInfoService]` for a password, `register` for a confirmation). The mail gives the token as a code too. Whoever cannot mail it (no mail system, an administrator, an agent that delivers it otherwise) sends `send: false` and gets the token instead. The mails come from `MailSender` of `[Helpers]`, else no-reply@ the host of the grid.\n\nA token is valid once: a day for a password, two days for a confirmation (the avatar may ask for another one). An avatar has one token at a time for each.",
             ],
             [
                 'name' => 'Health',
@@ -844,9 +844,9 @@ final class Endpoints
             'email-confirmations',
             'requestEmailConfirmation',
             'Confirm an email again',
-            'Gives a new token to confirm its email to an avatar that waits for it (made with `confirmEmail`, not confirmed yet): mailed to it with a link, or given back with `send: false`. The token it had is replaced. An avatar that does not wait for it, an administrator disabled it for instance, is never given one: it would activate it.',
+            'Gives a new token to confirm its email to a registration that waits for it (a new avatar asked with `confirmEmail`, not made yet; every registration of the name when several asked for it), or to an avatar made waiting for it before the registrations: mailed with a link, or given back with `send: false`. The token it had is refused from then on, and the registration waits two more days. A registration is forgotten once it expired: the person registers again. An avatar that does not wait for it, an administrator disabled it for instance, is never given one: it would activate it.',
             [
-                'avatar' => ['string', 'The UUID or the name of the avatar'],
+                'avatar' => ['string', 'The name of the avatar (or the UUID it has, or will have)'],
                 'link' => ['string', 'The page that takes the token, `{token}` in it'],
                 'send' => ['boolean', 'Mail it (the default); false gives the token and mails nothing'],
             ],
@@ -854,7 +854,7 @@ final class Endpoints
                 '200' => $tokens('email-confirmations'),
                 '202' => $accepted('Mailed'),
                 '400' => Contract::problem('The avatar has no email, or the link is not a web address'),
-                '404' => Contract::problem('The grid or the avatar is not known here'),
+                '404' => Contract::problem('The grid is not known here, or no avatar nor registration has this name'),
                 '409' => Contract::problem('The avatar does not wait for the confirmation of its email'),
                 '503' => Contract::problem('A database cannot be reached, or the mail cannot be sent'),
             ],
@@ -863,10 +863,11 @@ final class Endpoints
             'email-confirmations',
             'confirmEmail',
             'Confirm an email',
-            'Confirms the email a token was given for, once. The token of a new avatar activates it: it can log in; it is valid only for the email the avatar has. The token of a new email (`confirmEmail` of a change of the avatar) changes its email, the avatar staying as active as it is.',
+            'Confirms the email a token was given for, once. The token of a registration makes the avatar, active (its account, its password, its inventory, in the outfit of its model, or the default one when the model is gone): it can log in. Its name may have been taken meanwhile, no name is kept for a registration: then nothing is made, the registration is forgotten (`name-taken`), and the person registers again. The token of an avatar made waiting before activates it; it is valid only for the email the avatar has. The token of a new email (`confirmEmail` of a change of the avatar) changes its email, the avatar staying as active as it is.',
             ['token' => ['string', 'The token of the mail']],
             [
                 '200' => $avatar,
+                '400' => Contract::problem('The name of the registration was taken meanwhile (`name-taken`)'),
                 '403' => Contract::problem('The token is not valid, or it has expired'),
                 '404' => Contract::problem('The grid is not known here'),
                 '503' => Contract::problem('The databases of the accounts or of the passwords cannot be reached'),

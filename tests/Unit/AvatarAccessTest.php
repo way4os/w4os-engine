@@ -12,9 +12,12 @@ use OpenSim\Api\Cli;
 use OpenSim\Api\Router;
 use OpenSim\Config\GridConfig;
 use OpenSim\Data\Connections;
+use OpenSim\Data\OSPDO;
 use OpenSim\Models\Avatar;
 use OpenSim\Models\Grid;
+use OpenSim\Provisioning\AccountWriter;
 use OpenSim\Services\MailerInterface;
+use OpenSim\SignIn\AvatarAccess;
 use OpenSim\SignIn\AvatarTokens;
 use OpenSim\SignIn\DatabaseAuthenticator;
 use OpenSim\Testing\ClockFake;
@@ -69,6 +72,25 @@ function access_api(?GridConfig $config = null, ?MailerFake $mailer = null): arr
 function access_body(string $type, array $attributes): array
 {
     return ['data' => ['type' => $type, 'attributes' => $attributes]];
+}
+
+/** The rows of the grid an avatar is made of, by table. @return array<string,int> */
+function grid_rows(OSPDO $pdo): array
+{
+    $rows = [];
+    foreach (['UserAccounts', 'auth', 'GridUser', 'userprofile', 'inventoryfolders', 'inventoryitems'] as $table) {
+        $rows[$table] = (int) $pdo->get_var("SELECT COUNT(*) FROM $table");
+    }
+
+    return $rows;
+}
+
+/** The registrations that wait for the confirmation of their email, as they are kept. @return list<array<string,mixed>> */
+function registration_rows(OSPDO $pdo): array
+{
+    return $pdo->table_exists('avatar_registrations')
+        ? $pdo->get_results('SELECT * FROM avatar_registrations ORDER BY created, email', [], PDO::FETCH_ASSOC) ?: []
+        : [];
 }
 
 afterEach(fn() => Connections::using(null));
@@ -261,13 +283,14 @@ describe('The API, for a forgotten password', function () {
     });
 });
 
-describe('The API, for the confirmation of the email of a new avatar', function () {
-    test('makes the avatar inactive and mails it a link, which activates it once', function () {
+describe('The API, for a new avatar whose email is to be confirmed', function () {
+    test('keeps only the request, its password hashed, until the link of its mail makes the avatar, active, once', function () {
         $pdo = signin_database();
         avatars_in($pdo);
         [$router, $mailer] = access_api();
+        $before = grid_rows($pdo);
 
-        $made = $router->post(
+        $asked = $router->post(
             '/grids/demo/avatars',
             access_body('avatars', [
                 'name' => 'New Person',
@@ -277,8 +300,9 @@ describe('The API, for the confirmation of the email of a new avatar', function 
                 'link' => 'https://site.example.org/confirm',
             ]),
         );
-        $id = $made->document['data']['id'];
         $token = $mailer->token();
+        $kept = registration_rows($pdo);
+        $waiting = grid_rows($pdo);
         $refused = (new DatabaseAuthenticator(avatar_grid()))->authenticate('New Person', 'secret');
         $confirmed = $router->post(
             '/grids/demo/email-confirmations/complete',
@@ -289,28 +313,193 @@ describe('The API, for the confirmation of the email of a new avatar', function 
             access_body('email-confirmations', ['token' => $token]),
         );
 
-        expect($made->status)
-            ->toBe(201)
-            ->and($made->document['data']['attributes']['active'])
-            ->toBeFalse()
-            ->and($made->document['meta'])
+        expect($asked->status)
+            ->toBe(202)
+            ->and($asked->document['data'])
+            ->toMatchArray(['type' => 'registrations', 'id' => $kept[0]['avatar'] ?? null])
+            ->and($asked->document['data']['attributes'])
+            ->toMatchArray(['name' => 'New Person', 'email' => 'new@example.org', 'expires' => 1_800_172_800])
+            ->and($asked->document['meta'])
             ->toBe(['emailConfirmation' => 'sent'])
             ->and($mailer->sent[0]['to'])
             ->toBe('new@example.org')
             ->and($mailer->sent[0]['html'])
             ->toContain('href="https://site.example.org/confirm?token=' . $token . '"')
-            ->and($refused->reason)
-            ->toContain('not active')
+            ->and($waiting)
+            ->toBe($before)
+            ->and($kept)
+            ->toHaveCount(1)
+            ->and(implode(' ', $kept[0]))
+            ->not->toContain('secret')
+            ->and($kept[0]['password_hash'])
+            ->toBe(AccountWriter::passwordHash('secret', $kept[0]['password_salt']))
+            ->and($refused->isGranted())
+            ->toBeFalse()
             ->and($confirmed->status)
             ->toBe(200)
             ->and($confirmed->document['data'])
-            ->toMatchArray(['type' => 'avatars', 'id' => $id])
-            ->and($confirmed->document['data']['attributes']['active'])
+            ->toMatchArray(['type' => 'avatars', 'id' => $kept[0]['avatar']])
+            ->and($confirmed->document['data']['attributes'])
+            ->toMatchArray(['status' => 'active', 'email' => 'new@example.org'])
+            ->and((new DatabaseAuthenticator(avatar_grid()))->authenticate('New Person', 'secret')->isGranted())
             ->toBeTrue()
+            ->and(registration_rows($pdo))
+            ->toBe([])
             ->and($again->status)
-            ->toBe(403)
-            ->and(Avatar::find(avatar_grid(), $id)->isEnabled())
-            ->toBeTrue();
+            ->toBe(403);
+    });
+
+    test('checks the whole form at once, and keeps nothing of what it refuses', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        [$router, $mailer] = access_api();
+        $new = ['name' => 'New Person', 'email' => 'new@example.org', 'password' => 'secret', 'confirmEmail' => true];
+        $code = static fn(array $attributes): ?string => $router->post(
+            '/grids/demo/avatars',
+            access_body('avatars', $attributes + $new),
+        )->document['code'] ?? null;
+
+        expect([
+            $code(['name' => 'Nobody']),
+            $code(['name' => 'Admin Person']),
+            $code(['name' => 'Ada Love']),
+            $code(['password' => 'no']),
+            $code(['password' => '']),
+            $code(['email' => '']),
+            $code(['model' => 'Nobody Here']),
+        ])
+            ->toBe([
+                'name-invalid',
+                'name-reserved',
+                'name-taken',
+                'password-invalid',
+                'password-required',
+                'email-required',
+                'model-unknown',
+            ])
+            ->and(registration_rows($pdo))
+            ->toBe([])
+            ->and($mailer->sent)
+            ->toBe([]);
+    });
+
+    test('keeps no name before its link: the first confirmed gets it, the other link says it is taken', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        [$router] = access_api();
+        $ask = static fn(string $email): string => $router->post(
+            '/grids/demo/avatars',
+            access_body('avatars', [
+                'name' => 'New Person',
+                'email' => $email,
+                'password' => 'secret',
+                'confirmEmail' => true,
+                'send' => false,
+            ]),
+        )->document['meta']['confirmation']['token'] ?? '';
+        $confirm = static fn(string $token) => $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $token]),
+        );
+        $first = $ask('one@example.org');
+        $second = $ask('two@example.org');
+
+        $won = $confirm($second);
+        $lost = $confirm($first);
+        $again = $confirm($first);
+
+        expect($won->status)
+            ->toBe(200)
+            ->and($won->document['data']['attributes']['email'])
+            ->toBe('two@example.org')
+            ->and($lost->status)
+            ->toBe(400)
+            ->and($lost->document['code'])
+            ->toBe('name-taken')
+            ->and($again->document['code'])
+            ->toBe('token-refused')
+            ->and(registration_rows($pdo))
+            ->toBe([]);
+    });
+
+    test('forgets a request once it expired, and the same request asked again replaces the last', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        [$router, , $clock] = access_api();
+        $ask = static fn(string $name, string $email): string => $router->post(
+            '/grids/demo/avatars',
+            access_body('avatars', [
+                'name' => $name,
+                'email' => $email,
+                'password' => 'secret',
+                'confirmEmail' => true,
+                'send' => false,
+            ]),
+        )->document['meta']['confirmation']['token'] ?? '';
+        $confirm = static fn(string $token) => $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $token]),
+        );
+        $old = $ask('Old Person', 'old@example.org');
+        $ask('Bot Person', 'bot@example.org');
+        $clock->now += AvatarAccess::CONFIRMATION_TTL + 1;
+
+        $late = $confirm($old);
+        $left = registration_rows($pdo);
+        $first = $ask('New Person', 'new@example.org');
+        $second = $ask('New Person', 'NEW@example.org');
+        $kept = array_column(registration_rows($pdo), 'email');
+
+        expect($late->document['code'])
+            ->toBe('token-refused')
+            ->and($left)
+            ->toBe([])
+            ->and($kept)
+            ->toBe(['NEW@example.org'])
+            ->and($confirm($first)->document['code'])
+            ->toBe('token-refused')
+            ->and($confirm($second)->status)
+            ->toBe(200)
+            ->and(Avatar::find(avatar_grid(), 'Old Person'))
+            ->toBeNull();
+    });
+
+    test('makes the avatar in the outfit of the model it chose', function () {
+        $pdo = model_database();
+        avatars_in($pdo);
+        [$router] = access_api();
+        $asked = $router->post(
+            '/grids/demo/avatars',
+            access_body('avatars', [
+                'name' => 'New Person',
+                'email' => 'new@example.org',
+                'password' => 'secret',
+                'model' => 'Default Ruth',
+                'confirmEmail' => true,
+                'send' => false,
+            ]),
+        );
+        $outfits = static fn(): int => (int) $pdo->get_var(
+            "SELECT COUNT(*) FROM inventoryfolders WHERE folderName = 'Default Ruth outfit'",
+        );
+        $before = $outfits();
+
+        $made = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $asked->document['meta']['confirmation']['token'] ?? '']),
+        );
+
+        expect($asked->document['data']['attributes']['model'])
+            ->toBe('Default Ruth')
+            ->and($before)
+            ->toBe(0)
+            ->and($made->status)
+            ->toBe(200)
+            ->and((int) $pdo->get_var(
+                "SELECT COUNT(*) FROM inventoryfolders WHERE agentID = :id AND folderName = 'Default Ruth outfit'",
+                ['id' => $made->document['data']['id']],
+            ))
+            ->toBe(1);
     });
 
     test('needs an email to confirm, and refuses the avatar before it is made', function () {
@@ -325,7 +514,7 @@ describe('The API, for the confirmation of the email of a new avatar', function 
         expect($made->status)->toBe(400)->and(Avatar::find(avatar_grid(), 'New Person'))->toBeNull();
     });
 
-    test('sends the mail again to an avatar that waits for it, never to one an administrator disabled', function () {
+    test('sends a new link to a request that waits, by its name, never to an avatar an administrator disabled', function () {
         avatars_in(signin_database());
         [$router, $mailer] = access_api();
         $router->post(
@@ -367,7 +556,12 @@ describe('The API, for the confirmation of the email of a new avatar', function 
             ->and($unknown->status)
             ->toBe(404)
             ->and($old->status)
-            ->toBe(403);
+            ->toBe(403)
+            ->and($router->post(
+                '/grids/demo/email-confirmations/complete',
+                access_body('email-confirmations', ['token' => $mailer->token()]),
+            )->document['data']['attributes']['status'] ?? null)
+            ->toBe('active');
     });
 
     test('says when the mail cannot be sent, and the token can then be given to whoever delivers it', function () {
@@ -399,7 +593,7 @@ describe('The API, for the confirmation of the email of a new avatar', function 
         );
 
         expect($made->status)
-            ->toBe(201)
+            ->toBe(202)
             ->and($made->document['meta'])
             ->toBe(['emailConfirmation' => 'not sent'])
             ->and($resent->status)
@@ -434,7 +628,7 @@ describe('The API, for a new avatar whose email is confirmed by whoever delivers
         );
 
         expect($made->status)
-            ->toBe(201)
+            ->toBe(202)
             ->and($made->document['meta']['emailConfirmation'])
             ->toBe('given')
             ->and($given)
@@ -449,23 +643,24 @@ describe('The API, for a new avatar whose email is confirmed by whoever delivers
 });
 
 describe('The states of an avatar: active, disabled by a manager, waiting for its email', function () {
-    /** Make a new avatar that waits for the confirmation of its email, and the way to sign it in and to change it. */
-    function pending_avatar(Router $router): array
+    /**
+     * An avatar that waits for the confirmation of its email, as the engine made them before the registrations (Pia, Quinn): its id,
+     * its token, and the way to sign it in and to change it.
+     */
+    function pending_avatar(Router $router, ClockFake $clock): array
     {
-        $made = $router->post(
-            '/grids/demo/avatars',
-            access_body('avatars', [
-                'name' => 'Lisa Simpson',
-                'email' => 'lisa@example.org',
-                'password' => 'secret',
-                'confirmEmail' => true,
-                'send' => false,
-            ]),
-        );
-        $id = $made->document['data']['id'];
+        $avatar = Avatar::create(avatar_grid(), [
+            'name' => 'Lisa Simpson',
+            'email' => 'lisa@example.org',
+            'password' => 'secret',
+            'status' => 'pending',
+        ]);
+        $access = new AvatarAccess(avatar_grid(), 'Demo', 'Demo <no-reply@example.org>', new MailerFake(), $clock);
+        $id = $avatar->id();
 
         return [
-            $made,
+            $id,
+            $access->requestEmailConfirmation($avatar, null, false)['token'],
             static fn(): string => $router->post(
                 '/grids/demo/sign-ins',
                 access_body('sign-ins', ['name' => 'Lisa Simpson', 'password' => 'secret']),
@@ -477,18 +672,50 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
         ];
     }
 
+    test('an avatar made waiting before still waits, and its link or a new one activates it', function () {
+        avatars_in(signin_database());
+        [$router, , $clock] = access_api();
+        [$id, $token, $signIn] = pending_avatar($router, $clock);
+
+        $waiting = $signIn();
+        $new = $router->post(
+            '/grids/demo/email-confirmations',
+            access_body('email-confirmations', ['avatar' => 'Lisa Simpson', 'send' => false]),
+        );
+        $old = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $token]),
+        );
+        $confirmed = $router->post(
+            '/grids/demo/email-confirmations/complete',
+            access_body('email-confirmations', ['token' => $new->document['data'][0]['attributes']['token'] ?? '']),
+        );
+
+        expect($waiting)
+            ->toBe('email-unconfirmed')
+            ->and($new->document['data'][0]['attributes'])
+            ->toMatchArray(['avatar' => $id, 'name' => 'Lisa Simpson', 'email' => 'lisa@example.org'])
+            ->and($old->document['code'])
+            ->toBe('token-refused')
+            ->and($confirmed->document['data']['attributes']['status'])
+            ->toBe('active')
+            ->and($signIn())
+            ->toBe('granted');
+    });
+
     test('a manager disables an avatar that was waiting: it is disabled, not waiting', function () {
         avatars_in(signin_database());
-        [$router] = access_api();
-        [$made, $signIn, $change] = pending_avatar($router);
+        [$router, , $clock] = access_api();
+        [$id, , $signIn, $change] = pending_avatar($router, $clock);
 
+        $status = Avatar::find(avatar_grid(), $id)->status();
         $waiting = $signIn();
         $listed = $router->get('/grids/demo/avatars', ['filter' => ['status' => 'pending']]);
         $enabled = $change(['enabled' => true]);
         $granted = $signIn();
         $disabled = $change(['enabled' => false]);
 
-        expect($made->document['data']['attributes']['status'])
+        expect($status)
             ->toBe('pending')
             ->and($waiting)
             ->toBe('email-unconfirmed')
@@ -506,13 +733,13 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
 
     test('the link of a waiting avatar never enables it once a manager disabled it', function () {
         avatars_in(signin_database());
-        [$router] = access_api();
-        [$made, $signIn, $change] = pending_avatar($router);
+        [$router, , $clock] = access_api();
+        [, $token, $signIn, $change] = pending_avatar($router, $clock);
 
         $change(['enabled' => false]);
         $confirmed = $router->post(
             '/grids/demo/email-confirmations/complete',
-            access_body('email-confirmations', ['token' => $made->document['meta']['confirmation']['token']]),
+            access_body('email-confirmations', ['token' => $token]),
         );
         $resent = $router->post(
             '/grids/demo/email-confirmations',
@@ -529,13 +756,13 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
 
     test('a manager enables a waiting avatar: its link is forgotten, it does not wait any more', function () {
         avatars_in(signin_database());
-        [$router] = access_api();
-        [$made, $signIn, $change] = pending_avatar($router);
+        [$router, , $clock] = access_api();
+        [, $token, $signIn, $change] = pending_avatar($router, $clock);
 
         $change(['enabled' => true]);
         $confirmed = $router->post(
             '/grids/demo/email-confirmations/complete',
-            access_body('email-confirmations', ['token' => $made->document['meta']['confirmation']['token']]),
+            access_body('email-confirmations', ['token' => $token]),
         );
 
         expect($confirmed->document['code'])->toBe('token-refused')->and($signIn())->toBe('granted');
@@ -544,9 +771,8 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
     test('Robust refuses the avatar in-world while it is not active, and gives its level back once it is', function () {
         $pdo = signin_database();
         avatars_in($pdo);
-        [$router] = access_api();
-        [$made, , $change] = pending_avatar($router);
-        $id = $made->document['data']['id'];
+        [$router, , $clock] = access_api();
+        [$id, , , $change] = pending_avatar($router, $clock);
         $row = static fn(): array => $pdo->get_row(
             'SELECT UserLevel, UserFlags, active FROM UserAccounts WHERE PrincipalID = :id',
             ['id' => $id],
@@ -723,6 +949,8 @@ describe('The contract, for the access of the avatars', function () {
                     'properties'
                 ]['data']['properties']['attributes']['properties'],
             )
-            ->toHaveKeys(['confirmEmail', 'link', 'send', 'reservedName']);
+            ->toHaveKeys(['confirmEmail', 'link', 'send', 'reservedName'])
+            ->and($paths['/grids/{grid}/avatars']['post']['responses'])
+            ->toHaveKeys(['201', '202']);
     });
 });
