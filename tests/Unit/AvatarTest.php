@@ -240,6 +240,24 @@ describe('avatars', function () {
             ->toBe('pending');
     });
 
+    test('are filtered by whether their profile is published, the box "show in search" of the viewer', function () {
+        avatars_in(avatar_database());
+        $config = avatar_grid();
+        $names = static fn(string $published) => array_column(
+            Avatar::all($config, ['filters' => ['published' => $published]])->array(),
+            'name',
+        );
+
+        expect($names('yes'))
+            ->toBe(['Bob Root'])
+            ->and($names('no'))
+            ->toBe(['Ada Love', 'Cy Gone'])
+            ->and(Avatar::find($config, 'Bob Root')->isPublished())
+            ->toBeTrue()
+            ->and(Avatar::find($config, 'Ada Love')->detail()['published'])
+            ->toBeFalse();
+    });
+
     test('are filtered by active, online and god', function () {
         avatars_in(avatar_database());
         $config = avatar_grid();
@@ -346,7 +364,7 @@ describe('avatars', function () {
             ->and($sortable)
             ->toBe(['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'online']);
+            ->toBe(['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'published', 'online']);
     });
 
     test('are found by their UUID or their name', function () {
@@ -416,7 +434,7 @@ describe('What a list of avatars offers', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'],
-                'filters' => ['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'online'],
+                'filters' => ['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'published', 'online'],
             ])
             ->and(
                 Avatar::capabilities(
@@ -427,7 +445,7 @@ describe('What a list of avatars offers', function () {
             )
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active'],
-                'filters' => ['active', 'status', 'role', 'god', 'technical', 'model', 'email'],
+                'filters' => ['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'published'],
             ]);
     });
 });
@@ -837,7 +855,7 @@ describe('avatars of a grid whose services have their own databases', function (
             ->and($list->applied())
             ->toBe([])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'status', 'role', 'god', 'technical', 'model', 'email'])
+            ->toBe(['active', 'status', 'role', 'god', 'technical', 'model', 'email', 'published'])
             ->and($ada->isOnline())
             ->toBeTrue()
             ->and($ada->lastSeen()->getTimestamp())

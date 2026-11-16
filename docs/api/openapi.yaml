@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 8a7eaf8
+  version: 8f80b27
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -770,6 +770,14 @@ paths:
               - 'no'
         -
           name: 'filter[email]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - 'yes'
+              - 'no'
+        -
+          name: 'filter[published]'
           in: query
           schema:
             type: string
@@ -5149,6 +5157,9 @@ components:
               description: 'The user level, 200 and over are gods; the one it has back when it is active again (a sort by level sorts by it, so by role)'
             isGod:
               type: boolean
+            published:
+              type: boolean
+              description: 'Its profile is published: the box "show in search" of the viewer (the first bit of UserFlags); the web profile and the search of people show only these'
             role:
               type: string
               description: 'From the level, as w4os names it: `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200); a disabled avatar has the role of the level it gets back'

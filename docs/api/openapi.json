@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "8a7eaf8",
+        "version": "8f80b27",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1101,6 +1101,17 @@
                     },
                     {
                         "name": "filter[email]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "yes",
+                                "no"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[published]",
                         "in": "query",
                         "schema": {
                             "type": "string",
@@ -6721,6 +6732,10 @@
                             },
                             "isGod": {
                                 "type": "boolean"
+                            },
+                            "published": {
+                                "type": "boolean",
+                                "description": "Its profile is published: the box \"show in search\" of the viewer (the first bit of UserFlags); the web profile and the search of people show only these"
                             },
                             "role": {
                                 "type": "string",

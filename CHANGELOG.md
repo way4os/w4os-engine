@@ -25,6 +25,7 @@
 - feature (web): `SitePages::set()` sets the address of one page (search, profile, guide, welcome, status, directory) or the base of the helpers in its one setting, and says what must restart; `SitePages::rows()` lists them with who serves each
 - update (avatars): a new name gets a capital to each part and small letters for the rest, as w4os makes it (`bart simpson` is `Bart Simpson`), before it is checked; a reserved name (a model, an account that is moved) is kept as it is given, the existing avatars are not renamed
 - feature (api): `filter[model]` (the avatar models of the grid, by the rule of `[Models]`) and `filter[email]` on the avatars: the newest people are `sort=-created&filter[model]=no&filter[technical]=no&filter[email]=yes`
+- feature (api): `filter[published]` on the avatars and their `published` attribute (`Avatar::isPublished()`, `PUBLISHED_FLAG`): the box "show in search" of the viewer, the first bit of UserFlags the search module sets (`avatar_publish_update`)
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13

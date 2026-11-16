@@ -52,6 +52,12 @@ final class Avatar extends Model
     /** The level of an account, the one it has back when it is active again (storedLevel()), as the database computes it. */
     private const LEVEL = '(CASE WHEN u.UserLevel < 0 THEN -1 - u.UserLevel ELSE u.UserLevel END)';
 
+    /**
+     * The bit of UserFlags of a profile that is published (the box "show in search" of the viewer, told by the search module:
+     * SearchQuery::publish()): its web profile and the search of people show it.
+     */
+    public const PUBLISHED_FLAG = 1;
+
     /** The bit of UserFlags of an account that waits for the confirmation of its email (bit 12: OpenSimulator uses 0 to 11). */
     public const PENDING_FLAG = 1 << 12;
 
@@ -268,6 +274,12 @@ final class Avatar extends Model
         return $this->level() === self::ROLES[$this->role()];
     }
 
+    /** Whether its profile is published: the box "show in search" of the viewer (PUBLISHED_FLAG). */
+    public function isPublished(): bool
+    {
+        return ($this->flags() & self::PUBLISHED_FLAG) !== 0;
+    }
+
     public function isGod(): bool
     {
         return $this->level() >= self::GOD_LEVEL;
@@ -382,6 +394,7 @@ final class Avatar extends Model
             'role' => $this->role(),
             'standardLevel' => $this->hasStandardLevel(),
             'flags' => $this->flags(),
+            'published' => $this->isPublished(),
             'active' => $this->isEnabled(),
             'status' => $this->status(),
             'online' => $this->isOnline(),
@@ -1253,6 +1266,7 @@ final class Avatar extends Model
             'technical' => $yesNo,
             'model' => $yesNo,
             'email' => $yesNo,
+            'published' => $yesNo,
         ] +
             ($joined ? ['online' => $yesNo] : []);
     }
@@ -1345,6 +1359,10 @@ final class Avatar extends Model
                 'email' => [
                     'yes' => "(u.Email IS NOT NULL AND u.Email <> '')",
                     'no' => "(u.Email IS NULL OR u.Email = '')",
+                ],
+                'published' => [
+                    'yes' => '(u.UserFlags & ' . self::PUBLISHED_FLAG . ') <> 0',
+                    'no' => '(u.UserFlags & ' . self::PUBLISHED_FLAG . ') = 0',
                 ],
             ] + ($joined ? ['online' => ['yes' => "g.Online = 'true'", 'no' => "(g.Online IS NULL OR g.Online <> 'true')"]] : []);
         foreach ((array) ($options['filters'] ?? []) as $name => $value) {

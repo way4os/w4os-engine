@@ -190,6 +190,10 @@ final class Contract
                 'created' => ['integer?', 'When the account was made (Unix time)'],
                 'level' => ['integer', 'The user level, 200 and over are gods; the one it has back when it is active again (a sort by level sorts by it, so by role)'],
                 'isGod' => ['boolean', ''],
+                'published' => [
+                    'boolean',
+                    'Its profile is published: the box "show in search" of the viewer (the first bit of UserFlags); the web profile and the search of people show only these',
+                ],
                 'role' => [
                     'string',
                     'From the level, as w4os names it: `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200); a disabled avatar has the role of the level it gets back',
@@ -233,6 +237,7 @@ final class Contract
                 'technical' => ['yes', 'no'],
                 'model' => ['yes', 'no'],
                 'email' => ['yes', 'no'],
+                'published' => ['yes', 'no'],
             ],
             'create' => [
                 'name' => ['string', 'First Last (or firstName and lastName): each part gets a capital and the rest small letters, as w4os makes it (bart simpson is Bart Simpson), unless reservedName'],
