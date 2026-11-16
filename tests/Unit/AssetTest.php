@@ -342,13 +342,13 @@ describe('a cache of assets it cannot write', function () {
 });
 
 describe('the health of a grid, for its cache of assets', function () {
-    test('says whether the pictures can be kept, and where', function () {
+    test('says whether the pictures and the state of the tasks can be kept, and where', function () {
         $machine = new OpenSim\Testing\Machine();
         $api = new OpenSim\Api\Api($machine->environment, null, static fn(Grid $grid): ?GridConfig => null);
         $row = static function () use ($api): array {
             $groups = $api->health('demo')->document['data']['attributes']['groups'];
 
-            return array_column($groups, null, 'file')['cache']['rows'][0] ?? [];
+            return array_column(array_column($groups, null, 'file')['cache']['rows'] ?? [], null, 'label');
         };
 
         $writable = $row();
@@ -356,9 +356,11 @@ describe('the health of a grid, for its cache of assets', function () {
         $locked = $row();
         chmod($machine->root . '/cache', 0o755);
 
-        expect($writable)
+        expect($writable['assets'] ?? [])
             ->toMatchArray(['label' => 'assets', 'level' => 'ok', 'detail' => $machine->root . '/cache/demo/assets'])
-            ->and($locked)
+            ->and($writable['tasks'] ?? [])
+            ->toMatchArray(['label' => 'tasks', 'level' => 'ok', 'detail' => $machine->environment->layout->tasksRoot()])
+            ->and($locked['assets'] ?? [])
             ->toMatchArray(['label' => 'assets', 'level' => 'error']);
     })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
 });

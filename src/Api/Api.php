@@ -949,7 +949,15 @@ final class Api
                 ['file' => 'pages', 'title' => '', 'rows' => Health::pages(SitePages::rows($found))],
             ]);
             $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions()];
-            $groups[] = ['file' => 'cache', 'title' => '', 'rows' => [Health::writable('assets', WebAssets::folder($found))]];
+            $groups[] = [
+                'file' => 'cache',
+                'title' => '',
+                'rows' => [
+                    Health::writable('assets', WebAssets::folder($found)),
+                    // The state of the tasks: without it the search index never fills (TasksRoot)
+                    Health::writable('tasks', $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot()),
+                ],
+            ];
             $files = Health::files($config?->files() ?? []);
             $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
         } catch (\Throwable $error) {

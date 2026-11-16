@@ -124,6 +124,8 @@ require 'vendor/autoload.php';   // PSR-4: OpenSim\ is src/; the gettext stand-i
 
 ### On the command line
 
+The tasks (the search index, the events) run by cron or by pseudo cron, at the end of a visit of a site (`Scheduler::tick()`). Their state and their locks are kept in `TasksRoot` (`OPENSIM_TASKS_ROOT`), `cron` in the state folder of the install by default: a site run by the web server, which cannot write there, gives one of its own (a cache folder of the site). The health of a grid says whether it can be written (`cache`, `tasks`); a folder that cannot be is said once in the log, and no task runs. The tasks of the search also lock the search database of the grid, so that two runners with their own folders never read the same simulators at once.
+
 `bin/opensim-api` (`vendor/bin/opensim-api` for a project that has the engine) is the API on the command line, for the tools that are not PHP: `opensim-api GET /forms/grid`, `opensim-api --grid=demo GET /monitor format=text`. The install is the one of `opensim.conf` or of the `OPENSIM_*` variables. The script first reads the `.env` of the engine and `~/.opensimrc` (`lib/rc-helpers`, `read_rc`, for any script to source): bash files, run as they are, e.g. to set the `PATH` so that it is the php you want that runs.
 
 `OpenSim\Container\Podman` manages Podman containers without a shell. Pass a connection explicitly when targeting a remote Podman service; `bin/opensim-container.php` is the command-line adapter for Bash callers (`vendor/bin/opensim-container.php` when installed as a Composer dependency). Container integration tests are opt-in with `PODMAN_INTEGRATION=1`; `CONTAINER_CONNECTION` selects the Podman connection and `PODMAN_TEST_IMAGE` can select the test image.

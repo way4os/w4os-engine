@@ -65,6 +65,7 @@ final class Layout
         'VarRoot',
         'LogsRoot',
         'CacheRoot',
+        'TasksRoot',
         'DataRoot',
         'BackupRoot',
         'SystemUser',
@@ -206,6 +207,17 @@ final class Layout
             : ($this->dataRoot() !== ''
                 ? $this->dataRoot()
                 : sys_get_temp_dir());
+    }
+
+    /**
+     * The folder of the state of the tasks (Scheduler: their last runs, their locks, the pseudo cron): `TasksRoot`, given by whoever
+     * runs them when it cannot write the one of the install (a site run by the web server), else `cron` in the state folder.
+     */
+    public function tasksRoot(): string
+    {
+        $tasks = rtrim($this->get('TasksRoot'), '/');
+
+        return $tasks !== '' ? $tasks : $this->stateRoot() . '/cron';
     }
 
     /** The user the instances run as, empty when the install has none (they run as whoever starts them). */

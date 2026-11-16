@@ -243,6 +243,19 @@ describe('The registry of the search', function () {
     });
 })->skip(fn() => test_pdo() === null, 'TEST_DATABASE is not set in tests/.env');
 
+describe('The tasks of the search', function () {
+    test('run alone whoever runs them: a lock of the database of the grid where it has one, as they are otherwise', function () {
+        $sqlite = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+
+        expect(OpenSim\Services\SearchTasks::exclusively($sqlite, 'search-parse', static fn(): string => '2 simulator(s) read'))
+            ->toBe('2 simulator(s) read')
+            ->and(OpenSim\Services\SearchTasks::lockName('search-parse', 'robust'))
+            ->toStartWith('opensim-search-parse-')
+            ->and(strlen(OpenSim\Services\SearchTasks::lockName('events-parse', str_repeat('x', 200))))
+            ->toBeLessThanOrEqual(64);
+    });
+});
+
 describe('The parser of the search', function () {
     test(
         'reads the snapshot of a simulator into the tables: regions, parcels shown, land for sale, popular places, objects',

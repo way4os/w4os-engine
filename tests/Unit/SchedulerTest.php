@@ -180,6 +180,33 @@ describe('The scheduler', function () {
         expect("$root/cron/kept.json")->toBeFile();
     });
 
+    test('says once in the log that it cannot keep the state of its tasks, and tells whether it can', function () {
+        $locked = test_tmp() . '/cron-locked-' . bin2hex(random_bytes(4));
+        mkdir($locked, 0o555, true);
+        $log = test_tmp() . '/cron-log-' . bin2hex(random_bytes(4));
+        $before = ini_set('error_log', $log);
+        $scheduler = new Scheduler("$locked/cron", new ClockFake());
+        $scheduler->add(new Task('search-parse', 60, fn() => 'read'));
+
+        $ticks = [$scheduler->tick(), (new Scheduler("$locked/cron", new ClockFake()))->tick()];
+        $run = $scheduler->run('search-parse');
+        ini_set('error_log', (string) $before);
+        $writable = $scheduler->writable();
+        chmod($locked, 0o755);
+        $lines = array_values(array_filter(explode("\n", (string) @file_get_contents($log))));
+
+        expect($ticks)
+            ->toBe([[], []])
+            ->and($run->status)
+            ->toBe(TaskResult::FAILED)
+            ->and($lines)
+            ->toHaveCount(1)
+            ->and($lines[0])
+            ->toContain("$locked/cron")
+            ->and([$writable, $scheduler->writable(), $scheduler->directory()])
+            ->toBe([false, true, "$locked/cron"]);
+    })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
+
     test(
         'does not run a task it cannot keep the state of: nothing would stop it from running again at once',
         function () {

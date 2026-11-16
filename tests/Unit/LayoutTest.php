@@ -174,6 +174,17 @@ describe('layouts of an install', function () {
             ->not->toHaveKey('CoreDirectory');
     });
 
+    test('keep the state of the tasks in a folder of its own, given by whoever runs them (a site that cannot write the install\'s)', function () {
+        expect((new Layout(['VarRoot' => '/var/lib/opensim']))->tasksRoot())
+            ->toBe('/var/lib/opensim/cron')
+            ->and((new Layout(['VarRoot' => '/var/lib/opensim', 'TasksRoot' => '/var/cache/w4os-site/tasks/']))->tasksRoot())
+            ->toBe('/var/cache/w4os-site/tasks')
+            ->and(Layout::resolve(['OPENSIM_TASKS_ROOT' => '/srv/site/tasks', 'OPENSIM_CONF' => ''])->tasksRoot())
+            ->toBe('/srv/site/tasks')
+            ->and(Layout::environmentName('TasksRoot'))
+            ->toBe('OPENSIM_TASKS_ROOT');
+    });
+
     test('keep the backups out of the data', function () {
         expect((new Layout(['EtcRoot' => '/etc/opensim', 'DataRoot' => '/var/lib/opensim/data']))->backupRoot())
             ->toBe('/var/backups/opensim')

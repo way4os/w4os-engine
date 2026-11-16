@@ -69,7 +69,7 @@ final class FileCache
     public function writable(): bool
     {
         $folder = $this->directory;
-        while (!is_dir($folder)) {
+        while (!file_exists($folder)) {
             $parent = dirname($folder);
             if ($parent === $folder) {
                 return false;
@@ -77,7 +77,8 @@ final class FileCache
             $folder = $parent;
         }
 
-        return is_writable($folder);
+        // What is there must be a folder: a file in the way keeps it from being made
+        return is_dir($folder) && is_writable($folder);
     }
 
     /** The folder of the files. */

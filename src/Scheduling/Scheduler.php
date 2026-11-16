@@ -26,6 +26,9 @@ final class Scheduler
     /** @var array<string,Task> */
     private array $tasks = [];
 
+    /** @var array<string,true> the folders already said in the log not to be writable, once per process */
+    private static array $warned = [];
+
     /**
      * @param string $directory where the state and the locks of the tasks are kept
      * @param int $tickEvery seconds between two looks at the tasks by tick()
@@ -36,10 +39,32 @@ final class Scheduler
         private readonly int $tickEvery = 60,
     ) {}
 
-    /** The scheduler of an install: the state of its tasks is in its state folder. */
+    /** The scheduler of an install: the state of its tasks is in its folder of the tasks (Layout::tasksRoot(), `TasksRoot`). */
     public static function for(Environment $environment): self
     {
-        return new self($environment->layout->stateRoot() . '/cron', $environment->clock);
+        return new self($environment->layout->tasksRoot(), $environment->clock);
+    }
+
+    /** The folder of the state and the locks of the tasks. */
+    public function directory(): string
+    {
+        return $this->directory;
+    }
+
+    /** Whether the state of the tasks can be kept: the folder is writable, or the closest folder that is there lets it be made. */
+    public function writable(): bool
+    {
+        $folder = $this->directory;
+        while (!file_exists($folder)) {
+            $parent = dirname($folder);
+            if ($parent === $folder) {
+                return false;
+            }
+            $folder = $parent;
+        }
+
+        // What is there must be a folder: a file in the way keeps it from being made
+        return is_dir($folder) && is_writable($folder);
     }
 
     public function add(Task $task): self
@@ -213,16 +238,18 @@ final class Scheduler
 
     private function ensureDirectory(): bool
     {
-        if (is_dir($this->directory)) {
-            return is_writable($this->directory);
-        }
-        $parent = dirname($this->directory);
-        while (!file_exists($parent) && $parent !== dirname($parent)) {
-            $parent = dirname($parent);
+        $ready = is_dir($this->directory)
+            ? is_writable($this->directory)
+            : $this->writable() && (@mkdir($this->directory, 0o775, true) || is_dir($this->directory));
+        if (!$ready && !isset(self::$warned[$this->directory])) {
+            // Said once: no task runs until the folder is writable (TasksRoot for a site the web server runs)
+            self::$warned[$this->directory] = true;
+            $user = function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? (string) posix_geteuid()) : get_current_user();
+            error_log(
+                "opensim: warning: the folder of the tasks {$this->directory} cannot be written by $user: no task runs (TasksRoot sets another)",
+            );
         }
 
-        return is_dir($parent) &&
-            is_writable($parent) &&
-            (@mkdir($this->directory, 0o775, true) || is_dir($this->directory));
+        return $ready;
     }
 }
