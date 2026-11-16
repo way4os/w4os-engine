@@ -50,11 +50,18 @@ final class WebAssets
         private readonly ?string $placeholder = null,
     ) {}
 
+    /** The cache folder of the assets of a grid of this machine. */
+    public static function folder(Grid $grid): string
+    {
+        $root = $grid->environment()->layout->cacheRoot() ?: sys_get_temp_dir() . '/opensim-cache';
+
+        return $root . '/' . $grid->nick() . '/assets';
+    }
+
     /** The assets of a grid of this machine, kept in its cache folder. */
     public static function for(Grid $grid, ?ConverterInterface $converter = null): self
     {
-        $root = $grid->environment()->layout->cacheRoot() ?: sys_get_temp_dir() . '/opensim-cache';
-        $folder = $root . '/' . $grid->nick() . '/assets';
+        $folder = self::folder($grid);
 
         return new self(
             $grid,

@@ -315,6 +315,54 @@ describe('the cache of assets', function () {
     });
 });
 
+describe('a cache of assets it cannot write', function () {
+    test('says so once in the log, not on every request, and tells whether it can be written', function () {
+        $locked = test_tmp() . '/asset-locked-' . bin2hex(random_bytes(4));
+        mkdir($locked, 0o555, true);
+        $cache = new FileCache("$locked/images");
+        $log = test_tmp() . '/asset-log-' . bin2hex(random_bytes(4));
+        $before = ini_set('error_log', $log);
+
+        $kept = [$cache->put('one', 'data'), $cache->put('two', 'data'), (new FileCache("$locked/images"))->put('three', 'data')];
+        ini_set('error_log', (string) $before);
+        chmod($locked, 0o755);
+        $lines = array_values(array_filter(explode("\n", (string) @file_get_contents($log))));
+
+        expect($kept)
+            ->toBe([false, false, false])
+            ->and($lines)
+            ->toHaveCount(1)
+            ->and($lines[0])
+            ->toContain("$locked/images")
+            ->and($cache->writable())
+            ->toBeTrue()
+            ->and((new FileCache('/proc/nowhere/images'))->writable())
+            ->toBeFalse();
+    })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
+});
+
+describe('the health of a grid, for its cache of assets', function () {
+    test('says whether the pictures can be kept, and where', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $api = new OpenSim\Api\Api($machine->environment, null, static fn(Grid $grid): ?GridConfig => null);
+        $row = static function () use ($api): array {
+            $groups = $api->health('demo')->document['data']['attributes']['groups'];
+
+            return array_column($groups, null, 'file')['cache']['rows'][0] ?? [];
+        };
+
+        $writable = $row();
+        mkdir($machine->root . '/cache', 0o555, true);
+        $locked = $row();
+        chmod($machine->root . '/cache', 0o755);
+
+        expect($writable)
+            ->toMatchArray(['label' => 'assets', 'level' => 'ok', 'detail' => $machine->root . '/cache/demo/assets'])
+            ->and($locked)
+            ->toMatchArray(['label' => 'assets', 'level' => 'error']);
+    })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
+});
+
 describe('the Imagick converter', function () {
     test('makes the formats of the web from an image', function () {
         $png = (string) base64_decode(

@@ -12,6 +12,9 @@ use OpenSim\Runtime\ClockInterface;
  */
 final class FileCache
 {
+    /** @var array<string,true> the folders already said in the log not to be writable, once per process */
+    private static array $warned = [];
+
     public function __construct(
         private readonly string $directory,
         private readonly int $ttl = 86400,
@@ -43,20 +46,58 @@ final class FileCache
     /** @param array<string,mixed> $meta what is known of the data (its type, its content type) */
     public function put(string $name, string $data, array $meta = []): bool
     {
-        if (
-            $data === '' ||
-            !(is_dir($this->directory) || @mkdir($this->directory, 0o775, true) || is_dir($this->directory))
-        ) {
+        if ($data === '') {
             return false;
+        }
+        if (
+            !is_dir($this->directory) &&
+            (!$this->writable() || !(@mkdir($this->directory, 0o775, true) || is_dir($this->directory)))
+        ) {
+            return $this->unwritable();
         }
         $file = $this->file($name);
         if (@file_put_contents($file, $data) === false) {
-            return false;
+            return $this->unwritable();
         }
         @touch($file, (int) ($this->clock?->time() ?? time()));
         $meta !== [] && @file_put_contents("$file.meta", json_encode($meta));
 
         return true;
+    }
+
+    /** Whether the folder can be written: it is, or the closest folder that is there lets it be made. */
+    public function writable(): bool
+    {
+        $folder = $this->directory;
+        while (!is_dir($folder)) {
+            $parent = dirname($folder);
+            if ($parent === $folder) {
+                return false;
+            }
+            $folder = $parent;
+        }
+
+        return is_writable($folder);
+    }
+
+    /** The folder of the files. */
+    public function directory(): string
+    {
+        return $this->directory;
+    }
+
+    /** Nothing is kept: said once in the log for a folder, the same data is made again on every request until it is fixed. */
+    private function unwritable(): bool
+    {
+        if (!isset(self::$warned[$this->directory])) {
+            self::$warned[$this->directory] = true;
+            $user = function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? (string) posix_geteuid()) : get_current_user();
+            error_log(
+                "opensim: warning: the cache folder {$this->directory} cannot be written by $user: nothing is kept, what it holds is made again on every request",
+            );
+        }
+
+        return false;
     }
 
     private function file(string $name): string

@@ -939,6 +939,7 @@ final class Api
                 ]),
             );
             $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions()];
+            $groups[] = ['file' => 'cache', 'title' => '', 'rows' => [Health::writable('assets', WebAssets::folder($found))]];
             $files = Health::files($config?->files() ?? []);
             $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
         } catch (\Throwable $error) {

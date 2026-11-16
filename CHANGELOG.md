@@ -18,6 +18,7 @@
 - update (api): a new avatar whose email is to be confirmed is only a registration until then (`avatar_registrations`: name, email, model, the password hashed as Robust keeps it): checked at once, nothing in the tables of the grid, the avatar made active by the link of its mail (`name-taken` when the name was taken meanwhile), the registrations nobody confirmed forgotten after two days; the answer is 202 with a `registrations` resource
 - feature (avatars): the role of an avatar from its level, as w4os names it (`role`: resident, god-like, customer-service, liaison, god; `standardLevel` false for a level in between), `filter[role]`; a sort by level sorts by the level a disabled avatar gets back
 - feature (assets): the logos of w4os and OpenSimulator shipped for every bridge (`share/images/logos`, `OpenSim\Assets\Logos`, `GET /logos/{name}`); the logo of a grid (`LogoURL` of `[Helpers]`) in its details (`logoUrl`) its info and its addresses (`logo`)
+- fix (assets): a cache folder that cannot be written is said once in the log (not silently converted again on every request), and in the health of the grid (`cache`, `assets`)
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13

@@ -662,6 +662,25 @@ class Health
     }
 
     /**
+     * A row for a folder this user writes in (a cache): it is, or it can be made. One that cannot is an error: what it would keep
+     * is made again on every request.
+     */
+    public static function writable($label, $folder)
+    {
+        $good = (new \OpenSim\Support\FileCache($folder))->writable();
+        $user = function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : get_current_user();
+
+        return [
+            'label' => $label,
+            'url' => '',
+            'level' => $good ? 'ok' : 'error',
+            'status' => $good ? _('OK') : _('not writable'),
+            'detail' => $folder . ($good || $user === '' ? '' : " ($user)"),
+            'ms' => null,
+        ];
+    }
+
+    /**
      * What an install needs of PHP, one row per extension.
      *
      * @return list<array<string,mixed>>
