@@ -134,23 +134,24 @@ final class Catalog
         'skill_scripting' => 'Scripting',
         'skill_custom_characters' => 'Custom Characters',
         'languages' => 'Languages',
-        'first_life' => 'Real Life',
+        'real_life' => 'Real life',
         'profile_url' => 'Web page',
         'edit_profile' => 'Edit profile',
         // The free text under the check boxes of the wants and the skills
         'profile_other' => 'Other',
-        // The tabs of a profile, as the legacy profile of Firestorm has them, and what names them for a screen reader
+        // The tabs of a profile, in the order of the legacy profile of Firestorm but named for any grid, and what names them for a
+        // screen reader
         'profile_sections' => 'Profile sections',
-        'profile_tab_second_life' => '2nd Life',
+        'profile_tab_inworld' => 'In-world',
         'profile_tab_web' => 'Web',
         'profile_tab_interests' => 'Interests',
         'profile_tab_picks' => 'Picks',
         'profile_tab_classifieds' => 'Classifieds',
-        'profile_tab_first_life' => '1st Life',
+        'profile_tab_real_life' => 'Real life',
         'profile_tab_notes' => 'My Notes',
         // The tab of the edit page after the viewer's: the email, the role, the password
         'profile_tab_account' => 'Account',
-        // The 2nd Life tab of the edit page: the UUID of the avatar, its partner, the box of PUBLISHED_FLAG
+        // The in-world tab of the edit page: the UUID of the avatar, its partner, the box of PUBLISHED_FLAG
         'profile_key' => 'Key',
         'partner' => 'Partner',
         'show_in_search' => 'Show in search',
@@ -158,7 +159,7 @@ final class Catalog
         // The picks and the classifieds, which only a viewer makes and changes, and a tab of a profile that has nothing
         'profile_viewer_only' => 'Created and edited in the viewer.',
         'profile_none' => 'None.',
-        // The 2nd Life tab of a profile: the name, the age of the account (profile_age_days changes with the number)
+        // The in-world tab of a profile: the name, the age of the account (profile_age_days changes with the number)
         'profile_name' => 'Name',
         'profile_age_today' => 'Joined today',
         'profile_age_days' => '%d days',

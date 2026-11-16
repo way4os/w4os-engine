@@ -286,8 +286,8 @@ msgctxt "languages"
 msgid "Languages"
 msgstr ""
 
-msgctxt "first_life"
-msgid "Real Life"
+msgctxt "real_life"
+msgid "Real life"
 msgstr ""
 
 msgctxt "profile_url"
@@ -306,8 +306,8 @@ msgctxt "profile_sections"
 msgid "Profile sections"
 msgstr ""
 
-msgctxt "profile_tab_second_life"
-msgid "2nd Life"
+msgctxt "profile_tab_inworld"
+msgid "In-world"
 msgstr ""
 
 msgctxt "profile_tab_web"
@@ -326,8 +326,8 @@ msgctxt "profile_tab_classifieds"
 msgid "Classifieds"
 msgstr ""
 
-msgctxt "profile_tab_first_life"
-msgid "1st Life"
+msgctxt "profile_tab_real_life"
+msgid "Real life"
 msgstr ""
 
 msgctxt "profile_tab_notes"

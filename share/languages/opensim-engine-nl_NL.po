@@ -318,8 +318,8 @@ msgctxt "languages"
 msgid "Languages"
 msgstr "Talen"
 
-msgctxt "first_life"
-msgid "Real Life"
+msgctxt "real_life"
+msgid "Real life"
 msgstr "Het echte leven"
 
 msgctxt "profile_url"
@@ -338,9 +338,9 @@ msgctxt "profile_sections"
 msgid "Profile sections"
 msgstr "Onderdelen van het profiel"
 
-msgctxt "profile_tab_second_life"
-msgid "2nd Life"
-msgstr "2e leven"
+msgctxt "profile_tab_inworld"
+msgid "In-world"
+msgstr "In-world"
 
 msgctxt "profile_tab_web"
 msgid "Web"
@@ -358,9 +358,9 @@ msgctxt "profile_tab_classifieds"
 msgid "Classifieds"
 msgstr "Advertenties"
 
-msgctxt "profile_tab_first_life"
-msgid "1st Life"
-msgstr "1e leven"
+msgctxt "profile_tab_real_life"
+msgid "Real life"
+msgstr "Het echte leven"
 
 msgctxt "profile_tab_notes"
 msgid "My Notes"
@@ -1036,6 +1036,18 @@ msgstr "Deze avatar wacht niet op de bevestiging van zijn e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "De mail kon niet worden verstuurd. Probeer het later opnieuw."
+
+#~ msgctxt "first_life"
+#~ msgid "Real Life"
+#~ msgstr "Het echte leven"
+
+#~ msgctxt "profile_tab_second_life"
+#~ msgid "2nd Life"
+#~ msgstr "2e leven"
+
+#~ msgctxt "profile_tab_first_life"
+#~ msgid "1st Life"
+#~ msgstr "1e leven"
 
 #, php-format
 #~ msgctxt "interests_removed"
