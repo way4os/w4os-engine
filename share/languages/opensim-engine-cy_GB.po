@@ -141,6 +141,10 @@ msgctxt "avatar_name"
 msgid "Avatar Name"
 msgstr "Enw Avatar"
 
+msgctxt "login_title"
+msgid "Login"
+msgstr "Mewngofnodi"
+
 msgctxt "log_in"
 msgid "Log in"
 msgstr "Mewngofnodi"
@@ -152,6 +156,10 @@ msgstr "Allgofnodi"
 msgctxt "login"
 msgid "Avatar name or email"
 msgstr "Enw avatar neu ebost"
+
+msgctxt "sign_in_failed"
+msgid "Login failed"
+msgstr "Methodd y mewngofnodi"
 
 msgctxt "forgot_title"
 msgid "Lost Password"

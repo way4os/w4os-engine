@@ -142,6 +142,10 @@ msgctxt "avatar_name"
 msgid "Avatar Name"
 msgstr "Nome dell'avatar"
 
+msgctxt "login_title"
+msgid "Login"
+msgstr "Accesso"
+
 msgctxt "log_in"
 msgid "Log in"
 msgstr "Accedi"
@@ -153,6 +157,10 @@ msgstr "Disconnetti"
 msgctxt "login"
 msgid "Avatar name or email"
 msgstr "Nome dell’avatar o email"
+
+msgctxt "sign_in_failed"
+msgid "Login failed"
+msgstr "Accesso non riuscito"
 
 msgctxt "forgot_title"
 msgid "Lost Password"
