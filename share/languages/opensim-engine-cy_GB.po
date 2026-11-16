@@ -364,6 +364,22 @@ msgctxt "profile_tab_notes"
 msgid "My Notes"
 msgstr "Fy nodiadau"
 
+msgctxt "profile_tab_account"
+msgid "Account"
+msgstr "Cyfrif"
+
+msgctxt "profile_key"
+msgid "Key"
+msgstr "Allwedd"
+
+msgctxt "partner"
+msgid "Partner"
+msgstr "Partner"
+
+msgctxt "show_in_search"
+msgid "Show in search"
+msgstr "Dangos yn y chwiliad"
+
 #, php-format
 msgctxt "interests_removed"
 msgid "The viewer no longer shows this section (removed in version %s)."

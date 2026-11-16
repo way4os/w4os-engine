@@ -333,6 +333,22 @@ msgctxt "profile_tab_notes"
 msgid "My Notes"
 msgstr ""
 
+msgctxt "profile_tab_account"
+msgid "Account"
+msgstr ""
+
+msgctxt "profile_key"
+msgid "Key"
+msgstr ""
+
+msgctxt "partner"
+msgid "Partner"
+msgstr ""
+
+msgctxt "show_in_search"
+msgid "Show in search"
+msgstr ""
+
 #, php-format
 msgctxt "interests_removed"
 msgid "The viewer no longer shows this section (removed in version %s)."

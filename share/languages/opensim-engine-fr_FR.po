@@ -366,6 +366,22 @@ msgctxt "profile_tab_notes"
 msgid "My Notes"
 msgstr "Mes notes"
 
+msgctxt "profile_tab_account"
+msgid "Account"
+msgstr "Compte"
+
+msgctxt "profile_key"
+msgid "Key"
+msgstr "Clé"
+
+msgctxt "partner"
+msgid "Partner"
+msgstr "Partenaire"
+
+msgctxt "show_in_search"
+msgid "Show in search"
+msgstr "Afficher dans la recherche"
+
 #, php-format
 msgctxt "interests_removed"
 msgid "The viewer no longer shows this section (removed in version %s)."

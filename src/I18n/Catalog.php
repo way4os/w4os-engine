@@ -126,6 +126,12 @@ final class Catalog
         'profile_tab_classifieds' => 'Classifieds',
         'profile_tab_first_life' => '1st Life',
         'profile_tab_notes' => 'My Notes',
+        // The tab of the edit page after the viewer's: the email, the role, the password
+        'profile_tab_account' => 'Account',
+        // The 2nd Life tab of the edit page: the UUID of the avatar, its partner, the box of PUBLISHED_FLAG
+        'profile_key' => 'Key',
+        'partner' => 'Partner',
+        'show_in_search' => 'Show in search',
         'interests_removed' => 'The viewer no longer shows this section (removed in version %s).',
         'save_button' => 'Save',
         'profile_saved' => 'Your profile is saved.',
