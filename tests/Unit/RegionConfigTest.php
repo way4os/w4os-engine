@@ -34,24 +34,36 @@ function region_config_grid(): array
 }
 
 describe('regions of a simulator', function () {
-    test('are the ones of the grid its files describe', function () {
+    test('are the ones of the simulators asked, by the address the grid has of them, named as their files here say', function () {
         [, $config] = region_config_grid();
         $pdo = new \OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         $pdo->exec(
             'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, PrincipalID CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
         );
-        $pdo->exec("INSERT INTO regions (uuid, regionName, locX, locY) VALUES
-            ('607c44e9-3d01-45eb-a07e-937dc72dbadb', 'Plaza', 307200, 307456),
-            ('aaaaaaaa-0000-0000-0000-000000000001', 'Welcome', 256000, 256000)");
+        $pdo->exec("INSERT INTO regions (uuid, regionName, locX, locY, serverURI, flags) VALUES
+            ('607c44e9-3d01-45eb-a07e-937dc72dbadb', 'Plaza', 307200, 307456, 'http://10.0.0.1:9000/', 0),
+            ('aaaaaaaa-0000-0000-0000-000000000001', 'Welcome', 256000, 256000, 'http://10.0.0.2:9010/', 0),
+            ('aaaaaaaa-0000-0000-0000-000000000002', 'Far', 0, 0, 'http://other.example.org:8002/', 512)");
         \OpenSim\Data\Connections::using(static fn() => $pdo);
-        $names = static fn(string $simulator) => array_column(
-            Region::all($config, ['filters' => ['simulator' => $simulator]])->array(),
-            'name',
-        );
+        try {
+            $names = static fn(string $simulator) => array_column(
+                Region::all($config, ['filters' => ['simulator' => $simulator]])->array(),
+                'name',
+            );
+            $all = Region::all($config);
 
-        expect([$names('alpha'), $names('beta'), $names('nowhere'), $names('')])
-            ->toBe([['Plaza'], [], [], ['Plaza', 'Welcome']]);
-        \OpenSim\Data\Connections::using(null);
+            expect([$names('10.0.0.1:9000'), $names('10.0.0.2:9010'), $names('10.0.0.1:9000,10.0.0.2:9010'), $names('nowhere:1')])
+                ->toBe([['Plaza'], ['Welcome'], ['Plaza', 'Welcome'], []])
+                // The simulators there are, the one whose files are here by their name: what the filter offers
+                ->and($all->available()['simulator'])
+                ->toBe([['value' => '10.0.0.2:9010', 'label' => '10.0.0.2:9010'], ['value' => '10.0.0.1:9000', 'label' => 'alpha']])
+                ->and(array_column($all->array(), 'serverName', 'name'))
+                ->toBe(['Plaza' => 'alpha', 'Welcome' => '10.0.0.2:9010'])
+                ->and(array_column($all->array(), 'server', 'name'))
+                ->toBe(['Plaza' => '10.0.0.1:9000', 'Welcome' => '10.0.0.2:9010']);
+        } finally {
+            \OpenSim\Data\Connections::using(null);
+        }
     });
 });
 

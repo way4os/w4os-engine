@@ -682,10 +682,6 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Rollen"
 
-msgctxt "column_flags"
-msgid "Flags"
-msgstr "Flags"
-
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Standardregion"
@@ -1169,6 +1165,10 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#~ msgctxt "column_flags"
+#~ msgid "Flags"
+#~ msgstr "Flags"
 
 #, php-format
 #~ msgctxt "avatars_count"

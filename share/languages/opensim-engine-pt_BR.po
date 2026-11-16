@@ -678,10 +678,6 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Funções"
 
-msgctxt "column_flags"
-msgid "Flags"
-msgstr "Sinalizadores"
-
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Região padrão"
@@ -1153,6 +1149,10 @@ msgstr "Este avatar não aguarda a confirmação do email."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "O email não pôde ser enviado. Tente de novo mais tarde."
+
+#~ msgctxt "column_flags"
+#~ msgid "Flags"
+#~ msgstr "Sinalizadores"
 
 #, php-format
 #~ msgctxt "avatars_count"

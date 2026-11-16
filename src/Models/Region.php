@@ -284,6 +284,7 @@ final class Region extends Model
     public function detail(): array
     {
         $row = $this->row;
+        $server = $this->isHyperlink() ? null : self::server((string) ($row['serverURI'] ?? ''));
 
         return [
             'id' => $this->id(),
@@ -300,6 +301,8 @@ final class Region extends Model
             'ip' => $row['serverIP'] ?? null,
             'port' => isset($row['serverPort']) ? (int) $row['serverPort'] : null,
             'serverUri' => $row['serverURI'] ?? null,
+            'server' => $server,
+            'serverName' => $row['serverName'] ?? (($this->simulator() ?: null) ?? $server),
             'handle' => $row['regionHandle'] ?? null,
             'owner' => $this->owner(),
             'ownerName' => $row['ownerName'] ?? null,
@@ -597,7 +600,8 @@ final class Region extends Model
             $kept = match ($name) {
                 // What only the grid knows of a region: its owner
                 'owner', 'flags' => $asked === '',
-                'simulator' => $asked === '' || $asked === $this->simulator(),
+                // What only the grid knows of a region: the address of its simulator
+                'simulator' => $asked === '',
                 default => $asked !== 'yes',
             };
             if (!$kept) {
@@ -732,20 +736,18 @@ final class Region extends Model
             $params['owner'] = $owner;
             $applied['owner'] = $owner;
         }
-        // The regions the files of a simulator describe
-        $simulator = trim((string) ($asked['simulator'] ?? ''));
-        if ($simulator !== '') {
-            $uuids = array_values(array_unique(array_filter(array_map(
-                static fn(self $region): string => strtolower((string) $region->uuid()),
-                static::configured($config, $simulator),
-            ))));
-            foreach ($uuids as $i => $uuid) {
-                $params["s$i"] = $uuid;
+        // The simulators asked, by the address the grid has of them (host:port of serverURI): the regions of any of them
+        $servers = self::servers($config, $pdo);
+        $simulators = self::listing()->asked('simulator', $asked['simulator'] ?? '');
+        if ($simulators !== []) {
+            $uris = array_merge(...array_map(static fn(string $id): array => $servers[$id]['uris'] ?? [], $simulators));
+            foreach ($uris as $i => $uri) {
+                $params["s$i"] = $uri;
             }
-            $where[] = $uuids === []
+            $where[] = $uris === []
                 ? '0 = 1'
-                : 'LOWER(r.uuid) IN (' . implode(', ', array_map(static fn(int $i): string => ":s$i", array_keys($uuids))) . ')';
-            $applied['simulator'] = $simulator;
+                : 'r.serverURI IN (' . implode(', ', array_map(static fn(int $i): string => ":s$i", array_keys($uris))) . ')';
+            $applied['simulator'] = implode(',', $simulators);
         }
         $clause = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
 
@@ -762,6 +764,13 @@ final class Region extends Model
             $sql .= ' LIMIT ' . $perPage . ' OFFSET ' . ($page - 1) * $perPage;
         }
         $rows = self::withOwnerNames($config, $pdo->get_results($sql, $params, \PDO::FETCH_ASSOC));
+        // The name of the simulator of each: the one of its files here, else the address the grid has of it
+        $names = array_column($servers, 'label', 'id');
+        foreach ($rows as &$row) {
+            $server = self::server((string) ($row['serverURI'] ?? ''));
+            $row['serverName'] = $server === null ? null : $names[$server] ?? $server;
+        }
+        unset($row);
 
         return new Collection(array_map(static fn(array $row): self => new self($config, $row), $rows), [
             'total' => $total,
@@ -773,6 +782,9 @@ final class Region extends Model
             'filters' => self::listing()->filterValues(),
             // The flags the regions of the grid have now: the values of the filter that give something
             'available' => [
+                'simulator' => array_values(
+                    array_map(static fn(array $server): array => ['value' => $server['id'], 'label' => $server['label']], $servers),
+                ),
                 'flags' => array_values(
                     array_filter(
                         self::NAMES,
@@ -787,6 +799,49 @@ final class Region extends Model
             ],
             'applied' => $applied,
         ]);
+    }
+
+    /** The simulator an address of the regions table is (http://host:port/): host:port, null for none. */
+    public static function server(string $uri): ?string
+    {
+        $parts = parse_url(trim($uri));
+        $host = (string) ($parts['host'] ?? '');
+
+        return $host === '' || !isset($parts['port']) ? null : "$host:{$parts['port']}";
+    }
+
+    /**
+     * The simulators of the regions of the grid, by the address it has of them (host:port, `server`), each with the addresses of the
+     * table that are it and its name: the one of its files on this machine, else its address. The links to other grids left out.
+     *
+     * @return array<string,array{id:string,label:string,uris:list<string>}> by id, in the order of their names
+     */
+    private static function servers(GridConfig $config, OSPDO $pdo): array
+    {
+        $here = [];
+        foreach (static::configured($config) as $region) {
+            $region->uuid() === null || ($here[$region->uuid()] = $region->simulator());
+        }
+        $servers = [];
+        $rows = $pdo->get_results(
+            'SELECT uuid, serverURI FROM regions WHERE (flags & ' . self::HYPERLINK . ') = 0',
+            [],
+            \PDO::FETCH_ASSOC,
+        );
+        foreach ($rows as $row) {
+            $uri = (string) ($row['serverURI'] ?? '');
+            $id = self::server($uri);
+            if ($id === null) {
+                continue;
+            }
+            $servers[$id] ??= ['id' => $id, 'label' => $id, 'uris' => []];
+            in_array($uri, $servers[$id]['uris'], true) || ($servers[$id]['uris'][] = $uri);
+            $name = $here[strtolower((string) $row['uuid'])] ?? '';
+            $name === '' || ($servers[$id]['label'] = $name);
+        }
+        uasort($servers, static fn(array $a, array $b): int => strnatcasecmp($a['label'], $b['label']));
+
+        return $servers;
     }
 
     /**
@@ -851,15 +906,16 @@ final class Region extends Model
                 Listing::column('size', 'column_size', 'size', 'size'),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
                 Listing::column('roles', 'column_roles', 'list', 'flags', ['values' => Listing::values(self::roleKeys(true))]),
+                Listing::column('serverName', 'filter_simulator'),
                 Listing::column('online', 'online', 'boolean'),
                 Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
                 // Its address (host:port:name), linked to the teleport there
                 Listing::column('uri', 'column_address', 'link', more: ['link' => 'teleport']),
             ],
             [
-                Listing::filter('flags', 'column_flags', self::flagKeys(true), more: ['multiple' => true, 'dynamic' => true]),
+                Listing::filter('flags', 'status', self::flagKeys(true), more: ['multiple' => true, 'dynamic' => true]),
                 Listing::filter('owner', 'column_owner', [], 'uuid'),
-                Listing::filter('simulator', 'filter_simulator', [], 'simulator'),
+                Listing::filter('simulator', 'filter_simulator', [], 'simulator', ['multiple' => true, 'dynamic' => true]),
             ],
             ['name'],
             [

@@ -238,7 +238,6 @@ final class Catalog
         'column_size' => 'Size',
         'column_owner' => 'Owner',
         'column_roles' => 'Roles',
-        'column_flags' => 'Flags',
         // The roles of a region (Region::roleKeys()): region_flag_ and the name of its flag in the config of Robust, in snake case
         'region_flag_default_region' => 'Default region',
         'region_flag_default_hg_region' => 'Default hypergrid region',

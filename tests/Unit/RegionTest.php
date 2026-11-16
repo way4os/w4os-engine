@@ -227,8 +227,8 @@ describe('Regions', function () {
             ->and($names(['flags' => 'NoMove']))
             ->toBe([])
             // The flags the regions have now, in the order of the table: the values of the filter that give something
-            ->and($list->available())
-            ->toBe(['flags' => ['DefaultRegion', 'FallbackRegion', 'RegionOnline', 'Persistent', 'Hyperlink', 'DefaultHGRegion']])
+            ->and($list->available()['flags'])
+            ->toBe(['DefaultRegion', 'FallbackRegion', 'RegionOnline', 'Persistent', 'Hyperlink', 'DefaultHGRegion'])
             ->and(fn() => $names(['flags' => 'DefaultRegion,Bogus']))
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and(fn() => $names(['online' => 'yes']))
@@ -292,6 +292,7 @@ describe('Regions', function () {
                 'size' => 'size',
                 'ownerName' => 'link',
                 'roles' => 'list',
+                'serverName' => 'text',
                 'online' => 'boolean',
                 'lastSeen' => 'date',
                 'uri' => 'link',

@@ -681,10 +681,6 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Ruoli"
 
-msgctxt "column_flags"
-msgid "Flags"
-msgstr "Flag"
-
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Regione predefinita"
@@ -1157,6 +1153,10 @@ msgstr "Questo avatar non attende la conferma della sua email."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "L’email non è potuta partire. Riprova più tardi."
+
+#~ msgctxt "column_flags"
+#~ msgid "Flags"
+#~ msgstr "Flag"
 
 #, php-format
 #~ msgctxt "avatars_count"

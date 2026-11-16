@@ -685,10 +685,6 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Rolau"
 
-msgctxt "column_flags"
-msgid "Flags"
-msgstr "Baneri"
-
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Rhanbarth diofyn"
@@ -1175,6 +1171,10 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#~ msgctxt "column_flags"
+#~ msgid "Flags"
+#~ msgstr "Baneri"
 
 #, php-format
 #~ msgctxt "avatars_count"
