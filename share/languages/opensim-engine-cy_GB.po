@@ -13,7 +13,7 @@ msgstr "Croeso i %s"
 
 msgctxt "guide_title"
 msgid "Destinations guide"
-msgstr "Teithlyddau Cyfeiriadau"
+msgstr "Canllaw cyrchfannau"
 
 msgctxt "register_title"
 msgid "Create My Avatar"
