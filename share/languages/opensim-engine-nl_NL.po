@@ -393,6 +393,22 @@ msgctxt "profile_none"
 msgid "None."
 msgstr "Geen."
 
+msgctxt "profile_no_description"
+msgid "No description given."
+msgstr "Geen beschrijving."
+
+msgctxt "profile_location"
+msgid "Location"
+msgstr "Locatie"
+
+msgctxt "profile_teleport"
+msgid "Teleport"
+msgstr "Teleporteren"
+
+msgctxt "profile_until"
+msgid "Until"
+msgstr "Tot"
+
 msgctxt "save_button"
 msgid "Save"
 msgstr "Opslaan"

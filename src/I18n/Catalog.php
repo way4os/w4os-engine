@@ -136,6 +136,11 @@ final class Catalog
         // The picks and the classifieds, which only a viewer makes and changes, and a tab of a profile that has nothing
         'profile_viewer_only' => 'Created and edited in the viewer.',
         'profile_none' => 'None.',
+        // A pick or a classified: what the viewer shows of each, and the end of a classified
+        'profile_no_description' => 'No description given.',
+        'profile_location' => 'Location',
+        'profile_teleport' => 'Teleport',
+        'profile_until' => 'Until',
         'save_button' => 'Save',
         'profile_saved' => 'Your profile is saved.',
         'password_title' => 'Password',

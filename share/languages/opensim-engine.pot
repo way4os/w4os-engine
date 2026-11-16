@@ -361,6 +361,22 @@ msgctxt "profile_none"
 msgid "None."
 msgstr ""
 
+msgctxt "profile_no_description"
+msgid "No description given."
+msgstr ""
+
+msgctxt "profile_location"
+msgid "Location"
+msgstr ""
+
+msgctxt "profile_teleport"
+msgid "Teleport"
+msgstr ""
+
+msgctxt "profile_until"
+msgid "Until"
+msgstr ""
+
 msgctxt "save_button"
 msgid "Save"
 msgstr ""

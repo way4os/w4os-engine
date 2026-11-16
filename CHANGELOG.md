@@ -38,7 +38,7 @@
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 - feature (api): the picks and the classifieds of an avatar, as its profile shows them (`GET /grids/{grid}/avatars/{id}/picks`, `.../classifieds`: the enabled picks, the classifieds that have not expired)
 - feature (avatars): `Avatar::picks()` and `classifieds()` give every column of their table and what the viewer shows: `picture` (the asset of the snapshot), `parcel`, `region`, `position` in the region (its corner read from the regions of the grid, for a region of any size) and `teleport` (hop://, to the grid of the gatekeeper of a pick)
-- feature (i18n): `profile_viewer_only` and `profile_none`, for the tabs of the picks and the classifieds
+- feature (i18n): `profile_viewer_only`, `profile_none`, `profile_no_description`, `profile_location`, `profile_teleport` and `profile_until`, for the tabs of the picks and the classifieds (the words of the viewers where they have them)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 
