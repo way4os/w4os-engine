@@ -39,6 +39,8 @@ final class Catalog
         'register_title' => 'Create My Avatar',
         'register_text' => 'Choose a name below. This is how people will see you in-world.',
         'register_button' => 'Create My Avatar',
+        // The link to the registration page (menu, sign-in page)
+        'register' => 'Register',
         'have_avatar' => 'Already have an avatar?',
         'first_name' => 'First name',
         'last_name' => 'Last name',

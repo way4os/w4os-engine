@@ -25,6 +25,10 @@ msgctxt "register_button"
 msgid "Create My Avatar"
 msgstr "Créer mon avatar"
 
+msgctxt "register"
+msgid "Register"
+msgstr "S'inscrire"
+
 msgctxt "have_avatar"
 msgid "Already have an avatar?"
 msgstr "Vous avez déjà un avatar ?"

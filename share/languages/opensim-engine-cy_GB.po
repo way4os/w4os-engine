@@ -23,6 +23,10 @@ msgctxt "register_button"
 msgid "Create My Avatar"
 msgstr "Creu Fy Avatar"
 
+msgctxt "register"
+msgid "Register"
+msgstr "Cofrestru"
+
 msgctxt "have_avatar"
 msgid "Already have an avatar?"
 msgstr "Oes gennych chi avatar yn barod?"
