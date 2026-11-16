@@ -350,16 +350,11 @@ msgstr "Gweithgar"
 
 msgctxt "status_disabled"
 msgid "Disabled"
-msgstr ""
+msgstr "Analluogwyd"
 
 msgctxt "status_pending"
 msgid "Waiting for email confirmation"
-msgstr ""
-
-#, php-format
-msgctxt "actions_for"
-msgid "Actions for %s"
-msgstr ""
+msgstr "Yn aros i'w ebost gael ei gadarnhau"
 
 msgctxt "action_enable"
 msgid "Enable"
@@ -367,11 +362,11 @@ msgstr "Galluogi"
 
 msgctxt "action_disable"
 msgid "Disable"
-msgstr "Dad-ddisodli"
+msgstr "Analluogi"
 
 msgctxt "action_reset"
 msgid "Send a password reset link"
-msgstr ""
+msgstr "Anfon dolen i ailosod y cyfrinair"
 
 #, php-format
 msgctxt "manage_enable"

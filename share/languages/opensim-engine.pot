@@ -313,11 +313,6 @@ msgctxt "status_pending"
 msgid "Waiting for email confirmation"
 msgstr ""
 
-#, php-format
-msgctxt "actions_for"
-msgid "Actions for %s"
-msgstr ""
-
 msgctxt "action_enable"
 msgid "Enable"
 msgstr ""

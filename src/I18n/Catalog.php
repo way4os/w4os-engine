@@ -117,7 +117,6 @@ final class Catalog
         'status_active' => 'Active',
         'status_disabled' => 'Disabled',
         'status_pending' => 'Waiting for email confirmation',
-        'actions_for' => 'Actions for %s',
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
         'action_reset' => 'Send a password reset link',

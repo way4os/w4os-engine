@@ -350,16 +350,11 @@ msgstr "Actief"
 
 msgctxt "status_disabled"
 msgid "Disabled"
-msgstr ""
+msgstr "Uitgeschakeld"
 
 msgctxt "status_pending"
 msgid "Waiting for email confirmation"
-msgstr ""
-
-#, php-format
-msgctxt "actions_for"
-msgid "Actions for %s"
-msgstr ""
+msgstr "Wacht op de bevestiging van het e-mailadres"
 
 msgctxt "action_enable"
 msgid "Enable"
@@ -371,7 +366,7 @@ msgstr "Uitschakelen"
 
 msgctxt "action_reset"
 msgid "Send a password reset link"
-msgstr ""
+msgstr "Een link sturen om het wachtwoord opnieuw in te stellen"
 
 #, php-format
 msgctxt "manage_enable"
