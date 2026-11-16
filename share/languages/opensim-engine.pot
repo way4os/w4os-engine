@@ -349,9 +349,8 @@ msgctxt "show_in_search"
 msgid "Show in search"
 msgstr ""
 
-#, php-format
 msgctxt "interests_removed"
-msgid "The viewer no longer shows this section (removed in version %s)."
+msgid "Viewers no longer show this section since 2023."
 msgstr ""
 
 msgctxt "save_button"

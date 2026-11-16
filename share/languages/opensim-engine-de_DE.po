@@ -384,11 +384,9 @@ msgctxt "show_in_search"
 msgid "Show in search"
 msgstr "In Suche anzeigen"
 
-#, php-format
 msgctxt "interests_removed"
-msgid "The viewer no longer shows this section (removed in version %s)."
-msgstr ""
-"Der Viewer zeigt diesen Bereich nicht mehr an (in Version %s entfernt)."
+msgid "Viewers no longer show this section since 2023."
+msgstr "Die Viewer zeigen diesen Bereich seit 2023 nicht mehr an."
 
 msgctxt "save_button"
 msgid "Save"
@@ -720,6 +718,12 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#, php-format
+#~ msgctxt "interests_removed"
+#~ msgid "The viewer no longer shows this section (removed in version %s)."
+#~ msgstr ""
+#~ "Der Viewer zeigt diesen Bereich nicht mehr an (in Version %s entfernt)."
 
 #~ msgctxt "profile_tab_second_life"
 #~ msgid "Second Life"

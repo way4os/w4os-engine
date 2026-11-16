@@ -380,11 +380,9 @@ msgctxt "show_in_search"
 msgid "Show in search"
 msgstr "Dangos yn y chwiliad"
 
-#, php-format
 msgctxt "interests_removed"
-msgid "The viewer no longer shows this section (removed in version %s)."
-msgstr ""
-"Nid yw’r gwyliwr yn dangos yr adran hon mwyach (tynnwyd yn fersiwn %s)."
+msgid "Viewers no longer show this section since 2023."
+msgstr "Nid yw’r gwylwyr yn dangos yr adran hon ers 2023."
 
 msgctxt "save_button"
 msgid "Save"
@@ -717,6 +715,12 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#, php-format
+#~ msgctxt "interests_removed"
+#~ msgid "The viewer no longer shows this section (removed in version %s)."
+#~ msgstr ""
+#~ "Nid yw’r gwyliwr yn dangos yr adran hon mwyach (tynnwyd yn fersiwn %s)."
 
 #~ msgctxt "profile_tab_second_life"
 #~ msgid "Second Life"

@@ -381,10 +381,9 @@ msgctxt "show_in_search"
 msgid "Show in search"
 msgstr "Tonen in zoekresultaten"
 
-#, php-format
 msgctxt "interests_removed"
-msgid "The viewer no longer shows this section (removed in version %s)."
-msgstr "De viewer toont deze sectie niet meer (verwijderd in versie %s)."
+msgid "Viewers no longer show this section since 2023."
+msgstr "Viewers tonen deze sectie sinds 2023 niet meer."
 
 msgctxt "save_button"
 msgid "Save"
@@ -709,6 +708,11 @@ msgstr "Deze avatar wacht niet op de bevestiging van zijn e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "De mail kon niet worden verstuurd. Probeer het later opnieuw."
+
+#, php-format
+#~ msgctxt "interests_removed"
+#~ msgid "The viewer no longer shows this section (removed in version %s)."
+#~ msgstr "De viewer toont deze sectie niet meer (verwijderd in versie %s)."
 
 #~ msgctxt "profile_tab_second_life"
 #~ msgid "Second Life"

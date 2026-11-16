@@ -132,7 +132,7 @@ final class Catalog
         'profile_key' => 'Key',
         'partner' => 'Partner',
         'show_in_search' => 'Show in search',
-        'interests_removed' => 'The viewer no longer shows this section (removed in version %s).',
+        'interests_removed' => 'Viewers no longer show this section since 2023.',
         'save_button' => 'Save',
         'profile_saved' => 'Your profile is saved.',
         'password_title' => 'Password',
