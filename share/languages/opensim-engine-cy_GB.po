@@ -477,6 +477,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Gweinyddu"
 
+msgctxt "dashboard_title"
+msgid "Dashboard"
+msgstr "Bwrdd rheoli"
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatars"

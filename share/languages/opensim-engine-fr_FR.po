@@ -476,6 +476,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Admin"
 
+msgctxt "dashboard_title"
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatars"

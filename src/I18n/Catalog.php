@@ -179,6 +179,7 @@ final class Catalog
 
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',
+        'dashboard_title' => 'Dashboard',
         'manage_title' => 'Avatars',
         'search_avatars' => 'Name or email',
         'search' => 'Search',

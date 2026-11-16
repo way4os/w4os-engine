@@ -436,6 +436,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr ""
 
+msgctxt "dashboard_title"
+msgid "Dashboard"
+msgstr ""
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr ""

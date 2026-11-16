@@ -477,6 +477,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Admin"
 
+msgctxt "dashboard_title"
+msgid "Dashboard"
+msgstr "Bacheca"
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatar"

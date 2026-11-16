@@ -41,6 +41,7 @@
 - feature (i18n): `profile_viewer_only`, `profile_none`, `profile_no_description`, `profile_location`, `profile_teleport` and `profile_until`, for the tabs of the picks and the classifieds (the words of the viewers where they have them)
 - feature (avatars): the groups an avatar shows in its profile, by name, with the title it wears and the insignia (`Avatar::groups()`, `GET /grids/{grid}/avatars/{id}/groups`); none when the grid has no groups
 - feature (i18n): texts that change with a number, as gettext has them (msgid_plural, the `Plural-Forms` of each language): `Catalog::plural()`, `Catalog::plurals()`, `PoFile::plural()`; `profile_name`, `profile_age_today`, `profile_age_days` and `profile_groups` for the 2nd Life tab of a profile
+- feature (i18n): `dashboard_title` for the admin dashboard of a site
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 

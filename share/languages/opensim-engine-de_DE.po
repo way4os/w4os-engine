@@ -478,6 +478,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Admin"
 
+msgctxt "dashboard_title"
+msgid "Dashboard"
+msgstr "Dashboard"
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatare"
