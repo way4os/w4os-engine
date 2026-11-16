@@ -52,6 +52,7 @@ final class Catalog
     public const SINGULARS = [
         'profile_age_days' => '%d day',
         'regions_count' => '%d region',
+        'avatars_count' => '%d avatar',
     ];
 
     /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s, %d). */
@@ -195,7 +196,8 @@ final class Catalog
         'search_avatars' => 'Name or email',
         'search' => 'Search',
         'no_avatars' => 'No result',
-        'avatars_count' => '%s avatars',
+        // How many avatars the list has (a text that changes with the number)
+        'avatars_count' => '%d avatars',
         'status' => 'Status',
         'last_seen' => 'Last Seen',
         'created' => 'Created',

@@ -362,9 +362,10 @@ final class Contract
                 'simulator' => ['string?', 'The simulator that has it'],
                 'file' => ['string?', 'Its file in the simulator'],
                 'internalPort' => ['integer?', ''],
+                'local' => ['boolean', 'This machine has its file: whether it is enabled is known here, and can be changed'],
                 'enabled' => [
                     'boolean?',
-                    'Its file ends in .ini; null for a region of the grid with no file of this machine',
+                    'Its file ends in .ini; null for a region of the grid with no file of this machine (`local` false)',
                 ],
             ],
             'writable' => [

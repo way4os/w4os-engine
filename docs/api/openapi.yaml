@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: d02a515
+  version: 317b45c
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -2118,6 +2118,8 @@ paths:
             body:
               enabled: true
             when:
+              local:
+                - true
               enabled:
                 - false
           -
@@ -2128,6 +2130,8 @@ paths:
             body:
               enabled: false
             when:
+              local:
+                - true
               enabled:
                 - true
   '/grids/{grid}/regions/{id}':
@@ -2277,8 +2281,8 @@ paths:
             type: boolean
             group: simulator
             condition:
-              hyperlink:
-                - false
+              local:
+                - true
         actions:
           -
             name: enable
@@ -2288,6 +2292,8 @@ paths:
             body:
               enabled: true
             when:
+              local:
+                - true
               enabled:
                 - false
           -
@@ -2298,6 +2304,8 @@ paths:
             body:
               enabled: false
             when:
+              local:
+                - true
               enabled:
                 - true
     patch:
@@ -7012,11 +7020,14 @@ components:
               type:
                 - integer
                 - 'null'
+            local:
+              type: boolean
+              description: 'This machine has its file: whether it is enabled is known here, and can be changed'
             enabled:
               type:
                 - boolean
                 - 'null'
-              description: 'Its file ends in .ini; null for a region of the grid with no file of this machine'
+              description: 'Its file ends in .ini; null for a region of the grid with no file of this machine (`local` false)'
         links:
           type: object
           properties:

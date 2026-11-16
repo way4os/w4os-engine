@@ -486,8 +486,10 @@ msgstr ""
 
 #, php-format
 msgctxt "avatars_count"
-msgid "%s avatars"
-msgstr ""
+msgid "%d avatar"
+msgid_plural "%d avatars"
+msgstr[0] ""
+msgstr[1] ""
 
 msgctxt "status"
 msgid "Status"

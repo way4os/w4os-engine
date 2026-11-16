@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "d02a515",
+        "version": "317b45c",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -3131,6 +3131,9 @@
                                 "enabled": true
                             },
                             "when": {
+                                "local": [
+                                    true
+                                ],
                                 "enabled": [
                                     false
                                 ]
@@ -3145,6 +3148,9 @@
                                 "enabled": false
                             },
                             "when": {
+                                "local": [
+                                    true
+                                ],
                                 "enabled": [
                                     true
                                 ]
@@ -3339,8 +3345,8 @@
                             "type": "boolean",
                             "group": "simulator",
                             "condition": {
-                                "hyperlink": [
-                                    false
+                                "local": [
+                                    true
                                 ]
                             }
                         }
@@ -3355,6 +3361,9 @@
                                 "enabled": true
                             },
                             "when": {
+                                "local": [
+                                    true
+                                ],
                                 "enabled": [
                                     false
                                 ]
@@ -3369,6 +3378,9 @@
                                 "enabled": false
                             },
                             "when": {
+                                "local": [
+                                    true
+                                ],
                                 "enabled": [
                                     true
                                 ]
@@ -9401,12 +9413,16 @@
                                     "null"
                                 ]
                             },
+                            "local": {
+                                "type": "boolean",
+                                "description": "This machine has its file: whether it is enabled is known here, and can be changed"
+                            },
                             "enabled": {
                                 "type": [
                                     "boolean",
                                     "null"
                                 ],
-                                "description": "Its file ends in .ini; null for a region of the grid with no file of this machine"
+                                "description": "Its file ends in .ini; null for a region of the grid with no file of this machine (`local` false)"
                             }
                         }
                     },

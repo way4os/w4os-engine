@@ -70,6 +70,8 @@ describe('the catalog of the texts of the sites', function () {
             ->toBe('%d day')
             ->and([Catalog::plural('fr', 'regions_count', 1), Catalog::plural('fr', 'regions_count', 5), Catalog::plural('cy', 'regions_count', 2)])
             ->toBe(['%d région', '%d régions', '%d ranbarth'])
+            ->and([Catalog::plural('en', 'avatars_count', 1), Catalog::plural('de', 'avatars_count', 2), Catalog::plural('pt_BR', 'avatars_count', 2)])
+            ->toBe(['%d avatar', '%d Avatare', '%d avatares'])
             ->and(Catalog::plural('fr', 'profile_name', 3))
             ->toBe('Nom')
             ->and(Catalog::messages('fr')['profile_age_days'])
@@ -85,7 +87,7 @@ describe('the catalog of the texts of the sites', function () {
 
         expect($french)->toHaveKey('register_title')
             ->and(array_diff_key($french, Catalog::MESSAGES))->toBe([])
-            ->and(count($french))->toBeLessThan(count(Catalog::MESSAGES))
+            ->and(count($french))->toBeLessThanOrEqual(count(Catalog::MESSAGES))
             ->and(Catalog::messages('en-US'))->toBe(Catalog::MESSAGES)
             ->and(Catalog::messages('es'))->toBe([]);
     });

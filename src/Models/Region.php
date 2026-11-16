@@ -327,6 +327,7 @@ final class Region extends Model
             'simulator' => $this->simulator() ?: null,
             'file' => $this->file() ?: null,
             'internalPort' => $this->internalPort(),
+            'local' => $this->in(self::CONFIG),
             'enabled' => $this->in(self::CONFIG) ? $this->isEnabled() : null,
         ];
     }
@@ -846,6 +847,8 @@ final class Region extends Model
     public static function listing(): Listing
     {
         [$method, $path] = ['PATCH', '/grids/{grid}/regions/{id}'];
+        // Whether it is enabled is known, and changed, only where its file is
+        $known = ['local' => [true]];
 
         return new Listing(
             [
@@ -866,8 +869,8 @@ final class Region extends Model
             ],
             ['name'],
             [
-                Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], ['enabled' => [false]]),
-                Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], ['enabled' => [true]]),
+                Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], $known + ['enabled' => [false]]),
+                Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], $known + ['enabled' => [true]]),
             ],
         );
     }
@@ -905,7 +908,14 @@ final class Region extends Model
                 ItemForm::shown('simulator', 'filter_simulator', 'text', 'simulator', $here),
                 ItemForm::shown('serverUri', 'column_address', 'text', 'simulator'),
                 ItemForm::shown('file', 'column_file', 'text', 'simulator', $here),
-                ItemForm::field('enabled', 'column_enabled', 'boolean', 'simulator', more: $here),
+                // Known only when this machine has its file: hidden otherwise, with the actions that change it
+                ItemForm::field(
+                    'enabled',
+                    'column_enabled',
+                    'boolean',
+                    'simulator',
+                    more: ['condition' => ['local' => [true]]],
+                ),
             ],
             [ItemForm::group('region', 'column_region'), ItemForm::group('simulator', 'filter_simulator')],
             self::listing()->actions,

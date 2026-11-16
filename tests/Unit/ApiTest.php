@@ -664,7 +664,17 @@ describe('The contract', function () {
                 'label' => 'column_enabled',
                 'type' => 'boolean',
                 'group' => 'simulator',
-                'condition' => ['hyperlink' => [false]],
+                'condition' => ['local' => [true]],
+            ])
+            // Unknown (null) when this machine has no file of the region (local false): neither the field nor its actions are shown
+            ->and((new \OpenSim\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => false, 'enabled' => null]))
+            ->toBeFalse()
+            ->and((new \OpenSim\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => true, 'enabled' => false]))
+            ->toBeTrue()
+            ->and(array_column($region['actions'], 'when', 'name'))
+            ->toBe([
+                'enable' => ['local' => [true], 'enabled' => [false]],
+                'disable' => ['local' => [true], 'enabled' => [true]],
             ])
             ->and(\OpenSim\Models\Region::itemForm()->writable())
             ->toBe(['enabled'])
