@@ -410,6 +410,10 @@ msgid_plural "%d days"
 msgstr[0] "%d jour"
 msgstr[1] "%d jours"
 
+msgctxt "profile_groups"
+msgid "Groups"
+msgstr "Groupes"
+
 msgctxt "profile_no_description"
 msgid "No description given."
 msgstr "Aucune description."

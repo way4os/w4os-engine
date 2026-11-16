@@ -162,6 +162,7 @@ final class Catalog
         'profile_name' => 'Name',
         'profile_age_today' => 'Joined today',
         'profile_age_days' => '%d days',
+        'profile_groups' => 'Groups',
         // A pick or a classified: what the viewer shows of each, and the end of a classified
         'profile_no_description' => 'No description given.',
         'profile_location' => 'Location',
