@@ -133,6 +133,9 @@ final class Catalog
         'partner' => 'Partner',
         'show_in_search' => 'Show in search',
         'interests_removed' => 'Viewers no longer show this section since 2023.',
+        // The picks and the classifieds, which only a viewer makes and changes, and a tab of a profile that has nothing
+        'profile_viewer_only' => 'Created and edited in the viewer.',
+        'profile_none' => 'None.',
         'save_button' => 'Save',
         'profile_saved' => 'Your profile is saved.',
         'password_title' => 'Password',

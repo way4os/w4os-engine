@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 8a83375
+  version: '28290e8'
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -2179,7 +2179,7 @@ paths:
                     type: array
                     items:
                       type: object
-                      properties: { type: { const: picks }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { name: { type: string }, description: { type: string }, region: { type: [string, 'null'], description: 'The name of its region' }, position: { type: [string, 'null'], description: 'Where it is in the grid, `<x,y,z>` in meters' }, gatekeeper: { type: [string, 'null'], description: 'The grid of its region when it is another one (host:port)' }, picture: { type: [string, 'null'], description: 'The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one' } } } }
+                      properties: { type: { const: picks }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { name: { type: string }, description: { type: string }, region: { type: [string, 'null'], description: 'The name of its region' }, parcel: { type: [string, 'null'], description: 'The name of its parcel' }, position: { type: [array, 'null'], items: { type: integer }, description: 'x, y, z in the region, in meters' }, teleport: { type: [string, 'null'], description: 'The link a viewer follows to go there (hop://host:port/Region/x/y/z)' }, gatekeeper: { type: [string, 'null'], description: 'The gatekeeper of the grid of its region, as the viewer wrote it' }, picture: { type: [string, 'null'], description: 'The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one' } } } }
         404:
           description: 'The grid or the avatar is not known here'
           content:
@@ -2220,7 +2220,7 @@ paths:
                     type: array
                     items:
                       type: object
-                      properties: { type: { const: classifieds }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { name: { type: string }, description: { type: string }, region: { type: [string, 'null'], description: 'The name of its region' }, parcel: { type: [string, 'null'], description: 'The name of its parcel' }, created: { type: integer, description: 'When it was made, Unix time' }, expires: { type: integer, description: 'When it expires, Unix time' }, picture: { type: [string, 'null'], description: 'The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one' } } } }
+                      properties: { type: { const: classifieds }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { name: { type: string }, description: { type: string }, region: { type: [string, 'null'], description: 'The name of its region' }, parcel: { type: [string, 'null'], description: 'The name of its parcel' }, position: { type: [array, 'null'], items: { type: integer }, description: 'x, y, z in the region, in meters' }, teleport: { type: [string, 'null'], description: 'The link a viewer follows to go there (hop://host:port/Region/x/y/z)' }, picture: { type: [string, 'null'], description: 'The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one' }, created: { type: integer, description: 'When it was made, Unix time' }, expires: { type: integer, description: 'When it expires, Unix time' } } } }
         404:
           description: 'The grid or the avatar is not known here'
           content:

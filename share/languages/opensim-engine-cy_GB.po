@@ -384,6 +384,14 @@ msgctxt "interests_removed"
 msgid "Viewers no longer show this section since 2023."
 msgstr "Nid yw’r gwylwyr yn dangos yr adran hon ers 2023."
 
+msgctxt "profile_viewer_only"
+msgid "Created and edited in the viewer."
+msgstr "Wedi’u creu a’u golygu yn y gwyliwr."
+
+msgctxt "profile_none"
+msgid "None."
+msgstr "Dim."
+
 msgctxt "save_button"
 msgid "Save"
 msgstr "Cadw"

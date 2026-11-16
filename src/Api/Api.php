@@ -1356,41 +1356,38 @@ final class Api
     }
 
     /**
-     * A pick or a classified, from its row.
+     * A pick or a classified, from its row (Avatar::picks(), Avatar::classifieds()).
      *
      * @param array<string,mixed> $row
      * @return array{type:string,id:string,attributes:array<string,mixed>}
      */
     private static function avatarItem(string $kind, array $row): array
     {
-        $picture = (string) ($row['snapshotuuid'] ?? '');
-        $picture = $picture === '' || $picture === '00000000-0000-0000-0000-000000000000' ? null : $picture;
-        $text = static fn(string $key): ?string => ($row[$key] ?? '') === '' ? null : (string) $row[$key];
+        $attributes = [
+            'name' => (string) ($row['name'] ?? ''),
+            'description' => (string) ($row['description'] ?? ''),
+            'region' => $row['region'] ?? null,
+            'parcel' => $row['parcel'] ?? null,
+            'position' => $row['position'] ?? null,
+            'teleport' => $row['teleport'] ?? null,
+        ];
 
         return $kind === 'picks'
             ? [
                 'type' => 'picks',
                 'id' => (string) ($row['pickuuid'] ?? ''),
-                'attributes' => [
-                    'name' => (string) ($row['name'] ?? ''),
-                    'description' => (string) ($row['description'] ?? ''),
-                    'region' => $text('simname'),
-                    'position' => $text('posglobal'),
-                    'gatekeeper' => $text('gatekeeper'),
-                    'picture' => $picture,
+                'attributes' => $attributes + [
+                    'gatekeeper' => ($row['gatekeeper'] ?? '') === '' ? null : (string) $row['gatekeeper'],
+                    'picture' => $row['picture'] ?? null,
                 ],
             ]
             : [
                 'type' => 'classifieds',
                 'id' => (string) ($row['classifieduuid'] ?? ''),
-                'attributes' => [
-                    'name' => (string) ($row['name'] ?? ''),
-                    'description' => (string) ($row['description'] ?? ''),
-                    'region' => $text('simname'),
-                    'parcel' => $text('parcelname'),
+                'attributes' => $attributes + [
+                    'picture' => $row['picture'] ?? null,
                     'created' => (int) ($row['creationdate'] ?? 0),
                     'expires' => (int) ($row['expirationdate'] ?? 0),
-                    'picture' => $picture,
                 ],
             ];
     }

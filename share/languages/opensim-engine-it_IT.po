@@ -387,6 +387,14 @@ msgctxt "interests_removed"
 msgid "Viewers no longer show this section since 2023."
 msgstr "I viewer non mostrano più questa sezione dal 2023."
 
+msgctxt "profile_viewer_only"
+msgid "Created and edited in the viewer."
+msgstr "Creati e modificati nel viewer."
+
+msgctxt "profile_none"
+msgid "None."
+msgstr "Nessuno."
+
 msgctxt "save_button"
 msgid "Save"
 msgstr "Salva"

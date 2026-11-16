@@ -184,6 +184,22 @@ final class Endpoints
             'type' => ['string', 'null'],
             'description' => 'The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one',
         ];
+        // What the viewer shows of a pick and of a classified
+        $place = [
+            'name' => ['type' => 'string'],
+            'description' => ['type' => 'string'],
+            'region' => ['type' => ['string', 'null'], 'description' => 'The name of its region'],
+            'parcel' => ['type' => ['string', 'null'], 'description' => 'The name of its parcel'],
+            'position' => [
+                'type' => ['array', 'null'],
+                'items' => ['type' => 'integer'],
+                'description' => 'x, y, z in the region, in meters',
+            ],
+            'teleport' => [
+                'type' => ['string', 'null'],
+                'description' => 'The link a viewer follows to go there (hop://host:port/Region/x/y/z)',
+            ],
+        ];
         $paths['/grids/{grid}/avatars/{id}/picks']['get'] = [
             'operationId' => 'listAvatarPicks',
             'tags' => ['Avatars'],
@@ -195,13 +211,10 @@ final class Endpoints
                 '200' => [
                     'description' => 'The picks',
                     'content' => $items('picks', [
-                        'name' => ['type' => 'string'],
-                        'description' => ['type' => 'string'],
-                        'region' => ['type' => ['string', 'null'], 'description' => 'The name of its region'],
-                        'position' => ['type' => ['string', 'null'], 'description' => 'Where it is in the grid, `<x,y,z>` in meters'],
+                        ...$place,
                         'gatekeeper' => [
                             'type' => ['string', 'null'],
-                            'description' => 'The grid of its region when it is another one (host:port)',
+                            'description' => 'The gatekeeper of the grid of its region, as the viewer wrote it',
                         ],
                         'picture' => $picture,
                     ]),
@@ -220,13 +233,10 @@ final class Endpoints
                 '200' => [
                     'description' => 'The classifieds',
                     'content' => $items('classifieds', [
-                        'name' => ['type' => 'string'],
-                        'description' => ['type' => 'string'],
-                        'region' => ['type' => ['string', 'null'], 'description' => 'The name of its region'],
-                        'parcel' => ['type' => ['string', 'null'], 'description' => 'The name of its parcel'],
+                        ...$place,
+                        'picture' => $picture,
                         'created' => ['type' => 'integer', 'description' => 'When it was made, Unix time'],
                         'expires' => ['type' => 'integer', 'description' => 'When it expires, Unix time'],
-                        'picture' => $picture,
                     ]),
                 ],
                 '404' => Contract::problem('The grid or the avatar is not known here'),

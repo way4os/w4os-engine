@@ -49,6 +49,7 @@ function avatar_database(): OSPDO
     $pdo->exec(
         'CREATE TABLE classifieds (classifieduuid CHAR(36), creatoruuid CHAR(36), creationdate INT, expirationdate INT, name VARCHAR(255), description TEXT, simname VARCHAR(255), parcelname VARCHAR(255))',
     );
+    $pdo->exec('CREATE TABLE regions (uuid CHAR(36), regionName VARCHAR(128), locX INT, locY INT, sizeX INT, sizeY INT)');
     $pdo->exec("INSERT INTO UserAccounts (PrincipalID, FirstName, LastName, Email, Created, UserLevel, UserFlags, active) VALUES
         ('11111111-1111-1111-1111-111111111111', 'Ada', 'Love', 'ada@example.org', 1700000000, 0, 0, 1),
         ('22222222-2222-2222-2222-222222222222', 'Bob', 'Root', 'bob@example.org', 1600000000, 250, 3, 1),
@@ -491,6 +492,51 @@ describe('picks and the classifieds of an avatar', function () {
             ->toHaveCount(2)
             ->and(Avatar::find(avatar_grid(), 'Bob Root')->picks())
             ->toBe([]);
+    });
+
+    test('tell what the viewer shows: the picture, the parcel, the region, the position in it, the teleport', function () {
+        $pdo = avatar_database();
+        $pdo->exec('ALTER TABLE userpicks ADD COLUMN snapshotuuid CHAR(36)');
+        $pdo->exec('ALTER TABLE userpicks ADD COLUMN user VARCHAR(255)');
+        $pdo->exec('ALTER TABLE classifieds ADD COLUMN snapshotuuid CHAR(36)');
+        $pdo->exec('ALTER TABLE classifieds ADD COLUMN posglobal VARCHAR(255)');
+        $pdo->exec("UPDATE userpicks SET snapshotuuid = 'aaaaaaaa-0000-4000-8000-000000000001', user = 'Rose Garden' WHERE pickuuid = 'k1'");
+        $pdo->exec("UPDATE userpicks SET snapshotuuid = '00000000-0000-0000-0000-000000000000', user = '' WHERE pickuuid = 'k3'");
+        $pdo->exec("UPDATE userpicks SET gatekeeper = 'http://play.example.org:8002' WHERE pickuuid = 'k1'");
+        $pdo->exec("UPDATE classifieds SET posglobal = '<256100.5,256200.2,22.7>'");
+        // Welcome is a region of 512 meters: the position in it is not the rest of the division by 256
+        $pdo->exec("INSERT INTO regions VALUES ('r1', 'Welcome', 255744, 256000, 512, 512)");
+        avatars_in($pdo);
+        $ada = Avatar::find(avatar_grid(), 'Ada Love');
+        $picks = array_column($ada->picks(), null, 'pickuuid');
+        $shown = static fn(array $row): array => array_intersect_key($row, array_flip(['picture', 'parcel', 'region', 'position', 'teleport']));
+
+        expect($shown($picks['k1']))
+            ->toBe([
+                'picture' => 'aaaaaaaa-0000-4000-8000-000000000001',
+                'parcel' => 'Rose Garden',
+                'region' => 'Welcome',
+                'position' => [266, 20, 30],
+                'teleport' => 'hop://play.example.org:8002/Welcome/266/20/30',
+            ])
+            ->and($shown($picks['k3']))
+            ->toBe([
+                'picture' => null,
+                'parcel' => null,
+                'region' => 'Harbour',
+                'position' => [244, 20, 30],
+                'teleport' => 'hop://other.example.org:8002/Harbour/244/20/30',
+            ])
+            ->and($picks['k1']['posglobal'])
+            ->toBe('<256010,256020,30>')
+            ->and($shown($ada->classifieds(1_750_000_000)[0]))
+            ->toBe([
+                'picture' => null,
+                'parcel' => 'The Garden',
+                'region' => 'Welcome',
+                'position' => [356, 200, 22],
+                'teleport' => 'hop://play.example.org:8002/Welcome/356/200/22',
+            ]);
     });
 
     test('are none when the profiles cannot be reached', function () {

@@ -332,27 +332,31 @@ final class Avatar extends Model
     }
 
     /**
-     * What it published in its profile as picks (the places it likes).
+     * What it published in its profile as picks (the places it likes), with what the viewer shows of each (Avatar::place()).
      *
-     * @return list<array<string,mixed>> the rows of userpicks: name, description, simname, posglobal, gatekeeper, pickuuid, snapshotuuid...
+     * @return list<array<string,mixed>> the rows of userpicks (name, description, simname, posglobal, gatekeeper, pickuuid,
+     *     snapshotuuid, user...) and picture, parcel, region, position, teleport
      */
     public function picks(): array
     {
         $pdo = Connections::pdo($this->config, Database::Profiles);
-
-        return $pdo === null
+        $rows = $pdo === null
             ? []
             : $pdo->get_results(
                 "SELECT * FROM userpicks WHERE creatoruuid = :id AND enabled = 'true' ORDER BY sortorder, name",
                 ['id' => $this->id()],
                 \PDO::FETCH_ASSOC,
             );
+
+        // The parcel of a pick is in the column `user`, as the core keeps it
+        return array_map(fn(array $row): array => $this->place($row, (string) ($row['user'] ?? '')), $rows);
     }
 
     /**
-     * Its classifieds that have not expired.
+     * Its classifieds that have not expired, with what the viewer shows of each (Avatar::place()).
      *
-     * @return list<array<string,mixed>> the rows of classifieds: name, description, simname, parcelname, creationdate, expirationdate, classifieduuid, snapshotuuid...
+     * @return list<array<string,mixed>> the rows of classifieds (name, description, simname, parcelname, posglobal, creationdate,
+     *     expirationdate, classifieduuid, snapshotuuid...) and picture, parcel, region, position, teleport
      */
     public function classifieds(?int $now = null): array
     {
@@ -360,13 +364,68 @@ final class Avatar extends Model
         // An integer in the statement: a bound value would be text, which a number is not compared with in every database
         $now = (int) ($now ?? time());
 
-        return $pdo === null
+        $rows = $pdo === null
             ? []
             : $pdo->get_results(
                 "SELECT * FROM classifieds WHERE creatoruuid = :id AND expirationdate + 0 > $now ORDER BY creationdate DESC",
                 ['id' => $this->id()],
                 \PDO::FETCH_ASSOC,
             );
+
+        return array_map(fn(array $row): array => $this->place($row, (string) ($row['parcelname'] ?? '')), $rows);
+    }
+
+    /**
+     * What the viewer shows of a pick or a classified, added to its row: `picture` (the UUID of its snapshot, null without one),
+     * `parcel`, `region`, `position` (x, y, z in the region: its global position less the corner of the region, the rest of the
+     * division by 256 for a region the grid does not have) and `teleport` (hop://, to the grid of its gatekeeper).
+     *
+     * @param array<string,mixed> $row
+     * @return array<string,mixed>
+     */
+    private function place(array $row, string $parcel): array
+    {
+        $text = static fn(mixed $value): ?string => trim((string) $value) === '' ? null : trim((string) $value);
+        $picture = $text($row['snapshotuuid'] ?? null);
+        $region = $text($row['simname'] ?? null);
+        $here = $this->config->gridUri();
+        $host = strtolower(rtrim((string) preg_replace('#^https?://#i', '', (string) ($row['gatekeeper'] ?? '')), '/'));
+        $host = $host === '' ? $here : $host;
+        $position = null;
+        if (preg_match('/^<?\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/', (string) ($row['posglobal'] ?? ''), $m) === 1) {
+            [$x, $y] = $host === $here && $region !== null ? $this->regionCorner($region) ?? [null, null] : [null, null];
+            $position = [
+                (int) ($x === null ? fmod((float) $m[1], 256) : (float) $m[1] - $x),
+                (int) ($y === null ? fmod((float) $m[2], 256) : (float) $m[2] - $y),
+                (int) $m[3],
+            ];
+        }
+
+        return $row + [
+            'picture' => Uuid::isNullKey($picture) ? null : $picture,
+            'parcel' => $text($parcel),
+            'region' => $region,
+            'position' => $position,
+            'teleport' => $host === null || $region === null
+                ? null
+                : (string) Destination::format("$host:$region" . ($position === null ? '' : '/' . implode('/', $position)), 8),
+        ];
+    }
+
+    /**
+     * Where a region of the grid begins, in meters; null when the grid does not have it or its regions cannot be read.
+     *
+     * @return array{0:int,1:int}|null
+     */
+    private function regionCorner(string $region): ?array
+    {
+        $row = Connections::pdo($this->config, Database::Robust)?->get_row(
+            'SELECT locX, locY FROM regions WHERE regionName = :name',
+            ['name' => $region],
+            \PDO::FETCH_ASSOC,
+        );
+
+        return is_array($row) ? [(int) $row['locX'], (int) $row['locY']] : null;
     }
 
     public function lastSeen(): ?\DateTimeImmutable

@@ -872,7 +872,9 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
                 'name' => 'The Garden',
                 'description' => 'roses',
                 'region' => 'Welcome',
-                'position' => '<256010,256020,30>',
+                'parcel' => null,
+                'position' => [10, 20, 30],
+                'teleport' => 'hop://play.example.org:8002/Welcome/10/20/30',
                 'gatekeeper' => null,
                 'picture' => null,
             ])
@@ -881,13 +883,16 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
             ->and($picks->document['data'][0]['attributes'])
             ->toMatchArray(['gatekeeper' => 'other.example.org:8002', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000001'])
             ->and($classifieds->document['data'][0]['attributes'])
-            ->toMatchArray([
+            ->toBe([
                 'name' => 'Roses for sale',
+                'description' => 'fresh',
                 'region' => 'Welcome',
                 'parcel' => 'The Garden',
+                'position' => null,
+                'teleport' => 'hop://play.example.org:8002/Welcome',
+                'picture' => null,
                 'created' => 1700000000,
                 'expires' => 1900000000,
-                'picture' => null,
             ])
             ->and($nobody->status)
             ->toBe(404)
