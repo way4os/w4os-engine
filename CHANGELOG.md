@@ -36,6 +36,7 @@
 - fix (api): the file of the API keys is given to the group of the web server (`www-data`), which its mode 640 is for: made as root or as the account of the instances, the helpers could not read it and refused every key (their health page among them)
 - feature (api): a change of an avatar takes `published`, "show in search" (the first bit of UserFlags, the others kept); a viewer that has the avatar sees it once the caches of its simulator let it go
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
+- feature (api): the picks and the classifieds of an avatar, as its profile shows them (`GET /grids/{grid}/avatars/{id}/picks`, `.../classifieds`: the enabled picks, the classifieds that have not expired), with the asset of their picture (`picture`); `Avatar::picks()` and `classifieds()` give every column of their table
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
 

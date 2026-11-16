@@ -259,6 +259,14 @@ final class Router
                 'POST' => fn() => $this->check($body, $parsed, $path, $type) ??
                     $this->api->$call($grid, $this->attributes($body, $parsed)),
             ];
+        } elseif (
+            $grid !== null &&
+            count($tail) === 3 &&
+            $tail[0] === 'avatars' &&
+            in_array($tail[2], Api::AVATAR_ITEMS, true)
+        ) {
+            $template = '/grids/{grid}/avatars/{id}/' . $tail[2];
+            $routes = ['GET' => fn() => $this->api->avatarItems($grid, $tail[1], $tail[2])];
         } elseif ($grid === null && $segments === ['setups', 'quick']) {
             $template = '/setups/quick';
             $routes = [

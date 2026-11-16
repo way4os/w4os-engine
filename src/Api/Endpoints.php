@@ -153,6 +153,85 @@ final class Endpoints
                 '404' => Contract::problem('The grid is not known here'),
             ],
         ];
+        $items = static fn(string $type, array $attributes): array => [
+            Response::JSON_API => [
+                'schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'data' => [
+                            'type' => 'array',
+                            'items' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'type' => ['const' => $type],
+                                    'id' => ['type' => 'string', 'description' => 'Its UUID'],
+                                    'attributes' => ['type' => 'object', 'properties' => $attributes],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $avatar = [
+            'name' => 'id',
+            'in' => 'path',
+            'required' => true,
+            'description' => 'The UUID or the name of the avatar',
+            'schema' => ['type' => 'string'],
+        ];
+        $picture = [
+            'type' => ['string', 'null'],
+            'description' => 'The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one',
+        ];
+        $paths['/grids/{grid}/avatars/{id}/picks']['get'] = [
+            'operationId' => 'listAvatarPicks',
+            'tags' => ['Avatars'],
+            'summary' => 'Picks of an avatar',
+            'description' =>
+                'The picks the profile of the avatar shows (the enabled ones, in the order the avatar gave them), from the profiles database of the grid. Who may see them is the site\'s to decide: the engine only asks for its API key. None when the profiles cannot be reached.',
+            'parameters' => [Contract::gridParameter(), $avatar],
+            'responses' => [
+                '200' => [
+                    'description' => 'The picks',
+                    'content' => $items('picks', [
+                        'name' => ['type' => 'string'],
+                        'description' => ['type' => 'string'],
+                        'region' => ['type' => ['string', 'null'], 'description' => 'The name of its region'],
+                        'position' => ['type' => ['string', 'null'], 'description' => 'Where it is in the grid, `<x,y,z>` in meters'],
+                        'gatekeeper' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The grid of its region when it is another one (host:port)',
+                        ],
+                        'picture' => $picture,
+                    ]),
+                ],
+                '404' => Contract::problem('The grid or the avatar is not known here'),
+            ],
+        ];
+        $paths['/grids/{grid}/avatars/{id}/classifieds']['get'] = [
+            'operationId' => 'listAvatarClassifieds',
+            'tags' => ['Avatars'],
+            'summary' => 'Classifieds of an avatar',
+            'description' =>
+                'The classifieds of the avatar that have not expired, the newest first, from the profiles database of the grid. Who may see them is the site\'s to decide: the engine only asks for its API key. None when the profiles cannot be reached.',
+            'parameters' => [Contract::gridParameter(), $avatar],
+            'responses' => [
+                '200' => [
+                    'description' => 'The classifieds',
+                    'content' => $items('classifieds', [
+                        'name' => ['type' => 'string'],
+                        'description' => ['type' => 'string'],
+                        'region' => ['type' => ['string', 'null'], 'description' => 'The name of its region'],
+                        'parcel' => ['type' => ['string', 'null'], 'description' => 'The name of its parcel'],
+                        'created' => ['type' => 'integer', 'description' => 'When it was made, Unix time'],
+                        'expires' => ['type' => 'integer', 'description' => 'When it expires, Unix time'],
+                        'picture' => $picture,
+                    ]),
+                ],
+                '404' => Contract::problem('The grid or the avatar is not known here'),
+            ],
+        ];
         $paths['/grids/{grid}/info']['get'] = [
             'operationId' => 'getInfo',
             'tags' => ['Addresses'],

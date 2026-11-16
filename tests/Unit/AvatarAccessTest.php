@@ -847,6 +847,57 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
     });
 });
 
+describe('The API, for the picks and the classifieds of an avatar', function () {
+    test('lists what its profile shows: the picks it shows, the classifieds that have not expired', function () {
+        $pdo = signin_database();
+        $pdo->exec('ALTER TABLE userpicks ADD COLUMN snapshotuuid CHAR(36)');
+        $pdo->exec('ALTER TABLE classifieds ADD COLUMN snapshotuuid CHAR(36)');
+        $pdo->exec("UPDATE userpicks SET snapshotuuid = 'aaaaaaaa-0000-4000-8000-000000000001' WHERE pickuuid = 'k3'");
+        $pdo->exec("UPDATE classifieds SET snapshotuuid = '00000000-0000-0000-0000-000000000000'");
+        avatars_in($pdo);
+        [$router] = access_api();
+
+        $picks = $router->get('/grids/demo/avatars/' . ADA . '/picks');
+        $classifieds = $router->get('/grids/demo/avatars/Ada%20Love/classifieds');
+        $nobody = $router->get('/grids/demo/avatars/Nobody%20Here/picks');
+
+        expect($picks->status)
+            ->toBe(200)
+            ->and(array_column($picks->document['data'], 'id'))
+            ->toBe(['k3', 'k1'])
+            ->and($picks->document['data'][1])
+            ->toMatchArray(['type' => 'picks'])
+            ->and($picks->document['data'][1]['attributes'])
+            ->toBe([
+                'name' => 'The Garden',
+                'description' => 'roses',
+                'region' => 'Welcome',
+                'position' => '<256010,256020,30>',
+                'gatekeeper' => null,
+                'picture' => null,
+            ])
+            ->and(array_column($classifieds->document['data'], 'id'))
+            ->toBe(['c1'])
+            ->and($picks->document['data'][0]['attributes'])
+            ->toMatchArray(['gatekeeper' => 'other.example.org:8002', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000001'])
+            ->and($classifieds->document['data'][0]['attributes'])
+            ->toMatchArray([
+                'name' => 'Roses for sale',
+                'region' => 'Welcome',
+                'parcel' => 'The Garden',
+                'created' => 1700000000,
+                'expires' => 1900000000,
+                'picture' => null,
+            ])
+            ->and($nobody->status)
+            ->toBe(404)
+            ->and(OpenSim\Api\Router::PUBLIC)
+            ->not->toContain('GET /grids/{grid}/avatars/{id}/picks')
+            ->and(array_keys(OpenSim\Api\Contract::document()['paths']))
+            ->toContain('/grids/{grid}/avatars/{id}/picks', '/grids/{grid}/avatars/{id}/classifieds');
+    });
+});
+
 describe('The API, for the publication of a profile', function () {
     test('sets or clears "show in search", the first bit of the account, and no other', function () {
         $pdo = signin_database();

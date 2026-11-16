@@ -334,7 +334,7 @@ final class Avatar extends Model
     /**
      * What it published in its profile as picks (the places it likes).
      *
-     * @return list<array<string,mixed>> name, description, simname, posglobal, gatekeeper
+     * @return list<array<string,mixed>> the rows of userpicks: name, description, simname, posglobal, gatekeeper, pickuuid, snapshotuuid...
      */
     public function picks(): array
     {
@@ -343,7 +343,7 @@ final class Avatar extends Model
         return $pdo === null
             ? []
             : $pdo->get_results(
-                "SELECT name, description, simname, posglobal, gatekeeper FROM userpicks WHERE creatoruuid = :id AND enabled = 'true' ORDER BY sortorder, name",
+                "SELECT * FROM userpicks WHERE creatoruuid = :id AND enabled = 'true' ORDER BY sortorder, name",
                 ['id' => $this->id()],
                 \PDO::FETCH_ASSOC,
             );
@@ -352,7 +352,7 @@ final class Avatar extends Model
     /**
      * Its classifieds that have not expired.
      *
-     * @return list<array<string,mixed>> name, description, simname, parcelname, creationdate, expirationdate
+     * @return list<array<string,mixed>> the rows of classifieds: name, description, simname, parcelname, creationdate, expirationdate, classifieduuid, snapshotuuid...
      */
     public function classifieds(?int $now = null): array
     {
@@ -363,7 +363,7 @@ final class Avatar extends Model
         return $pdo === null
             ? []
             : $pdo->get_results(
-                "SELECT name, description, simname, parcelname, creationdate, expirationdate FROM classifieds WHERE creatoruuid = :id AND expirationdate + 0 > $now ORDER BY creationdate DESC",
+                "SELECT * FROM classifieds WHERE creatoruuid = :id AND expirationdate + 0 > $now ORDER BY creationdate DESC",
                 ['id' => $this->id()],
                 \PDO::FETCH_ASSOC,
             );

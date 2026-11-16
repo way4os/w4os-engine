@@ -92,6 +92,9 @@ final class Api
     /** The forms the engine knows (what a setup asks), by name. */
     public const FORMS = ['grid', 'remote-grid', 'simulator', 'region'];
 
+    /** What the profile of an avatar lists, asked under it: `/grids/{grid}/avatars/{id}/picks`. */
+    public const AVATAR_ITEMS = ['picks', 'classifieds'];
+
     /** @var \Closure(Grid):?GridConfig the config of a grid, from its folder unless the caller says otherwise */
     private \Closure $config;
 
@@ -241,6 +244,29 @@ final class Api
         return $model instanceof Response
             ? $model
             : Response::document(['data' => self::resource($type, $model, $grid), 'links' => ['self' => $instance]]);
+    }
+
+    /**
+     * What the profile of an avatar lists (Api::AVATAR_ITEMS): the picks it shows, the classifieds that have not expired. The picture
+     * of each is the UUID of its asset (`/grids/{grid}/assets/{id}.{format}` shows it), null without one.
+     */
+    public function avatarItems(string $grid, string $id, string $kind): Response
+    {
+        $instance = self::path('avatars', $id, $grid) . "/$kind";
+        try {
+            $avatar = Avatar::find($this->gridConfig($grid), $id);
+            if ($avatar === null) {
+                return Response::problem(Problem::notFound("avatar called '$id'", $instance));
+            }
+            $rows = $kind === 'picks' ? $avatar->picks() : $avatar->classifieds((int) $this->environment->clock->time());
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document([
+            'data' => array_map(static fn(array $row): array => self::avatarItem($kind, $row), $rows),
+            'links' => ['self' => $instance],
+        ]);
     }
 
     /**
@@ -1327,6 +1353,46 @@ final class Api
             'attributes' => ['fields' => $fields],
             'links' => ['self' => "/forms/$name"],
         ];
+    }
+
+    /**
+     * A pick or a classified, from its row.
+     *
+     * @param array<string,mixed> $row
+     * @return array{type:string,id:string,attributes:array<string,mixed>}
+     */
+    private static function avatarItem(string $kind, array $row): array
+    {
+        $picture = (string) ($row['snapshotuuid'] ?? '');
+        $picture = $picture === '' || $picture === '00000000-0000-0000-0000-000000000000' ? null : $picture;
+        $text = static fn(string $key): ?string => ($row[$key] ?? '') === '' ? null : (string) $row[$key];
+
+        return $kind === 'picks'
+            ? [
+                'type' => 'picks',
+                'id' => (string) ($row['pickuuid'] ?? ''),
+                'attributes' => [
+                    'name' => (string) ($row['name'] ?? ''),
+                    'description' => (string) ($row['description'] ?? ''),
+                    'region' => $text('simname'),
+                    'position' => $text('posglobal'),
+                    'gatekeeper' => $text('gatekeeper'),
+                    'picture' => $picture,
+                ],
+            ]
+            : [
+                'type' => 'classifieds',
+                'id' => (string) ($row['classifieduuid'] ?? ''),
+                'attributes' => [
+                    'name' => (string) ($row['name'] ?? ''),
+                    'description' => (string) ($row['description'] ?? ''),
+                    'region' => $text('simname'),
+                    'parcel' => $text('parcelname'),
+                    'created' => (int) ($row['creationdate'] ?? 0),
+                    'expires' => (int) ($row['expirationdate'] ?? 0),
+                    'picture' => $picture,
+                ],
+            ];
     }
 
     /** @return array{type:string,id:string,attributes:array<string,mixed>,links:array{self:string}} */
