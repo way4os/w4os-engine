@@ -218,11 +218,14 @@ final class Contract
                 'profileUrl' => ['string?', ''],
                 'partner' => ['string?', 'The UUID of its partner'],
                 'wants' => ['string?', 'The free text of the wants'],
-                'wantsList' => ['array', 'What it wants: Build, Explore, Meet, Group, Buy, Sell, Be Hired, Hire'],
+                'wantsList' => [
+                    'array',
+                    'What it wants, the check boxes of its profile: build, explore, meet, group, buy, sell, be-hired, hire (`meta.profileFlags` of the list gives their bits and the keys of their texts)',
+                ],
                 'skills' => ['string?', 'The free text of the skills'],
                 'skillsList' => [
                     'array',
-                    'What it is good at: Textures, Architecture, Event Planning, Modeling, Scripting, Custom Characters',
+                    'What it is good at, the check boxes of its profile: textures, architecture, event-planning, modeling, scripting, custom-characters',
                 ],
                 'languages' => ['string?', ''],
                 'firstImage' => ['string?', ''],
@@ -275,7 +278,15 @@ final class Contract
                 ],
                 'active' => ['boolean', 'true: active (a pending avatar too: its confirmation token is forgotten); false: disabled'],
                 'status' => ['string', '`active`, `disabled` or `pending`; a `pending` avatar that becomes another forgets its confirmation token'],
-                'password' => ['string', 'A new password'],
+                'password' => ['string', 'A new password: 6 to 16 characters, without double quote, as at the registration (`password-invalid`)'],
+                'wantsList' => [
+                    'array',
+                    'The check boxes of what it wants: their names (build, explore, meet, group, buy, sell, be-hired, hire), or their number as the viewer keeps it',
+                ],
+                'skillsList' => [
+                    'array',
+                    'The check boxes of what it is good at: their names (textures, architecture, event-planning, modeling, scripting, custom-characters), or their number',
+                ],
                 'home' => ['string', 'The UUID of the home region'],
                 'about' => ['string', 'Of its profile, made when the avatar has none yet'],
                 'profileUrl' => ['string', ''],

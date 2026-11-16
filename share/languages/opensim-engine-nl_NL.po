@@ -257,6 +257,62 @@ msgctxt "skills"
 msgid "Skills"
 msgstr "Vaardigheden"
 
+msgctxt "want_build"
+msgid "Build"
+msgstr "Bouw"
+
+msgctxt "want_explore"
+msgid "Explore"
+msgstr "Verken"
+
+msgctxt "want_meet"
+msgid "Meet"
+msgstr "Ontmoet"
+
+msgctxt "want_group"
+msgid "Group"
+msgstr "Groep"
+
+msgctxt "want_buy"
+msgid "Buy"
+msgstr "Kopen"
+
+msgctxt "want_sell"
+msgid "Sell"
+msgstr "Verkopen"
+
+msgctxt "want_be_hired"
+msgid "Be Hired"
+msgstr "Word aangenomen"
+
+msgctxt "want_hire"
+msgid "Hire"
+msgstr "Huur"
+
+msgctxt "skill_textures"
+msgid "Textures"
+msgstr "Texturen"
+
+msgctxt "skill_architecture"
+msgid "Architecture"
+msgstr "Architectuur"
+
+msgctxt "skill_event_planning"
+msgid "Event Planning"
+msgstr "Evenement planning"
+
+msgctxt "skill_modeling"
+msgid "Modeling"
+msgstr "Modelleren"
+
+msgctxt "skill_scripting"
+msgid "Scripting"
+msgstr "Scripting"
+
+msgctxt "skill_custom_characters"
+msgid "Custom Characters"
+msgstr "Aangepaste tekens"
+
 msgctxt "languages"
 msgid "Languages"
 msgstr "Talen"

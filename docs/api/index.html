@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "d2d88ff",
+        "version": "a0f1106",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1480,7 +1480,15 @@
                                                     },
                                                     "password": {
                                                         "type": "string",
-                                                        "description": "A new password"
+                                                        "description": "A new password: 6 to 16 characters, without double quote, as at the registration (`password-invalid`)"
+                                                    },
+                                                    "wantsList": {
+                                                        "type": "array",
+                                                        "description": "The check boxes of what it wants: their names (build, explore, meet, group, buy, sell, be-hired, hire), or their number as the viewer keeps it"
+                                                    },
+                                                    "skillsList": {
+                                                        "type": "array",
+                                                        "description": "The check boxes of what it is good at: their names (textures, architecture, event-planning, modeling, scripting, custom-characters), or their number"
                                                     },
                                                     "home": {
                                                         "type": "string",
@@ -6830,7 +6838,7 @@
                             },
                             "wantsList": {
                                 "type": "array",
-                                "description": "What it wants: Build, Explore, Meet, Group, Buy, Sell, Be Hired, Hire"
+                                "description": "What it wants, the check boxes of its profile: build, explore, meet, group, buy, sell, be-hired, hire (`meta.profileFlags` of the list gives their bits and the keys of their texts)"
                             },
                             "skills": {
                                 "type": [
@@ -6841,7 +6849,7 @@
                             },
                             "skillsList": {
                                 "type": "array",
-                                "description": "What it is good at: Textures, Architecture, Event Planning, Modeling, Scripting, Custom Characters"
+                                "description": "What it is good at, the check boxes of its profile: textures, architecture, event-planning, modeling, scripting, custom-characters"
                             },
                             "languages": {
                                 "type": [

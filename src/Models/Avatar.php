@@ -44,6 +44,31 @@ final class Avatar extends Model
     public const STATUSES = ['active', 'disabled', 'pending'];
 
     /**
+     * What an avatar wants to do, the check boxes of its profile in the viewer (profileWantToMask), as OpenSimulator and w4os have
+     * them: the name of each flag and its bit.
+     */
+    public const WANTS = [
+        'build' => 1,
+        'explore' => 2,
+        'meet' => 4,
+        'group' => 8,
+        'buy' => 16,
+        'sell' => 32,
+        'be-hired' => 64,
+        'hire' => 128,
+    ];
+
+    /** What an avatar is good at, the check boxes of its profile in the viewer (profileSkillsMask): the name of each flag and its bit. */
+    public const SKILLS = [
+        'textures' => 1,
+        'architecture' => 2,
+        'event-planning' => 4,
+        'modeling' => 8,
+        'scripting' => 16,
+        'custom-characters' => 32,
+    ];
+
+    /**
      * The roles of the avatars, as w4os names them, by the lowest level of each: a level of 200 and over is a god, 150 a liaison, 100
      * the customer service, 1 god-like, 0 and less a resident.
      */
@@ -124,6 +149,8 @@ final class Avatar extends Model
         'skills' => 'profileSkillsText',
         'languages' => 'profileLanguages',
         'firstLife' => 'profileFirstText',
+        'wantsList' => 'profileWantToMask',
+        'skillsList' => 'profileSkillsMask',
     ];
 
     /** The moment of the last visit as the database computes it: the later of Login and Logout, stored as texts. */
@@ -350,6 +377,58 @@ final class Avatar extends Model
      *
      * @return list<string>
      */
+    /**
+     * The flags of the wants and the skills of a profile, for a site to show them as check boxes: the name of each, its bit, and the
+     * key of its text in the catalog of the sites (want_build, skill_event_planning).
+     *
+     * @return array{wants:list<array{name:string,value:int,key:string}>,skills:list<array{name:string,value:int,key:string}>}
+     */
+    public static function profileFlags(): array
+    {
+        $list = static fn(array $flags, string $prefix): array => array_map(
+            static fn(string $name, int $value): array => [
+                'name' => $name,
+                'value' => $value,
+                'key' => $prefix . str_replace('-', '_', $name),
+            ],
+            array_keys($flags),
+            array_values($flags),
+        );
+
+        return ['wants' => $list(self::WANTS, 'want_'), 'skills' => $list(self::SKILLS, 'skill_')];
+    }
+
+    /**
+     * The number of the flags a profile is given: their names, or the number itself (what the viewer keeps).
+     *
+     * @param array<string,int> $flags WANTS or SKILLS
+     * @throws InvalidValue for a name that is not a flag, a number with a bit that is not one, anything else
+     */
+    private static function profileMask(mixed $value, array $flags, string $what): int
+    {
+        $all = array_sum($flags);
+        if (is_int($value) || (is_string($value) && ctype_digit($value))) {
+            $mask = (int) $value;
+            if (($mask & ~$all) !== 0) {
+                throw InvalidValue::because('invalid-request', "$mask is not a number of the $what (0 to $all)");
+            }
+
+            return $mask;
+        }
+        if (!is_array($value)) {
+            throw InvalidValue::because('invalid-request', "the $what are a list of " . implode(', ', array_keys($flags)) . ', or their number');
+        }
+        $mask = 0;
+        foreach ($value as $name) {
+            $mask |= $flags[(string) $name] ?? throw InvalidValue::because(
+                'invalid-request',
+                "'$name' is not one of the $what: " . implode(', ', array_keys($flags)),
+            );
+        }
+
+        return $mask;
+    }
+
     public static function wantLabels(): array
     {
         return [_('Build'), _('Explore'), _('Meet'), _('Group'), _('Buy'), _('Sell'), _('Be Hired'), _('Hire')];
@@ -407,9 +486,9 @@ final class Avatar extends Model
             'profileUrl' => $row['profileURL'] ?? null,
             'partner' => self::uuidOrNull($row['profilePartner'] ?? null),
             'wants' => $row['profileWantToText'] ?? null,
-            'wantsList' => Bitmask::labels((int) ($row['profileWantToMask'] ?? 0), self::wantLabels()),
+            'wantsList' => Bitmask::names((int) ($row['profileWantToMask'] ?? 0), array_flip(self::WANTS)),
             'skills' => $row['profileSkillsText'] ?? null,
-            'skillsList' => Bitmask::labels((int) ($row['profileSkillsMask'] ?? 0), self::skillLabels()),
+            'skillsList' => Bitmask::names((int) ($row['profileSkillsMask'] ?? 0), array_flip(self::SKILLS)),
             'languages' => $row['profileLanguages'] ?? null,
             'firstImage' => self::uuidOrNull($row['profileFirstImage'] ?? null),
             'firstLife' => $row['profileFirstText'] ?? null,
@@ -705,6 +784,9 @@ final class Avatar extends Model
             $values['level'] = (int) ($values['level'] ?? self::ROLES[$role]);
             unset($values['role']);
         }
+        // The check boxes of the profile: their names, or the number the viewer keeps
+        isset($values['wantsList']) && ($values['wantsList'] = self::profileMask($values['wantsList'], self::WANTS, 'wants'));
+        isset($values['skillsList']) && ($values['skillsList'] = self::profileMask($values['skillsList'], self::SKILLS, 'skills'));
         foreach ($values as $name => $value) {
             if (
                 !isset(self::ACCOUNT_SETTINGS[$name]) &&
@@ -716,6 +798,10 @@ final class Avatar extends Model
         }
         if (isset($values['password']) && (string) $values['password'] === '') {
             throw InvalidValue::because('password-required', 'a password cannot be empty');
+        }
+        // The same rules as at the registration
+        if (isset($values['password']) && ($wrong = self::validatePassword($values['password'])) !== null) {
+            throw InvalidValue::because('password-invalid', "the password is $wrong");
         }
         if (isset($values['email']) && self::validateEmail($values['email']) !== null) {
             throw InvalidValue::because('email-invalid', "'{$values['email']}' is not an email");

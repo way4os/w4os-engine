@@ -256,7 +256,7 @@ describe('The API, for the resources of a grid', function () {
             grid: 'demo',
         );
         $id = $made->document['data']['id'];
-        $changed = $api->update('avatars', $id, ['level' => 5, 'active' => false, 'password' => 'other'], grid: 'demo');
+        $changed = $api->update('avatars', $id, ['level' => 5, 'active' => false, 'password' => 'other-secret'], grid: 'demo');
         $taken = $api->create('avatars', ['name' => 'Api Person', 'password' => 'secret'], grid: 'demo');
         $unknown = $api->update('avatars', $id, ['nonsense' => 1], grid: 'demo');
         $deleted = $api->delete('avatars', $id, grid: 'demo');

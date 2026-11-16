@@ -26,6 +26,8 @@
 - update (avatars): a new name typed all in small letters or all in capitals gets a capital to each part and small letters for the rest (`bart simpson` and `BART SIMPSON` are `Bart Simpson`, `jean-pierre` is `Jean-Pierre`), before it is checked; capitals and small letters mixed are the person's choice and kept as typed (`McFly`, `JeanPaul deLuxe`); a reserved name (a model, an account that is moved) is kept as it is given, the existing avatars are not renamed
 - feature (api): `filter[model]` (the avatar models of the grid, by the rule of `[Models]`) and `filter[email]` on the avatars: the newest people are `sort=-created&filter[model]=no&filter[technical]=no&filter[email]=yes`
 - feature (api): `filter[published]` on the avatars and their `published` attribute (`Avatar::isPublished()`, `PUBLISHED_FLAG`): the box "show in search" of the viewer, the first bit of UserFlags the search module sets (`avatar_publish_update`)
+- feature (api): the wants and the skills of a profile as the names of their flags (`wantsList`, `skillsList`: build, meet, scripting...), changed by their names or the number of the viewer; `Avatar::profileFlags()` and `meta.profileFlags` of the avatars give each flag, its bit and the key of its text in the catalog (`want_build`, `skill_event_planning`, translated as w4os)
+- fix (avatars): a new password given by a change follows the rules of a registration (6 to 16 characters, no double quote: `password-invalid`)
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13

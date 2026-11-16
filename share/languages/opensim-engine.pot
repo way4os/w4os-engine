@@ -225,6 +225,62 @@ msgctxt "skills"
 msgid "Skills"
 msgstr ""
 
+msgctxt "want_build"
+msgid "Build"
+msgstr ""
+
+msgctxt "want_explore"
+msgid "Explore"
+msgstr ""
+
+msgctxt "want_meet"
+msgid "Meet"
+msgstr ""
+
+msgctxt "want_group"
+msgid "Group"
+msgstr ""
+
+msgctxt "want_buy"
+msgid "Buy"
+msgstr ""
+
+msgctxt "want_sell"
+msgid "Sell"
+msgstr ""
+
+msgctxt "want_be_hired"
+msgid "Be Hired"
+msgstr ""
+
+msgctxt "want_hire"
+msgid "Hire"
+msgstr ""
+
+msgctxt "skill_textures"
+msgid "Textures"
+msgstr ""
+
+msgctxt "skill_architecture"
+msgid "Architecture"
+msgstr ""
+
+msgctxt "skill_event_planning"
+msgid "Event Planning"
+msgstr ""
+
+msgctxt "skill_modeling"
+msgid "Modeling"
+msgstr ""
+
+msgctxt "skill_scripting"
+msgid "Scripting"
+msgstr ""
+
+msgctxt "skill_custom_characters"
+msgid "Custom Characters"
+msgstr ""
+
 msgctxt "languages"
 msgid "Languages"
 msgstr ""

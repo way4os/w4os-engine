@@ -884,6 +884,39 @@ describe('The API, for the role of an avatar', function () {
     });
 });
 
+describe('The API, for a manager who changes the password of an avatar', function () {
+    test('changes it with the rules of a registration, and the avatar signs in with it', function () {
+        avatars_in(signin_database());
+        [$router] = access_api();
+        $change = static fn(string $password) => $router->patch(
+            '/grids/demo/avatars/' . ADA,
+            ['data' => ['type' => 'avatars', 'id' => ADA, 'attributes' => ['password' => $password]]],
+        );
+        $signIn = static fn(string $password): bool => (new DatabaseAuthenticator(avatar_grid()))
+            ->authenticate('Ada Love', $password)
+            ->isGranted();
+
+        $short = $change('no');
+        $quote = $change('with"quote');
+        $long = $change(str_repeat('x', 17));
+        $kept = $signIn('ada-secret');
+        $changed = $change('new-secret');
+
+        expect(array_map(static fn($answer): ?string => $answer->document['code'] ?? null, [$short, $quote, $long]))
+            ->toBe(['password-invalid', 'password-invalid', 'password-invalid'])
+            ->and($kept)
+            ->toBeTrue()
+            ->and($changed->status)
+            ->toBe(200)
+            ->and($signIn('new-secret'))
+            ->toBeTrue()
+            ->and($signIn('ada-secret'))
+            ->toBeFalse()
+            ->and($router->get('/grids/demo/avatars')->document['meta']['profileFlags']['wants'][0] ?? null)
+            ->toBe(['name' => 'build', 'value' => 1, 'key' => 'want_build']);
+    });
+});
+
 describe('The API, for a change of the email of an avatar', function () {
     test('keeps the email until the new one is confirmed with the link mailed to it', function () {
         avatars_in(signin_database());

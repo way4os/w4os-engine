@@ -140,9 +140,9 @@ describe('avatars', function () {
             ->and($ada['wants'])
             ->toBe('to build')
             ->and($ada['wantsList'])
-            ->toBe(['Build', 'Meet'])
+            ->toBe(['build', 'meet'])
             ->and($ada['skillsList'])
-            ->toBe(['Architecture', 'Scripting'])
+            ->toBe(['architecture', 'scripting'])
             ->and($ada['languages'])
             ->toBe('en, fr')
             ->and($ada['firstImage'])
@@ -524,6 +524,45 @@ describe('An avatar that is changed', function () {
 
         $cy->disable();
         expect(Avatar::find($config, 'Cy Gone')->isEnabled())->toBeFalse();
+    });
+
+    test('has its wants and its skills changed by the names of their flags, or by the number of the viewer', function () {
+        avatars_in(avatar_database());
+        $config = avatar_grid();
+        $ada = Avatar::find($config, 'Ada Love');
+        $refusal = static function (array $values) use ($ada): ?string {
+            try {
+                $ada->update($values);
+            } catch (InvalidValue $e) {
+                return $e->reason;
+            }
+
+            return null;
+        };
+
+        $ada->update(['wantsList' => ['hire', 'build', 'be-hired'], 'skillsList' => 48]);
+        $changed = Avatar::find($config, 'Ada Love')->detail();
+        $wrong = [$refusal(['wantsList' => ['flying']]), $refusal(['skillsList' => 64]), $refusal(['wantsList' => 'build'])];
+        $ada->update(['wantsList' => [], 'skillsList' => '0']);
+        $none = Avatar::find($config, 'Ada Love')->detail();
+
+        expect([$changed['wantsList'], $changed['skillsList']])
+            ->toBe([['build', 'be-hired', 'hire'], ['scripting', 'custom-characters']])
+            ->and($wrong)
+            ->toBe(['invalid-request', 'invalid-request', 'invalid-request'])
+            ->and([$none['wantsList'], $none['skillsList']])
+            ->toBe([[], []])
+            ->and(Avatar::profileFlags()['wants'][6])
+            ->toBe(['name' => 'be-hired', 'value' => 64, 'key' => 'want_be_hired'])
+            ->and(array_column(Avatar::profileFlags()['skills'], 'value', 'name'))
+            ->toBe([
+                'textures' => 1,
+                'architecture' => 2,
+                'event-planning' => 4,
+                'modeling' => 8,
+                'scripting' => 16,
+                'custom-characters' => 32,
+            ]);
     });
 
     test('keeps its name: only the listed values can be changed', function () {

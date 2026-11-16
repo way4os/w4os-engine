@@ -256,6 +256,62 @@ msgctxt "skills"
 msgid "Skills"
 msgstr "Sgiliau"
 
+msgctxt "want_build"
+msgid "Build"
+msgstr "Adeiladu"
+
+msgctxt "want_explore"
+msgid "Explore"
+msgstr "Archwiliwch"
+
+msgctxt "want_meet"
+msgid "Meet"
+msgstr "Cyfarfod"
+
+msgctxt "want_group"
+msgid "Group"
+msgstr "Grwp"
+
+msgctxt "want_buy"
+msgid "Buy"
+msgstr "Prynwch"
+
+msgctxt "want_sell"
+msgid "Sell"
+msgstr "Gwerthu"
+
+msgctxt "want_be_hired"
+msgid "Be Hired"
+msgstr "Byddwch yn Llogi"
+
+msgctxt "want_hire"
+msgid "Hire"
+msgstr "Llogi"
+
+msgctxt "skill_textures"
+msgid "Textures"
+msgstr "Gweadau"
+
+msgctxt "skill_architecture"
+msgid "Architecture"
+msgstr "Pensaernïaeth"
+
+msgctxt "skill_event_planning"
+msgid "Event Planning"
+msgstr "Cynllunio Digwyddiadau"
+
+msgctxt "skill_modeling"
+msgid "Modeling"
+msgstr "Modelu"
+
+msgctxt "skill_scripting"
+msgid "Scripting"
+msgstr "Sgriptio"
+
+msgctxt "skill_custom_characters"
+msgid "Custom Characters"
+msgstr "Cymeriadau Personol"
+
 msgctxt "languages"
 msgid "Languages"
 msgstr "Ieithoedd"

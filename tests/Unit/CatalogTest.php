@@ -14,10 +14,11 @@ describe('the catalog of the texts of the sites', function () {
             ->and(Catalog::error('no-such-code'))->toBe(Catalog::MESSAGES['error_invalid_request']);
     });
 
-    test('has a text for every status and every role of an avatar', function () {
+    test('has a text for every status, every role, every want and every skill of an avatar', function () {
         $keys = [
             ...array_map(Catalog::statusKey(...), OpenSim\Models\Avatar::STATUSES),
             ...array_map(Catalog::roleKey(...), array_keys(OpenSim\Models\Avatar::ROLES)),
+            ...array_column([...OpenSim\Models\Avatar::profileFlags()['wants'], ...OpenSim\Models\Avatar::profileFlags()['skills']], 'key'),
         ];
 
         expect(array_diff($keys, array_keys(Catalog::MESSAGES)))
