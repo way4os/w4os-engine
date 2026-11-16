@@ -1343,8 +1343,9 @@ final class Avatar extends Model
      */
     public static function all(GridConfig $config, array $options = []): Collection
     {
-        $accounts = self::connect($config, 'UserAccountService', null, 'read the avatars');
         $joined = self::joined($config);
+        self::listing($joined)->check($options);
+        $accounts = self::connect($config, 'UserAccountService', null, 'read the avatars');
         [$sortName, $direction] = self::sort((string) ($options['sort'] ?? 'name'), $joined);
         [$where, $params, $applied] = self::conditions($options, $joined, AvatarModel::condition($config, 'u.'));
 

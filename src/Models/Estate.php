@@ -288,6 +288,7 @@ final class Estate extends Model
      */
     public static function all(GridConfig $config, array $options = []): Collection
     {
+        self::listing()->check($options);
         [$sortName, $direction] = array_pad(
             preg_split('/\s+/', trim((string) ($options['sort'] ?? 'name'))) ?: [],
             2,

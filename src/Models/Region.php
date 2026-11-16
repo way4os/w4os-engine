@@ -668,6 +668,7 @@ final class Region extends Model
      */
     public static function all(GridConfig $config, array $options = []): Collection
     {
+        self::listing()->check($options);
         $pdo = self::connect($config, 'GridService', null, 'read the regions');
         [$sortName, $direction] = array_pad(
             preg_split('/\s+/', trim((string) ($options['sort'] ?? 'name'))) ?: [],

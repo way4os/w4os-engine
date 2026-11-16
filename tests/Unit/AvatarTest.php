@@ -217,8 +217,10 @@ describe('avatars', function () {
             ->toBe(['Bob Root', 'Ada Love', 'Cy Gone'])
             ->and($names('online desc'))
             ->toBe(['Ada Love', 'Bob Root', 'Cy Gone'])
-            ->and($names('nonsense; DROP TABLE x'))
-            ->toBe(['Ada Love', 'Bob Root', 'Cy Gone']);
+            ->and(fn() => $names('nonsense; DROP TABLE x'))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
+            ->and(fn() => $names('name sideways'))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'));
     });
 
     test('are filtered by status: active, disabled by a manager, waiting for the confirmation of its email', function () {
@@ -303,7 +305,11 @@ describe('avatars', function () {
             ->toBe(['Bob Root'])
             ->and($names(['god' => 'yes', 'active' => 'no']))
             ->toBe([])
-            ->and($names(['unknown' => 'yes', 'god' => 'maybe']))
+            ->and(fn() => $names(['unknown' => 'yes']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'))
+            ->and(fn() => $names(['god' => 'maybe']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
+            ->and($names(['god' => '']))
             ->toBe(['Ada Love', 'Bob Root', 'Cy Gone'])
             ->and(Avatar::all($config, ['filters' => ['online' => 'yes']])->applied())
             ->toBe(['online' => 'yes']);
@@ -348,8 +354,8 @@ describe('avatars', function () {
             ])
             ->and(array_column(Avatar::all($config, ['sort' => 'level desc'])->array(), 'name'))
             ->toBe(['Bob Root', 'Gus Off', 'Fay Link', 'Eve Help', 'Dee Like', 'Ada Love', 'Cy Gone'])
-            ->and(Avatar::all($config, ['filters' => ['role' => 'admin']])->applied())
-            ->toBe([])
+            ->and(fn() => Avatar::all($config, ['filters' => ['role' => 'admin']]))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and(Avatar::roleOf(-3))
             ->toBe('resident');
     });
@@ -1025,10 +1031,15 @@ describe('avatars of a grid whose services have their own databases', function (
                 "[UserProfilesService]\n ConnectionString = \"Data Source=localhost;Database=profiles;User ID=os;Password=pw;\"\n",
         );
 
-        $list = Avatar::all($config, ['sort' => 'lastSeen desc', 'filters' => ['online' => 'yes']]);
+        $list = Avatar::all($config);
         [$ada, $bob] = $list->items();
 
-        expect($list->sort())
+        // The visits are in another database: neither sorted nor filtered on, and said so
+        expect(fn() => Avatar::all($config, ['sort' => 'lastSeen desc']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
+            ->and(fn() => Avatar::all($config, ['filters' => ['online' => 'yes']]))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'))
+            ->and($list->sort())
             ->toBe('name asc')
             ->and($list->total())
             ->toBe(2)

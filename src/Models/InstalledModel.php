@@ -95,6 +95,7 @@ abstract class InstalledModel implements InstalledModelInterface
         array $filters,
         Listing $listing,
     ): Collection {
+        $listing->check($options);
         foreach (
             preg_split('/\s+/', trim((string) ($options['search'] ?? '')), -1, PREG_SPLIT_NO_EMPTY) ?: []
             as $word

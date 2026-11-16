@@ -206,6 +206,7 @@ class Asset extends Model
      */
     public static function all(GridConfig $config, array $options = []): Collection
     {
+        self::listing()->check($options);
         $pdo = self::connect($config, Database::Assets, null, 'read the assets');
         $where = [];
         $params = [];

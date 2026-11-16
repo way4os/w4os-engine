@@ -79,6 +79,26 @@ describe('The API', function () {
             ]);
     });
 
+    test('refuses a filter, a value or a sort the list does not take, naming the ones it takes', function () {
+        $api = machine_api();
+        $asked = static fn(array $query): array => [
+            $api->list('services', $query)->status,
+            $api->list('services', $query)->document['code'] ?? null,
+        ];
+        $filter = $api->list('services', ['filter' => ['nope' => 'yes']])->document;
+
+        expect($asked(['filter' => ['nope' => 'yes']]))
+            ->toBe([400, 'filter-unknown'])
+            ->and($filter['detail'])
+            ->toBe("'nope' is not a filter of this list: served, port")
+            ->and($asked(['filter' => ['served' => 'maybe']]))
+            ->toBe([400, 'filter-value-unknown'])
+            ->and($asked(['sort' => '-nope']))
+            ->toBe([400, 'sort-unknown'])
+            ->and($asked(['filter' => ['served' => '']]))
+            ->toBe([200, null]);
+    });
+
     test('lists the resources of a type in a JSON:API document, with the page and what was applied', function () {
         $api = machine_api();
         $response = $api->list('services', [

@@ -578,6 +578,9 @@ final class Contract
                     'parameters' => [...$parameters, ...self::listParameters($listing?->filterValues() ?? $resource['filters'] ?? [], $listing)],
                     'responses' => [
                         '200' => self::documentResponse("A page of the $type", $schema, true),
+                        '400' => self::problem(
+                            'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes',
+                        ),
                         '404' => self::problem('The grid is not known here'),
                         '503' => self::problem('What the list is read from is not available'),
                     ],

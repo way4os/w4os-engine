@@ -1011,6 +1011,18 @@ msgctxt "error_field_unknown"
 msgid "This cannot be done."
 msgstr "Nid yw hyn yn bosibl."
 
+msgctxt "error_filter_unknown"
+msgid "This list cannot be filtered this way."
+msgstr "Ni ellir hidlo'r rhestr hon fel hyn."
+
+msgctxt "error_filter_value_unknown"
+msgid "This list cannot be filtered this way."
+msgstr "Ni ellir hidlo'r rhestr hon fel hyn."
+
+msgctxt "error_sort_unknown"
+msgid "This list cannot be sorted this way."
+msgstr "Ni ellir trefnu'r rhestr hon fel hyn."
+
 msgctxt "error_role_unknown"
 msgid "This role does not exist."
 msgstr "Nid yw’r rôl hon yn bodoli."

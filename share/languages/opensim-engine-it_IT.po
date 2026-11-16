@@ -999,6 +999,18 @@ msgctxt "error_field_unknown"
 msgid "This cannot be done."
 msgstr "Non è possibile."
 
+msgctxt "error_filter_unknown"
+msgid "This list cannot be filtered this way."
+msgstr "Questo elenco non può essere filtrato così."
+
+msgctxt "error_filter_value_unknown"
+msgid "This list cannot be filtered this way."
+msgstr "Questo elenco non può essere filtrato così."
+
+msgctxt "error_sort_unknown"
+msgid "This list cannot be sorted this way."
+msgstr "Questo elenco non può essere ordinato così."
+
 msgctxt "error_role_unknown"
 msgid "This role does not exist."
 msgstr "Questo ruolo non esiste."

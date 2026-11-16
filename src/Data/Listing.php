@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Data;
 
+use OpenSim\Exceptions\InvalidValue;
 use OpenSim\I18n\Catalog;
 
 /**
@@ -133,6 +134,44 @@ final class Listing
             ($when === [] ? [] : ['when' => $when]) +
             ($requires === [] ? [] : ['requires' => $requires]) +
             $more;
+    }
+
+    /**
+     * Refuse what the list does not take, rather than answer as if it was not asked: a filter it does not have (`filter-unknown`), a
+     * value a filter does not take (`filter-value-unknown`), a sort it does not have (`sort-unknown`). An empty value asks nothing.
+     *
+     * @param array<string,mixed> $options `filters` and `sort` ("name", "lastSeen desc"), as a model's all() takes them
+     * @throws InvalidValue
+     */
+    public function check(array $options): void
+    {
+        $values = $this->filterValues();
+        foreach ((array) ($options['filters'] ?? []) as $name => $value) {
+            $name = (string) $name;
+            isset($values[$name]) ||
+                throw InvalidValue::because(
+                    'filter-unknown',
+                    "'$name' is not a filter of this list: " . implode(', ', array_keys($values)),
+                );
+            $value = is_scalar($value) ? (string) $value : '';
+            $value === '' ||
+                $values[$name] === [] ||
+                in_array($value, $values[$name], true) ||
+                throw InvalidValue::because(
+                    'filter-value-unknown',
+                    "'$value' is not a value of the filter $name: " . implode(', ', $values[$name]),
+                );
+        }
+        $sort = trim((string) ($options['sort'] ?? ''));
+        if ($sort === '') {
+            return;
+        }
+        [$name, $direction] = array_pad(preg_split('/\s+/', $sort) ?: [], 2, 'asc');
+        in_array($name, $this->sorts(), true) && in_array(strtolower((string) $direction), ['asc', 'desc'], true) ||
+            throw InvalidValue::because(
+                'sort-unknown',
+                "'$sort' is not a sort of this list: " . implode(', ', $this->sorts()) . ', each asc or desc',
+            );
     }
 
     /**

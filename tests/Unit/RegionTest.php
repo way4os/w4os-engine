@@ -203,8 +203,10 @@ describe('Regions', function () {
             ->toBe(['Garden'])
             ->and($names(['hyperlink' => 'yes']))
             ->toBe(['Far Away'])
-            ->and($names(['hyperlink' => 'bogus']))
-            ->toBe(['Garden', 'Quiet Harbour', 'Welcome']);
+            ->and(fn() => $names(['hyperlink' => 'bogus']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
+            ->and(fn() => $names(['nonsense' => 'yes']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'));
     });
 
     test('are filtered by their owner, and give their hop address on the grid', function () {
@@ -281,8 +283,8 @@ describe('Regions', function () {
             ->toBe(['Welcome', 'Garden', 'Quiet Harbour'])
             ->and($names(['sort' => 'size desc']))
             ->toBe(['Garden', 'Welcome', 'Quiet Harbour'])
-            ->and($names(['sort' => '1; DROP TABLE regions']))
-            ->toBe(['Garden', 'Quiet Harbour', 'Welcome'])
+            ->and(fn() => $names(['sort' => '1; DROP TABLE regions']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
             ->and($names(['perPage' => 2, 'page' => 2]))
             ->toBe(['Welcome'])
             ->and(Region::all($config, ['perPage' => 2])->total())
