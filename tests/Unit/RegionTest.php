@@ -212,8 +212,15 @@ describe('Regions', function () {
 
         expect($names([]))
             ->toBe(['Garden', 'Quiet Harbour', 'Welcome'])
-            ->and($names(['flags' => 'RegionOnline']))
+            // Online or offline, the flag RegionOnline: a filter of its own
+            ->and($names(['status' => 'online']))
             ->toBe(['Garden', 'Welcome'])
+            ->and($names(['status' => 'offline']))
+            ->toBe(['Quiet Harbour'])
+            ->and(fn() => $names(['flags' => 'RegionOnline']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
+            ->and(fn() => $names(['status' => 'yes']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and(array_column($list->array(), 'name'))
             ->toBe(['Quiet Harbour', 'Welcome'])
             ->and($list->applied())
@@ -228,7 +235,7 @@ describe('Regions', function () {
             ->toBe([])
             // The flags the regions have now, in the order of the table: the values of the filter that give something
             ->and($list->available()['flags'])
-            ->toBe(['DefaultRegion', 'FallbackRegion', 'RegionOnline', 'Persistent', 'Hyperlink', 'DefaultHGRegion'])
+            ->toBe(['DefaultRegion', 'FallbackRegion', 'Persistent', 'Hyperlink', 'DefaultHGRegion'])
             ->and(fn() => $names(['flags' => 'DefaultRegion,Bogus']))
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and(fn() => $names(['online' => 'yes']))
@@ -300,14 +307,30 @@ describe('Regions', function () {
             ->and($listing->sorts())
             ->toBe(['name', 'location', 'size', 'flags', 'lastSeen'])
             ->and($listing->filterValues())
-            ->toBe(['flags' => array_values(Region::NAMES), 'owner' => [], 'simulator' => []])
-            ->and($listing->filters[0]['values'][0])
+            ->toBe([
+                'status' => ['online', 'offline'],
+                'flags' => array_values(array_diff(Region::NAMES, ['RegionOnline'])),
+                'owner' => [],
+                'simulator' => [],
+            ])
+            ->and($listing->filters[0])
+            ->toBe([
+                'name' => 'status',
+                'label' => 'status',
+                'values' => [
+                    ['value' => 'online', 'label' => 'region_status_online'],
+                    ['value' => 'offline', 'label' => 'region_status_offline'],
+                ],
+            ])
+            ->and($listing->filters[1]['label'])
+            ->toBe('column_flags')
+            ->and($listing->filters[1]['values'][0])
             ->toBe([
                 'value' => 'DefaultRegion',
                 'label' => 'region_flag_default_region',
                 'description' => 'region_flag_default_region_help',
             ])
-            ->and(array_intersect_key($listing->filters[0], ['multiple' => 1, 'dynamic' => 1]))
+            ->and(array_intersect_key($listing->filters[1], ['multiple' => 1, 'dynamic' => 1]))
             ->toBe(['multiple' => true, 'dynamic' => true])
             ->and($listing->columns[4]['values'][8])
             ->toBe([
@@ -320,7 +343,7 @@ describe('Regions', function () {
             // The map tile of the region beside its name, as the picture of an avatar
             ->and(array_intersect_key($listing->columns[0], ['picture' => 1, 'default' => 1]))
             ->toBe(['picture' => 'mapImage', 'default' => 'place'])
-            ->and($listing->filters[1])
+            ->and($listing->filters[2])
             ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid'])
             ->and(array_column($listing->actions, 'body', 'name'))
             ->toBe(['enable' => ['enabled' => true], 'disable' => ['enabled' => false]])

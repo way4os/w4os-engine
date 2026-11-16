@@ -185,7 +185,7 @@ describe('regions of the grid and the config together', function () {
                 )
                 ->toBe(['Plaza'])
                 // A filter on what only the grid knows (it is online) leaves none of the ones it does not know
-                ->and(Region::merged($config, ['filters' => ['flags' => 'RegionOnline']])->total())
+                ->and(Region::merged($config, ['filters' => ['status' => 'online']])->total())
                 ->toBe(0)
                 ->and(count(Region::merged($config, ['perPage' => 2, 'page' => 2])->items()))
                 ->toBe(1);

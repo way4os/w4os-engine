@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "4a10100",
+        "version": "a296512",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -2900,12 +2900,23 @@
                         }
                     },
                     {
+                        "name": "filter[status]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "online",
+                                "offline"
+                            ]
+                        }
+                    },
+                    {
                         "name": "filter[flags]",
                         "in": "query",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "One or more of DefaultRegion, FallbackRegion, RegionOnline, NoDirectLogin, Persistent, LockedOut, NoMove, Reservation, Authenticate, Hyperlink, DefaultHGRegion, separated by commas: what has any of them"
+                        "description": "One or more of DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut, NoMove, Reservation, Authenticate, Hyperlink, DefaultHGRegion, separated by commas: what has any of them"
                     },
                     {
                         "name": "filter[owner]",
@@ -3096,8 +3107,22 @@
                     ],
                     "filters": [
                         {
-                            "name": "flags",
+                            "name": "status",
                             "label": "status",
+                            "values": [
+                                {
+                                    "value": "online",
+                                    "label": "region_status_online"
+                                },
+                                {
+                                    "value": "offline",
+                                    "label": "region_status_offline"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "flags",
+                            "label": "column_flags",
                             "values": [
                                 {
                                     "value": "DefaultRegion",
@@ -3108,11 +3133,6 @@
                                     "value": "FallbackRegion",
                                     "label": "region_flag_fallback_region",
                                     "description": "region_flag_fallback_region_help"
-                                },
-                                {
-                                    "value": "RegionOnline",
-                                    "label": "region_flag_region_online",
-                                    "description": "region_flag_region_online_help"
                                 },
                                 {
                                     "value": "NoDirectLogin",

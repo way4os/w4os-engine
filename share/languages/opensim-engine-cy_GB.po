@@ -685,6 +685,18 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Rolau"
 
+msgctxt "column_flags"
+msgid "Flags"
+msgstr "Baneri"
+
+msgctxt "region_status_online"
+msgid "Online"
+msgstr "Ar-lein"
+
+msgctxt "region_status_offline"
+msgid "Offline"
+msgstr "All-lein"
+
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Rhanbarth diofyn"
@@ -1179,10 +1191,6 @@ msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
 #~ msgctxt "column_address"
 #~ msgid "Address"
 #~ msgstr "Cyfeiriad"
-
-#~ msgctxt "column_flags"
-#~ msgid "Flags"
-#~ msgstr "Baneri"
 
 #, php-format
 #~ msgctxt "avatars_count"

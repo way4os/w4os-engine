@@ -600,6 +600,8 @@ final class Region extends Model
             $kept = match ($name) {
                 // What only the grid knows of a region: its owner
                 'owner', 'flags' => $asked === '',
+                // A region only the config knows is not running in the grid
+                'status' => $asked !== 'online',
                 // What only the grid knows of a region: the address of its simulator
                 'simulator' => $asked === '',
                 default => $asked !== 'yes',
@@ -722,6 +724,12 @@ final class Region extends Model
         }
         $asked = (array) ($options['filters'] ?? []);
         $applied = [];
+        // Online or offline: whether the grid has it running (the flag RegionOnline, as isOnline() reads it)
+        $status = (string) ($asked['status'] ?? '');
+        if ($status !== '') {
+            $where[] = '(r.flags & ' . self::REGION_ONLINE . ($status === 'online' ? ') <> 0' : ') = 0');
+            $applied['status'] = $status;
+        }
         // The regions that have any of the flags asked (DefaultRegion,DefaultHGRegion); the links to other grids only when asked
         $flags = self::listing()->asked('flags', $asked['flags'] ?? '');
         $mask = array_sum(array_map(static fn(string $name): int => self::flagValue($name), $flags));
@@ -786,14 +794,18 @@ final class Region extends Model
                     array_map(static fn(array $server): array => ['value' => $server['id'], 'label' => $server['label']], $servers),
                 ),
                 'flags' => array_values(
-                    array_filter(
-                        self::NAMES,
-                        static fn(int $flag): bool => ($flag & array_reduce(
-                            $pdo->get_results('SELECT DISTINCT flags FROM regions', [], \PDO::FETCH_COLUMN),
-                            static fn(int $all, mixed $flags): int => $all | (int) $flags,
-                            0,
-                        )) !== 0,
-                        ARRAY_FILTER_USE_KEY,
+                    array_intersect_key(
+                        self::filterFlags(),
+                        array_flip(
+                            self::flagNames(
+                                array_reduce(
+                                    $pdo->get_results('SELECT DISTINCT flags FROM regions', [], \PDO::FETCH_COLUMN),
+                                    static fn(int $all, mixed $flags): int => $all | (int) $flags,
+                                    0,
+                                ),
+                                true,
+                            ),
+                        ),
                     ),
                 ),
             ],
@@ -913,7 +925,13 @@ final class Region extends Model
                 Listing::column('uri', 'column_uri', 'link', more: ['link' => 'teleport']),
             ],
             [
-                Listing::filter('flags', 'status', self::flagKeys(true), more: ['multiple' => true, 'dynamic' => true]),
+                Listing::filter('status', 'status', ['online' => 'region_status_online', 'offline' => 'region_status_offline']),
+                Listing::filter(
+                    'flags',
+                    'column_flags',
+                    array_intersect_key(self::flagKeys(true), self::filterFlags()),
+                    more: ['multiple' => true, 'dynamic' => true],
+                ),
                 Listing::filter('owner', 'column_owner', [], 'uuid'),
                 Listing::filter('simulator', 'filter_simulator', [], 'simulator', ['multiple' => true, 'dynamic' => true]),
             ],
@@ -1039,13 +1057,26 @@ final class Region extends Model
 
     /**
      * The names, in the config of Robust, of the flags of a value that can be given there (DefaultRegion, DefaultHGRegion,
-     * FallbackRegion, NoDirectLogin, Persistent, LockedOut, Reservation, NoMove, Authenticate).
+     * FallbackRegion, NoDirectLogin, Persistent, LockedOut, Reservation, NoMove, Authenticate), or of all its flags.
      *
+     * @param bool $all every flag of the table, RegionOnline and Hyperlink too
      * @return list<string>
      */
-    public static function flagNames(int $flags): array
+    public static function flagNames(int $flags, bool $all = false): array
     {
-        return \OpenSim\Support\Bitmask::names($flags & self::ROLES, self::NAMES);
+        return \OpenSim\Support\Bitmask::names($all ? $flags : $flags & self::ROLES, self::NAMES);
+    }
+
+    /**
+     * The flags the filter of the flags offers: all but RegionOnline, which the filter of the status gives (online, offline).
+     *
+     * @return array<string,string> name => name, in the order of the table
+     */
+    private static function filterFlags(): array
+    {
+        $names = self::flagNames(array_sum(array_keys(self::NAMES)) & ~self::REGION_ONLINE, true);
+
+        return array_combine($names, $names);
     }
 
     /**

@@ -681,6 +681,18 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Ruoli"
 
+msgctxt "column_flags"
+msgid "Flags"
+msgstr "Flag"
+
+msgctxt "region_status_online"
+msgid "Online"
+msgstr "Online"
+
+msgctxt "region_status_offline"
+msgid "Offline"
+msgstr "Offline"
+
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Regione predefinita"
@@ -1161,10 +1173,6 @@ msgstr "L’email non è potuta partire. Riprova più tardi."
 #~ msgctxt "column_address"
 #~ msgid "Address"
 #~ msgstr "Indirizzo"
-
-#~ msgctxt "column_flags"
-#~ msgid "Flags"
-#~ msgstr "Flag"
 
 #, php-format
 #~ msgctxt "avatars_count"

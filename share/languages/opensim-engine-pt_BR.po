@@ -678,6 +678,18 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Funções"
 
+msgctxt "column_flags"
+msgid "Flags"
+msgstr "Sinalizadores"
+
+msgctxt "region_status_online"
+msgid "Online"
+msgstr "Online"
+
+msgctxt "region_status_offline"
+msgid "Offline"
+msgstr "Offline"
+
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Região padrão"
@@ -1157,10 +1169,6 @@ msgstr "O email não pôde ser enviado. Tente de novo mais tarde."
 #~ msgctxt "column_address"
 #~ msgid "Address"
 #~ msgstr "Endereço"
-
-#~ msgctxt "column_flags"
-#~ msgid "Flags"
-#~ msgstr "Sinalizadores"
 
 #, php-format
 #~ msgctxt "avatars_count"

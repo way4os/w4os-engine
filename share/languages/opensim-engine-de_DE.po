@@ -682,6 +682,18 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr "Rollen"
 
+msgctxt "column_flags"
+msgid "Flags"
+msgstr "Flags"
+
+msgctxt "region_status_online"
+msgid "Online"
+msgstr "Online"
+
+msgctxt "region_status_offline"
+msgid "Offline"
+msgstr "Offline"
+
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr "Standardregion"
@@ -1173,10 +1185,6 @@ msgstr ""
 #~ msgctxt "column_address"
 #~ msgid "Address"
 #~ msgstr "Adresse"
-
-#~ msgctxt "column_flags"
-#~ msgid "Flags"
-#~ msgstr "Flags"
 
 #, php-format
 #~ msgctxt "avatars_count"

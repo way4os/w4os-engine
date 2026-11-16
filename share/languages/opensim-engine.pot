@@ -640,6 +640,18 @@ msgctxt "column_roles"
 msgid "Roles"
 msgstr ""
 
+msgctxt "column_flags"
+msgid "Flags"
+msgstr ""
+
+msgctxt "region_status_online"
+msgid "Online"
+msgstr ""
+
+msgctxt "region_status_offline"
+msgid "Offline"
+msgstr ""
+
 msgctxt "region_flag_default_region"
 msgid "Default region"
 msgstr ""
