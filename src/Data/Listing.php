@@ -117,7 +117,10 @@ final class Listing
      * @param array<string,mixed> $body
      * @param array<string,list<mixed>> $when the attributes and the values one of which the row must have
      * @param list<string> $requires the attributes the row must have, not empty
-     * @param array<string,mixed> $more `notSelf`: never offered on the avatar of whoever acts
+     * @param array<string,mixed> $more `notSelf`: never offered on the avatar of whoever acts; `link`: the page of the site the mail
+     *        of the operation links to (`reset` for a new password, `confirm` for the confirmation of an email): whoever calls adds
+     *        to the body `link`, the address of its own page with `{token}` in it, and may add `send` false to get the token back
+     *        instead of mailing it
      */
     public static function action(
         string $name,

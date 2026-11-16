@@ -1470,6 +1470,7 @@ final class Avatar extends Model
                 ['name' => '{name}'],
                 ['status' => ['active']],
                 ['email'],
+                ['link' => 'reset'],
             ),
         ];
         if (!$joined) {

@@ -574,6 +574,7 @@ describe('The contract', function () {
                     'body' => ['name' => '{name}'],
                     'when' => ['status' => ['active']],
                     'requires' => ['email'],
+                    'link' => 'reset',
                 ],
             ])
             // The parameters of the list are the ones the model describes
