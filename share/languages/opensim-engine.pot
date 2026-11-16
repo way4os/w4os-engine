@@ -268,6 +268,10 @@ msgctxt "email_changed"
 msgid "Your email is now %s."
 msgstr ""
 
+msgctxt "menu_admin"
+msgid "Admin"
+msgstr ""
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr ""
@@ -361,6 +365,19 @@ msgctxt "action_reset"
 msgid "Send a password reset link"
 msgstr ""
 
+msgctxt "action_view"
+msgid "View profile"
+msgstr ""
+
+msgctxt "action_edit"
+msgid "Edit"
+msgstr ""
+
+#, php-format
+msgctxt "edit_title"
+msgid "Edit %s"
+msgstr ""
+
 #, php-format
 msgctxt "manage_enable"
 msgid "%s is enabled."
@@ -374,6 +391,11 @@ msgstr ""
 #, php-format
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
+msgstr ""
+
+#, php-format
+msgctxt "manage_saved"
+msgid "%s is saved."
 msgstr ""
 
 msgctxt "error_required"

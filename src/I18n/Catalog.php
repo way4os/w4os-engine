@@ -108,6 +108,7 @@ final class Catalog
         'email_changed' => 'Your email is now %s.',
 
         // Avatars of the grid (managers)
+        'menu_admin' => 'Admin',
         'manage_title' => 'Avatars',
         'search_avatars' => 'Name or email',
         'search' => 'Search',
@@ -133,9 +134,13 @@ final class Catalog
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
         'action_reset' => 'Send a password reset link',
+        'action_view' => 'View profile',
+        'action_edit' => 'Edit',
+        'edit_title' => 'Edit %s',
         'manage_enable' => '%s is enabled.',
         'manage_disable' => '%s is disabled.',
         'manage_reset' => 'A link to choose a new password is on its way to %s.',
+        'manage_saved' => '%s is saved.',
 
         // What the forms check
         'error_required' => 'Please fill in every field.',

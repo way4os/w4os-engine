@@ -306,6 +306,10 @@ msgctxt "email_changed"
 msgid "Your email is now %s."
 msgstr "Seu email agora é %s."
 
+msgctxt "menu_admin"
+msgid "Admin"
+msgstr "Admin"
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatares"
@@ -399,6 +403,19 @@ msgctxt "action_reset"
 msgid "Send a password reset link"
 msgstr "Enviar um link de redefinição de senha"
 
+msgctxt "action_view"
+msgid "View profile"
+msgstr "Ver perfil"
+
+msgctxt "action_edit"
+msgid "Edit"
+msgstr "Editar"
+
+#, php-format
+msgctxt "edit_title"
+msgid "Edit %s"
+msgstr "Editar %s"
+
 #, php-format
 msgctxt "manage_enable"
 msgid "%s is enabled."
@@ -413,6 +430,11 @@ msgstr "%s foi desativado."
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
 msgstr "Um link para escolher uma nova senha está a caminho de %s."
+
+#, php-format
+msgctxt "manage_saved"
+msgid "%s is saved."
+msgstr "%s foi salvo."
 
 msgctxt "error_required"
 msgid "Please fill in every field."

@@ -307,6 +307,10 @@ msgctxt "email_changed"
 msgid "Your email is now %s."
 msgstr "Je e-mail is nu %s."
 
+msgctxt "menu_admin"
+msgid "Admin"
+msgstr "Beheer"
+
 msgctxt "manage_title"
 msgid "Avatars"
 msgstr "Avatars"
@@ -400,6 +404,19 @@ msgctxt "action_reset"
 msgid "Send a password reset link"
 msgstr "Een link sturen om het wachtwoord opnieuw in te stellen"
 
+msgctxt "action_view"
+msgid "View profile"
+msgstr "Bekijk profiel"
+
+msgctxt "action_edit"
+msgid "Edit"
+msgstr "Bewerken"
+
+#, php-format
+msgctxt "edit_title"
+msgid "Edit %s"
+msgstr "%s bewerken"
+
 #, php-format
 msgctxt "manage_enable"
 msgid "%s is enabled."
@@ -414,6 +431,11 @@ msgstr "%s is gedeactiveerd."
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
 msgstr "Er is een link om een nieuw wachtwoord te kiezen onderweg naar %s."
+
+#, php-format
+msgctxt "manage_saved"
+msgid "%s is saved."
+msgstr "%s is opgeslagen."
 
 msgctxt "error_required"
 msgid "Please fill in every field."
