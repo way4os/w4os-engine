@@ -828,7 +828,7 @@ final class Endpoints
             'password-resets',
             'requestPasswordReset',
             'Forgotten password',
-            'Gives a token to choose a new password to the avatar a name is, or to every avatar an email is: mailed to it with a link, or given back with `send: false`. The answer to a mail is the same whether the name or the email is someone\'s or not.',
+            'Gives a token to choose a new password to the avatar a name is, or to every avatar an email is: mailed to it with a link, or given back with `send: false`. The answer to a mail is the same whether the name or the email is someone\'s or not. An avatar without an email (the models, the technical accounts, by convention) has no link: it is refused (`email-required`).',
             [
                 'name' => ['string', 'First Last, or First.Last'],
                 'email' => ['string', 'The email of the avatar, instead of its name: every avatar that has it'],
@@ -838,7 +838,7 @@ final class Endpoints
             [
                 '200' => $tokens('password-resets'),
                 '202' => $accepted('Mailed, when the name or the email is someone\'s'),
-                '400' => Contract::problem('No name or email, or a link that is not a web address'),
+                '400' => Contract::problem('No name or email, a link that is not a web address, or an avatar without an email (`email-required`)'),
                 '404' => Contract::problem('The grid is not known here; with `send: false`, nobody has the name or the email'),
                 '503' => Contract::problem('The databases of the accounts or of the passwords cannot be reached'),
             ],
