@@ -381,7 +381,7 @@ msgstr "Gwasanaeth Cwsmeriaid"
 
 msgctxt "role_liaison"
 msgid "Liaison"
-msgstr "Cysylltiad"
+msgstr "Swyddog cyswllt"
 
 msgctxt "role_god"
 msgid "God"

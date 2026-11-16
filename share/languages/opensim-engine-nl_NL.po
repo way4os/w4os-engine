@@ -382,7 +382,7 @@ msgstr "Klantenservice"
 
 msgctxt "role_liaison"
 msgid "Liaison"
-msgstr "Verbinding"
+msgstr "Contactpersoon"
 
 msgctxt "role_god"
 msgid "God"

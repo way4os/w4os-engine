@@ -381,7 +381,7 @@ msgstr "Atendimento ao Cliente"
 
 msgctxt "role_liaison"
 msgid "Liaison"
-msgstr "Ligação"
+msgstr "Contato"
 
 msgctxt "role_god"
 msgid "God"

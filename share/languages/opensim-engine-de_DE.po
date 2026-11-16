@@ -385,7 +385,7 @@ msgstr "Kundenservice"
 
 msgctxt "role_liaison"
 msgid "Liaison"
-msgstr "Verbindung"
+msgstr "Verbindungsperson"
 
 msgctxt "role_god"
 msgid "God"

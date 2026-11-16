@@ -375,7 +375,7 @@ msgstr "Résident"
 
 msgctxt "role_god_like"
 msgid "God-like"
-msgstr "Divin"
+msgstr "Quasi-dieu"
 
 msgctxt "role_customer_service"
 msgid "Customer Service"
