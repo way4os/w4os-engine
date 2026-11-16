@@ -6,7 +6,7 @@
  * get the fuzzy translations); the old one stays in the file, obsolete (#~), for the translator.
  *
  *     composer translations
- *     php dev/translations.php --seed ~/Projects/w4os/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po
+ *     php dev/translations.php --seed ~/Projects/w4os-wp/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po
  *
  * --seed fills the texts not translated yet from other gettext files whose English text is the same (letter case aside, no guess), %s
  * being the language (fr_FR). The first file given wins.

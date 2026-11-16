@@ -55,7 +55,7 @@ The texts of the websites of a grid are written in English in `OpenSim\I18n\Cata
 A new language is an entry of `Catalog::LOCALES`, then `composer translations`. `--seed` fills the texts not translated yet from other gettext files with the same English text, word for word (no guess): the .po files were seeded from w4os and the helpers this way (then the other translations of the Grav plugin; every translation is to be reviewed, in the context of the sites):
 
 ```bash
-php dev/translations.php --seed ~/Projects/w4os/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po
+php dev/translations.php --seed ~/Projects/w4os-wp/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po
 ```
 
 ## The options of a grid
