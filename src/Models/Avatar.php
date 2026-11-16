@@ -467,18 +467,24 @@ final class Avatar extends Model
     }
 
     /**
-     * Each part of a new name with a capital and the rest in small letters, as w4os makes it: "bart SIMPSON" is "Bart Simpson"; each
-     * piece of a hyphenated part too ("jean-PIERRE" is "Jean-Pierre", w4os has no hyphen).
+     * A new name the person did not mind the case of, written as w4os writes it. All in small letters or all in capitals, each part
+     * gets a capital and the rest small letters, each piece of a hyphenated part too: "bart simpson" and "BART SIMPSON" are "Bart
+     * Simpson", "JEAN-PIERRE dupont" is "Jean-Pierre Dupont". Capitals and small letters mixed are the person's choice, kept as typed
+     * ("McFly", "mcFly", "JeanPaul deLuxe", "BART simpson"). Digits do not count.
      */
     public static function capitalizeName(string $name): string
     {
-        $capital = static fn(string $piece): string => ucfirst(strtolower($piece));
+        $name = trim($name);
+        if (preg_match('/[A-Z]/', $name) === 1 && preg_match('/[a-z]/', $name) === 1) {
+            return $name;
+        }
+        $piece = static fn(string $piece): string => ucfirst(strtolower($piece));
 
         return implode(
             ' ',
             array_map(
-                static fn(string $part): string => implode(self::NAME_PUNCTUATION, array_map($capital, explode(self::NAME_PUNCTUATION, $part))),
-                explode(' ', trim($name)),
+                static fn(string $part): string => implode(self::NAME_PUNCTUATION, array_map($piece, explode(self::NAME_PUNCTUATION, $part))),
+                explode(' ', $name),
             ),
         );
     }
@@ -531,7 +537,8 @@ final class Avatar extends Model
             : [(string) ($values['firstName'] ?? ''), (string) ($values['lastName'] ?? '')];
         // A name a person chooses gets its capitals; a reserved one (a model, an account that is moved) is kept as it is given
         if (!Result::isTrue($values['reservedName'] ?? false)) {
-            [$first, $last] = [self::capitalizeName($first), self::capitalizeName($last)];
+            // The whole name decides: capitals and small letters mixed in it keep both parts as they are typed
+            [$first, $last] = array_pad(explode(' ', self::capitalizeName(trim($first) . ' ' . trim($last)), 2), 2, '');
         }
         if (self::validateName("$first $last") !== null) {
             throw InvalidValue::because(
@@ -600,7 +607,8 @@ final class Avatar extends Model
      *        (`['hash' => ..., 'salt' => ...]`, an account that is moved); `uuid` and `home` (the id of a region) when they are known;
      *        `model`, the UUID or the name of an avatar model (AvatarModel) whose outfit it wears instead of the default one;
      *        `status` (STATUSES), or `active` false for a disabled one; `reservedName` true for a name w4os keeps (a model: Default...)
-     *        or an account that is moved: its name is kept as it is given, any other gets its capitals (capitalizeName())
+     *        or an account that is moved: its name is kept as it is given, any other all in small letters or all in capitals gets
+     *        its capitals (capitalizeName())
      * @throws InvalidValue for a name that is not one or is reserved or taken, a missing or wrong password, a wrong email, a model
      *         that is not one; its reason says which
      * @throws ChannelUnavailable when a database cannot be reached or refuses

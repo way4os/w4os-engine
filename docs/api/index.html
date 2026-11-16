@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "8f80b27",
+        "version": "d2d88ff",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1208,7 +1208,7 @@
                                                 "properties": {
                                                     "name": {
                                                         "type": "string",
-                                                        "description": "First Last (or firstName and lastName): each part gets a capital and the rest small letters, as w4os makes it (bart simpson is Bart Simpson), unless reservedName"
+                                                        "description": "First Last (or firstName and lastName). All in small letters or all in capitals, each part gets a capital and the rest small letters (bart simpson and BART SIMPSON are Bart Simpson); capitals and small letters mixed are kept as typed (McFly, JeanPaul deLuxe), and so is a reservedName"
                                                     },
                                                     "email": {
                                                         "type": "string"

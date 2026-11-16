@@ -399,7 +399,7 @@ describe('The API, for a new avatar whose email is to be confirmed', function ()
 
         expect($ask('bart simpson')['data']['attributes'])
             ->toMatchArray(['name' => 'Bart Simpson', 'firstName' => 'Bart', 'lastName' => 'Simpson'])
-            ->and($ask('ada LOVE')['code'] ?? null)
+            ->and($ask('ADA LOVE')['code'] ?? null)
             ->toBe('name-taken');
     });
 

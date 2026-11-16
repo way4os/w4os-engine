@@ -675,7 +675,7 @@ describe('An avatar that is made', function () {
             ->toBe('Default Jane');
     });
 
-    test('has a capital to each part of a name it is given, as w4os makes it, before it is checked', function () {
+    test('has a capital to each part of a name typed all in small letters or all in capitals, before it is checked; a mixed one is kept', function () {
         avatars_in(avatar_creation_database());
         $config = avatar_grid();
         $refusal = static function (string $name) use ($config): ?string {
@@ -691,15 +691,27 @@ describe('An avatar that is made', function () {
         expect(Avatar::create($config, ['name' => 'bart simpson', 'password' => 'secret'])->name())
             ->toBe('Bart Simpson')
             ->and(Avatar::create($config, ['firstName' => 'LISA', 'lastName' => 'sIMPSON', 'password' => 'secret'])->name())
-            ->toBe('Lisa Simpson')
+            ->toBe('LISA sIMPSON')
+            ->and(Avatar::create($config, ['firstName' => 'jeanpaul', 'lastName' => 'deLuxe', 'password' => 'secret'])->name())
+            ->toBe('jeanpaul deLuxe')
             ->and($refusal('ada love'))
             ->toBe('name-taken')
             ->and($refusal('admin person'))
             ->toBe('name-reserved')
             ->and(Avatar::create($config, ['name' => 'jane doe', 'password' => 'secret', 'reservedName' => true])->name())
             ->toBe('jane doe')
-            ->and(array_map(Avatar::capitalizeName(...), ['mcFLY marty', 'jean-PIERRE dupont', '2pac shakur', 'Ada Love']))
-            ->toBe(['Mcfly Marty', 'Jean-Pierre Dupont', '2pac Shakur', 'Ada Love'])
+            ->and(array_map(Avatar::capitalizeName(...), [
+                'jeanpaul deluxe',
+                'JeanPaul deLuxe',
+                'BART simpson',
+                'marty McFly',
+                'jean-pierre dupont',
+                '2pac shakur',
+                'Ada Love',
+            ]))
+            ->toBe(['Jeanpaul Deluxe', 'JeanPaul deLuxe', 'BART simpson', 'marty McFly', 'Jean-Pierre Dupont', '2pac Shakur', 'Ada Love'])
+            ->and(array_map(Avatar::capitalizeName(...), ['BART SIMPSON', 'JEAN-PIERRE DUPONT', 'mcFly marty', '2PAC SHAKUR']))
+            ->toBe(['Bart Simpson', 'Jean-Pierre Dupont', 'mcFly marty', '2pac Shakur'])
             ->and(Avatar::normalizeName('élodie dupré'))
             ->toBe('Elodie Dupre')
             ->and(Avatar::find($config, 'Ada Love')->name())

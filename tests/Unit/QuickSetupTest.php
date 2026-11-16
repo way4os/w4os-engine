@@ -518,7 +518,7 @@ describe('quick setup, the alphabets', function () {
         $arabic = QuickSetup::plan((new Machine())->environment, quick_answers(['name' => 'مرحباً', 'avatar' => 'مرحباً Lapointe']));
 
         expect($arabic['corrected'])
-            ->toBe(['name' => 'mrhbaan', 'avatar' => 'Mrhbaan Lapointe'])
+            ->toBe(['name' => 'mrhbaan', 'avatar' => 'mrhbaan Lapointe'])
             ->and($arabic['problems'])
             ->toBe(['name' => 'transliterated', 'avatar' => 'transliterated'])
             ->and($arabic['setup']['grid']['name'])
@@ -535,7 +535,7 @@ describe('quick setup, the alphabets', function () {
             ->and($three['problems'])
             ->toBe(['avatar' => 'invalid (First Last)'])
             ->and($mixed['corrected'])
-            ->toBe(['avatar' => 'Zao An Lapointe'])
+            ->toBe(['avatar' => 'zao an Lapointe'])
             ->and($mixed['problems'])
             ->toBe(['avatar' => 'invalid (First Last)'])
             // Two words come out: right, but the person sees the change and validates it

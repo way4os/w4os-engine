@@ -240,7 +240,7 @@ final class Contract
                 'published' => ['yes', 'no'],
             ],
             'create' => [
-                'name' => ['string', 'First Last (or firstName and lastName): each part gets a capital and the rest small letters, as w4os makes it (bart simpson is Bart Simpson), unless reservedName'],
+                'name' => ['string', 'First Last (or firstName and lastName). All in small letters or all in capitals, each part gets a capital and the rest small letters (bart simpson and BART SIMPSON are Bart Simpson); capitals and small letters mixed are kept as typed (McFly, JeanPaul deLuxe), and so is a reservedName'],
                 'email' => ['string', ''],
                 'password' => ['string', 'The password (or passwordHash)'],
                 'passwordHash' => ['object', 'hash and salt of a password that is moved'],
