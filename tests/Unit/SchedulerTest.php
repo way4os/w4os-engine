@@ -31,6 +31,71 @@ describe('A task', function () {
     });
 });
 
+describe('The tasks of several grids', function () {
+    test('keep each its state and its lock: every grid on its own schedule', function () {
+        $scheduler = scheduler($clock);
+        $folder = $scheduler->directory();
+        $ran = [];
+        foreach (['demo', 'other_grid'] as $grid) {
+            $scheduler->add(new Task('search-parse', 60, function () use (&$ran, $grid): string {
+                $ran[] = $grid;
+
+                return "read $grid";
+            }, 'Read the snapshots', $grid));
+        }
+
+        $first = $scheduler->run('search-parse.demo');
+        $status = array_column($scheduler->status(), null, 'id');
+        $second = $scheduler->runDue();
+
+        expect($first->status)
+            ->toBe(TaskResult::RAN)
+            ->and($status['search-parse.demo'])
+            ->toMatchArray(['name' => 'search-parse', 'scope' => 'demo', 'due' => false])
+            ->and($status['search-parse.other_grid'])
+            ->toMatchArray(['name' => 'search-parse', 'scope' => 'other_grid', 'due' => true])
+            ->and(array_map(static fn(TaskResult $r): string => $r->task, $second))
+            ->toBe(['search-parse.other_grid'])
+            ->and($ran)
+            ->toBe(['demo', 'other_grid'])
+            ->and(["$folder/search-parse.demo.json", "$folder/search-parse.other_grid.json"])
+            ->each->toBeFile()
+            ->and(fn() => $scheduler->run('search-parse'))
+            ->toThrow(InvalidArgumentException::class);
+    });
+
+    test('read the state kept under the name alone once, the one before the grids', function () {
+        $scheduler = scheduler($clock);
+        $clock->now = 1_000;
+        @mkdir($scheduler->directory(), 0o755, true);
+        file_put_contents($scheduler->directory() . '/search-parse.json', json_encode(['started' => 990, 'status' => 'ran']));
+        $scheduler->add(new Task('search-parse', 60, fn() => 'read', '', 'demo'));
+
+        $before = $scheduler->status()[0];
+        $clock->now = 1_100;
+        $scheduler->run('search-parse');
+
+        expect($before)
+            ->toMatchArray(['lastRun' => 990, 'due' => false])
+            ->and($scheduler->directory() . '/search-parse.demo.json')
+            ->toBeFile()
+            ->and($scheduler->status()[0]['lastRun'])
+            ->toBe(1_100);
+    });
+
+    test('of the search are named by the folder of their grid', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $config = OpenSim\Config\GridConfig::fromFolder($machine->grid);
+        OpenSim\Data\Connections::using(static fn() => new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']));
+        $scheduler = OpenSim\Scheduling\Scheduler::for($machine->environment);
+
+        OpenSim\Services\SearchTasks::add($scheduler, $machine->environment, $config);
+        OpenSim\Data\Connections::using(null);
+
+        expect(array_column($scheduler->status(), 'id'))->toBe(['search-parse.demo', 'events-parse.demo']);
+    });
+});
+
 describe('The scheduler', function () {
     test('runs a task the first time, then when its interval is over', function () {
         $scheduler = scheduler($clock);

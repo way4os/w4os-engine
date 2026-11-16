@@ -30,6 +30,19 @@ final class SearchTasks
     /** The calendar the events are read from unless the grid says another one (`HypEventsURL` of `[Helpers]`). */
     public const EVENTS_SOURCE = 'https://2do.directory/events';
 
+    /** The nick of a grid: the name of the folder of its config (Robust, else OpenSim.ini, else Helpers.ini). */
+    private static function gridOf(GridConfig $config): string
+    {
+        foreach (['Robust', 'OpenSim', 'Helpers'] as $role) {
+            $file = $config->file($role);
+            if ($file !== null && $file !== '') {
+                return basename(dirname($file));
+            }
+        }
+
+        return '';
+    }
+
     /**
      * Run a task of the search of a grid alone, whoever runs it: the lock of the scheduler is a file of its own folder of the tasks,
      * and two runners may have their own (a site run by the web server, a timer of the install). This one is a lock of the search
@@ -58,13 +71,19 @@ final class SearchTasks
         return substr('opensim-' . $task, 0, 31) . '-' . md5($database);
     }
 
-    /** Add the tasks that the grid can run: the ones of the search need its search database. */
-    public static function add(Scheduler $scheduler, Environment $environment, GridConfig $config): void
+    /**
+     * Add the tasks that the grid can run: the ones of the search need its search database. Each is the grid's own (its state, its
+     * lock): an install that serves several grids reads each on its own schedule.
+     *
+     * @param ?string $grid the nick of the grid, else the name of the folder of its config
+     */
+    public static function add(Scheduler $scheduler, Environment $environment, GridConfig $config, ?string $grid = null): void
     {
         $db = Connections::pdo($config, Database::Search);
         if ($db === null || !$db->connected) {
             return;
         }
+        $scope = (string) preg_replace('/[^A-Za-z0-9_-]/', '_', $grid ?? self::gridOf($config));
         $regions = Region::searchTable($db);
         $scheduler->add(
             new Task(
@@ -77,6 +96,7 @@ final class SearchTasks
                     return $hosts === 0 ? 'no simulator due' : "$hosts simulator(s) read";
                 }),
                 'Read the snapshots of the registered simulators',
+                $scope,
             ),
         );
         $source = rtrim($config->find('Helpers', 'HypEventsURL') ?? self::EVENTS_SOURCE, '/');
@@ -92,6 +112,7 @@ final class SearchTasks
                     return "$kept event(s) kept";
                 }),
                 'Read the events of the calendar',
+                $scope,
             ),
         );
     }

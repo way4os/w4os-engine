@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "7d16619",
+        "version": "add4fbe",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -67,7 +67,7 @@
         },
         {
             "name": "Tasks",
-            "description": "Cron and pseudo cron: each task has a name and an interval, runs when due, never twice at once, and a failure waits for its next turn. Asked to run, a task runs now. The search registers two: `search-parse` (once a minute: reads the snapshots of the registered simulators that are due) and `events-parse` (every 55 minutes: reads the calendar of events)."
+            "description": "Cron and pseudo cron: each task has a name and an interval, runs when due, never twice at once, and a failure waits for its next turn. Asked to run, a task runs now. The search registers two: `search-parse` (once a minute: reads the snapshots of the registered simulators that are due) and `events-parse` (every 55 minutes: reads the calendar of events), for each grid: the id of a task is its name and the grid after a dot (`search-parse.demo`), each with its own state, so an install that serves several grids reads each on its own schedule. A task is asked by its id, or by its name when one grid only has it."
         },
         {
             "name": "Forms",
@@ -7556,6 +7556,14 @@
                     "attributes": {
                         "type": "object",
                         "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the task (search-parse), the same for every grid"
+                            },
+                            "scope": {
+                                "type": "string",
+                                "description": "The grid it is for, empty for a task of the install"
+                            },
                             "label": {
                                 "type": "string",
                                 "description": "What it is for"

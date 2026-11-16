@@ -1034,18 +1034,24 @@ final class Api
     public function run(string $name): Response
     {
         $instance = "/tasks/$name/runs";
-        if ($this->scheduler === null || !in_array($name, array_column($this->scheduler->status(), 'name'), true)) {
+        $status = $this->scheduler?->status() ?? [];
+        if (!in_array($name, [...array_column($status, 'id'), ...array_column($status, 'name')], true)) {
             return Response::problem(Problem::notFound("task called '$name'", $instance));
         }
-        $result = $this->scheduler->run($name, true);
+        try {
+            $result = $this->scheduler->run($name, true);
+        } catch (\InvalidArgumentException $error) {
+            // A name several grids have: the task of each is asked by its id (search-parse.demo)
+            return Response::problem(Problem::from($error, $instance));
+        }
 
         return Response::document(
             [
                 'data' => [
                     'type' => 'runs',
-                    'id' => $name,
+                    'id' => $result->task,
                     'attributes' => [
-                        'task' => $name,
+                        'task' => $result->task,
                         'status' => $result->status,
                         'message' => $result->message,
                         'duration' => $result->duration,
@@ -1281,7 +1287,7 @@ final class Api
     private function task(string $name, string $instance): Response
     {
         foreach ($this->scheduler?->status() ?? [] as $task) {
-            if ($task['name'] === $name) {
+            if ($task['id'] === $name || $task['name'] === $name) {
                 return Response::document(['data' => self::taskResource($task), 'links' => ['self' => $instance]]);
             }
         }
@@ -1295,10 +1301,10 @@ final class Api
      */
     private static function taskResource(array $task): array
     {
-        $name = $task['name'];
-        unset($task['name']);
+        $id = $task['id'] ?? $task['name'];
+        unset($task['id']);
 
-        return ['type' => 'tasks', 'id' => $name, 'attributes' => $task, 'links' => ['self' => "/tasks/$name"]];
+        return ['type' => 'tasks', 'id' => $id, 'attributes' => $task, 'links' => ['self' => "/tasks/$id"]];
     }
 
     /** @return array<string,mixed> a form: its fields, without what only the PHP side can do (the callbacks) */

@@ -490,8 +490,10 @@ final class Contract
             'scope' => 'application',
             'summary' => 'The tasks the application runs now and then',
             'description' =>
-                'Cron and pseudo cron: each task has a name and an interval, runs when due, never twice at once, and a failure waits for its next turn. Asked to run, a task runs now. The search registers two: `search-parse` (once a minute: reads the snapshots of the registered simulators that are due) and `events-parse` (every 55 minutes: reads the calendar of events).',
+                'Cron and pseudo cron: each task has a name and an interval, runs when due, never twice at once, and a failure waits for its next turn. Asked to run, a task runs now. The search registers two: `search-parse` (once a minute: reads the snapshots of the registered simulators that are due) and `events-parse` (every 55 minutes: reads the calendar of events), for each grid: the id of a task is its name and the grid after a dot (`search-parse.demo`), each with its own state, so an install that serves several grids reads each on its own schedule. A task is asked by its id, or by its name when one grid only has it.',
             'attributes' => [
+                'name' => ['string', 'The name of the task (search-parse), the same for every grid'],
+                'scope' => ['string', 'The grid it is for, empty for a task of the install'],
                 'label' => ['string', 'What it is for'],
                 'every' => ['integer', 'Seconds between two runs'],
                 'lastRun' => ['integer?', 'Unix time of the last start'],

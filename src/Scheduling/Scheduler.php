@@ -69,7 +69,7 @@ final class Scheduler
 
     public function add(Task $task): self
     {
-        $this->tasks[$task->name] = $task;
+        $this->tasks[$task->id()] = $task;
 
         return $this;
     }
@@ -84,10 +84,12 @@ final class Scheduler
         $now = (int) $this->clock->time();
         $status = [];
         foreach ($this->tasks as $task) {
-            $state = $this->read($task->name);
+            $state = $this->read($task);
             $last = $state['started'] ?? null;
             $status[] = [
+                'id' => $task->id(),
                 'name' => $task->name,
+                'scope' => $task->scope,
                 'label' => $task->label,
                 'every' => $task->every,
                 'lastRun' => $last,
@@ -96,7 +98,7 @@ final class Scheduler
                 'duration' => isset($state['duration']) ? (float) $state['duration'] : null,
                 'next' => $last !== null ? $last + $task->every : null,
                 'due' => $last === null || $now >= $last + $task->every,
-                'running' => $this->isRunning($task->name),
+                'running' => $this->isRunning($task->id()),
             ];
         }
 
@@ -112,7 +114,7 @@ final class Scheduler
     {
         $results = [];
         foreach ($this->tasks as $task) {
-            $result = $this->run($task->name);
+            $result = $this->run($task->id());
             $result->status === TaskResult::NOT_DUE || ($results[] = $result);
         }
 
@@ -147,9 +149,10 @@ final class Scheduler
      */
     public function run(string $name, bool $force = false): TaskResult
     {
-        $task = $this->tasks[$name] ?? throw new \InvalidArgumentException("no task called '$name'");
+        $task = $this->task($name);
+        $name = $task->id();
         $now = (int) $this->clock->time();
-        $state = $this->read($name);
+        $state = $this->read($task);
         if (!$force && isset($state['started']) && $now < (int) $state['started'] + $task->every) {
             return new TaskResult($name, TaskResult::NOT_DUE);
         }
@@ -169,7 +172,7 @@ final class Scheduler
         }
         try {
             // Looked at again with the lock: another process may have run it since
-            $state = $this->read($name);
+            $state = $this->read($task);
             if (!$force && isset($state['started']) && $now < (int) $state['started'] + $task->every) {
                 return new TaskResult($name, TaskResult::NOT_DUE);
             }
@@ -217,13 +220,36 @@ final class Scheduler
     }
 
     /** @return array<string,mixed> */
-    private function read(string $name): array
+    private function read(Task $task): array
     {
-        $file = "{$this->directory}/$name.json";
+        $file = "{$this->directory}/{$task->id()}.json";
+        // The state kept under the name alone, before the tasks of several grids: read until the task of a grid has its own
+        if ($task->scope !== '' && !is_file($file)) {
+            $file = "{$this->directory}/{$task->name}.json";
+        }
         $text = is_file($file) ? @file_get_contents($file) : false;
         $state = $text !== false ? json_decode($text, true) : null;
 
         return is_array($state) ? $state : [];
+    }
+
+    /**
+     * A task by its id (`search-parse.demo`), or by its name when no other task has it.
+     *
+     * @throws \InvalidArgumentException for a task that is not one, a name several tasks have (one for each grid)
+     */
+    private function task(string $id): Task
+    {
+        if (isset($this->tasks[$id])) {
+            return $this->tasks[$id];
+        }
+        $named = array_values(array_filter($this->tasks, static fn(Task $task): bool => $task->name === $id));
+        count($named) > 1 &&
+            throw new \InvalidArgumentException(
+                "several tasks are called '$id': " . implode(', ', array_map(static fn(Task $task): string => $task->id(), $named)),
+            );
+
+        return $named[0] ?? throw new \InvalidArgumentException("no task called '$id'");
     }
 
     /** @param array<string,mixed> $state */
