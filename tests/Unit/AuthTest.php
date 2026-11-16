@@ -45,6 +45,26 @@ function auth_ask(
 }
 
 describe('The keys of the API', function () {
+    test('are kept in a file the group of the web server reads, which the helpers check them with', function () {
+        // A group of this user that is not its own: the file is not in it unless it is given to it
+        $others = array_values(array_diff(posix_getgroups() ?: [], [posix_getgid()]));
+        $group = (string) (posix_getgrgid($others[0] ?? posix_getgid())['name'] ?? '');
+        $file = test_tmp() . '/keys-' . bin2hex(random_bytes(4)) . '/api-keys.json';
+        $keys = new ApiKeys($file, new ClockFake(), $group);
+
+        $keys->create('manager');
+
+        expect(fileperms($file) & 0o777)
+            ->toBe(0o640)
+            ->and(posix_getgrgid(filegroup($file))['name'] ?? null)
+            ->toBe($group)
+            ->and(fn() => (new ApiKeys($file . '.other', new ClockFake(), 'no-such-group-here'))->create('manager'))
+            ->not->toThrow(Throwable::class);
+    })->skip(
+        fn() => !function_exists('posix_getgroups') || array_diff(posix_getgroups() ?: [], [posix_getgid()]) === [],
+        'posix is missing, or this user has no other group',
+    );
+
     test('are made once, kept as what cannot open anything, and listed without it', function () {
         $clock = new ClockFake();
         $keys = auth_keys($clock);

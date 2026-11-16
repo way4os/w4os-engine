@@ -23,7 +23,17 @@ final class ApiKeys implements Authenticator
 {
     public const PREFIX = 'osk_';
 
-    public function __construct(private readonly string $file, private readonly ?ClockInterface $clock = null) {}
+    /** The group of the web server: the helpers and the sites check the keys as it. */
+    public const WEB_GROUP = 'www-data';
+
+    /**
+     * @param string $group the group the file is given to, which reads it (the web server's); none when it does not exist
+     */
+    public function __construct(
+        private readonly string $file,
+        private readonly ?ClockInterface $clock = null,
+        private readonly string $group = self::WEB_GROUP,
+    ) {}
 
     /** The keys of an install. */
     public static function for(Environment $environment): self
@@ -131,6 +141,10 @@ final class ApiKeys implements Authenticator
             throw new \RuntimeException("cannot write the keys in {$this->file}");
         }
         @chmod($this->file, 0o640);
+        // The web server reads it as its group: root may give it, and the account of the instances, which is a member
+        if ($this->group !== '' && function_exists('posix_getgrnam') && posix_getgrnam($this->group) !== false) {
+            @chgrp($this->file, $this->group);
+        }
     }
 
     private function now(): int

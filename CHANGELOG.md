@@ -33,6 +33,7 @@
 - feature (scheduling): the tasks of several grids keep each their state and their lock (`search-parse.<grid>.json`, `Task::id()`, the `scope` of a task): an install that serves several grids reads each on its own schedule; a task is asked by its id or, when one grid only has it, by its name; the state kept under the name alone is read until the grid has its own
 - fix (search): the tasks of the search make the tables of the search when they are not there yet (a new grid where no simulator registered), instead of failing every minute
 - update (avatars): a new avatar is public, its profile shown in search (`PUBLISHED_FLAG`): made by the API, by the link of a registration, or as the first account of the quick setup; a model or an account that is moved is not, unless `published`; the avatars that exist are left as they are
+- fix (api): the file of the API keys is given to the group of the web server (`www-data`), which its mode 640 is for: made as root or as the account of the instances, the helpers could not read it and refused every key (their health page among them)
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13
