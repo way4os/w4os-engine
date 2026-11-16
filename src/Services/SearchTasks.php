@@ -27,6 +27,9 @@ final class SearchTasks
     /** Seconds between two reads of the calendar of events. */
     public const EVENTS_EVERY = 3300;
 
+    /** @var array<string,true> the search databases whose tables are made, in this process */
+    private static array $prepared = [];
+
     /** The calendar the events are read from unless the grid says another one (`HypEventsURL` of `[Helpers]`). */
     public const EVENTS_SOURCE = 'https://2do.directory/events';
 
@@ -47,14 +50,21 @@ final class SearchTasks
      * Run a task of the search of a grid alone, whoever runs it: the lock of the scheduler is a file of its own folder of the tasks,
      * and two runners may have their own (a site run by the web server, a timer of the install). This one is a lock of the search
      * database of the grid (GET_LOCK of MySQL and MariaDB, released at the end, or with the connection): a run that finds it taken
-     * does nothing. A database without such locks (SQLite) runs it as it is.
+     * does nothing. The tables of the search are made first, when they are not there yet (a grid where no simulator registered).
+     * A database without such locks (SQLite) runs it as it is.
      */
     public static function exclusively(OSPDO $db, string $task, \Closure $run): string
     {
         if ($db->getAttribute(\PDO::ATTR_DRIVER_NAME) !== 'mysql') {
             return (string) $run();
         }
-        $name = self::lockName($task, (string) $db->query('SELECT DATABASE()')->fetchColumn());
+        $database = (string) $db->query('SELECT DATABASE()')->fetchColumn();
+        // The tables of the search, before a simulator registers (which makes them too): once a process, for each database
+        if (!isset(self::$prepared[$database])) {
+            SearchTables::ensure($db);
+            self::$prepared[$database] = true;
+        }
+        $name = self::lockName($task, $database);
         if ((int) $db->query('SELECT GET_LOCK(' . $db->quote($name) . ', 0)')->fetchColumn() !== 1) {
             return 'already running elsewhere';
         }
