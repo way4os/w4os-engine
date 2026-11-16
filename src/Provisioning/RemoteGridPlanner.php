@@ -153,9 +153,10 @@ final class RemoteGridPlanner
             trim((string) $v['name']) !== ''
                 ? trim((string) $v['name'])
                 : $said['gridname'] ?? ucfirst(explode('.', $host)[0]);
-        // Letters and digits only, as typed (nick() would lower what is already a nick)
+        // What a nick has (Slug::nick()): letters, digits, underscores and hyphens, as typed (nick() would lower what is already a
+        // nick), so friendly_fowl stays the grid of that folder
         $nick = (string) preg_replace(
-            '/[^A-Za-z0-9]/',
+            '/[^A-Za-z0-9_-]/',
             '',
             trim((string) $v['nick']) !== '' ? (string) $v['nick'] : $said['gridnick'] ?? Slug::nick($name),
         );

@@ -106,7 +106,7 @@ describe('A grid on another machine', function () {
 
         expect([$grid->name(), $grid->nick(), $grid->privatePort(), $grid->isHypergrid()])->toBe([
             'My Name',
-            'mynick',
+            'my-nick',
             9999,
             false,
         ]);
@@ -133,6 +133,21 @@ describe('A grid on another machine', function () {
         $result = $planner->plan(['address' => 'play.example.org:8002']);
 
         expect($result['grid'])->toBeNull()->and($result['error'])->toContain("already has the nick 'mine'");
+    });
+
+    test('keeps the underscores and the hyphens of the nick the grid says, so a grid of this machine is known by it', function () {
+        [$planner, $etc] = remote_planner(['gridname' => 'Friendly Fowl', 'gridnick' => 'friendly_fowl']);
+        $far = remote_planner(['gridname' => 'Mary-Jane World', 'gridnick' => 'mary-jane_world'])[0]->plan(['address' => 'mj.example.org:8002']);
+        $described = $planner->plan(['address' => 'play.example.org:8002']);
+        mkdir("$etc/grids/friendly_fowl", 0o755, true);
+        file_put_contents("$etc/grids/friendly_fowl/Robust.ini", "[Const]\n");
+
+        expect([$described['grid']->nick(), $described['grid']->directory()])
+            ->toBe(['friendly_fowl', "$etc/grids/friendly_fowl"])
+            ->and($far['grid']->nick())
+            ->toBe('mary-jane_world')
+            ->and($planner->plan(['address' => 'play.example.org:8002'])['error'])
+            ->toContain("already has the nick 'friendly_fowl'");
     });
 
     test('is kept as it was described when it is already known here', function () {
