@@ -333,7 +333,7 @@ msgid "Other"
 msgstr "Outro"
 
 msgctxt "profile_tab_second_life"
-msgid "Second Life"
+msgid "2nd Life"
 msgstr "Second Life"
 
 msgctxt "profile_tab_web"
@@ -353,17 +353,17 @@ msgid "Classifieds"
 msgstr "Classificados"
 
 msgctxt "profile_tab_first_life"
-msgid "First Life"
+msgid "1st Life"
 msgstr "Vida real"
 
 msgctxt "profile_tab_notes"
-msgid "Notes"
-msgstr "Observações"
+msgid "My Notes"
+msgstr "Minhas observações"
 
 #, php-format
-msgctxt "profile_interests_removed"
-msgid "This section was removed from the viewer in version %s."
-msgstr "Esta seção foi removida do visualizador na versão %s."
+msgctxt "interests_removed"
+msgid "The viewer no longer shows this section (removed in version %s)."
+msgstr "O visualizador não mostra mais esta seção (removida na versão %s)."
 
 msgctxt "save_button"
 msgid "Save"
@@ -683,6 +683,23 @@ msgstr "Este avatar não aguarda a confirmação do email."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "O email não pôde ser enviado. Tente de novo mais tarde."
+
+#~ msgctxt "profile_tab_second_life"
+#~ msgid "Second Life"
+#~ msgstr "Second Life"
+
+#~ msgctxt "profile_tab_first_life"
+#~ msgid "First Life"
+#~ msgstr "Vida real"
+
+#~ msgctxt "profile_tab_notes"
+#~ msgid "Notes"
+#~ msgstr "Observações"
+
+#, php-format
+#~ msgctxt "profile_interests_removed"
+#~ msgid "This section was removed from the viewer in version %s."
+#~ msgstr "Esta seção foi removida do visualizador na versão %s."
 
 #, php-format
 #~ msgctxt "registered_confirm"

@@ -117,15 +117,15 @@ final class Catalog
         'edit_profile' => 'Edit profile',
         // The free text under the check boxes of the wants and the skills
         'profile_other' => 'Other',
-        // The tabs of a profile, as the viewer has them
-        'profile_tab_second_life' => 'Second Life',
+        // The tabs of a profile, as the legacy profile of Firestorm has them
+        'profile_tab_second_life' => '2nd Life',
         'profile_tab_web' => 'Web',
         'profile_tab_interests' => 'Interests',
         'profile_tab_picks' => 'Picks',
         'profile_tab_classifieds' => 'Classifieds',
-        'profile_tab_first_life' => 'First Life',
-        'profile_tab_notes' => 'Notes',
-        'profile_interests_removed' => 'This section was removed from the viewer in version %s.',
+        'profile_tab_first_life' => '1st Life',
+        'profile_tab_notes' => 'My Notes',
+        'interests_removed' => 'The viewer no longer shows this section (removed in version %s).',
         'save_button' => 'Save',
         'profile_saved' => 'Your profile is saved.',
         'password_title' => 'Password',

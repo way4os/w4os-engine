@@ -302,7 +302,7 @@ msgid "Other"
 msgstr ""
 
 msgctxt "profile_tab_second_life"
-msgid "Second Life"
+msgid "2nd Life"
 msgstr ""
 
 msgctxt "profile_tab_web"
@@ -322,16 +322,16 @@ msgid "Classifieds"
 msgstr ""
 
 msgctxt "profile_tab_first_life"
-msgid "First Life"
+msgid "1st Life"
 msgstr ""
 
 msgctxt "profile_tab_notes"
-msgid "Notes"
+msgid "My Notes"
 msgstr ""
 
 #, php-format
-msgctxt "profile_interests_removed"
-msgid "This section was removed from the viewer in version %s."
+msgctxt "interests_removed"
+msgid "The viewer no longer shows this section (removed in version %s)."
 msgstr ""
 
 msgctxt "save_button"

@@ -334,8 +334,8 @@ msgid "Other"
 msgstr "Overig"
 
 msgctxt "profile_tab_second_life"
-msgid "Second Life"
-msgstr "Second Life"
+msgid "2nd Life"
+msgstr "2e leven"
 
 msgctxt "profile_tab_web"
 msgid "Web"
@@ -354,17 +354,17 @@ msgid "Classifieds"
 msgstr "Advertenties"
 
 msgctxt "profile_tab_first_life"
-msgid "First Life"
-msgstr "Het echte leven"
+msgid "1st Life"
+msgstr "1e leven"
 
 msgctxt "profile_tab_notes"
-msgid "Notes"
-msgstr "Notities"
+msgid "My Notes"
+msgstr "Mijn notities"
 
 #, php-format
-msgctxt "profile_interests_removed"
-msgid "This section was removed from the viewer in version %s."
-msgstr "Deze sectie is in versie %s uit de viewer verwijderd."
+msgctxt "interests_removed"
+msgid "The viewer no longer shows this section (removed in version %s)."
+msgstr "De viewer toont deze sectie niet meer (verwijderd in versie %s)."
 
 msgctxt "save_button"
 msgid "Save"
@@ -689,6 +689,23 @@ msgstr "Deze avatar wacht niet op de bevestiging van zijn e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "De mail kon niet worden verstuurd. Probeer het later opnieuw."
+
+#~ msgctxt "profile_tab_second_life"
+#~ msgid "Second Life"
+#~ msgstr "Second Life"
+
+#~ msgctxt "profile_tab_first_life"
+#~ msgid "First Life"
+#~ msgstr "Het echte leven"
+
+#~ msgctxt "profile_tab_notes"
+#~ msgid "Notes"
+#~ msgstr "Notities"
+
+#, php-format
+#~ msgctxt "profile_interests_removed"
+#~ msgid "This section was removed from the viewer in version %s."
+#~ msgstr "Deze sectie is in versie %s uit de viewer verwijderd."
 
 #, php-format
 #~ msgctxt "registered_confirm"
