@@ -19,6 +19,7 @@
 - feature (avatars): the role of an avatar from its level, as w4os names it (`role`: resident, god-like, customer-service, liaison, god; `standardLevel` false for a level in between), `filter[role]`; a sort by level sorts by the level a disabled avatar gets back
 - feature (assets): the logos of w4os and OpenSimulator shipped for every bridge (`share/images/logos`, `OpenSim\Assets\Logos`, `GET /logos/{name}`); the logo of a grid (`LogoURL` of `[Helpers]`) in its details (`logoUrl`) its info and its addresses (`logo`)
 - fix (assets): a cache folder that cannot be written is said once in the log (not silently converted again on every request), and in the health of the grid (`cache`, `assets`)
+- feature (api): a change of an avatar takes `role`, the level of that role (a disabled avatar gets it once enabled); a level given with it must be of that role (`role-level-conflict`), another role is refused (`role-unknown`)
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13

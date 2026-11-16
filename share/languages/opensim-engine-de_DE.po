@@ -573,6 +573,14 @@ msgctxt "error_field_unknown"
 msgid "This cannot be done."
 msgstr "Das ist nicht möglich."
 
+msgctxt "error_role_unknown"
+msgid "This role does not exist."
+msgstr "Diese Rolle gibt es nicht."
+
+msgctxt "error_role_level_conflict"
+msgid "The level does not match the role."
+msgstr "Die Stufe passt nicht zur Rolle."
+
 msgctxt "error_token_refused"
 msgid ""
 "This link does not work: it has expired or it was already used. Ask for a "

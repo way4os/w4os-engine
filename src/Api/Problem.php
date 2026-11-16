@@ -44,6 +44,8 @@ final class Problem
         'model-unknown' => 'The model is not an avatar model of the grid',
         'link-invalid' => 'The link is not a web address',
         'field-unknown' => 'A value given cannot be changed',
+        'role-unknown' => 'The role is not one of resident, god-like, customer-service, liaison, god',
+        'role-level-conflict' => 'The level given with a role is not one of that role',
         'token-refused' => 'The token is not valid, was used, or has expired',
         'no-confirmation-pending' => 'The avatar does not wait for the confirmation of its email',
         'mail-failed' => 'The mail could not be sent',

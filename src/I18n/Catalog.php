@@ -174,6 +174,8 @@ final class Catalog
         'error_model_unknown' => 'This outfit is not available, please choose another one.',
         'error_link_invalid' => 'This cannot be done.',
         'error_field_unknown' => 'This cannot be done.',
+        'error_role_unknown' => 'This role does not exist.',
+        'error_role_level_conflict' => 'The level does not match the role.',
         'error_token_refused' => 'This link does not work: it has expired or it was already used. Ask for a new one.',
         'error_no_confirmation_pending' => 'This avatar does not wait for the confirmation of its email.',
         'error_mail_failed' => 'The mail could not be sent. Please try again later.',

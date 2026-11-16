@@ -806,6 +806,64 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
     });
 });
 
+describe('The API, for the role of an avatar', function () {
+    test('a manager gives a role: its own level, kept by a disabled avatar until it is enabled', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        [$router] = access_api();
+        $change = static fn(string $id, array $attributes) => $router->patch(
+            "/grids/demo/avatars/$id",
+            ['data' => ['type' => 'avatars', 'id' => $id, 'attributes' => $attributes]],
+        );
+        $stored = static fn(string $id): int => (int) $pdo->get_var(
+            'SELECT UserLevel FROM UserAccounts WHERE PrincipalID = :id',
+            ['id' => $id],
+        );
+
+        $godLike = $change(ADA, ['role' => 'god-like'])->document['data']['attributes'];
+        $god = $change(ADA, ['role' => 'god', 'level' => 250])->document['data']['attributes'];
+        $liaison = $change(CY, ['role' => 'liaison'])->document['data']['attributes'];
+        $kept = $stored(CY);
+        $enabled = $change(CY, ['enabled' => true])->document['data']['attributes'];
+
+        expect([$godLike['role'], $godLike['level'], $godLike['standardLevel']])
+            ->toBe(['god-like', 1, true])
+            ->and([$god['role'], $god['level'], $god['standardLevel']])
+            ->toBe(['god', 250, false])
+            ->and([$liaison['role'], $liaison['status']])
+            ->toBe(['liaison', 'disabled'])
+            ->and($kept)
+            ->toBe(-151)
+            ->and([$enabled['role'], $enabled['level'], $enabled['status']])
+            ->toBe(['liaison', 150, 'active']);
+    });
+
+    test('refuses a role that is not one, and a level that is not of the role, changing nothing', function () {
+        avatars_in(signin_database());
+        [$router] = access_api();
+        $change = static fn(array $attributes) => $router->patch(
+            '/grids/demo/avatars/' . ADA,
+            ['data' => ['type' => 'avatars', 'id' => ADA, 'attributes' => $attributes + ['about' => 'Changed']]],
+        );
+
+        $unknown = $change(['role' => 'admin']);
+        $conflict = $change(['role' => 'god', 'level' => 100]);
+
+        expect([$unknown->status, $unknown->document['code']])
+            ->toBe([400, 'role-unknown'])
+            ->and([$conflict->status, $conflict->document['code']])
+            ->toBe([400, 'role-level-conflict'])
+            ->and(Avatar::find(avatar_grid(), ADA)->detail())
+            ->toMatchArray(['role' => 'resident', 'level' => 0, 'about' => 'Hello'])
+            ->and(
+                OpenSim\Api\Contract::document()['paths']['/grids/{grid}/avatars/{id}']['patch']['requestBody']['content'][
+                    'application/vnd.api+json'
+                ]['schema']['properties']['data']['properties']['attributes']['properties'],
+            )
+            ->toHaveKey('role');
+    });
+});
+
 describe('The API, for a change of the email of an avatar', function () {
     test('keeps the email until the new one is confirmed with the link mailed to it', function () {
         avatars_in(signin_database());

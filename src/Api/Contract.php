@@ -261,7 +261,11 @@ final class Contract
             'writable' => [
                 'email' => ['string', 'Changed at once, or once it is confirmed with confirmEmail'],
                 'title' => ['string', ''],
-                'level' => ['integer', ''],
+                'level' => ['integer', 'The user level; with `role`, one of that role (else `role-level-conflict`)'],
+                'role' => [
+                    'string',
+                    '`resident`, `god-like`, `customer-service`, `liaison` or `god`: the level of the role (0, 1, 100, 150, 200), unless a `level` of that role is given with it; a disabled avatar gets it once enabled. Another is refused (`role-unknown`)',
+                ],
                 'active' => ['boolean', 'true: active (a pending avatar too: its confirmation token is forgotten); false: disabled'],
                 'status' => ['string', '`active`, `disabled` or `pending`; a `pending` avatar that becomes another forgets its confirmation token'],
                 'password' => ['string', 'A new password'],

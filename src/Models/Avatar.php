@@ -628,7 +628,8 @@ final class Avatar extends Model
     }
 
     /**
-     * Change an avatar. The account: `email`, `title`, `level`, `active`; the password: `password`; the home: `home` (the id of a
+     * Change an avatar. The account: `email`, `title`, `level` or `role` (the level of the role, or the one given with it when it is of
+     * that role), `active`; the password: `password`; the home: `home` (the id of a
      * region); the profile: `about`, `profileUrl`, `wants`, `skills`, `languages`, `firstLife`, the profile being made as the grid
      * makes it when the avatar has none yet. The name does not change. All is changed or nothing: the values are checked first, and
      * each database is written in a transaction.
@@ -638,6 +639,26 @@ final class Avatar extends Model
      */
     public function update(array $values): void
     {
+        // A role is the level of its own (ROLES); a level given with it must be of that role, and is the one kept
+        if (array_key_exists('role', $values)) {
+            $role = (string) $values['role'];
+            if (!isset(self::ROLES[$role])) {
+                throw InvalidValue::because(
+                    'role-unknown',
+                    "'$role' is not a role: " . implode(', ', array_keys(self::ROLES)),
+                );
+            }
+            if (array_key_exists('level', $values) && self::roleOf((int) $values['level']) !== $role) {
+                throw InvalidValue::because(
+                    'role-level-conflict',
+                    "the level {$values['level']} is not one of the role $role (" .
+                        self::roleOf((int) $values['level']) .
+                        ')',
+                );
+            }
+            $values['level'] = (int) ($values['level'] ?? self::ROLES[$role]);
+            unset($values['role']);
+        }
         foreach ($values as $name => $value) {
             if (
                 !isset(self::ACCOUNT_SETTINGS[$name]) &&

@@ -516,6 +516,14 @@ msgctxt "error_field_unknown"
 msgid "This cannot be done."
 msgstr ""
 
+msgctxt "error_role_unknown"
+msgid "This role does not exist."
+msgstr ""
+
+msgctxt "error_role_level_conflict"
+msgid "The level does not match the role."
+msgstr ""
+
 msgctxt "error_token_refused"
 msgid "This link does not work: it has expired or it was already used. Ask for a new one."
 msgstr ""
