@@ -52,24 +52,24 @@ describe('A grid that is made', function () {
             );
 
             expect($made)
-                ->toContain('search = "${Const|WebURL}/search"')
-                ->toContain('SearchURL = "${Const|WebURL}/search"')
+                ->toContain('search = "${Const|WebURL}/helpers/search"')
+                ->toContain('SearchURL = "${Const|WebURL}/helpers/search"')
                 ->toContain('economy = "${Const|WebURL}/helpers"')
-                ->toContain('welcome = "${Const|WebURL}/welcome"')
-                ->toContain('DestinationGuide = "${Const|WebURL}/helpers/guide.php"')
+                ->toContain('welcome = "${Const|WebURL}/helpers/welcome"')
+                ->toContain('DestinationGuide = "${Const|WebURL}/helpers/guide"')
                 ->toContain('MessageUrl = "${Const|WebURL}/helpers/motd.php"')
-                ->toContain('web_profile_url = "${Const|WebURL}/profile/[AGENT_NAME]"');
+                ->toContain('web_profile_url = "${Const|WebURL}/helpers/profile/[AGENT_NAME]"');
 
             // The grid has its own: the option leaves it
             file_put_contents(
                 $plan->robustIni(),
-                str_replace('search = "${Const|WebURL}/search"', 'search = "https://other.example.org/q"', $made),
+                str_replace('search = "${Const|WebURL}/helpers/search"', 'search = "https://other.example.org/q"', $made),
             );
             $options()->enable('search');
 
             expect((string) file_get_contents($plan->robustIni()))
                 ->toContain('search = "https://other.example.org/q"')
-                ->not->toContain('search = "${Const|WebURL}/search"');
+                ->not->toContain('search = "${Const|WebURL}/helpers/search"');
         },
     );
 

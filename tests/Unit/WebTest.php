@@ -34,7 +34,13 @@ describe('Services', function () {
 
         expect($services->path('currency'))->toBe('/helper/currency.php');
         expect($services->path('query.php'))->toBe('/helper/query.php');
-        expect($services->path('guide'))->toBe('/helper/guide.php');
+        expect($services->path('motd'))->toBe('/helper/motd.php');
+        expect($services->path('guide'))->toBe('/helper/guide');
+    });
+
+    test('have the root as the path of an address without one, never the address itself', function () {
+        expect(array_map(Services::pathOf(...), ['https://example.com', 'https://example.com/', 'http://example.com:8080', '${Const|WebURL}', '/']))
+            ->toBe(['/', '/', '/', '/', '/']);
     });
 
     test('have the path of an address of the Robust config, with its constants', function () {
@@ -125,11 +131,15 @@ describe('Helpers.ini', function () {
 describe('Pages', function () {
     test('have a default path', function () {
         expect((new Services())->path('home'))
-            ->toBe('/')
+            ->toBe('/helpers')
             ->and((new Services())->path('welcome'))
-            ->toBe('/welcome')
+            ->toBe('/helpers/welcome')
             ->and((new Services())->path('health'))
-            ->toBe('/health');
+            ->toBe('/helpers/health')
+            ->and((new Services('/'))->path('home'))
+            ->toBe('/')
+            ->and((new Services('/'))->path('search'))
+            ->toBe('/search');
     });
 });
 

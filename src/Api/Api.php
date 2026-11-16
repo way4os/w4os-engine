@@ -15,6 +15,7 @@ use OpenSim\Assets\ImagickTextRenderer;
 use OpenSim\Assets\Logos;
 use OpenSim\Assets\TextRendererInterface;
 use OpenSim\Assets\WebAssets;
+use OpenSim\Provisioning\Web\SitePages;
 use OpenSim\Models\Archive;
 use OpenSim\Models\Asset;
 use OpenSim\Models\Avatar;
@@ -818,6 +819,12 @@ final class Api
             foreach (array_keys($addresses) as $key) {
                 $sources[$key] = $found->service($key)?->source();
             }
+            $sources['helpers'] = $found->helpersUrlSource();
+            // Who serves each page for people: the helpers under their base, the site elsewhere
+            $servedBy = [];
+            foreach (SitePages::rows($found) as $row) {
+                $row['page'] === SitePages::HELPERS || ($servedBy[$row['page']] = $row['servedBy']);
+            }
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -838,6 +845,7 @@ final class Api
                     'offline' => $found->offlineUrl(),
                     'addresses' => $addresses,
                     'sources' => $sources,
+                    'servedBy' => $servedBy,
                 ],
                 'links' => ['self' => $instance],
             ],
@@ -931,13 +939,15 @@ final class Api
         try {
             $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
             $config = ($this->config)($found);
-            $groups = Health::answers(
-                Health::grid([
+            $groups = Health::answers([
+                ...Health::grid([
                     'config' => $config,
                     'live' => $found->gridInfo(),
                     'login' => (string) $found->loginUrl(),
                 ]),
-            );
+                // The pages for people: the helpers' under their base, the site's elsewhere
+                ['file' => 'pages', 'title' => '', 'rows' => Health::pages(SitePages::rows($found))],
+            ]);
             $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions()];
             $groups[] = ['file' => 'cache', 'title' => '', 'rows' => [Health::writable('assets', WebAssets::folder($found))]];
             $files = Health::files($config?->files() ?? []);

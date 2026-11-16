@@ -20,6 +20,9 @@
 - feature (assets): the logos of w4os and OpenSimulator shipped for every bridge (`share/images/logos`, `OpenSim\Assets\Logos`, `GET /logos/{name}`); the logo of a grid (`LogoURL` of `[Helpers]`) in its details (`logoUrl`) its info and its addresses (`logo`)
 - fix (assets): a cache folder that cannot be written is said once in the log (not silently converted again on every request), and in the health of the grid (`cache`, `assets`)
 - feature (api): a change of an avatar takes `role`, the level of that role (a disabled avatar gets it once enabled); a level given with it must be of that role (`role-level-conflict`), another role is refused (`role-unknown`)
+- feature (web): who serves each page of a grid, the helpers or the site: a page whose address is under the base of the helpers is theirs (`Grid::servedByHelpers()`), any other the site's; the base is `HelpersURL` of `[Helpers]` (Helpers.ini), else the economy, else WebURL/helpers (`Grid::helpersUrl()`, `helpersUrlSource()`); `/addresses` says its source and `servedBy`; the health of a grid asks each page, the base, and that the helpers claim no page of the site
+- update (web): the pages of the helpers are under their base by default (`<base>/search`, `<base>/profile/[AGENT_NAME]`, `<base>/welcome`, `<base>/guide`, `<base>/grid_status`, `<base>/directory_info`), at the root of the site when the base is `/`
+- feature (web): `SitePages::set()` sets the address of one page (search, profile, guide, welcome, status, directory) or the base of the helpers in its one setting, and says what must restart; `SitePages::rows()` lists them with who serves each
 - feature (i18n): the texts of the websites of a grid and one per problem code, in gettext files (share/languages: cy_GB, de_DE, fr_FR, it_IT, nl_NL, pt_BR, seeded from w4os and the Grav plugin) that the bridges turn into their own format (`OpenSim\I18n\Catalog::messages()`)
 
 ### 3.0.0-beta.10 -> 3.0.0-beta.13

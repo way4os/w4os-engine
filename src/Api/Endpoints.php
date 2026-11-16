@@ -109,7 +109,7 @@ final class Endpoints
             'tags' => ['Addresses'],
             'summary' => 'Addresses',
             'description' =>
-                "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `default`: the helpers' habit). `helpers` is where the helpers are, `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`), `logo` the logo of the grid for the top bar of its sites (`LogoURL` of `[Helpers]`). These are links, not identities: the identity of the grid is its `uri`.",
+                "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `default`: the helpers' habit). `helpers` is where the helpers are (a page under it is theirs, any other the site's: `servedBy`), `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`), `logo` the logo of the grid for the top bar of its sites (`LogoURL` of `[Helpers]`). These are links, not identities: the identity of the grid is its `uri`.",
             'parameters' => [Contract::gridParameter()],
             'responses' => [
                 '200' => [
@@ -124,7 +124,10 @@ final class Endpoints
                             'type' => ['string', 'null'],
                             'description' => 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), for the top bar of its sites',
                         ],
-                        'helpers' => ['type' => ['string', 'null']],
+                        'helpers' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The base of the helpers: `HelpersURL` of `[Helpers]`, else the economy, else the web site and /helpers (its source is `helpers` of `sources`: config, economy or default). A page under it is served by the helpers, any other by the site',
+                        ],
                         'economy' => ['type' => ['string', 'null']],
                         'search' => ['type' => ['string', 'null']],
                         'searchApi' => ['type' => ['string', 'null']],
@@ -134,6 +137,11 @@ final class Endpoints
                             'type' => 'object',
                             'description' => 'Every address, by the key of its service',
                             'additionalProperties' => ['type' => 'string'],
+                        ],
+                        'servedBy' => [
+                            'type' => 'object',
+                            'description' => 'Who serves each page for people (search, profile, guide, welcome, status, directory): `helpers` when its address is under the base of the helpers, else `site`; null for a page without an address',
+                            'additionalProperties' => ['type' => ['string', 'null'], 'enum' => ['helpers', 'site', null]],
                         ],
                         'sources' => [
                             'type' => 'object',

@@ -323,6 +323,15 @@ final class Service extends InstalledModel
             'database' => null,
             'kind' => self::PAGE,
         ],
+        'directory' => [
+            'connectors' => [],
+            'port' => self::WEB,
+            'setting' => ['Helpers', 'DirectoryURL'],
+            'role' => 'Helpers',
+            'default' => 'directory',
+            'database' => null,
+            'kind' => self::PAGE,
+        ],
         'grid-status-rss' => [
             'connectors' => [],
             'port' => self::WEB,
@@ -480,6 +489,7 @@ final class Service extends InstalledModel
             'motd' => _('Message of the day'),
             'guide' => _('Destination guide'),
             'grid-status' => _('Status of the grid'),
+            'directory' => _('Directory of the grids in the search'),
             'grid-status-rss' => _('Status of the grid, feed'),
             'parser' => _('Reading of the search data of the hosts'),
             'events-parser' => _('Reading of the events'),

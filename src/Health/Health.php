@@ -531,6 +531,7 @@ class Health
                     'expect' => 0,
                     'refuse' => 0,
                     'body' => 0,
+                    'stay' => 0,
                 ]) +
                     $verdict + ['ms' => null];
             }
@@ -559,8 +560,9 @@ class Health
                 CURLOPT_TIMEOUT => self::TIMEOUT,
                 CURLOPT_CONNECTTIMEOUT => 2,
                 CURLOPT_USERAGENT => 'OpenSimHealth',
-                // What counts is where the address leads, not the redirection it has on the way
-                CURLOPT_FOLLOWLOCATION => true,
+                // What counts is where the address leads, not the redirection it has on the way (unless the row asks for the
+                // answer of the address itself: a redirection away from it)
+                CURLOPT_FOLLOWLOCATION => empty($row['stay']),
                 CURLOPT_MAXREDIRS => 5,
                 // Only the answer matters, not what follows it
                 CURLOPT_WRITEFUNCTION => static fn($handle, $chunk) => strlen($chunk),
@@ -659,6 +661,45 @@ class Health
         }
 
         return self::row($label, is_readable($path), $path);
+    }
+
+    /**
+     * The pages of a grid for people, as SitePages::rows() gives them: each answers (the helpers' or the site's), the base of the
+     * helpers answers, and a page of the site is not one the helpers claim: asked at its default address under the base, they send
+     * it away (a redirection, not followed) or do not have it (404).
+     *
+     * @param  list<array{page:string,url:?string,servedBy:?string,helpersDefault?:?string}> $pages
+     * @return list<array<string,mixed>>
+     */
+    public static function pages($pages)
+    {
+        $rows = [];
+        foreach ($pages as $page) {
+            $url = (string) ($page['url'] ?? '');
+            if ($url === '') {
+                $rows[] = self::emptyRow($page['page']);
+                continue;
+            }
+            $tag = ($page['servedBy'] ?? '') === 'helpers' ? _('helpers') : _('site');
+            if (str_contains($url, '[AGENT_NAME]')) {
+                // The profiles without a name: not a page (a teapot for the helpers), or no such profile
+                $rows[] =
+                    self::page($page['page'], rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $url), '/'), $tag) +
+                    ['expect' => [404, 418], 'display' => $url];
+            } else {
+                $rows[] = self::page($page['page'], $url, $tag);
+            }
+            $claim = (string) ($page['helpersDefault'] ?? '');
+            if (($page['servedBy'] ?? '') === 'site' && $claim !== '' && $claim !== $url) {
+                $rows[] = self::page($page['page'] . ' (helpers)', $claim, _('not served by the helpers')) + [
+                    'stay' => true,
+                    'refuse' => true,
+                    'expect' => [301, 302, 303, 307, 308, 404, 410],
+                ];
+            }
+        }
+
+        return $rows;
     }
 
     /**

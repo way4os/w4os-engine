@@ -212,6 +212,35 @@ describe('An address', function () {
     );
 });
 
+describe('The pages of a grid', function () {
+    test('each answers, the base of the helpers answers, and the helpers claim no page of the site', function () {
+        [$process, $port] = code_server();
+        $url = fn(string $path) => "http://127.0.0.1:$port/$path";
+        $rows = Health::pages([
+            ['page' => 'helpers', 'url' => $url('200'), 'servedBy' => 'helpers'],
+            ['page' => 'search', 'url' => $url('200'), 'servedBy' => 'site', 'helpersDefault' => $url('redirect')],
+            ['page' => 'guide', 'url' => $url('200'), 'servedBy' => 'site', 'helpersDefault' => $url('201')],
+            ['page' => 'welcome', 'url' => $url('404'), 'servedBy' => 'helpers', 'helpersDefault' => $url('404')],
+            ['page' => 'profile', 'url' => $url('418/[AGENT_NAME]'), 'servedBy' => 'helpers', 'helpersDefault' => $url('418')],
+            ['page' => 'directory', 'url' => null, 'servedBy' => null],
+        ]);
+        $groups = Health::answers([['file' => 'pages', 'title' => '', 'rows' => $rows]]);
+        proc_terminate($process);
+        $by = array_map(static fn(array $row): string => $row['level'], array_column($groups[0]['rows'], null, 'label'));
+
+        expect($by)->toBe([
+            'helpers' => 'ok',
+            'search' => 'ok',
+            'search (helpers)' => 'ok',
+            'guide' => 'ok',
+            'guide (helpers)' => 'error',
+            'welcome' => 'error',
+            'profile' => 'ok',
+            'directory' => 'none',
+        ]);
+    });
+});
+
 describe('What a grid says', function () {
     test('is what it answers at get_grid_info, as it says it, nothing when it does not answer', function () {
         [$process, $port] = code_server();

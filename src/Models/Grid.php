@@ -1188,7 +1188,11 @@ final class Grid extends InstalledModel
                 ? (new \OpenSim\Provisioning\Web\Services($this->helpersPath()))->url($this->webUrl(), $service)
                 : '';
         }
-        $webUrl = \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->directory);
+        // The site of the helpers: the one of their base when Helpers.ini gives it, else the web site of the grid
+        $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->directory);
+        $webUrl = $configured !== ''
+            ? \OpenSim\Provisioning\Web\Services::originOf($configured)
+            : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->directory);
         if ($webUrl === '') {
             return '';
         }
@@ -1533,22 +1537,55 @@ final class Grid extends InstalledModel
     }
 
     /**
-     * Where the helpers of the grid are: the web site of the grid and the path of its economy (`/helpers` when the economy is
-     * elsewhere or says nothing). Null for a grid without a web site.
+     * Where the helpers are: the base of the pages and the services they serve. `HelpersURL` of `[Helpers]` (Helpers.ini) when it
+     * is set, else the economy the grid gives its viewers when it is on its web site, else the web site and `/helpers`. A base at
+     * the root of the site (`https://example.org/`) has no path: the helpers serve every page of the grid. Null for a grid without a
+     * web site.
      */
     public function helpersUrl(): ?string
     {
+        return $this->helpersBase()[0];
+    }
+
+    /** Where the base of the helpers comes from: `config` (HelpersURL), `economy`, `default` (/helpers); null when there is none. */
+    public function helpersUrlSource(): ?string
+    {
+        return $this->helpersBase()[1];
+    }
+
+    /**
+     * Whether an address of a page is served by the helpers: it is under their base (Services::isUnder()). Any other is the site's.
+     * The one place this is decided, for the helpers and the bridges alike.
+     */
+    public function servedByHelpers(string $url): bool
+    {
+        $base = $this->helpersUrl();
+
+        return $base !== null && trim($url) !== '' && \OpenSim\Provisioning\Web\Services::isUnder($url, $base);
+    }
+
+    /** @return array{0:?string,1:?string} the base of the helpers and where it comes from */
+    private function helpersBase(): array
+    {
+        if (!$this->isPlanned()) {
+            $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->directory);
+            if ($configured !== '') {
+                return [$configured, 'config'];
+            }
+        }
         $web = $this->isPlanned() ? $this->webUrl() : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->directory);
         if ($web === '') {
-            return null;
+            return [null, null];
         }
         $economy = $this->economy();
         $local = $economy !== null && parse_url($economy, PHP_URL_HOST) === parse_url($web, PHP_URL_HOST);
         $path = $local
             ? \OpenSim\Provisioning\Web\Services::pathOf($economy)
             : \OpenSim\Provisioning\Web\HelpersConfig::DEFAULT_PATH;
+        // An economy the grid does not give is the one of the helpers by default: not a source of its own
+        $given = $local && $this->service('currency')?->source() !== 'default';
 
-        return rtrim($web, '/') . ($path === '/' ? '' : $path);
+        return [rtrim($web, '/') . ($path === '/' ? '' : $path), $given ? 'economy' : 'default'];
     }
 
     /** The web page of the search of the grid. */

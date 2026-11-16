@@ -3,6 +3,7 @@
 namespace OpenSim\Provisioning\Web;
 
 use OpenSim\Config\GridFileService;
+use OpenSim\Config\IniEditor;
 
 /**
  * The web side of a grid. opensim-helpers read the official settings of the grid (Robust.ini, OpenSim.ini, the ini of its
@@ -16,8 +17,11 @@ final class HelpersConfig
 {
     public const FILE = 'Helpers.ini';
 
-    /** Where the helpers are, when the economy of the grid says nothing. */
+    /** Where the helpers are, when Helpers.ini and the economy of the grid say nothing. */
     public const DEFAULT_PATH = '/helpers';
+
+    /** The setting of [Helpers] in Helpers.ini that says where the helpers are: the base of every page they serve. */
+    public const URL_KEY = 'HelpersURL';
 
     public static function path(string $gridDir): string
     {
@@ -84,9 +88,27 @@ final class HelpersConfig
         return self::robustValue($gridDir, 'WebURL');
     }
 
-    /** Where the helpers are: the path of the economy the grid gives to its viewers. */
+    /** A setting of [Helpers] in Helpers.ini, empty when it has none. */
+    public static function value(string $gridDir, string $key): string
+    {
+        $file = self::path($gridDir);
+
+        return is_file($file) ? trim((string) IniEditor::load($file)->get('Helpers', $key)) : '';
+    }
+
+    /** The address of the helpers Helpers.ini gives (`HelpersURL`), without its last slash; empty when it gives none. */
+    public static function configuredUrl(string $gridDir): string
+    {
+        return rtrim(self::value($gridDir, self::URL_KEY), '/');
+    }
+
+    /** Where the helpers are: the path of `HelpersURL` of Helpers.ini, else of the economy the grid gives to its viewers. */
     public static function basePath(string $gridDir): string
     {
+        $configured = self::value($gridDir, self::URL_KEY);
+        if ($configured !== '') {
+            return Services::pathOf($configured);
+        }
         $economy = self::robustValue($gridDir, 'economy');
 
         return $economy === '' ? self::DEFAULT_PATH : Services::pathOf($economy);
