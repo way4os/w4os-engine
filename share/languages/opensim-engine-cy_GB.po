@@ -324,6 +324,47 @@ msgctxt "profile_url"
 msgid "Web page"
 msgstr "Tudalen we"
 
+msgctxt "edit_profile"
+msgid "Edit profile"
+msgstr "Golygu’r proffil"
+
+msgctxt "profile_other"
+msgid "Other"
+msgstr "Arall"
+
+msgctxt "profile_tab_second_life"
+msgid "Second Life"
+msgstr "Second Life"
+
+msgctxt "profile_tab_web"
+msgid "Web"
+msgstr "Gwe"
+
+msgctxt "profile_tab_interests"
+msgid "Interests"
+msgstr "Diddordebau"
+
+msgctxt "profile_tab_picks"
+msgid "Picks"
+msgstr "Dewisiadau"
+
+msgctxt "profile_tab_classifieds"
+msgid "Classifieds"
+msgstr "Hysbysebion"
+
+msgctxt "profile_tab_first_life"
+msgid "First Life"
+msgstr "Bywyd go iawn"
+
+msgctxt "profile_tab_notes"
+msgid "Notes"
+msgstr "Nodiadau"
+
+#, php-format
+msgctxt "profile_interests_removed"
+msgid "This section was removed from the viewer in version %s."
+msgstr "Tynnwyd yr adran hon o’r gwyliwr yn fersiwn %s."
+
 msgctxt "save_button"
 msgid "Save"
 msgstr "Cadw"

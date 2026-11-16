@@ -327,6 +327,47 @@ msgctxt "profile_url"
 msgid "Web page"
 msgstr "Pagina web"
 
+msgctxt "edit_profile"
+msgid "Edit profile"
+msgstr "Modifica profilo"
+
+msgctxt "profile_other"
+msgid "Other"
+msgstr "Altro"
+
+msgctxt "profile_tab_second_life"
+msgid "Second Life"
+msgstr "Second Life"
+
+msgctxt "profile_tab_web"
+msgid "Web"
+msgstr "Web"
+
+msgctxt "profile_tab_interests"
+msgid "Interests"
+msgstr "Interessi"
+
+msgctxt "profile_tab_picks"
+msgid "Picks"
+msgstr "Preferiti"
+
+msgctxt "profile_tab_classifieds"
+msgid "Classifieds"
+msgstr "Annunci"
+
+msgctxt "profile_tab_first_life"
+msgid "First Life"
+msgstr "Vita reale"
+
+msgctxt "profile_tab_notes"
+msgid "Notes"
+msgstr "Note"
+
+#, php-format
+msgctxt "profile_interests_removed"
+msgid "This section was removed from the viewer in version %s."
+msgstr "Questa sezione è stata rimossa dal viewer nella versione %s."
+
 msgctxt "save_button"
 msgid "Save"
 msgstr "Salva"

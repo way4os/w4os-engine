@@ -114,6 +114,18 @@ final class Catalog
         'languages' => 'Languages',
         'first_life' => 'Real Life',
         'profile_url' => 'Web page',
+        'edit_profile' => 'Edit profile',
+        // The free text under the check boxes of the wants and the skills
+        'profile_other' => 'Other',
+        // The tabs of a profile, as the viewer has them
+        'profile_tab_second_life' => 'Second Life',
+        'profile_tab_web' => 'Web',
+        'profile_tab_interests' => 'Interests',
+        'profile_tab_picks' => 'Picks',
+        'profile_tab_classifieds' => 'Classifieds',
+        'profile_tab_first_life' => 'First Life',
+        'profile_tab_notes' => 'Notes',
+        'profile_interests_removed' => 'This section was removed from the viewer in version %s.',
         'save_button' => 'Save',
         'profile_saved' => 'Your profile is saved.',
         'password_title' => 'Password',
