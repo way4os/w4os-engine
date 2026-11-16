@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Forms\ItemForm;
 use OpenSim\Result;
 use OpenSim\Text\Uuid;
 use OpenSim\Config\GridConfig;
@@ -1481,6 +1482,59 @@ final class Avatar extends Model
         }
 
         return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : []);
+    }
+
+    /**
+     * What the page of an avatar shows and lets change (ItemForm), in the tabs of its profile and the one of its account: the avatar
+     * changes its profile, its email (confirmed, see confirmEmail) and its password; the managers change everything, its role and
+     * its status too.
+     */
+    public static function itemForm(): ItemForm
+    {
+        $both = ['access' => ['edit' => ['self', 'manager']]];
+        $flags = static fn(array $list): array => array_column($list, 'key', 'name');
+        $roles = array_combine(array_keys(self::ROLES), array_map(Catalog::roleKey(...), array_keys(self::ROLES)));
+        $statuses = array_combine(self::STATUSES, array_map(Catalog::statusKey(...), self::STATUSES));
+        $profile = self::profileFlags();
+
+        return new ItemForm(
+            [
+                ItemForm::shown('profileImage', 'profile_picture', 'picture', 'inworld'),
+                ItemForm::shown('name', 'avatar_name', 'text', 'inworld'),
+                ItemForm::shown('uuid', 'profile_key', 'text', 'inworld'),
+                ItemForm::shown('created', 'born', 'date', 'inworld'),
+                ItemForm::shown('partner', 'partner', 'avatar', 'inworld'),
+                ItemForm::field('about', 'about', 'text', 'inworld', more: $both),
+                ItemForm::field('published', 'show_in_search', 'boolean', 'inworld', more: $both),
+                ItemForm::field('profileUrl', 'profile_url', 'url', 'web', more: $both),
+                ItemForm::field('wantsList', 'wants', 'checkboxes', 'interests', $flags($profile['wants']), $both),
+                ItemForm::field('wants', 'profile_other', 'string', 'interests', more: $both),
+                ItemForm::field('skillsList', 'skills', 'checkboxes', 'interests', $flags($profile['skills']), $both),
+                ItemForm::field('skills', 'profile_other', 'string', 'interests', more: $both),
+                ItemForm::field('languages', 'languages', 'string', 'interests', more: $both),
+                ItemForm::shown('firstImage', 'profile_picture', 'picture', 'real_life'),
+                ItemForm::field('firstLife', 'real_life', 'text', 'real_life', more: $both),
+                ItemForm::field('email', 'email', 'email', 'account', more: $both),
+                ItemForm::field('role', 'role', 'select', 'account', $roles),
+                ItemForm::field('status', 'status', 'select', 'account', $statuses),
+                ItemForm::field(
+                    'password',
+                    'password',
+                    'secret',
+                    'account',
+                    more: $both + ['description' => 'password_help', 'writeOnly' => true],
+                ),
+                ItemForm::shown('lastSeen', 'last_seen', 'date', 'account'),
+            ],
+            [
+                ItemForm::group('inworld', 'profile_tab_inworld'),
+                ItemForm::group('web', 'profile_tab_web'),
+                ItemForm::group('interests', 'profile_tab_interests'),
+                ItemForm::group('real_life', 'profile_tab_real_life'),
+                ItemForm::group('account', 'profile_tab_account'),
+            ],
+            self::listing()->actions,
+        );
     }
 
     /**

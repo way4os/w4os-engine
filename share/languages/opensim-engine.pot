@@ -342,6 +342,10 @@ msgctxt "profile_key"
 msgid "Key"
 msgstr ""
 
+msgctxt "profile_picture"
+msgid "Picture"
+msgstr ""
+
 msgctxt "partner"
 msgid "Partner"
 msgstr ""

@@ -377,6 +377,10 @@ msgctxt "profile_key"
 msgid "Key"
 msgstr "UUID"
 
+msgctxt "profile_picture"
+msgid "Picture"
+msgstr "Bild"
+
 msgctxt "partner"
 msgid "Partner"
 msgstr "Partner"

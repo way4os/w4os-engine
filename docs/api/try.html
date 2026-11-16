@@ -17,12 +17,12 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "4144c79",
+        "version": "1229a88",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
         },
-        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts). The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
+        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
     },
     "servers": [
         {
@@ -2199,6 +2199,306 @@
                             }
                         }
                     }
+                },
+                "x-form": {
+                    "groups": [
+                        {
+                            "name": "inworld",
+                            "label": "profile_tab_inworld"
+                        },
+                        {
+                            "name": "web",
+                            "label": "profile_tab_web"
+                        },
+                        {
+                            "name": "interests",
+                            "label": "profile_tab_interests"
+                        },
+                        {
+                            "name": "real_life",
+                            "label": "profile_tab_real_life"
+                        },
+                        {
+                            "name": "account",
+                            "label": "profile_tab_account"
+                        }
+                    ],
+                    "fields": [
+                        {
+                            "name": "profileImage",
+                            "label": "profile_picture",
+                            "type": "picture",
+                            "group": "inworld",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "name",
+                            "label": "avatar_name",
+                            "type": "text",
+                            "group": "inworld",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "uuid",
+                            "label": "profile_key",
+                            "type": "text",
+                            "group": "inworld",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "created",
+                            "label": "born",
+                            "type": "date",
+                            "group": "inworld",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "partner",
+                            "label": "partner",
+                            "type": "avatar",
+                            "group": "inworld",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "about",
+                            "label": "about",
+                            "type": "text",
+                            "group": "inworld",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "published",
+                            "label": "show_in_search",
+                            "type": "boolean",
+                            "group": "inworld",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "profileUrl",
+                            "label": "profile_url",
+                            "type": "url",
+                            "group": "web",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "wantsList",
+                            "label": "wants",
+                            "type": "checkboxes",
+                            "group": "interests",
+                            "options": {
+                                "build": "want_build",
+                                "explore": "want_explore",
+                                "meet": "want_meet",
+                                "group": "want_group",
+                                "buy": "want_buy",
+                                "sell": "want_sell",
+                                "be-hired": "want_be_hired",
+                                "hire": "want_hire"
+                            },
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "wants",
+                            "label": "profile_other",
+                            "type": "string",
+                            "group": "interests",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "skillsList",
+                            "label": "skills",
+                            "type": "checkboxes",
+                            "group": "interests",
+                            "options": {
+                                "textures": "skill_textures",
+                                "architecture": "skill_architecture",
+                                "event-planning": "skill_event_planning",
+                                "modeling": "skill_modeling",
+                                "scripting": "skill_scripting",
+                                "custom-characters": "skill_custom_characters"
+                            },
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "skills",
+                            "label": "profile_other",
+                            "type": "string",
+                            "group": "interests",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "languages",
+                            "label": "languages",
+                            "type": "string",
+                            "group": "interests",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "firstImage",
+                            "label": "profile_picture",
+                            "type": "picture",
+                            "group": "real_life",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "firstLife",
+                            "label": "real_life",
+                            "type": "text",
+                            "group": "real_life",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "email",
+                            "label": "email",
+                            "type": "email",
+                            "group": "account",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "role",
+                            "label": "role",
+                            "type": "select",
+                            "group": "account",
+                            "options": {
+                                "resident": "role_resident",
+                                "god-like": "role_god_like",
+                                "customer-service": "role_customer_service",
+                                "liaison": "role_liaison",
+                                "god": "role_god"
+                            }
+                        },
+                        {
+                            "name": "status",
+                            "label": "status",
+                            "type": "select",
+                            "group": "account",
+                            "options": {
+                                "active": "status_active",
+                                "disabled": "status_disabled",
+                                "pending": "status_pending"
+                            }
+                        },
+                        {
+                            "name": "password",
+                            "label": "password",
+                            "type": "secret",
+                            "group": "account",
+                            "access": {
+                                "edit": [
+                                    "self",
+                                    "manager"
+                                ]
+                            },
+                            "description": "password_help",
+                            "writeOnly": true
+                        },
+                        {
+                            "name": "lastSeen",
+                            "label": "last_seen",
+                            "type": "date",
+                            "group": "account",
+                            "readOnly": true
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "name": "enable",
+                            "label": "action_enable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "status": "active"
+                            },
+                            "when": {
+                                "status": [
+                                    "disabled",
+                                    "pending"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "disable",
+                            "label": "action_disable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "status": "disabled"
+                            },
+                            "when": {
+                                "status": [
+                                    "active"
+                                ]
+                            },
+                            "notSelf": true
+                        },
+                        {
+                            "name": "reset",
+                            "label": "action_reset",
+                            "method": "POST",
+                            "path": "/grids/{grid}/password-resets",
+                            "body": {
+                                "name": "{name}"
+                            },
+                            "when": {
+                                "status": [
+                                    "active"
+                                ]
+                            },
+                            "requires": [
+                                "email"
+                            ]
+                        }
+                    ]
                 }
             },
             "patch": {
@@ -2927,6 +3227,162 @@
                             }
                         }
                     }
+                },
+                "x-form": {
+                    "groups": [
+                        {
+                            "name": "region",
+                            "label": "column_region"
+                        },
+                        {
+                            "name": "simulator",
+                            "label": "filter_simulator"
+                        }
+                    ],
+                    "fields": [
+                        {
+                            "name": "mapImage",
+                            "label": "column_map",
+                            "type": "map",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "name",
+                            "label": "column_name",
+                            "type": "text",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "uuid",
+                            "label": "profile_key",
+                            "type": "text",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "location",
+                            "label": "profile_location",
+                            "type": "text",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "size",
+                            "label": "column_size",
+                            "type": "size",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "ownerName",
+                            "label": "column_owner",
+                            "type": "text",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "roles",
+                            "label": "column_roles",
+                            "type": "list",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "online",
+                            "label": "online",
+                            "type": "boolean",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "lastSeen",
+                            "label": "last_seen",
+                            "type": "date",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "teleport",
+                            "label": "profile_teleport",
+                            "type": "hop",
+                            "group": "region",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "simulator",
+                            "label": "filter_simulator",
+                            "type": "text",
+                            "group": "simulator",
+                            "readOnly": true,
+                            "condition": {
+                                "hyperlink": [
+                                    false
+                                ]
+                            }
+                        },
+                        {
+                            "name": "serverUri",
+                            "label": "column_address",
+                            "type": "text",
+                            "group": "simulator",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "file",
+                            "label": "column_file",
+                            "type": "text",
+                            "group": "simulator",
+                            "readOnly": true,
+                            "condition": {
+                                "hyperlink": [
+                                    false
+                                ]
+                            }
+                        },
+                        {
+                            "name": "enabled",
+                            "label": "column_enabled",
+                            "type": "boolean",
+                            "group": "simulator",
+                            "condition": {
+                                "hyperlink": [
+                                    false
+                                ]
+                            }
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "name": "enable",
+                            "label": "action_enable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/regions/{id}",
+                            "body": {
+                                "enabled": true
+                            },
+                            "when": {
+                                "enabled": [
+                                    false
+                                ]
+                            }
+                        },
+                        {
+                            "name": "disable",
+                            "label": "action_disable",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/regions/{id}",
+                            "body": {
+                                "enabled": false
+                            },
+                            "when": {
+                                "enabled": [
+                                    true
+                                ]
+                            }
+                        }
+                    ]
                 }
             },
             "patch": {

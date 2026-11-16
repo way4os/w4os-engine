@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Api;
 
+use OpenSim\Forms\ItemForm;
 use OpenSim\Assets\Logos;
 use OpenSim\Data\Listing;
 use OpenSim\Models\Service;
@@ -598,6 +599,7 @@ final class Contract
                     ],
                 ];
             }
+            $form = self::itemForm($type);
             $paths["$base/{id}"]['get'] = [
                 'operationId' => "get$one",
                 'tags' => [$tag],
@@ -608,7 +610,7 @@ final class Contract
                     '200' => self::documentResponse('The resource', $schema, false),
                     '404' => self::problem('There is none with this id'),
                 ],
-            ];
+            ] + ($form === null ? [] : ['x-form' => $form->document()]);
             if (isset($resource['create'])) {
                 $paths[$base]['post'] = [
                     'operationId' => "create$one",
@@ -854,7 +856,7 @@ final class Contract
                 'version' => $version,
                 'license' => ['name' => 'AGPL-3.0-or-later', 'identifier' => 'AGPL-3.0-or-later'],
                 'description' =>
-                    "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts). The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server.",
+                    "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server.",
             ],
             'servers' => [['url' => '/', 'description' => 'Where the application that uses the engine mounts the API']],
             // Closed unless an operation says it is open (`security: []`)
@@ -961,6 +963,17 @@ final class Contract
         $class = Api::RESOURCES[$type] ?? Api::GRID_RESOURCES[$type] ?? null;
 
         return $class !== null && method_exists($class, 'listing') ? $class::listing() : null;
+    }
+
+    /**
+     * What the page of an item of a resource shows and lets change, as its model describes it (ItemForm): `x-form` of the operation
+     * that reads it. Null for a resource whose model does not describe it.
+     */
+    public static function itemForm(string $type): ?ItemForm
+    {
+        $class = Api::RESOURCES[$type] ?? Api::GRID_RESOURCES[$type] ?? null;
+
+        return $class !== null && method_exists($class, 'itemForm') ? $class::itemForm() : null;
     }
 
     /**

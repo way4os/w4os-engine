@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Forms\ItemForm;
 use OpenSim\Text\Uuid;
 use OpenSim\Config\ConfigReader;
 use OpenSim\Config\GridConfig;
@@ -854,6 +855,36 @@ final class Region extends Model
     public static function columns(): array
     {
         return self::listing()->columns();
+    }
+
+    /**
+     * What the page of a region shows and lets change (ItemForm): what the grid knows of it, then what its simulator says of it; only
+     * whether it is enabled is changed, for a region of this grid.
+     */
+    public static function itemForm(): ItemForm
+    {
+        $here = ['condition' => ['hyperlink' => [false]]];
+
+        return new ItemForm(
+            [
+                ItemForm::shown('mapImage', 'column_map', 'map', 'region'),
+                ItemForm::shown('name', 'column_name', 'text', 'region'),
+                ItemForm::shown('uuid', 'profile_key', 'text', 'region'),
+                ItemForm::shown('location', 'profile_location', 'text', 'region'),
+                ItemForm::shown('size', 'column_size', 'size', 'region'),
+                ItemForm::shown('ownerName', 'column_owner', 'text', 'region'),
+                ItemForm::shown('roles', 'column_roles', 'list', 'region'),
+                ItemForm::shown('online', 'online', 'boolean', 'region'),
+                ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
+                ItemForm::shown('teleport', 'profile_teleport', 'hop', 'region'),
+                ItemForm::shown('simulator', 'filter_simulator', 'text', 'simulator', $here),
+                ItemForm::shown('serverUri', 'column_address', 'text', 'simulator'),
+                ItemForm::shown('file', 'column_file', 'text', 'simulator', $here),
+                ItemForm::field('enabled', 'column_enabled', 'boolean', 'simulator', more: $here),
+            ],
+            [ItemForm::group('region', 'column_region'), ItemForm::group('simulator', 'filter_simulator')],
+            self::listing()->actions,
+        );
     }
 
     /** What a flag is called for a person ("Default Region"). */

@@ -613,6 +613,63 @@ describe('The contract', function () {
             ->toBe([]);
     });
 
+    test('describes the page of an avatar and of a region as their models do (x-form), what it changes being what the PATCH takes', function () {
+        $document = Contract::document();
+        $paths = $document['paths'];
+        $avatar = $paths['/grids/{grid}/avatars/{id}']['get']['x-form'];
+        $region = $paths['/grids/{grid}/regions/{id}']['get']['x-form'];
+        $checks = [];
+        foreach (['avatars' => $avatar, 'regions' => $region] as $type => $form) {
+            $attributes = array_keys(Contract::attributes($type));
+            $writable = array_keys(Contract::RESOURCES[$type]['writable']);
+            $keys = [...array_column($form['groups'], 'label'), ...array_column($form['fields'], 'label')];
+            foreach ($form['fields'] as $field) {
+                // Shown: an attribute of the item (a password is only sent); changed: what the PATCH takes
+                ($field['writeOnly'] ?? false) || in_array($field['name'], $attributes, true) || ($checks[] = "$type.{$field['name']} shown");
+                ($field['readOnly'] ?? false) || in_array($field['name'], $writable, true) || ($checks[] = "$type.{$field['name']} sent");
+                array_push($keys, ...array_values($field['options'] ?? []), ...(isset($field['description']) ? [$field['description']] : []));
+            }
+            array_push($checks, ...array_diff($keys, array_keys(\OpenSim\I18n\Catalog::MESSAGES)));
+        }
+
+        expect($checks)
+            ->toBe([])
+            ->and(array_column($avatar['groups'], 'name'))
+            ->toBe(['inworld', 'web', 'interests', 'real_life', 'account'])
+            ->and($avatar['fields'][0])
+            ->toBe(['name' => 'profileImage', 'label' => 'profile_picture', 'type' => 'picture', 'group' => 'inworld', 'readOnly' => true])
+            ->and(array_column($avatar['fields'], null, 'name')['role'])
+            ->toBe([
+                'name' => 'role',
+                'label' => 'role',
+                'type' => 'select',
+                'group' => 'account',
+                'options' => [
+                    'resident' => 'role_resident',
+                    'god-like' => 'role_god_like',
+                    'customer-service' => 'role_customer_service',
+                    'liaison' => 'role_liaison',
+                    'god' => 'role_god',
+                ],
+            ])
+            ->and(array_column($avatar['fields'], null, 'name')['about']['access'])
+            ->toBe(['edit' => ['self', 'manager']])
+            ->and(array_column($avatar['actions'], 'name'))
+            ->toBe(['enable', 'disable', 'reset'])
+            ->and(array_column($region['fields'], null, 'name')['enabled'])
+            ->toBe([
+                'name' => 'enabled',
+                'label' => 'column_enabled',
+                'type' => 'boolean',
+                'group' => 'simulator',
+                'condition' => ['hyperlink' => [false]],
+            ])
+            ->and(\OpenSim\Models\Region::itemForm()->writable())
+            ->toBe(['enabled'])
+            ->and($paths['/grids/{grid}/parcels/{id}']['get'])
+            ->not->toHaveKey('x-form');
+    });
+
     test('is written in JSON and in YAML, the pages of the documentation being made from it', function () {
         expect(json_decode(Contract::json('2'), true)['info']['version'])
             ->toBe('2')

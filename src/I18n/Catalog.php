@@ -153,6 +153,7 @@ final class Catalog
         'profile_tab_account' => 'Account',
         // The in-world tab of the edit page: the UUID of the avatar, its partner, the box of PUBLISHED_FLAG
         'profile_key' => 'Key',
+        'profile_picture' => 'Picture',
         'partner' => 'Partner',
         'show_in_search' => 'Show in search',
         'interests_removed' => 'Viewers no longer show this section since 2023.',
