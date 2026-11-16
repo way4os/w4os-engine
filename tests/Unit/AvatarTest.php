@@ -241,6 +241,30 @@ describe('avatars', function () {
             ->toBe('pending');
     });
 
+    test('active leaves out an avatar waiting for its email or disabled, whatever column tells it', function () {
+        $pdo = avatar_database();
+        $pending = Avatar::PENDING_FLAG;
+        $pdo->exec("INSERT INTO UserAccounts (PrincipalID, FirstName, LastName, Email, Created, UserLevel, UserFlags, active) VALUES
+            ('a1111111-1111-4111-8111-111111111111', 'Pia', 'Pending', 'pia@example.org', 1900000000, -1, $pending, 0),
+            ('a2222222-2222-4222-8222-222222222222', 'Pat', 'Flagged', 'pat@example.org', 1900000001, 0, $pending, 1),
+            ('a3333333-3333-4333-8333-333333333333', 'Dan', 'Inactive', 'dan@example.org', 1900000002, 0, 0, 0),
+            ('a4444444-4444-4444-8444-444444444444', 'Lou', 'Lowered', 'lou@example.org', 1900000003, -1, 0, 1)");
+        avatars_in($pdo);
+        $config = avatar_grid();
+        $listed = static fn(string $status) => array_column(
+            Avatar::all($config, ['filters' => ['status' => $status], 'sort' => 'created desc'])->array(),
+            'status',
+            'name',
+        );
+
+        expect($listed('active'))
+            ->toBe(['Ada Love' => 'active', 'Bob Root' => 'active'])
+            ->and($listed('pending'))
+            ->toBe(['Pat Flagged' => 'pending', 'Pia Pending' => 'pending'])
+            ->and(array_keys($listed('disabled')))
+            ->toBe(['Lou Lowered', 'Dan Inactive', 'Cy Gone']);
+    });
+
     test('are filtered by whether their profile is published, the box "show in search" of the viewer', function () {
         avatars_in(avatar_database());
         $config = avatar_grid();
