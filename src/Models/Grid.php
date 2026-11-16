@@ -867,6 +867,14 @@ final class Grid extends InstalledModel
         ))->lists();
     }
 
+    /** The address of the logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini). */
+    public function logoUrl(): ?string
+    {
+        $logo = trim((string) $this->setting('Helpers', 'LogoURL'));
+
+        return $logo === '' ? null : $logo;
+    }
+
     /** A setting of the files of the grid (Robust, OpenSim.ini, Helpers.ini), the first that says it. */
     private function setting(string $section, string $key): ?string
     {
@@ -1284,6 +1292,7 @@ final class Grid extends InstalledModel
             'databaseName' => $this->databaseName(),
             'databaseUser' => $this->databaseUser(),
             'webUrl' => $this->webUrl() ?: null,
+            'logoUrl' => $this->logoUrl(),
             'helpers' => $this->hasHelpers(),
             'simulators' => $folder ? $this->simulatorNames() : null,
             'announcement' => $this->said() ?: null,

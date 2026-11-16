@@ -64,6 +64,10 @@ final class Endpoints
                 'description' => 'Pictures of a text, for the signs and the boards in world.',
             ],
             [
+                'name' => 'Logos',
+                'description' => 'The logos of w4os and OpenSimulator the engine ships for the sites; the logo of a grid is `logo` of its addresses.',
+            ],
+            [
                 'name' => 'Pages',
                 'description' =>
                     'The pages the helpers show to the people, in HTML, at the addresses the grid gives (`GridInfoService` and `LoginService` in Robust.ini). They are made from the resources of this API: the guide shows `/grids/{grid}/destinations`, the profile an avatar.',
@@ -105,7 +109,7 @@ final class Endpoints
             'tags' => ['Addresses'],
             'summary' => 'Addresses',
             'description' =>
-                "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `default`: the helpers' habit). `helpers` is where the helpers are, `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`). These are links, not identities: the identity of the grid is its `uri`.",
+                "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `default`: the helpers' habit). `helpers` is where the helpers are, `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`), `logo` the logo of the grid for the top bar of its sites (`LogoURL` of `[Helpers]`). These are links, not identities: the identity of the grid is its `uri`.",
             'parameters' => [Contract::gridParameter()],
             'responses' => [
                 '200' => [
@@ -116,6 +120,10 @@ final class Endpoints
                             'description' => 'The login address, as the grid says it',
                         ],
                         'uri' => ['type' => ['string', 'null'], 'description' => 'Its host and port'],
+                        'logo' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), for the top bar of its sites',
+                        ],
                         'helpers' => ['type' => ['string', 'null']],
                         'economy' => ['type' => ['string', 'null']],
                         'search' => ['type' => ['string', 'null']],
@@ -151,6 +159,10 @@ final class Endpoints
                         'live' => ['type' => 'boolean'],
                         'login' => ['type' => ['string', 'null']],
                         'uri' => ['type' => ['string', 'null']],
+                        'logo' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), null when it has none',
+                        ],
                         'elements' => ['type' => 'object', 'additionalProperties' => ['type' => 'string']],
                     ]),
                 ],
@@ -885,7 +897,7 @@ final class Endpoints
                 'Health',
                 'Monitor',
             ],
-            'Application' => ['Text images', 'Setup'],
+            'Application' => ['Text images', 'Logos', 'Setup'],
             'Helpers pages' => ['Pages'],
             'Robust' => ['Grid info'],
         ];

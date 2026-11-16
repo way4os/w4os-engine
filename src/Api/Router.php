@@ -20,7 +20,7 @@ use OpenSim\Security\Authenticator;
  *
  * The addresses are the ones of the contract (see Contract::document()): `/{type}` and `/{type}/{id}` for the resources of the
  * machine, `/grids/{grid}/{type}` and `/grids/{grid}/{type}/{id}` for the ones of a grid, `/grids/{grid}/assets/{id}.{format}` for a
- * picture, `/grids/{grid}/motd`, `/text-images`, `POST /tasks/{id}/runs`, and the contract itself at `/openapi.json`. A host that
+ * picture, `/grids/{grid}/motd`, `/text-images`, `/logos/{name}`, `POST /tasks/{id}/runs`, and the contract itself at `/openapi.json`. A host that
  * serves one grid says so (`grid:`) and asks for its resources without it (`/motd`, `/destinations`, `/avatars`). The body of a
  * creation or a change is a JSON:API document, the errors are problems (RFC 9457).
  */
@@ -38,6 +38,7 @@ final class Router
     public const PUBLIC = [
         'GET /openapi.json',
         'GET /text-images',
+        'GET /logos/{name}',
         'GET /fonts',
         'GET /fonts/{id}',
         'GET /grids/{grid}/destinations',
@@ -197,6 +198,9 @@ final class Router
             $width = isset($query['width']) ? (int) $query['width'] : null;
             $template = '/grids/{grid}/assets/{id}.{format}';
             $routes = ['GET' => fn() => $this->api->media($grid, $m[1], $m[2], $this->converter, $width)];
+        } elseif (count($tail) === 2 && $tail[0] === 'logos') {
+            $template = '/logos/{name}';
+            $routes = ['GET' => fn() => $this->api->logo($tail[1])];
         } elseif ($tail === ['text-images']) {
             $template = '/text-images';
             $routes = ['GET' => fn() => $this->api->textImage($query)];

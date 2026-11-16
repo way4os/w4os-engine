@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Api;
 
+use OpenSim\Assets\Logos;
 use OpenSim\Models\Service;
 use Symfony\Component\Yaml\Yaml;
 
@@ -61,6 +62,7 @@ final class Contract
                 'databaseName' => ['string', 'The name of its database'],
                 'databaseUser' => ['string', 'The user of its database'],
                 'webUrl' => ['string?', 'The web site of its helpers'],
+                'logoUrl' => ['string?', 'The logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini)'],
                 'helpers' => ['boolean', 'Its helpers are installed'],
                 'simulators' => ['array?', 'The names of its simulators'],
                 'announcement' => ['object?', 'What the grid says of itself at get_grid_info'],
@@ -697,6 +699,28 @@ final class Contract
                     'content' => ['text/plain' => ['schema' => ['type' => 'string']]],
                 ],
                 '404' => self::problem('The grid is not known here'),
+            ],
+        ];
+        $paths['/logos/{name}']['get'] = [
+            'operationId' => 'getLogo',
+            'tags' => ['Logos'],
+            'summary' => 'A logo of w4os or OpenSimulator',
+            'description' =>
+                'A logo the engine ships for the sites, by its file name: the long logo of w4os for a footer, its square logo, its icon and its favicons, the logo of OpenSimulator. The logo of a grid is its own setting: `logo` of `/grids/{grid}/addresses`.',
+            'parameters' => [
+                [
+                    'name' => 'name',
+                    'in' => 'path',
+                    'required' => true,
+                    'schema' => ['type' => 'string', 'enum' => Logos::FILES],
+                ],
+            ],
+            'responses' => [
+                '200' => [
+                    'description' => 'The logo',
+                    'content' => ['image/png' => ['schema' => ['type' => 'string', 'format' => 'binary']]],
+                ],
+                '404' => self::problem('There is no logo with this name'),
             ],
         ];
         $paths['/text-images']['get'] = [

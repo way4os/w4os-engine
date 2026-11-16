@@ -12,6 +12,7 @@ use OpenSim\Exceptions\NotFound;
 use OpenSim\Interfaces\ModelInterface;
 use OpenSim\Assets\ConverterInterface;
 use OpenSim\Assets\ImagickTextRenderer;
+use OpenSim\Assets\Logos;
 use OpenSim\Assets\TextRendererInterface;
 use OpenSim\Assets\WebAssets;
 use OpenSim\Models\Archive;
@@ -559,6 +560,16 @@ final class Api
         return Response::binary($picture['data'], $picture['mime'], $picture['found'] ? 200 : 404);
     }
 
+    /** A logo the engine ships for the sites (Logos: w4os, OpenSimulator), as a picture; 404 for a name that is not one. */
+    public function logo(string $name): Response
+    {
+        $file = Logos::file($name);
+
+        return $file === null
+            ? Response::problem(Problem::notFound("logo called '$name'", '/logos/' . rawurlencode($name)))
+            : Response::binary((string) file_get_contents($file), 'image/png');
+    }
+
     /**
      * The message of the day of a grid, as plain text: what its viewers show at login, `<USERNAME>` replaced when a name is given.
      */
@@ -818,6 +829,7 @@ final class Api
                 'attributes' => [
                     'login' => $found->loginUrl(),
                     'uri' => $found->uri(),
+                    'logo' => $found->logoUrl(),
                     'helpers' => $found->helpersUrl(),
                     'economy' => $found->economy(),
                     'search' => $found->searchUrl(),
@@ -853,6 +865,7 @@ final class Api
                     'live' => $found->gridInfoIsLive(),
                     'login' => $found->loginUrl(),
                     'uri' => $found->uri(),
+                    'logo' => $found->logoUrl(),
                     'elements' => (object) $found->gridInfo(),
                 ],
                 'links' => ['self' => $instance],

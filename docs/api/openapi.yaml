@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: d0062d2
+  version: ca23a9c
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -108,6 +108,9 @@ tags:
     name: 'Text images'
     description: 'Pictures of a text, for the signs and the boards in world.'
   -
+    name: Logos
+    description: 'The logos of w4os and OpenSimulator the engine ships for the sites; the logo of a grid is `logo` of its addresses.'
+  -
     name: Pages
     description: 'The pages the helpers show to the people, in HTML, at the addresses the grid gives (`GridInfoService` and `LoginService` in Robust.ini). They are made from the resources of this API: the guide shows `/grids/{grid}/destinations`, the profile an avatar.'
   -
@@ -152,6 +155,7 @@ x-tagGroups:
       - Forms
       - Fonts
       - 'Text images'
+      - Logos
       - Setup
   -
     name: 'Helpers pages'
@@ -1925,6 +1929,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+  '/logos/{name}':
+    get:
+      operationId: getLogo
+      tags:
+        - Logos
+      summary: 'A logo of w4os or OpenSimulator'
+      description: 'A logo the engine ships for the sites, by its file name: the long logo of w4os for a footer, its square logo, its icon and its favicons, the logo of OpenSimulator. The logo of a grid is its own setting: `logo` of `/grids/{grid}/addresses`.'
+      parameters:
+        -
+          name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - w4os-logo-v1-long.png
+              - w4os-logo-v1-long-300x75.png
+              - w4os-logo-v1-square.png
+              - w4os-icon-v1.png
+              - cropped-w4os-logo-v1-square-32x32.png
+              - cropped-w4os-logo-v1-square-180x180.png
+              - cropped-w4os-logo-v1-square-192x192.png
+              - opensimulator-logo.png
+              - opensimulator-logo-24x14.png
+      responses:
+        200:
+          description: 'The logo'
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: 'There is no logo with this name'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
   /text-images:
     get:
       operationId: getTextImage
@@ -2048,7 +2091,7 @@ paths:
       tags:
         - Addresses
       summary: Addresses
-      description: "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `default`: the helpers' habit). `helpers` is where the helpers are, `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`). These are links, not identities: the identity of the grid is its `uri`."
+      description: "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `default`: the helpers' habit). `helpers` is where the helpers are, `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`), `logo` the logo of the grid for the top bar of its sites (`LogoURL` of `[Helpers]`). These are links, not identities: the identity of the grid is its `uri`."
       parameters:
         -
           name: grid
@@ -2070,7 +2113,7 @@ paths:
                     properties:
                       type: { const: addresses }
                       id: { type: string }
-                      attributes: { type: object, properties: { login: { type: [string, 'null'], description: 'The login address, as the grid says it' }, uri: { type: [string, 'null'], description: 'Its host and port' }, helpers: { type: [string, 'null'] }, economy: { type: [string, 'null'] }, search: { type: [string, 'null'] }, searchApi: { type: [string, 'null'] }, register: { type: [string, 'null'] }, offline: { type: [string, 'null'] }, addresses: { type: object, description: 'Every address, by the key of its service', additionalProperties: { type: string } }, sources: { type: object, description: 'Where each comes from', additionalProperties: { type: [string, 'null'] } } } }
+                      attributes: { type: object, properties: { login: { type: [string, 'null'], description: 'The login address, as the grid says it' }, uri: { type: [string, 'null'], description: 'Its host and port' }, logo: { type: [string, 'null'], description: 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), for the top bar of its sites' }, helpers: { type: [string, 'null'] }, economy: { type: [string, 'null'] }, search: { type: [string, 'null'] }, searchApi: { type: [string, 'null'] }, register: { type: [string, 'null'] }, offline: { type: [string, 'null'] }, addresses: { type: object, description: 'Every address, by the key of its service', additionalProperties: { type: string } }, sources: { type: object, description: 'Where each comes from', additionalProperties: { type: [string, 'null'] } } } }
         404:
           description: 'The grid is not known here'
           content:
@@ -2106,7 +2149,7 @@ paths:
                     properties:
                       type: { const: info }
                       id: { type: string }
-                      attributes: { type: object, properties: { live: { type: boolean }, login: { type: [string, 'null'] }, uri: { type: [string, 'null'] }, elements: { type: object, additionalProperties: { type: string } } } }
+                      attributes: { type: object, properties: { live: { type: boolean }, login: { type: [string, 'null'] }, uri: { type: [string, 'null'] }, logo: { type: [string, 'null'], description: 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), null when it has none' }, elements: { type: object, additionalProperties: { type: string } } } }
         404:
           description: 'The grid is not known here'
           content:
@@ -4722,6 +4765,11 @@ components:
                 - string
                 - 'null'
               description: 'The web site of its helpers'
+            logoUrl:
+              type:
+                - string
+                - 'null'
+              description: 'The logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini)'
             helpers:
               type: boolean
               description: 'Its helpers are installed'
