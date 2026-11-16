@@ -17,6 +17,7 @@ use OpenSim\Api\Problem;
  *     Catalog::messages('fr_FR');   // ['register_title' => 'Créer mon avatar', ...], the translated texts only
  *     Catalog::messages('en');      // the English texts
  *     Catalog::file('fr_FR');       // share/languages/opensim-engine-fr_FR.po
+ *     Catalog::statusKey('pending'); // status_pending; roleKey('god-like'): role_god_like, the texts of an avatar's status and role
  *
  * To change a text, edit MESSAGES, then run `composer translations` (the .pot, and the .po files merged with it).
  */
@@ -122,6 +123,13 @@ final class Catalog
         'status_active' => 'Active',
         'status_disabled' => 'Disabled',
         'status_pending' => 'Pending',
+        // The role of an avatar, as the API says it (Avatar::ROLES): role_ and the role, - as _
+        'role' => 'Role',
+        'role_resident' => 'Resident',
+        'role_god_like' => 'God-like',
+        'role_customer_service' => 'Customer Service',
+        'role_liaison' => 'Liaison',
+        'role_god' => 'God',
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
         'action_reset' => 'Send a password reset link',
@@ -136,6 +144,7 @@ final class Catalog
         'error_current_password' => 'The current password is wrong.',
         'error_forbidden' => 'This is not allowed.',
         'error_nonce' => 'This page has expired, please try again.',
+        'error_too_many_registrations' => 'Too many registrations from this address. Try again in %s minutes.',
 
         // The problem codes of the API (Problem::CODES)
         'error_not_found' => 'There is no such avatar.',
@@ -175,6 +184,12 @@ final class Catalog
     public static function statusKey(string $status): string
     {
         return 'status_' . $status;
+    }
+
+    /** The key of the text of the role of an avatar (resident, god-like, customer-service, liaison, god). */
+    public static function roleKey(string $role): string
+    {
+        return 'role_' . str_replace('-', '_', $role);
     }
 
     /** The text of a problem code in English (the one of `invalid-request` for a code it does not know). */

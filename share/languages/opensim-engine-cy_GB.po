@@ -368,6 +368,30 @@ msgctxt "status_pending"
 msgid "Pending"
 msgstr "Yn aros"
 
+msgctxt "role"
+msgid "Role"
+msgstr "Rôl"
+
+msgctxt "role_resident"
+msgid "Resident"
+msgstr "Preswylydd"
+
+msgctxt "role_god_like"
+msgid "God-like"
+msgstr "Fel y duw"
+
+msgctxt "role_customer_service"
+msgid "Customer Service"
+msgstr "Gwasanaeth Cwsmeriaid"
+
+msgctxt "role_liaison"
+msgid "Liaison"
+msgstr "Cysylltiad"
+
+msgctxt "role_god"
+msgid "God"
+msgstr "Duw"
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Galluogi"
@@ -419,6 +443,11 @@ msgstr "Nid yw hyn wedi’i ganiatáu."
 msgctxt "error_nonce"
 msgid "This page has expired, please try again."
 msgstr "Mae’r dudalen hon wedi dod i ben, rhowch gynnig arall arni."
+
+#, php-format
+msgctxt "error_too_many_registrations"
+msgid "Too many registrations from this address. Try again in %s minutes."
+msgstr "Gormod o gofrestriadau o’r cyfeiriad hwn. Rhowch gynnig arall arni ymhen %s munud."
 
 msgctxt "error_not_found"
 msgid "There is no such avatar."

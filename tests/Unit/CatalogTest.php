@@ -14,6 +14,18 @@ describe('the catalog of the texts of the sites', function () {
             ->and(Catalog::error('no-such-code'))->toBe(Catalog::MESSAGES['error_invalid_request']);
     });
 
+    test('has a text for every status and every role of an avatar', function () {
+        $keys = [
+            ...array_map(Catalog::statusKey(...), OpenSim\Models\Avatar::STATUSES),
+            ...array_map(Catalog::roleKey(...), array_keys(OpenSim\Models\Avatar::ROLES)),
+        ];
+
+        expect(array_diff($keys, array_keys(Catalog::MESSAGES)))
+            ->toBe([])
+            ->and(Catalog::roleKey('customer-service'))
+            ->toBe('role_customer_service');
+    });
+
     test('names the languages as its files do', function () {
         expect(array_map(Catalog::locale(...), ['fr', 'fr-FR', 'fr_FR.UTF-8', 'pt-br', 'pt', 'cy', 'en', 'en_US', 'es']))
             ->toBe(['fr_FR', 'fr_FR', 'fr_FR', 'pt_BR', 'pt_BR', 'cy_GB', 'en', 'en', 'es']);

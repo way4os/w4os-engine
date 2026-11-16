@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "9201237",
+        "version": "d0062d2",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1048,6 +1048,20 @@
                                 "active",
                                 "disabled",
                                 "pending"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[role]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "resident",
+                                "god-like",
+                                "customer-service",
+                                "liaison",
+                                "god"
                             ]
                         }
                     },
@@ -6592,10 +6606,18 @@
                             },
                             "level": {
                                 "type": "integer",
-                                "description": "The user level, 200 and over are gods; the one it has back when it is active again"
+                                "description": "The user level, 200 and over are gods; the one it has back when it is active again (a sort by level sorts by it, so by role)"
                             },
                             "isGod": {
                                 "type": "boolean"
+                            },
+                            "role": {
+                                "type": "string",
+                                "description": "From the level, as w4os names it: `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200); a disabled avatar has the role of the level it gets back"
+                            },
+                            "standardLevel": {
+                                "type": "boolean",
+                                "description": "The level is the one of its role (0, 1, 100, 150, 200); false for one in between, which a site may show beside the role"
                             },
                             "flags": {
                                 "type": "integer",

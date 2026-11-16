@@ -186,8 +186,16 @@ final class Contract
                 'email' => ['string?', ''],
                 'title' => ['string', 'Its title'],
                 'created' => ['integer?', 'When the account was made (Unix time)'],
-                'level' => ['integer', 'The user level, 200 and over are gods; the one it has back when it is active again'],
+                'level' => ['integer', 'The user level, 200 and over are gods; the one it has back when it is active again (a sort by level sorts by it, so by role)'],
                 'isGod' => ['boolean', ''],
+                'role' => [
+                    'string',
+                    'From the level, as w4os names it: `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200); a disabled avatar has the role of the level it gets back',
+                ],
+                'standardLevel' => [
+                    'boolean',
+                    'The level is the one of its role (0, 1, 100, 150, 200); false for one in between, which a site may show beside the role',
+                ],
                 'flags' => ['integer', 'The user flags (bit 12: waits for the confirmation of its email)'],
                 'active' => ['boolean', 'The account can log in (status is active)'],
                 'status' => [
@@ -217,6 +225,7 @@ final class Contract
             'filters' => [
                 'active' => ['yes', 'no'],
                 'status' => ['active', 'disabled', 'pending'],
+                'role' => ['resident', 'god-like', 'customer-service', 'liaison', 'god'],
                 'online' => ['yes', 'no'],
                 'god' => ['yes', 'no'],
                 'technical' => ['yes', 'no'],

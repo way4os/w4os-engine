@@ -367,6 +367,30 @@ msgctxt "status_pending"
 msgid "Pending"
 msgstr "Pendente"
 
+msgctxt "role"
+msgid "Role"
+msgstr "Função"
+
+msgctxt "role_resident"
+msgid "Resident"
+msgstr "Residente"
+
+msgctxt "role_god_like"
+msgid "God-like"
+msgstr "Divino"
+
+msgctxt "role_customer_service"
+msgid "Customer Service"
+msgstr "Atendimento ao Cliente"
+
+msgctxt "role_liaison"
+msgid "Liaison"
+msgstr "Ligação"
+
+msgctxt "role_god"
+msgid "God"
+msgstr "Deus"
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Ativar"
@@ -418,6 +442,11 @@ msgstr "Não é permitido."
 msgctxt "error_nonce"
 msgid "This page has expired, please try again."
 msgstr "Esta página expirou, tente de novo."
+
+#, php-format
+msgctxt "error_too_many_registrations"
+msgid "Too many registrations from this address. Try again in %s minutes."
+msgstr "Muitos cadastros a partir deste endereço. Tente novamente em %s minutos."
 
 msgctxt "error_not_found"
 msgid "There is no such avatar."

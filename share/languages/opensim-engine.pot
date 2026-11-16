@@ -325,6 +325,30 @@ msgctxt "status_pending"
 msgid "Pending"
 msgstr ""
 
+msgctxt "role"
+msgid "Role"
+msgstr ""
+
+msgctxt "role_resident"
+msgid "Resident"
+msgstr ""
+
+msgctxt "role_god_like"
+msgid "God-like"
+msgstr ""
+
+msgctxt "role_customer_service"
+msgid "Customer Service"
+msgstr ""
+
+msgctxt "role_liaison"
+msgid "Liaison"
+msgstr ""
+
+msgctxt "role_god"
+msgid "God"
+msgstr ""
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr ""
@@ -375,6 +399,11 @@ msgstr ""
 
 msgctxt "error_nonce"
 msgid "This page has expired, please try again."
+msgstr ""
+
+#, php-format
+msgctxt "error_too_many_registrations"
+msgid "Too many registrations from this address. Try again in %s minutes."
 msgstr ""
 
 msgctxt "error_not_found"

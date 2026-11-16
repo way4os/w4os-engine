@@ -142,6 +142,7 @@ Catalog::messages('en');               // every text, in English (Catalog::MESSA
 Catalog::messages('fr_FR', fuzzy: false); // without the fuzzy ones (whose English changed since)
 Catalog::errorKey($problem['code']);   // 'error_name_taken'
 Catalog::statusKey($avatar['status']); // 'status_pending': the status of an avatar (active, disabled, pending)
+Catalog::roleKey($avatar['role']);     // 'role_god_like': the role of an avatar (resident, god-like, customer-service, liaison, god)
 Catalog::LOCALES;                      // the languages; Catalog::file('fr') is the path of the .po
 ```
 

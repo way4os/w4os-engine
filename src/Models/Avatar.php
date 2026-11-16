@@ -43,6 +43,15 @@ final class Avatar extends Model
      */
     public const STATUSES = ['active', 'disabled', 'pending'];
 
+    /**
+     * The roles of the avatars, as w4os names them, by the lowest level of each: a level of 200 and over is a god, 150 a liaison, 100
+     * the customer service, 1 god-like, 0 and less a resident.
+     */
+    public const ROLES = ['resident' => 0, 'god-like' => 1, 'customer-service' => 100, 'liaison' => 150, 'god' => 200];
+
+    /** The level of an account, the one it has back when it is active again (storedLevel()), as the database computes it. */
+    private const LEVEL = '(CASE WHEN u.UserLevel < 0 THEN -1 - u.UserLevel ELSE u.UserLevel END)';
+
     /** The bit of UserFlags of an account that waits for the confirmation of its email (bit 12: OpenSimulator uses 0 to 11). */
     public const PENDING_FLAG = 1 << 12;
 
@@ -119,7 +128,7 @@ final class Avatar extends Model
         'name' => ['u.FirstName', 'u.LastName'],
         'email' => ['u.Email'],
         'created' => ['u.Created'],
-        'level' => ['u.UserLevel'],
+        'level' => [self::LEVEL],
         'active' => ['u.active'],
         'lastSeen' => [self::LAST_SEEN],
         'online' => ["CASE WHEN g.Online = 'true' THEN 1 ELSE 0 END"],
@@ -234,6 +243,31 @@ final class Avatar extends Model
         return $active ? $level : -1 - max(0, $level);
     }
 
+    /** The role of the avatar, by its level (ROLES). */
+    public function role(): string
+    {
+        return self::roleOf($this->level());
+    }
+
+    /** The role of a level (ROLES): the one of the highest lowest level it reaches. */
+    public static function roleOf(int $level): string
+    {
+        $role = 'resident';
+        foreach (self::ROLES as $name => $lowest) {
+            if ($level >= $lowest) {
+                $role = $name;
+            }
+        }
+
+        return $role;
+    }
+
+    /** Whether the level of the avatar is the one of its role (0, 1, 100, 150, 200), not one in between. */
+    public function hasStandardLevel(): bool
+    {
+        return $this->level() === self::ROLES[$this->role()];
+    }
+
     public function isGod(): bool
     {
         return $this->level() >= self::GOD_LEVEL;
@@ -345,6 +379,8 @@ final class Avatar extends Model
             'created' => isset($row['Created']) ? (int) $row['Created'] : null,
             'level' => $this->level(),
             'isGod' => $this->isGod(),
+            'role' => $this->role(),
+            'standardLevel' => $this->hasStandardLevel(),
             'flags' => $this->flags(),
             'active' => $this->isEnabled(),
             'status' => $this->status(),
@@ -1163,7 +1199,13 @@ final class Avatar extends Model
     {
         $yesNo = ['yes', 'no'];
 
-        return ['active' => $yesNo, 'status' => self::STATUSES, 'god' => $yesNo, 'technical' => $yesNo] +
+        return [
+            'active' => $yesNo,
+            'status' => self::STATUSES,
+            'role' => array_keys(self::ROLES),
+            'god' => $yesNo,
+            'technical' => $yesNo,
+        ] +
             ($joined ? ['online' => $yesNo] : []);
     }
 
@@ -1241,6 +1283,7 @@ final class Avatar extends Model
                     'disabled' => "(NOT ($pending) AND NOT ($active))",
                     'pending' => "($pending)",
                 ],
+                'role' => self::roleConditions(),
                 'god' => [
                     'yes' => '(u.UserLevel >= ' . self::GOD_LEVEL . ' OR u.UserLevel <= ' . (-1 - self::GOD_LEVEL) . ')',
                     'no' => '(u.UserLevel < ' . self::GOD_LEVEL . ' AND u.UserLevel > ' . (-1 - self::GOD_LEVEL) . ')',
@@ -1258,6 +1301,20 @@ final class Avatar extends Model
         }
 
         return [$where === [] ? '' : ' WHERE ' . implode(' AND ', $where), $params, $applied];
+    }
+
+    /** @return array<string,string> the condition of each role on the level of an account (ROLES) */
+    private static function roleConditions(): array
+    {
+        $conditions = [];
+        $bounds = array_values(self::ROLES);
+        foreach (array_keys(self::ROLES) as $i => $role) {
+            $above = $i === 0 ? '' : self::LEVEL . ' >= ' . $bounds[$i];
+            $below = isset($bounds[$i + 1]) ? self::LEVEL . ' < ' . $bounds[$i + 1] : '';
+            $conditions[$role] = '(' . implode(' AND ', array_filter([$above, $below])) . ')';
+        }
+
+        return $conditions;
     }
 
     /**

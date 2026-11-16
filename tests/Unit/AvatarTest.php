@@ -266,6 +266,51 @@ describe('avatars', function () {
             ->toBe(['online' => 'yes']);
     });
 
+    test('have the role of their level, as w4os names it, and are filtered and sorted by it', function () {
+        $pdo = avatar_database();
+        avatars_in($pdo);
+        $config = avatar_grid();
+        // A level that is not the one of its role, and a god a manager disabled (its level kept below 0)
+        $pdo->exec("INSERT INTO UserAccounts (PrincipalID, FirstName, LastName, Email, Created, UserLevel, UserFlags, active) VALUES
+            ('44444444-4444-4444-4444-444444444444', 'Dee', 'Like', 'dee@example.org', 1700000001, 1, 0, 1),
+            ('55555555-5555-5555-5555-555555555555', 'Eve', 'Help', 'eve@example.org', 1700000002, 120, 0, 1),
+            ('66666666-6666-6666-6666-666666666666', 'Fay', 'Link', 'fay@example.org', 1700000003, 150, 0, 1),
+            ('77777777-7777-7777-7777-777777777777', 'Gus', 'Off', 'gus@example.org', 1700000004, -201, 0, 0)");
+        $roles = array_map(
+            static fn(array $avatar): array => [$avatar['role'], $avatar['standardLevel']],
+            array_column(Avatar::all($config)->array(), null, 'name'),
+        );
+        $names = static fn(string $role) => array_column(
+            Avatar::all($config, ['filters' => ['role' => $role]])->array(),
+            'name',
+        );
+
+        expect($roles)
+            ->toBe([
+                'Ada Love' => ['resident', true],
+                'Bob Root' => ['god', false],
+                'Cy Gone' => ['resident', true],
+                'Dee Like' => ['god-like', true],
+                'Eve Help' => ['customer-service', false],
+                'Fay Link' => ['liaison', true],
+                'Gus Off' => ['god', true],
+            ])
+            ->and(array_map($names, Avatar::ROLES === [] ? [] : array_combine(array_keys(Avatar::ROLES), array_keys(Avatar::ROLES))))
+            ->toBe([
+                'resident' => ['Ada Love', 'Cy Gone'],
+                'god-like' => ['Dee Like'],
+                'customer-service' => ['Eve Help'],
+                'liaison' => ['Fay Link'],
+                'god' => ['Bob Root', 'Gus Off'],
+            ])
+            ->and(array_column(Avatar::all($config, ['sort' => 'level desc'])->array(), 'name'))
+            ->toBe(['Bob Root', 'Gus Off', 'Fay Link', 'Eve Help', 'Dee Like', 'Ada Love', 'Cy Gone'])
+            ->and(Avatar::all($config, ['filters' => ['role' => 'admin']])->applied())
+            ->toBe([])
+            ->and(Avatar::roleOf(-3))
+            ->toBe('resident');
+    });
+
     test('come in pages, the total being the one before the pages', function () {
         avatars_in(avatar_database());
         $config = avatar_grid();
@@ -301,7 +346,7 @@ describe('avatars', function () {
             ->and($sortable)
             ->toBe(['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'status', 'god', 'technical', 'online']);
+            ->toBe(['active', 'status', 'role', 'god', 'technical', 'online']);
     });
 
     test('are found by their UUID or their name', function () {
@@ -371,7 +416,7 @@ describe('What a list of avatars offers', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'],
-                'filters' => ['active', 'status', 'god', 'technical', 'online'],
+                'filters' => ['active', 'status', 'role', 'god', 'technical', 'online'],
             ])
             ->and(
                 Avatar::capabilities(
@@ -382,7 +427,7 @@ describe('What a list of avatars offers', function () {
             )
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active'],
-                'filters' => ['active', 'status', 'god', 'technical'],
+                'filters' => ['active', 'status', 'role', 'god', 'technical'],
             ]);
     });
 });
@@ -761,7 +806,7 @@ describe('avatars of a grid whose services have their own databases', function (
             ->and($list->applied())
             ->toBe([])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'status', 'god', 'technical'])
+            ->toBe(['active', 'status', 'role', 'god', 'technical'])
             ->and($ada->isOnline())
             ->toBeTrue()
             ->and($ada->lastSeen()->getTimestamp())
