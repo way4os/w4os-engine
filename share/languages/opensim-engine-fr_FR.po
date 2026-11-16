@@ -343,14 +343,6 @@ msgctxt "online"
 msgid "Online"
 msgstr "En ligne"
 
-msgctxt "active"
-msgid "Active"
-msgstr "Actif"
-
-msgctxt "inactive"
-msgid "Inactive"
-msgstr "Inactif"
-
 msgctxt "status_active"
 msgid "Active"
 msgstr "Actif"
@@ -360,7 +352,12 @@ msgid "Disabled"
 msgstr ""
 
 msgctxt "status_pending"
-msgid "Waiting for the confirmation of its email"
+msgid "Waiting for email confirmation"
+msgstr ""
+
+#, php-format
+msgctxt "actions_for"
+msgid "Actions for %s"
 msgstr ""
 
 msgctxt "action_enable"
@@ -374,15 +371,6 @@ msgstr "Désactiver"
 msgctxt "action_reset"
 msgid "Send a password reset link"
 msgstr ""
-
-msgctxt "action_delete"
-msgid "Delete"
-msgstr "Supprimer"
-
-#, php-format
-msgctxt "delete_confirm"
-msgid "Delete %s for good, with its inventory?"
-msgstr "Supprimer %s pour de bon, avec son inventaire ?"
 
 #, php-format
 msgctxt "manage_enable"
@@ -398,11 +386,6 @@ msgstr "%s est désactivé."
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
 msgstr "Un lien pour choisir un nouveau mot de passe part vers %s."
-
-#, php-format
-msgctxt "manage_delete"
-msgid "%s is deleted."
-msgstr "%s est supprimé."
 
 msgctxt "error_required"
 msgid "Please fill in every field."
@@ -541,6 +524,28 @@ msgstr "Cet avatar n’attend pas de confirmation de son e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Le message n’a pas pu partir. Merci de réessayer plus tard."
+
+#~ msgctxt "active"
+#~ msgid "Active"
+#~ msgstr "Actif"
+
+#~ msgctxt "inactive"
+#~ msgid "Inactive"
+#~ msgstr "Inactif"
+
+#~ msgctxt "action_delete"
+#~ msgid "Delete"
+#~ msgstr "Supprimer"
+
+#, php-format
+#~ msgctxt "delete_confirm"
+#~ msgid "Delete %s for good, with its inventory?"
+#~ msgstr "Supprimer %s pour de bon, avec son inventaire ?"
+
+#, php-format
+#~ msgctxt "manage_delete"
+#~ msgid "%s is deleted."
+#~ msgstr "%s est supprimé."
 
 #~ msgctxt "action_reset"
 #~ msgid "Password link"

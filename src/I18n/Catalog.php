@@ -113,21 +113,17 @@ final class Catalog
         'actions' => 'Actions',
         'god' => 'God',
         'online' => 'Online',
-        'active' => 'Active',
-        'inactive' => 'Inactive',
         // The status of an avatar, as the API says it (Avatar::STATUSES): status_ and the status
         'status_active' => 'Active',
         'status_disabled' => 'Disabled',
-        'status_pending' => 'Waiting for the confirmation of its email',
+        'status_pending' => 'Waiting for email confirmation',
+        'actions_for' => 'Actions for %s',
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
         'action_reset' => 'Send a password reset link',
-        'action_delete' => 'Delete',
-        'delete_confirm' => 'Delete %s for good, with its inventory?',
         'manage_enable' => '%s is enabled.',
         'manage_disable' => '%s is disabled.',
         'manage_reset' => 'A link to choose a new password is on its way to %s.',
-        'manage_delete' => '%s is deleted.',
 
         // What the forms check
         'error_required' => 'Please fill in every field.',

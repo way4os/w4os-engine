@@ -344,14 +344,6 @@ msgctxt "online"
 msgid "Online"
 msgstr "Online"
 
-msgctxt "active"
-msgid "Active"
-msgstr "Actief"
-
-msgctxt "inactive"
-msgid "Inactive"
-msgstr "Inactief"
-
 msgctxt "status_active"
 msgid "Active"
 msgstr "Actief"
@@ -361,7 +353,12 @@ msgid "Disabled"
 msgstr ""
 
 msgctxt "status_pending"
-msgid "Waiting for the confirmation of its email"
+msgid "Waiting for email confirmation"
+msgstr ""
+
+#, php-format
+msgctxt "actions_for"
+msgid "Actions for %s"
 msgstr ""
 
 msgctxt "action_enable"
@@ -375,15 +372,6 @@ msgstr "Uitschakelen"
 msgctxt "action_reset"
 msgid "Send a password reset link"
 msgstr ""
-
-msgctxt "action_delete"
-msgid "Delete"
-msgstr "Verwijderen"
-
-#, php-format
-msgctxt "delete_confirm"
-msgid "Delete %s for good, with its inventory?"
-msgstr "%s definitief verwijderen, met zijn inventaris?"
 
 #, php-format
 msgctxt "manage_enable"
@@ -399,11 +387,6 @@ msgstr "%s is gedeactiveerd."
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
 msgstr "Er is een link om een nieuw wachtwoord te kiezen onderweg naar %s."
-
-#, php-format
-msgctxt "manage_delete"
-msgid "%s is deleted."
-msgstr "%s is verwijderd."
 
 msgctxt "error_required"
 msgid "Please fill in every field."
@@ -542,6 +525,28 @@ msgstr "Deze avatar wacht niet op de bevestiging van zijn e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "De mail kon niet worden verstuurd. Probeer het later opnieuw."
+
+#~ msgctxt "active"
+#~ msgid "Active"
+#~ msgstr "Actief"
+
+#~ msgctxt "inactive"
+#~ msgid "Inactive"
+#~ msgstr "Inactief"
+
+#~ msgctxt "action_delete"
+#~ msgid "Delete"
+#~ msgstr "Verwijderen"
+
+#, php-format
+#~ msgctxt "delete_confirm"
+#~ msgid "Delete %s for good, with its inventory?"
+#~ msgstr "%s definitief verwijderen, met zijn inventaris?"
+
+#, php-format
+#~ msgctxt "manage_delete"
+#~ msgid "%s is deleted."
+#~ msgstr "%s is verwijderd."
 
 #~ msgctxt "action_reset"
 #~ msgid "Password link"

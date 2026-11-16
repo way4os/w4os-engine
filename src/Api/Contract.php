@@ -216,6 +216,7 @@ final class Contract
             ],
             'filters' => [
                 'active' => ['yes', 'no'],
+                'status' => ['active', 'disabled', 'pending'],
                 'online' => ['yes', 'no'],
                 'god' => ['yes', 'no'],
                 'technical' => ['yes', 'no'],

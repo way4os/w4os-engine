@@ -483,6 +483,7 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
         [$made, $signIn, $change] = pending_avatar($router);
 
         $waiting = $signIn();
+        $listed = $router->get('/grids/demo/avatars', ['filter' => ['status' => 'pending']]);
         $enabled = $change(['enabled' => true]);
         $granted = $signIn();
         $disabled = $change(['enabled' => false]);
@@ -491,6 +492,8 @@ describe('The states of an avatar: active, disabled by a manager, waiting for it
             ->toBe('pending')
             ->and($waiting)
             ->toBe('email-unconfirmed')
+            ->and(array_column(array_column($listed->document['data'], 'attributes'), 'name'))
+            ->toBe(['Lisa Simpson'])
             ->and($enabled->document['data']['attributes']['status'])
             ->toBe('active')
             ->and($granted)

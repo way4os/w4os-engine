@@ -220,6 +220,26 @@ describe('avatars', function () {
             ->toBe(['Ada Love', 'Bob Root', 'Cy Gone']);
     });
 
+    test('are filtered by status: active, disabled by a manager, waiting for the confirmation of its email', function () {
+        $pdo = avatar_database();
+        avatars_in($pdo);
+        $config = avatar_grid();
+        $names = static fn(string $status) => array_column(
+            Avatar::all($config, ['filters' => ['status' => $status]])->array(),
+            'name',
+        );
+
+        $before = [$names('active'), $names('disabled'), $names('pending')];
+        $pdo->exec('UPDATE UserAccounts SET UserFlags = ' . Avatar::PENDING_FLAG . " WHERE FirstName = 'Cy'");
+
+        expect($before)
+            ->toBe([['Ada Love', 'Bob Root'], ['Cy Gone'], []])
+            ->and([$names('active'), $names('disabled'), $names('pending')])
+            ->toBe([['Ada Love', 'Bob Root'], [], ['Cy Gone']])
+            ->and(Avatar::find($config, 'Cy Gone')->status())
+            ->toBe('pending');
+    });
+
     test('are filtered by active, online and god', function () {
         avatars_in(avatar_database());
         $config = avatar_grid();
@@ -281,7 +301,7 @@ describe('avatars', function () {
             ->and($sortable)
             ->toBe(['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'god', 'technical', 'online']);
+            ->toBe(['active', 'status', 'god', 'technical', 'online']);
     });
 
     test('are found by their UUID or their name', function () {
@@ -351,7 +371,7 @@ describe('What a list of avatars offers', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active', 'online', 'lastSeen'],
-                'filters' => ['active', 'god', 'technical', 'online'],
+                'filters' => ['active', 'status', 'god', 'technical', 'online'],
             ])
             ->and(
                 Avatar::capabilities(
@@ -362,7 +382,7 @@ describe('What a list of avatars offers', function () {
             )
             ->toBe([
                 'sortable' => ['name', 'email', 'created', 'level', 'active'],
-                'filters' => ['active', 'god', 'technical'],
+                'filters' => ['active', 'status', 'god', 'technical'],
             ]);
     });
 });
@@ -741,7 +761,7 @@ describe('avatars of a grid whose services have their own databases', function (
             ->and($list->applied())
             ->toBe([])
             ->and(array_keys($list->filters()))
-            ->toBe(['active', 'god', 'technical'])
+            ->toBe(['active', 'status', 'god', 'technical'])
             ->and($ada->isOnline())
             ->toBeTrue()
             ->and($ada->lastSeen()->getTimestamp())

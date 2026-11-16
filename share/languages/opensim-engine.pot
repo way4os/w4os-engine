@@ -301,14 +301,6 @@ msgctxt "online"
 msgid "Online"
 msgstr ""
 
-msgctxt "active"
-msgid "Active"
-msgstr ""
-
-msgctxt "inactive"
-msgid "Inactive"
-msgstr ""
-
 msgctxt "status_active"
 msgid "Active"
 msgstr ""
@@ -318,7 +310,12 @@ msgid "Disabled"
 msgstr ""
 
 msgctxt "status_pending"
-msgid "Waiting for the confirmation of its email"
+msgid "Waiting for email confirmation"
+msgstr ""
+
+#, php-format
+msgctxt "actions_for"
+msgid "Actions for %s"
 msgstr ""
 
 msgctxt "action_enable"
@@ -331,15 +328,6 @@ msgstr ""
 
 msgctxt "action_reset"
 msgid "Send a password reset link"
-msgstr ""
-
-msgctxt "action_delete"
-msgid "Delete"
-msgstr ""
-
-#, php-format
-msgctxt "delete_confirm"
-msgid "Delete %s for good, with its inventory?"
 msgstr ""
 
 #, php-format
@@ -355,11 +343,6 @@ msgstr ""
 #, php-format
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
-msgstr ""
-
-#, php-format
-msgctxt "manage_delete"
-msgid "%s is deleted."
 msgstr ""
 
 msgctxt "error_required"

@@ -1015,7 +1015,7 @@ final class Avatar extends Model
      * The avatars of the grid.
      *
      * Options: `search` (words, each of them in the first name or the last name, and in the email with `searchEmail`: the emails are
-     * not found by whoever asks, unless the caller says so), `sort` ("name", "lastSeen desc"...), `filters` (`active`, `online`, `god`,
+     * not found by whoever asks, unless the caller says so), `sort` ("name", "lastSeen desc"...), `filters` (`active`, `status`, `online`, `god`,
      * `technical`: yes or no), `page` and `perPage`.
      *
      * @throws ChannelUnavailable when the database of the accounts cannot be reached
@@ -1136,7 +1136,8 @@ final class Avatar extends Model
     {
         $yesNo = ['yes', 'no'];
 
-        return ['active' => $yesNo, 'god' => $yesNo, 'technical' => $yesNo] + ($joined ? ['online' => $yesNo] : []);
+        return ['active' => $yesNo, 'status' => self::STATUSES, 'god' => $yesNo, 'technical' => $yesNo] +
+            ($joined ? ['online' => $yesNo] : []);
     }
 
     /** Whether the accounts, the visits and the profiles are in one database. */
@@ -1202,21 +1203,29 @@ final class Avatar extends Model
                 ')';
             $params["w$i"] = self::contains($word);
         }
+        // The states as statusOf() tells them
+        $pending = '(u.UserFlags & ' . self::PENDING_FLAG . ') <> 0';
+        $active = '(u.UserFlags & ' . self::PENDING_FLAG . ') = 0 AND u.active = 1 AND u.UserLevel >= 0';
         $filters =
             [
-                'active' => ['(u.active = 1 AND u.UserLevel >= 0)', '(u.active = 0 OR u.UserLevel < 0)'],
+                'active' => ['yes' => "($active)", 'no' => "NOT ($active)"],
+                'status' => [
+                    'active' => "($active)",
+                    'disabled' => "(NOT ($pending) AND NOT ($active))",
+                    'pending' => "($pending)",
+                ],
                 'god' => [
-                    '(u.UserLevel >= ' . self::GOD_LEVEL . ' OR u.UserLevel <= ' . (-1 - self::GOD_LEVEL) . ')',
-                    '(u.UserLevel < ' . self::GOD_LEVEL . ' AND u.UserLevel > ' . (-1 - self::GOD_LEVEL) . ')',
+                    'yes' => '(u.UserLevel >= ' . self::GOD_LEVEL . ' OR u.UserLevel <= ' . (-1 - self::GOD_LEVEL) . ')',
+                    'no' => '(u.UserLevel < ' . self::GOD_LEVEL . ' AND u.UserLevel > ' . (-1 - self::GOD_LEVEL) . ')',
                 ],
                 'technical' => [
-                    "(u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",
-                    "NOT (u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",
+                    'yes' => "(u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",
+                    'no' => "NOT (u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",
                 ],
-            ] + ($joined ? ['online' => ["g.Online = 'true'", "(g.Online IS NULL OR g.Online <> 'true')"]] : []);
+            ] + ($joined ? ['online' => ['yes' => "g.Online = 'true'", 'no' => "(g.Online IS NULL OR g.Online <> 'true')"]] : []);
         foreach ((array) ($options['filters'] ?? []) as $name => $value) {
-            if (isset($filters[$name]) && in_array($value, ['yes', 'no'], true)) {
-                $where[] = $filters[$name][$value === 'yes' ? 0 : 1];
+            if (is_string($value) && isset($filters[$name][$value])) {
+                $where[] = $filters[$name][$value];
                 $applied[$name] = $value;
             }
         }

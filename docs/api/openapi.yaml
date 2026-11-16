@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: ac69c0f
+  version: 0a5bb1f
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -712,6 +712,15 @@ paths:
             enum:
               - 'yes'
               - 'no'
+        -
+          name: 'filter[status]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - active
+              - disabled
+              - pending
         -
           name: 'filter[online]'
           in: query
