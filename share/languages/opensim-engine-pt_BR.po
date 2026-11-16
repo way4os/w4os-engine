@@ -165,7 +165,7 @@ msgid "Login failed"
 msgstr "Falha no login"
 
 msgctxt "forgot_title"
-msgid "Lost Password"
+msgid "Forgotten password"
 msgstr "Esqueci minha senha"
 
 msgctxt "forgot_text"
@@ -526,6 +526,10 @@ msgstr "Este avatar não aguarda a confirmação do email."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "O email não pôde ser enviado. Tente de novo mais tarde."
+
+#~ msgctxt "forgot_title"
+#~ msgid "Lost Password"
+#~ msgstr "Esqueci minha senha"
 
 #~ msgctxt "status_pending"
 #~ msgid "Waiting for email confirmation"

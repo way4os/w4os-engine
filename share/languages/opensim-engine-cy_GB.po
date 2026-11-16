@@ -166,8 +166,8 @@ msgid "Login failed"
 msgstr "Methodd y mewngofnodi"
 
 msgctxt "forgot_title"
-msgid "Lost Password"
-msgstr "Cyfrinair Coll"
+msgid "Forgotten password"
+msgstr "Wedi anghofio'r cyfrinair"
 
 msgctxt "forgot_text"
 msgid ""
@@ -539,6 +539,10 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#~ msgctxt "forgot_title"
+#~ msgid "Lost Password"
+#~ msgstr "Cyfrinair Coll"
 
 #~ msgctxt "status_pending"
 #~ msgid "Waiting for email confirmation"

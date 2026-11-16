@@ -166,7 +166,7 @@ msgid "Login failed"
 msgstr "Inloggen mislukt"
 
 msgctxt "forgot_title"
-msgid "Lost Password"
+msgid "Forgotten password"
 msgstr "Wachtwoord vergeten"
 
 msgctxt "forgot_text"
@@ -532,6 +532,10 @@ msgstr "Deze avatar wacht niet op de bevestiging van zijn e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "De mail kon niet worden verstuurd. Probeer het later opnieuw."
+
+#~ msgctxt "forgot_title"
+#~ msgid "Lost Password"
+#~ msgstr "Wachtwoord vergeten"
 
 #~ msgctxt "status_pending"
 #~ msgid "Waiting for email confirmation"

@@ -73,7 +73,7 @@ final class Catalog
         'login' => 'Avatar name or email',
         // The headline of a refused sign-in, above the reason (error_account_disabled, error_email_unconfirmed...)
         'sign_in_failed' => 'Login failed',
-        'forgot_title' => 'Lost Password',
+        'forgot_title' => 'Forgotten password',
         'forgot_text' => 'Type the name of your avatar or your email: you will get a link to choose a new password.',
         'forgot_button' => 'Send me a link',
         'forgot_sent' => 'If an avatar has this name or this email, a link is on its way to its address.',

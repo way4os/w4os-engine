@@ -168,8 +168,8 @@ msgid "Login failed"
 msgstr "Anmeldung fehlgeschlagen"
 
 msgctxt "forgot_title"
-msgid "Lost Password"
-msgstr "Verlorenes Passwort"
+msgid "Forgotten password"
+msgstr "Passwort vergessen"
 
 msgctxt "forgot_text"
 msgid ""
@@ -540,6 +540,10 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#~ msgctxt "forgot_title"
+#~ msgid "Lost Password"
+#~ msgstr "Verlorenes Passwort"
 
 #~ msgctxt "status_pending"
 #~ msgid "Waiting for email confirmation"

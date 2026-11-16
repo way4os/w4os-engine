@@ -146,7 +146,7 @@ msgid "Login failed"
 msgstr ""
 
 msgctxt "forgot_title"
-msgid "Lost Password"
+msgid "Forgotten password"
 msgstr ""
 
 msgctxt "forgot_text"
