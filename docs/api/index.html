@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "71e7db9",
+        "version": "4d6dbdd",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -3031,7 +3031,8 @@
                         {
                             "name": "ownerName",
                             "label": "column_owner",
-                            "type": "text"
+                            "type": "link",
+                            "link": "ownerProfile"
                         },
                         {
                             "name": "roles",
@@ -3275,9 +3276,10 @@
                         {
                             "name": "ownerName",
                             "label": "column_owner",
-                            "type": "text",
+                            "type": "link",
                             "group": "region",
-                            "readOnly": true
+                            "readOnly": true,
+                            "link": "ownerProfile"
                         },
                         {
                             "name": "roles",
@@ -9310,6 +9312,13 @@
                                     "string",
                                     "null"
                                 ]
+                            },
+                            "ownerProfile": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The web page of the profile of its owner: `web_profile_url` of the grid with its name; null when the grid has none"
                             },
                             "flags": {
                                 "type": "integer",

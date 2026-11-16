@@ -342,6 +342,10 @@ final class Contract
                 'handle' => ['integer?', 'The handle of its location'],
                 'owner' => ['string?', 'The UUID of its owner'],
                 'ownerName' => ['string?', ''],
+                'ownerProfile' => [
+                    'string?',
+                    'The web page of the profile of its owner: `web_profile_url` of the grid with its name; null when the grid has none',
+                ],
                 'flags' => ['integer', 'The flags of the grid'],
                 'roles' => ['array', 'The roles its flags give: DefaultRegion, FallbackRegion...'],
                 'flagLabels' => ['array', ''],

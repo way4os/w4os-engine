@@ -475,6 +475,30 @@ msgctxt "email_changed"
 msgid "Your email is now %s."
 msgstr "Je e-mail is nu %s."
 
+msgctxt "regions_title"
+msgid "Regions"
+msgstr "Regio's"
+
+msgctxt "search_regions"
+msgid "Region name"
+msgstr "Naam van de regio"
+
+#, php-format
+msgctxt "regions_count"
+msgid "%d region"
+msgid_plural "%d regions"
+msgstr[0] "%d regio"
+msgstr[1] "%d regio's"
+
+msgctxt "no_regions"
+msgid "No region"
+msgstr "Geen regio"
+
+#, php-format
+msgctxt "regions_online"
+msgid "%1$s online of %2$s"
+msgstr "%1$s van %2$s online"
+
 msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Beheer"

@@ -436,6 +436,30 @@ msgctxt "email_changed"
 msgid "Your email is now %s."
 msgstr ""
 
+msgctxt "regions_title"
+msgid "Regions"
+msgstr ""
+
+msgctxt "search_regions"
+msgid "Region name"
+msgstr ""
+
+#, php-format
+msgctxt "regions_count"
+msgid "%d region"
+msgid_plural "%d regions"
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "no_regions"
+msgid "No region"
+msgstr ""
+
+#, php-format
+msgctxt "regions_online"
+msgid "%1$s online of %2$s"
+msgstr ""
+
 msgctxt "menu_admin"
 msgid "Admin"
 msgstr ""

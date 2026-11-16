@@ -51,6 +51,7 @@ final class Catalog
     /** The texts that change with a number, by key: their English singular (MESSAGES has their plural). */
     public const SINGULARS = [
         'profile_age_days' => '%d day',
+        'regions_count' => '%d region',
     ];
 
     /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s, %d). */
@@ -178,6 +179,14 @@ final class Catalog
         'email_pending' => 'Your profile is saved. A link is on its way to %s: click it to make it your email.',
         'email_pending_test' => 'Your profile is saved. Test site, no mail: confirm %1$s with this link: %2$s',
         'email_changed' => 'Your email is now %s.',
+
+        // The regions of the grid (managers): the page, its search, how many it lists (regions_count changes with the number), how many
+        // are online of all
+        'regions_title' => 'Regions',
+        'search_regions' => 'Region name',
+        'regions_count' => '%d regions',
+        'no_regions' => 'No region',
+        'regions_online' => '%1$s online of %2$s',
 
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',

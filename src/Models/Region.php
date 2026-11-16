@@ -294,6 +294,9 @@ final class Region extends Model
             'handle' => $row['regionHandle'] ?? null,
             'owner' => $this->owner(),
             'ownerName' => $row['ownerName'] ?? null,
+            'ownerProfile' => ($row['ownerName'] ?? null) === null
+                ? null
+                : Avatar::profilePage($this->config, (string) $row['ownerName']),
             'flags' => $this->flags(),
             'roles' => $this->roles(),
             'flagLabels' => array_values(self::flagLabels($this->flags())),
@@ -825,7 +828,7 @@ final class Region extends Model
                 Listing::column('name', 'column_region', sort: 'name'),
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('size', 'column_size', 'size', 'size'),
-                Listing::column('ownerName', 'column_owner'),
+                Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
                 Listing::column('roles', 'column_roles', 'list', 'flags'),
                 Listing::column('online', 'online', 'boolean'),
                 Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
@@ -872,7 +875,7 @@ final class Region extends Model
                 ItemForm::shown('uuid', 'profile_key', 'text', 'region'),
                 ItemForm::shown('location', 'profile_location', 'text', 'region'),
                 ItemForm::shown('size', 'column_size', 'size', 'region'),
-                ItemForm::shown('ownerName', 'column_owner', 'text', 'region'),
+                ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile']),
                 ItemForm::shown('roles', 'column_roles', 'list', 'region'),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
                 ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),

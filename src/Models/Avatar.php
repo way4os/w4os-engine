@@ -1486,6 +1486,21 @@ final class Avatar extends Model
     }
 
     /**
+     * The web page of the profile of an avatar of the grid, by its name: `web_profile_url` of `[GridInfoService]` with First.Last for
+     * `[AGENT_NAME]`, as the viewers open it. Null when the grid has none, or one that is not for an avatar.
+     */
+    public static function profilePage(GridConfig $config, string $name): ?string
+    {
+        $page = (string) $config->find('GridInfoService', 'web_profile_url');
+        $parts = preg_split('/[\s.]+/', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if (!str_contains($page, '[AGENT_NAME]') || count($parts) !== 2) {
+            return null;
+        }
+
+        return str_replace('[AGENT_NAME]', rawurlencode($parts[0]) . '.' . rawurlencode($parts[1]), $page);
+    }
+
+    /**
      * What the page of an avatar shows and lets change (ItemForm), in the tabs of its profile and the one of its account: the avatar
      * changes its profile, its email (confirmed, see confirmEmail) and its password; the managers change everything, its role and
      * its status too.

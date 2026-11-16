@@ -230,6 +230,32 @@ describe('Regions', function () {
             ->toBe([null]);
     });
 
+    test('link their owner to the web profile the grid gives, none when it gives none', function () {
+        Connections::using(static fn() => region_database());
+        $config = region_config();
+        $dir = test_tmp() . '/regions-profile-' . bin2hex(random_bytes(4));
+        mkdir($dir, 0o755, true);
+        file_put_contents(
+            "$dir/Robust.HG.ini",
+            "[Const]\n BaseURL = \"http://play.example.org\"\n[GridInfoService]\n web_profile_url = \"\${Const|BaseURL}/helpers/profile/[AGENT_NAME]\"\n[DatabaseService]\n ConnectionString = \"Data Source=localhost;Database=robust;User ID=os;Password=pw;\"\n",
+        );
+        $profiled = GridConfig::fromFolder($dir);
+        $owners = static fn(GridConfig $grid): array => array_column(Region::all($grid)->array(), 'ownerProfile', 'name');
+
+        expect($owners($profiled))
+            ->toBe([
+                'Garden' => 'http://play.example.org/helpers/profile/Ada.Love',
+                'Quiet Harbour' => null,
+                'Welcome' => 'http://play.example.org/helpers/profile/Ada.Love',
+            ])
+            ->and($owners($config))
+            ->toBe(['Garden' => null, 'Quiet Harbour' => null, 'Welcome' => null])
+            ->and(\OpenSim\Models\Avatar::profilePage($profiled, 'Jean Dé'))
+            ->toBe('http://play.example.org/helpers/profile/Jean.D%C3%A9')
+            ->and(\OpenSim\Models\Avatar::profilePage($profiled, 'Nobody'))
+            ->toBeNull();
+    });
+
     test('describe their list: columns, sorts, filters, search and actions, with the keys of the catalog', function () {
         $listing = Region::listing();
 
@@ -239,7 +265,7 @@ describe('Regions', function () {
                 'name' => 'text',
                 'location' => 'text',
                 'size' => 'size',
-                'ownerName' => 'text',
+                'ownerName' => 'link',
                 'roles' => 'list',
                 'online' => 'boolean',
                 'lastSeen' => 'date',

@@ -68,6 +68,8 @@ describe('the catalog of the texts of the sites', function () {
             ->toBe(['%d diwrnod', '%d ddiwrnod', '%d diwrnod'])
             ->and($days('es', 1))
             ->toBe('%d day')
+            ->and([Catalog::plural('fr', 'regions_count', 1), Catalog::plural('fr', 'regions_count', 5), Catalog::plural('cy', 'regions_count', 2)])
+            ->toBe(['%d région', '%d régions', '%d ranbarth'])
             ->and(Catalog::plural('fr', 'profile_name', 3))
             ->toBe('Nom')
             ->and(Catalog::messages('fr')['profile_age_days'])
