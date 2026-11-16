@@ -313,7 +313,7 @@ msgstr "Scripting"
 
 msgctxt "skill_custom_characters"
 msgid "Custom Characters"
-msgstr "Caratteri personalizzati"
+msgstr "Personaggi personalizzati"
 
 msgctxt "languages"
 msgid "Languages"

@@ -311,7 +311,7 @@ msgstr "Scripting"
 
 msgctxt "skill_custom_characters"
 msgid "Custom Characters"
-msgstr "Aangepaste tekens"
+msgstr "Aangepaste personages"
 
 msgctxt "languages"
 msgid "Languages"

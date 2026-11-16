@@ -282,7 +282,7 @@ msgstr "Gwerthu"
 
 msgctxt "want_be_hired"
 msgid "Be Hired"
-msgstr "Byddwch yn Llogi"
+msgstr "Cael fy nghyflogi"
 
 msgctxt "want_hire"
 msgid "Hire"

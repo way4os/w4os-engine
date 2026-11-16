@@ -314,7 +314,7 @@ msgstr "Skripten"
 
 msgctxt "skill_custom_characters"
 msgid "Custom Characters"
-msgstr "Benutzerdefinierte Zeichen"
+msgstr "Individuelle Charaktere"
 
 msgctxt "languages"
 msgid "Languages"
