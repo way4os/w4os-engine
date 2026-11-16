@@ -571,8 +571,8 @@ final class Api
 
     /**
      * An asset of a grid as a page shows it: an image of any type as a picture in the format asked, resized to a width when it is asked
-     * (the grid keeps textures as JPEG 2000), the other types as they are. What is not there is the picture of nothing, with the status
-     * 404.
+     * (the grid keeps textures as JPEG 2000), the other types as they are. What is not there is the picture of nothing, or of a person
+     * who has none (`$of` person, WebAssets::DEFAULTS), with the status 404.
      */
     public function media(
         string $grid,
@@ -580,11 +580,12 @@ final class Api
         string $format = 'jpg',
         ?ConverterInterface $converter = null,
         ?int $width = null,
+        string $of = 'place',
     ): Response {
         $instance = self::path('assets', $id, $grid);
         try {
             $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
-            $picture = WebAssets::for($found, $converter)->get($id, $format, $width);
+            $picture = WebAssets::for($found, $converter)->get($id, $format, $width, $of);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }

@@ -26,8 +26,8 @@ use OpenSim\Text\Uuid;
  */
 final class AvatarModel extends Model
 {
-    /** The picture of a model that has none: the "image not found" texture w4os shows. */
-    public const PLACEHOLDER = WebAssets::PLACEHOLDER;
+    /** The picture of a model that has none: the silhouette of a person, as for any profile without its picture. */
+    public const PLACEHOLDER = WebAssets::PERSON;
 
     private const ZERO = '00000000-0000-0000-0000-000000000000';
 

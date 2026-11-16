@@ -6,6 +6,7 @@ namespace OpenSim\Api;
 
 use OpenSim\Forms\ItemForm;
 use OpenSim\Assets\Logos;
+use OpenSim\Assets\WebAssets;
 use OpenSim\Data\Listing;
 use OpenSim\Models\Service;
 use Symfony\Component\Yaml\Yaml;
@@ -688,6 +689,13 @@ final class Contract
                     'description' => 'Resize the picture to this width, in pixels',
                     'schema' => ['type' => 'integer', 'minimum' => 1],
                 ],
+                [
+                    'name' => 'default',
+                    'in' => 'query',
+                    'required' => false,
+                    'description' => 'What a picture that is not there stands for: `place` (the default), or `person`, a profile picture: the silhouette of a person instead of the picture of nothing. The id `' . WebAssets::PERSON . '` is that silhouette, found, as `' . WebAssets::PLACEHOLDER . '` is the picture of nothing',
+                    'schema' => ['type' => 'string', 'enum' => array_keys(WebAssets::DEFAULTS)],
+                ],
             ],
             'responses' => [
                 '200' => [
@@ -695,7 +703,7 @@ final class Contract
                     'content' => ['image/*' => ['schema' => ['type' => 'string', 'format' => 'binary']]],
                 ],
                 '404' => [
-                    'description' => 'There is no such asset, or it cannot be converted: the picture of nothing',
+                    'description' => 'There is no such asset, or it cannot be converted: the picture of nothing, or of a person (`default`)',
                     'content' => ['image/png' => ['schema' => ['type' => 'string', 'format' => 'binary']]],
                 ],
             ],

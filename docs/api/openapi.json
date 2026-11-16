@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "4d6dbdd",
+        "version": "15d20e2",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -4891,6 +4891,19 @@
                             "type": "integer",
                             "minimum": 1
                         }
+                    },
+                    {
+                        "name": "default",
+                        "in": "query",
+                        "required": false,
+                        "description": "What a picture that is not there stands for: `place` (the default), or `person`, a profile picture: the silhouette of a person instead of the picture of nothing. The id `c14a1985-c549-4485-8779-7103d74ef5e0` is that silhouette, found, as `201ce950-aa38-46d8-a8f1-4396e9d6be00` is the picture of nothing",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "place",
+                                "person"
+                            ]
+                        }
                     }
                 ],
                 "responses": {
@@ -4906,7 +4919,7 @@
                         }
                     },
                     "404": {
-                        "description": "There is no such asset, or it cannot be converted: the picture of nothing",
+                        "description": "There is no such asset, or it cannot be converted: the picture of nothing, or of a person (`default`)",
                         "content": {
                             "image/png": {
                                 "schema": {

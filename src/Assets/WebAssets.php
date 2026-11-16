@@ -34,12 +34,25 @@ final class WebAssets
     /** The picture of nothing of the kit, in its share folder (the one of w4os). */
     public const PLACEHOLDER_FILE = 'share/images/assets-no-img.png';
 
+    /**
+     * The id of the picture of a person who has none (a profile without its picture, in-world or of its real life): no grid has it,
+     * it is the silhouette of the kit, found.
+     */
+    public const PERSON = 'c14a1985-c549-4485-8779-7103d74ef5e0';
+
+    /** The silhouette of a person of the kit, in its share folder. */
+    public const PERSON_FILE = 'share/images/assets-no-person.png';
+
+    /** What stands for a picture that is not there, by what it is the picture of: a place (the default), a person. */
+    public const DEFAULTS = ['place' => self::PLACEHOLDER_FILE, 'person' => self::PERSON_FILE];
+
     /** A transparent pixel: what is shown for what has no picture, when nothing better is given. */
     private const NOTHING = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
     /**
      * @param ?\Closure(string):?string $http the body of an address, null when it does not answer (default: curl)
      * @param ?string $placeholder the file of the picture of nothing (default: a transparent pixel)
+     * @param ?string $person the file of the picture of a person who has none (default: the picture of nothing)
      */
     public function __construct(
         private readonly Grid $grid,
@@ -48,6 +61,7 @@ final class WebAssets
         private readonly ConverterInterface $converter,
         private readonly ?\Closure $http = null,
         private readonly ?string $placeholder = null,
+        private readonly ?string $person = null,
     ) {}
 
     /** The cache folder of the assets of a grid of this machine. */
@@ -70,15 +84,17 @@ final class WebAssets
             $converter ?? new ImagickConverter(),
             $grid->environment()->http,
             self::placeholderFile(),
+            self::placeholderFile('person'),
         );
     }
 
-    /** The picture of nothing of the kit, null when it is not installed. */
-    public static function placeholderFile(): ?string
+    /** The picture of the kit for what has none, a place or a person (DEFAULTS), null when it is not installed. */
+    public static function placeholderFile(string $of = 'place'): ?string
     {
+        $file = self::DEFAULTS[$of] ?? self::PLACEHOLDER_FILE;
         foreach (ResourceRegistry::roots() as $root) {
-            if (is_file($root . '/' . self::PLACEHOLDER_FILE)) {
-                return $root . '/' . self::PLACEHOLDER_FILE;
+            if (is_file($root . '/' . $file)) {
+                return $root . '/' . $file;
             }
         }
 
@@ -90,9 +106,10 @@ final class WebAssets
      *
      * @param string $format png, jpg...: for an image of any type, the other types are given as they are
      * @param ?int $width the width in pixels an image is resized to, the height following; null keeps its size
+     * @param string $of what a missing picture stands for, `place` or `person` (DEFAULTS): the picture given in its place
      * @return array{data:string,mime:string,found:bool}
      */
-    public function get(string $id, string $format = Image::DEFAULT_FORMAT, ?int $width = null): array
+    public function get(string $id, string $format = Image::DEFAULT_FORMAT, ?int $width = null, string $of = 'place'): array
     {
         $format = strtolower(ltrim($format, '.'));
         isset(Image::FORMATS[$format]) || ($format = Image::DEFAULT_FORMAT);
@@ -100,10 +117,13 @@ final class WebAssets
         $width = $width !== null && $width > 0 ? $width : null;
         $name = $width !== null ? "$id-$width.$format" : "$id.$format";
         if (!Uuid::isValid($id)) {
-            return $this->nothing();
+            return $this->nothing($of);
         }
         if ($id === self::PLACEHOLDER) {
             return ['found' => true] + $this->nothing();
+        }
+        if ($id === self::PERSON) {
+            return ['found' => true] + $this->nothing('person');
         }
         if (($done = $this->converted->get($name)) !== null) {
             return [
@@ -115,14 +135,14 @@ final class WebAssets
 
         $asset = $this->asset($id);
         if ($asset === null || ($data = $asset->data()) === null) {
-            return $this->nothing();
+            return $this->nothing($of);
         }
         if (!($asset instanceof Image)) {
             return ['data' => $data, 'mime' => $asset->mime(), 'found' => true];
         }
         $picture = $asset->render($this->converter, $format, $width);
         if ($picture === null) {
-            return $this->nothing();
+            return $this->nothing($of);
         }
         $this->converted->put($name, $picture, ['mime' => Image::FORMATS[$format]]);
 
@@ -178,10 +198,10 @@ final class WebAssets
         return new $class($config, $row);
     }
 
-    /** @return array{data:string,mime:string,found:bool} */
-    private function nothing(): array
+    /** @return array{data:string,mime:string,found:bool} the picture of a missing place, or person */
+    private function nothing(string $of = 'place'): array
     {
-        $file = $this->placeholder;
+        $file = $of === 'person' ? $this->person ?? $this->placeholder : $this->placeholder;
         if ($file !== null && is_file($file)) {
             $mime =
                 ['png' => 'image/png', 'jpg' => 'image/jpeg', 'gif' => 'image/gif'][

@@ -196,8 +196,9 @@ final class Router
             preg_match('/^(.+)\.(' . implode('|', array_keys(Image::FORMATS)) . ')$/', $tail[1], $m) === 1
         ) {
             $width = isset($query['width']) ? (int) $query['width'] : null;
+            $of = (string) ($query['default'] ?? 'place');
             $template = '/grids/{grid}/assets/{id}.{format}';
-            $routes = ['GET' => fn() => $this->api->media($grid, $m[1], $m[2], $this->converter, $width)];
+            $routes = ['GET' => fn() => $this->api->media($grid, $m[1], $m[2], $this->converter, $width, $of)];
         } elseif (count($tail) === 2 && $tail[0] === 'logos') {
             $template = '/logos/{name}';
             $routes = ['GET' => fn() => $this->api->logo($tail[1])];

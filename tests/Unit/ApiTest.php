@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 
 use OpenSim\Api\Api;
+use OpenSim\Assets\WebAssets;
 use OpenSim\Api\Contract;
 use OpenSim\Api\Problem;
 use OpenSim\Api\Response;
@@ -971,24 +972,36 @@ describe('The problems of the API', function () {
     });
 });
 
-describe('The pictures of the avatar models', function () {
-    test('the one of a model without a picture is the picture of nothing of the kit, found', function () {
+describe('The pictures of what has none', function () {
+    test('are the picture of nothing for a place, the silhouette of a person for a profile, found by their ids', function () {
         Connections::using(static fn() => asset_database());
         $api = new Api((new Machine())->environment, null, static fn(Grid $grid): GridConfig => asset_config());
         $calls = [];
+        $share = dirname(__DIR__, 2) . '/share/images';
+        $missing = 'ffffffff-0000-4000-8000-000000000001';
 
-        $placeholder = $api->media('demo', OpenSim\Models\AvatarModel::PLACEHOLDER, 'jpg', asset_converter($calls));
-        $missing = $api->media('demo', 'ffffffff-0000-4000-8000-000000000001', 'jpg', asset_converter($calls));
+        $nothing = $api->media('demo', WebAssets::PLACEHOLDER, 'jpg', asset_converter($calls));
+        $person = $api->media('demo', WebAssets::PERSON, 'jpg', asset_converter($calls));
+        $model = $api->media('demo', OpenSim\Models\AvatarModel::PLACEHOLDER, 'jpg', asset_converter($calls));
+        $place = $api->media('demo', $missing, 'jpg', asset_converter($calls));
+        $profile = $api->media('demo', $missing, 'jpg', asset_converter($calls), null, 'person');
+        $none = $api->media('demo', '00000000-0000-0000-0000-000000000000', 'jpg', asset_converter($calls), null, 'person');
 
-        expect($placeholder->status)
-            ->toBe(200)
-            ->and($placeholder->headers['Content-Type'])
-            ->toBe('image/png')
-            ->and($placeholder->body())
-            ->toBe(file_get_contents(dirname(__DIR__, 2) . '/share/images/assets-no-img.png'))
-            ->and($missing->status)
-            ->toBe(404)
-            ->and($missing->body())
-            ->toBe($placeholder->body());
+        expect([$nothing->status, $nothing->headers['Content-Type'], $person->status])
+            ->toBe([200, 'image/png', 200])
+            ->and($nothing->body())
+            ->toBe(file_get_contents("$share/assets-no-img.png"))
+            ->and($person->body())
+            ->toBe(file_get_contents("$share/assets-no-person.png"))
+            ->and($model->body())
+            ->toBe($person->body())
+            ->and([$place->status, $place->body() === $nothing->body()])
+            ->toBe([404, true])
+            ->and([$profile->status, $profile->body() === $person->body()])
+            ->toBe([404, true])
+            ->and($none->body())
+            ->toBe($person->body())
+            ->and($calls)
+            ->toBe([]);
     });
 });
