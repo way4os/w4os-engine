@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenSim\Runtime;
 
+use OpenSim\Models\Simulator;
+
 use OpenSim\Config\ConfigReader;
 use OpenSim\Config\GridConfig;
 use OpenSim\Controllers\OpenSimController;
@@ -94,7 +96,9 @@ final class GridMonitor
             }
             $match !== null && ($claimed[$match] = true);
             $simulators[] = [
-                'name' => $instance['name'],
+                // The name to show, its instance apart (the commands take it)
+                'name' => Simulator::displayNameOf($instance['name'], $grid->nick()),
+                'slug' => $instance['name'],
                 'uri' => $match,
                 'local' => true,
                 'running' => $instance['running'],
@@ -105,7 +109,7 @@ final class GridMonitor
         // A standalone keeps no table of regions: its simulator loads the ones it describes, with it
         if ($grid->isStandalone()) {
             foreach ($simulators as &$simulator) {
-                $described = self::described($grid, $simulator['name']);
+                $described = self::described($grid, $simulator['slug']);
                 $simulator['regions'] = $described;
                 $simulator['online'] = $simulator['running'] ? $described : 0;
                 $regions['total'] += $described;
@@ -120,6 +124,7 @@ final class GridMonitor
             // A simulator elsewhere: it is up when its regions say they are
             $simulators[] = [
                 'name' => (string) parse_url($uri, PHP_URL_HOST) . ':' . parse_url($uri, PHP_URL_PORT),
+                'slug' => null,
                 'uri' => $uri,
                 'local' => false,
                 'running' => $counts['online'] > 0,
@@ -193,7 +198,7 @@ final class GridMonitor
         foreach ($monitor['instances'] as $instance) {
             $simulator = null;
             foreach ($monitor['simulators'] as $candidate) {
-                $candidate['local'] && $candidate['name'] === $instance['name'] && ($simulator = $candidate);
+                $candidate['local'] && $candidate['slug'] === $instance['name'] && ($simulator = $candidate);
             }
             $rows[] = [
                 $instance['name'],

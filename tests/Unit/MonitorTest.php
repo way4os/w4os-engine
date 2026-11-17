@@ -64,10 +64,13 @@ describe('The monitor of a grid', function () {
                 ->toBe(['demo' => true, 'alpha' => true, 'beta' => false])
                 ->and($monitor['regions'])
                 ->toBe(['total' => 3, 'online' => 2])
-                ->and(array_column($monitor['simulators'], 'online', 'name'))
+                ->and(array_column($monitor['simulators'], 'online', 'slug'))
                 ->toBe(['alpha' => 2, 'beta' => 0])
-                ->and(array_column($monitor['simulators'], 'regions', 'name'))
+                ->and(array_column($monitor['simulators'], 'regions', 'slug'))
                 ->toBe(['alpha' => 2, 'beta' => 1])
+                // The name to show, as the page of a region gives it, the instance apart
+                ->and(array_column($monitor['simulators'], 'name', 'slug'))
+                ->toBe(['alpha' => 'Alpha', 'beta' => 'Beta'])
                 ->and([$monitor['up'], $monitor['down']])
                 ->toBe([2, 1])
                 ->and($monitor['summary'])
@@ -103,6 +106,7 @@ describe('The monitor of a grid', function () {
                 ->toBe([
                     [
                         'name' => 'remote.example.org:9100',
+                        'slug' => null,
                         'uri' => 'http://remote.example.org:9100/',
                         'local' => false,
                         'running' => true,

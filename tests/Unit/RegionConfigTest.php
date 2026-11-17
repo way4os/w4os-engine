@@ -63,7 +63,12 @@ describe('regions of a simulator', function () {
                 ->toBe(['Plaza' => '10.0.0.1:9000', 'Welcome' => '10.0.0.2:9010'])
                 // One region alone is named as in the list
                 ->and([Region::find($config, 'Plaza')->detail()['serverName'], Region::find($config, 'Welcome')->detail()['serverName']])
-                ->toBe(['Alpha', '10.0.0.2:9010']);
+                ->toBe(['Alpha', '10.0.0.2:9010'])
+                // A region whose file is here is local, enabled while its file is: its simulator running or not
+                ->and(array_intersect_key(Region::find($config, 'Plaza')->detail(), ['local' => 1, 'enabled' => 1, 'simulator' => 1]))
+                ->toBe(['simulator' => 'alpha', 'local' => true, 'enabled' => true])
+                ->and(array_intersect_key(Region::find($config, 'Welcome')->detail(), ['local' => 1, 'enabled' => 1]))
+                ->toBe(['local' => false, 'enabled' => null]);
         } finally {
             \OpenSim\Data\Connections::using(null);
         }

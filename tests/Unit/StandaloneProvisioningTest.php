@@ -656,7 +656,7 @@ describe('The life of a standalone', function () {
         $down = GridMonitor::of($grid);
 
         expect($up['simulators'][0])
-            ->toMatchArray(['name' => 'solo', 'local' => true, 'running' => true, 'regions' => 1, 'online' => 1])
+            ->toMatchArray(['name' => 'Solo', 'slug' => 'solo', 'local' => true, 'running' => true, 'regions' => 1, 'online' => 1])
             ->and($up['regions'])
             ->toBe(['total' => 1, 'online' => 1])
             ->and($up['level'])

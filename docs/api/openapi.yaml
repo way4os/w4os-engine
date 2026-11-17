@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: a681448
+  version: 6bd7e6a
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -4022,7 +4022,7 @@ paths:
                     properties:
                       type: { const: monitor }
                       id: { type: string }
-                      attributes: { type: object, properties: { grid: { type: string }, name: { type: string }, level: { type: string, enum: [ok, degraded, down, unknown] }, login: { type: [string, 'null'] }, instances: { type: array, items: { type: object }, description: 'name, type (robust or simulator), running, pid, cpu, memory, rss' }, simulators: { type: array, items: { type: object }, description: 'name, uri, local, running, regions, online' }, regions: { type: object, description: 'total and online' }, users: { type: [object, 'null'], description: 'The numbers of the grid (members, in world...)' }, up: { type: integer }, down: { type: integer }, summary: { type: string } } }
+                      attributes: { type: object, properties: { grid: { type: string }, name: { type: string }, level: { type: string, enum: [ok, degraded, down, unknown] }, login: { type: [string, 'null'] }, instances: { type: array, items: { type: object }, description: 'name, type (robust or simulator), running, pid, cpu, memory, rss' }, simulators: { type: array, items: { type: object }, description: 'name (the one to show: "Test Sim"; host:port for a simulator elsewhere), slug (its instance, `friendly_fowl.test_sim`, null elsewhere), uri, local, running, regions, online' }, regions: { type: object, description: 'total and online' }, users: { type: [object, 'null'], description: 'The numbers of the grid (members, in world...)' }, up: { type: integer }, down: { type: integer }, summary: { type: string } } }
             text/plain:
               schema:
                 type: string

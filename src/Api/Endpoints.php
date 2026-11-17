@@ -344,7 +344,7 @@ final class Endpoints
                         'simulators' => [
                             'type' => 'array',
                             'items' => ['type' => 'object'],
-                            'description' => 'name, uri, local, running, regions, online',
+                            'description' => 'name (the one to show: "Test Sim"; host:port for a simulator elsewhere), slug (its instance, `friendly_fowl.test_sim`, null elsewhere), uri, local, running, regions, online',
                         ],
                         'regions' => ['type' => 'object', 'description' => 'total and online'],
                         'users' => [
