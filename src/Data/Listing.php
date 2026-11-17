@@ -72,6 +72,12 @@ final class Listing
      */
     public const TONES = ['ok', 'off', 'warning', 'failed'];
 
+    /**
+     * The types of a column whose value reads without its label (an email, a role, a picture...): the label of the others comes
+     * before their value where a list folds them under the name (label_value). A link to a teleport reads alone too.
+     */
+    public const BARE = ['email', 'role', 'status', 'size', 'picture', 'map', 'boolean', 'hop', 'indicators'];
+
     /** The values of a yes or no filter, with the keys of their texts. */
     public const YES_NO = ['yes' => 'yes', 'no' => 'no'];
 
@@ -325,11 +331,27 @@ final class Listing
     public function document(): array
     {
         return [
-            'columns' => $this->columns,
+            'columns' => array_map(self::shown(...), $this->columns, array_keys($this->columns)),
             'sort' => ['default' => $this->sort, 'values' => $this->sorts(), 'descending' => '-'],
             'search' => $this->search,
             'filters' => $this->filters,
             'actions' => $this->actions,
+        ];
+    }
+
+    /**
+     * A column as a site shows it: `bare` whether its value reads without its label, `priority` primary for the first column and
+     * the status (shown at every width), secondary for the others (folded under the name on a narrow screen); a column may say
+     * its own.
+     *
+     * @param array<string,mixed> $column
+     * @return array<string,mixed>
+     */
+    private static function shown(array $column, int $position): array
+    {
+        return $column + [
+            'bare' => in_array($column['type'], self::BARE, true) || ($column['type'] === 'link' && ($column['link'] ?? '') === 'teleport'),
+            'priority' => $position === 0 || $column['type'] === 'indicators' ? 'primary' : 'secondary',
         ];
     }
 

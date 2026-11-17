@@ -43,6 +43,26 @@ describe('Every list', function () {
             ->toBe(['uri']);
     });
 
+    test('says of each column whether its value reads without its label, and whether it shows at every width', function () {
+        $wrong = [];
+        foreach (contract_lists() as $path => $list) {
+            foreach ($list['columns'] as $i => $column) {
+                is_bool($column['bare'] ?? null) || ($wrong[] = "$path: {$column['name']} bare");
+                in_array($column['priority'] ?? null, ['primary', 'secondary'], true) || ($wrong[] = "$path: {$column['name']} priority");
+            }
+            ($list['columns'][0]['priority'] ?? '') === 'primary' || ($wrong[] = "$path: the first column is not primary");
+        }
+        $avatars = array_column(contract_lists()['/grids/{grid}/avatars']['columns'], null, 'name');
+
+        expect($wrong)
+            ->toBe([])
+            // An email, a role, a status say what they are; a date needs its label
+            ->and([$avatars['email']['bare'], $avatars['role']['bare'], $avatars['status']['bare'], $avatars['created']['bare']])
+            ->toBe([true, true, true, false])
+            ->and([$avatars['name']['priority'], $avatars['status']['priority'], $avatars['email']['priority']])
+            ->toBe(['primary', 'primary', 'secondary']);
+    });
+
     test('has its status last, under one label', function () {
         $wrong = [];
         foreach (contract_lists() as $path => $list) {
