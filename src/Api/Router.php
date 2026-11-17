@@ -259,7 +259,7 @@ final class Router
         } elseif ($grid !== null && $tail === ['options', 'repair']) {
             $template = '/grids/{grid}/options/repair';
             $routes = [
-                'POST' => fn() => $this->check($body, $parsed, $path, 'repairs') ??
+                'POST' => fn() => $this->check($body, $parsed, $path, 'options') ??
                     $this->api->repairOptions($grid, $this->attributes($body, $parsed)),
             ];
         } elseif ($grid !== null && $tail === ['sign-ins']) {

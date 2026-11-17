@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 3b4bd74
+  version: 88fbb33
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -4820,7 +4820,7 @@ paths:
                   type: object
                   properties:
                     type:
-                      const: repairs
+                      const: options
                     attributes:
                       type: object
                       properties: { mode: { type: string, enum: [plan, apply] } }

@@ -666,9 +666,11 @@ describe('The repair of the options', function () {
         $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
         $plan = (new OpenSim\Provisioning\GridOptions($grid))->repair(false);
         $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
-        $asked = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'repairs', 'attributes' => []]]);
-        $applied = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'repairs', 'attributes' => ['mode' => 'apply']]]);
+        $asked = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'options', 'attributes' => []]]);
+        $applied = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'options', 'attributes' => ['mode' => 'apply']]]);
         $after = (new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo')))->repair(false);
+        // The command line asks the same: opensim api POST /grids/demo/options/repair mode=apply
+        [$cli] = (new OpenSim\Api\Cli($router))->run(['POST', '/grids/demo/options/repair', 'mode=plan']);
         $alpha = (string) file_get_contents(OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini');
 
         expect($plan['simulators']['alpha'] ?? [])
@@ -677,8 +679,8 @@ describe('The repair of the options', function () {
             ->toContain('profiles')
             ->and($applied->document['data']['attributes']['applied'] ?? [])
             ->toContain('profiles', 'groups-hypergrid')
-            ->and($after['simulators'])
-            ->toBe([])
+            ->and([$after['simulators'], $cli])
+            ->toBe([[], 0])
             ->and($alpha)
             ->toContain('[UserProfiles]', '[Groups]');
     });

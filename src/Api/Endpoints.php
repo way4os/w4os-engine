@@ -120,7 +120,7 @@ final class Endpoints
                                 'data' => [
                                     'type' => 'object',
                                     'properties' => [
-                                        'type' => ['const' => 'repairs'],
+                                        'type' => ['const' => 'options'],
                                         'attributes' => ['type' => 'object', 'properties' => ['mode' => ['type' => 'string', 'enum' => ['plan', 'apply']]]],
                                     ],
                                 ],
