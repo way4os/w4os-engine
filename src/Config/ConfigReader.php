@@ -81,6 +81,33 @@ final class ConfigReader
         bool $expand = true,
         bool $directory = false,
     ): array {
+        $merged = self::walk($path, $constants, $directory)['merged'];
+
+        return $expand ? self::expand($merged, $constants) : $merged;
+    }
+
+    /**
+     * The files a config is read from, in the order they are read: itself, the files it includes, the `*.ini` of its ConfigDirectory
+     * (load(), the same way); the ones that are not there left out.
+     *
+     * @param string|list<string> $path
+     * @param array<string,string> $constants
+     * @return list<string> their real paths
+     */
+    public static function files(string|array $path, array $constants = [], bool $directory = false): array
+    {
+        return array_values(array_filter(self::walk($path, $constants, $directory)['files'], 'is_file'));
+    }
+
+    /**
+     * Read a config and the files it includes, once each.
+     *
+     * @param string|list<string> $path
+     * @param array<string,string> $constants
+     * @return array{merged:array<string,array<string,string>>,files:list<string>}
+     */
+    private static function walk(string|array $path, array $constants, bool $directory): array
+    {
         $merged = [];
         $paths = (array) $path;
         $queue = $paths;
@@ -115,7 +142,7 @@ final class ConfigReader
             }
         }
 
-        return $expand ? self::expand($merged, $constants) : $merged;
+        return ['merged' => $merged, 'files' => array_keys($done)];
     }
 
     /**

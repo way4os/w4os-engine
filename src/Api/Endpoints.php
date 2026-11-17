@@ -752,6 +752,7 @@ final class Endpoints
                                                 'grid' => ['type' => 'string', 'description' => 'The nick of the grid of this machine it joins'],
                                                 'name' => ['type' => 'string', 'description' => 'Its name, when it is not the one of its config (SimName of [Launch], else its file)'],
                                                 'core' => ['type' => 'string', 'description' => 'The core it runs with, when it is not the one of the grid'],
+                                                'scripts' => ['type' => 'boolean', 'description' => 'Copy the state of its scripts (its ScriptEngines folders) into the folder of the new simulator: true by default; false loses it, every script starts again'],
                                                 'mode' => ['type' => 'string', 'enum' => ['plan', 'apply']],
                                             ],
                                         ],
@@ -764,7 +765,7 @@ final class Endpoints
             ],
             'responses' => [
                 '200' => [
-                    'description' => 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `dropped` (the settings of the original not kept: section, key, value, `reason` same, replaced, default, layout, include or empty, `replacement` the value the new simulator has instead of a folder of the old install; only a secret masked), `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
+                    'description' => 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `backup` (the way back, written before anything else: the dump of each database its config names and its files as they are, `<grid>/<simulator>/<grid>-<simulator>-<stamp>-source.tar.gz` of the backup root; its `file`, `databases`, `files`, `size`), `scripts` (the state of its scripts: `from`, `to`, `size`, `copied`), `settings` kept, `dropped` (the settings of the original not kept: section, key, value, `reason` same, replaced, default, layout, include or empty, `replacement` the value the new simulator has instead of a folder of the old install; only a secret masked), `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
                     'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
                 ],
                 '400' => Contract::problem('A file that cannot be read or imported, a simulator or a region the grid has already'),

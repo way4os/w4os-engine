@@ -38,6 +38,14 @@ function old_install(Machine $machine, string $sim = 'redoutable', string $regio
     return "$etc/opensim.d/$sim.ini";
 }
 
+/** A dump of a database for the backup of the source, without a database server. */
+function fake_dump(): Closure
+{
+    return static function (array $db, string $file): void {
+        file_put_contents($file, gzencode("-- dump of {$db['name']}\n"));
+    };
+}
+
 describe('A simulator imported', function () {
     test('is planned first: what is written and where, its database and its region kept, nothing written', function () {
         $machine = new Machine();
@@ -83,7 +91,7 @@ describe('A simulator imported', function () {
         $machine = new Machine();
         $source = old_install($machine);
         $import = SimulatorImport::prepare($machine->environment, $source, 'demo');
-        $import->apply($machine->environment, new NullUi());
+        $import->apply($machine->environment, new NullUi(), fake_dump());
         $plan = $import->document();
         $config = (string) file_get_contents($plan['config']);
 
@@ -103,7 +111,7 @@ describe('A simulator imported', function () {
 
     test('is refused when the grid has it, or one of its regions, already', function () {
         $machine = new Machine();
-        SimulatorImport::prepare($machine->environment, old_install($machine), 'demo')->apply($machine->environment, new NullUi());
+        SimulatorImport::prepare($machine->environment, old_install($machine), 'demo')->apply($machine->environment, new NullUi(), fake_dump());
         $again = old_install($machine, 'redoutable');
         $sameRegion = old_install($machine, 'redoutable2', 'Redoutable', '99999999-2222-4333-8444-555555555555');
 
@@ -160,6 +168,65 @@ describe('A simulator of Speculoos imported', function () {
     });
 });
 
+describe('What a simulator imported keeps of its old install', function () {
+    /** The old install with the state of its scripts, where its config says (ScriptEnginesPath). */
+    function scripts_install(Machine $machine): string
+    {
+        $source = old_install($machine);
+        $var = $machine->root . '/old/opensim/var/redoutable';
+        $machine->write("$var/ScriptEngines/11111111-2222-4333-8444-555555555555/item.state", 'running, count = 42');
+        file_put_contents($source, (string) file_get_contents($source) . "[XEngine]\nScriptEnginesPath = \"$var/ScriptEngines\"\n");
+
+        return $source;
+    }
+
+    test('is planned: a backup of its source before anything is written, the state of its scripts copied, sizes and places', function () {
+        $machine = new Machine();
+        $import = SimulatorImport::prepare($machine->environment, scripts_install($machine), 'demo');
+        $plan = $import->document();
+
+        expect($plan['backup']['file'])
+            ->toMatch('#/demo/redoutable/demo-redoutable-\d{8}-\d{6}-source\.tar\.gz$#')
+            ->and($plan['backup']['databases'])
+            ->toBe(['osredoutable'])
+            ->and($plan['backup']['files'])
+            ->toContain(realpath($machine->root . '/old/opensim/etc/opensim.d/redoutable.ini'), realpath($machine->root . '/old/opensim/etc/grids/speculoos/OpenSim.ini'))
+            ->and($plan['scripts'])
+            ->toMatchArray(['to' => $import->plan->dataDirectory . '/ScriptEngines', 'size' => 19, 'copied' => true])
+            ->and(is_file($plan['backup']['file']))
+            ->toBeFalse();
+    });
+
+    test('is written: the backup first, then the simulator, then the state of its scripts; or not the scripts when asked', function () {
+        $machine = new Machine();
+        $source = scripts_install($machine);
+        $dumped = [];
+        $import = SimulatorImport::prepare($machine->environment, $source, 'demo');
+        $import->apply($machine->environment, new NullUi(), static function (array $db, string $file) use (&$dumped, $import): void {
+            // The backup comes before anything of the new simulator is written
+            $dumped[] = [$db['name'], is_file($import->plan->iniPath())];
+            file_put_contents($file, gzencode("-- dump of {$db['name']}\n"));
+        });
+        $plan = $import->document();
+        $listed = (string) shell_exec('tar -tzf ' . escapeshellarg($plan['backup']['file']));
+
+        $other = new Machine();
+        $skipped = SimulatorImport::prepare($other->environment, scripts_install($other), 'demo', scripts: false);
+        $skipped->apply($other->environment, new NullUi(), static fn(array $db, string $file) => file_put_contents($file, gzencode('-- dump')));
+
+        expect($dumped)
+            ->toBe([['osredoutable', false]])
+            ->and($listed)
+            ->toContain('manifest.json', 'db/osredoutable.sql.gz', 'redoutable.ini', 'OpenSim.ini', 'Redoutable.ini')
+            ->and(file_get_contents($import->plan->dataDirectory . '/ScriptEngines/11111111-2222-4333-8444-555555555555/item.state'))
+            ->toBe('running, count = 42')
+            ->and($skipped->document()['scripts']['copied'])
+            ->toBeFalse()
+            ->and(is_dir($skipped->plan->dataDirectory . '/ScriptEngines/11111111-2222-4333-8444-555555555555'))
+            ->toBeFalse();
+    });
+});
+
 describe('The folders of a simulator imported', function () {
     test('are the ones of the new simulator, never the ones of the old install, and the plan says they are replaced', function () {
         $machine = new Machine();
@@ -199,7 +266,7 @@ describe('Several simulators imported together', function () {
             ->toBe(['simulators.1'])
             ->and($imports->problems['simulators.1'])
             ->toContain('the port 9250', 'the region name Redoutable', 'the region UUID 11111111-2222-4333-8444-555555555555', 'the port 9251', 'the place 1000,1000')
-            ->and(fn() => $imports->apply($machine->environment, new NullUi()))
+            ->and(fn() => $imports->apply($machine->environment, new NullUi(), fake_dump()))
             ->toThrow(InvalidValue::class, 'simulators.1')
             ->and(is_file($imports->document()['steps'][0]['config']))
             ->toBeFalse();
@@ -210,7 +277,7 @@ describe('Several simulators imported together', function () {
         $a = old_install($machine, 'redoutable', 'Redoutable', '11111111-2222-4333-8444-555555555555', 9250, '1000,1000');
         $b = old_install($machine, 'residences', 'Residence', '99999999-2222-4333-8444-555555555555', 9260, '1001,1000');
         $imports = OpenSim\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
-        $imports->apply($machine->environment, new NullUi());
+        $imports->apply($machine->environment, new NullUi(), fake_dump());
         $plan = $imports->document();
 
         expect($plan['problems'])
@@ -225,7 +292,7 @@ describe('Several simulators imported together', function () {
 describe('The API, for an import', function () {
     test('plans by default, applies when asked, and says why it refuses', function () {
         $machine = new Machine();
-        $api = new OpenSim\Api\Api($machine->environment);
+        $api = new OpenSim\Api\Api($machine->environment, dumper: fake_dump());
         $source = old_install($machine);
 
         $plan = $api->import(['kind' => 'simulator', 'file' => $source, 'grid' => 'demo']);

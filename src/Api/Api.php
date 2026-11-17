@@ -926,7 +926,7 @@ final class Api
                     array_values(array_filter($attributes['simulators'], 'is_array')),
                     (string) ($attributes['grid'] ?? ''),
                 );
-                $mode === 'apply' && $imports->apply($this->environment, new NullUi());
+                $mode === 'apply' && $imports->apply($this->environment, new NullUi(), $this->dumper);
 
                 return Response::document([
                     'data' => [
@@ -943,8 +943,9 @@ final class Api
                 (string) ($attributes['grid'] ?? ''),
                 ($attributes['name'] ?? '') !== '' ? (string) $attributes['name'] : null,
                 ($attributes['core'] ?? '') !== '' ? (string) $attributes['core'] : null,
+                !Result::isFalse($attributes['scripts'] ?? true),
             );
-            $mode === 'apply' && $import->apply($this->environment, new NullUi());
+            $mode === 'apply' && $import->apply($this->environment, new NullUi(), $this->dumper);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }

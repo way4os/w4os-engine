@@ -204,6 +204,7 @@ final class Archive extends InstalledModel
             'publish' => $this->parts['publish'] ?? null,
             'logs' => $this->parts['logs'] ?? null,
             'archives' => $this->parts['archives'] ?? null,
+            'source' => $this->parts['source'] ?? null,
         ];
     }
 
@@ -229,7 +230,7 @@ final class Archive extends InstalledModel
             }
         } elseif (
             preg_match(
-                '/^(?<head>.+?)-(?<stamp>\d{8}-\d{6})(?<logs>-logs)?(?<archives>-archives)?\.tar\.gz$/',
+                '/^(?<head>.+?)-(?<stamp>\d{8}-\d{6})(?<logs>-logs)?(?<archives>-archives)?(?<source>-source)?\.tar\.gz$/',
                 $name,
                 $m,
             ) === 1
@@ -240,6 +241,8 @@ final class Archive extends InstalledModel
                 'simulator' => $words[0] !== '' ? $words[0] : null,
                 'logs' => ($m['logs'] ?? '') !== '',
                 'archives' => ($m['archives'] ?? '') !== '',
+                // The backup of a simulator of another install, before its import (SourceBackup): not a backup of a grid
+                'source' => ($m['source'] ?? '') !== '',
             ];
         }
 

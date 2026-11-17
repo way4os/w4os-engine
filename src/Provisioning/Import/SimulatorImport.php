@@ -16,6 +16,8 @@ use OpenSim\Provisioning\SimulatorPlan;
 use OpenSim\Provisioning\SimulatorProvisioner;
 use OpenSim\Provisioning\UiInterface;
 use OpenSim\Runtime\Environment;
+use OpenSim\Archives\SourceBackup;
+use OpenSim\Provisioning\Slug;
 use OpenSim\Text\Notice;
 use OpenSim\Text\Secrets;
 
@@ -44,6 +46,9 @@ final class SimulatorImport
         public readonly array $customizations,
         public readonly string $regionsDirectory = '',
         public readonly array $dropped = [],
+        public readonly ?SourceBackup $backup = null,
+        public readonly array $scripts = [],
+        public readonly bool $copyScripts = true,
     ) {}
 
     /**
@@ -53,6 +58,8 @@ final class SimulatorImport
      * @param string $grid the nick of the grid of this machine it joins
      * @param ?string $name its name in the grid (default: the one of its config, SimulatorImporter::name())
      * @param ?string $core the folder of the core it will run with (default: the one of the grid)
+     * @param bool $scripts copy the state of its scripts (its ScriptEngines folders) into the folder of the new simulator: false loses
+     *        it, every script starts again from the beginning
      * @throws NotFound for a grid this machine does not have
      * @throws InvalidValue for what cannot be imported, said
      */
@@ -62,6 +69,7 @@ final class SimulatorImport
         string $grid,
         ?string $name = null,
         ?string $core = null,
+        bool $scripts = true,
     ): self {
         if (!is_file($file) || !is_readable($file)) {
             throw InvalidValue::because('invalid-request', "cannot read the config of the simulator: $file");
@@ -119,7 +127,24 @@ final class SimulatorImport
             array_map(static fn(array $values): array => array_map(static fn($v): string => trim((string) $v, '"'), $values), $layout),
         );
 
-        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped);
+        // The way back: its databases and its files, as they are, before anything is written (the first start upgrades them)
+        $backup = SourceBackup::prepare(
+            $environment,
+            $file,
+            $plan->gridNick,
+            Slug::simulatorOf($plan->slug, $plan->gridNick),
+            array_column($regions, 'file'),
+        );
+        // The state of its scripts: the folders its engines keep it in (ScriptEnginesPath, relative to its bin folder)
+        $base = rtrim(trim((string) ($expanded['Launch']['BinDir'] ?? ''), " \t\"") ?: dirname($file), '/');
+        $folders = [];
+        foreach (['XEngine', 'YEngine'] as $engine) {
+            $path = trim((string) ($expanded[$engine]['ScriptEnginesPath'] ?? 'ScriptEngines'), " \t\"");
+            $path = str_starts_with($path, '/') ? $path : "$base/$path";
+            is_dir($path) && ($folders[(string) realpath($path)] = true);
+        }
+
+        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped, $backup, array_keys($folders), $scripts);
     }
 
     /**
@@ -146,8 +171,17 @@ final class SimulatorImport
             'settings' => array_map(self::masked(...), $this->customizations),
             'dropped' => array_map(self::masked(...), $this->dropped),
             'report' => $this->reportPath(),
+            // The way back, written before anything else, and the state of the scripts of the original
+            'backup' => $this->backup?->document(),
+            'scripts' => [
+                'from' => $this->scripts,
+                'to' => $this->scriptsDirectory(),
+                'size' => array_sum(array_map(self::size(...), $this->scripts)),
+                'copied' => $this->copyScripts && $this->scripts !== [],
+            ],
             'writes' => array_values(
                 array_unique([
+                    ...($this->backup === null ? [] : [$this->backup->file]),
                     $plan->iniPath(),
                     ...array_column($this->regions, 'to'),
                     $this->reportPath(),
@@ -167,10 +201,19 @@ final class SimulatorImport
         ];
     }
 
-    /** Write the simulator, disabled: its config, its regions, the settings it keeps, the report of the import. */
-    public function apply(Environment $environment, UiInterface $ui): void
+    /**
+     * Write the simulator, disabled: first the backup of its source, then its config, its regions, the settings it keeps, the state
+     * of its scripts, the report of the import.
+     *
+     * @param ?\Closure(array{host:string,name:string,user:string,pass:string},string):void $dump writes the dump of a database for
+     *        the backup (default: DatabaseDump::write())
+     */
+    public function apply(Environment $environment, UiInterface $ui, ?\Closure $dump = null): void
     {
         $plan = $this->plan;
+        if ($this->backup !== null) {
+            $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
+        }
         (new SimulatorProvisioner($ui))->apply($plan, $environment);
         is_dir($plan->regionsDir()) || mkdir($plan->regionsDir(), 0o755, true);
         foreach ($this->regions as $region) {
@@ -178,6 +221,14 @@ final class SimulatorImport
                 throw InvalidValue::because('invalid-request', "cannot copy {$region['file']} to {$region['to']}");
             }
             $ui->note(sprintf(_('Wrote %s'), $region['to']));
+        }
+        if ($this->copyScripts && $this->scripts !== []) {
+            is_dir($this->scriptsDirectory()) || mkdir($this->scriptsDirectory(), 0o750, true);
+            foreach ($this->scripts as $from) {
+                exec('cp -a ' . escapeshellarg("$from/.") . ' ' . escapeshellarg($this->scriptsDirectory()) . ' 2>&1', $output, $status);
+                $status === 0 || throw new \RuntimeException("cannot copy the state of the scripts from $from: " . implode(' ', $output));
+            }
+            $ui->note(sprintf(_('Copied the state of the scripts to %s'), $this->scriptsDirectory()));
         }
         $text = RobustImporter::inject((string) file_get_contents($plan->iniPath()), $this->customizations);
         file_put_contents($plan->iniPath(), $text);
@@ -227,6 +278,23 @@ final class SimulatorImport
         $value = str_starts_with($masked, "{$setting['key']} = ") ? substr($masked, strlen("{$setting['key']} = ")) : Secrets::MASK;
 
         return ['value' => $masked === $line ? $setting['value'] : $value] + $setting;
+    }
+
+    /** Where the new simulator keeps the state of its scripts (the ScriptEnginesPath of its layout). */
+    private function scriptsDirectory(): string
+    {
+        return rtrim($this->plan->dataDirectory, '/') . '/ScriptEngines';
+    }
+
+    /** The bytes of the files of a folder. */
+    private static function size(string $folder): int
+    {
+        $size = 0;
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($folder, \FilesystemIterator::SKIP_DOTS)) as $file) {
+            $file->isFile() && ($size += $file->getSize());
+        }
+
+        return $size;
     }
 
     private function reportPath(): string

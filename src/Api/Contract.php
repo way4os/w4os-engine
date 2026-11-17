@@ -169,6 +169,7 @@ final class Contract
                 'publish' => ['boolean?', 'Saved to be published, for an oar'],
                 'logs' => ['boolean?', 'With the logs, for a backup'],
                 'archives' => ['boolean?', 'With the archives of the users, for a backup'],
+                'source' => ['boolean?', 'The backup of a simulator of another install before its import (its databases, its files as they were), for a backup: not a backup of a grid, which a restore takes'],
             ],
             'create' => [
                 'kind' => ['string', 'backup: an archive made here is a backup of the setup (an iar or an oar is saved by the console of a simulator)'],

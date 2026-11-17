@@ -29,7 +29,7 @@ final class SimulatorImports
     /**
      * What the imports would do, checked each against the grid, then between them; nothing written.
      *
-     * @param list<array{file:string,name?:?string,core?:?string}> $simulators
+     * @param list<array{file:string,name?:?string,core?:?string,scripts?:bool}> $simulators
      */
     public static function prepare(Environment $environment, array $simulators, string $grid): self
     {
@@ -44,6 +44,7 @@ final class SimulatorImports
                     $grid,
                     ($simulator['name'] ?? '') !== '' ? (string) $simulator['name'] : null,
                     ($simulator['core'] ?? '') !== '' ? (string) $simulator['core'] : null,
+                    !\OpenSim\Result::isFalse($simulator['scripts'] ?? true),
                 );
             } catch (\OpenSim\Exceptions\NotFound $error) {
                 throw $error;
@@ -105,11 +106,12 @@ final class SimulatorImports
     }
 
     /**
-     * Write them, in their order, each disabled (SimulatorImport::apply()).
+     * Write them, in their order, each disabled (SimulatorImport::apply(), its source backed up first).
      *
+     * @param ?\Closure $dump writes the dump of a database (default: DatabaseDump::write())
      * @throws InvalidValue when something is wrong: nothing is written then
      */
-    public function apply(Environment $environment, UiInterface $ui): void
+    public function apply(Environment $environment, UiInterface $ui, ?\Closure $dump = null): void
     {
         if ($this->problems !== []) {
             throw InvalidValue::because('invalid-request', 'the imports have problems: ' . implode('; ', array_map(
@@ -119,7 +121,7 @@ final class SimulatorImports
             )));
         }
         foreach ($this->imports as $import) {
-            $import->apply($environment, $ui);
+            $import->apply($environment, $ui, $dump);
         }
     }
 }
