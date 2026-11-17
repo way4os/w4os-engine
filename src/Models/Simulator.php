@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenSim\Models;
 
 use OpenSim\Data\Listing;
+use OpenSim\Provisioning\Slug;
 use OpenSim\Config\ConnectionString;
 use OpenSim\Console\ConsoleInterface;
 use OpenSim\Controllers\OpenSimController;
@@ -248,6 +249,7 @@ final class Simulator extends InstalledModel
         return new Listing(
             [
                 Listing::column('name', 'column_name', sort: 'name'),
+                Listing::column('slug', 'column_slug'),
                 Listing::column('grid', 'column_grid', sort: 'grid'),
                 Listing::column('uri', 'column_uri'),
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
@@ -295,7 +297,7 @@ final class Simulator extends InstalledModel
         return [
             'id' => $this->id(),
             'uri' => $this->uri(),
-            'name' => $this->name(),
+            'name' => $this->displayName(),
             'slug' => $this->slug(),
             'grid' => $this->grid()?->nick(),
             'ini' => $this->ini(),
@@ -319,6 +321,22 @@ final class Simulator extends InstalledModel
     public function name(): string
     {
         return $this->controller->name();
+    }
+
+    /** The name to show: the one given to it, without its grid ("Test North" for friendly_fowl.test_north). */
+    public function displayName(): string
+    {
+        return self::displayNameOf($this->slug(), $this->grid()?->nick());
+    }
+
+    /** The name to show of the instance of a simulator (grid.simulator): its own part, its words in capitals. */
+    public static function displayNameOf(string $instance, ?string $nick = null): string
+    {
+        $own = $nick !== null && $nick !== ''
+            ? Slug::simulatorOf($instance, $nick)
+            : (str_contains($instance, Slug::SEPARATOR) ? substr($instance, strpos($instance, Slug::SEPARATOR) + 1) : $instance);
+
+        return Slug::nameOf($own);
     }
 
     /** The name for a path or a command: its own, which has its grid in it (`vonda.welcome`, not `welcome`: every grid has one). */

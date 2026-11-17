@@ -56,9 +56,9 @@ describe('regions of a simulator', function () {
                 ->toBe([['Plaza'], ['Welcome'], ['Plaza', 'Welcome'], []])
                 // The simulators there are, the one whose files are here by their name: what the filter offers
                 ->and($all->available()['simulator'])
-                ->toBe([['value' => '10.0.0.2:9010', 'label' => '10.0.0.2:9010'], ['value' => '10.0.0.1:9000', 'label' => 'alpha']])
+                ->toBe([['value' => '10.0.0.2:9010', 'label' => '10.0.0.2:9010'], ['value' => '10.0.0.1:9000', 'label' => 'Alpha']])
                 ->and(array_column($all->array(), 'serverName', 'name'))
-                ->toBe(['Plaza' => 'alpha', 'Welcome' => '10.0.0.2:9010'])
+                ->toBe(['Plaza' => 'Alpha', 'Welcome' => '10.0.0.2:9010'])
                 ->and(array_column($all->array(), 'server', 'name'))
                 ->toBe(['Plaza' => '10.0.0.1:9000', 'Welcome' => '10.0.0.2:9010']);
         } finally {

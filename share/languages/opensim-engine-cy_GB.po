@@ -808,6 +808,10 @@ msgctxt "column_nick"
 msgid "Nick"
 msgstr "Llysenw"
 
+msgctxt "column_slug"
+msgid "Slug"
+msgstr "Slug"
+
 msgctxt "column_uri"
 msgid "URI"
 msgstr "URI"

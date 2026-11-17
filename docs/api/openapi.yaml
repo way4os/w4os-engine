@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: d399875
+  version: b2c1cce
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -528,6 +528,10 @@ paths:
             label: column_name
             type: text
             sort: name
+          -
+            name: slug
+            label: column_slug
+            type: text
           -
             name: grid
             label: column_grid

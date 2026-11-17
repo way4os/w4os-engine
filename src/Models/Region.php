@@ -311,7 +311,10 @@ final class Region extends Model
             'port' => isset($row['serverPort']) ? (int) $row['serverPort'] : null,
             'serverUri' => $row['serverURI'] ?? null,
             'server' => $server,
-            'serverName' => $row['serverName'] ?? (($this->simulator() ?: null) ?? $server),
+            'serverName' => $row['serverName'] ??
+                ($this->simulator() !== ''
+                    ? Simulator::displayNameOf($this->simulator(), $this->config->find('GridInfoService', 'gridnick'))
+                    : $server),
             'handle' => $row['regionHandle'] ?? null,
             'owner' => $this->owner(),
             'ownerName' => $row['ownerName'] ?? null,
@@ -840,8 +843,11 @@ final class Region extends Model
     private static function servers(GridConfig $config, OSPDO $pdo): array
     {
         $here = [];
+        $nick = $config->find('GridInfoService', 'gridnick');
         foreach (static::configured($config) as $region) {
-            $region->uuid() === null || ($here[$region->uuid()] = $region->simulator());
+            $region->uuid() === null ||
+                $region->simulator() === '' ||
+                ($here[$region->uuid()] = Simulator::displayNameOf($region->simulator(), $nick));
         }
         $servers = [];
         $rows = $pdo->get_results(

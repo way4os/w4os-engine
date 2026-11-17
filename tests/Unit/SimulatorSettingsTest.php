@@ -50,7 +50,9 @@ describe('simulator', function () {
             ->toBe(['Demo Estate', 'Ann Poe'])
             ->and($alpha->detail())
             ->toMatchArray([
-                'name' => 'alpha',
+                // The name shown, its slug apart
+                'name' => 'Alpha',
+                'slug' => 'alpha',
                 'grid' => 'demo',
                 'enabled' => true,
                 'running' => false,
@@ -191,5 +193,16 @@ describe('simulator identity', function () {
 
         $ghost = new Simulator($machine->environment, $machine->grid . '/sims/ghost.ini');
         expect($ghost->uri())->toBeNull()->and($ghost->id())->toBe('ghost');
+    });
+});
+
+describe('the name of a simulator', function () {
+    test('is the one given to it, without its grid, in capitals; its slug apart', function () {
+        expect(\OpenSim\Models\Simulator::displayNameOf('friendly_fowl.test_north', 'friendly_fowl'))
+            ->toBe('Test North')
+            ->and(\OpenSim\Models\Simulator::displayNameOf('friendly_fowl.welcome'))
+            ->toBe('Welcome')
+            ->and(\OpenSim\Models\Simulator::displayNameOf('friendly_fowl_welcome', 'friendly_fowl'))
+            ->toBe('Welcome');
     });
 });
