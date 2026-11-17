@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "11f2afa",
+        "version": "451ef6a",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -654,9 +654,17 @@
                                 "name",
                                 "grid",
                                 "port",
+                                "regions",
+                                "area",
+                                "cpu",
+                                "memory",
                                 "-name",
                                 "-grid",
-                                "-port"
+                                "-port",
+                                "-regions",
+                                "-area",
+                                "-cpu",
+                                "-memory"
                             ]
                         }
                     },
@@ -786,6 +794,38 @@
                             "label": "column_port",
                             "type": "number",
                             "sort": "port",
+                            "bare": false,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "regions",
+                            "label": "column_regions",
+                            "type": "number",
+                            "sort": "regions",
+                            "bare": false,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "area",
+                            "label": "column_area",
+                            "type": "number",
+                            "sort": "area",
+                            "bare": false,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "cpu",
+                            "label": "column_cpu",
+                            "type": "number",
+                            "sort": "cpu",
+                            "bare": false,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "memory",
+                            "label": "column_memory",
+                            "type": "number",
+                            "sort": "memory",
                             "bare": false,
                             "priority": "secondary"
                         },
@@ -992,7 +1032,11 @@
                         "values": [
                             "name",
                             "grid",
-                            "port"
+                            "port",
+                            "regions",
+                            "area",
+                            "cpu",
+                            "memory"
                         ],
                         "descending": "-"
                     },
@@ -10865,6 +10909,28 @@
                             "local": {
                                 "type": "boolean",
                                 "description": "It runs on this machine, from a config of one of its grids"
+                            },
+                            "regions": {
+                                "type": "integer",
+                                "description": "The regions it loads (its region files that are enabled; for a simulator of another machine, its regions in the table of the grid)"
+                            },
+                            "area": {
+                                "type": "integer",
+                                "description": "Their area, in square meters"
+                            },
+                            "cpu": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The cpu its process takes, in percent of the machine, while it runs on this machine"
+                            },
+                            "memory": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The memory its process takes, in percent of the machine, while it runs on this machine"
                             },
                             "connections": {
                                 "type": "object",

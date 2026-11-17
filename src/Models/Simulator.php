@@ -41,8 +41,11 @@ final class Simulator extends InstalledModel
 
     private readonly OpenSimController $controller;
 
-    /** @var ?array{uri:string,grid:Grid,online:bool} a simulator of another machine, known through the regions of its grid */
+    /** @var ?array{uri:string,grid:Grid,online:bool,regions:int,area:int} a simulator of another machine, known through the regions of its grid */
     private ?array $elsewhere = null;
+
+    /** @var ?list<Process> the processes of the machine, read once for a list (all()); null: read when asked */
+    private ?array $processes = null;
 
     /** Whether connections() tries each way rather than saying it is configured (probe()). */
     private bool $probed = false;
@@ -72,10 +75,10 @@ final class Simulator extends InstalledModel
      * A simulator of another machine that runs regions of a grid of this one (registered with its Robust): known by its address
      * only, the engine has no way to it.
      */
-    public static function elsewhere(Environment $environment, Grid $grid, string $uri, bool $online): self
+    public static function elsewhere(Environment $environment, Grid $grid, string $uri, bool $online, int $regions = 0, int $area = 0): self
     {
         $simulator = new self($environment, '', $uri);
-        $simulator->elsewhere = ['uri' => $uri, 'grid' => $grid, 'online' => $online];
+        $simulator->elsewhere = ['uri' => $uri, 'grid' => $grid, 'online' => $online, 'regions' => $regions, 'area' => $area];
 
         return $simulator;
     }
@@ -382,10 +385,13 @@ final class Simulator extends InstalledModel
         $simulators = [];
         // The ports bound, read once for the list: whether each simulator answers, and its console
         $bound = $environment->occupiedPorts ?? $environment->processes->listening();
+        // The processes too: whether each runs, and what it takes
+        $processes = $environment->processes->all();
         foreach (Grid::all($environment)->items() as $grid) {
             $here = $grid->simulators();
             foreach ($here as $simulator) {
                 $simulator->bound = $bound;
+                $simulator->processes = $processes;
             }
             array_push($simulators, ...$here, ...self::ofOthers($environment, $grid, $here));
         }
@@ -401,6 +407,10 @@ final class Simulator extends InstalledModel
             [
                 'name' => static fn(self $simulator): string => $simulator->slug() ?: (string) $simulator->uri(),
                 'port' => static fn(self $simulator): int => (int) $simulator->httpPort(),
+                'regions' => static fn(self $simulator): int => $simulator->regionsAndArea()[0],
+                'area' => static fn(self $simulator): int => $simulator->regionsAndArea()[1],
+                'cpu' => static fn(self $simulator): float => (float) $simulator->process()?->cpu,
+                'memory' => static fn(self $simulator): float => (float) $simulator->process()?->memory,
                 'grid' => static fn(self $simulator): string => (string) $simulator->grid()?->nick(),
             ],
             [
@@ -433,7 +443,7 @@ final class Simulator extends InstalledModel
         }
 
         return array_values(array_map(
-            static fn(array $server): self => self::elsewhere($environment, $grid, $server['id'], $server['online']),
+            static fn(array $server): self => self::elsewhere($environment, $grid, $server['id'], $server['online'], $server['regions'], $server['area']),
             array_filter($servers, static fn(array $server): bool => !in_array(strtolower($server['id']), $local, true)),
         ));
     }
@@ -449,6 +459,11 @@ final class Simulator extends InstalledModel
                 Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri', 'slug']]),
                 Listing::column('grid', 'column_grid', sort: 'grid'),
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
+                Listing::column('regions', 'column_regions', 'number', 'regions'),
+                Listing::column('area', 'column_area', 'number', 'area'),
+                // What its process takes, in percents of the machine, while it runs
+                Listing::column('cpu', 'column_cpu', 'number', 'cpu'),
+                Listing::column('memory', 'column_memory', 'number', 'memory'),
                 // Enabled and running, each the button that changes it, then the ways the engine reaches it
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
                     Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
@@ -528,6 +543,10 @@ final class Simulator extends InstalledModel
                 'local' => false,
                 'connections' => $this->connections(),
                 'httpPort' => $this->httpPort(),
+                'regions' => $this->regionsAndArea()[0],
+                'area' => $this->regionsAndArea()[1],
+                'cpu' => null,
+                'memory' => null,
             ] + array_fill_keys(['consolePort', 'console', 'databaseHost', 'databaseName', 'databaseUser', 'estateDatabaseName', 'estateName', 'estateOwner', 'regionsDirectory', 'core'], null);
         }
 
@@ -545,6 +564,11 @@ final class Simulator extends InstalledModel
             'local' => true,
             'connections' => $this->connections(),
             'httpPort' => $this->httpPort(),
+            'regions' => $this->regionsAndArea()[0],
+            'area' => $this->regionsAndArea()[1],
+            // What its process takes while it runs, as opensim status says it (percents of the machine)
+            'cpu' => $this->process()?->cpu,
+            'memory' => $this->process()?->memory,
             'consolePort' => $this->consolePort(),
             'console' => $this->remoteConsole() !== null ? 'rest' : 'screen',
             'databaseHost' => $this->databaseHost(),
@@ -644,7 +668,11 @@ final class Simulator extends InstalledModel
     /** A simulator of another machine is running while one of its regions is online. */
     public function isRunning(): bool
     {
-        return $this->elsewhere !== null ? $this->elsewhere['online'] : $this->controller->isRunning();
+        return match (true) {
+            $this->elsewhere !== null => $this->elsewhere['online'],
+            $this->processes !== null => $this->environment->consoles->sessionExists($this->name()) || $this->process() !== null,
+            default => $this->controller->isRunning(),
+        };
     }
 
     /** Its controller, for what only a simulator of this machine does. */
@@ -655,9 +683,37 @@ final class Simulator extends InstalledModel
         return $this->controller;
     }
 
+    /** Its process, null when it does not run: in the processes read for the list, else asked of the machine. */
     public function process(): ?Process
     {
-        return $this->controller->process();
+        if ($this->processes === null) {
+            return $this->controller->process();
+        }
+        $real = realpath($this->ini()) ?: $this->ini();
+        foreach ($this->processes as $process) {
+            if ($process->runs($this->ini()) || $process->runs($real)) {
+                return $process;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * How many regions it loads (its region files that are enabled; for a simulator of another machine, its regions in the table
+     * of the grid) and their area in square meters.
+     *
+     * @return array{0:int,1:int}
+     */
+    public function regionsAndArea(): array
+    {
+        if ($this->elsewhere !== null) {
+            return [$this->elsewhere['regions'], $this->elsewhere['area']];
+        }
+        $directory = $this->regionsDirectory();
+        $regions = array_filter($directory !== '' ? Region::inDirectory($directory) : [], static fn(Region $region): bool => $region->isEnabled());
+
+        return [count($regions), (int) array_sum(array_map(static fn(Region $region): int => $region->width() * $region->height(), $regions))];
     }
 
     public function console(): ConsoleInterface

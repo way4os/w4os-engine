@@ -362,6 +362,9 @@ final class Catalog
         'kind_oar' => 'Region (OAR)',
         'kind_backup' => 'Backup',
         'column_area' => 'Area',
+        // What the process of a simulator takes, in percents of the machine
+        'column_cpu' => 'CPU',
+        'column_memory' => 'Memory',
         'column_traffic' => 'Traffic',
         'column_for_sale' => 'For sale',
         'column_in_search' => 'In search',

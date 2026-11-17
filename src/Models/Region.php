@@ -1097,7 +1097,7 @@ final class Region extends Model
      * The simulators the grid has regions of that no simulator of this machine runs (a region of another machine registered with its
      * Robust): their address (host:port) and whether one of their regions is online. The links to other grids left out.
      *
-     * @return list<array{id:string,online:bool}> in the order of their addresses
+     * @return list<array{id:string,online:bool,regions:int,area:int}> in the order of their addresses, with their regions and their area
      * @throws ChannelUnavailable when the database of the grid service cannot be reached
      */
     public static function elsewhere(GridConfig $config): array
@@ -1105,11 +1105,22 @@ final class Region extends Model
         $pdo = self::connect($config, 'GridService', null, 'read the regions');
         $servers = array_filter(self::servers($config, $pdo), static fn(array $server): bool => $server['label'] === $server['id']);
         $online = [];
-        foreach ($pdo->get_results('SELECT serverURI, flags FROM regions WHERE (flags & ' . self::HYPERLINK . ') = 0', [], \PDO::FETCH_ASSOC) as $row) {
+        $sizes = [];
+        foreach ($pdo->get_results('SELECT serverURI, flags, sizeX, sizeY FROM regions WHERE (flags & ' . self::HYPERLINK . ') = 0', [], \PDO::FETCH_ASSOC) as $row) {
             $id = self::server((string) ($row['serverURI'] ?? ''));
-            $id === null || ($online[$id] = ($online[$id] ?? false) || ((int) ($row['flags'] ?? 0) & self::REGION_ONLINE) !== 0);
+            if ($id === null) {
+                continue;
+            }
+            $online[$id] = ($online[$id] ?? false) || ((int) ($row['flags'] ?? 0) & self::REGION_ONLINE) !== 0;
+            // A size the table does not say is the one of a region, 256 meters
+            $sizes[$id][] = ((int) ($row['sizeX'] ?? 0) ?: self::SIZE) * ((int) ($row['sizeY'] ?? 0) ?: self::SIZE);
         }
-        $found = array_map(static fn(array $server): array => ['id' => $server['id'], 'online' => $online[$server['id']] ?? false], array_values($servers));
+        $found = array_map(static fn(array $server): array => [
+            'id' => $server['id'],
+            'online' => $online[$server['id']] ?? false,
+            'regions' => count($sizes[$server['id']] ?? []),
+            'area' => (int) array_sum($sizes[$server['id']] ?? []),
+        ], array_values($servers));
         usort($found, static fn(array $a, array $b): int => strnatcasecmp($a['id'], $b['id']));
 
         return $found;

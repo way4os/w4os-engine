@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (simulators): their regions and their area (`regions`, `area`: the region files enabled, the table of the grid for one of another machine), and the cpu and memory of their process while they run (`cpu`, `memory`, as opensim status says them), columns sorted; the processes read once for a list
 - fix (monitor): the level of a grid is the one of its own services: ok whatever its simulators and regions do (they keep their counts), degraded only when a Robust of several does not run or the database of its grid service does not answer, down when its Robust (the simulator of a standalone) does not run
 - feature (api): the head of the page of an item (`header` of `x-form`: the attribute of its name, its picture, its subtitle, the indicators of its status), as its row in the list
 - feature (api): the counts of a list by filter and value (`meta.counts.<filter>.<value>`, each with the search and the other filters, not its own: one query for the avatars); the type of an avatar (`type`: user, model, service), a column sorted and a filter

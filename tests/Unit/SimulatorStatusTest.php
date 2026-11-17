@@ -187,3 +187,36 @@ describe('A simulator of another machine', function () {
             ->toBeInstanceOf(ChannelUnavailable::class);
     });
 });
+
+describe('The size and the load of a simulator', function () {
+    test('are its regions, their area, and the cpu and memory of its process while it runs, read once for the list', function () {
+        $machine = new Machine();
+        $regions = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha/regions';
+        file_put_contents("$regions/Big.ini", "[Big]\nRegionUUID = 33333333-1111-4111-8111-111111111111\nSizeX = 512\nSizeY = 512\nInternalPort = 9003\n");
+        file_put_contents("$regions/Off.ini.disabled", "[Off]\nRegionUUID = 44444444-1111-4111-8111-111111111111\n");
+        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini', cpu: 12.5, memory: 3.25);
+        $rows = array_column(array_map(static fn(Simulator $simulator): array => $simulator->detail(), Simulator::all($machine->environment)->items()), null, 'slug');
+        $columns = array_column(Simulator::listing()->columns, null, 'name');
+
+        // Plaza (256 x 256) and Big (512 x 512); the disabled one is not loaded
+        expect(array_intersect_key($rows['alpha'], array_flip(['regions', 'area', 'cpu', 'memory'])))
+            ->toBe(['regions' => 2, 'area' => 65536 + 262144, 'cpu' => 12.5, 'memory' => 3.25])
+            ->and([$rows['beta']['cpu'], $rows['beta']['memory'], $rows['beta']['regions']])
+            ->toBe([null, null, 1])
+            ->and(array_map(static fn(string $name): ?string => $columns[$name]['sort'] ?? null, ['regions', 'area', 'cpu', 'memory']))
+            ->toBe(['regions', 'area', 'cpu', 'memory']);
+    });
+
+    test('of another machine are its regions in the table of the grid, by its address', function () {
+        $machine = new Machine();
+        Connections::using(static fn() => status_regions());
+        try {
+            $suzi = Simulator::find($machine->environment, 'suzi.osgrid.example:9000')?->detail();
+        } finally {
+            Connections::using(null);
+        }
+
+        expect(array_intersect_key($suzi, array_flip(['regions', 'area', 'cpu', 'memory'])))
+            ->toBe(['regions' => 1, 'area' => 65536, 'cpu' => null, 'memory' => null]);
+    });
+});

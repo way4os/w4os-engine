@@ -1139,6 +1139,14 @@ msgctxt "column_area"
 msgid "Area"
 msgstr "Oppervlakte"
 
+msgctxt "column_cpu"
+msgid "CPU"
+msgstr "CPU"
+
+msgctxt "column_memory"
+msgid "Memory"
+msgstr "Geheugen"
+
 msgctxt "column_traffic"
 msgid "Traffic"
 msgstr "Verkeer"
