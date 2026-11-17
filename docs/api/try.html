@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "5214b32",
+        "version": "9652692",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -9529,6 +9529,13 @@
                             "technical": {
                                 "type": "boolean",
                                 "description": "An account of the services, not a person"
+                            },
+                            "profilePage": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The web page of its profile: `web_profile_url` of the grid with First.Last (Avatar::profilePage()); null when the grid has none, or for an avatar of another grid"
                             },
                             "profileImage": {
                                 "type": [

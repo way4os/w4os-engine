@@ -577,6 +577,8 @@ final class Avatar extends Model
             'homeRegion' => $row['HomeRegionID'] ?? null,
             'lastRegion' => $row['LastRegionID'] ?? null,
             'technical' => $this->isTechnical(),
+            // Its web profile: the address the grid gives with First.Last (profilePage()), null when it gives none
+            'profilePage' => $this->isLocal() ? self::profilePage($this->config, $this->name()) : null,
             'profileImage' => $row['profileImage'] ?? null,
             'about' => $row['profileAboutText'] ?? null,
             'profileUrl' => $row['profileURL'] ?? null,

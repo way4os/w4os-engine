@@ -214,6 +214,7 @@ final class Contract
                 'homeRegion' => ['string?', 'The UUID of its home region'],
                 'lastRegion' => ['string?', 'The UUID of the region it was in'],
                 'technical' => ['boolean', 'An account of the services, not a person'],
+                'profilePage' => ['string?', 'The web page of its profile: `web_profile_url` of the grid with First.Last (Avatar::profilePage()); null when the grid has none, or for an avatar of another grid'],
                 'profileImage' => ['string?', ''],
                 'about' => ['string?', ''],
                 'profileUrl' => ['string?', ''],

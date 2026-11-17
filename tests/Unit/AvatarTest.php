@@ -100,6 +100,17 @@ function avatars_in(OSPDO $pdo): void
 afterEach(fn() => Connections::using(null));
 
 describe('avatars', function () {
+    test('link to their web profile, the address the grid gives with First.Last, none when it gives none', function () {
+        avatars_in(avatar_database());
+        $profiled = avatar_grid("[GridInfoService]\n web_profile_url = \"\${Const|BaseURL}/helpers/profile/[AGENT_NAME]\"\n");
+        $pages = static fn(GridConfig $config): array => array_column(Avatar::all($config)->array(), 'profilePage', 'name');
+
+        expect(array_filter($pages($profiled), static fn($page): bool => !str_starts_with((string) $page, 'http://play.example.org/helpers/profile/')))
+            ->toBe([])
+            ->and(array_values(array_unique($pages(avatar_grid()))))
+            ->toBe([null]);
+    });
+
     test('are listed with their account, their last visit and their profile', function () {
         avatars_in(avatar_database());
         $list = Avatar::all(avatar_grid());
