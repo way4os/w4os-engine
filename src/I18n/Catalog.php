@@ -202,6 +202,8 @@ final class Catalog
         'state_disabled' => 'Disabled',
         'state_running' => 'Running',
         'state_stopped' => 'Stopped',
+        'state_unresponsive' => 'Not answering',
+        'state_crashed' => 'Crashed',
         'connection_console' => 'Console',
         'connection_console_failed' => 'Console unreachable',
         'connection_screen' => 'Screen',

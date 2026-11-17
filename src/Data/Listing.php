@@ -57,12 +57,13 @@ final class Listing
     /**
      * The icons of the indicators, by what they mean: a site gives each the icon of its own library. `power` enabled or not, `run`
      * running or not, `online` in the world or not, `console` a remote console, `screen` a screen session, `file` a config file,
-     * `files` config files, `database` a database, `server` a server or its config, `account` an account.
+     * `files` config files, `database` a database, `server` a server or its config, `account` an account, `play` and `pause` running
+     * or not (a state may have its own icon).
      */
-    public const ICONS = ['power', 'run', 'online', 'console', 'screen', 'file', 'files', 'database', 'server', 'account'];
+    public const ICONS = ['power', 'run', 'play', 'pause', 'online', 'console', 'screen', 'file', 'files', 'database', 'server', 'account'];
 
-    /** The tones of the states of an indicator: `ok` (green), `neutral` (known, not checked), `off` (grey), `failed` (red). */
-    public const TONES = ['ok', 'neutral', 'off', 'failed'];
+    /** The tones of the states of an indicator: `ok` (green: all is well), `off` (grey: off as it normally is), `failed` (red: an error). */
+    public const TONES = ['ok', 'off', 'failed'];
 
     /** The values of a yes or no filter, with the keys of their texts. */
     public const YES_NO = ['yes' => 'yes', 'no' => 'no'];
@@ -108,13 +109,16 @@ final class Listing
      * its icon (ICONS), the key of its title, its states, and the actions of the list that change it: the one whose `when` the row
      * meets is the button of the icon, not one of the buttons of the row. A value none of its states has shows no icon.
      *
-     * @param list<array{0:mixed,1:string,2:string}> $states the value, the key of its text, its tone (TONES)
+     * @param list<array{0:mixed,1:string,2:string,3?:string}> $states the value, the key of its text, its tone (TONES), and its own
+     *        icon when it is not the one of the indicator
      * @param list<string> $actions names of actions of the list
-     * @return array{name:string,icon:string,label:string,states:list<array{value:mixed,label:string,tone:string}>,actions?:list<string>}
+     * @return array{name:string,icon:string,label:string,states:list<array{value:mixed,label:string,tone:string,icon?:string}>,actions?:list<string>}
      */
     public static function indicator(string $name, string $icon, string $label, array $states, array $actions = []): array
     {
-        in_array($icon, self::ICONS, true) || throw new \InvalidArgumentException("'$icon' is not an icon of an indicator");
+        foreach ([$icon, ...array_filter(array_column($states, 3))] as $one) {
+            in_array($one, self::ICONS, true) || throw new \InvalidArgumentException("'$one' is not an icon of an indicator");
+        }
         foreach ($states as [, , $tone]) {
             in_array($tone, self::TONES, true) || throw new \InvalidArgumentException("'$tone' is not a tone of an indicator");
         }
@@ -123,7 +127,10 @@ final class Listing
             'name' => $name,
             'icon' => $icon,
             'label' => $label,
-            'states' => array_map(static fn(array $state): array => ['value' => $state[0], 'label' => $state[1], 'tone' => $state[2]], $states),
+            'states' => array_map(
+                static fn(array $state): array => ['value' => $state[0], 'label' => $state[1], 'tone' => $state[2]] + (isset($state[3]) ? ['icon' => $state[3]] : []),
+                $states,
+            ),
         ] + ($actions === [] ? [] : ['actions' => $actions]);
     }
 

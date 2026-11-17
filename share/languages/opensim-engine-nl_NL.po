@@ -538,6 +538,14 @@ msgctxt "state_stopped"
 msgid "Stopped"
 msgstr "Gestopt"
 
+msgctxt "state_unresponsive"
+msgid "Not answering"
+msgstr "Reageert niet"
+
+msgctxt "state_crashed"
+msgid "Crashed"
+msgstr "Gecrasht"
+
 msgctxt "connection_console"
 msgid "Console"
 msgstr "Console"

@@ -38,16 +38,26 @@ describe('The list of the simulators', function () {
         expect($status['type'])
             ->toBe('indicators')
             ->and(array_keys($indicators))
-            ->toBe(['enabled', 'running', 'connections.console', 'connections.screen', 'connections.config', 'connections.regions', 'connections.mysql', 'connections.sqlite'])
-            ->and($indicators['running'])
-            ->toMatchArray(['icon' => 'run', 'actions' => ['start', 'stop']])
-            ->and($indicators['running']['states'][0])
-            ->toBe(['value' => true, 'label' => 'state_running', 'tone' => 'ok'])
+            ->toBe(['enabled', 'state', 'connections.console', 'connections.screen', 'connections.config', 'connections.regions', 'connections.mysql', 'connections.sqlite'])
+            ->and($indicators['state'])
+            ->toMatchArray(['icon' => 'play', 'actions' => ['start', 'stop']])
+            // Play while it runs, pause while it does not; red when it should answer and does not
+            ->and($indicators['state']['states'])
+            ->toBe([
+                ['value' => 'running', 'label' => 'state_running', 'tone' => 'ok', 'icon' => 'play'],
+                ['value' => 'stopped', 'label' => 'state_stopped', 'tone' => 'off', 'icon' => 'pause'],
+                ['value' => 'unresponsive', 'label' => 'state_unresponsive', 'tone' => 'failed', 'icon' => 'play'],
+                ['value' => 'crashed', 'label' => 'state_crashed', 'tone' => 'failed', 'icon' => 'pause'],
+            ])
+            ->and(OpenSim\Data\Listing::TONES)
+            ->toBe(['ok', 'off', 'failed'])
             ->and($indicators['enabled']['actions'])
             ->toBe(['enable', 'disable'])
             // None shows no icon; each state says it all on its own: the thing, and what is wrong with it when something is
             ->and(array_column($indicators['connections.mysql']['states'], 'label', 'value'))
             ->toBe(['configured' => 'connection_mysql', 'ok' => 'connection_mysql', 'failed' => 'connection_mysql_failed'])
+            ->and(array_column($indicators['connections.mysql']['states'], 'tone', 'value'))
+            ->toBe(['configured' => 'off', 'ok' => 'ok', 'failed' => 'failed'])
             ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config'])
             ->toBe('OpenSim.ini')
             ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config_failed'])
@@ -59,7 +69,7 @@ describe('The list of the simulators', function () {
             )))
             ->toBe(['Regions .ini'])
             ->and(array_column($listing->columns, 'name'))
-            ->not->toContain('enabled', 'running')
+            ->not->toContain('enabled', 'running', 'state')
             // An instance of this machine only is started or stopped
             ->and([$actions['start']['requires'], $actions['stop']['requires'], $actions['stop']['ask']])
             ->toBe([['slug'], ['slug'], 'ask_stop_instance']);
@@ -67,17 +77,25 @@ describe('The list of the simulators', function () {
 });
 
 describe('The ways the engine reaches a simulator', function () {
-    test('are said configured in a list, tried when it is asked alone', function () {
+    test('are checked in a list by what costs nothing (its files, the ports bound), tried when it is asked alone', function () {
         $machine = new Machine();
-        $listed = Simulator::find($machine->environment, 'alpha');
+        $stopped = Simulator::find($machine->environment, 'alpha')->connections();
+        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini');
+        $machine->processes->listening = [9000];
+        $deaf = Simulator::find($machine->environment, 'alpha')->connections();
+        $machine->processes->listening = [9000, 9004];
+        $listening = Simulator::find($machine->environment, 'alpha')->connections();
         $alone = Simulator::find($machine->environment, 'alpha');
         $alone->probe();
 
-        expect($listed->connections())
-            ->toBe(['console' => 'configured', 'screen' => 'none', 'config' => 'configured', 'regions' => 'configured', 'mysql' => 'none', 'sqlite' => 'none'])
-            // Nothing listens at its console in a test, its files are there
-            ->and($alone->connections())
-            ->toBe(['console' => 'failed', 'screen' => 'none', 'config' => 'ok', 'regions' => 'ok', 'mysql' => 'none', 'sqlite' => 'none']);
+        // Its console is not tried while it does not run: not there is normal then
+        expect($stopped)
+            ->toBe(['console' => 'configured', 'screen' => 'none', 'config' => 'ok', 'regions' => 'ok', 'mysql' => 'none', 'sqlite' => 'none'])
+            ->and([$deaf['console'], $listening['console']])
+            ->toBe(['failed', 'ok'])
+            // Alone, it is tried: nothing listens at its console in a test
+            ->and($alone->connections()['console'])
+            ->toBe('failed');
     });
 
     test('name its database by what it is: MySQL, or SQLite, a file read and never made by trying it', function () {
@@ -100,16 +118,45 @@ describe('The ways the engine reaches a simulator', function () {
 
     test('are tried by the API for one simulator, not for the list', function () {
         $machine = new Machine();
+        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini');
+        $machine->processes->listening = [9000];
         $api = new Api($machine->environment);
-        $list = $api->list('simulators')->document['data'];
+        $list = array_column(array_column($api->list('simulators')->document['data'], 'attributes'), null, 'slug');
         $one = $api->get('simulators', 'alpha')->document['data']['attributes'];
 
-        expect(array_column(array_column(array_column($list, 'attributes'), 'connections'), 'config'))
-            ->toBe(['configured', 'configured'])
-            ->and($one['connections']['config'])
-            ->toBe('ok')
-            ->and($one['local'])
-            ->toBeTrue();
+        // Its port bound is enough for the list; alone, its /simstatus/ does not answer in a test
+        expect([$list['alpha']['state'], $list['alpha']['connections']['config']])
+            ->toBe(['running', 'ok'])
+            ->and([$one['state'], $one['local']])
+            ->toBe(['unresponsive', true]);
+    });
+});
+
+describe('The state of a simulator', function () {
+    test('is running, stopped, unresponsive when its process does not answer, crashed when its session is left without it', function () {
+        $machine = new Machine();
+        $state = static fn(bool $probe = false): string => (static function (Simulator $simulator) use ($probe): string {
+            $probe && $simulator->probe();
+
+            return $simulator->detail()['state'];
+        })(Simulator::find($machine->environment, 'alpha'));
+        $stopped = $state();
+        $process = $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini');
+        // Up, its port not bound: in a list it does not answer
+        $deaf = $state();
+        $machine->processes->listening = [9000];
+        $listed = $state();
+        // Alone, it is asked: /simstatus/ answers OK
+        $silent = $state(true);
+        $machine->http['http://127.0.0.1:9000/simstatus/'] = 'OK';
+        $answering = $state(true);
+        // Its screen session stays, its process is gone
+        $machine->processes->remove($process->pid);
+        $machine->consoles->sessions['alpha'] = true;
+        $crashed = $state();
+
+        expect([$stopped, $deaf, $listed, $silent, $answering, $crashed])
+            ->toBe(['stopped', 'unresponsive', 'running', 'unresponsive', 'running', 'crashed']);
     });
 });
 

@@ -47,6 +47,21 @@ final class Simulator extends InstalledModel
     /** Whether connections() tries each way rather than saying it is configured (probe()). */
     private bool $probed = false;
 
+    /** @var ?list<int> the ports bound on the machine, read once for a list (all()); null: not read */
+    private ?array $bound = null;
+
+    /** Its process runs and answers. */
+    public const RUNNING = 'running';
+
+    /** It does not run. */
+    public const STOPPED = 'stopped';
+
+    /** Its process runs and does not answer: its HTTP port not bound (a list), or no answer at /simstatus/ (alone). */
+    public const UNRESPONSIVE = 'unresponsive';
+
+    /** Its screen session is there without its process: the program ended in it. */
+    public const CRASHED = 'crashed';
+
     public function __construct(Environment $environment, string $ini, ?string $name = null)
     {
         parent::__construct($environment);
@@ -98,15 +113,65 @@ final class Simulator extends InstalledModel
         $database = $this->database();
         $sqlite = $database?->driver === 'sqlite';
 
+        // What costs nothing is checked in a list too: its files, the ports bound; a console or a screen is only there while it runs
+        $running = $this->process() !== null;
+        $host = (string) ($this->consoleHost() ?: '127.0.0.1');
+        $checked = fn(bool $configured, \Closure $reached): string => !$configured ? 'none' : ($reached() ? 'ok' : 'failed');
+
         return [
-            'console' => $state($console !== null, fn(): bool => self::listens((string) ($this->consoleHost() ?: '127.0.0.1'), (int) $console['port'])),
-            'screen' => $state($console === null, fn(): bool => $this->isRunning()),
-            'config' => $state(is_file($this->ini()), fn(): bool => is_readable($this->ini())),
-            'regions' => $state($regions !== '' && is_dir($regions), fn(): bool => is_readable($regions) && $this->hasRegion()),
+            'console' => match (true) {
+                $console === null => 'none',
+                !$running => 'configured',
+                $this->probed => $state(true, fn(): bool => self::listens($host, (int) $console['port'])),
+                $this->bound !== null => in_array((int) $console['port'], $this->bound, true) ? 'ok' : 'failed',
+                default => 'configured',
+            },
+            'screen' => $console !== null ? 'none' : ($running ? 'ok' : ($this->environment->consoles->sessionExists($this->name()) ? 'failed' : 'configured')),
+            'config' => $checked(is_file($this->ini()), fn(): bool => is_readable($this->ini())),
+            'regions' => $checked($regions !== '' && is_dir($regions), fn(): bool => is_readable($regions) && $this->hasRegion()),
             'mysql' => $state($database !== null && !$sqlite, fn(): bool => self::reaches($database)),
             // A file: read, never made by trying it
-            'sqlite' => $state($sqlite, fn(): bool => is_readable((string) $database?->database)),
+            'sqlite' => $checked($sqlite, fn(): bool => is_readable((string) $database?->database)),
         ];
+    }
+
+    /**
+     * Whether it runs and answers (RUNNING, STOPPED, UNRESPONSIVE, CRASHED), from what costs nothing in a list (its process, its
+     * screen session, the ports bound on the machine), its /simstatus/ asked when it is alone (probe()). A simulator of another
+     * machine runs while one of its regions is online.
+     */
+    public function state(): string
+    {
+        if ($this->elsewhere !== null) {
+            return $this->elsewhere['online'] ? self::RUNNING : self::STOPPED;
+        }
+        $process = $this->process();
+        if ($process === null) {
+            return $this->environment->consoles->sessionExists($this->name()) ? self::CRASHED : self::STOPPED;
+        }
+        $port = (int) $this->httpPort();
+        $answers = match (true) {
+            $port <= 0 => true,
+            $this->probed => trim((string) ($this->environment->http ?? self::fetch(...))("http://127.0.0.1:$port/simstatus/")) === 'OK',
+            $this->bound !== null => in_array($port, $this->bound, true),
+            default => true,
+        };
+
+        return $answers ? self::RUNNING : self::UNRESPONSIVE;
+    }
+
+    /** The body of a local address, null when it does not answer within two seconds. */
+    private static function fetch(string $url): ?string
+    {
+        $context = stream_context_create(['http' => ['timeout' => 2, 'ignore_errors' => true]]);
+        set_error_handler(static fn(): bool => true);
+        try {
+            $body = file_get_contents($url, false, $context);
+        } finally {
+            restore_error_handler();
+        }
+
+        return is_string($body) ? $body : null;
     }
 
     /** Whether something listens at an address (a TCP connection opens within a second). */
@@ -315,8 +380,13 @@ final class Simulator extends InstalledModel
     public static function all(Environment $environment, array $options = []): Collection
     {
         $simulators = [];
+        // The ports bound, read once for the list: whether each simulator answers, and its console
+        $bound = $environment->occupiedPorts ?? $environment->processes->listening();
         foreach (Grid::all($environment)->items() as $grid) {
             $here = $grid->simulators();
+            foreach ($here as $simulator) {
+                $simulator->bound = $bound;
+            }
             array_push($simulators, ...$here, ...self::ofOthers($environment, $grid, $here));
         }
         $yesNo = static fn(\Closure $is): \Closure => static fn(self $simulator, string $value): bool => $is($simulator) ===
@@ -383,12 +453,18 @@ final class Simulator extends InstalledModel
                 // Enabled and running, each the button that changes it, then the ways the engine reaches it
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
                     Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
-                    Listing::indicator('running', 'run', 'column_running', [[true, 'state_running', 'ok'], [false, 'state_stopped', 'off']], ['start', 'stop']),
+                    // Play while it runs, pause while it does not, red when it should answer and does not
+                    Listing::indicator('state', 'play', 'column_running', [
+                        [self::RUNNING, 'state_running', 'ok', 'play'],
+                        [self::STOPPED, 'state_stopped', 'off', 'pause'],
+                        [self::UNRESPONSIVE, 'state_unresponsive', 'failed', 'play'],
+                        [self::CRASHED, 'state_crashed', 'failed', 'pause'],
+                    ], ['start', 'stop']),
                     ...array_map(
                         // Each state says it all: the thing alone while it is there (configured, or tried and reached), with what is wrong
                         // when it was tried and not reached; none shows no icon
                         static fn(string $way): array => Listing::indicator("connections.$way", self::ICONS[$way], "connection_$way", [
-                            ['configured', "connection_$way", 'neutral'],
+                            ['configured', "connection_$way", 'off'],
                             ['ok', "connection_$way", 'ok'],
                             ['failed', "connection_{$way}_failed", 'failed'],
                         ]),
@@ -449,6 +525,7 @@ final class Simulator extends InstalledModel
                 'link' => null,
                 'enabled' => null,
                 'running' => $this->isRunning(),
+                'state' => $this->state(),
                 'local' => false,
                 'connections' => $this->connections(),
                 'httpPort' => $this->httpPort(),
@@ -465,6 +542,7 @@ final class Simulator extends InstalledModel
             'link' => $this->link(),
             'enabled' => $this->isEnabled(),
             'running' => $this->isRunning(),
+            'state' => $this->state(),
             'local' => true,
             'connections' => $this->connections(),
             'httpPort' => $this->httpPort(),

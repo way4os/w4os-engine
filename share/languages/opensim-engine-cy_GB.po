@@ -544,6 +544,14 @@ msgctxt "state_stopped"
 msgid "Stopped"
 msgstr "Wedi stopio"
 
+msgctxt "state_unresponsive"
+msgid "Not answering"
+msgstr "Dim ateb"
+
+msgctxt "state_crashed"
+msgid "Crashed"
+msgstr "Wedi chwalu"
+
 msgctxt "connection_console"
 msgid "Console"
 msgstr "Console"

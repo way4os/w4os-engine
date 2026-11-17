@@ -1472,7 +1472,7 @@ final class Avatar extends Model
             Listing::column('created', 'created', 'date', 'created'),
             // The account, the button that enables or disables it, and the presence in the world
             Listing::column('status', 'status', 'indicators', 'active', ['indicators' => [
-                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'neutral'], ['disabled', 'status_disabled', 'off']], ['enable', 'disable']),
+                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off']], ['enable', 'disable']),
                 Listing::indicator('online', 'online', 'presence', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
             ]]),
         ];
