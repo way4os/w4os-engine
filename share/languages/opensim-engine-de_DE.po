@@ -541,41 +541,45 @@ msgctxt "state_stopped"
 msgid "Stopped"
 msgstr "Gestoppt"
 
-msgctxt "state_configured"
-msgid "Configured"
-msgstr "Konfiguriert"
-
-msgctxt "state_reached"
-msgid "Reached"
-msgstr "Erreichbar"
-
-msgctxt "state_unreached"
-msgid "Configured, not reached"
-msgstr "Konfiguriert, nicht erreichbar"
-
 msgctxt "connection_console"
-msgid "Remote console"
-msgstr "Fernkonsole"
+msgid "Console"
+msgstr "Konsole"
+
+msgctxt "connection_console_failed"
+msgid "Console unreachable"
+msgstr "Konsole nicht erreichbar"
 
 msgctxt "connection_screen"
-msgid "Screen session"
-msgstr "Screen-Sitzung"
+msgid "Screen"
+msgstr "Screen"
+
+msgctxt "connection_screen_failed"
+msgid "Screen not found"
+msgstr "Screen nicht gefunden"
 
 msgctxt "connection_config"
-msgid "Its config file"
-msgstr "Seine Konfigurationsdatei"
+msgid "OpenSim.ini"
+msgstr "OpenSim.ini"
+
+msgctxt "connection_config_failed"
+msgid "OpenSim.ini unreadable"
+msgstr "OpenSim.ini nicht lesbar"
 
 msgctxt "connection_regions"
-msgid "The files of its regions"
-msgstr "Die Dateien seiner Regionen"
+msgid "Region files"
+msgstr "Regionsdateien"
+
+msgctxt "connection_regions_failed"
+msgid "Region files unreadable"
+msgstr "Regionsdateien nicht lesbar"
 
 msgctxt "connection_database"
-msgid "Its database"
-msgstr "Seine Datenbank"
+msgid "Database"
+msgstr "Datenbank"
 
-msgctxt "connection_robust"
-msgid "The config of the Robust of its grid"
-msgstr "Die Konfiguration des Robust seines Grids"
+msgctxt "connection_database_failed"
+msgid "Database unreachable"
+msgstr "Datenbank nicht erreichbar"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1563,6 +1567,42 @@ msgid ""
 msgstr ""
 "Die Registrierung bleibt bestehen, aber die Mail an {email} konnte nicht "
 "gesendet werden: fordere sie später erneut an."
+
+#~ msgctxt "state_configured"
+#~ msgid "Configured"
+#~ msgstr "Konfiguriert"
+
+#~ msgctxt "state_reached"
+#~ msgid "Reached"
+#~ msgstr "Erreichbar"
+
+#~ msgctxt "state_unreached"
+#~ msgid "Configured, not reached"
+#~ msgstr "Konfiguriert, nicht erreichbar"
+
+#~ msgctxt "connection_console"
+#~ msgid "Remote console"
+#~ msgstr "Fernkonsole"
+
+#~ msgctxt "connection_screen"
+#~ msgid "Screen session"
+#~ msgstr "Screen-Sitzung"
+
+#~ msgctxt "connection_config"
+#~ msgid "Its config file"
+#~ msgstr "Seine Konfigurationsdatei"
+
+#~ msgctxt "connection_regions"
+#~ msgid "The files of its regions"
+#~ msgstr "Die Dateien seiner Regionen"
+
+#~ msgctxt "connection_database"
+#~ msgid "Its database"
+#~ msgstr "Seine Datenbank"
+
+#~ msgctxt "connection_robust"
+#~ msgid "The config of the Robust of its grid"
+#~ msgstr "Die Konfiguration des Robust seines Grids"
 
 #~ msgctxt "notice_import_module_missing"
 #~ msgid ""

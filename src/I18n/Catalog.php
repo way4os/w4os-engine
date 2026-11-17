@@ -195,21 +195,23 @@ final class Catalog
         'search_simulators' => 'Simulator name',
         'simulators_count' => '%d simulators',
         'no_simulators' => 'No simulator',
-        // Its status: enabled, running, and the ways the engine reaches it, each configured, reached or not
+        // Its status, each state saying it all on its own: enabled, running, and the ways the engine reaches it, by their name alone
+        // while they are there, with what is wrong when they are not
         'column_status' => 'Status',
         'state_enabled' => 'Enabled',
         'state_disabled' => 'Disabled',
         'state_running' => 'Running',
         'state_stopped' => 'Stopped',
-        'state_configured' => 'Configured',
-        'state_reached' => 'Reached',
-        'state_unreached' => 'Configured, not reached',
-        'connection_console' => 'Remote console',
-        'connection_screen' => 'Screen session',
-        'connection_config' => 'Its config file',
-        'connection_regions' => 'The files of its regions',
-        'connection_database' => 'Its database',
-        'connection_robust' => 'The config of the Robust of its grid',
+        'connection_console' => 'Console',
+        'connection_console_failed' => 'Console unreachable',
+        'connection_screen' => 'Screen',
+        'connection_screen_failed' => 'Screen not found',
+        'connection_config' => 'OpenSim.ini',
+        'connection_config_failed' => 'OpenSim.ini unreadable',
+        'connection_regions' => 'Region files',
+        'connection_regions_failed' => 'Region files unreadable',
+        'connection_database' => 'Database',
+        'connection_database_failed' => 'Database unreachable',
 
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',

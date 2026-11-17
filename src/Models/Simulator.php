@@ -28,16 +28,13 @@ final class Simulator extends InstalledModel
     use HasName;
 
     /** The icon of each way to it in the list (Listing::ICONS). */
-    private const ICONS = ['console' => 'console', 'screen' => 'screen', 'config' => 'file', 'regions' => 'files', 'database' => 'database', 'robust' => 'server'];
-
-    /** How the list shows the state of a way: none is not shown. */
-    private const CONNECTION_INDICATOR = [['configured', 'state_configured', 'neutral'], ['ok', 'state_reached', 'ok'], ['failed', 'state_unreached', 'failed']];
+    private const ICONS = ['console' => 'console', 'screen' => 'screen', 'config' => 'file', 'regions' => 'files', 'database' => 'database'];
 
     /** The rule of the name of a simulator: letters, digits, space and hyphen, no dot. */
     private const NAME = ['punctuation' => '-'];
 
     /** The ways the engine reaches a simulator, in the order a site shows them (connections()). */
-    public const CONNECTIONS = ['console', 'screen', 'config', 'regions', 'database', 'robust'];
+    public const CONNECTIONS = ['console', 'screen', 'config', 'regions', 'database'];
 
     /** The states of a way: none (the engine has no such way to it), configured (named, not tried), ok, failed (tried, not reached). */
     public const CONNECTION_STATES = ['none', 'configured', 'ok', 'failed'];
@@ -82,8 +79,8 @@ final class Simulator extends InstalledModel
 
     /**
      * The ways the engine reaches it (CONNECTIONS), each in a state of CONNECTION_STATES: `console` its REST console, `screen` the
-     * screen session it runs in, `config` its ini, `regions` the files of its regions, `database` its database, `robust` the ini of
-     * the Robust of its grid. Configured unless probe() asked to try them.
+     * screen session it runs in, `config` its ini, `regions` the files of its regions, `database` its database (the config of the
+     * Robust is the grid's). Configured unless probe() asked to try them.
      *
      * @return array<string,string>
      */
@@ -99,7 +96,6 @@ final class Simulator extends InstalledModel
         $console = $this->remoteConsole();
         $regions = $this->regionsDirectory();
         $database = $this->database();
-        $robust = $this->grid()?->robustIni();
 
         return [
             'console' => $state($console !== null, fn(): bool => self::listens((string) ($this->consoleHost() ?: '127.0.0.1'), (int) $console['port'])),
@@ -107,7 +103,6 @@ final class Simulator extends InstalledModel
             'config' => $state(is_file($this->ini()), fn(): bool => is_readable($this->ini())),
             'regions' => $state($regions !== '' && is_dir($regions), fn(): bool => is_readable($regions) && $this->hasRegion()),
             'database' => $state($database !== null, fn(): bool => self::reaches($database)),
-            'robust' => $state($robust !== null && is_file($robust), fn(): bool => is_readable((string) $robust)),
         ];
     }
 
@@ -389,7 +384,13 @@ final class Simulator extends InstalledModel
                     Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
                     Listing::indicator('running', 'run', 'column_running', [[true, 'state_running', 'ok'], [false, 'state_stopped', 'off']], ['start', 'stop']),
                     ...array_map(
-                        static fn(string $way): array => Listing::indicator("connections.$way", self::ICONS[$way], "connection_$way", self::CONNECTION_INDICATOR),
+                        // Each state says it all: the thing alone while it is there (configured, or tried and reached), with what is wrong
+                        // when it was tried and not reached; none shows no icon
+                        static fn(string $way): array => Listing::indicator("connections.$way", self::ICONS[$way], "connection_$way", [
+                            ['configured', "connection_$way", 'neutral'],
+                            ['ok', "connection_$way", 'ok'],
+                            ['failed', "connection_{$way}_failed", 'failed'],
+                        ]),
                         self::CONNECTIONS,
                     ),
                 ]]),

@@ -38,16 +38,20 @@ describe('The list of the simulators', function () {
         expect($status['type'])
             ->toBe('indicators')
             ->and(array_keys($indicators))
-            ->toBe(['enabled', 'running', 'connections.console', 'connections.screen', 'connections.config', 'connections.regions', 'connections.database', 'connections.robust'])
+            ->toBe(['enabled', 'running', 'connections.console', 'connections.screen', 'connections.config', 'connections.regions', 'connections.database'])
             ->and($indicators['running'])
             ->toMatchArray(['icon' => 'run', 'actions' => ['start', 'stop']])
             ->and($indicators['running']['states'][0])
             ->toBe(['value' => true, 'label' => 'state_running', 'tone' => 'ok'])
             ->and($indicators['enabled']['actions'])
             ->toBe(['enable', 'disable'])
-            // None shows no icon
-            ->and(array_column($indicators['connections.database']['states'], 'value'))
-            ->toBe(['configured', 'ok', 'failed'])
+            // None shows no icon; each state says it all on its own: the thing, and what is wrong with it when something is
+            ->and(array_column($indicators['connections.database']['states'], 'label', 'value'))
+            ->toBe(['configured' => 'connection_database', 'ok' => 'connection_database', 'failed' => 'connection_database_failed'])
+            ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config'])
+            ->toBe('OpenSim.ini')
+            ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config_failed'])
+            ->toBe('OpenSim.ini unreadable')
             ->and(array_column($listing->columns, 'name'))
             ->not->toContain('enabled', 'running')
             // An instance of this machine only is started or stopped
@@ -64,10 +68,10 @@ describe('The ways the engine reaches a simulator', function () {
         $alone->probe();
 
         expect($listed->connections())
-            ->toBe(['console' => 'configured', 'screen' => 'none', 'config' => 'configured', 'regions' => 'configured', 'database' => 'none', 'robust' => 'configured'])
+            ->toBe(['console' => 'configured', 'screen' => 'none', 'config' => 'configured', 'regions' => 'configured', 'database' => 'none'])
             // Nothing listens at its console in a test, its files are there
             ->and($alone->connections())
-            ->toBe(['console' => 'failed', 'screen' => 'none', 'config' => 'ok', 'regions' => 'ok', 'database' => 'none', 'robust' => 'ok']);
+            ->toBe(['console' => 'failed', 'screen' => 'none', 'config' => 'ok', 'regions' => 'ok', 'database' => 'none']);
     });
 
     test('are tried by the API for one simulator, not for the list', function () {

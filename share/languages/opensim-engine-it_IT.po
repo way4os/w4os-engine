@@ -540,41 +540,45 @@ msgctxt "state_stopped"
 msgid "Stopped"
 msgstr "Fermato"
 
-msgctxt "state_configured"
-msgid "Configured"
-msgstr "Configurato"
-
-msgctxt "state_reached"
-msgid "Reached"
-msgstr "Raggiungibile"
-
-msgctxt "state_unreached"
-msgid "Configured, not reached"
-msgstr "Configurato, non raggiungibile"
-
 msgctxt "connection_console"
-msgid "Remote console"
-msgstr "Console remota"
+msgid "Console"
+msgstr "Console"
+
+msgctxt "connection_console_failed"
+msgid "Console unreachable"
+msgstr "Console non raggiungibile"
 
 msgctxt "connection_screen"
-msgid "Screen session"
-msgstr "Sessione screen"
+msgid "Screen"
+msgstr "Screen"
+
+msgctxt "connection_screen_failed"
+msgid "Screen not found"
+msgstr "Screen non trovato"
 
 msgctxt "connection_config"
-msgid "Its config file"
-msgstr "Il suo file di configurazione"
+msgid "OpenSim.ini"
+msgstr "OpenSim.ini"
+
+msgctxt "connection_config_failed"
+msgid "OpenSim.ini unreadable"
+msgstr "OpenSim.ini illeggibile"
 
 msgctxt "connection_regions"
-msgid "The files of its regions"
-msgstr "I file delle sue regioni"
+msgid "Region files"
+msgstr "File delle regioni"
+
+msgctxt "connection_regions_failed"
+msgid "Region files unreadable"
+msgstr "File delle regioni illeggibili"
 
 msgctxt "connection_database"
-msgid "Its database"
-msgstr "Il suo database"
+msgid "Database"
+msgstr "Database"
 
-msgctxt "connection_robust"
-msgid "The config of the Robust of its grid"
-msgstr "La configurazione del Robust della sua griglia"
+msgctxt "connection_database_failed"
+msgid "Database unreachable"
+msgstr "Database non raggiungibile"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1549,6 +1553,42 @@ msgid ""
 msgstr ""
 "La registrazione è conservata, ma la mail a {email} non è stata inviata: "
 "richiedila più tardi."
+
+#~ msgctxt "state_configured"
+#~ msgid "Configured"
+#~ msgstr "Configurato"
+
+#~ msgctxt "state_reached"
+#~ msgid "Reached"
+#~ msgstr "Raggiungibile"
+
+#~ msgctxt "state_unreached"
+#~ msgid "Configured, not reached"
+#~ msgstr "Configurato, non raggiungibile"
+
+#~ msgctxt "connection_console"
+#~ msgid "Remote console"
+#~ msgstr "Console remota"
+
+#~ msgctxt "connection_screen"
+#~ msgid "Screen session"
+#~ msgstr "Sessione screen"
+
+#~ msgctxt "connection_config"
+#~ msgid "Its config file"
+#~ msgstr "Il suo file di configurazione"
+
+#~ msgctxt "connection_regions"
+#~ msgid "The files of its regions"
+#~ msgstr "I file delle sue regioni"
+
+#~ msgctxt "connection_database"
+#~ msgid "Its database"
+#~ msgstr "Il suo database"
+
+#~ msgctxt "connection_robust"
+#~ msgid "The config of the Robust of its grid"
+#~ msgstr "La configurazione del Robust della sua griglia"
 
 #~ msgctxt "notice_import_module_missing"
 #~ msgid ""

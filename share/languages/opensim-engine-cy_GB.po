@@ -544,41 +544,45 @@ msgctxt "state_stopped"
 msgid "Stopped"
 msgstr "Wedi stopio"
 
-msgctxt "state_configured"
-msgid "Configured"
-msgstr "Wedi'i ffurfweddu"
-
-msgctxt "state_reached"
-msgid "Reached"
-msgstr "Wedi'i gyrraedd"
-
-msgctxt "state_unreached"
-msgid "Configured, not reached"
-msgstr "Wedi'i ffurfweddu, heb ei gyrraedd"
-
 msgctxt "connection_console"
-msgid "Remote console"
-msgstr "Consol o bell"
+msgid "Console"
+msgstr "Consol"
+
+msgctxt "connection_console_failed"
+msgid "Console unreachable"
+msgstr "Consol yn anghyraeddadwy"
 
 msgctxt "connection_screen"
-msgid "Screen session"
-msgstr "Sesiwn screen"
+msgid "Screen"
+msgstr "Screen"
+
+msgctxt "connection_screen_failed"
+msgid "Screen not found"
+msgstr "Screen heb ei ganfod"
 
 msgctxt "connection_config"
-msgid "Its config file"
-msgstr "Ei ffeil ffurfweddu"
+msgid "OpenSim.ini"
+msgstr "OpenSim.ini"
+
+msgctxt "connection_config_failed"
+msgid "OpenSim.ini unreadable"
+msgstr "OpenSim.ini yn annarllenadwy"
 
 msgctxt "connection_regions"
-msgid "The files of its regions"
-msgstr "Ffeiliau ei ranbarthau"
+msgid "Region files"
+msgstr "Ffeiliau rhanbarthau"
+
+msgctxt "connection_regions_failed"
+msgid "Region files unreadable"
+msgstr "Ffeiliau rhanbarthau yn annarllenadwy"
 
 msgctxt "connection_database"
-msgid "Its database"
-msgstr "Ei gronfa ddata"
+msgid "Database"
+msgstr "Cronfa ddata"
 
-msgctxt "connection_robust"
-msgid "The config of the Robust of its grid"
-msgstr "Ffurfweddiad Robust ei grid"
+msgctxt "connection_database_failed"
+msgid "Database unreachable"
+msgstr "Cronfa ddata yn anghyraeddadwy"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1566,6 +1570,42 @@ msgid ""
 msgstr ""
 "Mae'r cofrestriad wedi'i gadw, ond ni ellid anfon y neges at {email}: "
 "gofynnwch amdani eto yn nes ymlaen."
+
+#~ msgctxt "state_configured"
+#~ msgid "Configured"
+#~ msgstr "Wedi'i ffurfweddu"
+
+#~ msgctxt "state_reached"
+#~ msgid "Reached"
+#~ msgstr "Wedi'i gyrraedd"
+
+#~ msgctxt "state_unreached"
+#~ msgid "Configured, not reached"
+#~ msgstr "Wedi'i ffurfweddu, heb ei gyrraedd"
+
+#~ msgctxt "connection_console"
+#~ msgid "Remote console"
+#~ msgstr "Consol o bell"
+
+#~ msgctxt "connection_screen"
+#~ msgid "Screen session"
+#~ msgstr "Sesiwn screen"
+
+#~ msgctxt "connection_config"
+#~ msgid "Its config file"
+#~ msgstr "Ei ffeil ffurfweddu"
+
+#~ msgctxt "connection_regions"
+#~ msgid "The files of its regions"
+#~ msgstr "Ffeiliau ei ranbarthau"
+
+#~ msgctxt "connection_database"
+#~ msgid "Its database"
+#~ msgstr "Ei gronfa ddata"
+
+#~ msgctxt "connection_robust"
+#~ msgid "The config of the Robust of its grid"
+#~ msgstr "Ffurfweddiad Robust ei grid"
 
 #~ msgctxt "notice_import_module_missing"
 #~ msgid ""

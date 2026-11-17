@@ -499,40 +499,44 @@ msgctxt "state_stopped"
 msgid "Stopped"
 msgstr ""
 
-msgctxt "state_configured"
-msgid "Configured"
-msgstr ""
-
-msgctxt "state_reached"
-msgid "Reached"
-msgstr ""
-
-msgctxt "state_unreached"
-msgid "Configured, not reached"
-msgstr ""
-
 msgctxt "connection_console"
-msgid "Remote console"
+msgid "Console"
+msgstr ""
+
+msgctxt "connection_console_failed"
+msgid "Console unreachable"
 msgstr ""
 
 msgctxt "connection_screen"
-msgid "Screen session"
+msgid "Screen"
+msgstr ""
+
+msgctxt "connection_screen_failed"
+msgid "Screen not found"
 msgstr ""
 
 msgctxt "connection_config"
-msgid "Its config file"
+msgid "OpenSim.ini"
+msgstr ""
+
+msgctxt "connection_config_failed"
+msgid "OpenSim.ini unreadable"
 msgstr ""
 
 msgctxt "connection_regions"
-msgid "The files of its regions"
+msgid "Region files"
+msgstr ""
+
+msgctxt "connection_regions_failed"
+msgid "Region files unreadable"
 msgstr ""
 
 msgctxt "connection_database"
-msgid "Its database"
+msgid "Database"
 msgstr ""
 
-msgctxt "connection_robust"
-msgid "The config of the Robust of its grid"
+msgctxt "connection_database_failed"
+msgid "Database unreachable"
 msgstr ""
 
 msgctxt "menu_admin"

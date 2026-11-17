@@ -538,41 +538,45 @@ msgctxt "state_stopped"
 msgid "Stopped"
 msgstr "Gestopt"
 
-msgctxt "state_configured"
-msgid "Configured"
-msgstr "Geconfigureerd"
-
-msgctxt "state_reached"
-msgid "Reached"
-msgstr "Bereikbaar"
-
-msgctxt "state_unreached"
-msgid "Configured, not reached"
-msgstr "Geconfigureerd, niet bereikbaar"
-
 msgctxt "connection_console"
-msgid "Remote console"
-msgstr "Externe console"
+msgid "Console"
+msgstr "Console"
+
+msgctxt "connection_console_failed"
+msgid "Console unreachable"
+msgstr "Console onbereikbaar"
 
 msgctxt "connection_screen"
-msgid "Screen session"
-msgstr "Screen-sessie"
+msgid "Screen"
+msgstr "Screen"
+
+msgctxt "connection_screen_failed"
+msgid "Screen not found"
+msgstr "Screen niet gevonden"
 
 msgctxt "connection_config"
-msgid "Its config file"
-msgstr "Zijn configuratiebestand"
+msgid "OpenSim.ini"
+msgstr "OpenSim.ini"
+
+msgctxt "connection_config_failed"
+msgid "OpenSim.ini unreadable"
+msgstr "OpenSim.ini onleesbaar"
 
 msgctxt "connection_regions"
-msgid "The files of its regions"
-msgstr "De bestanden van zijn regio's"
+msgid "Region files"
+msgstr "Regiobestanden"
+
+msgctxt "connection_regions_failed"
+msgid "Region files unreadable"
+msgstr "Regiobestanden onleesbaar"
 
 msgctxt "connection_database"
-msgid "Its database"
-msgstr "Zijn database"
+msgid "Database"
+msgstr "Database"
 
-msgctxt "connection_robust"
-msgid "The config of the Robust of its grid"
-msgstr "De configuratie van de Robust van zijn grid"
+msgctxt "connection_database_failed"
+msgid "Database unreachable"
+msgstr "Database onbereikbaar"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1548,6 +1552,42 @@ msgid ""
 msgstr ""
 "De registratie blijft bewaard, maar de mail naar {email} kon niet worden "
 "verzonden: vraag hem later opnieuw aan."
+
+#~ msgctxt "state_configured"
+#~ msgid "Configured"
+#~ msgstr "Geconfigureerd"
+
+#~ msgctxt "state_reached"
+#~ msgid "Reached"
+#~ msgstr "Bereikbaar"
+
+#~ msgctxt "state_unreached"
+#~ msgid "Configured, not reached"
+#~ msgstr "Geconfigureerd, niet bereikbaar"
+
+#~ msgctxt "connection_console"
+#~ msgid "Remote console"
+#~ msgstr "Externe console"
+
+#~ msgctxt "connection_screen"
+#~ msgid "Screen session"
+#~ msgstr "Screen-sessie"
+
+#~ msgctxt "connection_config"
+#~ msgid "Its config file"
+#~ msgstr "Zijn configuratiebestand"
+
+#~ msgctxt "connection_regions"
+#~ msgid "The files of its regions"
+#~ msgstr "De bestanden van zijn regio's"
+
+#~ msgctxt "connection_database"
+#~ msgid "Its database"
+#~ msgstr "Zijn database"
+
+#~ msgctxt "connection_robust"
+#~ msgid "The config of the Robust of its grid"
+#~ msgstr "De configuratie van de Robust van zijn grid"
 
 #~ msgctxt "notice_import_module_missing"
 #~ msgid ""
