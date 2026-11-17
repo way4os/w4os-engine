@@ -482,6 +482,12 @@ final class Catalog
         return 'role_' . str_replace('-', '_', $role);
     }
 
+    /** The key of the message a site says once an action of a list is done: `manage_` and its name in snake case (estateBan: manage_estate_ban). */
+    public static function doneKey(string $action): string
+    {
+        return 'manage_' . strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $action));
+    }
+
     /** The text of a problem code in English (the one of `invalid-request` for a code it does not know). */
     public static function error(string $code): string
     {

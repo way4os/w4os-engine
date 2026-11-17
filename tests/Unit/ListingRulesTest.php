@@ -66,13 +66,15 @@ describe('Every list', function () {
         $missing = [];
         foreach (contract_lists() as $path => $list) {
             foreach ($list['actions'] ?? [] as $action) {
-                $key = 'manage_' . strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $action['name']));
+                $key = OpenSim\I18n\Catalog::doneKey($action['name']);
                 isset(OpenSim\I18n\Catalog::MESSAGES[$key]) || ($missing[] = "$path: {$action['name']} ($key)");
             }
         }
 
         expect($missing)
             ->toBe([])
+            ->and([OpenSim\I18n\Catalog::doneKey('estateUnban'), OpenSim\I18n\Catalog::doneKey('disable')])
+            ->toBe(['manage_estate_unban', 'manage_disable'])
             ->and(OpenSim\I18n\Catalog::messages('fr_FR')['manage_estate_unban'])
             ->toBe("%s n'est plus banni des domaines.");
     });
