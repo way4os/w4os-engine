@@ -48,6 +48,7 @@ final class Problem
         'flag-unknown' => 'The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...)',
         'owner-unknown' => 'The grid has no avatar of this UUID',
         'config-not-writable' => 'A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file',
+        'instance-user-required' => 'The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done',
         'estate-shared' => 'The owner of a region is the one of its estate, which has other regions: they would change owner too',
         'filter-unknown' => 'The list has no such filter (the detail names the ones it has)',
         'filter-value-unknown' => 'The filter does not take this value (the detail names the ones it takes)',
@@ -60,7 +61,7 @@ final class Problem
     ];
 
     /** The status of a refusal that is not a wrong value of the request: it is right, this process cannot do it. */
-    private const REASON_STATUSES = ['config-not-writable' => 403];
+    private const REASON_STATUSES = ['config-not-writable' => 403, 'instance-user-required' => 403];
 
     /** The titles of the statuses of a refusal. */
     private const TITLES = [400 => 'Invalid request', 403 => 'Forbidden'];

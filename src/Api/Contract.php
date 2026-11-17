@@ -859,6 +859,29 @@ final class Contract
             ],
         ];
 
+        // The instances of this machine (a grid is its Robust), started and stopped as the command line does
+        foreach (['start' => 'Start', 'stop' => 'Stop', 'restart' => 'Restart'] as $action => $verb) {
+            $paths["/instances/{name}/$action"]['post'] = [
+                'operationId' => "{$action}Instance",
+                'tags' => ['Simulators'],
+                'summary' => "$verb an instance",
+                'description' =>
+                    "$verb an instance of this machine by its name, as `opensim $action` takes it: a simulator (`vonda.welcome`), a grid (its Robust). " .
+                    'Attributes of the body (`type` operations): `simulators` (the simulators of a grid too), `now` (no waiting for the visitors to leave). ' .
+                    'Only the user that runs the instances may: another process (the web server of a site) is refused, nothing done (`instance-user-required`, 403).',
+                'parameters' => [['name' => 'name', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string']]],
+                'responses' => [
+                    '200' => [
+                        'description' => 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; detail)',
+                        'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
+                    ],
+                    '403' => self::problem('This process is not the user that runs the instances (`instance-user-required`)'),
+                    '404' => self::problem('There is no instance of this name'),
+                    '500' => self::problem('An instance failed: its result says why'),
+                ],
+            ];
+        }
+
         $endpoints = Endpoints::document();
         $tags = [...$tags, ...$endpoints['tags']];
         $paths = [...$paths, ...$endpoints['paths']];

@@ -186,6 +186,9 @@ final class Router
         } elseif ($segments === ['layout']) {
             $template = '/layout';
             $routes = ['GET' => fn() => $this->api->layout()];
+        } elseif (count($segments) === 3 && $segments[0] === 'instances') {
+            $template = '/instances/{name}/' . $segments[2];
+            $routes = ['POST' => fn() => $this->api->control($segments[2], $segments[1], $this->attributes($body, $parsed))];
         } elseif (count($segments) === 3 && $segments[0] === 'tasks' && $segments[2] === 'runs') {
             $template = '/tasks/{id}/runs';
             $routes = ['POST' => fn() => $this->api->run($segments[1])];

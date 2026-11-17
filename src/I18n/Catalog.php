@@ -366,6 +366,7 @@ final class Catalog
         'error_flag_unknown' => 'This flag does not exist.',
         'error_owner_unknown' => 'This avatar does not exist.',
         'error_config_not_writable' => 'This cannot be changed from here: the files of the grid belong to its server.',
+        'error_instance_user_required' => 'This cannot be done from here: the simulators are started and stopped on their server.',
         'error_estate_shared' => 'The owner of this region is the owner of its estate, which has other regions: change the owner of the estate.',
         'error_filter_unknown' => 'This list cannot be filtered this way.',
         'error_filter_value_unknown' => 'This list cannot be filtered this way.',

@@ -32,7 +32,9 @@ use OpenSim\Models\Region;
 use OpenSim\Models\Service;
 use OpenSim\Models\Simulator;
 use OpenSim\Text\Notice;
+use OpenSim\OpenSim;
 use OpenSim\Runtime\Environment;
+use OpenSim\Runtime\InstanceAccess;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
 use OpenSim\Provisioning\Slug;
@@ -103,6 +105,9 @@ final class Api
     /** @var \Closure(Grid):?GridConfig the config of a grid, from its folder unless the caller says otherwise */
     private \Closure $config;
 
+    /** @var \Closure(Environment):?string why this process may not start or stop the instances, null when it may */
+    private \Closure $instanceAccess;
+
     /** @var list<\Closure():void> what is done once the answer is sent (see finish()) */
     private array $after = [];
 
@@ -114,6 +119,8 @@ final class Api
      * @param ?\Closure(Grid):?GridConfig $config the config of a grid (default: its folder)
      * @param ?TextRendererInterface $texts draws the images of a text (default: ImageMagick)
      * @param ?MailerInterface $mailer sends the mails of the grid (default: the mail function of PHP)
+     * @param ?\Closure(Environment):?string $instanceAccess why this process may not start or stop the instances (default:
+     *        InstanceAccess::refusal())
      */
     public function __construct(
         private readonly Environment $environment,
@@ -121,7 +128,9 @@ final class Api
         ?\Closure $config = null,
         private readonly ?TextRendererInterface $texts = null,
         private readonly ?MailerInterface $mailer = null,
+        ?\Closure $instanceAccess = null,
     ) {
+        $this->instanceAccess = $instanceAccess ?? static fn(Environment $environment): ?string => InstanceAccess::refusal($environment->layout);
         $this->config =
             $config ??
             static fn(Grid $grid): ?GridConfig => $grid->directory() !== '' && is_dir($grid->directory())
@@ -1185,6 +1194,58 @@ final class Api
                 ],
             ],
             $result->ok() ? 200 : 500,
+        );
+    }
+
+    /**
+     * Start, stop or restart an instance of this machine (its name, as `opensim start` takes it: a grid is its Robust), as the command
+     * line does. `simulators`: the simulators of a grid too; `now`: no waiting for the visitors to leave. Refused, nothing done, when
+     * this process is not the user that runs the instances (`instance-user-required`, InstanceAccess).
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function control(string $action, string $name, array $attributes): Response
+    {
+        $instance = "/instances/$name/$action";
+        if (!in_array($action, ['start', 'stop', 'restart'], true)) {
+            return Response::problem(Problem::notFound("action called '$action' (start, stop, restart)", $instance));
+        }
+        $refusal = ($this->instanceAccess)($this->environment);
+        if ($refusal !== null) {
+            return Response::problem(Problem::from(InvalidValue::because('instance-user-required', $refusal), $instance));
+        }
+        if (OpenSim::instance($this->environment, $name) === null && Grid::find($this->environment, $name) === null) {
+            return Response::problem(Problem::notFound("instance called '$name'", $instance));
+        }
+        $simulators = Result::isTrue($attributes['simulators'] ?? false);
+        $now = Result::isTrue($attributes['now'] ?? false);
+        try {
+            $results = match ($action) {
+                'start' => OpenSim::start($name, $this->environment, $simulators),
+                'stop' => OpenSim::stop($name, $now, $this->environment, $simulators),
+                'restart' => OpenSim::restart($name, $now, $this->environment, $simulators),
+            };
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        $rows = [];
+        foreach ($results as $target => $result) {
+            $failed = $result instanceof \OpenSim\Exceptions\InstanceFailed;
+            $rows[] = [
+                'instance' => (string) $target,
+                'outcome' => $failed ? 'failed' : $result->value,
+                'ok' => !$failed,
+                'detail' => $failed ? $result->getMessage() : null,
+            ];
+        }
+        $ok = !in_array(false, array_column($rows, 'ok'), true);
+
+        return Response::document(
+            [
+                'data' => ['type' => 'operations', 'id' => $name, 'attributes' => ['action' => $action, 'results' => $rows]],
+                'links' => ['self' => $instance],
+            ],
+            $ok ? 200 : 500,
         );
     }
 
