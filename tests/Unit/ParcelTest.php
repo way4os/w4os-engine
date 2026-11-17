@@ -381,3 +381,28 @@ describe('bitmap of a parcel', function () {
             ->toBeFalse();
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
+
+describe('The land for sale of the search', function () {
+    test('is every parcel for sale the land of the simulators has, shown in search or not, as Second Life lists them', function () {
+        $databases = parcel_databases();
+        [$alpha] = $databases;
+        $alpha->exec("UPDATE regions SET regionHandle = 1099511628032000, access = 21, locX = 256000, locY = 256000 WHERE uuid = 'aaaaaaaa-0000-0000-0000-000000000001'");
+        parcels_in($databases);
+        $search = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $search->exec("CREATE TABLE parcelsales (regionUUID CHAR(36), parcelname VARCHAR(255), parcelUUID CHAR(36), area INT, saleprice INT, landingpoint VARCHAR(255), infoUUID CHAR(36) DEFAULT '00000000-0000-0000-0000-000000000000', dwell INT, parentestate INT DEFAULT 1, mature VARCHAR(10) DEFAULT 'PG', gatekeeperURL VARCHAR(255))");
+        // What a snapshot left: a parcel no longer for sale, in a region of this grid
+        $search->insert('parcelsales', ['regionUUID' => 'aaaaaaaa-0000-0000-0000-000000000001', 'parcelname' => 'Sold', 'parcelUUID' => 'p9', 'area' => 16, 'saleprice' => 1, 'landingpoint' => '1/1/1', 'dwell' => 0]);
+        $kept = OpenSim\Services\LandSales::sync(parcel_config(), $search);
+        $rows = $search->get_results('SELECT * FROM parcelsales', [], \PDO::FETCH_ASSOC);
+
+        expect($kept)
+            ->toBe(1)
+            ->and(array_column($rows, 'parcelname'))
+            ->toBe(['Kiosk'])
+            ->and($rows[0])
+            ->toMatchArray(['parcelUUID' => 'p2', 'saleprice' => 500, 'area' => 16, 'landingpoint' => '128/128/22', 'mature' => 'Mature'])
+            // The id the viewer asks the parcel by: the handle of its region and its point, as OpenSimulator builds it
+            ->and($rows[0]['infoUUID'])
+            ->toBe('00e80300-00e8-0300-8000-000080000000');
+    });
+});

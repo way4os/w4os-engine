@@ -99,11 +99,13 @@ final class SearchTasks
             new Task(
                 'search-parse',
                 self::PARSE_EVERY,
-                static fn(): string => self::exclusively($db, 'search-parse', static function () use ($db, $regions, $environment): string {
+                static fn(): string => self::exclusively($db, 'search-parse', static function () use ($db, $regions, $environment, $config): string {
                     $registry = new SearchRegistry($db, $regions, $environment->clock);
                     $hosts = (new SearchParser($registry, $db, $regions, $environment->http))->parse();
+                    // The land for sale of the regions of the grid, from their land: shown in search or not
+                    $sales = LandSales::sync($config, $db);
 
-                    return $hosts === 0 ? 'no simulator due' : "$hosts simulator(s) read";
+                    return ($hosts === 0 ? 'no simulator due' : "$hosts simulator(s) read") . ", $sales parcel(s) for sale";
                 }),
                 'Read the snapshots of the registered simulators',
                 $scope,
