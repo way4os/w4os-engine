@@ -36,6 +36,27 @@ describe('The entry point of the engine API', function () {
             ->toBe(200);
     });
 
+    test('reads an address with a colon in it as written, encoded or not (host:port of a simulator)', function () {
+        $machine = new Machine();
+        $key = ApiKeys::for($machine->environment)->create('site')['key'];
+        $id = gethostname() . ':9000';
+        $ask = static fn(string $uri) => Server::answer(
+            $machine->environment,
+            ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => $uri, 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_AUTHORIZATION' => "Bearer $key"],
+            '',
+        );
+        $raw = $ask("/api/simulators/$id");
+        $encoded = $ask('/api/simulators/' . rawurlencode($id));
+        $queried = $ask("/api/simulators/$id?fields=uri");
+
+        [$cli] = (new OpenSim\Api\Cli(new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment))))->run(['GET', "/simulators/$id"]);
+
+        expect([$raw->status, $raw->document['data']['id'] ?? null])
+            ->toBe([200, $id])
+            ->and([$encoded->status, $queried->status, $cli])
+            ->toBe([200, 200, 0]);
+    });
+
     test('is the file the package installs, which loads the engine alone', function () {
         $entry = dirname(__DIR__, 2) . '/public/index.php';
 

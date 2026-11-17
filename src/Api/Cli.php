@@ -67,8 +67,8 @@ final class Cli
         }
 
         // The address may carry its own query
-        $path = (string) parse_url($address, PHP_URL_PATH);
-        parse_str((string) parse_url($address, PHP_URL_QUERY), $query);
+        [$path, $asked] = Router::target($address);
+        parse_str($asked, $query);
         $given = [];
         parse_str(implode('&', array_map(static fn(string $word): string => self::encode($word), $words)), $given);
 

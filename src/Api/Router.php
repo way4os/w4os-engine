@@ -97,6 +97,20 @@ final class Router
         }
     }
 
+    /**
+     * The path and the query of a request target (`/api/simulators/host:9000?page[size]=5`): split at its first `?`, its fragment left
+     * out. Not parse_url(), which takes the end of `/simulators/host:9000` for a port and gives no path.
+     *
+     * @return array{0:string,1:string}
+     */
+    public static function target(string $target): array
+    {
+        [$target] = explode('#', $target, 2);
+        [$path, $query] = array_pad(explode('?', $target, 2), 2, '');
+
+        return [$path !== '' ? $path : '/', $query];
+    }
+
     /** Ask a resource or a page. @param array<string,mixed> $query */
     public function get(string $path, array $query = []): Response
     {

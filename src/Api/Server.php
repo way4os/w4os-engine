@@ -31,10 +31,9 @@ final class Server
      */
     public static function answer(Environment $environment, array $server, string $body, ?array $query = null, ?array $parsed = null): Response
     {
-        $uri = (string) ($server['REQUEST_URI'] ?? '/');
-        $path = (string) (parse_url($uri, PHP_URL_PATH) ?: '/');
+        [$path, $asked] = Router::target((string) ($server['REQUEST_URI'] ?? '/'));
         if ($query === null) {
-            parse_str((string) (parse_url($uri, PHP_URL_QUERY) ?? ''), $query);
+            parse_str($asked, $query);
         }
         $base = rtrim((string) ($server['OPENSIM_API_BASE'] ?? (getenv('OPENSIM_API_BASE') ?: self::BASE)), '/');
         $base = $base !== '' && ($path === $base || str_starts_with($path, "$base/")) ? $base : '';
