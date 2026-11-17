@@ -24,13 +24,13 @@ use OpenSim\OpenSim;
  */
 final class GridMonitor
 {
-    /** The grid is as it should be. */
+    /** Its services answer, whatever its simulators and regions do (they have their own counts). */
     public const OK = 'ok';
 
-    /** The grid is up, something of it is not: a simulator down, a region offline. */
+    /** The grid is partly broken: a Robust of several does not run, or the database of its grid service does not answer. */
     public const DEGRADED = 'degraded';
 
-    /** Its Robust is not running. */
+    /** Its Robust is not running (the simulator of a standalone, which is its grid). */
     public const DOWN = 'down';
 
     /** The machine cannot tell: the grid has no Robust here and no database to ask. */
@@ -136,11 +136,16 @@ final class GridMonitor
         $robust = array_values(array_filter($instances, static fn(array $i): bool => $i['type'] === 'robust'));
         $up = count(array_filter($instances, static fn(array $i): bool => $i['running']));
         $down = count($instances) - $up;
-        $remoteDown = count(array_filter($simulators, static fn(array $s): bool => !$s['local'] && !$s['running']));
+        // The level of the grid is the one of its own services: a simulator stopped, regions offline happen and leave it working
+        $robustUp = count(array_filter($robust, static fn(array $i): bool => $i['running']));
+        $standalone = $grid->isStandalone();
         $level = match (true) {
-            $robust !== [] && !$robust[0]['running'] => self::DOWN,
-            $robust === [] && $regions['total'] === 0 && $instances === [] => self::UNKNOWN,
-            $down + $remoteDown > 0 || $regions['online'] < $regions['total'] => self::DEGRADED,
+            $robust !== [] && $robustUp === 0 => self::DOWN,
+            // The simulator of a standalone is its grid
+            $standalone && $up === 0 && $instances !== [] => self::DOWN,
+            $robust === [] && !$standalone && $regions['total'] === 0 && $instances === [] => self::UNKNOWN,
+            // A Robust of several down, or the database of its grid service not answering
+            $robustUp < count($robust) || ($robust !== [] && self::databaseDown($config)) => self::DEGRADED,
             default => self::OK,
         };
         $users = $config === null ? null : Stats::of($config);
@@ -239,6 +244,17 @@ final class GridMonitor
     }
 
     /** @return list<Region> */
+    /** Whether the grid says the database of its grid service and it does not answer. */
+    private static function databaseDown(?GridConfig $config): bool
+    {
+        if ($config === null || \OpenSim\Data\Connections::key($config, 'GridService') === null) {
+            return false;
+        }
+        $pdo = \OpenSim\Data\Connections::pdo($config, 'GridService');
+
+        return $pdo === null || !$pdo->connected;
+    }
+
     private static function regions(GridConfig $config): array
     {
         try {

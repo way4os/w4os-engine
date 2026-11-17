@@ -50,7 +50,7 @@ afterEach(fn() => Connections::using(null));
 
 describe('The monitor of a grid', function () {
     test(
-        'tells the instances of the machine, the simulators with their regions, and a level: degraded when one is down',
+        'tells the instances of the machine, the simulators with their regions, and the level of the grid: ok with one down',
         function () {
             $machine = monitor_machine();
             $db = monitor_database();
@@ -58,8 +58,9 @@ describe('The monitor of a grid', function () {
 
             $monitor = GridMonitor::of(Grid::find($machine->environment, 'demo'), region_config());
 
+            // A simulator stopped and its regions offline happen, the grid itself works: its level is its services'
             expect($monitor['level'])
-                ->toBe('degraded')
+                ->toBe('ok')
                 ->and(array_column($monitor['instances'], 'running', 'name'))
                 ->toBe(['demo' => true, 'alpha' => true, 'beta' => false])
                 ->and($monitor['regions'])
@@ -117,6 +118,15 @@ describe('The monitor of a grid', function () {
         },
     );
 
+    test('is degraded when the Robust runs and the database of its grid service does not answer', function () {
+        $machine = monitor_machine();
+        Connections::using(static fn() => null);
+
+        $monitor = GridMonitor::of(Grid::find($machine->environment, 'demo'), region_config());
+
+        expect($monitor['level'])->toBe('degraded');
+    });
+
     test('is written as the table of opensim status, with a title and a summary', function () {
         $machine = monitor_machine();
         $db = monitor_database();
@@ -125,7 +135,7 @@ describe('The monitor of a grid', function () {
         $text = GridMonitor::text(GridMonitor::of(Grid::find($machine->environment, 'demo'), region_config()));
 
         expect($text)
-            ->toStartWith("DEGRADED - Demo\nNAME")
+            ->toStartWith("OK - Demo\nNAME")
             ->toMatch('/^demo\s+robust\s+up\s+-\s+0\.3\s+1\.2$/m')
             ->toMatch('/^alpha\s+simulator\s+up\s+2\/2\s/m')
             ->toMatch('/^beta\s+simulator\s+down\s+0\/1\s/m')
@@ -161,17 +171,18 @@ describe('The monitor, the addresses and the info of a grid, in the API', functi
         expect($json['data'])
             ->toMatchArray(['type' => 'monitor', 'id' => 'demo'])
             ->and($json['data']['attributes']['level'])
-            ->toBe('degraded')
+            ->toBe('ok')
             ->and($text->getHeaderLine('Content-Type'))
             ->toBe('text/plain; charset=utf-8')
             ->and((string) $text->getBody())
-            ->toStartWith('DEGRADED - Demo')
+            ->toStartWith('OK - Demo')
             ->and($png->getHeaderLine('Content-Type'))
             ->toBe('image/png')
             ->and($drawn[0][1])
             ->toBe('DejaVu-Sans-Mono')
+            // Green: the grid is ok
             ->and($drawn[0][3])
-            ->toBe('#ffcc44')
+            ->toBe('#88ff88')
             ->and(api_ask($handler, 'GET', '/api/grids/nowhere/monitor')->getStatusCode())
             ->toBe(404);
     });

@@ -362,7 +362,7 @@ final class Endpoints
             'tags' => ['Monitor'],
             'summary' => 'Status of the grid',
             'description' =>
-                'The state of the grid at a glance. `level` is `ok`, `degraded` (a simulator is down, a region is offline), `down` (its Robust does not run) or `unknown`. The instances are the ones of this machine, with what they use; the simulators add the ones that run elsewhere, which the regions of the grid tell about. `format=text` gives the lines of `opensim status`, `format=png` a picture of them (a square, the text colored by the level) to put on a prim; it takes the same `/text-images` fonts and colors.',
+                'The state of the grid at a glance. `level` is the one of the own services of the grid: `ok`, `degraded` (a Robust of several does not run, or the database of its grid service does not answer), `down` (its Robust does not run; the simulator of a standalone, which is its grid) or `unknown`; a simulator stopped and regions offline happen and leave the grid ok, they have their own counts (`simulators`, `regions`). The instances are the ones of this machine, with what they use; the simulators add the ones that run elsewhere, which the regions of the grid tell about. `format=text` gives the lines of `opensim status`, `format=png` a picture of them (a square, the text colored by the level) to put on a prim; it takes the same `/text-images` fonts and colors.',
             'parameters' => [
                 Contract::gridParameter(),
                 [

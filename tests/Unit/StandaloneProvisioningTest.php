@@ -663,7 +663,8 @@ describe('The life of a standalone', function () {
             ->toBe(GridMonitor::OK)
             ->and($down['regions'])
             ->toBe(['total' => 1, 'online' => 0])
+            // Its simulator is the grid: stopped, the grid is down
             ->and($down['level'])
-            ->toBe(GridMonitor::DEGRADED);
+            ->toBe(GridMonitor::DOWN);
     });
 });
