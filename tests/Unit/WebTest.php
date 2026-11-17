@@ -184,4 +184,23 @@ describe('The engine API for the sites of this machine', function () {
         }
         expect(fn() => Snippets::api('unknown', 'test_grid'))->toThrow(InvalidArgumentException::class);
     });
+
+    test('goes to the entry point of the engine itself by default, the helpers to theirs as their preset says', function () {
+        $dir = test_tmp() . '/snippet-roots-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents("$dir/Robust.ini", "[Const]\nWebURL = \"https://grid.example.test\"\n");
+
+        expect(Snippets::engineRoot())
+            ->toBe(dirname(__DIR__, 2) . '/public')
+            ->and(is_file(Snippets::engineRoot() . '/index.php'))
+            ->toBeTrue()
+            ->and(Snippets::api('nginx', 'test_grid'))
+            ->toContain(Snippets::engineRoot() . '/index.php')
+            ->not->toContain('opensim-helpers')
+            ->and(Snippets::helpersRoot())
+            ->toBe('/usr/share/opensim-helpers/public')
+            ->and(Snippets::render('nginx', 'test_grid', $dir))
+            ->toContain('/usr/share/opensim-helpers/public/index.php')
+            ->not->toContain('/html');
+    });
 });

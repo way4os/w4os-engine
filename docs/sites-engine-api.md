@@ -9,11 +9,16 @@ Nothing else is needed: no sudo, no folder the web server may write.
 
 ## How the API is served
 
-The helpers serve the API: `index.php` of `/usr/share/opensim-helpers/html` routes `/api/...` to the engine (`Api\Handler`), with
-the keys of the install (`opensim api-key create|list|revoke`, `Authorization: Bearer`). It runs as the user of the PHP pool that the
-web server hands it to: `www-data` for the pool of the system (`/run/php/php-fpm.sock`). An answer the API cannot give as that user
-is a clean refusal: `config-not-writable` (a file of the grid), `instance-user-required` (an instance, a backup, a restore), never a
-500.
+The engine has its own entry point, `public/index.php` (`/usr/share/opensim-engine/public` with the package): a web server hands it
+the requests, `Api\Server` answers `/api/...` with the Router, with the keys of the install (`opensim api-key create|list|revoke`,
+`Authorization: Bearer`). It needs no framework and no helpers: the engine can be installed alone. `OPENSIM_GRID` names the grid of
+the short paths (`/api/avatars`), `OPENSIM_API_BASE` another base than `/api`.
+
+It runs as the user of the PHP pool the web server hands it to. As the web server (`www-data`), an answer the API cannot give as that
+user is a clean refusal: `config-not-writable` (a file of the grid), `instance-user-required` (an instance, a backup, a restore),
+never a 500.
+
+The helpers also mount the API under their base (`/helpers/api`): the same Router, with the tasks of their search.
 
 ## Running it as the user of the instances
 
@@ -28,7 +33,8 @@ is a clean refusal: `config-not-writable` (a file of the grid), `instance-user-r
 
    The first part goes to `/etc/php/<version>/fpm/pool.d/opensim-api.conf`, then `systemctl reload php<version>-fpm`.
 
-2. a listener on `127.0.0.1:8780` (`--port`) that serves the paths of the API and nothing else, through that pool: a site block
+2. a listener on `127.0.0.1:8780` (`--port`) that serves the paths of the API and nothing else, through that pool, to the entry
+   point of the engine (`--docroot` for another one): a site block
    of its own for Caddy, a server block for Nginx, a virtual host for Apache (PHP-FPM with proxy_fcgi, never mod_php, which runs as
    the web server).
 

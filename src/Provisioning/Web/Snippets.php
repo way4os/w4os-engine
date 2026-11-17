@@ -19,6 +19,23 @@ final class Snippets
     /** Where the helpers are installed. */
     public const WEBROOT = '/usr/share/opensim-helpers';
 
+    /** The entry point of the helpers when their preset does not say it (webroot-helpers). */
+    private const HELPERS_PUBLIC = self::WEBROOT . '/public';
+
+    /** The folder of the entry point of the engine API (public/index.php), where this engine is installed. */
+    public static function engineRoot(): string
+    {
+        return dirname(__DIR__, 3) . '/public';
+    }
+
+    /** The folder of the entry point of the helpers, as their preset says it (webroot-helpers, docroot). */
+    public static function helpersRoot(): string
+    {
+        $docroot = (new Presets())->options()['webroot-helpers']?->variables()['docroot'] ?? '';
+
+        return $docroot !== '' ? $docroot : self::HELPERS_PUBLIC;
+    }
+
     /**
      * Where the site answers, from its web URL, as the files of a web server say it: the host (none: any), the scheme, the port when
      * it is not the usual one of its scheme, the address of the site as Caddy writes it, the port a server listens on.
@@ -77,7 +94,7 @@ final class Snippets
 
     /**
      * What a web server needs to serve the engine API of a grid to the sites of this machine only: a listener on 127.0.0.1, its paths
-     * (/api) and no other, through the pool of pool().
+     * (/api) and no other, through the pool of pool(), to the entry point of the engine (engineRoot(), public/index.php).
      *
      * @throws \InvalidArgumentException when the server is not one
      */
@@ -93,7 +110,8 @@ final class Snippets
 
         return self::apiPreset()->text(self::API_FILES[$server], [
             'grid_nick' => $nick,
-            'docroot' => $docroot !== '' ? $docroot : self::WEBROOT . '/html',
+            // The entry point of the engine itself: the API needs no helpers
+            'docroot' => $docroot !== '' ? $docroot : self::engineRoot(),
             'php_socket' => $socket,
             'api_port' => (string) $port,
         ]) . "\n";
@@ -145,7 +163,7 @@ final class Snippets
         $variables = self::siteVariables($webUrl) + [
             'grid_nick' => $nick,
             'grid_dir' => rtrim($gridDirectory, '/'),
-            'docroot' => $docroot !== '' ? $docroot : self::WEBROOT . '/html',
+            'docroot' => $docroot !== '' ? $docroot : self::helpersRoot(),
             'php_socket' => $socket !== '' ? $socket : '/run/php/php-fpm.sock',
             'web_globs' => implode(' ', array_map(static fn(string $path): string => "/$path*", array_keys($segments))),
             'web_regex' => implode('|', array_map('preg_quote', array_keys($segments))),
