@@ -16,7 +16,7 @@ Rose garden|grid.example.org:8002/Roses|128,64,30
 Maze|grid.example.org:8002/Maze|not a place
 -
 |
-Old way|x|y|grid.example.org:8002|Library
+Old way|Library|1000,1000|grid.example.org:8002|Library
 // a comment
 TXT;
 
@@ -27,7 +27,7 @@ describe('The destinations of a guide', function () {
             'Gardens' => [
                 ['name' => 'Rose garden', 'url' => 'grid.example.org:8002/Roses/128/64/30'],
                 ['name' => 'Maze', 'url' => 'grid.example.org:8002/Maze'],
-                ['name' => 'Old way', 'url' => 'grid.example.org:8002/Library'],
+                ['name' => 'Library', 'url' => 'grid.example.org:8002/Library'],
             ],
         ]);
     });
@@ -110,5 +110,14 @@ describe('The lines of the boards', function () {
 
         expect(array_map('is_null', [DestinationList::read('https://example.org/big.txt', null, $http), DestinationList::read('https://example.org/latin.txt', null, $http), DestinationList::read('big.txt', $folder)]))
             ->toBe([true, true, true]);
+    });
+});
+
+describe('The lines as the board reads them', function () {
+    test('the old format: the name in the 2nd column, the address in the 4th, the landing point in the 5th; an address once', function () {
+        expect(DestinationList::parse("Speculoos|Grand Place|1000,1000|speculoos.world:8002:Grand Place|128,128,25\n"))
+            ->toBe(['Destinations Guide' => [['name' => 'Grand Place', 'url' => 'speculoos.world:8002:Grand Place/128/128/25']]])
+            ->and(DestinationList::parse("Places\nOne|http://grid.example.org:8002:Sandbox\nTwo|grid.example.org:8002:Sandbox\n"))
+            ->toBe(['Places' => [['name' => 'One', 'url' => 'grid.example.org:8002:Sandbox']]]);
     });
 });

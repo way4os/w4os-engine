@@ -8,9 +8,11 @@ use OpenSim\Network\Http;
 
 /**
  * The destinations of a guide, written as lines "Name|Region URL" in a file or at a URL; a name alone starts a category. The same
- * lines serve the boards of the scripts (a dash alone is a new column, a pipe alone an empty row: layout hints, not destinations),
- * and the older format that gives the grid and the region in the 4th and 5th columns. A third column of `x,y,z` is the place in the
- * region.
+ * lines serve the boards of the scripts, the Gudz Teleport Board the reference (a dash alone is a new column, a pipe alone an empty
+ * row: layout hints, not destinations), and the older format of 5 columns, read as the board reads it: the name in the 2nd column
+ * (else the 1st), the address in the 4th, the landing point in the 5th. A third column of `x,y,z` is the place in the region. An
+ * address listed already is left out, and `http://` taken off an address, as the board does. The board reads 2048 bytes of a
+ * source at most; a guide reads 1 MB (MAX).
  */
 final class DestinationList
 {
@@ -76,6 +78,7 @@ final class DestinationList
     public static function parse(string $text, ?string $first = null, bool $layout = false): array
     {
         $destinations = [];
+        $seen = [];
         $category = $first ?? _('Destinations Guide');
         foreach (explode("\n", str_replace("\r", '', $text)) as $line) {
             $line = trim($line);
@@ -94,19 +97,31 @@ final class DestinationList
             }
             $name = $parts[0];
             $landing = '';
+            $place = '/^\d+(?:\.\d+)?,\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)?$/';
             if (($parts[3] ?? '') !== '') {
-                // The older format: the grid and the region are the 4th and 5th columns
-                $url = $parts[3] . '/' . ($parts[4] ?? '');
+                // The older format, as the board reads it: the name in the 2nd column, the address in the 4th, the landing point in
+                // the 5th (a region there, the way the 2.x guide wrote it, is the end of the address)
+                $name = ($parts[1] ?? '') !== '' ? $parts[1] : $parts[0];
+                $url = $parts[3];
+                $fifth = $parts[4] ?? '';
+                if (preg_match($place, $fifth) === 1) {
+                    $landing = $fifth;
+                } elseif ($fifth !== '') {
+                    $url .= '/' . $fifth;
+                }
             } else {
                 $url = $parts[1] ?? '';
                 // The place in the region: 128,128,30
-                if (
-                    $url !== '' &&
-                    preg_match('/^\d+(?:\.\d+)?,\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)?$/', $parts[2] ?? '') === 1
-                ) {
-                    $layout ? ($landing = $parts[2]) : ($url .= '/' . str_replace(',', '/', $parts[2]));
-                }
+                $url !== '' && preg_match($place, $parts[2] ?? '') === 1 && ($landing = $parts[2]);
             }
+            $url = (string) preg_replace('#^https?://#i', '', $url);
+            $landing === '' || $layout || ($url .= '/' . str_replace(',', '/', $landing));
+            // An address listed already, as the board leaves it out
+            if ($url !== '' && isset($seen[strtolower($url)])) {
+                continue;
+            }
+            $url === '' || ($seen[strtolower($url)] = true);
+            $layout || ($landing = '');
             if ($url === '') {
                 $category = $name;
             } else {

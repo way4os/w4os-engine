@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "1dd0ade",
+        "version": "3b4bd74",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -5855,7 +5855,7 @@
                     "Destinations"
                 ],
                 "summary": "List destinations",
-                "description": "The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of \"Name|Region URL\" lines, a name alone starting a category) is the list; a grid that gives none has the places its search knows, ten popular places and ten places shown in search, in two sections: the places of this grid only, no land for sale among the popular places, nothing that is not shown in search. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them: the place in the region in its own column (`x,y,z`), their layout hints kept (`-` a new column, `|` an empty row). A source is read when it is text, 1 MB at most, in UTF-8.",
+                "description": "The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of \"Name|Region URL\" lines, a name alone starting a category) is the list; a grid that gives none has the places its search knows, ten popular places and ten places shown in search, in two sections: the places of this grid only, no land for sale among the popular places, nothing that is not shown in search. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them: the place in the region in its own column (`x,y,z`), their layout hints kept (`-` a new column, `|` an empty row). A source is read when it is text, 1 MB at most, in UTF-8 (the Gudz Teleport Board reads 2048 bytes of it). The lines are read as the board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th and the landing point in the 5th; an address listed already is left out, `http://` taken off.",
                 "parameters": [
                     {
                         "name": "grid",

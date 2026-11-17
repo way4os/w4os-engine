@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (guide): the lines read as the Gudz Teleport Board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th, the landing point in the 5th; an address listed already is left out, `http://` taken off an address
 - update (options): an option enabled or disabled by its group too (`groups`: the one the grid has, else the one by default), as the command line does
 - feature (options): the repair of the options of the simulators (`POST /grids/{grid}/options/repair`, `mode` plan then apply: the options of the grid each simulator misses in its files, laid again as `opensim enable` does), and the health of the grid says them (`options`)
 - fix (simulators): every simulator has the options of its grid (the profiles, the groups...), whatever the grid is: the master of the simulators holds them, under what the grid or its preset decided, so that a grid joined by a preset or run elsewhere has them too, and a simulator made before gets them when it starts; `missingOptions` says the ones a simulator does not have
