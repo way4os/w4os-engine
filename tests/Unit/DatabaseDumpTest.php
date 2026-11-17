@@ -58,3 +58,33 @@ describe('dump of a database that cannot be read', function () {
         @unlink($file);
     })->skip(fn() => !extension_loaded('pdo_mysql'), 'pdo_mysql is missing');
 });
+
+describe('a dump read back', function () {
+    test('is its statements, as the dump writes them: one per ";" at the end of a line, the routines between their DELIMITER', function () {
+        $dump = "-- Dump of database grid\n/*!40101 SET NAMES utf8mb4 */;\n\n--\n-- Table t\n--\n\nDROP TABLE IF EXISTS `t`;\n" .
+            "CREATE TABLE `t` (\n  `id` int,\n  `name` text\n);\n\n" . DatabaseDump::insert('`t`', ['(1,\'a;b\')', "(2,'x')"]) .
+            "\nDELIMITER ;;\nDROP TRIGGER IF EXISTS `tr`;;\nCREATE TRIGGER `tr` BEFORE INSERT ON `t` FOR EACH ROW BEGIN\n  SET NEW.id = 1;\nEND;;\nDELIMITER ;\n\n-- End of dump\n";
+
+        expect(iterator_to_array(DatabaseDump::statements(new ArrayIterator(explode("\n", $dump))), false))->toBe([
+            '/*!40101 SET NAMES utf8mb4 */',
+            'DROP TABLE IF EXISTS `t`',
+            "CREATE TABLE `t` (\n  `id` int,\n  `name` text\n)",
+            "INSERT INTO `t` VALUES (1,'a;b'),\n(2,'x')",
+            'DROP TRIGGER IF EXISTS `tr`',
+            "CREATE TRIGGER `tr` BEFORE INSERT ON `t` FOR EACH ROW BEGIN\n  SET NEW.id = 1;\nEND",
+        ]);
+    });
+
+    test('makes the database again from its file', function () {
+        $file = test_tmp() . '/load-' . bin2hex(random_bytes(4)) . '.sql.gz';
+        file_put_contents($file, gzencode("DROP TABLE IF EXISTS `t`;\nCREATE TABLE `t` (\n  `id` int\n);\n" . DatabaseDump::insert('`t`', ['(1)', '(2)'])));
+        $pdo = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+
+        $count = DatabaseDump::load($pdo, $file);
+
+        expect($count)
+            ->toBe(3)
+            ->and((int) $pdo->get_var('SELECT COUNT(*) FROM t'))
+            ->toBe(2);
+    })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
+});

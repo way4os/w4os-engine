@@ -183,6 +183,70 @@ final class DatabaseDump
     }
 
     /**
+     * Make a database again from its dump (write()): its statements run one after the other, in the database the PDO is connected to.
+     *
+     * @return int the statements run
+     * @throws \RuntimeException when the file cannot be read, or a statement fails (which one is said)
+     */
+    public static function load(\PDO $pdo, string $file): int
+    {
+        $in = @gzopen($file, 'rb');
+        if ($in === false) {
+            throw new \RuntimeException("cannot read $file");
+        }
+        $lines = (static function () use ($in): \Generator {
+            while (($line = gzgets($in)) !== false) {
+                yield rtrim($line, "\r\n");
+            }
+        })();
+        $count = 0;
+        try {
+            foreach (self::statements($lines) as $statement) {
+                $pdo->exec($statement);
+                $count++;
+            }
+        } catch (\PDOException $e) {
+            throw new \RuntimeException("statement $count of $file failed: " . SqlRunner::describe($e), 0, $e);
+        } finally {
+            gzclose($in);
+        }
+
+        return $count;
+    }
+
+    /**
+     * The statements of a dump, as write() makes them: a statement ends with the delimiter at the end of a line (a value never holds
+     * a line break: it is escaped), `;` unless a DELIMITER line says another (the triggers and the routines); the comments are left.
+     *
+     * @param iterable<string> $lines without their line break
+     * @return \Generator<string>
+     */
+    public static function statements(iterable $lines): \Generator
+    {
+        $delimiter = ';';
+        $buffer = [];
+        foreach ($lines as $line) {
+            if ($buffer === [] && (trim($line) === '' || str_starts_with($line, '--'))) {
+                continue;
+            }
+            if ($buffer === [] && preg_match('/^DELIMITER\s+(\S+)\s*$/i', $line, $m) === 1) {
+                $delimiter = $m[1];
+
+                continue;
+            }
+            $buffer[] = $line;
+            if (str_ends_with(rtrim($line), $delimiter)) {
+                $statement = implode("\n", $buffer);
+                $buffer = [];
+                yield substr(rtrim($statement), 0, -strlen($delimiter));
+            }
+        }
+        if (trim(implode('', $buffer)) !== '') {
+            yield implode("\n", $buffer);
+        }
+    }
+
+    /**
      * @param array{host:string,name:string,user:string,pass:string} $db
      * @throws \RuntimeException
      */
