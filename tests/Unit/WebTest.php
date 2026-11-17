@@ -164,3 +164,24 @@ describe('Web server snippets', function () {
             ->toThrow(InvalidArgumentException::class);
     });
 });
+
+describe('The engine API for the sites of this machine', function () {
+    test('runs as the user of the instances: a PHP-FPM pool of its own, its socket for the web server only', function () {
+        $pool = Snippets::pool('opensim', 'caddy', '/run/php/opensim-api.sock');
+
+        expect($pool)
+            ->toContain('[opensim-api]', 'user = opensim', 'group = opensim', 'listen = /run/php/opensim-api.sock', 'listen.owner = opensim', 'listen.group = caddy', 'listen.mode = 0660')
+            ->not->toContain('{{');
+    });
+
+    test('is served on 127.0.0.1 only, its paths and no other, through that pool, by each web server', function () {
+        foreach (Snippets::SERVERS as $server) {
+            $snippet = Snippets::api($server, 'test_grid', '/srv/opensim-helpers/html', '/run/php/opensim-api.sock', 8780);
+
+            expect($snippet)
+                ->toContain('127.0.0.1', '8780', '/run/php/opensim-api.sock', '/srv/opensim-helpers/html', 'test_grid', '/api')
+                ->not->toContain('{{');
+        }
+        expect(fn() => Snippets::api('unknown', 'test_grid'))->toThrow(InvalidArgumentException::class);
+    });
+});

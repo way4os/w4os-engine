@@ -49,6 +49,61 @@ final class Snippets
         ];
     }
 
+    /** Where the engine API for the sites of this machine is reached by default: its socket, its port on 127.0.0.1. */
+    public const API_SOCKET = '/run/php/opensim-api.sock';
+    public const API_PORT = 8780;
+
+    /** The files of the API for the sites of this machine, by web server (the preset `engine-api`). */
+    private const API_FILES = [
+        'caddy' => 'api/{{grid_nick}}-api.caddyfile',
+        'nginx' => 'api/{{grid_nick}}-api-nginx.conf',
+        'apache' => 'api/{{grid_nick}}-api-apache.conf',
+    ];
+
+    /**
+     * The PHP-FPM pool that runs the engine API as the user of the instances, whose files the grids are: the web server only reaches
+     * its socket (listen.group), a site calls it with a key, as `engine: remote`.
+     *
+     * @param string $webGroup the group of the web server (www-data, caddy...)
+     */
+    public static function pool(string $systemUser, string $webGroup = 'www-data', string $socket = self::API_SOCKET): string
+    {
+        return self::apiPreset()->text('api/opensim-api.conf', [
+            'system_user' => $systemUser,
+            'web_group' => $webGroup,
+            'php_socket' => $socket,
+        ]) . "\n";
+    }
+
+    /**
+     * What a web server needs to serve the engine API of a grid to the sites of this machine only: a listener on 127.0.0.1, its paths
+     * (/api) and no other, through the pool of pool().
+     *
+     * @throws \InvalidArgumentException when the server is not one
+     */
+    public static function api(
+        string $server,
+        string $nick,
+        string $docroot = '',
+        string $socket = self::API_SOCKET,
+        int $port = self::API_PORT,
+    ): string {
+        $server = strtolower(trim($server));
+        isset(self::API_FILES[$server]) || throw new \InvalidArgumentException("unknown web server '$server'");
+
+        return self::apiPreset()->text(self::API_FILES[$server], [
+            'grid_nick' => $nick,
+            'docroot' => $docroot !== '' ? $docroot : self::WEBROOT . '/html',
+            'php_socket' => $socket,
+            'api_port' => (string) $port,
+        ]) . "\n";
+    }
+
+    private static function apiPreset(): \OpenSim\Provisioning\OptionTemplate
+    {
+        return (new Presets())->options()['engine-api'] ?? throw new \RuntimeException('the preset engine-api is not installed');
+    }
+
     /**
      * Render the web-server include for a grid from its shipped preset.
      *

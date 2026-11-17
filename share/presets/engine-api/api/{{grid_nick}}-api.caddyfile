@@ -1,0 +1,14 @@
+# The engine API of the grid {{grid_nick}}, for the sites of this machine only (127.0.0.1:{{api_port}}), run as the user of the
+# instances through the pool opensim-api ({{php_socket}}). A site block of its own in the Caddyfile; the site sets
+# api_url http://127.0.0.1:{{api_port}}/api and its key.
+http://127.0.0.1:{{api_port}} {
+	bind 127.0.0.1
+	@api path /api /api/*
+	handle @api {
+		root * {{docroot}}
+		php_fastcgi unix/{{php_socket}} {
+			env OPENSIM_GRID {{grid_nick}}
+		}
+	}
+	respond 404
+}

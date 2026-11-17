@@ -156,6 +156,7 @@ Placeholders are the ones of printf (`%s`, `%1$s`). A text that is not translate
 - **[The data of a grid](docs/data.md)** - the models (avatars, regions, parcels), the collections and the databases
 - **[The API](docs/api/index.html)** - the resources, their attributes and what can be written, from the contract (`docs/api/openapi.yaml`); `composer docs` makes it again, the descriptions are written in `src/Api/Contract.php`
 - **[Migration of the consumers](docs/MIGRATION.md)** - what was renamed, moved or removed
+- **[The engine API for the sites of this machine](docs/sites-engine-api.md)** - a site that changes a grid calls the API run as the user of the instances (`opensim web GRID api`), with a key
 
 ## Contributing
 
