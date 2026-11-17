@@ -32,6 +32,22 @@ final class Destination
      */
     public const AUTO = 512;
 
+    /**
+     * How a space of the name of a region is written in a hop:// link and a hypergrid secondlife:// link (a raw space, `+`, `_` or
+     * `%20`: the one the viewers take everywhere, their login screen too).
+     */
+    public const SPACE = '%20';
+
+    /**
+     * The link AUTO gives, by where it is shown (a viewer, its login screen, a web browser) and whether the destination is of the
+     * grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as text.
+     */
+    public const AUTO_LINKS = [
+        'viewer' => ['local' => self::LOCAL, 'other' => self::HOP],
+        'splash' => ['local' => self::LOCAL, 'other' => 0],
+        'web' => ['local' => self::HOP, 'other' => self::HOP],
+    ];
+
     /** The user agents of the viewers (their own browser, the login screen). */
     public const VIEWER_PATTERN = '/SecondLife|OpenSim|Firestorm|Singularity|Kokua|Alchemy|Catznip/i';
 
@@ -209,12 +225,12 @@ final class Destination
         $local =
             ($parsed['host'] ?? '') === '' ||
             ($own !== null && strtolower((string) $own['host']) === $parsed['host'] && (int) ($own['port'] ?? 80) === (int) $parsed['port']);
-        $viewer = (bool) ($context['viewer'] ?? false);
-        $format = match (true) {
-            $viewer && $local => self::LOCAL,
-            $viewer && (bool) ($context['splash'] ?? false) => 0,
-            default => self::HOP,
+        $where = match (true) {
+            !($context['viewer'] ?? false) => 'web',
+            (bool) ($context['splash'] ?? false) => 'splash',
+            default => 'viewer',
         };
+        $format = self::AUTO_LINKS[$where][$local ? 'local' : 'other'];
         if ($format === 0) {
             return $array ? [] : '';
         }
@@ -298,7 +314,7 @@ final class Destination
      *                          TPLINK_ARRAY or 256: output all formats as array
      *                          AUTO or 512:         the link for where it is shown (see AUTO), with `$context`
      *
-     * The region of a hop:// or secondlife:// link of a grid comes after a colon, its spaces as %20
+     * The region of a hop:// or secondlife:// link of a grid comes after a colon, its spaces as SPACE
      * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.
      *
      * @param  string  $sep      Separator for multiple formats, default new line
@@ -347,7 +363,7 @@ final class Destination
         }
         // A region of this grid, by its name alone; the link of a grid without a region ends at its port
         $local = "secondlife://$region_percentencode" . (empty($pos_sl) ? '' : "/$pos_sl");
-        $named = empty($region) ? '' : ":$region_percentencode";
+        $named = empty($region) ? '' : ':' . str_replace('%20', self::SPACE, $region_percentencode);
         if ($format & self::LOCAL) {
             // Web only, do not use for in-world messages
             $links[self::LOCAL] = $local;
@@ -361,7 +377,7 @@ final class Destination
         if ($format & self::V3HG) {
             // Web only, do not use for in-world messages
             $links[self::V3HG] =
-                (empty($host) ? $local : "secondlife://http|!!$host|$port" . (empty($region) ? "" : "%20$region_percentencode")) .
+                (empty($host) ? $local : "secondlife://http|!!$host|$port" . (empty($region) ? '' : "%20$region_percentencode")) .
                 (empty($pos_sl) || empty($host) ? '' : "/$pos_sl");
         }
         if ($format & self::HOP) {

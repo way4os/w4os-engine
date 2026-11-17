@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (destinations): the space of a hop:// or hypergrid link (`Destination::SPACE`, %20 for now) and the links of AUTO by where they are shown (`Destination::AUTO_LINKS`) written in one place each, until the viewers are tried on their login screen
 - fix (destinations): the hop:// links put the region after a colon, its spaces as %20 (`hop://host:port:Region%20Name/x/y/z`), the form the browser of a viewer takes (a slash there is an unknown scheme), and the hypergrid secondlife:// links too (`secondlife://host:port:Region/x/y/z`); the URI of a place stays `host:port/Region/x/y/z`
 - feature (destinations): the link for where it is shown (`Destination::AUTO`, with a context): in a viewer the local link for the grid itself (it works on the login screen too), hop:// for another grid and no link on the login screen, where a viewer cannot land on another grid; hop:// in a web browser; a viewer told by its user agent (`Destination::isViewer()`)
 - update (destinations): a point read as the scripts write a vector too (`<10.4, 20, 30.6>`, given as `10.4,20,30.6`) by `Destination::position()`
