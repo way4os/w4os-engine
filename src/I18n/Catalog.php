@@ -148,6 +148,8 @@ final class Catalog
         'profile_sections' => 'Profile sections',
         'profile_tab_inworld' => 'In-world',
         'profile_tab_web' => 'Web',
+        // The stream of the avatar (w4os-flux), the tab the viewers call Feed
+        'profile_tab_feed' => 'Feed',
         'profile_tab_interests' => 'Interests',
         'profile_tab_picks' => 'Picks',
         'profile_tab_classifieds' => 'Classifieds',

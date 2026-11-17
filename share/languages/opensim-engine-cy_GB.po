@@ -346,6 +346,10 @@ msgctxt "profile_tab_web"
 msgid "Web"
 msgstr "Gwe"
 
+msgctxt "profile_tab_feed"
+msgid "Feed"
+msgstr "Ffrwd"
+
 msgctxt "profile_tab_interests"
 msgid "Interests"
 msgstr "Diddordebau"

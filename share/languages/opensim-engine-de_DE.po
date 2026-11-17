@@ -349,6 +349,10 @@ msgctxt "profile_tab_web"
 msgid "Web"
 msgstr "Web"
 
+msgctxt "profile_tab_feed"
+msgid "Feed"
+msgstr "Feed"
+
 msgctxt "profile_tab_interests"
 msgid "Interests"
 msgstr "Interessen"
