@@ -1198,6 +1198,10 @@ msgctxt "notice_import_stop_source"
 msgid "The simulator that runs {regions} now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same."
 msgstr ""
 
+msgctxt "notice_import_no_region"
+msgid "No region was found for {simulator} in {folder}, the folder its config names: check that it is the one it reads before applying, nothing of its regions would be copied."
+msgstr ""
+
 msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr ""

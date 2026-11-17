@@ -116,13 +116,24 @@ final class SimulatorImporter
      */
     public static function regionFiles(array $raw, string $path): array
     {
-        // The folder as the simulator reads it: its constants replaced (${Const|DataDirectory}/regions)
-        $dir = trim((string) (ConfigReader::expand($raw)['Startup']['regionload_regionsdir'] ?? 'Regions'), " \t\"");
-        $dir = str_starts_with($dir, '/') ? $dir : dirname($path) . "/$dir";
+        $dir = self::regionsDirectory($raw, $path);
 
         return array_values(
             array_merge(glob(rtrim($dir, '/') . '/*.ini') ?: [], glob(rtrim($dir, '/') . '/*.ini.disabled') ?: []),
         );
+    }
+
+    /**
+     * The folder of the regions of a simulator, as it reads it: `regionload_regionsdir` of [Startup] with its references replaced
+     * (${Const|EtcDirectory}, ${Launch|simslug}: ConfigReader::expand()), a relative one from the folder of its config.
+     *
+     * @param array<string,array<string,string>> $raw its config, read with its includes
+     */
+    public static function regionsDirectory(array $raw, string $path): string
+    {
+        $dir = trim((string) (ConfigReader::expand($raw)['Startup']['regionload_regionsdir'] ?? 'Regions'), " \t\"");
+
+        return rtrim(str_starts_with($dir, '/') ? $dir : dirname($path) . "/$dir", '/');
     }
 
     /** The address the regions of the simulator announce, from their files (the first one that has it). */

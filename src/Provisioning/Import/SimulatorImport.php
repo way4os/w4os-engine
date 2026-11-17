@@ -42,6 +42,7 @@ final class SimulatorImport
         public readonly string $source,
         public readonly array $regions,
         public readonly array $customizations,
+        public readonly string $regionsDirectory = '',
     ) {}
 
     /**
@@ -103,7 +104,7 @@ final class SimulatorImport
             ConfigReader::expand($raw),
         );
 
-        return new self($plan, $file, $regions, $customizations);
+        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file));
     }
 
     /**
@@ -144,7 +145,10 @@ final class SimulatorImport
             'reminders' => [
                 // The files of an older install belong to its user (640 on opensim-debian); the import runs as the user of the grid
                 Notice::of('import-read-access'),
-                Notice::of('import-stop-source', ['regions' => implode(', ', array_column($this->regions, 'name')) ?: $plan->simulatorName]),
+                // A folder of regions that has none is said: the folder its config names may not be the one it reads
+                $this->regions === []
+                    ? Notice::of('import-no-region', ['simulator' => $plan->simulatorName, 'folder' => $this->regionsDirectory])
+                    : Notice::of('import-stop-source', ['regions' => implode(', ', array_column($this->regions, 'name'))]),
                 Notice::of('import-enable-start', ['enable' => "opensim enable {$plan->slug}", 'start' => "opensim start {$plan->slug}"]),
             ],
         ];

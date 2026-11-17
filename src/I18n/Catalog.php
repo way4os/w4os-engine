@@ -389,6 +389,7 @@ final class Catalog
         'notice_plan_reserves_nothing' => 'A plan reserves nothing: the places and the ports it proposes are the free ones now, chosen again when it is applied. Apply a plan before planning the next one, or give the regions in one file.',
         'notice_import_read_access' => 'The files of the older install are read by the user that runs the import: give it read access to them (its config, its includes, its regions) before applying.',
         'notice_import_stop_source' => 'The simulator that runs {regions} now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same.',
+        'notice_import_no_region' => 'No region was found for {simulator} in {folder}, the folder its config names: check that it is the one it reads before applying, nothing of its regions would be copied.',
         'notice_import_enable_start' => 'Then: {enable}, {start}.',
         'notice_restore_start' => 'Start {instance} once it is restored: {command}',
         'notice_mail_sent_if_known' => 'When an avatar has this name or this email, a mail was sent to it.',

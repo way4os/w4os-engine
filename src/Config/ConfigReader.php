@@ -137,6 +137,22 @@ final class ConfigReader
             }
         }
 
+        // The other references, as OpenSimulator replaces them (Nini's ReplaceKeyValues, on the merged config): ${Section|Key} by the
+        // key of any section (${Launch|simslug}), ${Key} by the key of the same section; a reference to nothing stays as it is
+        $sections = array_change_key_case(array_map(static fn(array $values): array => array_change_key_case($values, CASE_LOWER), $ini), CASE_LOWER);
+        foreach ($ini as $section => $values) {
+            foreach ($values as $key => $value) {
+                for ($i = 0; $i < 5 && is_string($value) && str_contains($value, '${'); $i++) {
+                    $value = (string) preg_replace_callback(
+                        '/\$\{(?:([^|}]+)\|)?([^}]+)\}/',
+                        static fn(array $m): string => (string) ($sections[strtolower($m[1] !== '' ? $m[1] : (string) $section)][strtolower($m[2])] ?? $m[0]),
+                        $value,
+                    );
+                }
+                $ini[$section][$key] = $value;
+            }
+        }
+
         return $ini;
     }
 

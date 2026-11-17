@@ -110,6 +110,50 @@ describe('A simulator imported', function () {
     });
 });
 
+describe('A simulator of Speculoos imported', function () {
+    test('finds its regions in the folder its config names with the keys of [Launch] (${Launch|simslug})', function () {
+        $machine = new Machine();
+        $etc = $machine->root . '/speculoos/etc';
+        $machine->write("$etc/sims/recital/regions/Recital.ini", "[Recital]\nRegionUUID = 22222222-3333-4444-8555-666666666666\nLocation = 2000,2000\nInternalPort = 9301\n");
+        $machine->write(
+            "$etc/opensim.d/recital.ini",
+            "[Launch]\nSimName = Recital\nsimslug = recital\n" .
+                "[Const]\nEtcDirectory = \"$etc\"\n" .
+                "[Startup]\nregionload_regionsdir = \"\${Const|EtcDirectory}/sims/\${Launch|simslug}/regions\"\n" .
+                "[Network]\nhttp_listener_port = 9300\n" .
+                "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=osrecital;User ID=opensim;Password=secret;\"\n",
+        );
+        $plan = SimulatorImport::prepare($machine->environment, "$etc/opensim.d/recital.ini", 'demo')->document();
+
+        expect($plan['regions'])
+            ->toHaveCount(1)
+            ->and($plan['regions'][0])
+            ->toMatchArray(['name' => 'Recital', 'uuid' => '22222222-3333-4444-8555-666666666666', 'location' => '2000,2000'])
+            ->and(array_column($plan['reminders'], 'code'))
+            ->toContain('import-stop-source');
+    });
+
+    test('says so when its config names a folder of regions that has none, instead of the regions to stop', function () {
+        $machine = new Machine();
+        $etc = $machine->root . '/empty/etc';
+        $machine->write(
+            "$etc/opensim.d/lonely.ini",
+            "[Launch]\nSimName = Lonely\n[Startup]\nregionload_regionsdir = \"$etc/sims/lonely/regions\"\n[Network]\nhttp_listener_port = 9310\n" .
+                "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=oslonely;User ID=opensim;Password=secret;\"\n",
+        );
+        $plan = SimulatorImport::prepare($machine->environment, "$etc/opensim.d/lonely.ini", 'demo')->document();
+        $codes = array_column($plan['reminders'], 'code');
+
+        expect($plan['regions'])
+            ->toBe([])
+            ->and($codes)
+            ->toContain('import-no-region')
+            ->not->toContain('import-stop-source')
+            ->and($plan['reminders'][array_search('import-no-region', $codes, true)]['params']['folder'])
+            ->toBe("$etc/sims/lonely/regions");
+    });
+});
+
 describe('The API, for an import', function () {
     test('plans by default, applies when asked, and says why it refuses', function () {
         $machine = new Machine();

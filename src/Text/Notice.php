@@ -31,6 +31,7 @@ final class Notice
         // The plan of an import (SimulatorImport)
         'import-read-access' => [],
         'import-stop-source' => ['regions'],
+        'import-no-region' => ['simulator', 'folder'],
         'import-enable-start' => ['enable', 'start'],
         // The plan of a restore (Archives\BackupRestore)
         'restore-start' => ['instance', 'command'],

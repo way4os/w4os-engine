@@ -124,6 +124,20 @@ describe('Constants', function () {
             expect($ini['A'])->toBe(['x' => 'http://h/a', 'y' => '${Const|Nope}']);
         },
     );
+
+    test('are the keys of any section, as OpenSimulator replaces them (${Launch|simslug}), the key of the same section too', function () {
+        $ini = ConfigReader::expand([
+            'Const' => ['EtcDirectory' => '/opt/opensim/etc'],
+            'Launch' => ['SimName' => 'Recital', 'simslug' => 'recital'],
+            'Startup' => ['regionload_regionsdir' => '${Const|EtcDirectory}/sims/${Launch|simslug}/regions', 'here' => 'x', 'there' => '${here}/y'],
+        ]);
+
+        expect($ini['Startup'])->toBe([
+            'regionload_regionsdir' => '/opt/opensim/etc/sims/recital/regions',
+            'here' => 'x',
+            'there' => 'x/y',
+        ]);
+    });
 });
 
 describe('Finding a key', function () {
