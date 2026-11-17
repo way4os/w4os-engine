@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "802a43b",
+        "version": "79bd3ab",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1669,7 +1669,8 @@
                                 "god-like",
                                 "customer-service",
                                 "liaison",
-                                "god"
+                                "god",
+                                "maintenance"
                             ]
                         }
                     },
@@ -1909,6 +1910,10 @@
                                 {
                                     "value": "god",
                                     "label": "role_god"
+                                },
+                                {
+                                    "value": "maintenance",
+                                    "label": "role_maintenance"
                                 }
                             ]
                         },
@@ -2509,7 +2514,8 @@
                                 "god-like": "role_god_like",
                                 "customer-service": "role_customer_service",
                                 "liaison": "role_liaison",
-                                "god": "role_god"
+                                "god": "role_god",
+                                "maintenance": "role_maintenance"
                             }
                         },
                         {
@@ -2648,7 +2654,7 @@
                                                     },
                                                     "role": {
                                                         "type": "string",
-                                                        "description": "`resident`, `god-like`, `customer-service`, `liaison` or `god`: the level of the role (0, 1, 100, 150, 200), unless a `level` of that role is given with it; a disabled avatar gets it once enabled. Another is refused (`role-unknown`)"
+                                                        "description": "`resident`, `god-like`, `customer-service`, `liaison`, `god` or `maintenance`: the level of the role (0, 1, 100, 150, 200, 250), unless a `level` of that role is given with it; a disabled avatar gets it once enabled. Another is refused (`role-unknown`)"
                                                     },
                                                     "active": {
                                                         "type": "boolean",
@@ -9193,7 +9199,7 @@
                             "no-confirmation-pending",
                             "mail-failed"
                         ],
-                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
+                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god, maintenance; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
                     },
                     "detail": {
                         "type": "string",
@@ -9876,7 +9882,7 @@
                             },
                             "role": {
                                 "type": "string",
-                                "description": "From the level, as w4os names it: `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200); a disabled avatar has the role of the level it gets back"
+                                "description": "From the level, as w4os names it, by the levels of OpenSimulator (GOD_NOT, GOD_LIKE, GOD_CUSTOMER_SERVICE, GOD_LIAISON, GOD_FULL, GOD_MAINTENANCE: a level has every right of the ones below it): `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200), `maintenance` (250); a disabled avatar has the role of the level it gets back"
                             },
                             "standardLevel": {
                                 "type": "boolean",

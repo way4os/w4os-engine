@@ -551,6 +551,10 @@ msgctxt "role_god"
 msgid "God"
 msgstr ""
 
+msgctxt "role_maintenance"
+msgid "Maintenance"
+msgstr ""
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr ""

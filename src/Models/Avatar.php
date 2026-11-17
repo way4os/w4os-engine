@@ -35,8 +35,29 @@ use OpenSim\Support\Bitmask;
  */
 final class Avatar extends Model
 {
-    /** The level of the accounts that are gods (administrators). */
-    public const GOD_LEVEL = 200;
+    /**
+     * The levels of the accounts, as OpenSimulator names them (opensimulator.org/wiki/Userlevel): a level has every right of the
+     * ones below it, never one above.
+     */
+    public const GOD_NOT = 0;
+    public const GOD_LIKE = 1;
+    public const GOD_CUSTOMER_SERVICE = 100;
+    public const GOD_LIAISON = 150;
+    public const GOD_FULL = 200;
+    public const GOD_MAINTENANCE = 250;
+
+    /** Every level by its value, named as OpenSimulator names it. */
+    public const LEVELS = [
+        self::GOD_NOT => 'GOD_NOT',
+        self::GOD_LIKE => 'GOD_LIKE',
+        self::GOD_CUSTOMER_SERVICE => 'GOD_CUSTOMER_SERVICE',
+        self::GOD_LIAISON => 'GOD_LIAISON',
+        self::GOD_FULL => 'GOD_FULL',
+        self::GOD_MAINTENANCE => 'GOD_MAINTENANCE',
+    ];
+
+    /** The level of the accounts that are gods (administrators): GOD_FULL. Ask isGodLevel() rather than compare with it. */
+    public const GOD_LEVEL = self::GOD_FULL;
 
     /**
      * The states of an account: it can log in (active), a manager disabled it (disabled), it waits for the confirmation of its
@@ -72,10 +93,17 @@ final class Avatar extends Model
     ];
 
     /**
-     * The roles of the avatars, as w4os names them, by the lowest level of each: a level of 200 and over is a god, 150 a liaison, 100
-     * the customer service, 1 god-like, 0 and less a resident.
+     * The roles of the avatars, as w4os names them, by the lowest level of each (LEVELS): 250 and over the maintenance, 200 a god, 150
+     * a liaison, 100 the customer service, 1 god-like, 0 and less a resident.
      */
-    public const ROLES = ['resident' => 0, 'god-like' => 1, 'customer-service' => 100, 'liaison' => 150, 'god' => 200];
+    public const ROLES = [
+        'resident' => self::GOD_NOT,
+        'god-like' => self::GOD_LIKE,
+        'customer-service' => self::GOD_CUSTOMER_SERVICE,
+        'liaison' => self::GOD_LIAISON,
+        'god' => self::GOD_FULL,
+        'maintenance' => self::GOD_MAINTENANCE,
+    ];
 
     /** The level of an account, the one it has back when it is active again (storedLevel()), as the database computes it. */
     private const LEVEL = '(CASE WHEN u.UserLevel < 0 THEN -1 - u.UserLevel ELSE u.UserLevel END)';
@@ -300,7 +328,7 @@ final class Avatar extends Model
         return $role;
     }
 
-    /** Whether the level of the avatar is the one of its role (0, 1, 100, 150, 200), not one in between. */
+    /** Whether the level of the avatar is the one of its role (0, 1, 100, 150, 200, 250), not one in between. */
     public function hasStandardLevel(): bool
     {
         return $this->level() === self::ROLES[$this->role()];
@@ -314,7 +342,13 @@ final class Avatar extends Model
 
     public function isGod(): bool
     {
-        return $this->level() >= self::GOD_LEVEL;
+        return self::isGodLevel($this->level());
+    }
+
+    /** Whether a level is the one of a god (GOD_FULL, and GOD_MAINTENANCE above it): what a bridge asks, never a constant. */
+    public static function isGodLevel(int $level): bool
+    {
+        return $level >= self::GOD_FULL;
     }
 
     /** Whether the grid says the avatar is in the world now. */
@@ -1662,8 +1696,8 @@ final class Avatar extends Model
                 ],
                 'role' => self::roleConditions(),
                 'god' => [
-                    'yes' => '(u.UserLevel >= ' . self::GOD_LEVEL . ' OR u.UserLevel <= ' . (-1 - self::GOD_LEVEL) . ')',
-                    'no' => '(u.UserLevel < ' . self::GOD_LEVEL . ' AND u.UserLevel > ' . (-1 - self::GOD_LEVEL) . ')',
+                    'yes' => '(u.UserLevel >= ' . self::GOD_FULL . ' OR u.UserLevel <= ' . (-1 - self::GOD_FULL) . ')',
+                    'no' => '(u.UserLevel < ' . self::GOD_FULL . ' AND u.UserLevel > ' . (-1 - self::GOD_FULL) . ')',
                 ],
                 'technical' => [
                     'yes' => "(u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')",

@@ -54,7 +54,7 @@ final class Problem
         'filter-unknown' => 'The list has no such filter (the detail names the ones it has)',
         'filter-value-unknown' => 'The filter does not take this value (the detail names the ones it takes)',
         'sort-unknown' => 'The list cannot be sorted so (the detail names the sorts it takes)',
-        'role-unknown' => 'The role is not one of resident, god-like, customer-service, liaison, god',
+        'role-unknown' => 'The role is not one of resident, god-like, customer-service, liaison, god, maintenance',
         'role-level-conflict' => 'The level given with a role is not one of that role',
         'token-refused' => 'The token is not valid, was used, or has expired',
         'no-confirmation-pending' => 'The avatar does not wait for the confirmation of its email',

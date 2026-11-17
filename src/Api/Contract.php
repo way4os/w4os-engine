@@ -205,7 +205,7 @@ final class Contract
                 ],
                 'role' => [
                     'string',
-                    'From the level, as w4os names it: `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200); a disabled avatar has the role of the level it gets back',
+                    'From the level, as w4os names it, by the levels of OpenSimulator (GOD_NOT, GOD_LIKE, GOD_CUSTOMER_SERVICE, GOD_LIAISON, GOD_FULL, GOD_MAINTENANCE: a level has every right of the ones below it): `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200), `maintenance` (250); a disabled avatar has the role of the level it gets back',
                 ],
                 'standardLevel' => [
                     'boolean',
@@ -277,7 +277,7 @@ final class Contract
                 'level' => ['integer', 'The user level; with `role`, one of that role (else `role-level-conflict`)'],
                 'role' => [
                     'string',
-                    '`resident`, `god-like`, `customer-service`, `liaison` or `god`: the level of the role (0, 1, 100, 150, 200), unless a `level` of that role is given with it; a disabled avatar gets it once enabled. Another is refused (`role-unknown`)',
+                    '`resident`, `god-like`, `customer-service`, `liaison`, `god` or `maintenance`: the level of the role (0, 1, 100, 150, 200, 250), unless a `level` of that role is given with it; a disabled avatar gets it once enabled. Another is refused (`role-unknown`)',
                 ],
                 'active' => ['boolean', 'true: active (a pending avatar too: its confirmation token is forgotten); false: disabled'],
                 'status' => ['string', '`active`, `disabled` or `pending`; a `pending` avatar that becomes another forgets its confirmation token'],

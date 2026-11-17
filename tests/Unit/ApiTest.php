@@ -584,7 +584,7 @@ describe('The contract', function () {
             ])
             // The parameters of the list are the ones the model describes
             ->and($parameters($avatars)['filter[role]'])
-            ->toBe(['type' => 'string', 'enum' => ['resident', 'god-like', 'customer-service', 'liaison', 'god']])
+            ->toBe(['type' => 'string', 'enum' => ['resident', 'god-like', 'customer-service', 'liaison', 'god', 'maintenance']])
             ->and($parameters($avatars)['sort']['enum'])
             ->toContain('created', '-created')
             ->and($parameters($regions)['filter[owner]'])
@@ -664,6 +664,7 @@ describe('The contract', function () {
                     'customer-service' => 'role_customer_service',
                     'liaison' => 'role_liaison',
                     'god' => 'role_god',
+                    'maintenance' => 'role_maintenance',
                 ],
             ])
             ->and(array_column($avatar['fields'], null, 'name')['about']['access'])

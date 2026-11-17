@@ -982,7 +982,7 @@ describe('The API, for the role of an avatar', function () {
         );
 
         $godLike = $change(ADA, ['role' => 'god-like'])->document['data']['attributes'];
-        $god = $change(ADA, ['role' => 'god', 'level' => 250])->document['data']['attributes'];
+        $god = $change(ADA, ['role' => 'god', 'level' => 220])->document['data']['attributes'];
         $liaison = $change(CY, ['role' => 'liaison'])->document['data']['attributes'];
         $kept = $stored(CY);
         $enabled = $change(CY, ['enabled' => true])->document['data']['attributes'];
@@ -990,7 +990,7 @@ describe('The API, for the role of an avatar', function () {
         expect([$godLike['role'], $godLike['level'], $godLike['standardLevel']])
             ->toBe(['god-like', 1, true])
             ->and([$god['role'], $god['level'], $god['standardLevel']])
-            ->toBe(['god', 250, false])
+            ->toBe(['god', 220, false])
             ->and([$liaison['role'], $liaison['status']])
             ->toBe(['liaison', 'disabled'])
             ->and($kept)

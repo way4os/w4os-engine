@@ -215,6 +215,7 @@ final class Catalog
         'role_customer_service' => 'Customer Service',
         'role_liaison' => 'Liaison',
         'role_god' => 'God',
+        'role_maintenance' => 'Maintenance',
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
         'action_reset' => 'Send a password reset link',
@@ -413,7 +414,7 @@ final class Catalog
         return 'status_' . $status;
     }
 
-    /** The key of the text of the role of an avatar (resident, god-like, customer-service, liaison, god). */
+    /** The key of the text of the role of an avatar (resident, god-like, customer-service, liaison, god, maintenance). */
     public static function roleKey(string $role): string
     {
         return 'role_' . str_replace('-', '_', $role);

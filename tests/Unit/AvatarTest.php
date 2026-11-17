@@ -350,7 +350,7 @@ describe('avatars', function () {
         expect($roles)
             ->toBe([
                 'Ada Love' => ['resident', true],
-                'Bob Root' => ['god', false],
+                'Bob Root' => ['maintenance', true],
                 'Cy Gone' => ['resident', true],
                 'Dee Like' => ['god-like', true],
                 'Eve Help' => ['customer-service', false],
@@ -363,8 +363,16 @@ describe('avatars', function () {
                 'god-like' => ['Dee Like'],
                 'customer-service' => ['Eve Help'],
                 'liaison' => ['Fay Link'],
-                'god' => ['Bob Root', 'Gus Off'],
+                'god' => ['Gus Off'],
+                // 250, GOD_MAINTENANCE: every right of a god, and the maintenance of the grid
+                'maintenance' => ['Bob Root'],
             ])
+            ->and([Avatar::isGodLevel(Avatar::GOD_FULL), Avatar::isGodLevel(Avatar::GOD_MAINTENANCE), Avatar::isGodLevel(Avatar::GOD_LIAISON)])
+            ->toBe([true, true, false])
+            ->and(Avatar::GOD_LEVEL)
+            ->toBe(Avatar::GOD_FULL)
+            ->and(Avatar::LEVELS[250])
+            ->toBe('GOD_MAINTENANCE')
             ->and(array_column(Avatar::all($config, ['sort' => 'level desc'])->array(), 'name'))
             ->toBe(['Bob Root', 'Gus Off', 'Fay Link', 'Eve Help', 'Dee Like', 'Ada Love', 'Cy Gone'])
             ->and(fn() => Avatar::all($config, ['filters' => ['role' => 'admin']]))
