@@ -190,12 +190,15 @@ final class Destination
     }
 
     /**
-     * A point in a region as it is written (`x/y/z` or `x,y,z`), its height HEIGHT when it gives none or zero; empty stays empty
-     * (the landing point of the region).
+     * A point in a region as it is written (`x/y/z`, `x,y,z`, or `<x, y, z>` as the scripts write a vector, given as `x,y,z`), its
+     * height HEIGHT when it gives none or zero; empty stays empty (the landing point of the region).
      */
     public static function position(string $position): string
     {
         $position = trim($position);
+        if (preg_match('/^<(.*)>$/', $position, $vector) === 1) {
+            $position = (string) preg_replace('/\s+/', '', $vector[1]);
+        }
         $parts = preg_split('#[/,]#', trim($position, '/,')) ?: [];
         if (count($parts) < 2 || !is_numeric($parts[0]) || !is_numeric($parts[1])) {
             return $position;

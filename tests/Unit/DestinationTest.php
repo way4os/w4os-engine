@@ -75,6 +75,11 @@ describe('Destinations', function () {
             ->toBe('10/20/0.5')
             ->and(Destination::position(''))
             ->toBe('')
+            // As the scripts write a vector: its brackets and its spaces left out
+            ->and(Destination::position('<10.4, 20, 30.6>'))
+            ->toBe('10.4,20,30.6')
+            ->and(Destination::position(' < 10, 20, 0 > '))
+            ->toBe('10,20,21')
             ->and(Destination::height(0))
             ->toBe(21.0)
             ->and(Destination::height(null))

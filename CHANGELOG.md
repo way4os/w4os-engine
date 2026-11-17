@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (destinations): a point read as the scripts write a vector too (`<10.4, 20, 30.6>`, given as `10.4,20,30.6`) by `Destination::position()`
 - fix (destinations): a point landed at a height of zero, or without one, is a little above the sea (`Destination::HEIGHT`, 21 m), not in the water or under the ground; any other height is kept: in the destinations read and their links (`hop://host:port/Region/128/128/0` goes to 128/128/21), the lines of the guide and of the boards, the parcels, the land for sale, the picks and the classifieds
 - feature (guide): the pictures of the hypergrid destinations the search has none of, asked to their own grid by a task of the scheduler (`guide-pictures`, `RemotePictures`): its gatekeeper gives the simulator of the region, the snapshot of the simulator its parcels, the parcel of the destination its picture, the asset service of the grid the picture, kept for the pages of the grid (`WebAssets::remote()`); asked again after a day, after a few hours when not found, kept a month when the grid does not answer; the guide only reads what was kept, a viewer never waits for another grid; the gatekeeper asked by another function in the tests (`Gatekeeper::using()`)
 - feature (guide): the engine finds the pictures of the guide (`DestinationPictures`, `Grid::guide()`): of the parcel of each destination as the search knows it (by its name, else its landing point, else the only parcel of its region), of a section the first of its destinations that has one (`picture`, `sectionPicture` of the destinations)
