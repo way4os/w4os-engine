@@ -179,7 +179,7 @@ final class Api
                 $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
 
                 return Response::binary(
-                    DestinationList::format($found->destinations(($this->config)($found))),
+                    DestinationList::format($found->destinations(($this->config)($found), true)),
                     'text/plain; charset=utf-8',
                 );
             }

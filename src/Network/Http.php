@@ -46,6 +46,34 @@ final class Http
         return self::answer($handle, curl_exec($handle));
     }
 
+    /**
+     * A text at an address: a text/* answer only, of `$max` bytes at most (a longer one is cut off and refused).
+     */
+    public static function text(string $url, int $max, int $timeout = 5): ?string
+    {
+        $handle = curl_init($url);
+        if ($handle === false) {
+            return null;
+        }
+        $body = '';
+        curl_setopt_array($handle, [
+            CURLOPT_CONNECTTIMEOUT => min(3, $timeout),
+            CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 3,
+            // Read until it is too long
+            CURLOPT_WRITEFUNCTION => static function ($curl, string $chunk) use (&$body, $max): int {
+                $body .= $chunk;
+
+                return strlen($body) > $max ? 0 : strlen($chunk);
+            },
+        ]);
+        $done = curl_exec($handle);
+        $type = strtolower((string) curl_getinfo($handle, CURLINFO_CONTENT_TYPE));
+
+        return $done !== false && strlen($body) <= $max && str_starts_with($type, 'text/') ? self::answer($handle, $body) : null;
+    }
+
     private static function answer(\CurlHandle $handle, string|bool $body): ?string
     {
         $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);

@@ -10,6 +10,11 @@ use OpenSim\Hypergrid\Destination;
 /**
  * The guide of a grid that has no list of its own: what the search already knows, the popular places and the places shown in
  * search, ten of each. The guide shows them as two sections; nothing is asked of the operator.
+ *
+ * What is left out comes from the tables of the search themselves, as the parser fills them (SearchParser), and from the grid:
+ * - the places of the other grids, when a search serves several (only the rows whose gatekeeper is the login of the grid);
+ * - the land for sale, which is not a popular place (the parser keeps it in `parcelsales` only);
+ * - the parcels not shown in search, which are in neither `parcels` nor `popularplaces`.
  */
 final class DefaultDestinations
 {

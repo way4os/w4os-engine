@@ -1238,7 +1238,7 @@ final class Endpoints
     public static function destinations(array $operation): array
     {
         $operation['description'] =
-            'The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of "Name|Region URL" lines, a name alone starting a category) is the list; a grid that gives none has the places its search knows, ten popular places and ten places shown in search, in two sections. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them.';
+            'The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of "Name|Region URL" lines, a name alone starting a category) is the list; a grid that gives none has the places its search knows, ten popular places and ten places shown in search, in two sections: the places of this grid only, no land for sale among the popular places, nothing that is not shown in search. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them: the place in the region in its own column (`x,y,z`), their layout hints kept (`-` a new column, `|` an empty row). A source is read when it is text, 1 MB at most, in UTF-8.';
         $operation['parameters'][] = [
             'name' => 'format',
             'in' => 'query',

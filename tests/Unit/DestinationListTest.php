@@ -88,3 +88,27 @@ describe('The destinations of a guide', function () {
             ->toBe('');
     });
 });
+
+describe('The lines of the boards', function () {
+    test('keep the place in its own column and the layout hints of the boards, read and written back', function () {
+        $list = DestinationList::parse(GUIDE_TEXT, null, true);
+        $lines = DestinationList::format($list);
+
+        expect($list['Gardens'][0])
+            ->toBe(['name' => 'Rose garden', 'url' => 'grid.example.org:8002/Roses', 'landing' => '128,64,30'])
+            ->and($lines)
+            ->toContain("Rose garden|grid.example.org:8002/Roses|128,64,30\n", "\n-\n", "\n|\n")
+            ->and(DestinationList::parse($lines, null, true))
+            ->toBe($list);
+    });
+
+    test('are read only when they are text: 1 MB at most, in UTF-8', function () {
+        $http = static fn(string $url): ?string => ['https://example.org/big.txt' => str_repeat("A|b\n", 300_000), 'https://example.org/latin.txt' => "Caf\xe9|grid.example.org:8002/Cafe\n"][$url] ?? null;
+        $folder = test_tmp() . '/guide-' . bin2hex(random_bytes(4));
+        mkdir($folder);
+        file_put_contents("$folder/big.txt", str_repeat("A|b\n", 300_000));
+
+        expect(array_map('is_null', [DestinationList::read('https://example.org/big.txt', null, $http), DestinationList::read('https://example.org/latin.txt', null, $http), DestinationList::read('big.txt', $folder)]))
+            ->toBe([true, true, true]);
+    });
+});

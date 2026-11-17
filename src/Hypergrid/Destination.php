@@ -26,6 +26,9 @@ final class Destination
     /** output as array */
     public const AS_ARRAY = 256;
 
+    /** The port of a grid an address does not say (the one of Robust). */
+    public const PORT = 8002;
+
     /** The format asked when none is: the environment says (TPLINK_DEFAULT), else hop://. */
     public static function defaultFormat(): int
     {
@@ -49,14 +52,19 @@ final class Destination
         $e_port = '[:\|]([0-9]+)';
         $e_float = '(\d+(\.\d+)?)';
 
+        // A host and its region without a port (login.osgrid.org:Region) is the region at the default port of a grid, as 2.x read it
         $normalized_url = preg_replace(
-            [
-                "#^{$e_scheme}?{$e_host}{$e_port}?[:\+_ ]#",
-                "#^{$e_scheme}?{$e_short_host}{$e_port}[:\+_ ]#",
-                '/(\+|%20|_)/',
-            ],
-            ["\\1\\2:\\5/", "\\1\\2:\\5/", ' '],
-            urldecode(trim($url)),
+            ['/(\+|%20|_)/'],
+            [' '],
+            (string) preg_replace_callback(
+                [
+                    "#^{$e_scheme}?{$e_host}{$e_port}[:\+_ ]#",
+                    "#^{$e_scheme}?{$e_host}()[:\+_ ](?=[^0-9])#",
+                    "#^{$e_scheme}?{$e_short_host}{$e_port}[:\+_ ]#",
+                ],
+                static fn(array $m): string => $m[1] . $m[2] . ':' . (($m[5] ?? '') !== '' ? $m[5] : self::PORT) . '/',
+                urldecode(trim($url)),
+            ),
         );
 
         if (!preg_match("#^$e_scheme#", $url) && preg_match("#$e_host|$e_short_host{$e_port}#", $url)) {
@@ -241,22 +249,24 @@ final class Destination
                 (empty($host) ? '' : join(':', [$host, $port])) . ' ' . ($region ?? '') . (empty($pos) ? '' : "/$pos"),
             );
         }
+        // A region of this grid, by its name alone; the link of a grid without a region ends at its port
+        $local = "secondlife://$region_percentencode" . (empty($pos_sl) ? '' : "/$pos_sl");
+        $named = empty($region) ? '' : "%20$region_percentencode";
         if ($format & self::LOCAL) {
             // Web only, do not use for in-world messages
-            $links[self::LOCAL] = "secondlife://$region_percentencode" . (empty($pos_sl) ? '' : "/$pos_sl");
+            $links[self::LOCAL] = $local;
         }
         if ($format & self::HG) {
-            // if(empty())
             // Web only, do not use for in-world messages
             $links[self::HG] = empty($host)
-                ? $links[self::LOCAL]
-                : "secondlife://$host:$port%20$region_percentencode" . (empty($pos_sl) ? '' : "/$pos_sl");
+                ? $local
+                : "secondlife://$host:$port$named" . (empty($pos_sl) ? '' : "/$pos_sl");
         }
         if ($format & self::V3HG) {
             // Web only, do not use for in-world messages
             $links[self::V3HG] =
-                (empty($host) ? $links[self::LOCAL] : "secondlife://http|!!$host|$port%20$region_percentencode") .
-                (empty($pos_sl) ? '' : "/$pos_sl");
+                (empty($host) ? $local : "secondlife://http|!!$host|$port$named") .
+                (empty($pos_sl) || empty($host) ? '' : "/$pos_sl");
         }
         if ($format & self::HOP) {
             // Web and in-world. Position (/x/y/z) is

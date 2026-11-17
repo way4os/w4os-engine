@@ -172,3 +172,30 @@ describe('Links with pluses', function () {
             ->toBe('hop://grid.example:8002/My+Region/1/2/3');
     });
 });
+
+describe('A destination of a guide', function () {
+    test('of a grid without a region links to the grid, a region of a grid without its port is at 8002, a region alone is local', function () {
+        $warnings = [];
+        set_error_handler(static function (int $level, string $message) use (&$warnings): bool {
+            $warnings[] = $message;
+
+            return true;
+        });
+        try {
+            $grid = OpenSim\Hypergrid\Destination::format('wyldwoodbayou.com:8002', OpenSim\Hypergrid\Destination::HG);
+            $alone = OpenSim\Hypergrid\Destination::format('Welcome', OpenSim\Hypergrid\Destination::HG);
+        } finally {
+            restore_error_handler();
+        }
+        $parsed = OpenSim\Hypergrid\Destination::parse('login.osgrid.org:RuthAndRoth');
+
+        expect($grid)
+            ->toBe('secondlife://wyldwoodbayou.com:8002')
+            ->and([$parsed['host'], $parsed['port'], $parsed['region']])
+            ->toBe(['login.osgrid.org', 8002, 'RuthAndRoth'])
+            ->and($alone)
+            ->toBe('secondlife://Welcome')
+            ->and($warnings)
+            ->toBe([]);
+    });
+});

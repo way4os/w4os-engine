@@ -865,9 +865,10 @@ final class Grid extends InstalledModel
      * lines. A grid that gives none has the places its search knows: the popular places and the places shown in search, ten of each.
      *
      * @param ?GridConfig $config the config of the grid, to find its search database (default: its folder)
-     * @return array<string,list<array{name:string,url:string}>> empty when the grid has no guide, or it cannot be read
+     * @param bool $layout for the boards: the place in its own column and their layout hints kept (DestinationList::parse())
+     * @return array<string,list<array<string,string>>> empty when the grid has no guide, or it cannot be read
      */
-    public function destinations(?GridConfig $config = null): array
+    public function destinations(?GridConfig $config = null, bool $layout = false): array
     {
         $listed = DestinationList::parse(
             (string) DestinationList::read(
@@ -875,6 +876,8 @@ final class Grid extends InstalledModel
                 $this->directory !== '' ? $this->directory : null,
                 $this->environment->http,
             ),
+            null,
+            $layout,
         );
         if ($listed !== []) {
             return $listed;
