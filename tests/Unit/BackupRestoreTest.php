@@ -13,7 +13,7 @@ use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Testing\EnvironmentFake;
 
 /** An install with the grid alpha (its Robust, two simulators), and its backup made. @return array{0:array<string,string>,1:string} */
-function restore_backup(?string $simulator = null): array
+function restore_backup(?string $simulator = null, bool $central = false): array
 {
     $root = test_tmp() . '/restore-' . bin2hex(random_bytes(4));
     $etc = "$root/etc";
@@ -21,13 +21,14 @@ function restore_backup(?string $simulator = null): array
     foreach (["$grid/sims/alpha.sim1/regions", "$grid/sims/alpha.sim2/regions", "$etc/robust.d", "$etc/opensim.d", "$root/data/alpha/alpha.sim1", "$root/logs", "$root/backups"] as $dir) {
         mkdir($dir, 0o755, true);
     }
-    file_put_contents("$grid/Robust.HG.ini", "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=alpha_robust;User ID=opensim;Password=secret;Old Guids=true;\"\n");
+    // Robust serves the estates (EstateDataService): they are in its database, which a simulator shares
+    file_put_contents("$grid/Robust.HG.ini", ($central ? "[ServiceList]\nEstateDataService = \"8003/OpenSim.Server.Handlers.dll:EstateDataRobustConnector\"\n" : '') . "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=alpha_robust;User ID=opensim;Password=secret;Old Guids=true;\"\n");
     foreach (['alpha.sim1', 'alpha.sim2'] as $sim) {
         file_put_contents("$grid/sims/$sim.ini", "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=" . str_replace('.', '_', $sim) . ";User ID=opensim;Password=secret;Old Guids=true;\"\n");
         symlink("$grid/sims/$sim.ini", "$etc/opensim.d/$sim.ini");
     }
     symlink("$grid/Robust.HG.ini", "$etc/robust.d/alpha.ini");
-    file_put_contents("$grid/sims/alpha.sim1/regions/Welcome.ini", "[Welcome]\nLocation = 1000,1000\n");
+    file_put_contents("$grid/sims/alpha.sim1/regions/Welcome.ini", "[Welcome]\nRegionUUID = 11111111-0000-4000-8000-000000000001\nLocation = 1000,1000\n");
     file_put_contents("$grid/sims/alpha.sim2/regions/North.ini", "[North]\nLocation = 1000,1001\n");
     file_put_contents("$root/data/alpha/alpha.sim1/state", 'persistent');
     $profile = ['EtcRoot' => $etc, 'DataRoot' => "$root/data", 'LogsRoot' => "$root/logs", 'BackupRoot' => "$root/backups"];
@@ -108,6 +109,56 @@ describe('A backup restored', function () {
             ->toBe("; the grid of this machine\n")
             ->and(is_file("{$target['EtcRoot']}/grids/alpha/sims/alpha.sim1/regions/Welcome.ini"))
             ->toBeTrue();
+    });
+
+    test('of one simulator keeps the database of the grid it shares when the grid is here, its regions found in its estates', function () {
+        [$source, $file] = restore_backup('sim1', central: true);
+        $target = restore_target();
+        mkdir("{$target['EtcRoot']}/grids/alpha", 0o755, true);
+        copy("{$source['EtcRoot']}/grids/alpha/Robust.HG.ini", "{$target['EtcRoot']}/grids/alpha/Robust.HG.ini");
+        $estates = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $estates->exec('CREATE TABLE estate_settings (EstateID INTEGER PRIMARY KEY, EstateName VARCHAR(64))');
+        $estates->exec('CREATE TABLE estate_map (RegionID CHAR(36) PRIMARY KEY, EstateID INT)');
+        $estates->exec("INSERT INTO estate_settings VALUES (1, 'Alpha Estate')");
+        $estates->exec("INSERT INTO estate_map VALUES ('11111111-0000-4000-8000-000000000001', 1)");
+        OpenSim\Data\Connections::using(static fn() => $estates);
+        try {
+            $restore = BackupRestore::prepare(EnvironmentFake::with($target), $file);
+            $loaded = [];
+            $restore->apply(static function ($db) use (&$loaded): void {
+                $loaded[] = $db->database;
+            });
+            $plan = $restore->document();
+        } finally {
+            OpenSim\Data\Connections::using(null);
+        }
+
+        expect(array_column($plan['databases'], 'kept', 'name'))
+            ->toBe(['alpha_sim1' => false, 'alpha_robust' => true])
+            ->and($loaded)
+            ->toBe(['alpha_sim1'])
+            ->and(array_column($plan['reminders'], 'code'))
+            ->toBe(['restore-start']);
+    });
+
+    test('of one simulator says when the grid here has no estate for its regions: they would start with none', function () {
+        [$source, $file] = restore_backup('sim1', central: true);
+        $target = restore_target();
+        mkdir("{$target['EtcRoot']}/grids/alpha", 0o755, true);
+        copy("{$source['EtcRoot']}/grids/alpha/Robust.HG.ini", "{$target['EtcRoot']}/grids/alpha/Robust.HG.ini");
+        $estates = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $estates->exec('CREATE TABLE estate_settings (EstateID INTEGER PRIMARY KEY, EstateName VARCHAR(64))');
+        $estates->exec('CREATE TABLE estate_map (RegionID CHAR(36) PRIMARY KEY, EstateID INT)');
+        OpenSim\Data\Connections::using(static fn() => $estates);
+        try {
+            $plan = BackupRestore::prepare(EnvironmentFake::with($target), $file)->document();
+        } finally {
+            OpenSim\Data\Connections::using(null);
+        }
+        $notice = array_column($plan['reminders'], null, 'code')['restore-estate-missing'] ?? null;
+
+        expect($notice['params'] ?? null)
+            ->toBe(['regions' => 'Welcome', 'database' => 'alpha_robust']);
     });
 
     test('is refused when this machine has the grid, or the simulator, already, and for a file that is not a backup', function () {

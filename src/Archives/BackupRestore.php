@@ -38,6 +38,8 @@ final class BackupRestore
         public readonly string $file,
         public readonly array $manifest,
         private readonly array $entries,
+        private readonly array $shared = [],
+        private readonly array $regionUuids = [],
     ) {}
 
     /**
@@ -58,7 +60,32 @@ final class BackupRestore
             static fn(string $line): string => rtrim($line, '/'),
             explode("\n", (string) self::tar(['-tzf', $file])),
         )));
-        $restore = new self($environment, (string) realpath($file), $manifest, $entries);
+        // The databases of the grid a simulator shares (its estates, when Robust serves them), and the UUIDs of its regions: read
+        // from the configuration it holds
+        $shared = [];
+        $uuids = [];
+        $simulator = is_string($manifest['simulator'] ?? null) && $manifest['simulator'] !== '' ? $manifest['simulator'] : null;
+        if ($simulator !== null) {
+            $stage = sys_get_temp_dir() . '/opensim-restore-' . bin2hex(random_bytes(6));
+            mkdir($stage, 0o700, true);
+            try {
+                self::tar(['-xzf', $file, '-C', $stage, 'etc']);
+                $held = Grid::at($environment, "$stage/etc/grids/{$manifest['grid']}");
+                $grid = array_map(static fn(ConnectionString $c): string => $c->database, $held->ownConnections());
+                foreach ($held->connections($simulator) as $connection) {
+                    in_array($connection->database, $grid, true) && ($shared[] = $connection->database);
+                }
+                foreach (glob("$stage/etc/grids/{$manifest['grid']}/" . \OpenSim\Config\GridConfig::SIMULATORS . "/$simulator/regions/*.ini") ?: [] as $region) {
+                    foreach (\OpenSim\Config\ConfigReader::load($region, [], false) as $name => $settings) {
+                        $uuid = strtolower(trim((string) ($settings['RegionUUID'] ?? ''), " \t\""));
+                        $uuid === '' || ($uuids[$uuid] = (string) $name);
+                    }
+                }
+            } finally {
+                exec('rm -rf ' . escapeshellarg($stage));
+            }
+        }
+        $restore = new self($environment, (string) realpath($file), $manifest, $entries, array_values(array_unique($shared)), $uuids);
         $conflicts = $restore->conflicts();
         if ($conflicts !== []) {
             throw InvalidValue::because('restore-conflict', 'this machine has already what the backup holds: ' . implode(', ', $conflicts));
@@ -94,6 +121,8 @@ final class BackupRestore
             $this->isShared($entry) && file_exists($to) ? ($kept[] = $to) : ($writes[] = $to);
         }
         $instances = $this->instances();
+        $keptDatabases = $this->keptDatabases();
+        $missing = $keptDatabases === [] ? [] : $this->missingEstates();
 
         return [
             'file' => $this->file,
@@ -102,15 +131,29 @@ final class BackupRestore
             'made' => $this->manifest['date'] ?? null,
             'host' => $this->manifest['host'] ?? null,
             'databases' => array_map(
-                static fn(array $db): array => ['host' => (string) ($db['host'] ?? ''), 'name' => (string) ($db['name'] ?? ''), 'user' => (string) ($db['user'] ?? '')],
+                static fn(array $db): array => [
+                    'host' => (string) ($db['host'] ?? ''),
+                    'name' => (string) ($db['name'] ?? ''),
+                    'user' => (string) ($db['user'] ?? ''),
+                    // A database of the grid a simulator shares, kept as it is here
+                    'kept' => in_array((string) ($db['name'] ?? ''), $keptDatabases, true),
+                ],
                 (array) ($this->manifest['databases'] ?? []),
             ),
             'writes' => $writes,
             'kept' => $kept,
-            'reminders' => array_map(
-                static fn(string $instance): array => Notice::of('restore-start', ['instance' => $instance, 'command' => "opensim start $instance"]),
-                $instances,
-            ),
+            'reminders' => [
+                // Its regions have no estate in the database of the grid here: they would start with none
+                ...($missing === null || $missing === [] ? [] : [Notice::of('restore-estate-missing', [
+                    'regions' => implode(', ', $missing),
+                    'database' => implode(', ', $keptDatabases),
+                ])]),
+                ...($missing === null ? [Notice::of('restore-estate-unchecked', ['database' => implode(', ', $keptDatabases)])] : []),
+                ...array_map(
+                    static fn(string $instance): array => Notice::of('restore-start', ['instance' => $instance, 'command' => "opensim start $instance"]),
+                    $instances,
+                ),
+            ],
         ];
     }
 
@@ -134,10 +177,12 @@ final class BackupRestore
             foreach (Grid::at($this->environment, $held)->connections($this->simulator()) as $connection) {
                 $connections[$connection->database] = $connection;
             }
+            $keptDatabases = $this->keptDatabases();
             foreach ((array) ($this->manifest['databases'] ?? []) as $db) {
                 $name = (string) ($db['name'] ?? '');
                 $dump = "$stage/db/$name.sql.gz";
-                if ($name === '' || !is_file($dump)) {
+                // A database of the grid a simulator shares is the one of the grid here: kept as it is
+                if ($name === '' || !is_file($dump) || in_array($name, $keptDatabases, true)) {
                     continue;
                 }
                 $connection = $connections[$name] ?? throw new \RuntimeException("no config of the backup names the database $name");
@@ -204,6 +249,47 @@ final class BackupRestore
         return str_starts_with($entry, 'etc/grids/') &&
             $entry !== "$sims/$simulator.ini" &&
             !str_starts_with($entry, "$sims/$simulator/");
+    }
+
+    /**
+     * The databases of the grid a simulator of the backup shares (its estates, when Robust serves them), kept as they are when its
+     * grid is here: the ones of the grid that runs here, which a restore of the grid only replaces.
+     *
+     * @return list<string>
+     */
+    private function keptDatabases(): array
+    {
+        return $this->simulator() !== null && is_dir($this->etc() . "/grids/{$this->grid()}") ? $this->shared : [];
+    }
+
+    /**
+     * The regions of the simulator that have no estate in the database of the estates of the grid here (estate_map and
+     * estate_settings), null when it cannot be read.
+     *
+     * @return ?list<string> their names
+     */
+    private function missingEstates(): ?array
+    {
+        if ($this->regionUuids === []) {
+            return [];
+        }
+        $config = \OpenSim\Config\GridConfig::fromFolder($this->etc() . "/grids/{$this->grid()}");
+        $pdo = \OpenSim\Data\Connections::pdo($config, \OpenSim\Data\Database::Estate);
+        if ($pdo === null || !$pdo->connected) {
+            return null;
+        }
+        try {
+            $marks = implode(',', array_fill(0, count($this->regionUuids), '?'));
+            $found = $pdo->get_results(
+                "SELECT LOWER(m.RegionID) FROM estate_map m INNER JOIN estate_settings s ON s.EstateID = m.EstateID WHERE LOWER(m.RegionID) IN ($marks)",
+                array_keys($this->regionUuids),
+                \PDO::FETCH_COLUMN,
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return array_values(array_diff_key($this->regionUuids, array_flip(array_map('strval', $found))));
     }
 
     /** What is here already that the restore would write: the config of the grid, or of the simulator. @return list<string> */

@@ -1206,6 +1206,14 @@ msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr ""
 
+msgctxt "notice_restore_estate_missing"
+msgid "The regions {regions} have no estate in {database}, the database of the grid here, which is kept as it is: they would start with none. Restore their estate there, or link them to one (estate link region) before starting."
+msgstr ""
+
+msgctxt "notice_restore_estate_unchecked"
+msgid "The estates of the regions could not be checked in {database}, the database of the grid here, which is kept as it is: check that they are there before starting."
+msgstr ""
+
 msgctxt "notice_restore_start"
 msgid "Start {instance} once it is restored: {command}"
 msgstr ""

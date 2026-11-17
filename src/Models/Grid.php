@@ -1365,6 +1365,33 @@ final class Grid extends InstalledModel
     }
 
     /**
+     * The databases of its Robust, once each: the default one, the services that have their own, the assets, the profiles, the
+     * offline messages, the economy, the estates when Robust serves them. None for a grid whose Robust runs elsewhere.
+     *
+     * @return list<ConnectionString>
+     */
+    public function ownConnections(): array
+    {
+        if ($this->isRemote()) {
+            return [];
+        }
+        $found = [];
+        $add = static function (?ConnectionString $connection) use (&$found): void {
+            $connection !== null && $connection->database !== '' && ($found[$connection->key()] ??= $connection);
+        };
+        $config = GridConfig::fromFolder($this->directory);
+        foreach ([Database::Robust, Database::Assets, Database::Profiles, Database::Offline, Database::Economy] as $database) {
+            $add($database->connection($config));
+        }
+        foreach ($config->tree()['Robust'] ?? [] as $section => $settings) {
+            is_array($settings) && isset($settings['ConnectionString']) && $add(Database::service($config, (string) $section));
+        }
+        Database::centralEstates($config) && $add(Database::Estate->connection($config));
+
+        return array_values($found);
+    }
+
+    /**
      * Every database the grid keeps data in, once each: the ones of its Robust (the default one, the services that have their own,
      * the assets, the profiles, the offline messages, the economy, the estates when Robust serves them) and the ones of its
      * simulators (their regions and their estates). The search is not the grid's: it is made again from the simulators.
@@ -1379,19 +1406,8 @@ final class Grid extends InstalledModel
             $connection !== null && $connection->database !== '' && ($found[$connection->key()] ??= $connection);
         };
         $config = GridConfig::fromFolder($this->directory);
-        if ($simulator === null && !$this->isRemote()) {
-            foreach (
-                [Database::Robust, Database::Assets, Database::Profiles, Database::Offline, Database::Economy]
-                as $database
-            ) {
-                $add($database->connection($config));
-            }
-            foreach ($config->tree()['Robust'] ?? [] as $section => $settings) {
-                is_array($settings) &&
-                    isset($settings['ConnectionString']) &&
-                    $add(Database::service($config, (string) $section));
-            }
-            Database::centralEstates($config) && $add(Database::Estate->connection($config));
+        if ($simulator === null) {
+            array_map($add, $this->ownConnections());
         }
         foreach ($simulator !== null ? [$simulator] : array_keys($config->tree()['simulators'] ?? []) as $name) {
             foreach ([Database::Simulator, Database::Estate] as $database) {

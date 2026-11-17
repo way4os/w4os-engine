@@ -35,6 +35,8 @@ final class Notice
         'import-enable-start' => ['enable', 'start'],
         // The plan of a restore (Archives\BackupRestore)
         'restore-start' => ['instance', 'command'],
+        'restore-estate-missing' => ['regions', 'database'],
+        'restore-estate-unchecked' => ['database'],
         // The messages of the API
         'mail-sent-if-known' => [],
         'mail-sent' => [],

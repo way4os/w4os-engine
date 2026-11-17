@@ -805,7 +805,7 @@ final class Endpoints
             ],
             'responses' => [
                 '200' => [
-                    'description' => 'The plan, or what was written: `grid`, `simulator`, `made`, `host`, `databases`, `writes`, `kept`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
+                    'description' => 'The plan, or what was written: `grid`, `simulator`, `made`, `host`, `databases` (`kept`: a database of the grid a simulator shares, kept as it is when the grid is here), `writes`, `kept`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
                     'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
                 ],
                 '400' => Contract::problem('Not a backup, or what this machine has already (`restore-conflict`)'),

@@ -391,6 +391,8 @@ final class Catalog
         'notice_import_stop_source' => 'The simulator that runs {regions} now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same.',
         'notice_import_no_region' => 'No region was found for {simulator} in {folder}, the folder its config names: check that it is the one it reads before applying, nothing of its regions would be copied.',
         'notice_import_enable_start' => 'Then: {enable}, {start}.',
+        'notice_restore_estate_missing' => 'The regions {regions} have no estate in {database}, the database of the grid here, which is kept as it is: they would start with none. Restore their estate there, or link them to one (estate link region) before starting.',
+        'notice_restore_estate_unchecked' => 'The estates of the regions could not be checked in {database}, the database of the grid here, which is kept as it is: check that they are there before starting.',
         'notice_restore_start' => 'Start {instance} once it is restored: {command}',
         'notice_mail_sent_if_known' => 'When an avatar has this name or this email, a mail was sent to it.',
         'notice_mail_sent' => 'A mail was sent to the avatar.',
