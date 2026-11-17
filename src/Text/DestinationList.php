@@ -7,7 +7,9 @@ namespace OpenSim\Text;
 use OpenSim\Network\Http;
 
 /**
- * The destinations of a guide, written as lines "Name|Region URL" in a file or at a URL; a name alone starts a category. The same
+ * The destinations of a guide, written as lines "Name|Region URL" in a file or at a URL; a title (a name alone) starts a section,
+ * the lines of a title that follow each other with nothing between them (no spacer, no column break, no destination) being one,
+ * and a title without a destination before the next column break or the end being text of the board, left out. The same
  * lines serve the boards of the scripts, the Gudz Teleport Board the reference (a dash alone is a new column, a pipe alone an empty
  * row: layout hints, not destinations), and the older format of 5 columns, read as the board reads it: the name in the 2nd column
  * (else the 1st), the address in the 4th, the landing point in the 5th. A third column of `x,y,z` is the place in the region. An
@@ -46,7 +48,7 @@ final class DestinationList
     }
 
     /**
-     * The lines of a list of destinations: a category by its name alone, then its destinations as "Name|Region URL". What
+     * The lines of a list of destinations: a section by its title alone, then its destinations as "Name|Region URL". What
      * parse() reads back, and what the boards of the scripts read.
      *
      * @param array<string,list<array{name:string,url:string}>> $destinations
@@ -54,8 +56,8 @@ final class DestinationList
     public static function format(array $destinations): string
     {
         $lines = [];
-        foreach ($destinations as $category => $places) {
-            $lines[] = $category;
+        foreach ($destinations as $section => $places) {
+            $lines[] = $section;
             foreach ($places as $place) {
                 // A layout hint of the boards as it was, the place in the region in its own column
                 $lines[] = isset($place['marker'])
@@ -68,9 +70,9 @@ final class DestinationList
     }
 
     /**
-     * The destinations of a text, by category, in the order of the text.
+     * The destinations of a text, by section, in the order of the text.
      *
-     * @param ?string $first the title of the destinations that come before any category
+     * @param ?string $first the title of the destinations that come before any section
      * @param bool $layout for the boards (format()): the place in the region kept apart (`landing`, x,y,z), the layout hints kept
      *        (`marker`); else the place is at the end of the address, the hints left out (a guide)
      * @return array<string,list<array{name:string,url:string,landing?:string}|array{marker:string}>>
@@ -79,16 +81,23 @@ final class DestinationList
     {
         $destinations = [];
         $seen = [];
-        $category = $first ?? _('Destinations Guide');
+        $section = $first ?? _('Destinations Guide');
+        // The lines of the title that comes, the ones that follow each other with nothing between them (a guide)
+        $title = [];
+        $adjacent = false;
         foreach (explode("\n", str_replace("\r", '', $text)) as $line) {
             $line = trim($line);
-            if ($layout && in_array($line, self::MARKERS, true)) {
-                $destinations[$category][] = ['marker' => $line];
+            if (in_array($line, self::MARKERS, true)) {
+                // The board keeps its layout as it is; a guide reads in it only what parts two titles, and a column break ends a
+                // title that had no destination (the text of the board at the end of a column)
+                $layout && ($destinations[$section][] = ['marker' => $line]);
+                $adjacent = false;
+                $line === '-' && ($title = []);
 
                 continue;
             }
-            // Comments, empty lines, the layout hints of the boards
-            if ($line === '' || $line[0] === '#' || str_starts_with($line, '//') || $line === '-') {
+            // Comments and empty lines: nothing, between two lines of a title too
+            if ($line === '' || $line[0] === '#' || str_starts_with($line, '//')) {
                 continue;
             }
             $parts = array_map('trim', explode('|', rtrim($line, '|')));
@@ -122,10 +131,21 @@ final class DestinationList
             }
             $url === '' || ($seen[strtolower($url)] = true);
             $layout || ($landing = '');
-            if ($url === '') {
-                $category = $name;
+            if ($url === '' && $layout) {
+                // The board keeps each title as it is, the ones without a destination too
+                $section = $name;
+                $destinations[$section] ??= [];
+            } elseif ($url === '') {
+                // A title, or the next line of the one before; a title before another one, without a destination, is left out
+                $title = $adjacent ? [...$title, $name] : [$name];
+                $adjacent = true;
             } else {
-                $destinations[$category][] = ['name' => $name, 'url' => $url] + ($landing !== '' ? ['landing' => $landing] : []);
+                if ($title !== []) {
+                    $section = implode(' ', $title);
+                    $title = [];
+                }
+                $adjacent = false;
+                $destinations[$section][] = ['name' => $name, 'url' => $url] + ($landing !== '' ? ['landing' => $landing] : []);
             }
         }
 

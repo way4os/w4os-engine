@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (guide): its sections are the titles of the list: the lines of a title that follow each other with nothing between them are one, a spacer or a column break parts two titles, a title without a destination (text of the board, at the end of a column or of the file) is left out; the lines of the boards (`format=list`) are kept as they are
 - update (options): the profiles, the groups and the offline messages are standard (`Standard = true`): every grid has them, in Robust and in every simulator, a grid that recorded its options before them too, unless it turned one off (`OptionsOff`); the offline messages are the module V1 of the helpers when Robust gives their address (`OfflineMessageURL` of `[Messaging]`, the relay by mail is V1's), else the module V2; the repair of the options lays them in the simulators made before
 - fix (guide): the lines read as the Gudz Teleport Board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th, the landing point in the 5th; an address listed already is left out, `http://` taken off an address
 - update (options): an option enabled or disabled by its group too (`groups`: the one the grid has, else the one by default), as the command line does

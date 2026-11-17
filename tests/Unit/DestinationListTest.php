@@ -121,3 +121,27 @@ describe('The lines as the board reads them', function () {
             ->toBe(['Places' => [['name' => 'One', 'url' => 'grid.example.org:8002:Sandbox']]]);
     });
 });
+
+describe('The sections of a guide', function () {
+    test('are its titles: lines of one title follow each other with nothing between them, a spacer or a column break parts them', function () {
+        $parse = static fn(string $text): array => array_map(static fn(array $places): array => array_column($places, 'name'), DestinationList::parse($text));
+
+        expect($parse("A long\ntitle on two lines\nOne|grid.example.org:8002:One\n"))
+            ->toBe(['A long title on two lines' => ['One']])
+            ->and($parse("Spaced\n|\nApart\nOne|grid.example.org:8002:One\n"))
+            ->toBe(['Apart' => ['One']])
+            ->and($parse("Broken\n-\nApart\nOne|grid.example.org:8002:One\n"))
+            ->toBe(['Apart' => ['One']]);
+    });
+
+    test('leave out a title without a destination: text of the board, at the end of a column or of the file', function () {
+        $text = "First\nOne|grid.example.org:8002:One\nThe end of the column\n-\nNext\nTwo|grid.example.org:8002:Two\nThe end of the file\n";
+        $sections = DestinationList::parse($text);
+
+        expect(array_keys($sections))
+            ->toBe(['First', 'Next'])
+            // The lines of the board keep them all, as they are
+            ->and(DestinationList::format(DestinationList::parse($text, null, true)))
+            ->toBe($text);
+    });
+});
