@@ -96,13 +96,27 @@ final class SimulatorImport
         ));
         $defaults = $known === [] ? [] : ConfigReader::load($known, [], false, true);
         $exampleText = implode("\n", array_map(static fn(string $path): string => (string) file_get_contents($path), $known));
+        // The folders of the old install (above its etc, and the ones its constants name), and the ones of the new simulator
+        $expanded = ConfigReader::expand($raw);
+        $roots = [];
+        str_contains($file, '/etc/') && ($roots[] = substr($file, 0, (int) strpos($file, '/etc/')));
+        foreach ($expanded['Const'] ?? [] as $key => $value) {
+            $value = trim((string) $value, " \t\"");
+            preg_match('/Directory$/i', (string) $key) === 1 && str_starts_with($value, '/') && ($roots[] = rtrim($value, '/'));
+        }
+        $master = (new \OpenSim\Provisioning\Presets([], dirname($found->directory(), 2)))->options()['master'] ?? null;
+        $layout = $master === null ? [] : ConfigReader::expand(
+            ['Const' => ['DataDirectory' => $plan->dataDirectory, 'CacheDirectory' => $plan->cacheDirectory]] + ConfigReader::parse($master->text('model.ini', [])),
+        );
         ['kept' => $customizations, 'dropped' => $dropped] = RobustImporter::sorted(
             $raw,
             ConfigReader::parse((new SimulatorConfig())->render($plan)),
             $defaults,
             dirname($file),
             $exampleText,
-            ConfigReader::expand($raw),
+            $expanded,
+            array_values(array_unique(array_filter($roots, static fn(string $root): bool => $root !== '' && $root !== '/'))),
+            array_map(static fn(array $values): array => array_map(static fn($v): string => trim((string) $v, '"'), $values), $layout),
         );
 
         return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped);
@@ -192,7 +206,8 @@ final class SimulatorImport
         $lines[] = '';
         $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own):';
         foreach ($this->dropped as $setting) {
-            $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']})";
+            $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']}" .
+                (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . ')';
         }
 
         return implode("\n", $lines) . "\n";
@@ -206,9 +221,12 @@ final class SimulatorImport
      */
     private static function masked(array $setting): array
     {
+        // Only the secret is masked: a connection string keeps its host, its database and its user
         $line = "{$setting['key']} = {$setting['value']}";
+        $masked = Secrets::mask($line);
+        $value = str_starts_with($masked, "{$setting['key']} = ") ? substr($masked, strlen("{$setting['key']} = ")) : Secrets::MASK;
 
-        return ['value' => Secrets::mask($line) === $line ? $setting['value'] : Secrets::MASK] + $setting;
+        return ['value' => $masked === $line ? $setting['value'] : $value] + $setting;
     }
 
     private function reportPath(): string

@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "97579a5",
+        "version": "802a43b",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -7837,7 +7837,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `dropped` (the settings of the original not kept: section, key, value, `reason` same, replaced, default, layout, include or empty; a secret masked), `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`",
+                        "description": "The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `dropped` (the settings of the original not kept: section, key, value, `reason` same, replaced, default, layout, include or empty, `replacement` the value the new simulator has instead of a folder of the old install; only a secret masked), `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`",
                         "content": {
                             "application/vnd.api+json": {
                                 "schema": {

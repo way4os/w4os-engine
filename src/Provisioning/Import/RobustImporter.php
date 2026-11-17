@@ -124,7 +124,9 @@ final class RobustImporter
      * layout of the install, [Const], [Startup], [Launch]), `include` (a file of its own layout), `same` (the new config writes it,
      * with the same value), `replaced` (the new config writes it its own way), `default` (as the core has it), `empty`.
      *
-     * @return array{kept:list<array{section:string,key:string,value:string,unknown:bool,path:bool}>,dropped:list<array{section:string,key:string,value:string,reason:string}>}
+     * @param list<string> $roots the folders of the old install (a folder under one is its own, `replaced`)
+     * @param array<string,array<string,string>> $layout the folders the new one has instead, by section and key
+     * @return array{kept:list<array{section:string,key:string,value:string,unknown:bool,path:bool}>,dropped:list<array{section:string,key:string,value:string,reason:string,replacement?:?string}>}
      */
     public static function sorted(
         array $original,
@@ -133,11 +135,13 @@ final class RobustImporter
         string $dir,
         string $exampleText = '',
         array $expanded = [],
+        array $roots = [],
+        array $layout = [],
     ): array {
         $found = [];
         $dropped = [];
-        $drop = static function (string $section, string $key, string $value, string $reason) use (&$dropped): void {
-            $dropped[] = ['section' => $section, 'key' => $key, 'value' => $value, 'reason' => $reason];
+        $drop = static function (string $section, string $key, string $value, string $reason, ?string $replacement = null) use (&$dropped): void {
+            $dropped[] = ['section' => $section, 'key' => $key, 'value' => $value, 'reason' => $reason] + ($replacement === null ? [] : ['replacement' => $replacement]);
         };
         foreach ($original as $section => $values) {
             foreach ($values as $key => $value) {
@@ -161,6 +165,14 @@ final class RobustImporter
 
                 if ($value !== '' && preg_match('/(Directory|Path|Dir|Location)$/i', $key) === 1) {
                     $place = self::absolute($key, $expanded[$section][$key] ?? $value, $dir);
+                    // A folder of the old install is its own: the new one has the folders of its layout
+                    foreach ($roots as $root) {
+                        if ($place === $root || str_starts_with($place, rtrim($root, '/') . '/')) {
+                            $drop($section, $key, $place, 'replaced', $layout[$section][$key] ?? $standard);
+
+                            continue 2;
+                        }
+                    }
                     if ($place !== $standard) {
                         $found[] = [
                             'section' => $section,

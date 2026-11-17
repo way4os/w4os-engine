@@ -61,8 +61,9 @@ describe('A simulator imported', function () {
             // What is not kept is said too, with why: the database the new config writes the same, the layout of the old install
             ->and(array_column($plan['dropped'], 'reason', 'key'))
             ->toMatchArray(['ConnectionString' => 'same', 'SimName' => 'layout', 'regionload_regionsdir' => 'layout', 'http_listener_port' => 'same'])
+            // Only the password masked: several simulators share one user, the host tells them apart
             ->and(array_column($plan['dropped'], 'value', 'key')['ConnectionString'])
-            ->toBe('***')
+            ->toBe('Data Source=localhost;Database=osredoutable;User ID=opensim;Password=***;Old Guids=true;')
             // A password kept is not shown
             ->and(json_encode($plan))
             ->not->toContain('hidden')
@@ -156,6 +157,34 @@ describe('A simulator of Speculoos imported', function () {
             ->not->toContain('import-stop-source')
             ->and($plan['reminders'][array_search('import-no-region', $codes, true)]['params']['folder'])
             ->toBe("$etc/sims/lonely/regions");
+    });
+});
+
+describe('The folders of a simulator imported', function () {
+    test('are the ones of the new simulator, never the ones of the old install, and the plan says they are replaced', function () {
+        $machine = new Machine();
+        $source = old_install($machine);
+        $var = $machine->root . '/old/opensim/var/redoutable';
+        $text = (string) file_get_contents($source);
+        file_put_contents($source, $text .
+            "[DataSnapshot]\nsnapshot_cache_directory = \"$var/DataSnapshot\"\n" .
+            "[XEngine]\nScriptEnginesPath = \"$var/ScriptEngines\"\n" .
+            "[YEngine]\nScriptEnginesPath = \"$var/ScriptEngines\"\n" .
+            "[AssetCache]\nCacheDirectory = \"$var/assetcache\"\n" .
+            "[GridService]\nMapTileDirectory = \"$var/maptiles\"\n");
+        $import = SimulatorImport::prepare($machine->environment, $source, 'demo');
+        $plan = $import->document();
+        $replaced = array_filter($plan['dropped'], static fn(array $d): bool => $d['reason'] === 'replaced');
+        $keys = array_map(static fn(array $d): string => "{$d['section']}.{$d['key']}", $replaced);
+
+        expect(array_map(static fn(array $s): string => "{$s['section']}.{$s['key']}", $plan['settings']))
+            ->not->toContain('DataSnapshot.snapshot_cache_directory', 'XEngine.ScriptEnginesPath', 'YEngine.ScriptEnginesPath', 'AssetCache.CacheDirectory', 'GridService.MapTileDirectory')
+            ->and(array_values($keys))
+            ->toContain('DataSnapshot.snapshot_cache_directory', 'XEngine.ScriptEnginesPath', 'YEngine.ScriptEnginesPath', 'AssetCache.CacheDirectory', 'GridService.MapTileDirectory')
+            ->and(array_column($replaced, 'replacement', 'key')['MapTileDirectory'])
+            ->toBe($import->plan->cacheDirectory . '/maptiles')
+            ->and(array_column(array_values(array_filter($replaced, static fn(array $d): bool => $d['section'] === 'XEngine')), 'replacement')[0])
+            ->toBe($import->plan->dataDirectory . '/ScriptEngines');
     });
 });
 

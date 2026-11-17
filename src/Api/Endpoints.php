@@ -764,7 +764,7 @@ final class Endpoints
             ],
             'responses' => [
                 '200' => [
-                    'description' => 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `dropped` (the settings of the original not kept: section, key, value, `reason` same, replaced, default, layout, include or empty; a secret masked), `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
+                    'description' => 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `dropped` (the settings of the original not kept: section, key, value, `reason` same, replaced, default, layout, include or empty, `replacement` the value the new simulator has instead of a folder of the old install; only a secret masked), `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
                     'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
                 ],
                 '400' => Contract::problem('A file that cannot be read or imported, a simulator or a region the grid has already'),
