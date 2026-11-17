@@ -389,7 +389,7 @@ final class Region extends Model
     {
         $this->reminders = [];
         foreach (array_keys($values) as $name) {
-            if (in_array($name, ['roles', 'owner'], true)) {
+            if (in_array($name, ['roles', 'owner', 'estate'], true)) {
                 continue;
             }
             throw in_array($name, self::FILE_FIELDS, true)
@@ -398,6 +398,34 @@ final class Region extends Model
         }
         array_key_exists('roles', $values) && $this->changeRoles($values['roles']);
         array_key_exists('owner', $values) && $this->changeOwner(trim((string) $values['owner']));
+        array_key_exists('estate', $values) && $this->changeEstate(trim((string) $values['estate']));
+    }
+
+    /**
+     * Put it in another estate (its number, or its id: `demo.alpha:102`), one of the database of the estates of its simulator: by the
+     * console of its simulator when it runs (`estate link region`, at once), else in the map of the estates, which it reads when it
+     * starts.
+     *
+     * @throws InvalidValue for an estate its simulator does not have
+     * @throws ChannelUnavailable
+     */
+    private function changeEstate(string $id): void
+    {
+        $simulator = $this->simulator();
+        $action = 'change the estate of ' . $this->name();
+        $simulator !== '' || throw ChannelUnavailable::for($action, 'its simulator is not on this machine');
+        $number = (string) (str_contains($id, ':') ? substr($id, (int) strrpos($id, ':') + 1) : $id);
+        $estate = ctype_digit($number) ? Estate::find($this->config, $number) : null;
+        // The estates of the database its simulator reads
+        $estate !== null && ($estate->simulator() === null || $estate->simulator() === $simulator) ||
+            throw InvalidValue::because('invalid-request', "the simulator of {$this->name()} has no estate '$id'");
+        if (!InstanceConsoleService::send($simulator, "estate link region {$estate->number()} {$this->uuid()}")) {
+            InstanceConsoleService::running((string) $this->config->file("simulators/$simulator")) &&
+                throw ChannelUnavailable::for($action, "the simulator $simulator runs and its console cannot be reached");
+            $pdo = self::connect($this->config, Database::Estate, $estate->simulator() ?? $simulator, $action);
+            $pdo->prepareAndExecute('DELETE FROM estate_map WHERE LOWER(RegionID) = :region', ['region' => (string) $this->uuid()]);
+            $pdo->insert('estate_map', ['RegionID' => (string) $this->uuid(), 'EstateID' => $estate->number()]);
+        }
     }
 
     /** The roles and the owner are changed in the databases of the grid when no console can (update()). */

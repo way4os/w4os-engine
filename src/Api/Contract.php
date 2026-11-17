@@ -408,6 +408,7 @@ final class Contract
             ],
             'writable' => [
                 'enabled' => ['boolean', 'Enable or disable the region (its file); the simulator has to restart. `config-not-writable` (403), nothing changed, when this process cannot rename its file'],
+                'estate' => ['string', 'Put it in another estate of the database its simulator reads (its number, or its id `simulator:number`): through the console of its simulator when it runs (`estate link region`), else in the map of the estates, which the simulator reads when it starts'],
                 'roles' => [
                     'array',
                     'The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust\'s, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` (notices: `code`, `params`, the English `detail`) saying to restart Robust; when this process cannot write Robust.ini, the reminder gives the line to set there. `flag-unknown` for a name that is not a flag',
@@ -454,7 +455,12 @@ final class Contract
         'estates' => [
             'scope' => 'grid',
             'summary' => 'The estates of a grid',
-            'description' => 'The estates of the grid when its Robust serves them, else the ones of each simulator.',
+            'description' => 'The estates of the grid when its Robust serves them, else the ones of each simulator. A new estate is made by the console of its simulator when it runs (`estate create`), else in its database with the settings OpenSimulator gives a new one; a region goes to another estate by its `estate` (PATCH of the region).',
+            'create' => [
+                'name' => ['string', 'Its name, 64 characters at most'],
+                'owner' => ['string', 'The UUID of an avatar of the grid'],
+                'simulator' => ['string', 'The simulator whose database of estates holds it, when the simulators keep their own'],
+            ],
             'attributes' => [
                 'number' => ['integer', 'Its number in its database'],
                 'simulator' => ['string?', 'The simulator that has it, null for an estate of the grid'],

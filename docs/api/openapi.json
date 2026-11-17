@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "5b9ae89",
+        "version": "b06fc83",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -55,7 +55,7 @@
         },
         {
             "name": "Estates",
-            "description": "The estates of the grid when its Robust serves them, else the ones of each simulator."
+            "description": "The estates of the grid when its Robust serves them, else the ones of each simulator. A new estate is made by the console of its simulator when it runs (`estate create`), else in its database with the settings OpenSimulator gives a new one; a region goes to another estate by its `estate` (PATCH of the region)."
         },
         {
             "name": "Assets",
@@ -4563,6 +4563,10 @@
                                                         "type": "boolean",
                                                         "description": "Enable or disable the region (its file); the simulator has to restart. `config-not-writable` (403), nothing changed, when this process cannot rename its file"
                                                     },
+                                                    "estate": {
+                                                        "type": "string",
+                                                        "description": "Put it in another estate of the database its simulator reads (its number, or its id `simulator:number`): through the console of its simulator when it runs (`estate link region`), else in the map of the estates, which the simulator reads when it starts"
+                                                    },
                                                     "roles": {
                                                         "type": "array",
                                                         "description": "The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust's, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` (notices: `code`, `params`, the English `detail`) saying to restart Robust; when this process cannot write Robust.ini, the reminder gives the line to set there. `flag-unknown` for a name that is not a flag"
@@ -5261,6 +5265,99 @@
                 },
                 "x-access": {
                     "level": 100,
+                    "self": false
+                }
+            },
+            "post": {
+                "operationId": "createEstate",
+                "tags": [
+                    "Estates"
+                ],
+                "summary": "Make estate",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "attributes": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "Its name, 64 characters at most"
+                                                    },
+                                                    "owner": {
+                                                        "type": "string",
+                                                        "description": "The UUID of an avatar of the grid"
+                                                    },
+                                                    "simulator": {
+                                                        "type": "string",
+                                                        "description": "The simulator whose database of estates holds it, when the simulators keep their own"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Made; its address is in the Location header",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Estates"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "A value is wrong, `code` says which: a name that is not one, reserved or taken, no password or a wrong one, a wrong email, an unknown model",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "A database cannot be reached",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-access": {
+                    "level": 200,
                     "self": false
                 }
             }

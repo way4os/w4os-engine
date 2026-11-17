@@ -13,6 +13,7 @@ use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
 use OpenSim\Data\OSPDO;
 use OpenSim\Exceptions\ChannelUnavailable;
+use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Provisioning\Slug;
 
 /**
@@ -49,6 +50,46 @@ final class Estate extends Model
     public function id(): string
     {
         return ($this->simulator() !== null ? $this->simulator() . ':' : '') . $this->number();
+    }
+
+    /** A new estate, as OpenSimulator makes it (EstateSettings): its settings by default, public. */
+    private const NEW = [
+        'AbuseEmailToEstateOwner' => 0, 'DenyAnonymous' => 0, 'ResetHomeOnTeleport' => 0, 'FixedSun' => 0, 'DenyTransacted' => 0,
+        'BlockDwell' => 0, 'DenyIdentified' => 0, 'AllowVoice' => 1, 'UseGlobalTime' => 0, 'PricePerMeter' => 1, 'TaxFree' => 0,
+        'AllowDirectTeleport' => 1, 'RedirectGridX' => 0, 'RedirectGridY' => 0, 'ParentEstateID' => 1, 'SunPosition' => 0,
+        'EstateSkipScripts' => 0, 'BillableFactor' => 0, 'PublicAccess' => 1, 'AbuseEmail' => '', 'DenyMinors' => 0,
+        'AllowLandmark' => 1, 'AllowParcelChanges' => 1, 'AllowSetHome' => 1,
+    ];
+
+    /**
+     * Make an estate: `name` (64 characters at most), `owner` (an avatar of the grid), and `simulator`, the one whose database of
+     * estates holds it when the simulators keep their own. By the console of the simulator when it runs (`estate create`), else in
+     * the database, with the settings OpenSimulator gives a new one, its number after the others (101 the first, as its table starts).
+     *
+     * @param array<string,mixed> $values
+     * @throws InvalidValue
+     * @throws ChannelUnavailable
+     */
+    public static function create(GridConfig $config, array $values): static
+    {
+        $name = trim((string) ($values['name'] ?? ''));
+        ($name !== '' && mb_strlen($name) <= 64) || throw InvalidValue::because('invalid-request', 'the name of an estate has 1 to 64 characters');
+        $owner = strtolower(trim((string) ($values['owner'] ?? '')));
+        Uuid::isValid($owner) && Avatar::find($config, $owner) !== null || throw InvalidValue::because('owner-unknown', "the grid has no avatar '$owner'");
+        $simulator = trim((string) ($values['simulator'] ?? ''));
+        $central = Database::Estate->scopeIn($config) === Database::GRID;
+        $central || $simulator !== '' || throw InvalidValue::because('invalid-request', 'the simulators keep their estates: say the one that holds it (simulator)');
+        $action = "make the estate $name";
+        $pdo = self::connect($config, Database::Estate, $central ? null : $simulator, $action);
+        if ($simulator === '' || !\OpenSim\Console\InstanceConsoleService::send($simulator, "estate create $owner $name")) {
+            $simulator !== '' && \OpenSim\Console\InstanceConsoleService::running((string) $config->file("simulators/$simulator")) &&
+                throw ChannelUnavailable::for($action, "the simulator $simulator runs and its console cannot be reached");
+            $number = max(100, (int) $pdo->get_var('SELECT MAX(EstateID) FROM estate_settings')) + 1;
+            $pdo->insert('estate_settings', ['EstateID' => $number, 'EstateName' => $name, 'EstateOwner' => $owner] + self::NEW);
+        }
+        $number = (int) $pdo->get_var('SELECT MAX(EstateID) FROM estate_settings WHERE EstateName = :name', ['name' => $name]);
+
+        return static::find($config, ($central ? '' : "$simulator:") . $number) ?? throw ChannelUnavailable::for($action, 'it is not in the database of the estates');
     }
 
     /** Its number in its database. */

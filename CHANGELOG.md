@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (estates): an estate made (`POST /grids/{grid}/estates`: name, owner, simulator) and a region put in another estate (`estate` of a region), by the console of the simulator when it runs (`estate create`, `estate link region`), else in the database with the settings OpenSimulator gives a new estate
 - fix (search): the land for sale is every parcel for sale of the regions of the grid, shown in search or not, as Second Life lists them: read from the land of the simulators by the task of the search (`LandSales`), the snapshot holding only the parcels shown in search (`data_exposure = all` would send the others to every search service a simulator registers with)
 - feature (regions, simulators): the people in each region and in the regions of each simulator (`avatars`, with `members` and `visitors` of other grids), never a NPC (they do not reach Presence), counted as the status of the grid counts them (`Stats::presence()`, one definition); the names of the machines resolved offline in the tests
 - feature (simulators): the machine each runs on (`server`, its real name: this one for its own addresses, the reverse DNS of the others; `serverKey`, the address its host resolves to, so that its aliases and addresses are one server), a column sorted and a filter (`meta.available.server`), each host resolved once for ten minutes (`ServerNames`)

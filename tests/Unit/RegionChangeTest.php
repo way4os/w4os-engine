@@ -274,3 +274,59 @@ describe('The API, for a region', function () {
             ->toBe([400, 'field-read-only']);
     });
 });
+
+describe('The estate of a region', function () {
+    test('is changed through the console of its simulator, by the number of the estate or its id', function () {
+        [$config] = change_grid();
+        $sent = [];
+        change_consoles($sent, true);
+        Region::find($config, 'Welcome')->update(['estate' => 'demo.alpha:102']);
+
+        expect($sent)->toBe(['demo.alpha' => ['estate link region 102 ' . CHANGE_WELCOME]]);
+    });
+
+    test('is written in the map of the estates when the simulator is stopped, which it reads when it starts', function () {
+        [$config, $pdo] = change_grid();
+        $sent = [];
+        change_consoles($sent, false);
+        $welcome = Region::find($config, 'Welcome');
+        $welcome->update(['estate' => '102']);
+
+        expect($pdo->get_var('SELECT EstateID FROM estate_map WHERE RegionID = :r', ['r' => CHANGE_WELCOME]))
+            ->toBe(102)
+            ->and(fn() => Region::find($config, 'Welcome')->update(['estate' => '999']))
+            ->toThrow(OpenSim\Exceptions\InvalidValue::class, 'estate');
+    });
+});
+
+describe('A new estate', function () {
+    test('is made by the console of a simulator that runs, else in the database of its estates with the defaults of OpenSimulator', function () {
+        [$config, $pdo] = change_grid();
+        foreach (['AbuseEmailToEstateOwner', 'DenyAnonymous', 'ResetHomeOnTeleport', 'FixedSun', 'DenyTransacted', 'BlockDwell', 'DenyIdentified', 'AllowVoice', 'UseGlobalTime', 'PricePerMeter', 'TaxFree', 'AllowDirectTeleport', 'RedirectGridX', 'RedirectGridY', 'SunPosition', 'EstateSkipScripts', 'BillableFactor', 'DenyMinors', 'AllowLandmark', 'AllowParcelChanges', 'AllowSetHome'] as $column) {
+            $pdo->exec("ALTER TABLE estate_settings ADD COLUMN $column INT DEFAULT 0");
+        }
+        $pdo->exec("ALTER TABLE estate_settings ADD COLUMN AbuseEmail VARCHAR(255) DEFAULT ''");
+        $sent = [];
+        change_consoles($sent, true);
+        // The console makes it in the database, as OpenSimulator does
+        OpenSim\Console\InstanceConsoleService::sendThrough(static function (string $instance, string $lines) use (&$sent, $pdo): bool {
+            $sent[$instance][] = $lines;
+            $pdo->exec("INSERT INTO estate_settings (EstateID, EstateName, EstateOwner) VALUES (103, 'By Console', '" . CHANGE_BOB . "')");
+
+            return true;
+        });
+        $console = OpenSim\Models\Estate::create($config, ['name' => 'By Console', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']);
+        change_consoles($sent, false);
+        $written = OpenSim\Models\Estate::create($config, ['name' => 'Written', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']);
+        $row = $pdo->get_results("SELECT * FROM estate_settings WHERE EstateName = 'Written'", [], \PDO::FETCH_ASSOC)[0];
+
+        expect($sent['demo.alpha'][0])
+            ->toBe('estate create ' . CHANGE_BOB . ' By Console')
+            ->and([$console->number(), $console->owner(), $written->number()])
+            ->toBe([103, CHANGE_BOB, 104])
+            ->and(array_intersect_key($row, array_flip(['ParentEstateID', 'PublicAccess', 'AllowVoice', 'PricePerMeter', 'AllowDirectTeleport', 'AllowLandmark'])))
+            ->toBe(['ParentEstateID' => 1, 'PublicAccess' => 1, 'AllowVoice' => 1, 'PricePerMeter' => 1, 'AllowDirectTeleport' => 1, 'AllowLandmark' => 1])
+            ->and(fn() => OpenSim\Models\Estate::create($config, ['name' => '', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']))
+            ->toThrow(OpenSim\Exceptions\InvalidValue::class);
+    });
+});
