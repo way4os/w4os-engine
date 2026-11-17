@@ -1118,6 +1118,10 @@ msgctxt "error_instance_user_required"
 msgid "This cannot be done from here: the simulators are started and stopped on their server."
 msgstr ""
 
+msgctxt "error_restore_conflict"
+msgid "This backup holds what this server has already: nothing was replaced."
+msgstr ""
+
 msgctxt "error_estate_shared"
 msgid "The owner of this region is the owner of its estate, which has other regions: change the owner of the estate."
 msgstr ""
@@ -1196,6 +1200,10 @@ msgstr ""
 
 msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
+msgstr ""
+
+msgctxt "notice_restore_start"
+msgid "Start {instance} once it is restored: {command}"
 msgstr ""
 
 msgctxt "notice_mail_sent_if_known"

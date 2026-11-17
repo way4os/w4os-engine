@@ -766,6 +766,49 @@ final class Endpoints
                 '404' => Contract::problem('The grid is not known here'),
             ],
         ];
+        $paths['/setups/restores']['post'] = [
+            'operationId' => 'restoreBackup',
+            'tags' => ['Setup'],
+            'summary' => 'Restore a backup',
+            'description' =>
+                'A backup (`POST /archives`, `opensim backup`: a grid or one of its simulators) put back on this machine. Its configuration goes to the etc root of this install, the links that enable its instances pointing there, its data to the data folder of its grid; each database is made again from its dump, in the database its config names (made when it is missing, with the administrator of the session), before any file is written. `mode` `plan` (the default) writes nothing and says what would be written (`writes`, `kept`: the files of the grid a simulator shares, kept as they are here), `apply` writes it, by the user that runs the instances only (`instance-user-required`, 403). What this machine has already (the grid, the simulator, a database with tables) is never replaced (`restore-conflict`, 400).',
+            'requestBody' => [
+                'required' => true,
+                'content' => [
+                    Response::JSON_API => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'type' => ['const' => 'restores'],
+                                        'attributes' => [
+                                            'type' => 'object',
+                                            'properties' => [
+                                                'file' => ['type' => 'string', 'description' => 'The backup, on this machine'],
+                                                'archive' => ['type' => 'string', 'description' => 'Or its id in /archives'],
+                                                'mode' => ['type' => 'string', 'enum' => ['plan', 'apply']],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'responses' => [
+                '200' => [
+                    'description' => 'The plan, or what was written: `grid`, `simulator`, `made`, `host`, `databases`, `writes`, `kept`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
+                    'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
+                ],
+                '400' => Contract::problem('Not a backup, or what this machine has already (`restore-conflict`)'),
+                '403' => Contract::problem('This process is not the user that runs the instances (`instance-user-required`)'),
+                '404' => Contract::problem('There is no archive of this id'),
+                '503' => Contract::problem('A file or a database cannot be had'),
+            ],
+        ];
         $paths['/setups/quick']['post'] = [
             'operationId' => 'quickSetup',
             'tags' => ['Setup'],

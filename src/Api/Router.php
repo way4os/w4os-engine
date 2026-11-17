@@ -289,6 +289,12 @@ final class Router
                 'POST' => fn() => $this->check($body, $parsed, $path, 'imports') ??
                     $this->api->import($this->attributes($body, $parsed)),
             ];
+        } elseif ($grid === null && $segments === ['setups', 'restores']) {
+            $template = '/setups/restores';
+            $routes = [
+                'POST' => fn() => $this->check($body, $parsed, $path, 'restores') ??
+                    $this->api->restore($this->attributes($body, $parsed)),
+            ];
         } elseif ($grid === null && $segments === ['setups', 'steps']) {
             $template = '/setups/steps';
             $routes = [

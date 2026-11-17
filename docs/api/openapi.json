@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "37cef81",
+        "version": "7e75bf5",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1419,6 +1419,97 @@
                         }
                     ],
                     "actions": []
+                }
+            },
+            "post": {
+                "operationId": "createArchive",
+                "tags": [
+                    "Archives"
+                ],
+                "summary": "Make archive",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "attributes": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "kind": {
+                                                        "type": "string",
+                                                        "description": "backup: an archive made here is a backup of the setup (an iar or an oar is saved by the console of a simulator)"
+                                                    },
+                                                    "grid": {
+                                                        "type": "string",
+                                                        "description": "The nick of the grid"
+                                                    },
+                                                    "simulator": {
+                                                        "type": "string",
+                                                        "description": "One simulator of the grid only"
+                                                    },
+                                                    "logs": {
+                                                        "type": "boolean",
+                                                        "description": "With the logs"
+                                                    },
+                                                    "archives": {
+                                                        "type": "boolean",
+                                                        "description": "With the archives of the users"
+                                                    },
+                                                    "keep": {
+                                                        "type": "integer",
+                                                        "description": "How many backups of the series are kept, the older ones removed"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Made; its address is in the Location header",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Archives"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "A value is wrong, `code` says which: a name that is not one, reserved or taken, no password or a wrong one, a wrong email, an unknown model",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "A database cannot be reached",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -7746,6 +7837,108 @@
                 }
             }
         },
+        "/setups/restores": {
+            "post": {
+                "operationId": "restoreBackup",
+                "tags": [
+                    "Setup"
+                ],
+                "summary": "Restore a backup",
+                "description": "A backup (`POST /archives`, `opensim backup`: a grid or one of its simulators) put back on this machine. Its configuration goes to the etc root of this install, the links that enable its instances pointing there, its data to the data folder of its grid; each database is made again from its dump, in the database its config names (made when it is missing, with the administrator of the session), before any file is written. `mode` `plan` (the default) writes nothing and says what would be written (`writes`, `kept`: the files of the grid a simulator shares, kept as they are here), `apply` writes it, by the user that runs the instances only (`instance-user-required`, 403). What this machine has already (the grid, the simulator, a database with tables) is never replaced (`restore-conflict`, 400).",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "const": "restores"
+                                            },
+                                            "attributes": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "file": {
+                                                        "type": "string",
+                                                        "description": "The backup, on this machine"
+                                                    },
+                                                    "archive": {
+                                                        "type": "string",
+                                                        "description": "Or its id in /archives"
+                                                    },
+                                                    "mode": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "plan",
+                                                            "apply"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The plan, or what was written: `grid`, `simulator`, `made`, `host`, `databases`, `writes`, `kept`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Not a backup, or what this machine has already (`restore-conflict`)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "This process is not the user that runs the instances (`instance-user-required`)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "There is no archive of this id",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "A file or a database cannot be had",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/setups/quick": {
             "post": {
                 "operationId": "quickSetup",
@@ -8962,6 +9155,7 @@
                             "owner-unknown",
                             "config-not-writable",
                             "instance-user-required",
+                            "restore-conflict",
                             "estate-shared",
                             "filter-unknown",
                             "filter-value-unknown",
@@ -8972,7 +9166,7 @@
                             "no-confirmation-pending",
                             "mail-failed"
                         ],
-                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
+                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
                     },
                     "detail": {
                         "type": "string",

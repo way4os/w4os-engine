@@ -121,6 +121,10 @@ final class Api
      * @param ?MailerInterface $mailer sends the mails of the grid (default: the mail function of PHP)
      * @param ?\Closure(Environment):?string $instanceAccess why this process may not start or stop the instances (default:
      *        InstanceAccess::refusal())
+     * @param ?\Closure(array{host:string,name:string,user:string,pass:string},string):void $dumper writes the dump of a database for a
+     *        backup (default: DatabaseDump::write())
+     * @param ?\Closure(\OpenSim\Config\ConnectionString,string):void $restoreLoader makes a database again from a dump for a restore
+     *        (default: BackupRestore's own)
      */
     public function __construct(
         private readonly Environment $environment,
@@ -129,6 +133,8 @@ final class Api
         private readonly ?TextRendererInterface $texts = null,
         private readonly ?MailerInterface $mailer = null,
         ?\Closure $instanceAccess = null,
+        private readonly ?\Closure $dumper = null,
+        private readonly ?\Closure $restoreLoader = null,
     ) {
         $this->instanceAccess = $instanceAccess ?? static fn(Environment $environment): ?string => InstanceAccess::refusal($environment->layout);
         $this->config =
@@ -298,6 +304,9 @@ final class Api
     public function create(string $type, array $attributes, ?string $grid = null): Response
     {
         $instance = self::path($type, null, $grid);
+        if ($type === 'archives' && $grid === null) {
+            return $this->backup($attributes);
+        }
         try {
             $class = self::classOf($type, $grid);
             if ($class === null) {
@@ -920,6 +929,98 @@ final class Api
                 'type' => 'imports',
                 'id' => $import->plan->slug,
                 'attributes' => ['kind' => $kind, 'mode' => $mode, 'applied' => $mode === 'apply'] + $import->document(),
+            ],
+            'links' => ['self' => $instance],
+        ]);
+    }
+
+    /**
+     * The backup of a grid, or of one of its simulators (BackupService: its configuration, its data, a dump of each database), in the
+     * backup root: `kind` backup, `grid`, `simulator`, `logs`, `archives` (those of the users too), `keep` (how many of the series
+     * are kept). By the user that runs the instances only (`instance-user-required`): their files are theirs.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function backup(array $attributes): Response
+    {
+        $instance = '/archives';
+        try {
+            ($attributes['kind'] ?? 'backup') === 'backup' ||
+                throw InvalidValue::because('invalid-request', 'an archive made here is a backup (kind backup); an iar or an oar is saved by the console of a simulator');
+            $grid = trim((string) ($attributes['grid'] ?? ''));
+            $grid !== '' || throw InvalidValue::because('invalid-request', 'the grid of the backup is needed (grid)');
+            $refusal = ($this->instanceAccess)($this->environment);
+            $refusal === null || throw InvalidValue::because('instance-user-required', $refusal);
+            $refs = array_values(array_filter([$grid, trim((string) ($attributes['simulator'] ?? ''))]));
+            $options = array_filter([
+                'logs' => Result::isTrue($attributes['logs'] ?? false),
+                'archives' => Result::isTrue($attributes['archives'] ?? false),
+                'keep' => isset($attributes['keep']) ? (int) $attributes['keep'] : null,
+            ], static fn($value): bool => $value !== null && $value !== false);
+            $files = (new \OpenSim\Archives\BackupService(
+                $this->environment,
+                $this->dumper ?? \OpenSim\Archives\DatabaseDump::write(...),
+                static function (string $message): void {},
+            ))->run($refs, $options);
+            $made = null;
+            foreach (Archive::all($this->environment)->items() as $archive) {
+                $archive->file() === ($files[0] ?? '') && ($made = $archive);
+            }
+            $made ?? throw new \RuntimeException('the backup is made, but not where the archives are listed: ' . ($files[0] ?? ''));
+        } catch (NotFound|\OpenSim\Exceptions\ChannelUnavailable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        } catch (\RuntimeException $error) {
+            return Response::problem(new Problem(503, 'Not available', $error->getMessage(), 'urn:opensim:problem:channel-unavailable', $instance));
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        $self = self::path('archives', $made->id(), null);
+
+        return new Response(
+            201,
+            ['Content-Type' => Response::JSON_API, 'Location' => $self],
+            ['data' => self::resource('archives', $made, null), 'links' => ['self' => $self]],
+        );
+    }
+
+    /**
+     * A backup put back on this machine (BackupRestore): `file` (its path) or `archive` (its id in /archives), `mode` plan (the
+     * default: what would be written, nothing written) or apply. Applied by the user that runs the instances only
+     * (`instance-user-required`); what this machine has already is never replaced (`restore-conflict`).
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function restore(array $attributes): Response
+    {
+        $instance = '/setups/restores';
+        try {
+            $mode = (string) ($attributes['mode'] ?? 'plan');
+            in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
+            $file = (string) ($attributes['file'] ?? '');
+            if ($file === '' && ($attributes['archive'] ?? '') !== '') {
+                $file = Archive::find($this->environment, (string) $attributes['archive'])?->file() ??
+                    throw NotFound::for("archive called '{$attributes['archive']}'");
+            }
+            $restore = \OpenSim\Archives\BackupRestore::prepare($this->environment, $file);
+            if ($mode === 'apply') {
+                $refusal = ($this->instanceAccess)($this->environment);
+                $refusal === null || throw InvalidValue::because('instance-user-required', $refusal);
+                $restore->apply($this->restoreLoader);
+            }
+        } catch (NotFound|\OpenSim\Exceptions\ChannelUnavailable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        } catch (\RuntimeException $error) {
+            // A file or a database that cannot be had: said, it is not a failure of the server
+            return Response::problem(new Problem(503, 'Not available', $error->getMessage(), 'urn:opensim:problem:channel-unavailable', $instance));
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document([
+            'data' => [
+                'type' => 'restores',
+                'id' => basename($restore->file),
+                'attributes' => ['mode' => $mode, 'applied' => $mode === 'apply'] + $restore->document(),
             ],
             'links' => ['self' => $instance],
         ]);

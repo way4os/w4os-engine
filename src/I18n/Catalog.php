@@ -367,6 +367,7 @@ final class Catalog
         'error_owner_unknown' => 'This avatar does not exist.',
         'error_config_not_writable' => 'This cannot be changed from here: the files of the grid belong to its server.',
         'error_instance_user_required' => 'This cannot be done from here: the simulators are started and stopped on their server.',
+        'error_restore_conflict' => 'This backup holds what this server has already: nothing was replaced.',
         'error_estate_shared' => 'The owner of this region is the owner of its estate, which has other regions: change the owner of the estate.',
         'error_filter_unknown' => 'This list cannot be filtered this way.',
         'error_filter_value_unknown' => 'This list cannot be filtered this way.',
@@ -389,6 +390,7 @@ final class Catalog
         'notice_import_read_access' => 'The files of the older install are read by the user that runs the import: give it read access to them (its config, its includes, its regions) before applying.',
         'notice_import_stop_source' => 'The simulator that runs {regions} now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same.',
         'notice_import_enable_start' => 'Then: {enable}, {start}.',
+        'notice_restore_start' => 'Start {instance} once it is restored: {command}',
         'notice_mail_sent_if_known' => 'When an avatar has this name or this email, a mail was sent to it.',
         'notice_mail_sent' => 'A mail was sent to the avatar.',
     ];

@@ -32,6 +32,8 @@ final class Notice
         'import-read-access' => [],
         'import-stop-source' => ['regions'],
         'import-enable-start' => ['enable', 'start'],
+        // The plan of a restore (Archives\BackupRestore)
+        'restore-start' => ['instance', 'command'],
         // The messages of the API
         'mail-sent-if-known' => [],
         'mail-sent' => [],

@@ -265,10 +265,11 @@ final class BackupService
         if ($paths === []) {
             return;
         }
-        // GNU tar renames what it adds with --transform, the tar of macOS and the BSDs (libarchive) with -s
+        // GNU tar renames what it adds with --transform, the tar of macOS and the BSDs (libarchive) with -s; neither the targets of
+        // the links (S in both): they point where the files are
         $command = self::gnuTar()
             ? ['-rf', $tar, '--transform', 's,^,' . $under . '/,S', '--ignore-failed-read']
-            : ['-rf', $tar, '-s', ',^,' . $under . '/,'];
+            : ['-rf', $tar, '-s', ',^,' . $under . '/,S'];
         foreach ($excludes as $exclude) {
             $command[] = '--exclude=' . $exclude;
         }

@@ -170,6 +170,14 @@ final class Contract
                 'logs' => ['boolean?', 'With the logs, for a backup'],
                 'archives' => ['boolean?', 'With the archives of the users, for a backup'],
             ],
+            'create' => [
+                'kind' => ['string', 'backup: an archive made here is a backup of the setup (an iar or an oar is saved by the console of a simulator)'],
+                'grid' => ['string', 'The nick of the grid'],
+                'simulator' => ['string', 'One simulator of the grid only'],
+                'logs' => ['boolean', 'With the logs'],
+                'archives' => ['boolean', 'With the archives of the users'],
+                'keep' => ['integer', 'How many backups of the series are kept, the older ones removed'],
+            ],
             'writable' => [],
         ],
         'avatars' => [
