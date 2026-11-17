@@ -912,7 +912,30 @@ final class Grid extends InstalledModel
         $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
 
-        return (new \OpenSim\Services\DestinationPictures($search, (string) $this->loginUrl()))->of($this->destinations($config));
+        $cache = \OpenSim\Data\Cache::for($this->environment, $config);
+
+        return (new \OpenSim\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
+    }
+
+    /**
+     * Ask the grids of the hypergrid destinations of the guide for the pictures the search has none of, and keep them (a task of
+     * the scheduler: RemotePictures). The guide then shows them without asking anything.
+     *
+     * @return int how many pictures were found
+     */
+    public function refreshGuidePictures(?GridConfig $config = null): int
+    {
+        $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
+        $pictures = new \OpenSim\Services\RemotePictures(
+            \OpenSim\Data\Cache::for($this->environment, $config),
+            \OpenSim\Assets\WebAssets::remote($this),
+            $this->environment->http ?? \OpenSim\Network\GridInfoReader::get(...),
+            $config ?? new GridConfig(),
+            (string) $this->loginUrl(),
+            $this->environment->clock,
+        );
+
+        return $pictures->refresh($this->guide($config));
     }
 
     /** The address of the logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini). */

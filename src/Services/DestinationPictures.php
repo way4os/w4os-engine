@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Services;
 
+use OpenSim\Data\Cache;
 use OpenSim\Data\OSPDO;
 use OpenSim\Hypergrid\Destination;
 use OpenSim\Models\Region;
@@ -26,8 +27,13 @@ final class DestinationPictures
     /**
      * @param ?OSPDO $search the database of the search of the grid, null when it has none
      * @param string $login the login address of the grid: its own places may have no gatekeeper in the tables
+     * @param ?Cache $cache the cache of the grid, where the pictures its hypergrid destinations gave are kept (RemotePictures)
      */
-    public function __construct(private readonly ?OSPDO $search, private readonly string $login = '') {}
+    public function __construct(
+        private readonly ?OSPDO $search,
+        private readonly string $login = '',
+        private readonly ?Cache $cache = null,
+    ) {}
 
     /**
      * The sections of a guide with their pictures.
@@ -47,8 +53,40 @@ final class DestinationPictures
         return $found;
     }
 
-    /** The picture of the parcel of a destination (an asset UUID), null when the search knows none. */
+    /** The picture of the parcel of a destination (an asset UUID), null when the search knows none, nor its grid gave one. */
     public function picture(string $destination, string $name = ''): ?string
+    {
+        $found = $this->searched($destination, $name);
+
+        return $found ?? ($this->cache === null ? null : RemotePictures::lookup($this->cache, $destination, $name));
+    }
+
+    /**
+     * The parcel of a destination among the ones of its region: the one of its name, else the one of its landing point, else the
+     * only one.
+     *
+     * @param list<array<string,mixed>> $parcels with their `name` and `landing` (x/y/z)
+     * @return ?array<string,mixed>
+     */
+    public static function choose(array $parcels, string $name, string $landing): ?array
+    {
+        // The point of a landing, its x and y: 128/128/25 or 128,128,25
+        $point = static fn(string $at): string => implode('/', array_map(static fn($v): string => (string) round((float) $v), array_slice(preg_split('#[/,]#', $at) ?: [], 0, 2)));
+        $found = null;
+        foreach ($parcels as $parcel) {
+            if ($name !== '' && strcasecmp((string) $parcel['name'], $name) === 0) {
+                return $parcel;
+            }
+            if ($landing !== '' && $point((string) $parcel['landing']) === $point($landing)) {
+                $found ??= $parcel;
+            }
+        }
+
+        return $found ?? (count($parcels) === 1 ? $parcels[0] : null);
+    }
+
+    /** The picture the search has of the parcel of a destination. */
+    private function searched(string $destination, string $name): ?string
     {
         if ($this->search === null || !$this->search->connected) {
             return null;
@@ -57,21 +95,7 @@ final class DestinationPictures
         if ($at['region'] === '' || $at['host'] === '') {
             return null;
         }
-        $parcels = $this->parcels($at['host'], (string) $at['port'], $at['region']);
-        // The point of a landing, its x and y: 128/128/25 or 128,128,25
-        $point = static fn(string $at): string => implode('/', array_map(static fn($v): string => (string) round((float) $v), array_slice(preg_split('#[/,]#', $at) ?: [], 0, 2)));
-        $found = null;
-        foreach ($parcels as $parcel) {
-            if ($name !== '' && strcasecmp((string) $parcel['name'], $name) === 0) {
-                $found = $parcel;
-
-                break;
-            }
-            if ($at['pos'] !== '' && $point((string) $parcel['landing']) === $point($at['pos'])) {
-                $found ??= $parcel;
-            }
-        }
-        $found ??= count($parcels) === 1 ? $parcels[0] : null;
+        $found = self::choose($this->parcels($at['host'], (string) $at['port'], $at['region']), $name, (string) $at['pos']);
         $picture = strtolower((string) ($found['picture'] ?? ''));
 
         return $picture === '' || in_array($picture, Uuid::NULL_KEYS, true) ? null : $picture;

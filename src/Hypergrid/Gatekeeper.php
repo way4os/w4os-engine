@@ -13,6 +13,26 @@ final class Gatekeeper
     /** @var array<string,array<string,mixed>> what the gatekeepers answered during this request, by call and key */
     private static array $cache = [];
 
+    /** @var ?\Closure(string,string):?string the answer of a gatekeeper to a call (its address, the call), a test's */
+    private static ?\Closure $transport = null;
+
+    /**
+     * Ask the gatekeepers with another function (a test's), or over HTTP again with null; what they answered is forgotten.
+     *
+     * @param ?\Closure(string,string):?string $transport the body of the answer, null when there is none
+     */
+    public static function using(?\Closure $transport): void
+    {
+        self::$transport = $transport;
+        self::forget();
+    }
+
+    /** Forget what the gatekeepers answered: the next calls ask them again. */
+    public static function forget(): void
+    {
+        self::$cache = [];
+    }
+
     /**
      * [oxXmlRequest description]
      *
@@ -43,7 +63,7 @@ final class Gatekeeper
         }
         $context = stream_context_create($options);
 
-        $response = @file_get_contents($gatekeeper, false, $context);
+        $response = self::$transport !== null ? (self::$transport)($gatekeeper, $xml_request) ?? false : @file_get_contents($gatekeeper, false, $context);
         if ($response === false) {
             return false;
         } elseif (empty($response)) {

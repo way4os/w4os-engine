@@ -53,6 +53,7 @@ final class WebAssets
      * @param ?\Closure(string):?string $http the body of an address, null when it does not answer (default: curl)
      * @param ?string $placeholder the file of the picture of nothing (default: a transparent pixel)
      * @param ?string $person the file of the picture of a person who has none (default: the picture of nothing)
+     * @param ?FileCache $remote the pictures other grids gave (remote()), kept longer
      */
     public function __construct(
         private readonly Grid $grid,
@@ -62,6 +63,7 @@ final class WebAssets
         private readonly ?\Closure $http = null,
         private readonly ?string $placeholder = null,
         private readonly ?string $person = null,
+        private readonly ?FileCache $remote = null,
     ) {}
 
     /** The cache folder of the assets of a grid of this machine. */
@@ -85,7 +87,17 @@ final class WebAssets
             $grid->environment()->http,
             self::placeholderFile(),
             self::placeholderFile('person'),
+            self::remote($grid),
         );
+    }
+
+    /**
+     * The pictures other grids gave for the guide of a grid (the parcels of its hypergrid destinations, RemotePictures), kept as
+     * long as it keeps what it asked: their grid is not asked when a page shows them.
+     */
+    public static function remote(Grid $grid): FileCache
+    {
+        return new FileCache(self::folder($grid) . '/remote', \OpenSim\Services\RemotePictures::KEEP, $grid->environment()->clock);
     }
 
     /** The picture of the kit for what has none, a place or a person (DEFAULTS), null when it is not installed. */
@@ -149,14 +161,17 @@ final class WebAssets
         return ['data' => $picture, 'mime' => Image::FORMATS[$format], 'found' => true];
     }
 
-    /** The asset, from what the grid gave a while ago, else from its asset service, else from its database. */
+    /**
+     * The asset, from what the grid gave a while ago, else what another grid gave for its guide, else from its asset service, else
+     * from its database.
+     */
     private function asset(string $id): ?Asset
     {
         $config =
             $this->grid->directory() !== '' && is_dir($this->grid->directory())
                 ? GridConfig::fromFolder($this->grid->directory())
                 : new GridConfig();
-        if (($kept = $this->sources->get($id)) !== null) {
+        if (($kept = $this->sources->get($id) ?? $this->remote?->get($id)) !== null) {
             return $this->rebuilt($config, $id, $kept);
         }
         $http = $this->http ?? GridInfoReader::get(...);

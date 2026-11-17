@@ -8,6 +8,7 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
 use OpenSim\Data\OSPDO;
+use OpenSim\Models\Grid;
 use OpenSim\Models\Region;
 use OpenSim\Runtime\Environment;
 use OpenSim\Scheduling\Scheduler;
@@ -15,7 +16,9 @@ use OpenSim\Scheduling\Task;
 
 /**
  * The tasks of the search of a grid: read the snapshots of the registered simulators (`search-parse`, once a minute: a host that is
- * due is read, the others are left alone), and read the events of the calendar (`events-parse`, every 55 minutes).
+ * due is read, the others are left alone), read the events of the calendar (`events-parse`, every 55 minutes), and ask the grids
+ * of the hypergrid destinations of its guide for their pictures (`guide-pictures`, once an hour: a destination that is due is
+ * asked, RemotePictures).
  *
  *     SearchTasks::add($scheduler, $environment, $config);
  */
@@ -27,6 +30,9 @@ final class SearchTasks
     /** Seconds between two reads of the calendar of events. */
     public const EVENTS_EVERY = 3300;
 
+    /** Seconds between two looks at the pictures of the hypergrid destinations of the guide. */
+    public const PICTURES_EVERY = 3600;
+
     /** @var array<string,true> the search databases whose tables are made, in this process */
     private static array $prepared = [];
 
@@ -36,10 +42,18 @@ final class SearchTasks
     /** The nick of a grid: the name of the folder of its config (Robust, else OpenSim.ini, else Helpers.ini). */
     private static function gridOf(GridConfig $config): string
     {
+        $folder = self::folderOf($config);
+
+        return $folder === '' ? '' : basename($folder);
+    }
+
+    /** The folder of the config of a grid (Robust, else OpenSim.ini, else Helpers.ini), empty when it has no file. */
+    private static function folderOf(GridConfig $config): string
+    {
         foreach (['Robust', 'OpenSim', 'Helpers'] as $role) {
             $file = $config->file($role);
             if ($file !== null && $file !== '') {
-                return basename(dirname($file));
+                return dirname($file);
             }
         }
 
@@ -124,6 +138,20 @@ final class SearchTasks
                     return "$kept event(s) kept";
                 }),
                 'Read the events of the calendar',
+                $scope,
+            ),
+        );
+        $folder = self::folderOf($config);
+        $folder !== '' && is_dir($folder) && $scheduler->add(
+            new Task(
+                'guide-pictures',
+                self::PICTURES_EVERY,
+                static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($environment, $config, $folder): string {
+                    $found = Grid::at($environment, $folder)->refreshGuidePictures($config);
+
+                    return "$found picture(s) of hypergrid destinations found";
+                }),
+                'Ask the grids of the destinations of the guide for their pictures',
                 $scope,
             ),
         );
