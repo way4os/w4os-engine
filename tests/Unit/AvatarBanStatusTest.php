@@ -70,6 +70,22 @@ describe('A hard ban', function () {
     });
 });
 
+describe('A banned avatar', function () {
+    test('is refused at the sign-in, its UserLevel below 0 in the database while its level stays the one it has back', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        $config = avatar_grid();
+        Avatar::find($config, BANNED_ADA)->update(['banned' => true]);
+        $refused = (new OpenSim\SignIn\DatabaseAuthenticator($config))->authenticate('Ada Love', 'ada-secret');
+
+        // Robust refuses a UserLevel below MinLoginLevel (0); the API says the level it has once unbanned
+        expect([ban_columns($pdo, BANNED_ADA)[0], Avatar::find($config, BANNED_ADA)->detail()['level']])
+            ->toBe([-1, 0])
+            ->and([$refused->isGranted(), $refused->code])
+            ->toBe([false, 'account-banned']);
+    });
+});
+
 describe('The bans of the estates', function () {
     test('put an avatar in the lists of every estate or of some, and take it out', function () {
         [$pdo, $config] = ban_world();
