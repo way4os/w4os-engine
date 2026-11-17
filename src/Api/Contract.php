@@ -881,7 +881,7 @@ final class Contract
                 'parameters' => [['name' => 'name', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string']]],
                 'responses' => [
                     '200' => [
-                        'description' => 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; detail)',
+                        'description' => 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; `code` of a failure: `port-taken` when a simulator that does not run has its port taken by another program, the simulator of an older install most often, else `instance-failed`; detail)',
                         'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
                     ],
                     '403' => self::problem('This process is not the user that runs the instances (`instance-user-required`)'),

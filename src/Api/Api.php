@@ -1362,6 +1362,7 @@ final class Api
                 'instance' => (string) $target,
                 'outcome' => $failed ? 'failed' : $result->value,
                 'ok' => !$failed,
+                'code' => $failed ? $result->reason : null,
                 'detail' => $failed ? $result->getMessage() : null,
             ];
         }

@@ -142,6 +142,26 @@ describe('Starting a simulator', function () {
             ->toContain('  Plaza: configured (1/1)');
     });
 
+    test('is not started when its http port is taken: another simulator, the one of an older install, listens on it', function () {
+        $machine = new Machine();
+        $simulator = Grid::find($machine->environment, 'demo')->simulator('alpha');
+        $port = (int) $simulator->httpPort();
+        $machine->processes->listening = [$port];
+        $failed = null;
+        try {
+            $simulator->start();
+        } catch (InstanceFailed $e) {
+            $failed = $e;
+        }
+
+        expect($failed?->reason)
+            ->toBe('port-taken')
+            ->and($failed?->getMessage())
+            ->toContain((string) $port, 'alpha')
+            ->and($machine->launcher->launched)
+            ->toBe([]);
+    });
+
     test('has no region, it is not started: it would wait for questions nobody reads', function () {
         $machine = new Machine();
         unlink($machine->grid . '/sims/alpha/regions/Plaza.ini');

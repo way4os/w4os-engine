@@ -50,6 +50,15 @@ final class StartService
 
             return Outcome::Running;
         }
+        // Its port taken while it does not run: another program listens on it, the simulator of an older install most often
+        $port = $instance instanceof OpenSimController ? $instance->httpPort() : null;
+        if ($port !== null && in_array($port, $env->processes->listening(), true)) {
+            $this->fail(
+                $name,
+                "$name cannot start: its port $port is taken by another program (the simulator of an older install still running?): stop it first",
+                reason: 'port-taken',
+            );
+        }
         $env->reporter->info("starting $name");
 
         $base = $instance->executableBase();
@@ -419,12 +428,12 @@ final class StartService
         $this->environment->reporter->error(implode("\n", $last > 0 ? array_slice($lines, -$last) : $lines));
     }
 
-    private function fail(string $name, string $message, string $debug = ''): never
+    private function fail(string $name, string $message, string $debug = '', string $reason = 'instance-failed'): never
     {
         $this->environment->reporter->stepEnd();
         $this->environment->reporter->error($message);
         $debug !== '' && $this->environment->reporter->debug($debug);
 
-        throw new InstanceFailed($name, $message);
+        throw new InstanceFailed($name, $message, $reason);
     }
 }

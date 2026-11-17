@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: d71aa81
+  version: bc43119
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -3970,7 +3970,7 @@ paths:
             type: string
       responses:
         200:
-          description: 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; detail)'
+          description: 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; `code` of a failure: `port-taken` when a simulator that does not run has its port taken by another program, the simulator of an older install most often, else `instance-failed`; detail)'
           content:
             application/vnd.api+json:
               schema:
@@ -4012,7 +4012,7 @@ paths:
             type: string
       responses:
         200:
-          description: 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; detail)'
+          description: 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; `code` of a failure: `port-taken` when a simulator that does not run has its port taken by another program, the simulator of an older install most often, else `instance-failed`; detail)'
           content:
             application/vnd.api+json:
               schema:
@@ -4054,7 +4054,7 @@ paths:
             type: string
       responses:
         200:
-          description: 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; detail)'
+          description: 'What became of each instance: `action`, `results` (instance, outcome: started, running, starting, stopped, not running, failed; ok; `code` of a failure: `port-taken` when a simulator that does not run has its port taken by another program, the simulator of an older install most often, else `instance-failed`; detail)'
           content:
             application/vnd.api+json:
               schema:
