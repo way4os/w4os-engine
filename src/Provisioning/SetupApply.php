@@ -90,6 +90,12 @@ final class SetupApply
             } else {
                 $planner = SimulatorPlanner::forGrid($grid, $database, $ui, null, $regions[0]['name'] ?? null);
                 $answers = SetupFile::simulatorValues($data, $i) + $planner->ownerAnswers(SetupFile::owner($data, $i));
+                // A region joins the estate of the name its simulator gives (DefaultEstateName), whoever owns it: a simulator that
+                // names its owner has an estate of that owner, unless it names the estate
+                $own = trim((string) ($simulator['estate']['owner'] ?? ''));
+                if ($own !== '' && trim((string) ($simulator['estate']['name'] ?? '')) === '') {
+                    $answers['estate_name'] = "$own Estate";
+                }
                 $planner = $planner->with(['block' => self::block($grid, [...$foreign, ...$taken['ports']])]);
                 foreach ($planner->problems($answers) as $field => $message) {
                     $problems["simulators.$i.$field"] = $message;
@@ -150,6 +156,8 @@ final class SetupApply
                     'config' => $plan->iniPath(),
                     'ports' => ['http' => $plan->httpPort, 'console' => $plan->consoleMode === 'rest' ? $plan->consolePort : null],
                     'database' => ['host' => $plan->dbHost, 'name' => $plan->dbName, 'user' => $plan->dbUser],
+                    // The estate its regions join (DefaultEstateName), made for its owner when no estate has that name
+                    'estate' => ['name' => $plan->estateName, 'owner' => $plan->estateOwner === '+' ? null : $plan->estateOwner],
                 ];
                 $writes[] = $plan->iniPath();
             }

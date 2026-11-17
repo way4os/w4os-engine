@@ -67,6 +67,22 @@ describe('A setup file applied', function () {
             ->toBe([]);
     });
 
+    test('gives a simulator whose owner it names an estate of that owner, unless it names the estate', function () {
+        $machine = new Machine();
+        $file = static fn(array $estate): array => [
+            'grid' => ['nick' => 'demo'],
+            'simulators' => [['name' => 'North', 'estate' => $estate, 'database' => ['user' => 'opensim', 'password' => 'secret'], 'regions' => [['name' => 'Big Garden']]]],
+        ];
+
+        expect(SetupApply::prepare($machine->environment, $file(['owner' => 'Bob Root']))->steps[0]['plan']->estateName)
+            ->toBe('Bob Root Estate')
+            ->and(SetupApply::prepare($machine->environment, $file(['owner' => 'Bob Root', 'name' => 'Shared Land']))->steps[0]['plan']->estateName)
+            ->toBe('Shared Land')
+            ->and(SetupApply::prepare($machine->environment, $file([]))->steps[0]['plan']->estateName)
+            ->toEndWith(' Estate')
+            ->not->toBe('Bob Root Estate');
+    });
+
     test('loads the regions of a running simulator through its console, which needs no restart', function () {
         $machine = new Machine();
         $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
