@@ -714,7 +714,7 @@ final class Endpoints
             ],
             'responses' => [
                 '200' => [
-                    'description' => 'The plan, or what was written: `grid`, `steps` (`kind` simulator or region, `simulator`, `slug`, `config`, `ports`, `database`, `estate` (name, owner: the estate its regions join, made when none has that name; an owner the simulator names gets `<Owner> Estate` unless `estate.name` is given), `region`: name, location, size, roles, port, file), `writes`, `problems`, `reminders`, `applied`, `notes` (a plan reserves nothing: what it proposes is chosen again when it is applied)',
+                    'description' => 'The plan, or what was written: `grid`, `steps` (`kind` simulator or region, `simulator`, `slug`, `config`, `ports`, `database`, `estate` (name, owner: the estate its regions join, made when none has that name; an owner the simulator names gets `<Owner> Estate` unless `estate.name` is given), `region`: name, location, size, roles, port, file), `writes`, `problems`, `reminders` and `notes` (notices: `code`, `params`, the English `detail`; a site says them in its language with `notice_<code>` of the catalog, the params as {name}), `applied`',
                     'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
                 ],
                 '400' => Contract::problem('A file that cannot be read, that makes a grid, that names no grid, or that has problems'),
@@ -759,7 +759,7 @@ final class Endpoints
             ],
             'responses' => [
                 '200' => [
-                    'description' => 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `writes`, `report`, `reminders`, `applied`',
+                    'description' => 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`',
                     'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
                 ],
                 '400' => Contract::problem('A file that cannot be read or imported, a simulator or a region the grid has already'),

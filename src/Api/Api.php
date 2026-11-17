@@ -31,6 +31,7 @@ use OpenSim\Models\Parcel;
 use OpenSim\Models\Region;
 use OpenSim\Models\Service;
 use OpenSim\Models\Simulator;
+use OpenSim\Text\Notice;
 use OpenSim\Runtime\Environment;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
@@ -389,6 +390,18 @@ final class Api
             );
     }
 
+    /**
+     * What the API says without an error (Text\Notice): its English text as `message`, as before, and the notice for a site to say it
+     * in its language.
+     *
+     * @param array{code:string,params:array<string,string|int>,detail:string} $notice
+     * @return array{message:string,notice:array<string,mixed>}
+     */
+    private static function said(array $notice): array
+    {
+        return ['message' => $notice['detail'], 'notice' => $notice];
+    }
+
     /** Delete a resource, when a channel can. */
     public function delete(string $type, string $id, ?string $grid = null): Response
     {
@@ -471,7 +484,7 @@ final class Api
         }
         if ($send) {
             return Response::document(
-                ['meta' => ['message' => 'When an avatar has this name or this email, a mail was sent to it.']],
+                ['meta' => self::said(Notice::of('mail-sent-if-known'))],
                 202,
             );
         }
@@ -554,7 +567,7 @@ final class Api
         }
 
         return $send
-            ? Response::document(['meta' => ['message' => 'A mail was sent to the avatar.']], 202)
+            ? Response::document(['meta' => self::said(Notice::of('mail-sent'))], 202)
             : Response::document([
                 'data' => array_map(static fn(array $one): array => self::given('email-confirmations', $one), $given),
                 'links' => ['self' => $instance],
@@ -859,9 +872,7 @@ final class Api
                 'type' => 'files',
                 'id' => $setup->grid->nick(),
                 'attributes' => ['mode' => $mode, 'applied' => $mode === 'apply'] + $setup->document() + [
-                    'notes' => $mode === 'apply' ? [] : [
-                        'A plan reserves nothing: the places and the ports it proposes are the free ones now, chosen again when it is applied. Apply a plan before planning the next one, or give the regions in one file.',
-                    ],
+                    'notes' => $mode === 'apply' ? [] : [Notice::of('plan-reserves-nothing')],
                 ],
             ],
             'links' => ['self' => $instance],

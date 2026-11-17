@@ -375,6 +375,21 @@ final class Catalog
         'error_token_refused' => 'This link does not work: it has expired or it was already used. Ask for a new one.',
         'error_no_confirmation_pending' => 'This avatar does not wait for the confirmation of its email.',
         'error_mail_failed' => 'The mail could not be sent. Please try again later.',
+
+        // What the engine says outside its errors (Text\Notice): notice_ and its code, its values as {name}
+        'notice_robust_restart_roles' => 'Robust reads {key} when it starts: restart Robust ({restart}) so it gives the region these roles when it registers again.',
+        'notice_robust_config_line' => '{file} cannot be written by this process: set {line} in its [{section}], then restart Robust ({restart}).',
+        'notice_robust_config_remove' => '{file} cannot be written by this process: remove {key} from its [{section}], then restart Robust ({restart}).',
+        'notice_robust_config_elsewhere' => 'The config of Robust is not on this machine: set {line} in its [{section}], so the region keeps its roles when it registers again.',
+        'notice_start_simulator' => 'Start the simulator {slug}: {command}',
+        'notice_start_simulator_regions' => 'The simulator {slug} loads its new regions when it starts: {command}',
+        'notice_region_roles_later' => 'Robust gives {region} its roles ({roles}) from its config, read when it starts: restart Robust ({restart}) before starting {slug}, or once the region runs: {command}',
+        'notice_plan_reserves_nothing' => 'A plan reserves nothing: the places and the ports it proposes are the free ones now, chosen again when it is applied. Apply a plan before planning the next one, or give the regions in one file.',
+        'notice_import_read_access' => 'The files of the older install are read by the user that runs the import: give it read access to them (its config, its includes, its regions) before applying.',
+        'notice_import_stop_source' => 'The simulator that runs {regions} now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same.',
+        'notice_import_enable_start' => 'Then: {enable}, {start}.',
+        'notice_mail_sent_if_known' => 'When an avatar has this name or this email, a mail was sent to it.',
+        'notice_mail_sent' => 'A mail was sent to the avatar.',
     ];
 
     /** The key of the text of a problem code. */
@@ -399,6 +414,19 @@ final class Catalog
     public static function error(string $code): string
     {
         return self::MESSAGES[self::errorKey($code)] ?? self::MESSAGES[self::errorKey('invalid-request')];
+    }
+
+    /**
+     * The text of a notice (Text\Notice) in a language, its values in it ({name}); English when the language has no text for it.
+     *
+     * @param array<string,string|int> $params
+     */
+    public static function notice(string $locale, string $code, array $params = []): string
+    {
+        $key = 'notice_' . str_replace('-', '_', $code);
+        $text = (self::messages($locale) + self::MESSAGES)[$key] ?? $code;
+
+        return strtr($text, array_combine(array_map(static fn(string $name): string => '{' . $name . '}', array_keys($params)), array_map('strval', $params)));
     }
 
     /** The folder of the gettext files. */

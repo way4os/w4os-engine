@@ -376,7 +376,7 @@ final class Contract
                 'enabled' => ['boolean', 'Enable or disable the region (its file); the simulator has to restart. `config-not-writable` (403), nothing changed, when this process cannot rename its file'],
                 'roles' => [
                     'array',
-                    'The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust\'s, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` saying to restart Robust; when this process cannot write Robust.ini, the reminder gives the line to set there. `flag-unknown` for a name that is not a flag',
+                    'The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust\'s, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` (notices: `code`, `params`, the English `detail`) saying to restart Robust; when this process cannot write Robust.ini, the reminder gives the line to set there. `flag-unknown` for a name that is not a flag',
                 ],
                 'owner' => [
                     'string',

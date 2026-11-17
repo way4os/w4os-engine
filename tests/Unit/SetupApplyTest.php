@@ -58,10 +58,15 @@ describe('A setup file applied', function () {
             ->toBe($north['ports']['http'])
             ->and($small['region']['location'])
             ->not->toBe($north['region']['location'])
-            ->and(array_slice($plan['reminders'], 0, 2))
-            ->toBe(['opensim start demo.north', 'opensim start alpha (it loads its new regions when it starts)'])
+            ->and(array_column(array_slice($plan['reminders'], 0, 2), 'params', 'code'))
+            ->toBe([
+                'start-simulator' => ['slug' => 'demo.north', 'command' => 'opensim start demo.north'],
+                'start-simulator-regions' => ['slug' => 'alpha', 'command' => 'opensim start alpha'],
+            ])
             // The role of a region of a new simulator: Robust gives it once it has read its config, or opensim region set
-            ->and($plan['reminders'][2])
+            ->and($plan['reminders'][2]['code'])
+            ->toBe('region-roles-later')
+            ->and($plan['reminders'][2]['detail'])
             ->toContain('Big Garden', 'FallbackRegion', 'opensim restart demo', 'opensim region set demo "Big Garden" --roles FallbackRegion')
             ->and(array_filter($plan['writes'], 'file_exists'))
             ->toBe([]);
@@ -167,8 +172,8 @@ describe('The API, for a setup file', function () {
         expect([$plan->status, $plan->document['data']['attributes']['applied'], count($plan->document['data']['attributes']['steps'])])
             ->toBe([200, false, 3])
             // A plan reserves nothing: what it proposes is chosen again when it is applied
-            ->and($plan->document['data']['attributes']['notes'][0])
-            ->toContain('reserves nothing')
+            ->and($plan->document['data']['attributes']['notes'][0]['code'])
+            ->toBe('plan-reserves-nothing')
             ->and([$wrong->status, $wrong->document['code'] ?? null])
             ->toBe([400, 'invalid-request'])
             ->and($wrong->document['detail'] ?? '')

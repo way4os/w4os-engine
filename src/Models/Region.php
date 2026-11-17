@@ -22,6 +22,7 @@ use OpenSim\Exceptions\ChannelUnavailable;
 use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Hypergrid\Destination;
 use OpenSim\Provisioning\Slug;
+use OpenSim\Text\Notice;
 
 /**
  * A region: a square of the map of a grid. It is one object wherever it is known from, with the same properties (name, slug,
@@ -107,7 +108,7 @@ final class Region extends Model
     /** What a region has that its file says, changed there by its operator: refused by update(). */
     private const FILE_FIELDS = ['name', 'uuid', 'location', 'x', 'y', 'size', 'width', 'height', 'internalPort', 'file', 'simulator'];
 
-    /** @var list<string> what is left to do after the last change (update()) */
+    /** @var list<array{code:string,params:array<string,string|int>,detail:string}> what is left to do after the last change (update()) */
     private array $reminders = [];
 
     private const COLUMNS = 'r.uuid, r.regionName, r.regionHandle, r.locX, r.locY, r.sizeX, r.sizeY, r.serverIP, r.serverPort, r.serverURI, r.flags, r.last_seen, r.owner_uuid, r.access, r.ScopeID, r.regionMapTexture';
@@ -397,7 +398,7 @@ final class Region extends Model
         return Connections::pdo($this->config, 'GridService') === null ? [] : ['database'];
     }
 
-    /** @return list<string> what is left to do after the last change (a restart), none when nothing is */
+    /** @return list<array{code:string,params:array<string,string|int>,detail:string}> what is left to do after the last change (Text\Notice), none when nothing is */
     public function reminders(): array
     {
         return $this->reminders;
@@ -449,11 +450,10 @@ final class Region extends Model
         $key = self::configKey($this->name());
         if ($file === null) {
             ($add & self::GRID_ROLES) === 0 ||
-                ($this->reminders[] = sprintf(
-                    _('The config of Robust is not on this machine: give %s = "%s" there, so the region keeps its roles when it registers again.'),
-                    $key,
-                    implode(', ', self::flagNames($add & self::GRID_ROLES)),
-                ));
+                ($this->reminders[] = Notice::of('robust-config-elsewhere', [
+                    'section' => 'GridService',
+                    'line' => sprintf('%s = "%s"', $key, implode(', ', self::flagNames($add & self::GRID_ROLES))),
+                ]));
 
             return;
         }
@@ -469,22 +469,21 @@ final class Region extends Model
         }
         // The config of Robust belongs to the user of the grid: what cannot be written here is said, the console did the rest
         if (!is_writable($file)) {
-            $this->reminders[] = sprintf(
-                _('%s cannot be written by this process: %s in its [GridService], then restart Robust (opensim restart %s).'),
-                $file,
-                $after === [] ? sprintf(_('remove %s'), $key) : sprintf(_('set %s = "%s"'), $key, implode(', ', $after)),
-                $this->robustInstance(),
-            );
+            $restart = 'opensim restart ' . $this->robustInstance();
+            $this->reminders[] = $after === []
+                ? Notice::of('robust-config-remove', ['file' => $file, 'section' => 'GridService', 'key' => $key, 'restart' => $restart])
+                : Notice::of('robust-config-line', [
+                    'file' => $file,
+                    'section' => 'GridService',
+                    'line' => sprintf('%s = "%s"', $key, implode(', ', $after)),
+                    'restart' => $restart,
+                ]);
 
             return;
         }
         $after === [] ? $ini->remove('GridService', $key) : $ini->set('GridService', $key, '"' . implode(', ', $after) . '"', 'Region_');
         $ini->save($file);
-        $this->reminders[] = sprintf(
-            _('Robust reads %s when it starts: restart Robust (opensim restart %s) so it gives the region these roles when it registers again.'),
-            $key,
-            $this->robustInstance(),
-        );
+        $this->reminders[] = Notice::of('robust-restart-roles', ['key' => $key, 'restart' => 'opensim restart ' . $this->robustInstance()]);
     }
 
     /** The instance of the Robust of the grid: the nick of its folder on this machine (Grid::robustInstance()), else the one it says. */

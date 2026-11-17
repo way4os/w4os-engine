@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 8d28240
+  version: 5214b32
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -2443,7 +2443,7 @@ paths:
                   properties:
                     attributes:
                       type: object
-                      properties: { enabled: { type: boolean, description: 'Enable or disable the region (its file); the simulator has to restart. `config-not-writable` (403), nothing changed, when this process cannot rename its file' }, roles: { type: array, description: "The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust's, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` saying to restart Robust; when this process cannot write Robust.ini, the reminder gives the line to set there. `flag-unknown` for a name that is not a flag" }, owner: { type: string, description: "The UUID of its new owner, the owner of its estate: through the console of its simulator, else the database of the estate when the simulator is stopped; the table of regions of the grid at once. `estate-shared` when its estate has other regions, `owner-unknown` for an avatar the grid does not have. Its name, its place and its size are its file's: `field-read-only`" } }
+                      properties: { enabled: { type: boolean, description: 'Enable or disable the region (its file); the simulator has to restart. `config-not-writable` (403), nothing changed, when this process cannot rename its file' }, roles: { type: array, description: "The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust's, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` (notices: `code`, `params`, the English `detail`) saying to restart Robust; when this process cannot write Robust.ini, the reminder gives the line to set there. `flag-unknown` for a name that is not a flag" }, owner: { type: string, description: "The UUID of its new owner, the owner of its estate: through the console of its simulator, else the database of the estate when the simulator is stopped; the table of regions of the grid at once. `estate-shared` when its estate has other regions, `owner-unknown` for an avatar the grid does not have. Its name, its place and its size are its file's: `field-read-only`" } }
       responses:
         200:
           description: Changed
@@ -5999,7 +5999,7 @@ paths:
                       properties: { text: { type: string, description: 'The setup file, as it is written' }, format: { type: string, enum: [json, yaml], description: 'When its first character does not tell' }, setup: { type: object, description: 'The setup, as an object, instead of text' }, mode: { type: string, enum: [plan, apply] } }
       responses:
         200:
-          description: 'The plan, or what was written: `grid`, `steps` (`kind` simulator or region, `simulator`, `slug`, `config`, `ports`, `database`, `estate` (name, owner: the estate its regions join, made when none has that name; an owner the simulator names gets `<Owner> Estate` unless `estate.name` is given), `region`: name, location, size, roles, port, file), `writes`, `problems`, `reminders`, `applied`, `notes` (a plan reserves nothing: what it proposes is chosen again when it is applied)'
+          description: 'The plan, or what was written: `grid`, `steps` (`kind` simulator or region, `simulator`, `slug`, `config`, `ports`, `database`, `estate` (name, owner: the estate its regions join, made when none has that name; an owner the simulator names gets `<Owner> Estate` unless `estate.name` is given), `region`: name, location, size, roles, port, file), `writes`, `problems`, `reminders` and `notes` (notices: `code`, `params`, the English `detail`; a site says them in its language with `notice_<code>` of the catalog, the params as {name}), `applied`'
           content:
             application/vnd.api+json:
               schema:
@@ -6041,7 +6041,7 @@ paths:
                       properties: { kind: { type: string, enum: [simulator] }, file: { type: string, description: 'The config of the simulator, on this machine' }, grid: { type: string, description: 'The nick of the grid of this machine it joins' }, name: { type: string, description: 'Its name, when it is not the one of its config (SimName of [Launch], else its file)' }, core: { type: string, description: 'The core it runs with, when it is not the one of the grid' }, mode: { type: string, enum: [plan, apply] } }
       responses:
         200:
-          description: 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `writes`, `report`, `reminders`, `applied`'
+          description: 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `writes`, `report`, `reminders` (notices: `code`, `params`, the English `detail`), `applied`'
           content:
             application/vnd.api+json:
               schema:

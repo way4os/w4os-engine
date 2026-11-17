@@ -171,6 +171,11 @@ describe('The API, for a forgotten password', function () {
             ->toBe(202)
             ->and($nobody->document)
             ->toBe($byName->document)
+            // Said in English, and as a notice for a site to say it in its language
+            ->and($byName->document['meta']['notice']['code'])
+            ->toBe('mail-sent-if-known')
+            ->and($byName->document['meta']['message'])
+            ->toBe($byName->document['meta']['notice']['detail'])
             ->and($mailer->sent)
             ->toHaveCount(2)
             ->and($mailer->sent[0]['to'])

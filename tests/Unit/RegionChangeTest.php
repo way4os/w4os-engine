@@ -121,7 +121,11 @@ describe('The roles of a region', function () {
             ->not->toHaveKey('Region_Garden')
             ->and($welcome->reminders())
             ->toHaveCount(1)
-            ->and($welcome->reminders()[0])
+            ->and($welcome->reminders()[0]['code'])
+            ->toBe('robust-restart-roles')
+            ->and($welcome->reminders()[0]['params'])
+            ->toBe(['key' => 'Region_Welcome', 'restart' => 'opensim restart demo'])
+            ->and($welcome->reminders()[0]['detail'])
             ->toContain('Robust', 'restart')
             ->and($garden->reminders())
             ->toBe([]);
@@ -141,8 +145,14 @@ describe('The roles of a region', function () {
 
         expect($sent['demo'] ?? [])
             ->toHaveCount(1)
+            // A code and its values for a site to say it in its language, the English text as its detail
             ->and($welcome->reminders()[0])
-            ->toContain("$robust cannot be written", 'Region_Welcome = "Persistent, FallbackRegion"', '[GridService]', 'opensim restart demo')
+            ->toMatchArray([
+                'code' => 'robust-config-line',
+                'params' => ['file' => $robust, 'section' => 'GridService', 'line' => 'Region_Welcome = "Persistent, FallbackRegion"', 'restart' => 'opensim restart demo'],
+            ])
+            ->and($welcome->reminders()[0]['detail'])
+            ->toContain("$robust cannot be written", '[GridService]')
             ->and((string) file_get_contents($robust))
             ->toContain('Region_Welcome = "DefaultRegion, Persistent"');
     });
@@ -256,7 +266,9 @@ describe('The API, for a region', function () {
 
         expect([$changed->status, $changed->document['data']['attributes']['roles']])
             ->toBe([200, ['FallbackRegion', 'Persistent']])
-            ->and($changed->document['meta']['reminders'][0])
+            ->and($changed->document['meta']['reminders'][0]['code'])
+            ->toBe('robust-restart-roles')
+            ->and($changed->document['meta']['reminders'][0]['detail'])
             ->toContain('Region_Welcome', 'opensim restart demo')
             ->and([$named->status, $named->document['code']])
             ->toBe([400, 'field-read-only']);

@@ -10,6 +10,7 @@ use OpenSim\Exceptions\NotFound;
 use OpenSim\Models\Grid;
 use OpenSim\Network\Ports;
 use OpenSim\Runtime\Environment;
+use OpenSim\Text\Notice;
 
 /**
  * A setup file (SetupFile) applied to a grid of this machine, without a question: the simulators it names are made, or given the
@@ -178,22 +179,20 @@ final class SetupApply
         $reminders = [];
         $roles = [];
         foreach ($this->steps as ['kind' => $kind, 'plan' => $plan]) {
+            $start = ['slug' => $plan->slug, 'command' => "opensim start {$plan->slug}"];
             if ($kind === 'simulator') {
-                $reminders[$plan->slug] = "opensim start {$plan->slug}";
+                $reminders[$plan->slug] = Notice::of('start-simulator', $start);
             } elseif (!$plan->start) {
-                $reminders[$plan->slug] ??= "opensim start {$plan->slug} (it loads its new regions when it starts)";
+                $reminders[$plan->slug] ??= Notice::of('start-simulator-regions', $start);
             }
             // The roles of a region a running simulator loads are given then; the others when Robust has read its config
-            $plan->start || $plan->regionRoles === [] || ($roles[] = sprintf(
-                'Robust gives %s its roles (%s) from Robust.ini, read when it starts: restart Robust (opensim restart %s) before starting %s, or once the region runs: opensim region set %s "%s" --roles %s',
-                $plan->regionName,
-                implode(', ', $plan->regionRoles),
-                $this->grid->nick(),
-                $plan->slug,
-                $this->grid->nick(),
-                $plan->regionName,
-                implode(',', $plan->regionRoles),
-            ));
+            $plan->start || $plan->regionRoles === [] || ($roles[] = Notice::of('region-roles-later', [
+                'region' => $plan->regionName,
+                'roles' => implode(', ', $plan->regionRoles),
+                'slug' => $plan->slug,
+                'restart' => 'opensim restart ' . $this->grid->nick(),
+                'command' => sprintf('opensim region set %s "%s" --roles %s', $this->grid->nick(), $plan->regionName, implode(',', $plan->regionRoles)),
+            ]));
         }
 
         return [
