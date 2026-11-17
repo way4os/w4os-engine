@@ -58,6 +58,11 @@ describe('A simulator imported', function () {
             ->toContain($plan['config'], $plan['regions'][0]['to'], $plan['report'])
             ->and(array_column($plan['settings'], 'value', 'key'))
             ->toHaveKey('MinThreads')
+            // What is not kept is said too, with why: the database the new config writes the same, the layout of the old install
+            ->and(array_column($plan['dropped'], 'reason', 'key'))
+            ->toMatchArray(['ConnectionString' => 'same', 'SimName' => 'layout', 'regionload_regionsdir' => 'layout', 'http_listener_port' => 'same'])
+            ->and(array_column($plan['dropped'], 'value', 'key')['ConnectionString'])
+            ->toBe('***')
             // A password kept is not shown
             ->and(json_encode($plan))
             ->not->toContain('hidden')
@@ -88,7 +93,7 @@ describe('A simulator imported', function () {
             ->and(file_get_contents($plan['regions'][0]['to']))
             ->toBe(file_get_contents(dirname($source, 2) . '/grids/speculoos/sims/redoutable/regions/Redoutable.ini'))
             ->and(file_get_contents($plan['report']))
-            ->toContain('Database: osredoutable @ localhost (user opensim), kept as it is')
+            ->toContain('Database: osredoutable @ localhost (user opensim), kept as it is', 'setting(s) of the original not kept', '[Launch] SimName = redoutable (layout)')
             ->and(fileperms($plan['config']) & 0o777)
             ->toBe(0o640)
             ->and($machine->processes->all())

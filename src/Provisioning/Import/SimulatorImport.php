@@ -43,6 +43,7 @@ final class SimulatorImport
         public readonly array $regions,
         public readonly array $customizations,
         public readonly string $regionsDirectory = '',
+        public readonly array $dropped = [],
     ) {}
 
     /**
@@ -95,7 +96,7 @@ final class SimulatorImport
         ));
         $defaults = $known === [] ? [] : ConfigReader::load($known, [], false, true);
         $exampleText = implode("\n", array_map(static fn(string $path): string => (string) file_get_contents($path), $known));
-        $customizations = RobustImporter::customizations(
+        ['kept' => $customizations, 'dropped' => $dropped] = RobustImporter::sorted(
             $raw,
             ConfigReader::parse((new SimulatorConfig())->render($plan)),
             $defaults,
@@ -104,7 +105,7 @@ final class SimulatorImport
             ConfigReader::expand($raw),
         );
 
-        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file));
+        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped);
     }
 
     /**
@@ -127,11 +128,9 @@ final class SimulatorImport
             'database' => ['host' => $plan->dbHost, 'name' => $plan->dbName, 'user' => $plan->dbUser, 'kept' => true],
             'ports' => ['http' => $plan->httpPort, 'console' => $consolePort],
             'regions' => $this->regions,
-            // What is kept, its secrets masked: they are in the config written
-            'settings' => array_map(
-                static fn(array $setting): array => ['value' => Secrets::mask("{$setting['key']} = {$setting['value']}") === "{$setting['key']} = {$setting['value']}" ? $setting['value'] : Secrets::MASK] + $setting,
-                $this->customizations,
-            ),
+            // What is kept and what is left (with why), their secrets masked: they are in the configs
+            'settings' => array_map(self::masked(...), $this->customizations),
+            'dropped' => array_map(self::masked(...), $this->dropped),
             'report' => $this->reportPath(),
             'writes' => array_values(
                 array_unique([
@@ -190,8 +189,26 @@ final class SimulatorImport
         foreach ($this->customizations as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ($setting['unknown'] ? ' (not a setting of the core)' : '');
         }
+        $lines[] = '';
+        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own):';
+        foreach ($this->dropped as $setting) {
+            $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']})";
+        }
 
         return implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * A setting with its value masked when it is a secret (Secrets::mask() of its line).
+     *
+     * @param array{key:string,value:string} $setting
+     * @return array<string,mixed>
+     */
+    private static function masked(array $setting): array
+    {
+        $line = "{$setting['key']} = {$setting['value']}";
+
+        return ['value' => Secrets::mask($line) === $line ? $setting['value'] : Secrets::MASK] + $setting;
     }
 
     private function reportPath(): string

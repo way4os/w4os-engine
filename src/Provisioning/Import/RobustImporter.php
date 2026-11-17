@@ -116,15 +116,41 @@ final class RobustImporter
         string $exampleText = '',
         array $expanded = [],
     ): array {
+        return self::sorted($original, $generated, $example, $dir, $exampleText, $expanded)['kept'];
+    }
+
+    /**
+     * The settings of the original sorted: the ones kept (customizations()), and the ones left with why: `layout` (a section of the
+     * layout of the install, [Const], [Startup], [Launch]), `include` (a file of its own layout), `same` (the new config writes it,
+     * with the same value), `replaced` (the new config writes it its own way), `default` (as the core has it), `empty`.
+     *
+     * @return array{kept:list<array{section:string,key:string,value:string,unknown:bool,path:bool}>,dropped:list<array{section:string,key:string,value:string,reason:string}>}
+     */
+    public static function sorted(
+        array $original,
+        array $generated,
+        array $example,
+        string $dir,
+        string $exampleText = '',
+        array $expanded = [],
+    ): array {
         $found = [];
+        $dropped = [];
+        $drop = static function (string $section, string $key, string $value, string $reason) use (&$dropped): void {
+            $dropped[] = ['section' => $section, 'key' => $key, 'value' => $value, 'reason' => $reason];
+        };
         foreach ($original as $section => $values) {
-            // The layout of the kit (its folders, its pid, its registry) is its own
-            if (in_array($section, self::KIT_SECTIONS, true)) {
-                continue;
-            }
             foreach ($values as $key => $value) {
+                $key = (string) $key;
+                $value = (string) $value;
+                // The layout of the kit (its folders, its pid, its registry) is its own
+                if (in_array($section, self::KIT_SECTIONS, true)) {
+                    $drop($section, $key, $value, 'layout');
+                    continue;
+                }
                 // The files the original includes are those of its own layout, the kit has its own
                 if (stripos($key, 'Include-') === 0) {
+                    $drop($section, $key, $value, 'include');
                     continue;
                 }
                 $standard = $generated[$section][$key] ?? null;
@@ -143,16 +169,21 @@ final class RobustImporter
                             'unknown' => $unknown,
                             'path' => true,
                         ];
+                    } else {
+                        $drop($section, $key, $value, 'same');
                     }
                     continue;
                 }
                 // What the setup wrote is its own; what is as in the core is no choice of the user
-                if (
-                    ($standard !== null && $standard !== $default) ||
-                    $value === $standard ||
-                    $value === $default ||
-                    $value === ''
-                ) {
+                $reason = match (true) {
+                    $value === '' => 'empty',
+                    $value === $standard => 'same',
+                    $standard !== null && $standard !== $default => 'replaced',
+                    $value === $default => 'default',
+                    default => null,
+                };
+                if ($reason !== null) {
+                    $drop($section, $key, $value, $reason);
                     continue;
                 }
                 $found[] = [
@@ -165,7 +196,7 @@ final class RobustImporter
             }
         }
 
-        return $found;
+        return ['kept' => $found, 'dropped' => $dropped];
     }
 
     /**
