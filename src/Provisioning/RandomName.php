@@ -2,7 +2,7 @@
 
 namespace OpenSim\Provisioning;
 
-use Nubs\RandomNameGenerator\Alliteration;
+use Platoniq\RandomNameGenerator\Alliteration;
 
 /**
  * A name made of an adjective and a noun that begin the same ("Gentle Gnat"), to propose when

@@ -26,12 +26,12 @@
         "phpxmlrpc/phpxmlrpc": "^4.11",
         "magicoli/kick-inside": "^0.1.0",
         "symfony/yaml": "^7.4",
-        "nubs/random-name-generator": "^2.2",
         "laminas/laminas-escaper": "^2.12@stable",
         "psr/http-message": "^2.0",
         "psr/http-factory": "^1.1",
         "psr/http-server-handler": "^1.0",
-        "magicoli/container-tools": "@dev"
+        "magicoli/container-tools": "@dev",
+        "platoniq/random-name-generator": "^1.0"
     },
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^1.2",

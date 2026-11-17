@@ -12,7 +12,7 @@ use OpenSim\Provisioning\GridPlan;
 use OpenSim\Provisioning\GridPlanner;
 use OpenSim\Provisioning\RandomName;
 use OpenSim\Provisioning\Slug;
-use Nubs\RandomNameGenerator\Alliteration;
+use Platoniq\RandomNameGenerator\Alliteration;
 use OpenSim\Runtime\Environment;
 use OpenSim\Testing\Machine;
 use OpenSim\Testing\EnvironmentFake;
@@ -123,7 +123,8 @@ test('proposes the first name the rule takes, in ASCII, or none', function () {
 });
 
 test('makes, from every word of its lists, a name the rule of a grid takes', function () {
-    $lists = dirname((new ReflectionClass(Alliteration::class))->getFileName());
+    // The English lists the generator reads by default
+    $lists = dirname((new ReflectionClass(Alliteration::class))->getFileName()) . '/en';
     $adjectives = file("$lists/adjectives.txt", FILE_IGNORE_NEW_LINES);
     $nouns = file("$lists/nouns.txt", FILE_IGNORE_NEW_LINES);
     $names = [
