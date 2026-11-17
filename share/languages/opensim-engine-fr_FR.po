@@ -564,20 +564,28 @@ msgid "OpenSim.ini unreadable"
 msgstr "OpenSim.ini illisible"
 
 msgctxt "connection_regions"
-msgid "Region files"
-msgstr "Fichiers des régions"
+msgid "Regions .ini"
+msgstr "Regions .ini"
 
 msgctxt "connection_regions_failed"
-msgid "Region files unreadable"
-msgstr "Fichiers des régions illisibles"
+msgid "Regions .ini unreadable"
+msgstr "Regions .ini illisibles"
 
-msgctxt "connection_database"
-msgid "Database"
-msgstr "Base de données"
+msgctxt "connection_mysql"
+msgid "MySQL"
+msgstr "MySQL"
 
-msgctxt "connection_database_failed"
-msgid "Database unreachable"
-msgstr "Base de données injoignable"
+msgctxt "connection_mysql_failed"
+msgid "MySQL unreachable"
+msgstr "MySQL injoignable"
+
+msgctxt "connection_sqlite"
+msgid "SQLite"
+msgstr "SQLite"
+
+msgctxt "connection_sqlite_failed"
+msgid "SQLite unreadable"
+msgstr "SQLite illisible"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1557,6 +1565,22 @@ msgid ""
 msgstr ""
 "L'inscription est gardée, mais le message à {email} n'a pas pu être envoyé : "
 "redemandez-le plus tard."
+
+#~ msgctxt "connection_regions"
+#~ msgid "Region files"
+#~ msgstr "Fichiers des régions"
+
+#~ msgctxt "connection_regions_failed"
+#~ msgid "Region files unreadable"
+#~ msgstr "Fichiers des régions illisibles"
+
+#~ msgctxt "connection_database"
+#~ msgid "Database"
+#~ msgstr "Base de données"
+
+#~ msgctxt "connection_database_failed"
+#~ msgid "Database unreachable"
+#~ msgstr "Base de données injoignable"
 
 #~ msgctxt "state_configured"
 #~ msgid "Configured"

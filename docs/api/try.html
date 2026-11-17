@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "bc99baa",
+        "version": "c626784",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -42,7 +42,7 @@
         },
         {
             "name": "Simulators",
-            "description": "A simulator is identified by its address (host:port); its slug has its grid (`vonda.welcome`). A simulator of another machine that runs regions of a grid of this one (registered with its Robust) is listed too, `local` false: known by its address only, running while one of its regions is online, every way to it `none`. `connections` says how the engine reaches a simulator (`console`, `screen`, `config`, `regions`, `database`; the config of the Robust belongs to the grid), each `none`, `configured` (in a list: named in its config, not tried), `ok` or `failed` (alone: tried)."
+            "description": "A simulator is identified by its address (host:port); its slug has its grid (`vonda.welcome`). A simulator of another machine that runs regions of a grid of this one (registered with its Robust) is listed too, `local` false: known by its address only, running while one of its regions is online, every way to it `none`. `connections` says how the engine reaches a simulator (`console`, `screen`, `config`, `regions`, `mysql` or `sqlite`; the config of the Robust belongs to the grid), each `none`, `configured` (in a list: named in its config, not tried), `ok` or `failed` (alone: tried)."
         },
         {
             "name": "Services",
@@ -903,23 +903,45 @@
                                     ]
                                 },
                                 {
-                                    "name": "connections.database",
+                                    "name": "connections.mysql",
                                     "icon": "database",
-                                    "label": "connection_database",
+                                    "label": "connection_mysql",
                                     "states": [
                                         {
                                             "value": "configured",
-                                            "label": "connection_database",
+                                            "label": "connection_mysql",
                                             "tone": "neutral"
                                         },
                                         {
                                             "value": "ok",
-                                            "label": "connection_database",
+                                            "label": "connection_mysql",
                                             "tone": "ok"
                                         },
                                         {
                                             "value": "failed",
-                                            "label": "connection_database_failed",
+                                            "label": "connection_mysql_failed",
+                                            "tone": "failed"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "connections.sqlite",
+                                    "icon": "database",
+                                    "label": "connection_sqlite",
+                                    "states": [
+                                        {
+                                            "value": "configured",
+                                            "label": "connection_sqlite",
+                                            "tone": "neutral"
+                                        },
+                                        {
+                                            "value": "ok",
+                                            "label": "connection_sqlite",
+                                            "tone": "ok"
+                                        },
+                                        {
+                                            "value": "failed",
+                                            "label": "connection_sqlite_failed",
                                             "tone": "failed"
                                         }
                                     ]
@@ -10096,7 +10118,7 @@
                             },
                             "connections": {
                                 "type": "object",
-                                "description": "How the engine reaches it: console, screen, config, regions, database, each none, configured, ok or failed"
+                                "description": "How the engine reaches it: console, screen, config, regions, mysql, sqlite, each none, configured, ok or failed"
                             },
                             "httpPort": {
                                 "type": "integer",

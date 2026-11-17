@@ -563,20 +563,28 @@ msgid "OpenSim.ini unreadable"
 msgstr "OpenSim.ini onleesbaar"
 
 msgctxt "connection_regions"
-msgid "Region files"
-msgstr "Regiobestanden"
+msgid "Regions .ini"
+msgstr "Regions .ini"
 
 msgctxt "connection_regions_failed"
-msgid "Region files unreadable"
-msgstr "Regiobestanden onleesbaar"
+msgid "Regions .ini unreadable"
+msgstr "Regions .ini onleesbaar"
 
-msgctxt "connection_database"
-msgid "Database"
-msgstr "Database"
+msgctxt "connection_mysql"
+msgid "MySQL"
+msgstr "MySQL"
 
-msgctxt "connection_database_failed"
-msgid "Database unreachable"
-msgstr "Database onbereikbaar"
+msgctxt "connection_mysql_failed"
+msgid "MySQL unreachable"
+msgstr "MySQL onbereikbaar"
+
+msgctxt "connection_sqlite"
+msgid "SQLite"
+msgstr "SQLite"
+
+msgctxt "connection_sqlite_failed"
+msgid "SQLite unreadable"
+msgstr "SQLite onleesbaar"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1552,6 +1560,22 @@ msgid ""
 msgstr ""
 "De registratie blijft bewaard, maar de mail naar {email} kon niet worden "
 "verzonden: vraag hem later opnieuw aan."
+
+#~ msgctxt "connection_regions"
+#~ msgid "Region files"
+#~ msgstr "Regiobestanden"
+
+#~ msgctxt "connection_regions_failed"
+#~ msgid "Region files unreadable"
+#~ msgstr "Regiobestanden onleesbaar"
+
+#~ msgctxt "connection_database"
+#~ msgid "Database"
+#~ msgstr "Database"
+
+#~ msgctxt "connection_database_failed"
+#~ msgid "Database unreachable"
+#~ msgstr "Database onbereikbaar"
 
 #~ msgctxt "state_configured"
 #~ msgid "Configured"

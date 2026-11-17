@@ -565,20 +565,28 @@ msgid "OpenSim.ini unreadable"
 msgstr "OpenSim.ini illeggibile"
 
 msgctxt "connection_regions"
-msgid "Region files"
-msgstr "File delle regioni"
+msgid "Regions .ini"
+msgstr "Regions .ini"
 
 msgctxt "connection_regions_failed"
-msgid "Region files unreadable"
-msgstr "File delle regioni illeggibili"
+msgid "Regions .ini unreadable"
+msgstr "Regions .ini illeggibili"
 
-msgctxt "connection_database"
-msgid "Database"
-msgstr "Database"
+msgctxt "connection_mysql"
+msgid "MySQL"
+msgstr "MySQL"
 
-msgctxt "connection_database_failed"
-msgid "Database unreachable"
-msgstr "Database non raggiungibile"
+msgctxt "connection_mysql_failed"
+msgid "MySQL unreachable"
+msgstr "MySQL non raggiungibile"
+
+msgctxt "connection_sqlite"
+msgid "SQLite"
+msgstr "SQLite"
+
+msgctxt "connection_sqlite_failed"
+msgid "SQLite unreadable"
+msgstr "SQLite illeggibile"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1553,6 +1561,22 @@ msgid ""
 msgstr ""
 "La registrazione è conservata, ma la mail a {email} non è stata inviata: "
 "richiedila più tardi."
+
+#~ msgctxt "connection_regions"
+#~ msgid "Region files"
+#~ msgstr "File delle regioni"
+
+#~ msgctxt "connection_regions_failed"
+#~ msgid "Region files unreadable"
+#~ msgstr "File delle regioni illeggibili"
+
+#~ msgctxt "connection_database"
+#~ msgid "Database"
+#~ msgstr "Database"
+
+#~ msgctxt "connection_database_failed"
+#~ msgid "Database unreachable"
+#~ msgstr "Database non raggiungibile"
 
 #~ msgctxt "state_configured"
 #~ msgid "Configured"

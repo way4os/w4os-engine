@@ -524,19 +524,27 @@ msgid "OpenSim.ini unreadable"
 msgstr ""
 
 msgctxt "connection_regions"
-msgid "Region files"
+msgid "Regions .ini"
 msgstr ""
 
 msgctxt "connection_regions_failed"
-msgid "Region files unreadable"
+msgid "Regions .ini unreadable"
 msgstr ""
 
-msgctxt "connection_database"
-msgid "Database"
+msgctxt "connection_mysql"
+msgid "MySQL"
 msgstr ""
 
-msgctxt "connection_database_failed"
-msgid "Database unreachable"
+msgctxt "connection_mysql_failed"
+msgid "MySQL unreachable"
+msgstr ""
+
+msgctxt "connection_sqlite"
+msgid "SQLite"
+msgstr ""
+
+msgctxt "connection_sqlite_failed"
+msgid "SQLite unreadable"
 msgstr ""
 
 msgctxt "menu_admin"

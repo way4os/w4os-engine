@@ -195,8 +195,8 @@ final class Catalog
         'search_simulators' => 'Simulator name',
         'simulators_count' => '%d simulators',
         'no_simulators' => 'No simulator',
-        // Its status, each state saying it all on its own: enabled, running, and the ways the engine reaches it, by their name alone
-        // while they are there, with what is wrong when they are not
+        // Its status, each state saying it all on its own: enabled, running, and the ways the engine reaches it, named as they are
+        // (a file, a program: the same in every language) while they are there, with what is wrong when they are not
         'column_status' => 'Status',
         'state_enabled' => 'Enabled',
         'state_disabled' => 'Disabled',
@@ -208,10 +208,12 @@ final class Catalog
         'connection_screen_failed' => 'Screen not found',
         'connection_config' => 'OpenSim.ini',
         'connection_config_failed' => 'OpenSim.ini unreadable',
-        'connection_regions' => 'Region files',
-        'connection_regions_failed' => 'Region files unreadable',
-        'connection_database' => 'Database',
-        'connection_database_failed' => 'Database unreachable',
+        'connection_regions' => 'Regions .ini',
+        'connection_regions_failed' => 'Regions .ini unreadable',
+        'connection_mysql' => 'MySQL',
+        'connection_mysql_failed' => 'MySQL unreachable',
+        'connection_sqlite' => 'SQLite',
+        'connection_sqlite_failed' => 'SQLite unreadable',
 
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',

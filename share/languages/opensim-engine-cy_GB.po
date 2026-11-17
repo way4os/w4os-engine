@@ -546,11 +546,11 @@ msgstr "Wedi stopio"
 
 msgctxt "connection_console"
 msgid "Console"
-msgstr "Consol"
+msgstr "Console"
 
 msgctxt "connection_console_failed"
 msgid "Console unreachable"
-msgstr "Consol yn anghyraeddadwy"
+msgstr "Console yn anghyraeddadwy"
 
 msgctxt "connection_screen"
 msgid "Screen"
@@ -569,20 +569,28 @@ msgid "OpenSim.ini unreadable"
 msgstr "OpenSim.ini yn annarllenadwy"
 
 msgctxt "connection_regions"
-msgid "Region files"
-msgstr "Ffeiliau rhanbarthau"
+msgid "Regions .ini"
+msgstr "Regions .ini"
 
 msgctxt "connection_regions_failed"
-msgid "Region files unreadable"
-msgstr "Ffeiliau rhanbarthau yn annarllenadwy"
+msgid "Regions .ini unreadable"
+msgstr "Regions .ini yn annarllenadwy"
 
-msgctxt "connection_database"
-msgid "Database"
-msgstr "Cronfa ddata"
+msgctxt "connection_mysql"
+msgid "MySQL"
+msgstr "MySQL"
 
-msgctxt "connection_database_failed"
-msgid "Database unreachable"
-msgstr "Cronfa ddata yn anghyraeddadwy"
+msgctxt "connection_mysql_failed"
+msgid "MySQL unreachable"
+msgstr "MySQL yn anghyraeddadwy"
+
+msgctxt "connection_sqlite"
+msgid "SQLite"
+msgstr "SQLite"
+
+msgctxt "connection_sqlite_failed"
+msgid "SQLite unreadable"
+msgstr "SQLite yn annarllenadwy"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1570,6 +1578,22 @@ msgid ""
 msgstr ""
 "Mae'r cofrestriad wedi'i gadw, ond ni ellid anfon y neges at {email}: "
 "gofynnwch amdani eto yn nes ymlaen."
+
+#~ msgctxt "connection_regions"
+#~ msgid "Region files"
+#~ msgstr "Ffeiliau rhanbarthau"
+
+#~ msgctxt "connection_regions_failed"
+#~ msgid "Region files unreadable"
+#~ msgstr "Ffeiliau rhanbarthau yn annarllenadwy"
+
+#~ msgctxt "connection_database"
+#~ msgid "Database"
+#~ msgstr "Cronfa ddata"
+
+#~ msgctxt "connection_database_failed"
+#~ msgid "Database unreachable"
+#~ msgstr "Cronfa ddata yn anghyraeddadwy"
 
 #~ msgctxt "state_configured"
 #~ msgid "Configured"

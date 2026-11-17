@@ -543,11 +543,11 @@ msgstr "Gestoppt"
 
 msgctxt "connection_console"
 msgid "Console"
-msgstr "Konsole"
+msgstr "Console"
 
 msgctxt "connection_console_failed"
 msgid "Console unreachable"
-msgstr "Konsole nicht erreichbar"
+msgstr "Console nicht erreichbar"
 
 msgctxt "connection_screen"
 msgid "Screen"
@@ -566,20 +566,28 @@ msgid "OpenSim.ini unreadable"
 msgstr "OpenSim.ini nicht lesbar"
 
 msgctxt "connection_regions"
-msgid "Region files"
-msgstr "Regionsdateien"
+msgid "Regions .ini"
+msgstr "Regions .ini"
 
 msgctxt "connection_regions_failed"
-msgid "Region files unreadable"
-msgstr "Regionsdateien nicht lesbar"
+msgid "Regions .ini unreadable"
+msgstr "Regions .ini nicht lesbar"
 
-msgctxt "connection_database"
-msgid "Database"
-msgstr "Datenbank"
+msgctxt "connection_mysql"
+msgid "MySQL"
+msgstr "MySQL"
 
-msgctxt "connection_database_failed"
-msgid "Database unreachable"
-msgstr "Datenbank nicht erreichbar"
+msgctxt "connection_mysql_failed"
+msgid "MySQL unreachable"
+msgstr "MySQL nicht erreichbar"
+
+msgctxt "connection_sqlite"
+msgid "SQLite"
+msgstr "SQLite"
+
+msgctxt "connection_sqlite_failed"
+msgid "SQLite unreadable"
+msgstr "SQLite nicht lesbar"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1567,6 +1575,22 @@ msgid ""
 msgstr ""
 "Die Registrierung bleibt bestehen, aber die Mail an {email} konnte nicht "
 "gesendet werden: fordere sie später erneut an."
+
+#~ msgctxt "connection_regions"
+#~ msgid "Region files"
+#~ msgstr "Regionsdateien"
+
+#~ msgctxt "connection_regions_failed"
+#~ msgid "Region files unreadable"
+#~ msgstr "Regionsdateien nicht lesbar"
+
+#~ msgctxt "connection_database"
+#~ msgid "Database"
+#~ msgstr "Datenbank"
+
+#~ msgctxt "connection_database_failed"
+#~ msgid "Database unreachable"
+#~ msgstr "Datenbank nicht erreichbar"
 
 #~ msgctxt "state_configured"
 #~ msgid "Configured"

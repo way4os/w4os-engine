@@ -38,7 +38,7 @@ describe('The list of the simulators', function () {
         expect($status['type'])
             ->toBe('indicators')
             ->and(array_keys($indicators))
-            ->toBe(['enabled', 'running', 'connections.console', 'connections.screen', 'connections.config', 'connections.regions', 'connections.database'])
+            ->toBe(['enabled', 'running', 'connections.console', 'connections.screen', 'connections.config', 'connections.regions', 'connections.mysql', 'connections.sqlite'])
             ->and($indicators['running'])
             ->toMatchArray(['icon' => 'run', 'actions' => ['start', 'stop']])
             ->and($indicators['running']['states'][0])
@@ -46,12 +46,18 @@ describe('The list of the simulators', function () {
             ->and($indicators['enabled']['actions'])
             ->toBe(['enable', 'disable'])
             // None shows no icon; each state says it all on its own: the thing, and what is wrong with it when something is
-            ->and(array_column($indicators['connections.database']['states'], 'label', 'value'))
-            ->toBe(['configured' => 'connection_database', 'ok' => 'connection_database', 'failed' => 'connection_database_failed'])
+            ->and(array_column($indicators['connections.mysql']['states'], 'label', 'value'))
+            ->toBe(['configured' => 'connection_mysql', 'ok' => 'connection_mysql', 'failed' => 'connection_mysql_failed'])
             ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config'])
             ->toBe('OpenSim.ini')
             ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config_failed'])
             ->toBe('OpenSim.ini unreadable')
+            // The thing as it is named, the same in every language
+            ->and(array_unique(array_map(
+                static fn(string $locale): string => OpenSim\I18n\Catalog::messages($locale)['connection_regions'] ?? '',
+                ['en_US', 'cy_GB', 'de_DE', 'fr_FR', 'it_IT', 'nl_NL', 'pt_BR'],
+            )))
+            ->toBe(['Regions .ini'])
             ->and(array_column($listing->columns, 'name'))
             ->not->toContain('enabled', 'running')
             // An instance of this machine only is started or stopped
@@ -68,10 +74,28 @@ describe('The ways the engine reaches a simulator', function () {
         $alone->probe();
 
         expect($listed->connections())
-            ->toBe(['console' => 'configured', 'screen' => 'none', 'config' => 'configured', 'regions' => 'configured', 'database' => 'none'])
+            ->toBe(['console' => 'configured', 'screen' => 'none', 'config' => 'configured', 'regions' => 'configured', 'mysql' => 'none', 'sqlite' => 'none'])
             // Nothing listens at its console in a test, its files are there
             ->and($alone->connections())
-            ->toBe(['console' => 'failed', 'screen' => 'none', 'config' => 'ok', 'regions' => 'ok', 'database' => 'none']);
+            ->toBe(['console' => 'failed', 'screen' => 'none', 'config' => 'ok', 'regions' => 'ok', 'mysql' => 'none', 'sqlite' => 'none']);
+    });
+
+    test('name its database by what it is: MySQL, or SQLite, a file read and never made by trying it', function () {
+        $machine = new Machine();
+        $file = $machine->root . '/data/beta.db';
+        $ini = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/beta.ini';
+        file_put_contents($ini, (string) file_get_contents($ini) . "\n[DatabaseService]\nStorageProvider = \"OpenSim.Data.SQLite.dll\"\nConnectionString = \"URI=file:$file,version=3\"\n");
+        $beta = Simulator::find($machine->environment, 'beta');
+        $beta->probe();
+        $missing = array_intersect_key($beta->connections(), ['mysql' => 1, 'sqlite' => 1]);
+        touch($file);
+
+        expect($missing)
+            ->toBe(['mysql' => 'none', 'sqlite' => 'failed'])
+            ->and(is_file($file))
+            ->toBeTrue()
+            ->and($beta->connections()['sqlite'])
+            ->toBe('ok');
     });
 
     test('are tried by the API for one simulator, not for the list', function () {

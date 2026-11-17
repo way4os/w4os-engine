@@ -28,13 +28,13 @@ final class Simulator extends InstalledModel
     use HasName;
 
     /** The icon of each way to it in the list (Listing::ICONS). */
-    private const ICONS = ['console' => 'console', 'screen' => 'screen', 'config' => 'file', 'regions' => 'files', 'database' => 'database'];
+    private const ICONS = ['console' => 'console', 'screen' => 'screen', 'config' => 'file', 'regions' => 'files', 'mysql' => 'database', 'sqlite' => 'database'];
 
     /** The rule of the name of a simulator: letters, digits, space and hyphen, no dot. */
     private const NAME = ['punctuation' => '-'];
 
     /** The ways the engine reaches a simulator, in the order a site shows them (connections()). */
-    public const CONNECTIONS = ['console', 'screen', 'config', 'regions', 'database'];
+    public const CONNECTIONS = ['console', 'screen', 'config', 'regions', 'mysql', 'sqlite'];
 
     /** The states of a way: none (the engine has no such way to it), configured (named, not tried), ok, failed (tried, not reached). */
     public const CONNECTION_STATES = ['none', 'configured', 'ok', 'failed'];
@@ -79,8 +79,8 @@ final class Simulator extends InstalledModel
 
     /**
      * The ways the engine reaches it (CONNECTIONS), each in a state of CONNECTION_STATES: `console` its REST console, `screen` the
-     * screen session it runs in, `config` its ini, `regions` the files of its regions, `database` its database (the config of the
-     * Robust is the grid's). Configured unless probe() asked to try them.
+     * screen session it runs in, `config` its ini, `regions` the files of its regions, `mysql` or `sqlite` its database (the config
+     * of the Robust is the grid's). Configured unless probe() asked to try them.
      *
      * @return array<string,string>
      */
@@ -96,13 +96,16 @@ final class Simulator extends InstalledModel
         $console = $this->remoteConsole();
         $regions = $this->regionsDirectory();
         $database = $this->database();
+        $sqlite = $database?->driver === 'sqlite';
 
         return [
             'console' => $state($console !== null, fn(): bool => self::listens((string) ($this->consoleHost() ?: '127.0.0.1'), (int) $console['port'])),
             'screen' => $state($console === null, fn(): bool => $this->isRunning()),
             'config' => $state(is_file($this->ini()), fn(): bool => is_readable($this->ini())),
             'regions' => $state($regions !== '' && is_dir($regions), fn(): bool => is_readable($regions) && $this->hasRegion()),
-            'database' => $state($database !== null, fn(): bool => self::reaches($database)),
+            'mysql' => $state($database !== null && !$sqlite, fn(): bool => self::reaches($database)),
+            // A file: read, never made by trying it
+            'sqlite' => $state($sqlite, fn(): bool => is_readable((string) $database?->database)),
         ];
     }
 
@@ -121,15 +124,13 @@ final class Simulator extends InstalledModel
         return $socket !== false;
     }
 
-    /** Whether a database answers with the credentials of a connection string. */
+    /** Whether a MySQL database answers with the credentials of a connection string. */
     private static function reaches(?\OpenSim\Config\ConnectionString $connection): bool
     {
         if ($connection === null) {
             return false;
         }
-        $pdo = new \OpenSim\Data\OSPDO($connection->driver === 'sqlite'
-            ? ['driver' => 'sqlite', 'name' => $connection->database, 'log' => false]
-            : ['host' => $connection->source, 'name' => $connection->database, 'user' => $connection->user, 'pass' => $connection->password, 'log' => false]);
+        $pdo = new \OpenSim\Data\OSPDO(['host' => $connection->source, 'name' => $connection->database, 'user' => $connection->user, 'pass' => $connection->password, 'log' => false]);
 
         return $pdo->connected;
     }

@@ -80,7 +80,7 @@ final class Contract
             'scope' => 'machine',
             'summary' => 'The simulators of this machine, and the ones of other machines that run regions of its grids',
             'description' =>
-                'A simulator is identified by its address (host:port); its slug has its grid (`vonda.welcome`). A simulator of another machine that runs regions of a grid of this one (registered with its Robust) is listed too, `local` false: known by its address only, running while one of its regions is online, every way to it `none`. `connections` says how the engine reaches a simulator (`console`, `screen`, `config`, `regions`, `database`; the config of the Robust belongs to the grid), each `none`, `configured` (in a list: named in its config, not tried), `ok` or `failed` (alone: tried).',
+                'A simulator is identified by its address (host:port); its slug has its grid (`vonda.welcome`). A simulator of another machine that runs regions of a grid of this one (registered with its Robust) is listed too, `local` false: known by its address only, running while one of its regions is online, every way to it `none`. `connections` says how the engine reaches a simulator (`console`, `screen`, `config`, `regions`, `mysql` or `sqlite`; the config of the Robust belongs to the grid), each `none`, `configured` (in a list: named in its config, not tried), `ok` or `failed` (alone: tried).',
             'attributes' => [
                 'uri' => ['string', 'Its address, host:port of its HTTP port: what identifies it'],
                 'name' => ['string', 'The name shown'],
@@ -91,7 +91,7 @@ final class Contract
                 'enabled' => ['boolean?', 'Its link is there; unknown for a simulator of another machine'],
                 'running' => ['boolean', 'Its process is running; for a simulator of another machine, one of its regions is online'],
                 'local' => ['boolean', 'It runs on this machine, from a config of one of its grids'],
-                'connections' => ['object', 'How the engine reaches it: console, screen, config, regions, database, each none, configured, ok or failed'],
+                'connections' => ['object', 'How the engine reaches it: console, screen, config, regions, mysql, sqlite, each none, configured, ok or failed'],
                 'httpPort' => ['integer', 'Its HTTP port, the first of its block of ten'],
                 'consolePort' => ['integer?', 'The port of its console (x4 of the block)'],
                 'console' => ['string?', 'How its console is reached: rest or screen'],

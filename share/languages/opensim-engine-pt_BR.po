@@ -562,20 +562,28 @@ msgid "OpenSim.ini unreadable"
 msgstr "OpenSim.ini ilegível"
 
 msgctxt "connection_regions"
-msgid "Region files"
-msgstr "Arquivos das regiões"
+msgid "Regions .ini"
+msgstr "Regions .ini"
 
 msgctxt "connection_regions_failed"
-msgid "Region files unreadable"
-msgstr "Arquivos das regiões ilegíveis"
+msgid "Regions .ini unreadable"
+msgstr "Regions .ini ilegíveis"
 
-msgctxt "connection_database"
-msgid "Database"
-msgstr "Banco de dados"
+msgctxt "connection_mysql"
+msgid "MySQL"
+msgstr "MySQL"
 
-msgctxt "connection_database_failed"
-msgid "Database unreachable"
-msgstr "Banco de dados inacessível"
+msgctxt "connection_mysql_failed"
+msgid "MySQL unreachable"
+msgstr "MySQL inacessível"
+
+msgctxt "connection_sqlite"
+msgid "SQLite"
+msgstr "SQLite"
+
+msgctxt "connection_sqlite_failed"
+msgid "SQLite unreadable"
+msgstr "SQLite ilegível"
 
 msgctxt "menu_admin"
 msgid "Admin"
@@ -1545,6 +1553,22 @@ msgid ""
 msgstr ""
 "O cadastro foi mantido, mas a mensagem para {email} não pôde ser enviada: "
 "peça de novo mais tarde."
+
+#~ msgctxt "connection_regions"
+#~ msgid "Region files"
+#~ msgstr "Arquivos das regiões"
+
+#~ msgctxt "connection_regions_failed"
+#~ msgid "Region files unreadable"
+#~ msgstr "Arquivos das regiões ilegíveis"
+
+#~ msgctxt "connection_database"
+#~ msgid "Database"
+#~ msgstr "Banco de dados"
+
+#~ msgctxt "connection_database_failed"
+#~ msgid "Database unreachable"
+#~ msgstr "Banco de dados inacessível"
 
 #~ msgctxt "state_configured"
 #~ msgid "Configured"
