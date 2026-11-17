@@ -909,6 +909,29 @@ final class Api
     }
 
     /**
+     * The options of the grid its simulators miss in their files, `mode` plan (the default) or apply (GridOptions::repair()).
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function repairOptions(string $grid, array $attributes): Response
+    {
+        $instance = self::path('grids', $grid, null) . '/options/repair';
+        try {
+            $mode = (string) ($attributes['mode'] ?? 'plan');
+            in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
+            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $repair = (new \OpenSim\Provisioning\GridOptions($found))->repair($mode === 'apply');
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document([
+            'data' => ['type' => 'repairs', 'id' => $grid, 'attributes' => ['mode' => $mode] + $repair],
+            'links' => ['self' => $instance],
+        ]);
+    }
+
+    /**
      * Write a post on the profile of an avatar (its stream), as the avatar or a manager: `content`, plain text of Posts::MAX
      * characters at most (`post-invalid`).
      *
@@ -1294,6 +1317,23 @@ final class Api
                     Health::writable('tasks', $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot()),
                 ],
             ];
+            // The options of the grid each simulator of this machine has in its files (profiles, groups...)
+            $options = new \OpenSim\Provisioning\GridOptions($found);
+            $groups[] = ['file' => 'options', 'title' => '', 'rows' => array_map(
+                static function ($simulator) use ($options): array {
+                    $missing = $options->missingIn($simulator->settings());
+
+                    return [
+                        'label' => $simulator->slug(),
+                        'url' => '',
+                        'text' => $missing === [] ? '' : implode(', ', $missing),
+                        'level' => $missing === [] ? 'ok' : 'error',
+                        'status' => $missing === [] ? _('OK') : _('missing'),
+                        'ms' => null,
+                    ];
+                },
+                $found->simulators(),
+            )];
             $files = Health::files($config?->files() ?? []);
             $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
         } catch (\Throwable $error) {

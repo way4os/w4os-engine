@@ -659,3 +659,43 @@ describe('The options a grid has by default', function () {
             ->toBe([]);
     });
 });
+
+describe('The repair of the options', function () {
+    test('says the options of its grid each simulator misses, then lays them in their files, through the API too', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $plan = (new OpenSim\Provisioning\GridOptions($grid))->repair(false);
+        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        $asked = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'repairs', 'attributes' => []]]);
+        $applied = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'repairs', 'attributes' => ['mode' => 'apply']]]);
+        $after = (new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo')))->repair(false);
+        $alpha = (string) file_get_contents(OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini');
+
+        expect($plan['simulators']['alpha'] ?? [])
+            ->toContain('profiles', 'groups-hypergrid')
+            ->and($asked->document['data']['attributes']['simulators']['alpha'] ?? [])
+            ->toContain('profiles')
+            ->and($applied->document['data']['attributes']['applied'] ?? [])
+            ->toContain('profiles', 'groups-hypergrid')
+            ->and($after['simulators'])
+            ->toBe([])
+            ->and($alpha)
+            ->toContain('[UserProfiles]', '[Groups]');
+    });
+});
+
+describe('An option enabled on a grid that runs elsewhere', function () {
+    test('is written in the files of its simulators here, what its Robust must carry only said', function () {
+        $machine = master_machine();
+        $grid = $machine->etc . '/grids/far';
+        $machine->write("$grid/far.conf", "[Grid]\nRemote = true\nGridName = \"Far\"\nBaseHostname = far.example.org\nPublicPort = 8002\nPrivatePort = 8003\nHypergrid = true\nCoreDirectory = {$machine->core}\n");
+        $sims = OpenSim\Config\GridConfig::simulatorsDirectory($grid);
+        $machine->write("$sims/far.one.ini", "[Network]\n    http_listener_port = 9200\n");
+        $result = (new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::at($machine->environment, $grid)))->enable('groups');
+
+        expect([$result['error'], $result['robust']])
+            ->toBe([null, false])
+            ->and((string) file_get_contents("$sims/far.one.ini"))
+            ->toContain('[Groups]', 'Enabled = true');
+    });
+});

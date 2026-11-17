@@ -104,6 +104,36 @@ final class Endpoints
                 ],
             ],
         ];
+        $paths['/grids/{grid}/options/repair']['post'] = [
+            'operationId' => 'repairOptions',
+            'tags' => ['Setup'],
+            'summary' => 'Repair the options of the simulators',
+            'description' => 'The options of the grid (the profiles, the groups...: the ones on by default when the grid says none) its simulators of this machine miss in their files, made before an option became a preset or by an older engine. `mode` `plan` (the default) says them by simulator (`simulators`), `apply` lays them again (`applied`, as `opensim enable` does: the simulators read them when they start; what Robust must carry is in `notes`). The health of the grid says them too (`options`).',
+            'parameters' => [Contract::gridParameter()],
+            'requestBody' => [
+                'required' => false,
+                'content' => [
+                    Response::JSON_API => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'type' => ['const' => 'repairs'],
+                                        'attributes' => ['type' => 'object', 'properties' => ['mode' => ['type' => 'string', 'enum' => ['plan', 'apply']]]],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'responses' => [
+                '200' => ['description' => 'The options missed by simulator, the ones laid again, what is left to do'],
+                '404' => Contract::problem('The grid is not known here'),
+            ],
+        ];
         $paths['/grids/{grid}/addresses']['get'] = [
             'operationId' => 'getAddresses',
             'tags' => ['Addresses'],

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- update (options): an option enabled or disabled by its group too (`groups`: the one the grid has, else the one by default), as the command line does
+- feature (options): the repair of the options of the simulators (`POST /grids/{grid}/options/repair`, `mode` plan then apply: the options of the grid each simulator misses in its files, laid again as `opensim enable` does), and the health of the grid says them (`options`)
 - fix (simulators): every simulator has the options of its grid (the profiles, the groups...), whatever the grid is: the master of the simulators holds them, under what the grid or its preset decided, so that a grid joined by a preset or run elsewhere has them too, and a simulator made before gets them when it starts; `missingOptions` says the ones a simulator does not have
 - fix (guide): a grid without a region linked to the grid (`secondlife://host:port`, no `%20`), a region of a grid without its port at 8002 (`host:Region`), a region alone without the local format linked without a warning; the lines of the boards (`format=list`) keep the place in its own column and their layout hints; a source read when it is text, 1 MB at most, in UTF-8 (`Http::text()`); the rule of the default destinations written down
 - feature (estates): an estate made (`POST /grids/{grid}/estates`: name, owner, simulator) and a region put in another estate (`estate` of a region), by the console of the simulator when it runs (`estate create`, `estate link region`), else in the database with the settings OpenSimulator gives a new estate

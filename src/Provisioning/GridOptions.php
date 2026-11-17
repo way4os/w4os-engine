@@ -260,6 +260,31 @@ final class GridOptions
     }
 
     /**
+     * The options of the grid its simulators of this machine miss in their files (a simulator made before an option became a
+     * preset, or by an older engine): planned, then laid again with `$apply` (enable(), which sets what is there in place).
+     *
+     * @return array{simulators:array<string,list<string>>,applied:list<string>,notes:list<string>} the options each simulator
+     *         misses (none: nothing to repair), the ones laid again, what is left to do (Robust, a restart)
+     */
+    public function repair(bool $apply): array
+    {
+        $missing = [];
+        foreach ($this->grid->simulators() as $simulator) {
+            $lacks = $this->missingIn($simulator->settings());
+            $lacks === [] || ($missing[$simulator->slug()] = $lacks);
+        }
+        $applied = [];
+        $notes = [];
+        foreach ($apply ? array_values(array_unique(array_merge(...array_values($missing ?: [[]])))) : [] as $name) {
+            $result = $this->enable($name);
+            $result['error'] === null && ($applied[] = $name);
+            array_push($notes, ...$result['notes'], ...($result['error'] === null ? [] : ["$name: {$result['error']}"]));
+        }
+
+        return ['simulators' => $missing, 'applied' => $applied, 'notes' => array_values(array_unique($notes))];
+    }
+
+    /**
      * Enable an option of the grid.
      *
      * @param  array{prefix?:string} $params the address of the services of the helpers (`<prefix>/query.php`) for an option that
@@ -269,7 +294,8 @@ final class GridOptions
     public function enable(string $name, array $params = []): array
     {
         $result = self::RESULT;
-        $option = $this->template($name);
+        // An option by its name, or by its group (groups: the one the grid has, else the one by default)
+        $option = $this->template($name) ?? $this->resolve($name);
         $prefix = rtrim(trim($params['prefix'] ?? ''), '/');
         if ($option === null) {
             $result['error'] = "unknown option '$name' (" . implode(', ', array_keys($this->templates())) . ')';
@@ -315,7 +341,7 @@ final class GridOptions
     public function disable(string $name): array
     {
         $result = self::RESULT;
-        $option = $this->template($name);
+        $option = $this->template($name) ?? $this->resolve($name);
         if ($option === null) {
             $result['error'] = "unknown option '$name' (" . implode(', ', array_keys($this->templates())) . ')';
 
