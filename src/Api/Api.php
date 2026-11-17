@@ -1669,8 +1669,8 @@ final class Api
     {
         $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
         $resources = [];
-        foreach ($found->destinations(($this->config)($found)) as $category => $destinations) {
-            foreach ($destinations as $destination) {
+        foreach ($found->guide(($this->config)($found)) as $category => $section) {
+            foreach ($section['destinations'] as $destination) {
                 $id = $base = Slug::slug("$category " . $destination['name']);
                 for ($n = 2; isset($resources[$id]); $n++) {
                     $id = "$base-$n";
@@ -1682,6 +1682,9 @@ final class Api
                         'name' => $destination['name'],
                         'category' => (string) $category,
                         'url' => $destination['url'],
+                        // The pictures the engine finds, as asset UUIDs: of its parcel, of the first of its section that has one
+                        'picture' => $destination['picture'],
+                        'sectionPicture' => $section['picture'],
                     ],
                     'links' => ['self' => self::path('destinations', $id, $grid)],
                 ];

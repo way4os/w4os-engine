@@ -900,6 +900,21 @@ final class Grid extends InstalledModel
         ))->lists();
     }
 
+    /**
+     * The guide of the grid with its pictures, the engine's to find (DestinationPictures): each section with the picture of its first
+     * destination that has one, each destination with the picture of its parcel; null where none is known (a site shows its
+     * placeholder).
+     *
+     * @return array<string,array{picture:?string,destinations:list<array{name:string,url:string,picture:?string}>}>
+     */
+    public function guide(?GridConfig $config = null): array
+    {
+        $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
+        $search = $config === null ? null : Connections::pdo($config, Database::Search);
+
+        return (new \OpenSim\Services\DestinationPictures($search, (string) $this->loginUrl()))->of($this->destinations($config));
+    }
+
     /** The address of the logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini). */
     public function logoUrl(): ?string
     {

@@ -145,3 +145,29 @@ describe('The sections of a guide', function () {
             ->toBe($text);
     });
 });
+
+describe('The pictures of a guide', function () {
+    test('are the pictures of the parcels of the destinations, by their name, else their landing point, else the only one of the region', function () {
+        $search = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $search->exec('CREATE TABLE regionsregister (regionname VARCHAR(255), regionUUID CHAR(36) PRIMARY KEY, regionhandle VARCHAR(255), url VARCHAR(255), owner VARCHAR(255), owneruuid CHAR(36), gatekeeperURL VARCHAR(255))');
+        $search->exec('CREATE TABLE parcels (parcelUUID CHAR(36), regionUUID CHAR(36), parcelname VARCHAR(255), landingpoint VARCHAR(255), gatekeeperURL VARCHAR(255), imageUUID CHAR(36))');
+        $search->exec("INSERT INTO regionsregister (regionname, regionUUID, gatekeeperURL) VALUES ('Welcome', 'r1', 'http://grid.example.org:8002'), ('Far', 'r2', 'http://far.example.net:8002')");
+        $search->exec("INSERT INTO parcels VALUES ('p1', 'r1', 'Garden', '128/128/25', 'http://grid.example.org:8002', 'aaaaaaaa-0000-0000-0000-000000000001'), ('p2', 'r1', 'Plaza', '10/10/25', 'http://grid.example.org:8002', 'aaaaaaaa-0000-0000-0000-000000000002'), ('p3', 'r2', 'Far away', '1/1/1', 'http://far.example.net:8002/', 'bbbbbbbb-0000-0000-0000-000000000003')");
+        $pictures = new OpenSim\Services\DestinationPictures($search, 'http://grid.example.org:8002');
+        $sections = $pictures->of([
+            'Visit' => [
+                ['name' => 'Nowhere', 'url' => 'grid.example.org:8002/Unknown'],
+                ['name' => 'Garden', 'url' => 'grid.example.org:8002/Welcome'],
+                ['name' => 'By its landing', 'url' => 'grid.example.org:8002/Welcome/10/10/25'],
+                ['name' => 'Hypergrid', 'url' => 'far.example.net:8002/Far'],
+            ],
+            'Empty' => [['name' => 'Nowhere', 'url' => 'grid.example.org:8002/Unknown']],
+        ]);
+
+        expect(array_column($sections['Visit']['destinations'], 'picture', 'name'))
+            ->toBe(['Nowhere' => null, 'Garden' => 'aaaaaaaa-0000-0000-0000-000000000001', 'By its landing' => 'aaaaaaaa-0000-0000-0000-000000000002', 'Hypergrid' => 'bbbbbbbb-0000-0000-0000-000000000003'])
+            // The picture of a section: the first of its destinations that has one
+            ->and([$sections['Visit']['picture'], $sections['Empty']['picture']])
+            ->toBe(['aaaaaaaa-0000-0000-0000-000000000001', null]);
+    });
+});

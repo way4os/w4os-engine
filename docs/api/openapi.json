@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "7f591d0",
+        "version": "799e711",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -12497,6 +12497,20 @@
                             "url": {
                                 "type": "string",
                                 "description": "The region address it leads to, as the source gives it (grid and region, with the place when there is one)"
+                            },
+                            "picture": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The picture of its parcel (an asset UUID), as the search knows it: by the name of the destination, else its landing point, else the only parcel of its region; null when none is known"
+                            },
+                            "sectionPicture": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The picture of its section (`category`): the first of its destinations that has one; null when none has (the site shows its placeholder)"
                             }
                         }
                     },

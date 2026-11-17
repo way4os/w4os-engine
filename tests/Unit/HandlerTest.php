@@ -296,7 +296,8 @@ describe('The API handler, for the pages of a grid', function () {
         expect(array_column($list['data'], 'id'))
             ->toBe(['destinations-guide-welcome', 'gardens-rose-garden', 'gardens-welcome'])
             ->and($list['data'][1]['attributes'])
-            ->toBe(['name' => 'Rose garden', 'category' => 'Gardens', 'url' => 'grid.example.org:8002/Roses/128/64/30'])
+            // No search here: no picture is known
+            ->toBe(['name' => 'Rose garden', 'category' => 'Gardens', 'url' => 'grid.example.org:8002/Roses/128/64/30', 'picture' => null, 'sectionPicture' => null])
             ->and($list['meta']['categories'])
             ->toBe(['Destinations Guide', 'Gardens'])
             ->and($list['data'][1]['links']['self'])
