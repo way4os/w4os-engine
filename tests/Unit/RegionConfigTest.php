@@ -61,6 +61,9 @@ describe('regions of a simulator', function () {
                 ->toBe(['Plaza' => 'Alpha', 'Welcome' => '10.0.0.2:9010'])
                 ->and(array_column($all->array(), 'server', 'name'))
                 ->toBe(['Plaza' => '10.0.0.1:9000', 'Welcome' => '10.0.0.2:9010'])
+                // In the list too, a region whose file is here says whether it is enabled: the status column shows it
+                ->and(array_map(static fn(array $row): array => [$row['local'], $row['enabled']], array_column($all->array(), null, 'name')))
+                ->toBe(['Plaza' => [true, true], 'Welcome' => [false, null]])
                 // One region alone is named as in the list
                 ->and([Region::find($config, 'Plaza')->detail()['serverName'], Region::find($config, 'Welcome')->detail()['serverName']])
                 ->toBe(['Alpha', '10.0.0.2:9010'])

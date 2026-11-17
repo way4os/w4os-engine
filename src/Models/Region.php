@@ -995,7 +995,7 @@ final class Region extends Model
         }
         $rows = self::withServerNames(self::withOwnerNames($config, $pdo->get_results($sql, $params, \PDO::FETCH_ASSOC)), $servers);
 
-        return new Collection(array_map(static fn(array $row): self => new self($config, $row), $rows), [
+        return new Collection(self::withFiles($config, array_map(static fn(array $row): self => new self($config, $row), $rows)), [
             'total' => $total,
             'page' => $page,
             'perPage' => $perPage,
@@ -1026,6 +1026,25 @@ final class Region extends Model
             ],
             'applied' => $applied,
         ]);
+    }
+
+    /**
+     * The regions of the grid with what their files say, for the ones on this machine: their simulator, whether they are enabled.
+     *
+     * @param list<self> $regions
+     * @return list<self>
+     */
+    private static function withFiles(GridConfig $config, array $regions): array
+    {
+        $files = [];
+        foreach (static::configured($config) as $local) {
+            $local->uuid() === null || ($files[$local->uuid()] ??= $local->local);
+        }
+        foreach ($regions as $region) {
+            isset($files[(string) $region->uuid()]) && ($region->local = $files[(string) $region->uuid()]);
+        }
+
+        return $regions;
     }
 
     /** The simulator an address of the regions table is (http://host:port/): host:port, null for none. */
@@ -1162,15 +1181,7 @@ final class Region extends Model
         if (!isset($rows[0])) {
             return null;
         }
-        $region = new self($config, $rows[0]);
-        // What its file says, when it is on this machine: its simulator, whether it is enabled
-        foreach (static::configured($config) as $local) {
-            if ($local->uuid() !== null && $local->uuid() === $region->uuid()) {
-                $region->local = $local->local;
-
-                break;
-            }
-        }
+        [$region] = self::withFiles($config, [new self($config, $rows[0])]);
 
         return $region;
     }
