@@ -327,6 +327,9 @@ final class Listing
         foreach ($this->columns as $column) {
             $values = $column['values'] ?? [];
             array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'));
+            foreach ($column['indicators'] ?? [] as $indicator) {
+                array_push($keys, $indicator['label'], ...array_column($indicator['states'], 'label'));
+            }
         }
         foreach ($this->filters as $filter) {
             array_push(

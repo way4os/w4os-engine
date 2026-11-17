@@ -1465,14 +1465,16 @@ final class Avatar extends Model
             Listing::column('name', 'avatar_name', sort: 'name', more: [
                 'picture' => 'profileImage',
                 'default' => 'person',
-                'tag' => 'online',
-                'tagLabel' => 'online',
             ]),
             Listing::column('email', 'email', 'email', 'email'),
             Listing::column('role', 'role', 'role', 'level'),
             Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
             Listing::column('created', 'created', 'date', 'created'),
-            Listing::column('status', 'status', 'status', 'active'),
+            // The account, the button that enables or disables it, and the presence in the world
+            Listing::column('status', 'status', 'indicators', 'active', ['indicators' => [
+                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'neutral'], ['disabled', 'status_disabled', 'off']], ['enable', 'disable']),
+                Listing::indicator('online', 'online', 'presence', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
+            ]]),
         ];
         $statuses = array_combine(self::STATUSES, array_map(Catalog::statusKey(...), self::STATUSES));
         $roles = array_combine(array_keys(self::ROLES), array_map(Catalog::roleKey(...), array_keys(self::ROLES)));

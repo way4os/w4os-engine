@@ -534,8 +534,6 @@ describe('The contract', function () {
                 'sort' => 'name',
                 'picture' => 'profileImage',
                 'default' => 'person',
-                'tag' => 'online',
-                'tagLabel' => 'online',
             ])
             ->and(array_column($avatars['x-list']['columns'], 'type', 'name'))
             ->toBe([
@@ -544,8 +542,19 @@ describe('The contract', function () {
                 'role' => 'role',
                 'lastSeen' => 'date',
                 'created' => 'date',
-                'status' => 'status',
+                'status' => 'indicators',
             ])
+            // The account, the button that enables or disables it, and the presence in the world
+            ->and(array_map(
+                static fn(array $indicator): array => [$indicator['name'], $indicator['icon'], array_column($indicator['states'], 'tone', 'label'), $indicator['actions'] ?? []],
+                $avatars['x-list']['columns'][5]['indicators'],
+            ))
+            ->toBe([
+                ['status', 'account', ['status_active' => 'ok', 'status_pending' => 'neutral', 'status_disabled' => 'off'], ['enable', 'disable']],
+                ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
+            ])
+            ->and($avatars['x-list']['columns'][5]['sort'])
+            ->toBe('active')
             ->and($avatars['x-list']['sort'])
             ->toBe([
                 'default' => '-created',

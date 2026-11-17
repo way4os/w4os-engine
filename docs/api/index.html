@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "69dd8a1",
+        "version": "3ba7384",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -2064,9 +2064,7 @@
                             "type": "text",
                             "sort": "name",
                             "picture": "profileImage",
-                            "default": "person",
-                            "tag": "online",
-                            "tagLabel": "online"
+                            "default": "person"
                         },
                         {
                             "name": "email",
@@ -2095,8 +2093,53 @@
                         {
                             "name": "status",
                             "label": "status",
-                            "type": "status",
-                            "sort": "active"
+                            "type": "indicators",
+                            "sort": "active",
+                            "indicators": [
+                                {
+                                    "name": "status",
+                                    "icon": "account",
+                                    "label": "status",
+                                    "states": [
+                                        {
+                                            "value": "active",
+                                            "label": "status_active",
+                                            "tone": "ok"
+                                        },
+                                        {
+                                            "value": "pending",
+                                            "label": "status_pending",
+                                            "tone": "neutral"
+                                        },
+                                        {
+                                            "value": "disabled",
+                                            "label": "status_disabled",
+                                            "tone": "off"
+                                        }
+                                    ],
+                                    "actions": [
+                                        "enable",
+                                        "disable"
+                                    ]
+                                },
+                                {
+                                    "name": "online",
+                                    "icon": "online",
+                                    "label": "presence",
+                                    "states": [
+                                        {
+                                            "value": true,
+                                            "label": "online",
+                                            "tone": "ok"
+                                        },
+                                        {
+                                            "value": false,
+                                            "label": "offline",
+                                            "tone": "off"
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ],
                     "sort": {
@@ -3483,9 +3526,49 @@
                             ]
                         },
                         {
-                            "name": "online",
-                            "label": "online",
-                            "type": "boolean"
+                            "name": "status",
+                            "label": "column_status",
+                            "type": "indicators",
+                            "indicators": [
+                                {
+                                    "name": "enabled",
+                                    "icon": "power",
+                                    "label": "column_enabled",
+                                    "states": [
+                                        {
+                                            "value": true,
+                                            "label": "state_enabled",
+                                            "tone": "ok"
+                                        },
+                                        {
+                                            "value": false,
+                                            "label": "state_disabled",
+                                            "tone": "off"
+                                        }
+                                    ],
+                                    "actions": [
+                                        "enable",
+                                        "disable"
+                                    ]
+                                },
+                                {
+                                    "name": "online",
+                                    "icon": "online",
+                                    "label": "online",
+                                    "states": [
+                                        {
+                                            "value": true,
+                                            "label": "online",
+                                            "tone": "ok"
+                                        },
+                                        {
+                                            "value": false,
+                                            "label": "offline",
+                                            "tone": "off"
+                                        }
+                                    ]
+                                }
+                            ]
                         },
                         {
                             "name": "lastSeen",

@@ -302,7 +302,7 @@ describe('Regions', function () {
                 'ownerName' => 'link',
                 'serverName' => 'text',
                 'flagNames' => 'list',
-                'online' => 'boolean',
+                'status' => 'indicators',
                 'lastSeen' => 'date',
                 'uri' => 'link',
             ])
@@ -346,6 +346,19 @@ describe('Regions', function () {
             ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid'])
             ->and(array_column($listing->actions, 'body', 'name'))
             ->toBe(['enable' => ['enabled' => true], 'disable' => ['enabled' => false]])
+            // Enabled, the button that changes it where its file is, then online, in one column
+            ->and(array_map(
+                static fn(array $indicator): array => [$indicator['name'], $indicator['icon'], array_column($indicator['states'], 'tone', 'label'), $indicator['actions'] ?? []],
+                $listing->columns[6]['indicators'],
+            ))
+            ->toBe([
+                ['enabled', 'power', ['state_enabled' => 'ok', 'state_disabled' => 'off'], ['enable', 'disable']],
+                ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
+            ])
+            ->and(array_column($listing->columns, 'name'))
+            ->not->toContain('online')
+            ->and($listing->keys())
+            ->toContain('state_enabled', 'offline')
             ->and(array_diff($listing->keys(), array_keys(\OpenSim\I18n\Catalog::MESSAGES)))
             ->toBe([])
             ->and(array_column(Region::columns(), 'label', 'name')['name'])
