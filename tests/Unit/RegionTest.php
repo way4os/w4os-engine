@@ -318,8 +318,8 @@ describe('Regions', function () {
                 'name' => 'status',
                 'label' => 'status',
                 'values' => [
-                    ['value' => 'online', 'label' => 'region_status_online'],
-                    ['value' => 'offline', 'label' => 'region_status_offline'],
+                    ['value' => 'online', 'label' => 'online'],
+                    ['value' => 'offline', 'label' => 'offline'],
                 ],
             ])
             ->and($listing->filters[1]['label'])

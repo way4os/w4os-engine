@@ -297,9 +297,9 @@ describe('avatars', function () {
             ->toBe(['Ada Love', 'Bob Root'])
             ->and($names(['active' => 'no']))
             ->toBe(['Cy Gone'])
-            ->and($names(['online' => 'yes']))
+            ->and($names(['online' => 'online']))
             ->toBe(['Ada Love'])
-            ->and($names(['online' => 'no']))
+            ->and($names(['online' => 'offline']))
             ->toBe(['Bob Root', 'Cy Gone'])
             ->and($names(['god' => 'yes']))
             ->toBe(['Bob Root'])
@@ -311,8 +311,10 @@ describe('avatars', function () {
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and($names(['god' => '']))
             ->toBe(['Ada Love', 'Bob Root', 'Cy Gone'])
-            ->and(Avatar::all($config, ['filters' => ['online' => 'yes']])->applied())
-            ->toBe(['online' => 'yes']);
+            ->and(Avatar::all($config, ['filters' => ['online' => 'online']])->applied())
+            ->toBe(['online' => 'online'])
+            ->and(fn() => $names(['online' => 'yes']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'));
     });
 
     test('have the role of their level, as w4os names it, and are filtered and sorted by it', function () {
@@ -397,7 +399,7 @@ describe('avatars', function () {
             ->and($list->columns()[0]['label'])
             ->toBe('Avatar Name')
             ->and(array_keys($list->filters()))
-            ->toBe(['status', 'role', 'online', 'published', 'email', 'model', 'technical', 'god', 'active']);
+            ->toBe(['status', 'online', 'role', 'published', 'email', 'model', 'technical', 'god', 'active']);
     });
 
     test('are found by their UUID or their name', function () {
@@ -467,7 +469,7 @@ describe('What a list of avatars offers', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
                 'sortable' => ['name', 'email', 'level', 'lastSeen', 'created', 'active', 'online'],
-                'filters' => ['status', 'role', 'online', 'published', 'email', 'model', 'technical', 'god', 'active'],
+                'filters' => ['status', 'online', 'role', 'published', 'email', 'model', 'technical', 'god', 'active'],
             ])
             ->and(
                 Avatar::capabilities(
@@ -1037,7 +1039,7 @@ describe('avatars of a grid whose services have their own databases', function (
         // The visits are in another database: neither sorted nor filtered on, and said so
         expect(fn() => Avatar::all($config, ['sort' => 'lastSeen desc']))
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
-            ->and(fn() => Avatar::all($config, ['filters' => ['online' => 'yes']]))
+            ->and(fn() => Avatar::all($config, ['filters' => ['online' => 'online']]))
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'))
             ->and($list->sort())
             ->toBe('name asc')

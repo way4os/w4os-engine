@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: a296512
+  version: 79c889d
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -1102,6 +1102,14 @@ paths:
               - disabled
               - pending
         -
+          name: 'filter[online]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - online
+              - offline
+        -
           name: 'filter[role]'
           in: query
           schema:
@@ -1112,14 +1120,6 @@ paths:
               - customer-service
               - liaison
               - god
-        -
-          name: 'filter[online]'
-          in: query
-          schema:
-            type: string
-            enum:
-              - 'yes'
-              - 'no'
         -
           name: 'filter[published]'
           in: query
@@ -1265,6 +1265,16 @@ paths:
                 value: pending
                 label: status_pending
           -
+            name: online
+            label: presence
+            values:
+              -
+                value: online
+                label: online
+              -
+                value: offline
+                label: offline
+          -
             name: role
             label: role
             values:
@@ -1283,16 +1293,6 @@ paths:
               -
                 value: god
                 label: role_god
-          -
-            name: online
-            label: online
-            values:
-              -
-                value: 'yes'
-                label: 'yes'
-              -
-                value: 'no'
-                label: 'no'
           -
             name: published
             label: show_in_search
@@ -2099,10 +2099,10 @@ paths:
             values:
               -
                 value: online
-                label: region_status_online
+                label: online
               -
                 value: offline
-                label: region_status_offline
+                label: offline
           -
             name: flags
             label: column_flags

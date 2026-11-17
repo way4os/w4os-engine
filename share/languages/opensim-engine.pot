@@ -644,12 +644,12 @@ msgctxt "column_flags"
 msgid "Flags"
 msgstr ""
 
-msgctxt "region_status_online"
-msgid "Online"
+msgctxt "offline"
+msgid "Offline"
 msgstr ""
 
-msgctxt "region_status_offline"
-msgid "Offline"
+msgctxt "presence"
+msgid "Presence"
 msgstr ""
 
 msgctxt "region_flag_default_region"

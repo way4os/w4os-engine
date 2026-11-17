@@ -925,7 +925,7 @@ final class Region extends Model
                 Listing::column('uri', 'column_uri', 'link', more: ['link' => 'teleport']),
             ],
             [
-                Listing::filter('status', 'status', ['online' => 'region_status_online', 'offline' => 'region_status_offline']),
+                Listing::filter('status', 'status', ['online' => 'online', 'offline' => 'offline']),
                 Listing::filter(
                     'flags',
                     'column_flags',

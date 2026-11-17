@@ -689,13 +689,13 @@ msgctxt "column_flags"
 msgid "Flags"
 msgstr "Baneri"
 
-msgctxt "region_status_online"
-msgid "Online"
-msgstr "Ar-lein"
-
-msgctxt "region_status_offline"
+msgctxt "offline"
 msgid "Offline"
 msgstr "All-lein"
+
+msgctxt "presence"
+msgid "Presence"
+msgstr "Presenoldeb"
 
 msgctxt "region_flag_default_region"
 msgid "Default region"
@@ -1187,6 +1187,14 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#~ msgctxt "region_status_online"
+#~ msgid "Online"
+#~ msgstr "Ar-lein"
+
+#~ msgctxt "region_status_offline"
+#~ msgid "Offline"
+#~ msgstr "All-lein"
 
 #~ msgctxt "column_address"
 #~ msgid "Address"

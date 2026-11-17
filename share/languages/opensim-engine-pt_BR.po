@@ -682,13 +682,13 @@ msgctxt "column_flags"
 msgid "Flags"
 msgstr "Sinalizadores"
 
-msgctxt "region_status_online"
-msgid "Online"
-msgstr "Online"
-
-msgctxt "region_status_offline"
+msgctxt "offline"
 msgid "Offline"
 msgstr "Offline"
+
+msgctxt "presence"
+msgid "Presence"
+msgstr "Presença"
 
 msgctxt "region_flag_default_region"
 msgid "Default region"
@@ -1165,6 +1165,14 @@ msgstr "Este avatar não aguarda a confirmação do email."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "O email não pôde ser enviado. Tente de novo mais tarde."
+
+#~ msgctxt "region_status_online"
+#~ msgid "Online"
+#~ msgstr "Online"
+
+#~ msgctxt "region_status_offline"
+#~ msgid "Offline"
+#~ msgstr "Offline"
 
 #~ msgctxt "column_address"
 #~ msgid "Address"

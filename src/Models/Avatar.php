@@ -1442,8 +1442,10 @@ final class Avatar extends Model
         $roles = array_combine(array_keys(self::ROLES), array_map(Catalog::roleKey(...), array_keys(self::ROLES)));
         $filters = [
             Listing::filter('status', 'status', $statuses),
+            // In the world now or not: what the visits say, apart from the status of the account
+            ...($joined ? [Listing::filter('online', 'presence', ['online' => 'online', 'offline' => 'offline'])] : []),
             Listing::filter('role', 'role', $roles),
-            ...($joined ? [Listing::filter('online', 'online')] : []),
+
             Listing::filter('published', 'show_in_search'),
             Listing::filter('email', 'filter_email'),
             Listing::filter('model', 'filter_model'),
@@ -1667,7 +1669,10 @@ final class Avatar extends Model
                     'yes' => '(u.UserFlags & ' . self::PUBLISHED_FLAG . ') <> 0',
                     'no' => '(u.UserFlags & ' . self::PUBLISHED_FLAG . ') = 0',
                 ],
-            ] + ($joined ? ['online' => ['yes' => "g.Online = 'true'", 'no' => "(g.Online IS NULL OR g.Online <> 'true')"]] : []);
+            ] +
+                ($joined
+                    ? ['online' => ['online' => "g.Online = 'true'", 'offline' => "(g.Online IS NULL OR g.Online <> 'true')"]]
+                    : []);
         foreach ((array) ($options['filters'] ?? []) as $name => $value) {
             if (is_string($value) && isset($filters[$name][$value])) {
                 $where[] = $filters[$name][$value];

@@ -239,9 +239,9 @@ final class Catalog
         'column_owner' => 'Owner',
         'column_roles' => 'Roles',
         'column_flags' => 'Flags',
-        // Whether a region runs: the filter of the status of the regions
-        'region_status_online' => 'Online',
-        'region_status_offline' => 'Offline',
+        // Online or offline: a region that runs (its status), an avatar in the world (its presence)
+        'offline' => 'Offline',
+        'presence' => 'Presence',
         // The roles of a region (Region::roleKeys()): region_flag_ and the name of its flag in the config of Robust, in snake case
         'region_flag_default_region' => 'Default region',
         'region_flag_default_hg_region' => 'Default hypergrid region',

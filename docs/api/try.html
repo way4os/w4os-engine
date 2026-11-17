@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "a296512",
+        "version": "79c889d",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1558,6 +1558,17 @@
                         }
                     },
                     {
+                        "name": "filter[online]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "online",
+                                "offline"
+                            ]
+                        }
+                    },
+                    {
                         "name": "filter[role]",
                         "in": "query",
                         "schema": {
@@ -1568,17 +1579,6 @@
                                 "customer-service",
                                 "liaison",
                                 "god"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "filter[online]",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "yes",
-                                "no"
                             ]
                         }
                     },
@@ -1782,6 +1782,20 @@
                             ]
                         },
                         {
+                            "name": "online",
+                            "label": "presence",
+                            "values": [
+                                {
+                                    "value": "online",
+                                    "label": "online"
+                                },
+                                {
+                                    "value": "offline",
+                                    "label": "offline"
+                                }
+                            ]
+                        },
+                        {
                             "name": "role",
                             "label": "role",
                             "values": [
@@ -1804,20 +1818,6 @@
                                 {
                                     "value": "god",
                                     "label": "role_god"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "online",
-                            "label": "online",
-                            "values": [
-                                {
-                                    "value": "yes",
-                                    "label": "yes"
-                                },
-                                {
-                                    "value": "no",
-                                    "label": "no"
                                 }
                             ]
                         },
@@ -3112,11 +3112,11 @@
                             "values": [
                                 {
                                     "value": "online",
-                                    "label": "region_status_online"
+                                    "label": "online"
                                 },
                                 {
                                     "value": "offline",
-                                    "label": "region_status_offline"
+                                    "label": "offline"
                                 }
                             ]
                         },

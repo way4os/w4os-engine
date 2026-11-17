@@ -686,13 +686,13 @@ msgctxt "column_flags"
 msgid "Flags"
 msgstr "Flags"
 
-msgctxt "region_status_online"
-msgid "Online"
-msgstr "Online"
-
-msgctxt "region_status_offline"
+msgctxt "offline"
 msgid "Offline"
 msgstr "Offline"
+
+msgctxt "presence"
+msgid "Presence"
+msgstr "Anwesenheit"
 
 msgctxt "region_flag_default_region"
 msgid "Default region"
@@ -1181,6 +1181,14 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#~ msgctxt "region_status_online"
+#~ msgid "Online"
+#~ msgstr "Online"
+
+#~ msgctxt "region_status_offline"
+#~ msgid "Offline"
+#~ msgstr "Offline"
 
 #~ msgctxt "column_address"
 #~ msgid "Address"
