@@ -78,3 +78,23 @@ describe('The access to the API', function () {
             ->toBe(Avatar::GOD_FULL);
     });
 });
+
+describe('The list of the simulators', function () {
+    test('offers to start, stop and restart a simulator, at its instance, asking first when it sends avatars away', function () {
+        $actions = array_column(OpenSim\Api\Contract::document()['paths']['/simulators']['get']['x-list']['actions'], null, 'name');
+
+        expect(array_map(static fn(array $a): array => [$a['method'], $a['path'], $a['when'] ?? null], array_intersect_key($actions, array_flip(['start', 'stop', 'restart']))))
+            ->toBe([
+                'start' => ['POST', '/instances/{slug}/start', ['running' => [false], 'enabled' => [true]]],
+                'stop' => ['POST', '/instances/{slug}/stop', ['running' => [true]]],
+                'restart' => ['POST', '/instances/{slug}/restart', ['running' => [true]]],
+            ])
+            ->and([$actions['stop']['ask'] ?? null, $actions['restart']['ask'] ?? null, $actions['start']['ask'] ?? null])
+            ->toBe(['ask_stop_instance', 'ask_restart_instance', null])
+            ->and(array_diff(array_filter(array_merge(array_column($actions, 'label'), array_column($actions, 'ask'))), array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->toBe([])
+            // The operations they call need a god, as the contract says
+            ->and(Access::level('startInstance'))
+            ->toBe(Avatar::GOD_FULL);
+    });
+});

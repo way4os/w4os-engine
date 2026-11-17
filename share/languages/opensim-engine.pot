@@ -563,6 +563,26 @@ msgctxt "action_disable"
 msgid "Disable"
 msgstr ""
 
+msgctxt "action_start"
+msgid "Start"
+msgstr ""
+
+msgctxt "action_stop"
+msgid "Stop"
+msgstr ""
+
+msgctxt "action_restart"
+msgid "Restart"
+msgstr ""
+
+msgctxt "ask_stop_instance"
+msgid "Stop this simulator? The avatars in its regions are sent away."
+msgstr ""
+
+msgctxt "ask_restart_instance"
+msgid "Restart this simulator? The avatars in its regions are sent away while it restarts."
+msgstr ""
+
 msgctxt "action_reset"
 msgid "Send a password reset link"
 msgstr ""

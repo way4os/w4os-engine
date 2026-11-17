@@ -169,7 +169,7 @@ final class Listing
      * @param array<string,mixed> $more `notSelf`: never offered on the avatar of whoever acts; `link`: the page of the site the mail
      *        of the operation links to (`reset` for a new password, `confirm` for the confirmation of an email): whoever calls adds
      *        to the body `link`, the address of its own page with `{token}` in it, and may add `send` false to get the token back
-     *        instead of mailing it
+     *        instead of mailing it; `ask`: the key of the question a site asks before (stopping a simulator sends avatars away)
      */
     public static function action(
         string $name,

@@ -265,6 +265,10 @@ final class Simulator extends InstalledModel
             [
                 Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], ['enabled' => [false]]),
                 Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], ['enabled' => [true]]),
+                // At its instance (its slug, the name opensim start takes); stopping sends the avatars of its regions away: asked first
+                Listing::action('start', 'action_start', 'POST', '/instances/{slug}/start', when: ['running' => [false], 'enabled' => [true]]),
+                Listing::action('stop', 'action_stop', 'POST', '/instances/{slug}/stop', when: ['running' => [true]], more: ['ask' => 'ask_stop_instance']),
+                Listing::action('restart', 'action_restart', 'POST', '/instances/{slug}/restart', when: ['running' => [true]], more: ['ask' => 'ask_restart_instance']),
             ],
         );
     }
