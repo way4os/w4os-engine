@@ -121,9 +121,15 @@ final class GridOptions
     {
         $recorded = $this->grid->options();
         if ($recorded !== null) {
-            return array_values(array_filter($recorded, fn(string $name): bool => $this->template($name) !== null));
+            return $this->withStandards(array_values(array_filter($recorded, fn(string $name): bool => $this->template($name) !== null)));
         }
         $names = array_keys($this->defaults($this->templates()));
+        // The offline messages by default: by what its Robust says (offline())
+        $default = $this->offline();
+        if ($default !== null) {
+            $names = array_values(array_filter($names, fn(string $n): bool => $this->template($n)?->group() !== 'offline'));
+            $names[] = $default;
+        }
         // A grid made before the options said how it keeps the offline messages
         $mode = $this->grid->offlineMode();
         $offline = $mode !== '' ? $this->template("offline-$mode") : null;
@@ -132,7 +138,90 @@ final class GridOptions
             $names[] = $offline->name();
         }
 
+        return $this->withStandards($names);
+    }
+
+    /**
+     * The options every grid has added (OptionTemplate::standard()): an option, or the one of its group, that the grid did not turn
+     * off; the one of a group by default (offline(): the offline messages by what Robust says).
+     *
+     * @param list<string> $names
+     * @return list<string>
+     */
+    private function withStandards(array $names): array
+    {
+        $off = $this->off();
+        $groups = [];
+        foreach ($names as $name) {
+            $group = $this->template($name)?->group() ?? '';
+            $group === '' || ($groups[$group] = true);
+        }
+        foreach ($this->templates() as $name => $option) {
+            if (!$option->standard() || in_array($name, $names, true) || $this->unmet($option) !== null) {
+                continue;
+            }
+            $group = $option->group();
+            if ($group === '') {
+                in_array($name, $off, true) || ($names[] = $name);
+
+                continue;
+            }
+            $members = array_filter($this->templates(), static fn(OptionTemplate $t): bool => $t->group() === $group);
+            if (isset($groups[$group]) || array_intersect(array_keys($members), $off) !== [] || in_array($group, $off, true)) {
+                continue;
+            }
+            $chosen = $group === 'offline' ? $this->offline() : (array_keys($this->defaults($members))[0] ?? null);
+            if ($chosen !== null) {
+                $names[] = $chosen;
+                $groups[$group] = true;
+            }
+        }
+
         return $names;
+    }
+
+    /**
+     * The offline messages a grid has by default: the module V1 and the helpers when its Robust gives their address
+     * (`OfflineMessageURL` of `[Messaging]`: the relay by mail is V1's), else the module V2 and the service of Robust.
+     */
+    private function offline(): ?string
+    {
+        $robust = $this->grid->robustIni();
+        $url = $robust !== null && is_file($robust) ? trim((string) (\OpenSim\Config\ConfigReader::file($robust)['Messaging']['OfflineMessageURL'] ?? ''), " \t\"") : '';
+        $helpers = $this->template('offline-helpers');
+        if ($url !== '' && $helpers !== null && $this->unmet($helpers) === null) {
+            return $helpers->name();
+        }
+        $robustModule = $this->template('offline-robust');
+
+        return $robustModule !== null && $this->unmet($robustModule) === null ? $robustModule->name() : null;
+    }
+
+    /**
+     * The options every grid has that this one turned off (`OptionsOff` of its description).
+     *
+     * @return list<string>
+     */
+    private function off(): array
+    {
+        $path = $this->grid->directory() . '/' . basename($this->grid->directory()) . '.conf';
+        $text = is_file($path) ? (string) (\OpenSim\Config\ConfigReader::file($path)['Grid']['OptionsOff'] ?? '') : '';
+
+        return array_values(array_filter(array_map('trim', explode(',', strtolower(trim($text, " \t\""))))));
+    }
+
+    /** Say that a grid turns an option every grid has off, or on again. */
+    private function recordOff(string $name, bool $off): void
+    {
+        $path = $this->grid->directory() . '/' . basename($this->grid->directory()) . '.conf';
+        if (!is_file($path)) {
+            return;
+        }
+        $names = array_values(array_diff($this->off(), [$name]));
+        $off && ($names[] = $name);
+        $ini = IniEditor::load($path);
+        $names === [] ? $ini->remove('Grid', 'OptionsOff') : $ini->set('Grid', 'OptionsOff', implode(', ', $names));
+        $ini->save($path);
     }
 
     /**
@@ -325,6 +414,10 @@ final class GridOptions
             }
         }
         $this->lay($option, true, $this->variables($prefix, $option), $result);
+        // On again, it and the others of its group
+        foreach ($option->standard() ? array_keys(array_filter($this->templates(), static fn(OptionTemplate $t): bool => $t->name() === $option->name() || ($option->group() !== '' && $t->group() === $option->group()))) : [] as $member) {
+            $this->recordOff($member, false);
+        }
         // Recorded first: the master, made again by finish(), holds the options the grid has now
         $this->record(array_values(array_unique([...array_diff($this->enabled(), $others), $option->name()])));
         $this->finish($result);
@@ -348,6 +441,8 @@ final class GridOptions
             return $result;
         }
         $this->lay($option, false, $this->variables(), $result);
+        // An option every grid has stays off only when the grid says so
+        $option->standard() && $this->recordOff($option->name(), true);
         $this->record(array_values(array_diff($this->enabled(), [$option->name()])));
         $this->finish($result);
 

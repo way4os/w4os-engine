@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (options): the profiles, the groups and the offline messages are standard (`Standard = true`): every grid has them, in Robust and in every simulator, a grid that recorded its options before them too, unless it turned one off (`OptionsOff`); the offline messages are the module V1 of the helpers when Robust gives their address (`OfflineMessageURL` of `[Messaging]`, the relay by mail is V1's), else the module V2; the repair of the options lays them in the simulators made before
 - fix (guide): the lines read as the Gudz Teleport Board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th, the landing point in the 5th; an address listed already is left out, `http://` taken off an address
 - update (options): an option enabled or disabled by its group too (`groups`: the one the grid has, else the one by default), as the command line does
 - feature (options): the repair of the options of the simulators (`POST /grids/{grid}/options/repair`, `mode` plan then apply: the options of the grid each simulator misses in its files, laid again as `opensim enable` does), and the health of the grid says them (`options`)

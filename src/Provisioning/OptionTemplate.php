@@ -29,6 +29,8 @@ use OpenSim\Config\TextFileService;
  * Offer = true                       listed in the setup (false: applied by itself when the grid can have it)
  * Show = false                       not told in the report of the setup (the plumbing of the grid)
  * Default = true                     on unless the setup says otherwise
+ * Standard = true                   every grid has it, or one of its group (the core manages it: profiles, groups, offline messages),
+ *                                    a grid that recorded its options before it too, unless it turned it off (OptionsOff)
  * Answer = search                    the name of the answer in the setup (the name of the folder)
  * Group = economy                    alternatives: one at a time, the name of the folder is `<group>-<variant>`
  * Fallback = true                    the one of its group that is on when no other is
@@ -105,6 +107,15 @@ final class OptionTemplate
     public function default(): bool
     {
         return $this->flag('Default', false);
+    }
+
+    /**
+     * Whether every grid has it, or one of its group (`Standard = true`): the core manages it, in Robust and in every simulator
+     * (the profiles, the groups, the offline messages). It is on unless the grid turned it off (`OptionsOff` of its description).
+     */
+    public function standard(): bool
+    {
+        return $this->flag('Standard', false);
     }
 
     /** The name of the answer that tells whether it is on (setup files, forms): `search`, `ossl`, `economy` for a group. */

@@ -436,3 +436,37 @@ describe('The options of a grid that is made', function () {
             ->toBe('${Const|BaseURL}:${Const|PublicPort}');
     });
 });
+
+describe('The options every grid has', function () {
+    test('are the profiles, the groups and the offline messages, on for a grid that recorded its options before them too', function () {
+        $machine = new Machine();
+        $machine->write($machine->grid . '/demo.conf', (string) file_get_contents($machine->grid . '/demo.conf') . "Options = search\n");
+
+        expect(demo_options($machine)->enabled())->toContain('search', 'profiles', 'groups-hypergrid', 'offline-robust');
+    });
+
+    test('keep the offline messages of the helpers (module V1) when Robust gives their address, else the ones of Robust (V2)', function () {
+        $machine = new Machine();
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    HelpersURL = \"https://demo.example.org/helpers\"\n");
+        $without = demo_options($machine)->enabled();
+        $robust = $machine->grid . '/Robust.HG.ini';
+        $machine->write($robust, (string) file_get_contents($robust) . "\n[Messaging]\n    OfflineMessageURL = \"https://demo.example.org/helpers/offline.php\"\n");
+        $with = demo_options($machine)->enabled();
+
+        expect($without)
+            ->toContain('offline-robust')
+            ->not->toContain('offline-helpers')
+            ->and($with)
+            ->toContain('offline-helpers')
+            ->not->toContain('offline-robust');
+    });
+
+    test('can be turned off, and on again', function () {
+        $machine = new Machine();
+        demo_options($machine)->disable('profiles');
+        $off = demo_options($machine)->enabled();
+        demo_options($machine)->enable('profiles');
+
+        expect($off)->not->toContain('profiles')->and(demo_options($machine)->enabled())->toContain('profiles');
+    });
+});

@@ -610,8 +610,9 @@ describe('offline messages of a grid', function () {
                 'OfflineMessageURL = "${Const|PrivURL}:${Const|PrivatePort}"',
             )
             ->not->toContain('offline.php')
+            // The offline messages are on for every grid: V2 when Robust gives no address of the helpers
             ->and($none)
-            ->not->toContain('[Messaging]');
+            ->toContain('OfflineMessageModule = "Offline Message Module V2"');
     });
 
     test('are the module a grid says, the helpers\' when it says none', function () {
