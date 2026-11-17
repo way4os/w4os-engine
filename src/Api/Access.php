@@ -35,10 +35,14 @@ final class Access
     private const VISITOR = ['signIn', 'requestPasswordReset', 'resetPassword', 'requestEmailConfirmation', 'confirmEmail'];
 
     /** What a visitor may do for their own account; others need the level of the operation. */
-    private const SELF = ['createAvatar', 'updateAvatar', 'getAvatar', 'listAvatarPicks', 'listAvatarClassifieds', 'listAvatarGroups'];
+    private const SELF = [
+        'createAvatar', 'updateAvatar', 'getAvatar', 'listAvatarPicks', 'listAvatarClassifieds', 'listAvatarGroups',
+        // The stream of the avatar: its posts, written and deleted by the avatar itself
+        'listAvatarPosts', 'createAvatarPost', 'deleteAvatarPost',
+    ];
 
     /** The care of the accounts, a change that is not a read: the customer service, as reading is. */
-    private const CUSTOMER_SERVICE = ['createAvatar', 'updateAvatar'];
+    private const CUSTOMER_SERVICE = ['createAvatar', 'updateAvatar', 'createAvatarPost', 'deleteAvatarPost'];
 
     /** The fields of a page that need more than the change of the page: a role, a level, as a god sets them (LLLoginService). */
     private const FIELDS = ['avatars' => [

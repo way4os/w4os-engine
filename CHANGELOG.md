@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (flux): the stream of the avatars, the first step of w4os-flux: their posts in `avatar_posts` of the profiles database, kept by the engine (`OpenSim\Flux\Posts`), listed, written and deleted by the avatar itself or a manager (`/grids/{grid}/avatars/{id}/posts`, `post-invalid`); the posts of w4os-wp brought in, planned first (`kind` flux of `/setups/imports`, from the wp-config.php of the site)
 - update: install container-tools as a sibling package
 - feature (backup): BackupRoot setting, backups in a folder per grid and simulator outside the data
 - feature (backup): OAR of every region of the running simulators in the backup root

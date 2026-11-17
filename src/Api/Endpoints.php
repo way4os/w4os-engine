@@ -267,6 +267,72 @@ final class Endpoints
                 '404' => Contract::problem('The grid or the avatar is not known here'),
             ],
         ];
+        // The stream of an avatar (w4os-flux): its posts, on its profile and in the Feed tab of the viewers
+        $post = [
+            'avatar' => ['type' => 'string', 'description' => 'The UUID of its author'],
+            'name' => ['type' => 'string', 'description' => 'The name of its author when it was written'],
+            'content' => ['type' => 'string', 'description' => 'Plain text, 1000 characters at most'],
+            'created' => ['type' => 'integer', 'description' => 'When it was written (Unix time)'],
+            'source' => ['type' => 'string', 'description' => 'Where it was brought from (`w4os-wp:<ID>`), empty for a post written here'],
+        ];
+        $paths['/grids/{grid}/avatars/{id}/posts']['get'] = [
+            'operationId' => 'listAvatarPosts',
+            'tags' => ['Avatars'],
+            'summary' => 'Posts of an avatar',
+            'description' =>
+                'The stream of the avatar (w4os-flux): its posts, newest first (100 at most), kept by the engine in `avatar_posts` of the profiles database of the grid. Its profile page shows them, which the Feed tab of the viewers opens (`web_profile_url`).',
+            'parameters' => [Contract::gridParameter(), $avatar],
+            'responses' => [
+                '200' => ['description' => 'The posts', 'content' => $items('posts', $post)],
+                '404' => Contract::problem('The grid or the avatar is not known here'),
+            ],
+        ];
+        $paths['/grids/{grid}/avatars/{id}/posts']['post'] = [
+            'operationId' => 'createAvatarPost',
+            'tags' => ['Avatars'],
+            'summary' => 'Post on the stream of an avatar',
+            'description' => 'A post on the profile of the avatar, as the avatar itself or a manager: `content`, plain text (its tags are taken out), 1 to 1000 characters (`post-invalid`).',
+            'parameters' => [Contract::gridParameter(), $avatar],
+            'requestBody' => [
+                'required' => true,
+                'content' => [
+                    Response::JSON_API => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'type' => ['const' => 'posts'],
+                                        'attributes' => ['type' => 'object', 'properties' => ['content' => $post['content']], 'required' => ['content']],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'responses' => [
+                '201' => ['description' => 'The post', 'content' => $items('posts', $post)],
+                '400' => Contract::problem('The post is empty or too long (`post-invalid`)'),
+                '404' => Contract::problem('The grid or the avatar is not known here'),
+            ],
+        ];
+        $paths['/grids/{grid}/avatars/{id}/posts/{post}']['delete'] = [
+            'operationId' => 'deleteAvatarPost',
+            'tags' => ['Avatars'],
+            'summary' => 'Delete a post of an avatar',
+            'description' => 'As its author or a manager. A post of another avatar is not there (404).',
+            'parameters' => [
+                Contract::gridParameter(),
+                $avatar,
+                ['name' => 'post', 'in' => 'path', 'required' => true, 'description' => 'The id of the post', 'schema' => ['type' => 'string']],
+            ],
+            'responses' => [
+                '204' => ['description' => 'Deleted'],
+                '404' => Contract::problem('The grid, the avatar or its post is not known here'),
+            ],
+        ];
         $paths['/grids/{grid}/info']['get'] = [
             'operationId' => 'getInfo',
             'tags' => ['Addresses'],
@@ -726,7 +792,7 @@ final class Endpoints
             'tags' => ['Setup'],
             'summary' => 'Import',
             'description' =>
-                'What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already.',
+                'What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already. `kind` `flux`: the posts of the stream of a site of w4os-wp (its `flux_post` posts, published, with their author `_avatar_uuid`) brought into the stream of the `grid`, each once; `file` the wp-config.php of the site, which says its database and the prefix of its tables. The plan says how many posts (`posts`), by avatar (`avatars`), the ones it skips and why (`skipped`), and how many were brought before (`imported`).',
             'requestBody' => [
                 'required' => true,
                 'content' => [

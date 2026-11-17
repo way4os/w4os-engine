@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: ef639ef
+  version: 53d63a9
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -4613,6 +4613,156 @@ paths:
       x-access:
         level: 100
         self: true
+  '/grids/{grid}/avatars/{id}/posts':
+    get:
+      operationId: listAvatarPosts
+      tags:
+        - Avatars
+      summary: 'Posts of an avatar'
+      description: 'The stream of the avatar (w4os-flux): its posts, newest first (100 at most), kept by the engine in `avatar_posts` of the profiles database of the grid. Its profile page shows them, which the Feed tab of the viewers opens (`web_profile_url`).'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          description: 'The UUID or the name of the avatar'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The posts'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties: { type: { const: posts }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { avatar: { type: string, description: 'The UUID of its author' }, name: { type: string, description: 'The name of its author when it was written' }, content: { type: string, description: 'Plain text, 1000 characters at most' }, created: { type: integer, description: 'When it was written (Unix time)' }, source: { type: string, description: 'Where it was brought from (`w4os-wp:<ID>`), empty for a post written here' } } } }
+        404:
+          description: 'The grid or the avatar is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
+    post:
+      operationId: createAvatarPost
+      tags:
+        - Avatars
+      summary: 'Post on the stream of an avatar'
+      description: 'A post on the profile of the avatar, as the avatar itself or a manager: `content`, plain text (its tags are taken out), 1 to 1000 characters (`post-invalid`).'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          description: 'The UUID or the name of the avatar'
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      const: posts
+                    attributes:
+                      type: object
+                      properties: { content: { type: string, description: 'Plain text, 1000 characters at most' } }
+                      required: [content]
+      responses:
+        201:
+          description: 'The post'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties: { type: { const: posts }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { avatar: { type: string, description: 'The UUID of its author' }, name: { type: string, description: 'The name of its author when it was written' }, content: { type: string, description: 'Plain text, 1000 characters at most' }, created: { type: integer, description: 'When it was written (Unix time)' }, source: { type: string, description: 'Where it was brought from (`w4os-wp:<ID>`), empty for a post written here' } } } }
+        400:
+          description: 'The post is empty or too long (`post-invalid`)'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid or the avatar is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
+  '/grids/{grid}/avatars/{id}/posts/{post}':
+    delete:
+      operationId: deleteAvatarPost
+      tags:
+        - Avatars
+      summary: 'Delete a post of an avatar'
+      description: 'As its author or a manager. A post of another avatar is not there (404).'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          description: 'The UUID or the name of the avatar'
+          schema:
+            type: string
+        -
+          name: post
+          in: path
+          required: true
+          description: 'The id of the post'
+          schema:
+            type: string
+      responses:
+        204:
+          description: Deleted
+        404:
+          description: 'The grid, the avatar or its post is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
   '/grids/{grid}/info':
     get:
       operationId: getInfo
@@ -6779,7 +6929,7 @@ paths:
       tags:
         - Setup
       summary: Import
-      description: 'What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already.'
+      description: 'What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already. `kind` `flux`: the posts of the stream of a site of w4os-wp (its `flux_post` posts, published, with their author `_avatar_uuid`) brought into the stream of the `grid`, each once; `file` the wp-config.php of the site, which says its database and the prefix of its tables. The plan says how many posts (`posts`), by avatar (`avatars`), the ones it skips and why (`skipped`), and how many were brought before (`imported`).'
       requestBody:
         required: true
         content:
@@ -7358,6 +7508,7 @@ components:
             - internal-error
             - sign-in-refused
             - account-disabled
+            - post-invalid
             - account-banned
             - email-unconfirmed
             - name-invalid
@@ -7386,7 +7537,7 @@ components:
             - token-refused
             - no-confirmation-pending
             - mail-failed
-          description: 'What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `account-banned`: The account is banned: only an unban (banned false) lets it in again; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `source-not-readable`: The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god, maintenance; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent'
+          description: 'What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `post-invalid`: The post is empty or too long (1 to 1000 characters); `account-banned`: The account is banned: only an unban (banned false) lets it in again; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `source-not-readable`: The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god, maintenance; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent'
         detail:
           type: string
           description: 'What went wrong, in English'

@@ -33,6 +33,7 @@ final class Problem
         'internal-error' => 'The server failed, the log says why',
         'sign-in-refused' => 'The name (or the email) or the password is wrong',
         'account-disabled' => 'The password is right, but a manager disabled the account',
+        'post-invalid' => 'The post is empty or too long (1 to 1000 characters)',
         'account-banned' => 'The account is banned: only an unban (banned false) lets it in again',
         'email-unconfirmed' => 'The password is right, but the account waits for the confirmation of its email',
         'name-invalid' => 'The name is not a first and a last name of letters, digits and -',

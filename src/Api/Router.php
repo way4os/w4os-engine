@@ -285,6 +285,12 @@ final class Router
         ) {
             $template = '/grids/{grid}/avatars/{id}/' . $tail[2];
             $routes = ['GET' => fn() => $this->api->avatarItems($grid, $tail[1], $tail[2])];
+            // The stream of the avatar: a post is written on its profile
+            $tail[2] === 'posts' && ($routes['POST'] = fn() => $this->check($body, $parsed, $path, 'posts') ??
+                $this->api->createPost($grid, $tail[1], $this->attributes($body, $parsed)));
+        } elseif ($grid !== null && count($tail) === 4 && $tail[0] === 'avatars' && $tail[2] === 'posts') {
+            $template = '/grids/{grid}/avatars/{id}/posts/{post}';
+            $routes = ['DELETE' => fn() => $this->api->deletePost($grid, $tail[1], $tail[3])];
         } elseif ($grid === null && $segments === ['setups', 'quick']) {
             $template = '/setups/quick';
             $routes = [

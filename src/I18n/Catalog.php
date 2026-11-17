@@ -411,6 +411,7 @@ final class Catalog
         'error_sign_in_refused' => 'The name or the password is wrong.',
         'error_account_disabled' => 'This avatar is disabled. Contact the managers of the grid.',
         'error_account_banned' => 'This avatar is banned.',
+        'error_post_invalid' => 'A post has 1 to 1000 characters.',
         'error_email_unconfirmed' => 'This avatar is not active yet: confirm your email with the link of the mail we sent you.',
         'error_name_invalid' => 'The first and the last name are made of letters, digits and hyphens, without accents.',
         'error_name_reserved' => 'This name is reserved, please choose another one.',

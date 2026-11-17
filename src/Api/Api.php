@@ -100,7 +100,7 @@ final class Api
     public const FORMS = ['grid', 'remote-grid', 'simulator', 'region'];
 
     /** What the profile of an avatar lists, asked under it: `/grids/{grid}/avatars/{id}/picks`. */
-    public const AVATAR_ITEMS = ['picks', 'classifieds', 'groups'];
+    public const AVATAR_ITEMS = ['picks', 'classifieds', 'groups', 'posts'];
 
     /** @var \Closure(Grid):?GridConfig the config of a grid, from its folder unless the caller says otherwise */
     private \Closure $config;
@@ -286,6 +286,7 @@ final class Api
             $rows = match ($kind) {
                 'picks' => $avatar->picks(),
                 'groups' => $avatar->groups(),
+                'posts' => \OpenSim\Flux\Posts::for($this->gridConfig($grid))->of((string) $avatar->uuid(), 1, 100),
                 default => $avatar->classifieds((int) $this->environment->clock->time()),
             };
         } catch (\Throwable $error) {
@@ -907,6 +908,49 @@ final class Api
     }
 
     /**
+     * Write a post on the profile of an avatar (its stream), as the avatar or a manager: `content`, plain text of Posts::MAX
+     * characters at most (`post-invalid`).
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function createPost(string $grid, string $id, array $attributes): Response
+    {
+        $instance = self::path('avatars', $id, $grid) . '/posts';
+        try {
+            $config = $this->gridConfig($grid);
+            $avatar = Avatar::find($config, $id);
+            if ($avatar === null) {
+                return Response::problem(Problem::notFound("avatar called '$id'", $instance));
+            }
+            $post = \OpenSim\Flux\Posts::for($config)->add((string) $avatar->uuid(), $avatar->name(), (string) ($attributes['content'] ?? ''));
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document(['data' => self::avatarItem('posts', $post), 'links' => ['self' => "$instance/{$post['id']}"]], 201);
+    }
+
+    /** Delete a post of the stream of an avatar, as its author or a manager: a post of another avatar is not there. */
+    public function deletePost(string $grid, string $id, string $post): Response
+    {
+        $instance = self::path('avatars', $id, $grid) . "/posts/$post";
+        try {
+            $config = $this->gridConfig($grid);
+            $avatar = Avatar::find($config, $id);
+            $posts = \OpenSim\Flux\Posts::for($config);
+            $found = $avatar === null ? null : $posts->find($post);
+            if ($found === null || $found['avatar'] !== strtolower((string) $avatar->uuid())) {
+                return Response::problem(Problem::notFound("post '$post' of the avatar '$id'", $instance));
+            }
+            $posts->remove($post);
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return new Response(204, [], []);
+    }
+
+    /**
      * What another install brings into this one, planned, or applied with `mode` apply: `kind` simulator (a simulator of an older
      * install joining a grid of this machine, SimulatorImport), its config `file`, the `grid`, and `name` and `core` when they are not
      * the ones of its config and of the grid. Nothing is written in plan mode.
@@ -918,9 +962,12 @@ final class Api
         $instance = '/setups/imports';
         try {
             $kind = (string) ($attributes['kind'] ?? 'simulator');
-            $kind === 'simulator' || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator");
+            in_array($kind, ['simulator', 'flux'], true) || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator, flux");
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
+            if ($kind === 'flux') {
+                return $this->importFlux($attributes, $mode, $instance);
+            }
             // Several simulators into one grid: planned together, checked between them, written in their order
             if (is_array($attributes['simulators'] ?? null)) {
                 $imports = \OpenSim\Provisioning\Import\SimulatorImports::prepare(
@@ -957,6 +1004,30 @@ final class Api
                 'type' => 'imports',
                 'id' => $import->plan->slug,
                 'attributes' => ['kind' => $kind, 'mode' => $mode, 'applied' => $mode === 'apply'] + $import->document(),
+            ],
+            'links' => ['self' => $instance],
+        ]);
+    }
+
+    /**
+     * The posts of the stream of a site of w4os-wp brought into a grid (FluxImport): the `grid`, and `file`, the wp-config.php of the
+     * site, which says its database and the prefix of its tables.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    private function importFlux(array $attributes, string $mode, string $instance): Response
+    {
+        $grid = (string) ($attributes['grid'] ?? '');
+        $site = \OpenSim\Flux\FluxImport::wordpress((string) ($attributes['file'] ?? ''));
+        $import = \OpenSim\Flux\FluxImport::prepare($this->gridConfig($grid), \OpenSim\Flux\FluxImport::connect($site), $site['prefix']);
+        $document = $import->document();
+        $mode === 'apply' && $import->apply();
+
+        return Response::document([
+            'data' => [
+                'type' => 'imports',
+                'id' => $grid,
+                'attributes' => ['kind' => 'flux', 'mode' => $mode, 'applied' => $mode === 'apply'] + $document,
             ],
             'links' => ['self' => $instance],
         ]);
@@ -1654,8 +1725,8 @@ final class Api
      */
     private static function avatarItem(string $kind, array $row): array
     {
-        if ($kind === 'groups') {
-            return ['type' => 'groups', 'id' => $row['id'], 'attributes' => array_diff_key($row, ['id' => true])];
+        if ($kind === 'groups' || $kind === 'posts') {
+            return ['type' => $kind, 'id' => $row['id'], 'attributes' => array_diff_key($row, ['id' => true])];
         }
         $attributes = [
             'name' => (string) ($row['name'] ?? ''),

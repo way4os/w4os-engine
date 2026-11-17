@@ -1272,6 +1272,10 @@ msgctxt "error_account_banned"
 msgid "This avatar is banned."
 msgstr ""
 
+msgctxt "error_post_invalid"
+msgid "A post has 1 to 1000 characters."
+msgstr ""
+
 msgctxt "error_email_unconfirmed"
 msgid "This avatar is not active yet: confirm your email with the link of the mail we sent you."
 msgstr ""

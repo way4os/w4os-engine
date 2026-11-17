@@ -1348,6 +1348,10 @@ msgctxt "error_account_banned"
 msgid "This avatar is banned."
 msgstr "Mae'r afatar hwn wedi'i wahardd."
 
+msgctxt "error_post_invalid"
+msgid "A post has 1 to 1000 characters."
+msgstr "Mae gan bostiad 1 i 1000 nod."
+
 msgctxt "error_email_unconfirmed"
 msgid ""
 "This avatar is not active yet: confirm your email with the link of the mail "
