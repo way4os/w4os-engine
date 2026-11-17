@@ -23,6 +23,8 @@ use OpenSim\Models\AvatarModel;
 use OpenSim\Models\Estate;
 use OpenSim\Models\Grid;
 use OpenSim\Provisioning\QuickSetup;
+use OpenSim\Provisioning\Import\SimulatorImport;
+use OpenSim\Provisioning\NullUi;
 use OpenSim\Models\Parcel;
 use OpenSim\Models\Region;
 use OpenSim\Models\Service;
@@ -821,6 +823,43 @@ final class Api
         return Response::document([
             'data' => ['type' => 'setups', 'id' => 'quick', 'attributes' => $result],
             'links' => ['self' => '/setups/quick'],
+        ]);
+    }
+
+    /**
+     * What another install brings into this one, planned, or applied with `mode` apply: `kind` simulator (a simulator of an older
+     * install joining a grid of this machine, SimulatorImport), its config `file`, the `grid`, and `name` and `core` when they are not
+     * the ones of its config and of the grid. Nothing is written in plan mode.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function import(array $attributes): Response
+    {
+        $instance = '/setups/imports';
+        try {
+            $kind = (string) ($attributes['kind'] ?? 'simulator');
+            $kind === 'simulator' || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator");
+            $mode = (string) ($attributes['mode'] ?? 'plan');
+            in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
+            $import = SimulatorImport::prepare(
+                $this->environment,
+                (string) ($attributes['file'] ?? ''),
+                (string) ($attributes['grid'] ?? ''),
+                ($attributes['name'] ?? '') !== '' ? (string) $attributes['name'] : null,
+                ($attributes['core'] ?? '') !== '' ? (string) $attributes['core'] : null,
+            );
+            $mode === 'apply' && $import->apply($this->environment, new NullUi());
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document([
+            'data' => [
+                'type' => 'imports',
+                'id' => $import->plan->slug,
+                'attributes' => ['kind' => $kind, 'mode' => $mode, 'applied' => $mode === 'apply'] + $import->document(),
+            ],
+            'links' => ['self' => $instance],
         ]);
     }
 

@@ -40,10 +40,7 @@ final class SimulatorImporter
             return 'no http_listener_port in [Network]';
         }
 
-        $name =
-            $name !== null && $name !== ''
-                ? $name
-                : Simulator::normalizeName(basename(dirname($path, 2)));
+        $name = $name !== null && $name !== '' ? $name : self::name($ini, $path);
         if ($name === '') {
             return 'the simulator has no name: give one with --name';
         }
@@ -95,6 +92,22 @@ final class SimulatorImporter
     }
 
     /**
+     * The name a simulator has in its config: `SimName` of `[Launch]` (the layout of opensim-debian), else its file, the folder
+     * above its bin/ for an OpenSim.ini, as a name of the model (Simulator::normalizeName()).
+     *
+     * @param array<string,array<string,string>> $ini the config, expanded
+     */
+    public static function name(array $ini, string $path): string
+    {
+        $name = trim((string) ($ini['Launch']['SimName'] ?? ''), " \t\"");
+        if ($name === '') {
+            $name = strcasecmp(basename($path), 'OpenSim.ini') === 0 ? basename(dirname($path, 2)) : basename($path, '.ini');
+        }
+
+        return Simulator::normalizeName($name);
+    }
+
+    /**
      * The files that describe the regions of a simulator: the folder it names (`regionload_regionsdir`), else
      * Regions/ next to its bin folder, the `*.ini` files in it (a disabled region, `.ini.disabled`, is kept as it is).
      *
@@ -103,7 +116,8 @@ final class SimulatorImporter
      */
     public static function regionFiles(array $raw, string $path): array
     {
-        $dir = $raw['Startup']['regionload_regionsdir'] ?? 'Regions';
+        // The folder as the simulator reads it: its constants replaced (${Const|DataDirectory}/regions)
+        $dir = trim((string) (ConfigReader::expand($raw)['Startup']['regionload_regionsdir'] ?? 'Regions'), " \t\"");
         $dir = str_starts_with($dir, '/') ? $dir : dirname($path) . "/$dir";
 
         return array_values(

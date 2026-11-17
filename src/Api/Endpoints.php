@@ -679,6 +679,51 @@ final class Endpoints
             ],
         ];
 
+        $paths['/setups/imports']['post'] = [
+            'operationId' => 'importSetup',
+            'tags' => ['Setup'],
+            'summary' => 'Import',
+            'description' =>
+                'What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already.',
+            'requestBody' => [
+                'required' => true,
+                'content' => [
+                    Response::JSON_API => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'type' => ['const' => 'imports'],
+                                        'attributes' => [
+                                            'type' => 'object',
+                                            'required' => ['file', 'grid'],
+                                            'properties' => [
+                                                'kind' => ['type' => 'string', 'enum' => ['simulator']],
+                                                'file' => ['type' => 'string', 'description' => 'The config of the simulator, on this machine'],
+                                                'grid' => ['type' => 'string', 'description' => 'The nick of the grid of this machine it joins'],
+                                                'name' => ['type' => 'string', 'description' => 'Its name, when it is not the one of its config (SimName of [Launch], else its file)'],
+                                                'core' => ['type' => 'string', 'description' => 'The core it runs with, when it is not the one of the grid'],
+                                                'mode' => ['type' => 'string', 'enum' => ['plan', 'apply']],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'responses' => [
+                '200' => [
+                    'description' => 'The plan, or what was written: `simulator`, `slug`, `config`, `database` (kept), `ports`, `regions` (from, to, name, uuid, location), `settings` kept, `writes`, `report`, `reminders`, `applied`',
+                    'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
+                ],
+                '400' => Contract::problem('A file that cannot be read or imported, a simulator or a region the grid has already'),
+                '404' => Contract::problem('The grid is not known here'),
+            ],
+        ];
         $paths['/setups/quick']['post'] = [
             'operationId' => 'quickSetup',
             'tags' => ['Setup'],
