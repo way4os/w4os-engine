@@ -50,6 +50,7 @@ final class Problem
         'config-not-writable' => 'A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file',
         'instance-user-required' => 'The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done',
         'restore-conflict' => 'The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced',
+        'source-not-readable' => 'The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them',
         'estate-shared' => 'The owner of a region is the one of its estate, which has other regions: they would change owner too',
         'filter-unknown' => 'The list has no such filter (the detail names the ones it has)',
         'filter-value-unknown' => 'The filter does not take this value (the detail names the ones it takes)',

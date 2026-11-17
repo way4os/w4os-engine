@@ -50,6 +50,7 @@ final class SimulatorImport
         public readonly array $scripts = [],
         public readonly bool $copyScripts = true,
         public readonly array $missingModules = [],
+        public readonly array $unreadable = [],
     ) {}
 
     /**
@@ -152,7 +153,11 @@ final class SimulatorImport
             [$plan->binDir(), $environment->layout->modulesRoot()],
         );
 
-        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped, $backup, array_keys($folders), $scripts, $missing);
+        // What the import reads, checked first: an old install keeps its files to its own user (setfacl gives them to the user of the
+        // grid), a path this process cannot read is said in the plan, and nothing is written
+        $unreadable = self::unreadable([...$backup->files, ...array_column($regions, 'file'), ...($scripts ? array_keys($folders) : [])]);
+
+        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped, $backup, array_keys($folders), $scripts, $missing, $unreadable);
     }
 
     /**
@@ -199,7 +204,7 @@ final class SimulatorImport
             ),
             'reminders' => [
                 // The files of an older install belong to its user (640 on opensim-debian); the import runs as the user of the grid
-                Notice::of('import-read-access'),
+                ...($this->unreadable === [] ? [] : [Notice::of('import-read-access', ['paths' => implode(', ', $this->unreadable)])]),
                 // A folder of regions that has none is said: the folder its config names may not be the one it reads
                 $this->regions === []
                     ? Notice::of('import-no-region', ['simulator' => $plan->simulatorName, 'folder' => $this->regionsDirectory])
@@ -221,6 +226,11 @@ final class SimulatorImport
     public function apply(Environment $environment, UiInterface $ui, ?\Closure $dump = null): void
     {
         $plan = $this->plan;
+        // Refused before anything is written when a file of the source cannot be read: an import half done is worse than none
+        $this->unreadable === [] || throw InvalidValue::because(
+            'source-not-readable',
+            'this process cannot read what the import copies: ' . implode(', ', $this->unreadable) . ' (give the user of the grid read access to them)',
+        );
         if ($this->backup !== null) {
             $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
         }
@@ -333,6 +343,37 @@ final class SimulatorImport
         return $missing;
     }
 
+    /**
+     * The paths this process cannot read, among files and folders (all of a folder, its subfolders too).
+     *
+     * @param list<string> $paths
+     * @return list<string>
+     */
+    private static function unreadable(array $paths): array
+    {
+        $found = [];
+        foreach (array_unique($paths) as $path) {
+            if (!is_readable($path)) {
+                $found[] = $path;
+
+                continue;
+            }
+            if (!is_dir($path)) {
+                continue;
+            }
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST,
+                \RecursiveIteratorIterator::CATCH_GET_CHILD,
+            );
+            foreach ($iterator as $entry) {
+                $entry->isReadable() && (!$entry->isDir() || $entry->isExecutable()) || ($found[] = $entry->getPathname());
+            }
+        }
+
+        return array_values(array_unique($found));
+    }
+
     /** Where the new simulator keeps the state of its scripts (the ScriptEnginesPath of its layout). */
     private function scriptsDirectory(): string
     {
@@ -343,8 +384,13 @@ final class SimulatorImport
     private static function size(string $folder): int
     {
         $size = 0;
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($folder, \FilesystemIterator::SKIP_DOTS)) as $file) {
-            $file->isFile() && ($size += $file->getSize());
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($folder, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::LEAVES_ONLY,
+            \RecursiveIteratorIterator::CATCH_GET_CHILD,
+        );
+        foreach ($files as $file) {
+            $file->isFile() && $file->isReadable() && ($size += $file->getSize());
         }
 
         return $size;

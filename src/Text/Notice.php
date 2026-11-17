@@ -29,7 +29,7 @@ final class Notice
         'region-roles-later' => ['region', 'roles', 'slug', 'restart', 'command'],
         'plan-reserves-nothing' => [],
         // The plan of an import (SimulatorImport)
-        'import-read-access' => [],
+        'import-read-access' => ['paths'],
         'import-stop-source' => ['regions'],
         'import-no-region' => ['simulator', 'folder'],
         'import-module-missing' => ['section', 'key', 'module'],

@@ -1126,6 +1126,10 @@ msgctxt "error_restore_conflict"
 msgid "This backup holds what this server has already: nothing was replaced."
 msgstr ""
 
+msgctxt "error_source_not_readable"
+msgid "Some files of the older install cannot be read by the server: give it read access to them first."
+msgstr ""
+
 msgctxt "error_estate_shared"
 msgid "The owner of this region is the owner of its estate, which has other regions: change the owner of the estate."
 msgstr ""
@@ -1195,7 +1199,7 @@ msgid "A plan reserves nothing: the places and the ports it proposes are the fre
 msgstr ""
 
 msgctxt "notice_import_read_access"
-msgid "The files of the older install are read by the user that runs the import: give it read access to them (its config, its includes, its regions) before applying."
+msgid "The user that runs the import cannot read {paths}: give it read access to them (setfacl -R -m u:<user>:rX on the etc, var/data and var/cache of the older install) before applying, nothing is written until then."
 msgstr ""
 
 msgctxt "notice_import_stop_source"

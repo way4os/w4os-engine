@@ -78,8 +78,8 @@ describe('A simulator imported', function () {
             ->and($import->report())
             ->not->toContain('hidden')
             ->and(array_column($plan['reminders'], 'code'))
-            ->toBe(['import-read-access', 'import-stop-source', 'import-enable-start'])
-            ->and($plan['reminders'][2]['detail'])
+            ->toBe(['import-stop-source', 'import-enable-start'])
+            ->and($plan['reminders'][1]['detail'])
             ->toBe('Then: opensim enable demo.redoutable, opensim start demo.redoutable.')
             ->and(is_file($plan['config']))
             ->toBeFalse()
@@ -224,6 +224,44 @@ describe('What a simulator imported keeps of its old install', function () {
             ->toBeFalse()
             ->and(is_dir($skipped->plan->dataDirectory . '/ScriptEngines/11111111-2222-4333-8444-555555555555'))
             ->toBeFalse();
+    });
+});
+
+describe('What the import of a simulator reads', function () {
+    test('is checked first: what this process cannot read is listed in the plan, and nothing is written', function () {
+        $machine = new Machine();
+        $source = scripts_install($machine);
+        $scripts = $machine->root . '/old/opensim/var/redoutable/ScriptEngines/11111111-2222-4333-8444-555555555555';
+        chmod($scripts, 0o000);
+        try {
+            $import = SimulatorImport::prepare($machine->environment, $source, 'demo');
+            $plan = $import->document();
+            $refused = null;
+            try {
+                $import->apply($machine->environment, new NullUi(), fake_dump());
+            } catch (InvalidValue $e) {
+                $refused = $e;
+            }
+        } finally {
+            chmod($scripts, 0o755);
+        }
+        $notice = array_column($plan['reminders'], null, 'code')['import-read-access'] ?? null;
+
+        expect($notice['params']['paths'] ?? '')
+            ->toContain($scripts)
+            ->and($refused?->reason)
+            ->toBe('source-not-readable')
+            ->and(is_file($import->plan->iniPath()))
+            ->toBeFalse()
+            ->and(is_file($plan['backup']['file']))
+            ->toBeFalse();
+    });
+
+    test('says nothing of the access when everything can be read', function () {
+        $machine = new Machine();
+        $plan = SimulatorImport::prepare($machine->environment, scripts_install($machine), 'demo')->document();
+
+        expect(array_column($plan['reminders'], 'code'))->not->toContain('import-read-access');
     });
 });
 
