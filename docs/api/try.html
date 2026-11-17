@@ -17,12 +17,12 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "79bd3ab",
+        "version": "71abf66",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
         },
-        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it; `default` what a missing picture stands for, `person` or `place`, as `default` of the pictures of the assets; `values` the words of a `list` with their `label` and `description`, as the values of a filter), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value; `multiple` for one that takes several values separated by commas, keeping what has any of them; `dynamic` for one whose values that give something are in `meta.available.<name>` of the list: the values, or `value` and `label` (a text, not a key) for one without `values`, such as the simulators) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\nThe URI of a region is `host:port/Region Name` (the name as it is, its spaces too), the one of a parcel `host:port/Region Name/x/y/z` (the point it is entered at); a hop:// link (`teleport`) has the name encoded. Both `host:port/Region` and `host:port:Region` are read. This is an important change in the canonical form 3.0 gives: not tested against 2.x, but in theory compatible, since 2.x already accepted both forms.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
+        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it; `default` what a missing picture stands for, `person` or `place`, as `default` of the pictures of the assets; `values` the words of a `list` with their `label` and `description`, as the values of a filter), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value; `multiple` for one that takes several values separated by commas, keeping what has any of them; `dynamic` for one whose values that give something are in `meta.available.<name>` of the list: the values, or `value` and `label` (a text, not a key) for one without `values`, such as the simulators) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default, and `level`, the lowest user level of a manager who changes it; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\nThe URI of a region is `host:port/Region Name` (the name as it is, its spaces too), the one of a parcel `host:port/Region Name/x/y/z` (the point it is entered at); a hop:// link (`teleport`) has the name encoded. Both `host:port/Region` and `host:port:Region` are read. This is an important change in the canonical form 3.0 gives: not tested against 2.x, but in theory compatible, since 2.x already accepted both forms.\n\n## Who may do what through a site\n\nEvery operation says it in `x-access`, by the user levels of OpenSimulator (0 GOD_NOT, 1 GOD_LIKE, 100 GOD_CUSTOMER_SERVICE, 150 GOD_LIAISON, 200 GOD_FULL, 250 GOD_MAINTENANCE; a level has every right of the ones below it): `level`, the lowest level of a person who does it on what is not their own (none: anybody may), and `self`, whether a visitor may do it for their own account. Reading and the care of the accounts are for the customer service and above (100); what changes the grid itself (its instances, its regions, its setups, its backups and restores, the role of an avatar) for a god (200), as only GOD_FULL has rights of its own in OpenSimulator; 250 is never needed. A site asks `OpenSim\\Api\\Access` (or reads `x-access`), it never writes a level. The key of the site is what opens the API: the level is the one of the person the site acts for.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
     },
     "servers": [
         {
@@ -453,6 +453,10 @@
                             }
                         }
                     ]
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -500,6 +504,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             },
             "patch": {
@@ -590,6 +598,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -845,6 +857,10 @@
                             }
                         }
                     ]
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -892,6 +908,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             },
             "patch": {
@@ -982,6 +1002,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -1187,6 +1211,10 @@
                         }
                     ],
                     "actions": []
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -1234,6 +1262,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -1434,6 +1466,10 @@
                         }
                     ],
                     "actions": []
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             },
             "post": {
@@ -1525,6 +1561,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -1572,6 +1612,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -2057,6 +2101,10 @@
                             "link": "reset"
                         }
                     ]
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             },
             "post": {
@@ -2246,6 +2294,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": true
                 }
             }
         },
@@ -2372,7 +2424,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2384,7 +2437,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2396,7 +2450,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2418,7 +2473,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2430,7 +2486,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2450,7 +2507,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2462,7 +2520,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2474,7 +2533,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2494,7 +2554,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2506,7 +2567,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             }
                         },
                         {
@@ -2521,6 +2583,9 @@
                                 "liaison": "role_liaison",
                                 "god": "role_god",
                                 "maintenance": "role_maintenance"
+                            },
+                            "access": {
+                                "level": 200
                             }
                         },
                         {
@@ -2532,6 +2597,9 @@
                                 "active": "status_active",
                                 "disabled": "status_disabled",
                                 "pending": "status_pending"
+                            },
+                            "access": {
+                                "level": 100
                             }
                         },
                         {
@@ -2543,7 +2611,8 @@
                                 "edit": [
                                     "self",
                                     "manager"
-                                ]
+                                ],
+                                "level": 100
                             },
                             "description": "password_help",
                             "writeOnly": true
@@ -2606,6 +2675,10 @@
                             "link": "reset"
                         }
                     ]
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": true
                 }
             },
             "patch": {
@@ -2775,6 +2848,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": true
                 }
             },
             "delete": {
@@ -2826,6 +2903,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -2880,6 +2961,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -2936,6 +3021,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -3334,6 +3423,10 @@
                             }
                         }
                     ]
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -3457,6 +3550,9 @@
                                 "local": [
                                     true
                                 ]
+                            },
+                            "access": {
+                                "level": 200
                             }
                         },
                         {
@@ -3486,6 +3582,9 @@
                                 "hyperlink": [
                                     false
                                 ]
+                            },
+                            "access": {
+                                "level": 200
                             }
                         },
                         {
@@ -3583,6 +3682,9 @@
                                 "local": [
                                     true
                                 ]
+                            },
+                            "access": {
+                                "level": 200
                             }
                         }
                     ],
@@ -3622,6 +3724,10 @@
                             }
                         }
                     ]
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             },
             "patch": {
@@ -3729,6 +3835,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -3987,6 +4097,10 @@
                         }
                     ],
                     "actions": []
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -4126,6 +4240,10 @@
                         }
                     ],
                     "actions": []
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -4321,6 +4439,10 @@
                         }
                     ],
                     "actions": []
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -4377,6 +4499,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -4721,6 +4847,10 @@
                         }
                     ],
                     "actions": []
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -4777,6 +4907,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -4854,7 +4988,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/destinations/{id}": {
@@ -4911,7 +5049,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/tasks": {
@@ -4955,6 +5097,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -5002,6 +5148,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -5046,6 +5196,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -5093,6 +5247,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -5138,7 +5296,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/fonts/{id}": {
@@ -5186,7 +5348,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/assets/{id}.{format}": {
@@ -5277,7 +5443,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/motd": {
@@ -5330,7 +5500,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/logos/{name}": {
@@ -5385,7 +5559,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/text-images": {
@@ -5491,7 +5669,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/tasks/{id}/runs": {
@@ -5559,6 +5741,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -5621,6 +5807,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -5683,6 +5873,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -5745,6 +5939,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -5897,7 +6095,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/avatars/{id}/picks": {
@@ -6022,6 +6224,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": true
                 }
             }
         },
@@ -6148,6 +6354,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": true
                 }
             }
         },
@@ -6239,6 +6449,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": true
                 }
             }
         },
@@ -6329,7 +6543,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/monitor": {
@@ -6517,7 +6735,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/health": {
@@ -6608,6 +6830,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -6695,7 +6921,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/search/query": {
@@ -6857,7 +7087,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/currency.php": {
@@ -6986,7 +7220,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/landtool.php": {
@@ -7091,7 +7329,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/offline-messages/SaveMessage": {
@@ -7171,7 +7413,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/grids/{grid}/offline-messages/RetrieveMessages": {
@@ -7251,7 +7497,11 @@
                         }
                     }
                 },
-                "security": []
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
             }
         },
         "/search": {
@@ -7278,6 +7528,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7305,6 +7559,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7332,6 +7590,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7369,6 +7631,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7396,6 +7662,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7423,6 +7693,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7460,6 +7734,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7497,6 +7775,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7524,6 +7806,10 @@
                     "404": {
                         "description": "The grid does not serve this page"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7550,6 +7836,10 @@
                     "404": {
                         "description": "The grid has no feed"
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7592,6 +7882,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": false
                 }
             }
         },
@@ -7665,6 +7959,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
                 }
             }
         },
@@ -7755,6 +8053,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -7872,6 +8174,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -7974,6 +8280,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -8232,6 +8542,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -8436,6 +8750,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false
                 }
             }
         },
@@ -8550,6 +8868,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": true
                 }
             }
         },
@@ -8728,6 +9050,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": true
                 }
             }
         },
@@ -8839,6 +9165,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": true
                 }
             }
         },
@@ -9023,6 +9353,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": true
                 }
             }
         },
@@ -9130,6 +9464,10 @@
                             }
                         }
                     }
+                },
+                "x-access": {
+                    "level": null,
+                    "self": true
                 }
             }
         }

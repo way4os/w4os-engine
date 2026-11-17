@@ -666,9 +666,11 @@ describe('The contract', function () {
                     'god' => 'role_god',
                     'maintenance' => 'role_maintenance',
                 ],
+                // A role is set by a god, as OpenSimulator sets a level
+                'access' => ['level' => 200],
             ])
             ->and(array_column($avatar['fields'], null, 'name')['about']['access'])
-            ->toBe(['edit' => ['self', 'manager']])
+            ->toBe(['edit' => ['self', 'manager'], 'level' => 100])
             ->and(array_column($avatar['actions'], 'name'))
             ->toBe(['enable', 'disable', 'reset'])
             ->and(array_column($region['fields'], null, 'name')['enabled'])
@@ -678,6 +680,7 @@ describe('The contract', function () {
                 'type' => 'boolean',
                 'group' => 'region',
                 'condition' => ['local' => [true]],
+                'access' => ['level' => 200],
             ])
             // One group: the simulator shown by its name only, its address and its files left to its own page
             ->and(array_column($region['groups'], 'name'))

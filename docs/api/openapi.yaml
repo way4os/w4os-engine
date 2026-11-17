@@ -1,16 +1,20 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 79bd3ab
+  version: 71abf66
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
   description: |-
     The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).
 
-    A list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it; `default` what a missing picture stands for, `person` or `place`, as `default` of the pictures of the assets; `values` the words of a `list` with their `label` and `description`, as the values of a filter), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value; `multiple` for one that takes several values separated by commas, keeping what has any of them; `dynamic` for one whose values that give something are in `meta.available.<name>` of the list: the values, or `value` and `label` (a text, not a key) for one without `values`, such as the simulators) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.
+    A list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it; `default` what a missing picture stands for, `person` or `place`, as `default` of the pictures of the assets; `values` the words of a `list` with their `label` and `description`, as the values of a filter), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value; `multiple` for one that takes several values separated by commas, keeping what has any of them; `dynamic` for one whose values that give something are in `meta.available.<name>` of the list: the values, or `value` and `label` (a text, not a key) for one without `values`, such as the simulators) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default, and `level`, the lowest user level of a manager who changes it; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.
 
     The URI of a region is `host:port/Region Name` (the name as it is, its spaces too), the one of a parcel `host:port/Region Name/x/y/z` (the point it is entered at); a hop:// link (`teleport`) has the name encoded. Both `host:port/Region` and `host:port:Region` are read. This is an important change in the canonical form 3.0 gives: not tested against 2.x, but in theory compatible, since 2.x already accepted both forms.
+
+    ## Who may do what through a site
+
+    Every operation says it in `x-access`, by the user levels of OpenSimulator (0 GOD_NOT, 1 GOD_LIKE, 100 GOD_CUSTOMER_SERVICE, 150 GOD_LIAISON, 200 GOD_FULL, 250 GOD_MAINTENANCE; a level has every right of the ones below it): `level`, the lowest level of a person who does it on what is not their own (none: anybody may), and `self`, whether a visitor may do it for their own account. Reading and the care of the accounts are for the customer service and above (100); what changes the grid itself (its instances, its regions, its setups, its backups and restores, the role of an avatar) for a god (200), as only GOD_FULL has rights of its own in OpenSimulator; 250 is never needed. A site asks `OpenSim\Api\Access` (or reads `x-access`), it never writes a level. The key of the site is what opens the API: the level is the one of the person the site acts for.
 
     ## Authentication
 
@@ -346,6 +350,9 @@ paths:
             when:
               enabled:
                 - true
+      x-access:
+        level: 100
+        self: false
   '/grids/{id}':
     get:
       operationId: getGrid
@@ -376,6 +383,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
     patch:
       operationId: updateGrid
       tags:
@@ -429,6 +439,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   /simulators:
     get:
       operationId: listSimulators
@@ -611,6 +624,9 @@ paths:
             when:
               enabled:
                 - true
+      x-access:
+        level: 100
+        self: false
   '/simulators/{id}':
     get:
       operationId: getSimulator
@@ -641,6 +657,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
     patch:
       operationId: updateSimulator
       tags:
@@ -694,6 +713,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   /services:
     get:
       operationId: listServices
@@ -840,6 +862,9 @@ paths:
                 value: web
                 label: port_web
         actions: []
+      x-access:
+        level: 100
+        self: false
   '/services/{id}':
     get:
       operationId: getService
@@ -870,6 +895,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   /archives:
     get:
       operationId: listArchives
@@ -1014,6 +1042,9 @@ paths:
             label: column_grid
             format: grid
         actions: []
+      x-access:
+        level: 100
+        self: false
     post:
       operationId: createArchive
       tags:
@@ -1055,6 +1086,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/archives/{id}':
     get:
       operationId: getArchive
@@ -1085,6 +1119,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/avatars':
     get:
       operationId: listAvatars
@@ -1440,6 +1477,9 @@ paths:
             requires:
               - email
             link: reset
+      x-access:
+        level: 100
+        self: false
     post:
       operationId: createAvatar
       tags:
@@ -1503,6 +1543,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
   '/grids/{grid}/avatars/{id}':
     get:
       operationId: getAvatar
@@ -1598,6 +1641,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: published
             label: show_in_search
@@ -1607,6 +1651,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: profileUrl
             label: profile_url
@@ -1616,6 +1661,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: wantsList
             label: wants
@@ -1634,6 +1680,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: wants
             label: profile_other
@@ -1643,6 +1690,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: skillsList
             label: skills
@@ -1659,6 +1707,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: skills
             label: profile_other
@@ -1668,6 +1717,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: languages
             label: languages
@@ -1677,6 +1727,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: firstImage
             label: profile_picture
@@ -1693,6 +1744,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: email
             label: email
@@ -1702,6 +1754,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
           -
             name: role
             label: role
@@ -1714,6 +1767,8 @@ paths:
               liaison: role_liaison
               god: role_god
               maintenance: role_maintenance
+            access:
+              level: 200
           -
             name: status
             label: status
@@ -1723,6 +1778,8 @@ paths:
               active: status_active
               disabled: status_disabled
               pending: status_pending
+            access:
+              level: 100
           -
             name: password
             label: password
@@ -1732,6 +1789,7 @@ paths:
               edit:
                 - self
                 - manager
+              level: 100
             description: password_help
             writeOnly: true
           -
@@ -1776,6 +1834,9 @@ paths:
             requires:
               - email
             link: reset
+      x-access:
+        level: 100
+        self: true
     patch:
       operationId: updateAvatar
       tags:
@@ -1836,6 +1897,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
     delete:
       operationId: deleteAvatar
       tags:
@@ -1870,6 +1934,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/grids/{grid}/avatar-models':
     get:
       operationId: listAvatarModels
@@ -1905,6 +1972,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/avatar-models/{id}':
     get:
       operationId: getAvatarModel
@@ -1942,6 +2012,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/regions':
     get:
       operationId: listRegions
@@ -2240,6 +2313,9 @@ paths:
                 - true
               enabled:
                 - true
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/regions/{id}':
     get:
       operationId: getRegion
@@ -2332,6 +2408,8 @@ paths:
             condition:
               local:
                 - true
+            access:
+              level: 200
           -
             name: serverName
             label: filter_simulator
@@ -2356,6 +2434,8 @@ paths:
             condition:
               hyperlink:
                 - false
+            access:
+              level: 200
           -
             name: flagNames
             label: column_flags
@@ -2433,6 +2513,8 @@ paths:
             condition:
               local:
                 - true
+            access:
+              level: 200
         actions:
           -
             name: enable
@@ -2458,6 +2540,9 @@ paths:
                 - true
               enabled:
                 - true
+      x-access:
+        level: 100
+        self: false
     patch:
       operationId: updateRegion
       tags:
@@ -2518,6 +2603,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/grids/{grid}/parcels':
     get:
       operationId: listParcels
@@ -2706,6 +2794,9 @@ paths:
             label: column_owner
             format: uuid
         actions: []
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/parcels/{id}':
     get:
       operationId: getParcel
@@ -2812,6 +2903,9 @@ paths:
             readOnly: true
             link: teleport
         actions: []
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/estates':
     get:
       operationId: listEstates
@@ -2952,6 +3046,9 @@ paths:
             label: column_region
             format: uuid
         actions: []
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/estates/{id}':
     get:
       operationId: getEstate
@@ -2989,6 +3086,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/assets':
     get:
       operationId: listAssets
@@ -3245,6 +3345,9 @@ paths:
                 value: 'no'
                 label: 'no'
         actions: []
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/assets/{id}':
     get:
       operationId: getAsset
@@ -3282,6 +3385,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/destinations':
     get:
       operationId: listDestinations
@@ -3337,6 +3443,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/destinations/{id}':
     get:
       operationId: getDestination
@@ -3375,6 +3484,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   /tasks:
     get:
       operationId: listTasks
@@ -3403,6 +3515,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/tasks/{id}':
     get:
       operationId: getTask
@@ -3433,6 +3548,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   /forms:
     get:
       operationId: listForms
@@ -3461,6 +3579,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/forms/{id}':
     get:
       operationId: getForm
@@ -3491,6 +3612,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   /fonts:
     get:
       operationId: listFonts
@@ -3520,6 +3644,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/fonts/{id}':
     get:
       operationId: getFont
@@ -3551,6 +3678,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/assets/{id}.{format}':
     get:
       operationId: getAssetMedia
@@ -3617,6 +3747,9 @@ paths:
                 type: string
                 format: binary
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/motd':
     get:
       operationId: getMotd
@@ -3653,6 +3786,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/logos/{name}':
     get:
       operationId: getLogo
@@ -3692,6 +3828,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   /text-images:
     get:
       operationId: getTextImage
@@ -3769,6 +3908,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/tasks/{id}/runs':
     post:
       operationId: runTask
@@ -3809,6 +3951,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/instances/{name}/start':
     post:
       operationId: startInstance
@@ -3848,6 +3993,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/instances/{name}/stop':
     post:
       operationId: stopInstance
@@ -3887,6 +4035,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/instances/{name}/restart':
     post:
       operationId: restartInstance
@@ -3926,6 +4077,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/grids/{grid}/addresses':
     get:
       operationId: getAddresses
@@ -3962,6 +4116,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/avatars/{id}/picks':
     get:
       operationId: listAvatarPicks
@@ -4003,6 +4160,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
   '/grids/{grid}/avatars/{id}/classifieds':
     get:
       operationId: listAvatarClassifieds
@@ -4044,6 +4204,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
   '/grids/{grid}/avatars/{id}/groups':
     get:
       operationId: listAvatarGroups
@@ -4085,6 +4248,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: true
   '/grids/{grid}/info':
     get:
       operationId: getInfo
@@ -4121,6 +4287,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/monitor':
     get:
       operationId: getMonitor
@@ -4214,6 +4383,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/health':
     get:
       operationId: getHealth
@@ -4249,6 +4421,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
   '/grids/{grid}/search/register':
     get:
       operationId: registerSimulator
@@ -4310,6 +4485,9 @@ paths:
               schema:
                 type: string
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/search/query':
     post:
       operationId: searchQuery
@@ -5141,6 +5319,9 @@ paths:
               schema:
                 type: string
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/currency.php':
     post:
       operationId: currency
@@ -5562,6 +5743,9 @@ paths:
               schema:
                 type: string
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/landtool.php':
     post:
       operationId: landTool
@@ -5774,6 +5958,9 @@ paths:
               schema:
                 type: string
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/offline-messages/SaveMessage':
     post:
       operationId: offlineSaveMessage
@@ -5832,6 +6019,9 @@ paths:
               schema:
                 type: string
       security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/offline-messages/RetrieveMessages':
     post:
       operationId: offlineRetrieveMessages
@@ -5888,6 +6078,9 @@ paths:
               schema:
                 type: string
       security: []
+      x-access:
+        level: null
+        self: false
   /search:
     get:
       operationId: pageSearch
@@ -5906,6 +6099,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   /welcome:
     get:
       operationId: pageWelcome
@@ -5924,6 +6120,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   /guide:
     get:
       operationId: pageGuide
@@ -5942,6 +6141,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   '/profile/{name}':
     get:
       operationId: pageProfile
@@ -5967,6 +6169,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   /health:
     get:
       operationId: pageHealth
@@ -5985,6 +6190,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   /directory_info:
     get:
       operationId: pageDirectoryInfo
@@ -6003,6 +6211,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   '/blocks/{name}':
     get:
       operationId: pageBlock
@@ -6028,6 +6239,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   '/assets/{file}':
     get:
       operationId: pageAsset
@@ -6053,6 +6267,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   /grid_status:
     get:
       operationId: pageGridStatus
@@ -6071,6 +6288,9 @@ paths:
                 type: string
         404:
           description: 'The grid does not serve this page'
+      x-access:
+        level: null
+        self: false
   /grid_status.rss:
     get:
       operationId: feedGridStatus
@@ -6088,6 +6308,9 @@ paths:
                 type: string
         404:
           description: 'The grid has no feed'
+      x-access:
+        level: null
+        self: false
   /get_grid_info:
     get:
       operationId: getGridInfo
@@ -6117,6 +6340,9 @@ paths:
                   value: |-
                     <?xml version="1.0"?>
                     <gridinfo><gridname>Demo World</gridname><gridnick>demo</gridnick><login>http://grid.example.org:8002/</login><economy>https://web.example.org/helpers</economy><search>https://web.example.org/search</search></gridinfo>
+      x-access:
+        level: null
+        self: false
   /layout:
     get:
       operationId: getLayout
@@ -6138,6 +6364,9 @@ paths:
                       type: { const: layout }
                       id: { const: system }
                       attributes: { type: object, properties: { systemUser: { type: string }, systemUid: { type: integer }, systemGroup: { type: string }, systemGid: { type: integer }, currentUser: { type: string }, currentUid: { type: integer }, currentGroup: { type: string }, currentGid: { type: integer }, etcRoot: { type: string }, varRoot: { type: string }, logsRoot: { type: string } } }
+      x-access:
+        level: 100
+        self: false
   /setups/files:
     post:
       operationId: applySetupFile
@@ -6179,6 +6408,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   /setups/imports:
     post:
       operationId: importSetup
@@ -6221,6 +6453,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   /setups/restores:
     post:
       operationId: restoreBackup
@@ -6274,6 +6509,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   /setups/quick:
     post:
       operationId: quickSetup
@@ -6316,6 +6554,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   /setups/steps:
     post:
       operationId: setupStep
@@ -6358,6 +6599,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 200
+        self: false
   '/grids/{grid}/sign-ins':
     post:
       operationId: signIn
@@ -6422,6 +6666,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: null
+        self: true
   '/grids/{grid}/password-resets':
     post:
       operationId: requestPasswordReset
@@ -6494,6 +6741,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: null
+        self: true
   '/grids/{grid}/password-resets/complete':
     post:
       operationId: resetPassword
@@ -6558,6 +6808,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: null
+        self: true
   '/grids/{grid}/email-confirmations':
     post:
       operationId: requestEmailConfirmation
@@ -6636,6 +6889,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: null
+        self: true
   '/grids/{grid}/email-confirmations/complete':
     post:
       operationId: confirmEmail
@@ -6700,6 +6956,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+      x-access:
+        level: null
+        self: true
 components:
   securitySchemes:
     ApiKey:
