@@ -823,6 +823,26 @@ msgid "%s is restarted."
 msgstr "%s foi reiniciado."
 
 #, php-format
+msgctxt "manage_ban"
+msgid "%s is banned."
+msgstr "%s foi banido."
+
+#, php-format
+msgctxt "manage_unban"
+msgid "%s is no longer banned."
+msgstr "%s não está mais banido."
+
+#, php-format
+msgctxt "manage_estate_ban"
+msgid "%s is banned from the estates."
+msgstr "%s foi banido das propriedades."
+
+#, php-format
+msgctxt "manage_estate_unban"
+msgid "%s is no longer banned from the estates."
+msgstr "%s não está mais banido das propriedades."
+
+#, php-format
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
 msgstr "Um link para escolher uma nova senha está a caminho de %s."

@@ -721,7 +721,9 @@ msgstr "Dad-wahardd o ystadau"
 
 msgctxt "ask_ban"
 msgid "Ban this avatar? It can no longer log in, until it is unbanned."
-msgstr "Gwahardd yr afatar hwn? Ni all fewngofnodi mwyach, nes iddo gael ei ddad-wahardd."
+msgstr ""
+"Gwahardd yr afatar hwn? Ni all fewngofnodi mwyach, nes iddo gael ei ddad-"
+"wahardd."
 
 msgctxt "ask_estate_ban"
 msgid "Ban this avatar from every estate of the grid?"
@@ -832,6 +834,26 @@ msgstr "Mae %s wedi stopio."
 msgctxt "manage_restart"
 msgid "%s is restarted."
 msgstr "Mae %s wedi ailgychwyn."
+
+#, php-format
+msgctxt "manage_ban"
+msgid "%s is banned."
+msgstr "Mae %s wedi'i wahardd."
+
+#, php-format
+msgctxt "manage_unban"
+msgid "%s is no longer banned."
+msgstr "Nid yw %s wedi'i wahardd mwyach."
+
+#, php-format
+msgctxt "manage_estate_ban"
+msgid "%s is banned from the estates."
+msgstr "Mae %s wedi'i wahardd o'r ystadau."
+
+#, php-format
+msgctxt "manage_estate_unban"
+msgid "%s is no longer banned from the estates."
+msgstr "Nid yw %s wedi'i wahardd o'r ystadau mwyach."
 
 #, php-format
 msgctxt "manage_reset"

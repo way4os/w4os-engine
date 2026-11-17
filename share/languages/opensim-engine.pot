@@ -781,6 +781,26 @@ msgid "%s is restarted."
 msgstr ""
 
 #, php-format
+msgctxt "manage_ban"
+msgid "%s is banned."
+msgstr ""
+
+#, php-format
+msgctxt "manage_unban"
+msgid "%s is no longer banned."
+msgstr ""
+
+#, php-format
+msgctxt "manage_estate_ban"
+msgid "%s is banned from the estates."
+msgstr ""
+
+#, php-format
+msgctxt "manage_estate_unban"
+msgid "%s is no longer banned from the estates."
+msgstr ""
+
+#, php-format
 msgctxt "manage_reset"
 msgid "A link to choose a new password is on its way to %s."
 msgstr ""

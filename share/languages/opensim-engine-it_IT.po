@@ -713,7 +713,9 @@ msgstr "Revoca il ban dalle proprietà"
 
 msgctxt "ask_ban"
 msgid "Ban this avatar? It can no longer log in, until it is unbanned."
-msgstr "Bannare questo avatar? Non potrà più connettersi finché il ban non sarà revocato."
+msgstr ""
+"Bannare questo avatar? Non potrà più connettersi finché il ban non sarà "
+"revocato."
 
 msgctxt "ask_estate_ban"
 msgid "Ban this avatar from every estate of the grid?"
@@ -825,6 +827,26 @@ msgstr "%s è fermato."
 msgctxt "manage_restart"
 msgid "%s is restarted."
 msgstr "%s è riavviato."
+
+#, php-format
+msgctxt "manage_ban"
+msgid "%s is banned."
+msgstr "%s è bannato."
+
+#, php-format
+msgctxt "manage_unban"
+msgid "%s is no longer banned."
+msgstr "%s non è più bannato."
+
+#, php-format
+msgctxt "manage_estate_ban"
+msgid "%s is banned from the estates."
+msgstr "%s è bannato dalle proprietà."
+
+#, php-format
+msgctxt "manage_estate_unban"
+msgid "%s is no longer banned from the estates."
+msgstr "%s non è più bannato dalle proprietà."
 
 #, php-format
 msgctxt "manage_reset"

@@ -712,7 +712,9 @@ msgstr "Débannir des domaines"
 
 msgctxt "ask_ban"
 msgid "Ban this avatar? It can no longer log in, until it is unbanned."
-msgstr "Bannir cet avatar ? Il ne peut plus se connecter, jusqu'à ce qu'il soit débanni."
+msgstr ""
+"Bannir cet avatar ? Il ne peut plus se connecter, jusqu'à ce qu'il soit "
+"débanni."
 
 msgctxt "ask_estate_ban"
 msgid "Ban this avatar from every estate of the grid?"
@@ -823,6 +825,26 @@ msgstr "%s est arrêté."
 msgctxt "manage_restart"
 msgid "%s is restarted."
 msgstr "%s est redémarré."
+
+#, php-format
+msgctxt "manage_ban"
+msgid "%s is banned."
+msgstr "%s est banni."
+
+#, php-format
+msgctxt "manage_unban"
+msgid "%s is no longer banned."
+msgstr "%s n'est plus banni."
+
+#, php-format
+msgctxt "manage_estate_ban"
+msgid "%s is banned from the estates."
+msgstr "%s est banni des domaines."
+
+#, php-format
+msgctxt "manage_estate_unban"
+msgid "%s is no longer banned from the estates."
+msgstr "%s n'est plus banni des domaines."
 
 #, php-format
 msgctxt "manage_reset"

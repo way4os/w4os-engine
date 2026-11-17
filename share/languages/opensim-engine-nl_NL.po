@@ -711,7 +711,8 @@ msgstr "Landgoedban opheffen"
 
 msgctxt "ask_ban"
 msgid "Ban this avatar? It can no longer log in, until it is unbanned."
-msgstr "Dit avatar verbannen? Het kan niet meer inloggen tot de ban is opgeheven."
+msgstr ""
+"Dit avatar verbannen? Het kan niet meer inloggen tot de ban is opgeheven."
 
 msgctxt "ask_estate_ban"
 msgid "Ban this avatar from every estate of the grid?"
@@ -822,6 +823,26 @@ msgstr "%s is gestopt."
 msgctxt "manage_restart"
 msgid "%s is restarted."
 msgstr "%s is herstart."
+
+#, php-format
+msgctxt "manage_ban"
+msgid "%s is banned."
+msgstr "%s is verbannen."
+
+#, php-format
+msgctxt "manage_unban"
+msgid "%s is no longer banned."
+msgstr "%s is niet meer verbannen."
+
+#, php-format
+msgctxt "manage_estate_ban"
+msgid "%s is banned from the estates."
+msgstr "%s is verbannen uit de landgoederen."
+
+#, php-format
+msgctxt "manage_estate_unban"
+msgid "%s is no longer banned from the estates."
+msgstr "%s is niet meer verbannen uit de landgoederen."
 
 #, php-format
 msgctxt "manage_reset"

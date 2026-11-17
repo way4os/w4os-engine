@@ -62,6 +62,21 @@ describe('Every list', function () {
             ->toBe('Statut');
     });
 
+    test('has, for each of its actions, the message a site says once it is done (manage_<action>)', function () {
+        $missing = [];
+        foreach (contract_lists() as $path => $list) {
+            foreach ($list['actions'] ?? [] as $action) {
+                $key = 'manage_' . strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $action['name']));
+                isset(OpenSim\I18n\Catalog::MESSAGES[$key]) || ($missing[] = "$path: {$action['name']} ($key)");
+            }
+        }
+
+        expect($missing)
+            ->toBe([])
+            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['manage_estate_unban'])
+            ->toBe("%s n'est plus banni des domaines.");
+    });
+
     test('shows when something was created before when it was last seen, both with their time', function () {
         $wrong = [];
         foreach (contract_lists() as $path => $list) {

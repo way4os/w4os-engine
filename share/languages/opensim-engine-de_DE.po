@@ -714,7 +714,9 @@ msgstr "Grundbesitz-Bann aufheben"
 
 msgctxt "ask_ban"
 msgid "Ban this avatar? It can no longer log in, until it is unbanned."
-msgstr "Diesen Avatar bannen? Er kann sich nicht mehr anmelden, bis der Bann aufgehoben wird."
+msgstr ""
+"Diesen Avatar bannen? Er kann sich nicht mehr anmelden, bis der Bann "
+"aufgehoben wird."
 
 msgctxt "ask_estate_ban"
 msgid "Ban this avatar from every estate of the grid?"
@@ -826,6 +828,26 @@ msgstr "%s ist gestoppt."
 msgctxt "manage_restart"
 msgid "%s is restarted."
 msgstr "%s ist neu gestartet."
+
+#, php-format
+msgctxt "manage_ban"
+msgid "%s is banned."
+msgstr "%s ist gebannt."
+
+#, php-format
+msgctxt "manage_unban"
+msgid "%s is no longer banned."
+msgstr "%s ist nicht mehr gebannt."
+
+#, php-format
+msgctxt "manage_estate_ban"
+msgid "%s is banned from the estates."
+msgstr "%s ist aus dem Grundbesitz gebannt."
+
+#, php-format
+msgctxt "manage_estate_unban"
+msgid "%s is no longer banned from the estates."
+msgstr "%s ist nicht mehr aus dem Grundbesitz gebannt."
 
 #, php-format
 msgctxt "manage_reset"

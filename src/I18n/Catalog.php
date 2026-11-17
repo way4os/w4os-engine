@@ -278,6 +278,10 @@ final class Catalog
         'manage_start' => '%s is started.',
         'manage_stop' => '%s is stopped.',
         'manage_restart' => '%s is restarted.',
+        'manage_ban' => '%s is banned.',
+        'manage_unban' => '%s is no longer banned.',
+        'manage_estate_ban' => '%s is banned from the estates.',
+        'manage_estate_unban' => '%s is no longer banned from the estates.',
         'manage_reset' => 'A link to choose a new password is on its way to %s.',
         'manage_saved' => '%s is saved.',
 
