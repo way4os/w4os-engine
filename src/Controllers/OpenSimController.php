@@ -77,7 +77,7 @@ final class OpenSimController extends AbstractController
         if ($grid === null || !SimulatorMaster::exists($grid)) {
             return null;
         }
-        (new SimulatorMaster())->ensure($grid, $binDir);
+        (new SimulatorMaster($this->environment))->ensure($grid, $binDir);
         $this->forget();
 
         return SimulatorMaster::path($grid);

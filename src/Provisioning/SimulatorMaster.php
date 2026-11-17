@@ -18,8 +18,10 @@ use OpenSim\Models\Grid;
  *  2. the model of the toolset (resources/OpenSimKitDefaults.ini): the folders OpenSimulator would take in the core, which is
  *     read-only, and the storage;
  *  3. what the grid is: its folders, its address and ports (those of its Robust), its architecture and its OSSL;
- *  4. what the grid decided: the settings its OpenSim.ini adds to the one of the core (the search, the offline messages, the
- *     economy, the profiles... see GridOptions), which the helpers read in the same file.
+ *  4. the options the grid has (GridOptions::layer(): the profiles, the groups... the ones on by default when it says none), so that
+ *     every simulator has them, whatever the grid is (of this machine, joined by a preset, run elsewhere) and whenever it was made;
+ *  5. what the grid decided: the settings its OpenSim.ini adds to the one of the core (the search, the offline messages, the
+ *     economy, the profiles... see GridOptions), which the helpers read in the same file, over the options.
  *
  * A grid joined by a preset (a grid that runs elsewhere, OSGrid...) has the same: its folder is `<etc>/grids/<nick>` for the
  * description of the grid and its simulators, and the folder of its preset (`<etc>/presets/<name>`, the structure of a grid's folder)
@@ -31,6 +33,9 @@ use OpenSim\Models\Grid;
  */
 final class SimulatorMaster
 {
+    /** @param ?\OpenSim\Runtime\Environment $environment the machine, to know the options of the grid (none without it) */
+    public function __construct(private readonly ?\OpenSim\Runtime\Environment $environment = null) {}
+
     public const FILE = 'OpenSimGridDefaults.ini';
 
     /** The master of the grid whose folder is given. */
@@ -72,6 +77,8 @@ final class SimulatorMaster
         $ini = IniEditor::load(self::distribution($binDir, 'OpenSimDefaults.ini') ?? '');
         $ini->overlay($option->text('model.ini', []));
         $ini->overlay($this->grid($gridDir, $binDir, $configDir, $option));
+        // The options of the grid, under what it decided: a grid joined by a preset says only what the preset says
+        $this->environment === null || $ini->overlay((new GridOptions(Grid::at($this->environment, $gridDir)))->layer());
         $ini->overlay($this->decisions($configDir, $binDir));
 
         return $option->text('header.txt', []) . $ini->toString();

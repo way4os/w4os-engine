@@ -96,7 +96,7 @@ final class SimulatorProvisioner
             $plan->presetSettings = $presets->settings($plan->preset, $plan->binDir());
             // What applies to all its simulators is in the preset: the master of the simulators is made from it, as a grid's is made
             // from its own OpenSim.ini. The simulators say only what makes them their own
-            $master = (new SimulatorMaster())->ensure($plan->gridDir, $plan->binDir());
+            $master = (new SimulatorMaster($environment))->ensure($plan->gridDir, $plan->binDir());
             $master !== null && $this->ui->note(sprintf(_('Wrote %s'), $master));
         } else {
             $shared = new GridShared($grid->dataDirectory() !== '' ? $grid->dataDirectory() : null);

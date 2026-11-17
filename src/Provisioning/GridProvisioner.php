@@ -20,6 +20,9 @@ use OpenSim\Config\GridConfig;
  */
 final class GridProvisioner
 {
+    /** The machine, for the options the master holds (writeMaster()). */
+    private ?Environment $environment = null;
+
     public function __construct(private UiInterface $ui) {}
 
     /** The writing itself: run as the system user of the install, root, or the user of an install without one. */
@@ -32,6 +35,7 @@ final class GridProvisioner
         $this->writeHelpers($plan);
         $this->copyConfigInclude($plan);
         $this->applyOptions($plan, $environment);
+        $this->environment = $environment;
         $this->writeMaster($plan);
 
         // What was asked is kept, to make the same grid again from a file (opensim import)
@@ -214,7 +218,7 @@ apache:
         if (!is_file("{$plan->etcDirectory}/OpenSim.ini")) {
             return;
         }
-        $master = (new SimulatorMaster())->ensure($plan->etcDirectory, $plan->binDir);
+        $master = (new SimulatorMaster($this->environment))->ensure($plan->etcDirectory, $plan->binDir);
         $master !== null && $this->ui->note(sprintf(_('Wrote %s'), $master));
     }
 

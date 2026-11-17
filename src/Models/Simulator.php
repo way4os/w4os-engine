@@ -583,6 +583,7 @@ final class Simulator extends InstalledModel
                 'running' => $this->isRunning(),
                 'state' => $this->state(),
                 'local' => false,
+                'missingOptions' => [],
                 'connections' => $this->connections(),
                 'httpPort' => $this->httpPort(),
                 'regions' => $this->regionsAndArea()[0],
@@ -609,6 +610,8 @@ final class Simulator extends InstalledModel
             'running' => $this->isRunning(),
             'state' => $this->state(),
             'local' => true,
+            // The options of its grid its config does not have (profiles, groups...): made again with its master when it starts
+            'missingOptions' => $this->missingOptions(),
             'connections' => $this->connections(),
             'httpPort' => $this->httpPort(),
             'regions' => $this->regionsAndArea()[0],
@@ -735,6 +738,19 @@ final class Simulator extends InstalledModel
         $this->elsewhere === null || throw \OpenSim\Exceptions\ChannelUnavailable::for("$what the simulator {$this->elsewhere['uri']}, which runs on another machine");
 
         return $this->controller;
+    }
+
+    /**
+     * The options of its grid (GridOptions) its config does not have, the master of its grid and its own file read: a simulator
+     * made before them gets them when its master is made again (it starts). None for a simulator of another machine.
+     *
+     * @return list<string>
+     */
+    public function missingOptions(): array
+    {
+        $grid = $this->grid();
+
+        return $this->elsewhere !== null || $grid === null ? [] : (new \OpenSim\Provisioning\GridOptions($grid))->missingIn($this->settings());
     }
 
     /** Its process, null when it does not run: in the processes read for the list, else asked of the machine. */

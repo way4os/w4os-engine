@@ -92,6 +92,7 @@ final class Contract
                 'running' => ['boolean', 'Its process is running; for a simulator of another machine, one of its regions is online'],
                 'state' => ['string', 'running, stopped, unresponsive (its process runs and does not answer: its HTTP port not bound in a list, no OK at /simstatus/ alone) or crashed (its screen session left without its process)'],
                 'local' => ['boolean', 'It runs on this machine, from a config of one of its grids'],
+                'missingOptions' => ['array', 'The options of its grid its config does not have (`profiles`, `groups-hypergrid`...: the ones on by default when the grid says none); the master of its grid holds them, made again when it starts'],
                 'regions' => ['integer', 'The regions it loads (its region files that are enabled; for a simulator of another machine, its regions in the table of the grid)'],
                 'area' => ['integer', 'Their area, in square meters'],
                 'avatars' => ['integer?', 'The people in it: the members of the grid and the visitors of other grids, never a NPC (they do not reach Presence); null when it is not known'],

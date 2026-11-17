@@ -627,3 +627,35 @@ describe('offline messages of a grid', function () {
         expect($grid()->offlineMode())->toBe('robust')->and($grid()->offlineModule())->toBe('robust');
     });
 });
+
+describe('The options a grid has by default', function () {
+    test('are in the master of a grid that runs elsewhere, joined by a preset that does not say them, under what the preset says', function () {
+        [$machine, $grid] = preset_machine();
+        $master = (new SimulatorMaster($machine->environment))->ensure($grid, $machine->core . '/bin');
+        $ini = ConfigReader::load($master, expand: false);
+
+        expect($ini['UserProfiles']['ProfileServiceURL'] ?? null)
+            ->toBe('${Const|BaseURL}:${Const|PublicPort}')
+            ->and($ini['Groups']['Enabled'] ?? null)
+            ->toBe('true')
+            // What the preset decided is kept over them
+            ->and($ini['Search']['SearchURL'])
+            ->toBe('https://osgrid.example.org/query.php');
+    });
+
+    test('come to a simulator made before, with its master made again when it starts; the ones it misses are said until then', function () {
+        [$machine, $grid] = preset_machine();
+        $sims = OpenSim\Config\GridConfig::simulatorsDirectory($grid);
+        $machine->write("$sims/osg.mine.ini", "[Network]\n    http_listener_port = 9100\n");
+        // The master an older engine made, without the options
+        $machine->write($grid . '/' . SimulatorMaster::FILE, (new SimulatorMaster())->render($grid, $machine->core . '/bin'));
+        $simulator = new OpenSim\Models\Simulator($machine->environment, "$sims/osg.mine.ini");
+        $before = $simulator->missingOptions();
+        $simulator->master($machine->core . '/bin');
+
+        expect($before)
+            ->toContain('profiles', 'groups-hypergrid')
+            ->and((new OpenSim\Models\Simulator($machine->environment, "$sims/osg.mine.ini"))->missingOptions())
+            ->toBe([]);
+    });
+});

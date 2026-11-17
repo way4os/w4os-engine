@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "89c72c0",
+        "version": "f50d2a1",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -11038,6 +11038,10 @@
                             "local": {
                                 "type": "boolean",
                                 "description": "It runs on this machine, from a config of one of its grids"
+                            },
+                            "missingOptions": {
+                                "type": "array",
+                                "description": "The options of its grid its config does not have (`profiles`, `groups-hypergrid`...: the ones on by default when the grid says none); the master of its grid holds them, made again when it starts"
                             },
                             "regions": {
                                 "type": "integer",

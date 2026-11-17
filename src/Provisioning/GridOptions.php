@@ -231,6 +231,35 @@ final class GridOptions
     }
 
     /**
+     * The options of the grid a config does not have: the ones of OpenSim.ini whose sections are not in it, its settings as read
+     * (the master of the grid and the file of the simulator).
+     *
+     * @param array<string,array<string,mixed>> $settings by section
+     * @return list<string>
+     */
+    public function missingIn(array $settings): array
+    {
+        $sections = array_change_key_case($settings);
+        $variables = $this->variables();
+        $missing = [];
+        foreach ($this->enabled() as $name) {
+            $option = $this->template($name);
+            if ($option === null || !in_array('OpenSim.ini', $option->files(), true)) {
+                continue;
+            }
+            foreach ($option->settings('OpenSim.ini', $variables, true, fn(string $word): bool => $this->fact($word, '')) as [$section, $key, $value]) {
+                if ($value !== '' && !$option->lists('Existing', $section, $key) && !isset($sections[strtolower($section)])) {
+                    $missing[] = $name;
+
+                    break;
+                }
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
      * Enable an option of the grid.
      *
      * @param  array{prefix?:string} $params the address of the services of the helpers (`<prefix>/query.php`) for an option that
@@ -270,9 +299,10 @@ final class GridOptions
             }
         }
         $this->lay($option, true, $this->variables($prefix, $option), $result);
+        // Recorded first: the master, made again by finish(), holds the options the grid has now
+        $this->record(array_values(array_unique([...array_diff($this->enabled(), $others), $option->name()])));
         $this->finish($result);
         array_push($result['notes'], ...$this->notes($option));
-        $this->record(array_values(array_unique([...array_diff($this->enabled(), $others), $option->name()])));
 
         return $result;
     }
@@ -292,8 +322,8 @@ final class GridOptions
             return $result;
         }
         $this->lay($option, false, $this->variables(), $result);
-        $this->finish($result);
         $this->record(array_values(array_diff($this->enabled(), [$option->name()])));
+        $this->finish($result);
 
         return $result;
     }
@@ -563,7 +593,7 @@ final class GridOptions
     private function finish(array $result): void
     {
         if ($result['error'] === null && $this->layered === null && $this->layered() && $this->grid->coreDirectory() !== '') {
-            (new SimulatorMaster())->ensure($this->grid->directory(), $this->grid->coreDirectory() . '/bin');
+            (new SimulatorMaster($this->grid->environment()))->ensure($this->grid->directory(), $this->grid->coreDirectory() . '/bin');
         }
     }
 
