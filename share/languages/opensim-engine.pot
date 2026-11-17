@@ -1110,6 +1110,10 @@ msgctxt "error_owner_unknown"
 msgid "This avatar does not exist."
 msgstr ""
 
+msgctxt "error_config_not_writable"
+msgid "This cannot be changed from here: the files of the grid belong to its server."
+msgstr ""
+
 msgctxt "error_estate_shared"
 msgid "The owner of this region is the owner of its estate, which has other regions: change the owner of the estate."
 msgstr ""

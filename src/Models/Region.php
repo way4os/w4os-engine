@@ -467,6 +467,17 @@ final class Region extends Model
         if ($after === $before) {
             return;
         }
+        // The config of Robust belongs to the user of the grid: what cannot be written here is said, the console did the rest
+        if (!is_writable($file)) {
+            $this->reminders[] = sprintf(
+                _('%s cannot be written by this process: %s in its [GridService], then restart Robust (opensim restart %s).'),
+                $file,
+                $after === [] ? sprintf(_('remove %s'), $key) : sprintf(_('set %s = "%s"'), $key, implode(', ', $after)),
+                $this->robustInstance(),
+            );
+
+            return;
+        }
         $after === [] ? $ini->remove('GridService', $key) : $ini->set('GridService', $key, '"' . implode(', ', $after) . '"', 'Region_');
         $ini->save($file);
         $this->reminders[] = sprintf(
@@ -844,6 +855,7 @@ final class Region extends Model
             return true;
         }
         $enabled = substr($file, 0, -strlen(self::DISABLED));
+        self::canRename($file, 'enable ' . $this->name());
         if (is_file($enabled) || !@rename($file, $enabled)) {
             throw ChannelUnavailable::for('enable ' . $this->name(), "$file cannot be renamed");
         }
@@ -851,6 +863,21 @@ final class Region extends Model
         $this->local['enabled'] = true;
 
         return true;
+    }
+
+    /**
+     * Refused before anything changes when the file of a region cannot be renamed by this process (its folder belongs to the user of
+     * the grid; a web server reads it only).
+     *
+     * @throws InvalidValue `config-not-writable`
+     */
+    private static function canRename(string $file, string $action): void
+    {
+        is_writable(dirname($file)) ||
+            throw InvalidValue::because(
+                'config-not-writable',
+                sprintf('cannot %s: the folder %s cannot be written by this process (the file %s is renamed there)', $action, dirname($file), basename($file)),
+            );
     }
 
     /**
@@ -867,6 +894,7 @@ final class Region extends Model
         if (str_ends_with($file, self::DISABLED)) {
             return;
         }
+        self::canRename($file, 'disable ' . $this->name());
         if (!@rename($file, $file . self::DISABLED)) {
             throw ChannelUnavailable::for('disable ' . $this->name(), "$file cannot be renamed");
         }

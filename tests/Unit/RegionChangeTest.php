@@ -127,6 +127,26 @@ describe('The roles of a region', function () {
             ->toBe([]);
     });
 
+    test('are given through the console when the config of Robust cannot be written here, the line to add said', function () {
+        [$config, , $robust] = change_grid();
+        $sent = [];
+        change_consoles($sent, true);
+        chmod($robust, 0o444);
+        try {
+            $welcome = Region::find($config, 'Welcome');
+            $welcome->update(['roles' => ['FallbackRegion', 'Persistent']]);
+        } finally {
+            chmod($robust, 0o644);
+        }
+
+        expect($sent['demo'] ?? [])
+            ->toHaveCount(1)
+            ->and($welcome->reminders()[0])
+            ->toContain("$robust cannot be written", 'Region_Welcome = "Persistent, FallbackRegion"', '[GridService]', 'opensim restart demo')
+            ->and((string) file_get_contents($robust))
+            ->toContain('Region_Welcome = "DefaultRegion, Persistent"');
+    });
+
     test('refuse a flag that is not one, and a change of the name, the place or the size', function () {
         [$config] = change_grid();
         $welcome = Region::find($config, 'Welcome');
@@ -141,6 +161,35 @@ describe('The roles of a region', function () {
             ->toThrow(fn(InvalidValue $e) => expect($e->reason)->toBe('field-read-only'))
             ->and(fn() => $welcome->update(['color' => 'red']))
             ->toThrow(fn(InvalidValue $e) => expect($e->reason)->toBe('field-unknown'));
+    });
+});
+
+describe('Whether a region is enabled', function () {
+    test('is refused before anything is touched when its file cannot be renamed here, the folder named', function () {
+        [$config] = change_grid();
+        $garden = Region::find($config, 'Garden');
+        $folder = dirname($garden->file());
+        chmod($folder, 0o555);
+        try {
+            $refused = null;
+            try {
+                $garden->disable();
+            } catch (InvalidValue $e) {
+                $refused = $e;
+            }
+        } finally {
+            chmod($folder, 0o755);
+        }
+
+        expect($refused?->reason)
+            ->toBe('config-not-writable')
+            // Forbidden to this process, not a wrong request
+            ->and(OpenSim\Api\Problem::from($refused)->status)
+            ->toBe(403)
+            ->and($refused?->getMessage())
+            ->toContain($folder)
+            ->and(is_file("$folder/Garden.ini"))
+            ->toBeTrue();
     });
 });
 

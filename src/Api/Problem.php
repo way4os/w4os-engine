@@ -47,6 +47,7 @@ final class Problem
         'field-read-only' => 'The value is the one of a file its operator changes (the name, the place, the size of a region)',
         'flag-unknown' => 'The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...)',
         'owner-unknown' => 'The grid has no avatar of this UUID',
+        'config-not-writable' => 'A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file',
         'estate-shared' => 'The owner of a region is the one of its estate, which has other regions: they would change owner too',
         'filter-unknown' => 'The list has no such filter (the detail names the ones it has)',
         'filter-value-unknown' => 'The filter does not take this value (the detail names the ones it takes)',
@@ -57,6 +58,12 @@ final class Problem
         'no-confirmation-pending' => 'The avatar does not wait for the confirmation of its email',
         'mail-failed' => 'The mail could not be sent',
     ];
+
+    /** The status of a refusal that is not a wrong value of the request: it is right, this process cannot do it. */
+    private const REASON_STATUSES = ['config-not-writable' => 403];
+
+    /** The titles of the statuses of a refusal. */
+    private const TITLES = [400 => 'Invalid request', 403 => 'Forbidden'];
 
     /** The code of a problem that has none of its own, by its status (else invalid-request, or internal-error for the server). */
     private const STATUS_CODES = [
@@ -109,8 +116,8 @@ final class Problem
                 $instance,
             ),
             $error instanceof \InvalidArgumentException => new self(
-                400,
-                'Invalid request',
+                self::statusOf($error),
+                self::TITLES[self::statusOf($error)] ?? 'Invalid request',
                 $error->getMessage(),
                 'urn:opensim:problem:invalid-request',
                 $instance,
@@ -134,6 +141,12 @@ final class Problem
             // The detail is not for whoever asks: it goes to the log (the error output of the command line)
             default => self::internal($error, $instance),
         };
+    }
+
+    /** The status of a wrong value: 400, or the one of a refusal its reason names (REASON_STATUSES). */
+    private static function statusOf(\InvalidArgumentException $error): int
+    {
+        return $error instanceof InvalidValue ? self::REASON_STATUSES[$error->reason] ?? 400 : 400;
     }
 
     private static function internal(\Throwable $error, ?string $instance): self
