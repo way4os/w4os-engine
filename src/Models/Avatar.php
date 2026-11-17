@@ -1573,7 +1573,7 @@ final class Avatar extends Model
                 // A banned account has an icon of its own: a difference that matters is never the color alone
                 Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off'], ['banned', 'status_banned', 'failed', 'user-off']], ['enable', 'disable']),
                 // The sign of a ban, for both: a hard one (red), else the ban lists of some estates (orange)
-                Listing::indicator('ban', 'ban', 'status_banned', [['hard', 'status_banned', 'failed'], ['estates', 'state_estate_banned', 'warning']]),
+                Listing::indicator('ban', 'ban', 'status_banned', [['hard', 'state_grid_banned', 'failed'], ['estates', 'state_estate_banned', 'warning']]),
                 Listing::indicator('online', 'online', 'presence', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
             ]]),
         ];

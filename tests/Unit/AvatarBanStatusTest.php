@@ -125,7 +125,10 @@ describe('The list of the avatars', function () {
         expect(array_column($indicators['status']['states'], null, 'value')['banned'])
             ->toBe(['value' => 'banned', 'label' => 'status_banned', 'tone' => 'failed', 'icon' => 'user-off'])
             ->and(array_map(static fn(array $state): array => [$state['label'], $state['tone']], array_column($indicators['ban']['states'], null, 'value')))
-            ->toBe(['hard' => ['status_banned', 'failed'], 'estates' => ['state_estate_banned', 'warning']])
+            ->toBe(['hard' => ['state_grid_banned', 'failed'], 'estates' => ['state_estate_banned', 'warning']])
+            // Not the words of the status beside it
+            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['state_grid_banned'])
+            ->toBe('Banni de la grille')
             ->and($indicators['ban']['icon'])
             ->toBe('ban')
             ->and(array_map(static fn(string $name): array => [$actions[$name]['body'], $actions[$name]['level'] ?? null, isset($actions[$name]['ask'])], ['ban', 'unban', 'estateBan', 'estateUnban']))

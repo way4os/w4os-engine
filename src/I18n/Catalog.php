@@ -245,6 +245,7 @@ final class Catalog
         'status_pending' => 'Pending',
         'status_banned' => 'Banned',
         // A ban of some estates, not of the grid; the bans, a god's
+        'state_grid_banned' => 'Banned from the grid',
         'state_estate_banned' => 'Banned from estates',
         'filter_estate_banned' => 'Estate bans',
         'action_ban' => 'Ban',

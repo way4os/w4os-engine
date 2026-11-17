@@ -685,6 +685,10 @@ msgctxt "status_banned"
 msgid "Banned"
 msgstr "Verbannen"
 
+msgctxt "state_grid_banned"
+msgid "Banned from the grid"
+msgstr "Verbannen uit de grid"
+
 msgctxt "state_estate_banned"
 msgid "Banned from estates"
 msgstr "Verbannen uit landgoederen"

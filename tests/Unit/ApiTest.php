@@ -551,7 +551,7 @@ describe('The contract', function () {
             ))
             ->toBe([
                 ['status', 'account', ['status_active' => 'ok', 'status_pending' => 'off', 'status_disabled' => 'off', 'status_banned' => 'failed'], ['enable', 'disable']],
-                ['ban', 'ban', ['status_banned' => 'failed', 'state_estate_banned' => 'warning'], []],
+                ['ban', 'ban', ['state_grid_banned' => 'failed', 'state_estate_banned' => 'warning'], []],
                 ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
             ])
             ->and($avatars['x-list']['columns'][5]['sort'])

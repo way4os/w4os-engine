@@ -695,6 +695,10 @@ msgctxt "status_banned"
 msgid "Banned"
 msgstr "Wedi'i wahardd"
 
+msgctxt "state_grid_banned"
+msgid "Banned from the grid"
+msgstr "Wedi'i wahardd o'r grid"
+
 msgctxt "state_estate_banned"
 msgid "Banned from estates"
 msgstr "Wedi'i wahardd o ystadau"
