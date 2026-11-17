@@ -259,6 +259,8 @@ final class Api
                     : Response::problem(Problem::notFound("form called '$id'", $instance));
             }
             $model = $this->find($type, $id, $grid, $instance);
+            // Alone, a simulator says whether each way to it is reached, not only configured: a list does not wait for that
+            $model instanceof Simulator && $model->probe();
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }

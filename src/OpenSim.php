@@ -174,6 +174,7 @@ final class OpenSim
         // An address: the Robust of the grid that answers there, or the simulator
         if (preg_match('/^[^\s\/]+:\d+$/', $target) === 1) {
             $simulator = Simulator::find($environment, $target);
+            $simulator?->isElsewhere() && ($simulator = null);
             foreach (self::enabled($environment) as $instance) {
                 if (
                     $instance instanceof RobustController

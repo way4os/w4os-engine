@@ -492,9 +492,21 @@ describe('The contract', function () {
                 if (isset($operation['x-list'])) {
                     $listing = $operation['x-list'];
                     // What it shows and asks of a row is an attribute of the resource
-                    $named = array_column($listing['columns'], 'name');
+                    // An indicators column shows the attributes of its indicators (the first part of a dotted path), its actions are
+                    // actions of the list
+                    $named = [];
                     foreach ($listing['columns'] as $column) {
+                        $indicators = $column['indicators'] ?? [];
+                        $column['type'] === 'indicators' || ($named[] = $column['name']);
                         array_push($named, ...array_values(array_intersect_key($column, ['picture' => 1, 'tag' => 1, 'link' => 1])));
+                        array_push($named, ...array_map(static fn(array $indicator): string => explode('.', $indicator['name'])[0], $indicators));
+                        foreach ($indicators as $indicator) {
+                            array_push($keys, $indicator['label'], ...array_column($indicator['states'], 'label'));
+                            array_push($unknown, ...array_map(
+                                static fn(string $name): string => basename($path) . ".action:$name",
+                                array_diff($indicator['actions'] ?? [], array_column($listing['actions'], 'name')),
+                            ));
+                        }
                     }
                     foreach ($listing['actions'] as $action) {
                         array_push($named, ...array_keys($action['when'] ?? []), ...$action['requires'] ?? []);

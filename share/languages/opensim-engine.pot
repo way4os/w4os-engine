@@ -479,6 +479,62 @@ msgctxt "no_simulators"
 msgid "No simulator"
 msgstr ""
 
+msgctxt "column_status"
+msgid "Status"
+msgstr ""
+
+msgctxt "state_enabled"
+msgid "Enabled"
+msgstr ""
+
+msgctxt "state_disabled"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "state_running"
+msgid "Running"
+msgstr ""
+
+msgctxt "state_stopped"
+msgid "Stopped"
+msgstr ""
+
+msgctxt "state_configured"
+msgid "Configured"
+msgstr ""
+
+msgctxt "state_reached"
+msgid "Reached"
+msgstr ""
+
+msgctxt "state_unreached"
+msgid "Configured, not reached"
+msgstr ""
+
+msgctxt "connection_console"
+msgid "Remote console"
+msgstr ""
+
+msgctxt "connection_screen"
+msgid "Screen session"
+msgstr ""
+
+msgctxt "connection_config"
+msgid "Its config file"
+msgstr ""
+
+msgctxt "connection_regions"
+msgid "The files of its regions"
+msgstr ""
+
+msgctxt "connection_database"
+msgid "Its database"
+msgstr ""
+
+msgctxt "connection_robust"
+msgid "The config of the Robust of its grid"
+msgstr ""
+
 msgctxt "menu_admin"
 msgid "Admin"
 msgstr ""

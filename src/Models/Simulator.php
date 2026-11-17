@@ -27,15 +27,116 @@ final class Simulator extends InstalledModel
 {
     use HasName;
 
+    /** The icon of each way to it in the list (Listing::ICONS). */
+    private const ICONS = ['console' => 'console', 'screen' => 'screen', 'config' => 'file', 'regions' => 'files', 'database' => 'database', 'robust' => 'server'];
+
+    /** How the list shows the state of a way: none is not shown. */
+    private const CONNECTION_INDICATOR = [['configured', 'state_configured', 'neutral'], ['ok', 'state_reached', 'ok'], ['failed', 'state_unreached', 'failed']];
+
     /** The rule of the name of a simulator: letters, digits, space and hyphen, no dot. */
     private const NAME = ['punctuation' => '-'];
 
+    /** The ways the engine reaches a simulator, in the order a site shows them (connections()). */
+    public const CONNECTIONS = ['console', 'screen', 'config', 'regions', 'database', 'robust'];
+
+    /** The states of a way: none (the engine has no such way to it), configured (named, not tried), ok, failed (tried, not reached). */
+    public const CONNECTION_STATES = ['none', 'configured', 'ok', 'failed'];
+
     private readonly OpenSimController $controller;
+
+    /** @var ?array{uri:string,grid:Grid,online:bool} a simulator of another machine, known through the regions of its grid */
+    private ?array $elsewhere = null;
+
+    /** Whether connections() tries each way rather than saying it is configured (probe()). */
+    private bool $probed = false;
 
     public function __construct(Environment $environment, string $ini, ?string $name = null)
     {
         parent::__construct($environment);
         $this->controller = new OpenSimController($environment, $ini, $name);
+    }
+
+    /**
+     * A simulator of another machine that runs regions of a grid of this one (registered with its Robust): known by its address
+     * only, the engine has no way to it.
+     */
+    public static function elsewhere(Environment $environment, Grid $grid, string $uri, bool $online): self
+    {
+        $simulator = new self($environment, '', $uri);
+        $simulator->elsewhere = ['uri' => $uri, 'grid' => $grid, 'online' => $online];
+
+        return $simulator;
+    }
+
+    /** Whether it runs on another machine (elsewhere()). */
+    public function isElsewhere(): bool
+    {
+        return $this->elsewhere !== null;
+    }
+
+    /** Try each way to it when it is asked alone (connections()): a list only says what is configured, trying is slow. */
+    public function probe(): void
+    {
+        $this->probed = true;
+    }
+
+    /**
+     * The ways the engine reaches it (CONNECTIONS), each in a state of CONNECTION_STATES: `console` its REST console, `screen` the
+     * screen session it runs in, `config` its ini, `regions` the files of its regions, `database` its database, `robust` the ini of
+     * the Robust of its grid. Configured unless probe() asked to try them.
+     *
+     * @return array<string,string>
+     */
+    public function connections(): array
+    {
+        $states = array_fill_keys(self::CONNECTIONS, 'none');
+        if ($this->elsewhere !== null) {
+            return $states;
+        }
+        $state = fn(bool $configured, \Closure $reached): string => !$configured
+            ? 'none'
+            : (!$this->probed ? 'configured' : ($reached() ? 'ok' : 'failed'));
+        $console = $this->remoteConsole();
+        $regions = $this->regionsDirectory();
+        $database = $this->database();
+        $robust = $this->grid()?->robustIni();
+
+        return [
+            'console' => $state($console !== null, fn(): bool => self::listens((string) ($this->consoleHost() ?: '127.0.0.1'), (int) $console['port'])),
+            'screen' => $state($console === null, fn(): bool => $this->isRunning()),
+            'config' => $state(is_file($this->ini()), fn(): bool => is_readable($this->ini())),
+            'regions' => $state($regions !== '' && is_dir($regions), fn(): bool => is_readable($regions) && $this->hasRegion()),
+            'database' => $state($database !== null, fn(): bool => self::reaches($database)),
+            'robust' => $state($robust !== null && is_file($robust), fn(): bool => is_readable((string) $robust)),
+        ];
+    }
+
+    /** Whether something listens at an address (a TCP connection opens within a second). */
+    private static function listens(string $host, int $port): bool
+    {
+        // A refused connection is an answer, not an error: what the stream would warn is kept out
+        set_error_handler(static fn(): bool => true);
+        try {
+            $socket = $port > 0 ? fsockopen($host, $port, $code, $message, 1.0) : false;
+        } finally {
+            restore_error_handler();
+        }
+        $socket === false || fclose($socket);
+
+        return $socket !== false;
+    }
+
+    /** Whether a database answers with the credentials of a connection string. */
+    private static function reaches(?\OpenSim\Config\ConnectionString $connection): bool
+    {
+        if ($connection === null) {
+            return false;
+        }
+        $pdo = new \OpenSim\Data\OSPDO($connection->driver === 'sqlite'
+            ? ['driver' => 'sqlite', 'name' => $connection->database, 'log' => false]
+            : ['host' => $connection->source, 'name' => $connection->database, 'user' => $connection->user, 'pass' => $connection->password, 'log' => false]);
+
+        return $pdo->connected;
     }
 
     /** What runs it. */
@@ -188,6 +289,9 @@ final class Simulator extends InstalledModel
      */
     public function uri(): ?string
     {
+        if ($this->elsewhere !== null) {
+            return $this->elsewhere['uri'];
+        }
         $port = $this->httpPort();
         if ($port === null) {
             return null;
@@ -216,7 +320,8 @@ final class Simulator extends InstalledModel
     {
         $simulators = [];
         foreach (Grid::all($environment)->items() as $grid) {
-            array_push($simulators, ...$grid->simulators());
+            $here = $grid->simulators();
+            array_push($simulators, ...$here, ...self::ofOthers($environment, $grid, $here));
         }
         $yesNo = static fn(\Closure $is): \Closure => static fn(self $simulator, string $value): bool => $is($simulator) ===
             ($value === 'yes');
@@ -228,7 +333,7 @@ final class Simulator extends InstalledModel
                 self $simulator,
             ): string => "{$simulator->slug()} {$simulator->uri()} {$simulator->grid()?->name()}",
             [
-                'name' => static fn(self $simulator): string => $simulator->slug(),
+                'name' => static fn(self $simulator): string => $simulator->slug() ?: (string) $simulator->uri(),
                 'port' => static fn(self $simulator): int => (int) $simulator->httpPort(),
                 'grid' => static fn(self $simulator): string => (string) $simulator->grid()?->nick(),
             ],
@@ -239,6 +344,32 @@ final class Simulator extends InstalledModel
             ],
             self::listing(),
         );
+    }
+
+    /**
+     * The simulators of other machines that run regions of a grid, the ones of this machine left out; none when the database of its
+     * regions cannot be read.
+     *
+     * @param list<self> $here
+     * @return list<self>
+     */
+    private static function ofOthers(Environment $environment, Grid $grid, array $here): array
+    {
+        $directory = $grid->directory();
+        if ($directory === '' || !is_dir($directory)) {
+            return [];
+        }
+        $local = array_map('strtolower', array_filter(array_map(static fn(self $simulator): ?string => $simulator->uri(), $here)));
+        try {
+            $servers = Region::elsewhere(\OpenSim\Config\GridConfig::fromFolder($directory, ['Helpers' => 'Helpers.ini']));
+        } catch (\OpenSim\Exceptions\ChannelUnavailable) {
+            return [];
+        }
+
+        return array_values(array_map(
+            static fn(array $server): self => self::elsewhere($environment, $grid, $server['id'], $server['online']),
+            array_filter($servers, static fn(array $server): bool => !in_array(strtolower($server['id']), $local, true)),
+        ));
     }
 
     /** What the list of the simulators shows (Listing). */
@@ -253,8 +384,15 @@ final class Simulator extends InstalledModel
                 Listing::column('grid', 'column_grid', sort: 'grid'),
                 Listing::column('uri', 'column_uri'),
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
-                Listing::column('enabled', 'column_enabled', 'boolean'),
-                Listing::column('running', 'column_running', 'boolean'),
+                // Enabled and running, each the button that changes it, then the ways the engine reaches it
+                Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
+                    Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
+                    Listing::indicator('running', 'run', 'column_running', [[true, 'state_running', 'ok'], [false, 'state_stopped', 'off']], ['start', 'stop']),
+                    ...array_map(
+                        static fn(string $way): array => Listing::indicator("connections.$way", self::ICONS[$way], "connection_$way", self::CONNECTION_INDICATOR),
+                        self::CONNECTIONS,
+                    ),
+                ]]),
             ],
             [
                 Listing::filter('grid', 'column_grid', [], 'grid'),
@@ -266,9 +404,9 @@ final class Simulator extends InstalledModel
                 Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], ['enabled' => [false]]),
                 Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], ['enabled' => [true]]),
                 // At its instance (its slug, the name opensim start takes); stopping sends the avatars of its regions away: asked first
-                Listing::action('start', 'action_start', 'POST', '/instances/{slug}/start', when: ['running' => [false], 'enabled' => [true]]),
-                Listing::action('stop', 'action_stop', 'POST', '/instances/{slug}/stop', when: ['running' => [true]], more: ['ask' => 'ask_stop_instance']),
-                Listing::action('restart', 'action_restart', 'POST', '/instances/{slug}/restart', when: ['running' => [true]], more: ['ask' => 'ask_restart_instance']),
+                Listing::action('start', 'action_start', 'POST', '/instances/{slug}/start', when: ['running' => [false], 'enabled' => [true]], requires: ['slug']),
+                Listing::action('stop', 'action_stop', 'POST', '/instances/{slug}/stop', when: ['running' => [true]], requires: ['slug'], more: ['ask' => 'ask_stop_instance']),
+                Listing::action('restart', 'action_restart', 'POST', '/instances/{slug}/restart', when: ['running' => [true]], requires: ['slug'], more: ['ask' => 'ask_restart_instance']),
             ],
         );
     }
@@ -298,6 +436,23 @@ final class Simulator extends InstalledModel
      */
     public function detail(): array
     {
+        if ($this->elsewhere !== null) {
+            return [
+                'id' => $this->id(),
+                'uri' => $this->uri(),
+                'name' => $this->displayName(),
+                'slug' => null,
+                'grid' => $this->grid()?->nick(),
+                'ini' => null,
+                'link' => null,
+                'enabled' => null,
+                'running' => $this->isRunning(),
+                'local' => false,
+                'connections' => $this->connections(),
+                'httpPort' => $this->httpPort(),
+            ] + array_fill_keys(['consolePort', 'console', 'databaseHost', 'databaseName', 'databaseUser', 'estateDatabaseName', 'estateName', 'estateOwner', 'regionsDirectory', 'core'], null);
+        }
+
         return [
             'id' => $this->id(),
             'uri' => $this->uri(),
@@ -308,6 +463,8 @@ final class Simulator extends InstalledModel
             'link' => $this->link(),
             'enabled' => $this->isEnabled(),
             'running' => $this->isRunning(),
+            'local' => true,
+            'connections' => $this->connections(),
             'httpPort' => $this->httpPort(),
             'consolePort' => $this->consolePort(),
             'console' => $this->remoteConsole() !== null ? 'rest' : 'screen',
@@ -330,6 +487,10 @@ final class Simulator extends InstalledModel
     /** The name to show: the one given to it, without its grid ("Test North" for friendly_fowl.test_north). */
     public function displayName(): string
     {
+        if ($this->elsewhere !== null) {
+            return $this->elsewhere['uri'];
+        }
+
         return self::displayNameOf($this->slug(), $this->grid()?->nick());
     }
 
@@ -346,7 +507,7 @@ final class Simulator extends InstalledModel
     /** The name for a path or a command: its own, which has its grid in it (`vonda.welcome`, not `welcome`: every grid has one). */
     public function slug(): string
     {
-        return $this->controller->name();
+        return $this->elsewhere !== null ? '' : $this->controller->name();
     }
 
     /** The config file it runs with: its link when it is enabled. */
@@ -368,42 +529,51 @@ final class Simulator extends InstalledModel
 
     public function isEnabled(): bool
     {
-        return $this->controller->isEnabled();
+        return $this->elsewhere === null && $this->controller->isEnabled();
     }
 
     public function enable(): bool
     {
-        return $this->controller->enable();
+        return $this->here('enable')->enable();
     }
 
     public function disable(): void
     {
-        $this->controller->disable();
+        $this->here('disable')->disable();
     }
 
     public function channels(): array
     {
-        return $this->controller->canBeEnabled() ? ['ini'] : [];
+        return $this->elsewhere === null && $this->controller->canBeEnabled() ? ['ini'] : [];
     }
 
     public function start(): Outcome
     {
-        return $this->controller->start();
+        return $this->here('start')->start();
     }
 
     public function stop(bool $now = false): Outcome
     {
-        return $this->controller->stop($now);
+        return $this->here('stop')->stop($now);
     }
 
     public function restart(bool $now = false): Outcome
     {
-        return $this->controller->restart($now);
+        return $this->here('restart')->restart($now);
     }
 
+    /** A simulator of another machine is running while one of its regions is online. */
     public function isRunning(): bool
     {
-        return $this->controller->isRunning();
+        return $this->elsewhere !== null ? $this->elsewhere['online'] : $this->controller->isRunning();
+    }
+
+    /** Its controller, for what only a simulator of this machine does. */
+    private function here(string $what): OpenSimController
+    {
+        $this->elsewhere === null || throw \OpenSim\Exceptions\ChannelUnavailable::for("$what the simulator {$this->elsewhere['uri']}, which runs on another machine");
+
+        return $this->controller;
     }
 
     public function process(): ?Process
@@ -463,7 +633,7 @@ final class Simulator extends InstalledModel
     /** The grid it belongs to, null for a config that is not in the folder of one. */
     public function grid(): ?Grid
     {
-        return $this->controller->grid();
+        return $this->elsewhere !== null ? $this->elsewhere['grid'] : $this->controller->grid();
     }
 
     /**
@@ -559,6 +729,10 @@ final class Simulator extends InstalledModel
     /** The port it listens on, null when its config does not say it. */
     public function httpPort(): ?int
     {
+        if ($this->elsewhere !== null) {
+            return (int) substr($this->elsewhere['uri'], strrpos($this->elsewhere['uri'], ':') + 1);
+        }
+
         return $this->controller->httpPort();
     }
 

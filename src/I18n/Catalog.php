@@ -195,6 +195,21 @@ final class Catalog
         'search_simulators' => 'Simulator name',
         'simulators_count' => '%d simulators',
         'no_simulators' => 'No simulator',
+        // Its status: enabled, running, and the ways the engine reaches it, each configured, reached or not
+        'column_status' => 'Status',
+        'state_enabled' => 'Enabled',
+        'state_disabled' => 'Disabled',
+        'state_running' => 'Running',
+        'state_stopped' => 'Stopped',
+        'state_configured' => 'Configured',
+        'state_reached' => 'Reached',
+        'state_unreached' => 'Configured, not reached',
+        'connection_console' => 'Remote console',
+        'connection_screen' => 'Screen session',
+        'connection_config' => 'Its config file',
+        'connection_regions' => 'The files of its regions',
+        'connection_database' => 'Its database',
+        'connection_robust' => 'The config of the Robust of its grid',
 
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',

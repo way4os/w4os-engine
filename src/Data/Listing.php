@@ -33,7 +33,9 @@ final class Listing
      * - `hop`: a hop:// address, shown as a teleport link;
      * - `size`: a size in bytes, or width x height in meters;
      * - `status`, `role`: a word of the API, whose text is its key in the catalog (`status_` or `role_` and the word, - as _);
-     * - `list`: a list of words.
+     * - `list`: a list of words;
+     * - `indicators`: icons in one column, one for each of its `indicators` (indicator()), each showing the state of an attribute
+     *   of the row and, when it carries actions, the button that changes it.
      */
     public const TYPES = [
         'text',
@@ -49,7 +51,18 @@ final class Listing
         'status',
         'role',
         'list',
+        'indicators',
     ];
+
+    /**
+     * The icons of the indicators, by what they mean: a site gives each the icon of its own library. `power` enabled or not, `run`
+     * running or not, `online` in the world or not, `console` a remote console, `screen` a screen session, `file` a config file,
+     * `files` config files, `database` a database, `server` a server or its config, `account` an account.
+     */
+    public const ICONS = ['power', 'run', 'online', 'console', 'screen', 'file', 'files', 'database', 'server', 'account'];
+
+    /** The tones of the states of an indicator: `ok` (green), `neutral` (known, not checked), `off` (grey), `failed` (red). */
+    public const TONES = ['ok', 'neutral', 'off', 'failed'];
 
     /** The values of a yes or no filter, with the keys of their texts. */
     public const YES_NO = ['yes' => 'yes', 'no' => 'no'];
@@ -88,6 +101,30 @@ final class Listing
         in_array($type, self::TYPES, true) || throw new \InvalidArgumentException("'$type' is not a type of column");
 
         return ['name' => $name, 'label' => $label, 'type' => $type] + ($sort === null ? [] : ['sort' => $sort]) + $more;
+    }
+
+    /**
+     * An indicator of an `indicators` column: the attribute it shows (a dotted path for a value in an object: `connections.console`),
+     * its icon (ICONS), the key of its title, its states, and the actions of the list that change it: the one whose `when` the row
+     * meets is the button of the icon, not one of the buttons of the row. A value none of its states has shows no icon.
+     *
+     * @param list<array{0:mixed,1:string,2:string}> $states the value, the key of its text, its tone (TONES)
+     * @param list<string> $actions names of actions of the list
+     * @return array{name:string,icon:string,label:string,states:list<array{value:mixed,label:string,tone:string}>,actions?:list<string>}
+     */
+    public static function indicator(string $name, string $icon, string $label, array $states, array $actions = []): array
+    {
+        in_array($icon, self::ICONS, true) || throw new \InvalidArgumentException("'$icon' is not an icon of an indicator");
+        foreach ($states as [, , $tone]) {
+            in_array($tone, self::TONES, true) || throw new \InvalidArgumentException("'$tone' is not a tone of an indicator");
+        }
+
+        return [
+            'name' => $name,
+            'icon' => $icon,
+            'label' => $label,
+            'states' => array_map(static fn(array $state): array => ['value' => $state[0], 'label' => $state[1], 'tone' => $state[2]], $states),
+        ] + ($actions === [] ? [] : ['actions' => $actions]);
     }
 
     /**
