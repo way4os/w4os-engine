@@ -914,7 +914,7 @@ describe('quick setup, the scenario', function () {
         $reply = quick_step($machine, quick_step($machine, null), ['type' => 'nothing']);
 
         expect($reply)
-            ->toMatchArray(['kind' => 'menu', 'value' => 'nothing'])
+            ->toMatchArray(['kind' => 'menu', 'value' => ''])
             ->and($reply['notice'])
             ->toStartWith('Not implemented yet: only Grid, Standalone');
     });
@@ -989,8 +989,9 @@ describe('quick setup, the scenario', function () {
             ->toBe('form')
             ->and(array_column($form['fields'], 'value', 'name')['avatar'])
             ->toBe('Ada Love')
+            // The menu opens on its first item, the answers are kept
             ->and($menu)
-            ->toMatchArray(['kind' => 'menu', 'value' => 'grid'])
+            ->toMatchArray(['kind' => 'menu', 'value' => ''])
             ->and(array_column(quick_step($machine, $menu, ['type' => 'grid'])['fields'], 'value', 'name')['avatar'])
             ->toBe('Grace Hopper');
     });

@@ -660,7 +660,9 @@ final class QuickSetup
                 ],
                 self::types($environment),
             ),
-            'value' => (string) ($answers['type'] ?? ''),
+            // Always on the first item, coming back too: the answers are kept, not the place in the menu, where two presses from the
+            // last choice could land on joining a public grid
+            'value' => '',
             'buttons' => ['next' => _('OK'), 'back' => _('Quit')],
             'state' => self::encode('type', $answers),
         ];
