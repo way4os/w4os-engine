@@ -315,11 +315,17 @@ describe('The modules a simulator imported names', function () {
             file_put_contents("{$machine->root}/modules/$folder/MoneyServer.Modules.dll", 'MZ' . mb_convert_encoding('DTLNSLMoneyModule', 'UTF-16LE'));
         };
         $codes = static fn(): array => array_column(SimulatorImport::prepare($machine->environment, $source, 'demo')->document()['reminders'], 'code');
-        $build('0.9.2.2/dtlnslmoneymodule');
-        $elsewhere = $codes();
-        $build('0.9.3.0/dtlnslmoneymodule');
+        try {
+            $build('0.9.2.2/dtlnslmoneymodule');
+            $elsewhere = $codes();
+            $build('0.9.3.0/dtlnslmoneymodule');
+            $here = $codes();
+        } finally {
+            // The machine is the one of the other tests of the modules: what this one built is not theirs
+            exec('rm -rf ' . escapeshellarg("{$machine->root}/modules"));
+        }
 
-        expect($elsewhere)->toContain('import-module-missing')->and($codes())->not->toContain('import-module-missing');
+        expect($elsewhere)->toContain('import-module-missing')->and($here)->not->toContain('import-module-missing');
     })->depends('are looked for in its core and the modules of the install: one that is in neither is said');
 
     test('says the package of one the kit packages', function () {

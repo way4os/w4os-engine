@@ -70,6 +70,25 @@ describe('A hard ban', function () {
     });
 });
 
+describe('The account of an avatar in a list', function () {
+    test('shows its presence in the same icon: a user with a check while it is in the world, active', function () {
+        avatars_in(avatar_database());
+        $states = array_column(Avatar::all(avatar_grid())->array(), 'accountState', 'name');
+        $columns = Avatar::listing()->columns;
+        $icons = array_column(end($columns)['indicators'][0]['states'], 'icon', 'value');
+
+        expect($states)
+            ->toBe(['Ada Love' => 'online', 'Bob Root' => 'active', 'Cy Gone' => 'disabled'])
+            ->and($icons)
+            ->toBe(['online' => 'account-online', 'banned' => 'account-banned'])
+            ->and(array_column(end($columns)['indicators'], 'name'))
+            ->toBe(['accountState', 'ban'])
+            // The presence is still a filter of the list
+            ->and(array_column(Avatar::listing()->filters, 'name'))
+            ->toContain('online');
+    });
+});
+
 describe('A banned avatar', function () {
     test('is refused at the sign-in, its UserLevel below 0 in the database while its level stays the one it has back', function () {
         $pdo = signin_database();
@@ -122,8 +141,8 @@ describe('The list of the avatars', function () {
 
         // A difference that matters is never the color alone: the account of a banned avatar has its own icon, the sign of the ban
         // shows for both bans, red and said banned for a hard one, orange and said banned from estates for those of estates
-        expect(array_column($indicators['status']['states'], null, 'value')['banned'])
-            ->toBe(['value' => 'banned', 'label' => 'status_banned', 'tone' => 'failed', 'icon' => 'user-off'])
+        expect(array_column($indicators['accountState']['states'], null, 'value')['banned'])
+            ->toBe(['value' => 'banned', 'label' => 'status_banned', 'tone' => 'failed', 'icon' => 'account-banned'])
             ->and(array_map(static fn(array $state): array => [$state['label'], $state['tone']], array_column($indicators['ban']['states'], null, 'value')))
             ->toBe(['hard' => ['state_grid_banned', 'failed'], 'estates' => ['state_estate_banned', 'warning']])
             // Not the words of the status beside it

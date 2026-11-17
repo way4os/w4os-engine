@@ -1207,7 +1207,7 @@ final class Region extends Model
                 // Enabled, the button that changes it where its file is, then online
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
                     Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
-                    Listing::indicator('online', 'online', 'online', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
+                    Listing::indicator('online', 'online', 'online', [[true, 'online', 'ok', 'online'], [false, 'offline', 'off', 'offline']]),
                 ]]),
             ],
             [

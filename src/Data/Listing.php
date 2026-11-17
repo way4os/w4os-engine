@@ -58,13 +58,13 @@ final class Listing
 
     /**
      * The icons of the indicators, by what they mean: a site gives each the icon of its own library. `power` enabled or not, `run`
-     * running or not, `online` in the world or not, `console` a remote console, `screen` a screen session, `file` a config file,
-     * `files` config files, `database` a database, `server` a server or its config, `account` an account, `user-off` a banned one,
+     * running or not, `online` in the world (a globe with a check), `offline` out of it (a crossed globe), `console` a remote console, `screen` a screen session, `file` a config file,
+     * `files` config files, `database` a database, `server` a server or its config, `account` an account, `account-online` one in the world (a user with a check), `account-banned` a banned one,
      * `ban` the sign of a ban, `play` and `pause` running or not (a state may have its own icon).
      *
      * A difference between states that matters changes the icon or the text, never the tone alone.
      */
-    public const ICONS = ['power', 'run', 'play', 'pause', 'online', 'console', 'screen', 'file', 'files', 'database', 'server', 'account', 'user-off', 'ban'];
+    public const ICONS = ['power', 'run', 'play', 'pause', 'online', 'offline', 'console', 'screen', 'file', 'files', 'database', 'server', 'account', 'account-online', 'account-banned', 'ban'];
 
     /**
      * The tones of the states of an indicator: `ok` (green: all is well), `off` (grey: off as it normally is), `warning` (orange: a

@@ -354,6 +354,9 @@ describe('Regions', function () {
                 ['enabled', 'power', ['state_enabled' => 'ok', 'state_disabled' => 'off'], ['enable', 'disable']],
                 ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
             ])
+            // In the world or not: a globe, a crossed one, never the color alone
+            ->and(array_column($listing->columns[7]['indicators'][1]['states'], 'icon', 'label'))
+            ->toBe(['online' => 'online', 'offline' => 'offline'])
             ->and(array_column($listing->columns, 'name'))
             ->not->toContain('online')
             ->and($listing->keys())

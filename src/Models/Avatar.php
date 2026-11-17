@@ -678,6 +678,8 @@ final class Avatar extends Model
             // The ban it has, the hard one first: hard, estates, or none
             'ban' => $this->status() === 'banned' ? 'hard' : ($this->estateBans() !== [] ? 'estates' : null),
             'online' => $this->isOnline(),
+            // Its status, online for an active avatar in the world: what the list shows in one icon
+            'accountState' => $this->status() === 'active' && $this->isOnline() ? 'online' : $this->status(),
             'lastSeen' => $this->lastSeenTime() ?: null,
             'homeRegion' => $row['HomeRegionID'] ?? null,
             'lastRegion' => $row['LastRegionID'] ?? null,
@@ -1570,11 +1572,17 @@ final class Avatar extends Model
             Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
             // The account, the button that enables or disables it, and the presence in the world
             Listing::column('status', 'column_status', 'indicators', 'active', ['indicators' => [
-                // A banned account has an icon of its own: a difference that matters is never the color alone
-                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off'], ['banned', 'status_banned', 'failed', 'user-off']], ['enable', 'disable']),
+                // Its account and its presence in one icon (accountState): a user with a check while it is in the world; a banned account
+                // has an icon of its own, a difference that matters is never the color alone
+                Listing::indicator('accountState', 'account', 'status', [
+                    ['online', 'online', 'ok', 'account-online'],
+                    ['active', 'status_active', 'ok'],
+                    ['pending', 'status_pending', 'off'],
+                    ['disabled', 'status_disabled', 'off'],
+                    ['banned', 'status_banned', 'failed', 'account-banned'],
+                ], ['enable', 'disable']),
                 // The sign of a ban, for both: a hard one (red), else the ban lists of some estates (orange)
                 Listing::indicator('ban', 'ban', 'status_banned', [['hard', 'state_grid_banned', 'failed'], ['estates', 'state_estate_banned', 'warning']]),
-                Listing::indicator('online', 'online', 'presence', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
             ]]),
         ];
         $statuses = array_combine(self::STATUSES, array_map(Catalog::statusKey(...), self::STATUSES));
