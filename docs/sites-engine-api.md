@@ -18,7 +18,8 @@ It runs as the user of the PHP pool the web server hands it to. As the web serve
 user is a clean refusal: `config-not-writable` (a file of the grid), `instance-user-required` (an instance, a backup, a restore),
 never a 500.
 
-The helpers also mount the API under their base (`/helpers/api`): the same Router, with the tasks of their search.
+The helpers do not serve it: `/helpers/api` is a 404. They serve the pages, the services the viewers and the simulators call, and the
+pictures of the grid (`/helpers/pictures/<uuid>.<format>`), and run the due tasks of the grid after their pages.
 
 ## Running it as the user of the instances
 
