@@ -503,6 +503,27 @@ msgctxt "regions_online"
 msgid "%1$s online of %2$s"
 msgstr "%1$s ar-lein o %2$s"
 
+msgctxt "simulators_title"
+msgid "Simulators"
+msgstr "Efelychwyr"
+
+msgctxt "search_simulators"
+msgid "Simulator name"
+msgstr "Enw'r efelychydd"
+
+#, php-format
+msgctxt "simulators_count"
+msgid "%d simulator"
+msgid_plural "%d simulators"
+msgstr[0] "%d efelychydd"
+msgstr[1] "%d efelychydd"
+msgstr[2] "%d efelychydd"
+msgstr[3] "%d efelychydd"
+
+msgctxt "no_simulators"
+msgid "No simulator"
+msgstr "Dim efelychydd"
+
 msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Gweinyddu"
@@ -628,7 +649,9 @@ msgctxt "ask_restart_instance"
 msgid ""
 "Restart this simulator? The avatars in its regions are sent away while it "
 "restarts."
-msgstr "Ailgychwyn yr efelychydd hwn? Anfonir yr afatarau yn ei ranbarthau i ffwrdd tra bydd yn ailgychwyn."
+msgstr ""
+"Ailgychwyn yr efelychydd hwn? Anfonir yr afatarau yn ei ranbarthau i ffwrdd "
+"tra bydd yn ailgychwyn."
 
 msgctxt "action_reset"
 msgid "Send a password reset link"
@@ -660,6 +683,21 @@ msgstr "Mae %s wedi’i alluogi."
 msgctxt "manage_disable"
 msgid "%s is disabled."
 msgstr "Mae %s wedi’i analluogi."
+
+#, php-format
+msgctxt "manage_start"
+msgid "%s is started."
+msgstr "Mae %s wedi cychwyn."
+
+#, php-format
+msgctxt "manage_stop"
+msgid "%s is stopped."
+msgstr "Mae %s wedi stopio."
+
+#, php-format
+msgctxt "manage_restart"
+msgid "%s is restarted."
+msgstr "Mae %s wedi ailgychwyn."
 
 #, php-format
 msgctxt "manage_reset"

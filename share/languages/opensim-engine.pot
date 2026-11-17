@@ -460,6 +460,25 @@ msgctxt "regions_online"
 msgid "%1$s online of %2$s"
 msgstr ""
 
+msgctxt "simulators_title"
+msgid "Simulators"
+msgstr ""
+
+msgctxt "search_simulators"
+msgid "Simulator name"
+msgstr ""
+
+#, php-format
+msgctxt "simulators_count"
+msgid "%d simulator"
+msgid_plural "%d simulators"
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "no_simulators"
+msgid "No simulator"
+msgstr ""
+
 msgctxt "menu_admin"
 msgid "Admin"
 msgstr ""
@@ -612,6 +631,21 @@ msgstr ""
 #, php-format
 msgctxt "manage_disable"
 msgid "%s is disabled."
+msgstr ""
+
+#, php-format
+msgctxt "manage_start"
+msgid "%s is started."
+msgstr ""
+
+#, php-format
+msgctxt "manage_stop"
+msgid "%s is stopped."
+msgstr ""
+
+#, php-format
+msgctxt "manage_restart"
+msgid "%s is restarted."
 msgstr ""
 
 #, php-format

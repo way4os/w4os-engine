@@ -53,6 +53,7 @@ final class Catalog
         'profile_age_days' => '%d day',
         'regions_count' => '%d region',
         'avatars_count' => '%d avatar',
+        'simulators_count' => '%d simulator',
     ];
 
     /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s, %d). */
@@ -189,6 +190,12 @@ final class Catalog
         'no_regions' => 'No region',
         'regions_online' => '%1$s online of %2$s',
 
+        // The simulators of the machine (managers): the page, its search, how many it lists (simulators_count changes with the number)
+        'simulators_title' => 'Simulators',
+        'search_simulators' => 'Simulator name',
+        'simulators_count' => '%d simulators',
+        'no_simulators' => 'No simulator',
+
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',
         'dashboard_title' => 'Dashboard',
@@ -230,6 +237,9 @@ final class Catalog
         'edit_title' => 'Edit %s',
         'manage_enable' => '%s is enabled.',
         'manage_disable' => '%s is disabled.',
+        'manage_start' => '%s is started.',
+        'manage_stop' => '%s is stopped.',
+        'manage_restart' => '%s is restarted.',
         'manage_reset' => 'A link to choose a new password is on its way to %s.',
         'manage_saved' => '%s is saved.',
 

@@ -500,6 +500,25 @@ msgctxt "regions_online"
 msgid "%1$s online of %2$s"
 msgstr "%1$s en ligne sur %2$s"
 
+msgctxt "simulators_title"
+msgid "Simulators"
+msgstr "Simulateurs"
+
+msgctxt "search_simulators"
+msgid "Simulator name"
+msgstr "Nom du simulateur"
+
+#, php-format
+msgctxt "simulators_count"
+msgid "%d simulator"
+msgid_plural "%d simulators"
+msgstr[0] "%d simulateur"
+msgstr[1] "%d simulateurs"
+
+msgctxt "no_simulators"
+msgid "No simulator"
+msgstr "Aucun simulateur"
+
 msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Admin"
@@ -623,7 +642,9 @@ msgctxt "ask_restart_instance"
 msgid ""
 "Restart this simulator? The avatars in its regions are sent away while it "
 "restarts."
-msgstr "Redémarrer ce simulateur ? Les avatars de ses régions sont renvoyés pendant le redémarrage."
+msgstr ""
+"Redémarrer ce simulateur ? Les avatars de ses régions sont renvoyés pendant "
+"le redémarrage."
 
 msgctxt "action_reset"
 msgid "Send a password reset link"
@@ -655,6 +676,21 @@ msgstr "%s est activé."
 msgctxt "manage_disable"
 msgid "%s is disabled."
 msgstr "%s est désactivé."
+
+#, php-format
+msgctxt "manage_start"
+msgid "%s is started."
+msgstr "%s est démarré."
+
+#, php-format
+msgctxt "manage_stop"
+msgid "%s is stopped."
+msgstr "%s est arrêté."
+
+#, php-format
+msgctxt "manage_restart"
+msgid "%s is restarted."
+msgstr "%s est redémarré."
 
 #, php-format
 msgctxt "manage_reset"
