@@ -219,6 +219,7 @@ final class Catalog
         'action_disable' => 'Disable',
         'action_reset' => 'Send a password reset link',
         'action_view' => 'View profile',
+        'action_view_item' => 'View',
         'action_edit' => 'Edit',
         'edit_title' => 'Edit %s',
         'manage_enable' => '%s is enabled.',
@@ -229,6 +230,9 @@ final class Catalog
         // The lists of the models (Listing): the titles of their columns and of their filters, the values of a filter
         'yes' => 'Yes',
         'no' => 'No',
+        // What a filter offers besides its values: none of them chosen, and to take the filter away
+        'filter_any' => 'Any',
+        'filter_clear' => 'Remove the filter',
         'filter_email' => 'With an email',
         'filter_model' => 'Avatar model',
         'filter_technical' => 'Service account',
@@ -243,9 +247,9 @@ final class Catalog
         'offline' => 'Offline',
         'presence' => 'Presence',
         // The roles of a region (Region::roleKeys()): region_flag_ and the name of its flag in the config of Robust, in snake case
-        'region_flag_default_region' => 'Default region',
-        'region_flag_default_hg_region' => 'Default hypergrid region',
-        'region_flag_fallback_region' => 'Fallback region',
+        'region_flag_default_region' => 'Default',
+        'region_flag_default_hg_region' => 'Default HG',
+        'region_flag_fallback_region' => 'Fallback',
         'region_flag_no_direct_login' => 'No direct login',
         'region_flag_persistent' => 'Persistent',
         'region_flag_locked_out' => 'Locked out',
@@ -253,7 +257,7 @@ final class Catalog
         'region_flag_no_move' => 'No move',
         'region_flag_authenticate' => 'Authenticate',
         'region_flag_region_online' => 'Online',
-        'region_flag_hyperlink' => 'Hypergrid link',
+        'region_flag_hyperlink' => 'Hyperlink',
         // What each flag means, as OpenSimulator says it (OpenSim.Framework.RegionFlags): a tooltip
         'region_flag_default_region_help' => 'Where avatars arrive when they do not ask for a region; one at random when there are several.',
         'region_flag_fallback_region_help' => 'Where avatars are sent when the region they ask for is down.',

@@ -136,6 +136,8 @@ final class SimulatorImport
                 ]),
             ),
             'reminders' => [
+                // The files of an older install belong to its user (640 on opensim-debian); the import runs as the user of the grid
+                'The files of the older install are read by the user that runs the import: give it read access to them (its config, its includes, its regions) before applying.',
                 sprintf(
                     'The simulator that runs %s now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same.',
                     implode(', ', array_column($this->regions, 'name')) ?: $plan->simulatorName,

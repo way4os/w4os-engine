@@ -567,6 +567,10 @@ msgctxt "action_view"
 msgid "View profile"
 msgstr ""
 
+msgctxt "action_view_item"
+msgid "View"
+msgstr ""
+
 msgctxt "action_edit"
 msgid "Edit"
 msgstr ""
@@ -602,6 +606,14 @@ msgstr ""
 
 msgctxt "no"
 msgid "No"
+msgstr ""
+
+msgctxt "filter_any"
+msgid "Any"
+msgstr ""
+
+msgctxt "filter_clear"
+msgid "Remove the filter"
 msgstr ""
 
 msgctxt "filter_email"
@@ -653,15 +665,15 @@ msgid "Presence"
 msgstr ""
 
 msgctxt "region_flag_default_region"
-msgid "Default region"
+msgid "Default"
 msgstr ""
 
 msgctxt "region_flag_default_hg_region"
-msgid "Default hypergrid region"
+msgid "Default HG"
 msgstr ""
 
 msgctxt "region_flag_fallback_region"
-msgid "Fallback region"
+msgid "Fallback"
 msgstr ""
 
 msgctxt "region_flag_no_direct_login"
@@ -693,7 +705,7 @@ msgid "Online"
 msgstr ""
 
 msgctxt "region_flag_hyperlink"
-msgid "Hypergrid link"
+msgid "Hyperlink"
 msgstr ""
 
 msgctxt "region_flag_default_region_help"

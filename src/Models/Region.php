@@ -333,6 +333,7 @@ final class Region extends Model
                 : Avatar::profilePage($this->config, (string) $row['ownerName']),
             'flags' => $this->flags(),
             'roles' => $this->roles(),
+            'flagNames' => self::flagNames($this->flags() & ~self::REGION_ONLINE, true),
             'flagLabels' => array_values(self::flagLabels($this->flags())),
             'isDefault' => $this->isDefault(),
             'isFallback' => $this->isFallback(),
@@ -815,9 +816,9 @@ final class Region extends Model
                 'simulator' => array_values(
                     array_map(static fn(array $server): array => ['value' => $server['id'], 'label' => $server['label']], $servers),
                 ),
-                'flags' => array_values(
+                'flags' => array_keys(
                     array_intersect_key(
-                        self::filterFlags(),
+                        self::shownFlagKeys(),
                         array_flip(
                             self::flagNames(
                                 array_reduce(
@@ -942,8 +943,9 @@ final class Region extends Model
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('size', 'column_size', 'size', 'size'),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
-                Listing::column('roles', 'column_roles', 'list', 'flags', ['values' => Listing::values(self::roleKeys(true))]),
                 Listing::column('serverName', 'filter_simulator'),
+                // Every flag but RegionOnline, which the column of the status shows
+                Listing::column('flagNames', 'column_flags', 'list', 'flags', ['values' => Listing::values(self::shownFlagKeys())]),
                 Listing::column('online', 'online', 'boolean'),
                 Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
                 // Its address (host:port:name), linked to the teleport there
@@ -954,7 +956,7 @@ final class Region extends Model
                 Listing::filter(
                     'flags',
                     'column_flags',
-                    array_intersect_key(self::flagKeys(true), self::filterFlags()),
+                    self::shownFlagKeys(),
                     more: ['multiple' => true, 'dynamic' => true],
                 ),
                 Listing::filter('owner', 'column_owner', [], 'uuid'),
@@ -979,13 +981,11 @@ final class Region extends Model
     }
 
     /**
-     * What the page of a region shows and lets change (ItemForm): what the grid knows of it, then what its simulator says of it; only
-     * whether it is enabled is changed, for a region of this grid.
+     * What the page of a region shows and lets change (ItemForm): what the grid knows of it, and the name of its simulator; only
+     * whether it is enabled is changed, for a region whose file is on this machine.
      */
     public static function itemForm(): ItemForm
     {
-        $here = ['condition' => ['hyperlink' => [false]]];
-
         return new ItemForm(
             [
                 ItemForm::shown('mapImage', 'column_map', 'map', 'region', ['default' => 'place']),
@@ -994,23 +994,15 @@ final class Region extends Model
                 ItemForm::shown('location', 'profile_location', 'text', 'region'),
                 ItemForm::shown('size', 'column_size', 'size', 'region'),
                 ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile']),
-                ItemForm::shown('roles', 'column_roles', 'list', 'region', ['values' => Listing::values(self::roleKeys(true))]),
+                ItemForm::shown('serverName', 'filter_simulator', 'text', 'region'),
+                ItemForm::shown('flagNames', 'column_flags', 'list', 'region', ['values' => Listing::values(self::shownFlagKeys())]),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
                 ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
                 ItemForm::shown('uri', 'column_uri', 'link', 'region', ['link' => 'teleport']),
-                ItemForm::shown('simulator', 'filter_simulator', 'text', 'simulator', $here),
-                ItemForm::shown('serverUri', 'column_server', 'text', 'simulator'),
-                ItemForm::shown('file', 'column_file', 'text', 'simulator', $here),
-                // Known only when this machine has its file: hidden otherwise, with the actions that change it
-                ItemForm::field(
-                    'enabled',
-                    'column_enabled',
-                    'boolean',
-                    'simulator',
-                    more: ['condition' => ['local' => [true]]],
-                ),
+                // Whether the simulator loads its file: known only where the file is, hidden otherwise, with the actions that change it
+                ItemForm::field('enabled', 'column_enabled', 'boolean', 'region', more: ['condition' => ['local' => [true]]]),
             ],
-            [ItemForm::group('region', 'column_region'), ItemForm::group('simulator', 'filter_simulator')],
+            [ItemForm::group('region', 'column_region')],
             self::listing()->actions,
         );
     }
@@ -1093,15 +1085,14 @@ final class Region extends Model
     }
 
     /**
-     * The flags the filter of the flags offers: all but RegionOnline, which the filter of the status gives (online, offline).
+     * The flags a list shows and filters on, with the keys of their texts: all but RegionOnline, which the status gives (online,
+     * offline).
      *
-     * @return array<string,string> name => name, in the order of the table
+     * @return array<string,array{0:string,1:string}> name => [key, key of what it means], in the order of the table
      */
-    private static function filterFlags(): array
+    public static function shownFlagKeys(): array
     {
-        $names = self::flagNames(array_sum(array_keys(self::NAMES)) & ~self::REGION_ONLINE, true);
-
-        return array_combine($names, $names);
+        return array_diff_key(self::flagKeys(true), [self::NAMES[self::REGION_ONLINE] => true]);
     }
 
     /**

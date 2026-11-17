@@ -95,14 +95,14 @@ describe('A region', function () {
         function () {
             expect(region_planner()->roleOptions())
                 ->toBe([
-                    Region::flagName(Region::DEFAULT_REGION) => 'Default region',
-                    Region::flagName(Region::DEFAULT_HGREGION) => 'Default hypergrid region',
-                    Region::flagName(Region::FALLBACK_REGION) => 'Fallback region',
+                    Region::flagName(Region::DEFAULT_REGION) => 'Default',
+                    Region::flagName(Region::DEFAULT_HGREGION) => 'Default HG',
+                    Region::flagName(Region::FALLBACK_REGION) => 'Fallback',
                 ])
                 ->and(region_planner(['grid' => region_grid(['hypergrid' => false])])->roleOptions())
                 ->toBe([
-                    Region::flagName(Region::DEFAULT_REGION) => 'Default region',
-                    Region::flagName(Region::FALLBACK_REGION) => 'Fallback region',
+                    Region::flagName(Region::DEFAULT_REGION) => 'Default',
+                    Region::flagName(Region::FALLBACK_REGION) => 'Fallback',
                 ])
                 ->and(
                     region_planner([

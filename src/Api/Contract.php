@@ -352,6 +352,7 @@ final class Contract
                 ],
                 'flags' => ['integer', 'The flags of the grid'],
                 'roles' => ['array', 'The roles its flags give: DefaultRegion, FallbackRegion...'],
+                'flagNames' => ['array', 'The names of its flags, all but RegionOnline (the status, `online`): DefaultRegion, Hyperlink...'],
                 'flagLabels' => ['array', ''],
                 'isDefault' => ['boolean', ''],
                 'isFallback' => ['boolean', ''],

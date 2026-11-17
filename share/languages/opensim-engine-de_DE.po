@@ -609,6 +609,10 @@ msgctxt "action_view"
 msgid "View profile"
 msgstr "Profil ansehen"
 
+msgctxt "action_view_item"
+msgid "View"
+msgstr "Ansehen"
+
 msgctxt "action_edit"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -645,6 +649,14 @@ msgstr "Ja"
 msgctxt "no"
 msgid "No"
 msgstr "Nein"
+
+msgctxt "filter_any"
+msgid "Any"
+msgstr "Alle"
+
+msgctxt "filter_clear"
+msgid "Remove the filter"
+msgstr "Filter entfernen"
 
 msgctxt "filter_email"
 msgid "With an email"
@@ -695,16 +707,16 @@ msgid "Presence"
 msgstr "Anwesenheit"
 
 msgctxt "region_flag_default_region"
-msgid "Default region"
-msgstr "Standardregion"
+msgid "Default"
+msgstr "Standard"
 
 msgctxt "region_flag_default_hg_region"
-msgid "Default hypergrid region"
-msgstr "Standardregion für Hypergrid"
+msgid "Default HG"
+msgstr "Standard HG"
 
 msgctxt "region_flag_fallback_region"
-msgid "Fallback region"
-msgstr "Ausweichregion"
+msgid "Fallback"
+msgstr "Ausweich"
 
 msgctxt "region_flag_no_direct_login"
 msgid "No direct login"
@@ -735,8 +747,8 @@ msgid "Online"
 msgstr "Online"
 
 msgctxt "region_flag_hyperlink"
-msgid "Hypergrid link"
-msgstr "Hypergrid-Link"
+msgid "Hyperlink"
+msgstr "Hyperlink"
 
 msgctxt "region_flag_default_region_help"
 msgid ""
@@ -1189,6 +1201,22 @@ msgid "The mail could not be sent. Please try again later."
 msgstr ""
 "Die E-Mail konnte nicht gesendet werden. Bitte versuche es später noch "
 "einmal."
+
+#~ msgctxt "region_flag_default_region"
+#~ msgid "Default region"
+#~ msgstr "Standardregion"
+
+#~ msgctxt "region_flag_default_hg_region"
+#~ msgid "Default hypergrid region"
+#~ msgstr "Standardregion für Hypergrid"
+
+#~ msgctxt "region_flag_fallback_region"
+#~ msgid "Fallback region"
+#~ msgstr "Ausweichregion"
+
+#~ msgctxt "region_flag_hyperlink"
+#~ msgid "Hypergrid link"
+#~ msgstr "Hypergrid-Link"
 
 #~ msgctxt "region_status_online"
 #~ msgid "Online"

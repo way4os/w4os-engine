@@ -292,20 +292,4 @@ final class Destination
         }
         return join($sep, $links);
     }
-
-    /**
-     * Build region URL from array
-     *
-     * @param  array $region sanitized region array
-     * @return string
-     */
-    public static function regionUrl($region)
-    {
-        if (!is_array($region)) {
-            return false;
-        }
-        return $region['gatekeeper'] .
-            (empty($region['region']) ? '' : ':' . $region['region']) .
-            (empty($region['pos']) ? '' : '/' . $region['pos']);
-    }
 }

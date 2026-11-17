@@ -672,9 +672,14 @@ describe('The contract', function () {
                 'name' => 'enabled',
                 'label' => 'column_enabled',
                 'type' => 'boolean',
-                'group' => 'simulator',
+                'group' => 'region',
                 'condition' => ['local' => [true]],
             ])
+            // One group: the simulator shown by its name only, its address and its files left to its own page
+            ->and(array_column($region['groups'], 'name'))
+            ->toBe(['region'])
+            ->and(array_column($region['fields'], 'name'))
+            ->toBe(['mapImage', 'name', 'uuid', 'location', 'size', 'ownerName', 'serverName', 'flagNames', 'online', 'lastSeen', 'uri', 'enabled'])
             // Unknown (null) when this machine has no file of the region (local false): neither the field nor its actions are shown
             ->and((new \OpenSim\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => false, 'enabled' => null]))
             ->toBeFalse()

@@ -89,9 +89,9 @@ describe('flags of a region', function () {
             ->and(Region::flagValue('Nonsense'))
             ->toBe(0)
             ->and(Region::label(Region::DEFAULT_REGION))
-            ->toBe('Default region')
+            ->toBe('Default')
             ->and(Region::flagLabels(1029))
-            ->toBe([1 => 'Default region', 4 => 'Online', 1024 => 'Default hypergrid region'])
+            ->toBe([1 => 'Default', 4 => 'Online', 1024 => 'Default HG'])
             ->and(fn() => Region::flagName(3))
             ->toThrow(InvalidArgumentException::class)
             ->and(fn() => Region::flagName(Region::REGION_ONLINE))
@@ -161,8 +161,10 @@ describe('Regions', function () {
             ->toBeTrue()
             ->and($welcome['roles'])
             ->toBe(['DefaultRegion', 'DefaultHGRegion'])
+            ->and($welcome['flagNames'])
+            ->toBe(['DefaultRegion', 'DefaultHGRegion'])
             ->and($welcome['flagLabels'])
-            ->toBe(['Default region', 'Online', 'Default hypergrid region'])
+            ->toBe(['Default', 'Online', 'Default HG'])
             ->and($welcome['lastSeen'])
             ->toBe(1700000000);
     });
@@ -298,8 +300,8 @@ describe('Regions', function () {
                 'location' => 'text',
                 'size' => 'size',
                 'ownerName' => 'link',
-                'roles' => 'list',
                 'serverName' => 'text',
+                'flagNames' => 'list',
                 'online' => 'boolean',
                 'lastSeen' => 'date',
                 'uri' => 'link',
@@ -332,14 +334,11 @@ describe('Regions', function () {
             ])
             ->and(array_intersect_key($listing->filters[1], ['multiple' => 1, 'dynamic' => 1]))
             ->toBe(['multiple' => true, 'dynamic' => true])
-            ->and($listing->columns[4]['values'][8])
-            ->toBe([
-                'value' => 'DefaultHGRegion',
-                'label' => 'region_flag_default_hg_region',
-                'description' => 'region_flag_default_hg_region_help',
-            ])
-            ->and(array_column($listing->columns[4]['values'], 'value'))
-            ->toBe(Region::flagNames(2047))
+            // The column of the flags has every flag but the status, with the texts of the filter
+            ->and($listing->columns[5]['values'])
+            ->toBe($listing->filters[1]['values'])
+            ->and(array_column($listing->columns[5]['values'], 'value'))
+            ->toBe(array_values(array_diff(Region::NAMES, ['RegionOnline'])))
             // The map tile of the region beside its name, as the picture of an avatar
             ->and(array_intersect_key($listing->columns[0], ['picture' => 1, 'default' => 1]))
             ->toBe(['picture' => 'mapImage', 'default' => 'place'])

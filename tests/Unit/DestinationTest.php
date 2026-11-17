@@ -138,19 +138,6 @@ test('search tables take Latin-1: what it cannot hold becomes a question mark', 
         ->toBe('Price: 5? ??');
 });
 
-describe('Region urls', function () {
-    test('are written back from the parts', function () {
-        $parts = Destination::parse('hg.example.org:8002:My Region/128/64/22');
-
-        expect(Destination::regionUrl($parts))
-            ->toBe('http://hg.example.org:8002:My Region/128/64/22')
-            ->and(Destination::regionUrl(['gatekeeper' => 'http://hg.example.org:8002']))
-            ->toBe('http://hg.example.org:8002')
-            ->and(Destination::regionUrl('not an array'))
-            ->toBeFalse();
-    });
-});
-
 describe('Login addresses', function () {
     test('are read in their parts, the port being the one the address gives, none when it gives none', function (
         string $address,

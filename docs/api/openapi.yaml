@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 836f7f6
+  version: '8269052'
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -2028,8 +2028,12 @@ paths:
             type: link
             link: ownerProfile
           -
-            name: roles
-            label: column_roles
+            name: serverName
+            label: filter_simulator
+            type: text
+          -
+            name: flagNames
+            label: column_flags
             type: list
             sort: flags
             values:
@@ -2066,13 +2070,13 @@ paths:
                 label: region_flag_authenticate
                 description: region_flag_authenticate_help
               -
+                value: Hyperlink
+                label: region_flag_hyperlink
+                description: region_flag_hyperlink_help
+              -
                 value: DefaultHGRegion
                 label: region_flag_default_hg_region
                 description: region_flag_default_hg_region_help
-          -
-            name: serverName
-            label: filter_simulator
-            type: text
           -
             name: online
             label: online
@@ -2232,9 +2236,6 @@ paths:
           -
             name: region
             label: column_region
-          -
-            name: simulator
-            label: filter_simulator
         fields:
           -
             name: mapImage
@@ -2275,8 +2276,14 @@ paths:
             readOnly: true
             link: ownerProfile
           -
-            name: roles
-            label: column_roles
+            name: serverName
+            label: filter_simulator
+            type: text
+            group: region
+            readOnly: true
+          -
+            name: flagNames
+            label: column_flags
             type: list
             group: region
             readOnly: true
@@ -2314,6 +2321,10 @@ paths:
                 label: region_flag_authenticate
                 description: region_flag_authenticate_help
               -
+                value: Hyperlink
+                label: region_flag_hyperlink
+                description: region_flag_hyperlink_help
+              -
                 value: DefaultHGRegion
                 label: region_flag_default_hg_region
                 description: region_flag_default_hg_region_help
@@ -2337,34 +2348,10 @@ paths:
             readOnly: true
             link: teleport
           -
-            name: simulator
-            label: filter_simulator
-            type: text
-            group: simulator
-            readOnly: true
-            condition:
-              hyperlink:
-                - false
-          -
-            name: serverUri
-            label: column_server
-            type: text
-            group: simulator
-            readOnly: true
-          -
-            name: file
-            label: column_file
-            type: text
-            group: simulator
-            readOnly: true
-            condition:
-              hyperlink:
-                - false
-          -
             name: enabled
             label: column_enabled
             type: boolean
-            group: simulator
+            group: region
             condition:
               local:
                 - true
@@ -7231,6 +7218,9 @@ components:
             roles:
               type: array
               description: 'The roles its flags give: DefaultRegion, FallbackRegion...'
+            flagNames:
+              type: array
+              description: 'The names of its flags, all but RegionOnline (the status, `online`): DefaultRegion, Hyperlink...'
             flagLabels:
               type: array
             isDefault:

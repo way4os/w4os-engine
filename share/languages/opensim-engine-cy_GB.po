@@ -612,6 +612,10 @@ msgctxt "action_view"
 msgid "View profile"
 msgstr "Gweld proffil"
 
+msgctxt "action_view_item"
+msgid "View"
+msgstr "Gweld"
+
 msgctxt "action_edit"
 msgid "Edit"
 msgstr "Golygu"
@@ -648,6 +652,14 @@ msgstr "Ie"
 msgctxt "no"
 msgid "No"
 msgstr "Na"
+
+msgctxt "filter_any"
+msgid "Any"
+msgstr "Unrhyw"
+
+msgctxt "filter_clear"
+msgid "Remove the filter"
+msgstr "Tynnu'r hidlydd"
 
 msgctxt "filter_email"
 msgid "With an email"
@@ -698,16 +710,16 @@ msgid "Presence"
 msgstr "Presenoldeb"
 
 msgctxt "region_flag_default_region"
-msgid "Default region"
-msgstr "Rhanbarth diofyn"
+msgid "Default"
+msgstr "Diofyn"
 
 msgctxt "region_flag_default_hg_region"
-msgid "Default hypergrid region"
-msgstr "Rhanbarth hypergrid diofyn"
+msgid "Default HG"
+msgstr "Diofyn HG"
 
 msgctxt "region_flag_fallback_region"
-msgid "Fallback region"
-msgstr "Rhanbarth wrth gefn"
+msgid "Fallback"
+msgstr "Wrth gefn"
 
 msgctxt "region_flag_no_direct_login"
 msgid "No direct login"
@@ -738,8 +750,8 @@ msgid "Online"
 msgstr "Ar-lein"
 
 msgctxt "region_flag_hyperlink"
-msgid "Hypergrid link"
-msgstr "Dolen hypergrid"
+msgid "Hyperlink"
+msgstr "Hypergyswllt"
 
 msgctxt "region_flag_default_region_help"
 msgid ""
@@ -1195,6 +1207,22 @@ msgstr "Nid yw’r avatar hwn yn aros am gadarnhad ei ebost."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Doedd dim modd anfon yr ebost. Rhowch gynnig arall arni nes ymlaen."
+
+#~ msgctxt "region_flag_default_region"
+#~ msgid "Default region"
+#~ msgstr "Rhanbarth diofyn"
+
+#~ msgctxt "region_flag_default_hg_region"
+#~ msgid "Default hypergrid region"
+#~ msgstr "Rhanbarth hypergrid diofyn"
+
+#~ msgctxt "region_flag_fallback_region"
+#~ msgid "Fallback region"
+#~ msgstr "Rhanbarth wrth gefn"
+
+#~ msgctxt "region_flag_hyperlink"
+#~ msgid "Hypergrid link"
+#~ msgstr "Dolen hypergrid"
 
 #~ msgctxt "region_status_online"
 #~ msgid "Online"

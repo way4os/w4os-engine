@@ -101,7 +101,7 @@ On a host that serves one grid, `new Handler($api, $factory, $factory, grid: 'ni
 | `opensim_uri()` | `OpenSim\Hypergrid\Destination::uri()` |
 | `opensim_sanitize_uri()` | `OpenSim\Hypergrid\Destination::sanitize()` |
 | `opensim_format_tp()` | `OpenSim\Hypergrid\Destination::format()` |
-| `opensim_region_url()` | `OpenSim\Hypergrid\Destination::regionUrl()` |
+| `opensim_region_url()` | `OpenSim\Hypergrid\Destination::uri()` |
 | `oxXmlRequest()` | `OpenSim\Hypergrid\Gatekeeper::request()` |
 | `get_xml_response_data()` | `OpenSim\Hypergrid\Gatekeeper::post()` |
 | `opensim_link_region()` | `OpenSim\Hypergrid\Gatekeeper::linkRegion()` |

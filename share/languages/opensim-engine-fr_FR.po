@@ -607,6 +607,10 @@ msgctxt "action_view"
 msgid "View profile"
 msgstr "Voir le profil"
 
+msgctxt "action_view_item"
+msgid "View"
+msgstr "Voir"
+
 msgctxt "action_edit"
 msgid "Edit"
 msgstr "Modifier"
@@ -643,6 +647,14 @@ msgstr "Oui"
 msgctxt "no"
 msgid "No"
 msgstr "Non"
+
+msgctxt "filter_any"
+msgid "Any"
+msgstr "Tous"
+
+msgctxt "filter_clear"
+msgid "Remove the filter"
+msgstr "Retirer le filtre"
 
 msgctxt "filter_email"
 msgid "With an email"
@@ -693,16 +705,16 @@ msgid "Presence"
 msgstr "Présence"
 
 msgctxt "region_flag_default_region"
-msgid "Default region"
-msgstr "Région par défaut"
+msgid "Default"
+msgstr "Par défaut"
 
 msgctxt "region_flag_default_hg_region"
-msgid "Default hypergrid region"
-msgstr "Région par défaut de l'hypergrid"
+msgid "Default HG"
+msgstr "Par défaut HG"
 
 msgctxt "region_flag_fallback_region"
-msgid "Fallback region"
-msgstr "Région de repli"
+msgid "Fallback"
+msgstr "Secours"
 
 msgctxt "region_flag_no_direct_login"
 msgid "No direct login"
@@ -733,8 +745,8 @@ msgid "Online"
 msgstr "En ligne"
 
 msgctxt "region_flag_hyperlink"
-msgid "Hypergrid link"
-msgstr "Lien hypergrid"
+msgid "Hyperlink"
+msgstr "Hyperlien"
 
 msgctxt "region_flag_default_region_help"
 msgid ""
@@ -1180,6 +1192,22 @@ msgstr "Cet avatar n’attend pas de confirmation de son e-mail."
 msgctxt "error_mail_failed"
 msgid "The mail could not be sent. Please try again later."
 msgstr "Le message n’a pas pu partir. Merci de réessayer plus tard."
+
+#~ msgctxt "region_flag_default_region"
+#~ msgid "Default region"
+#~ msgstr "Région par défaut"
+
+#~ msgctxt "region_flag_default_hg_region"
+#~ msgid "Default hypergrid region"
+#~ msgstr "Région par défaut de l'hypergrid"
+
+#~ msgctxt "region_flag_fallback_region"
+#~ msgid "Fallback region"
+#~ msgstr "Région de repli"
+
+#~ msgctxt "region_flag_hyperlink"
+#~ msgid "Hypergrid link"
+#~ msgstr "Lien hypergrid"
 
 #~ msgctxt "region_status_online"
 #~ msgid "Online"
