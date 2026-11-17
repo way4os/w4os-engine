@@ -227,7 +227,7 @@ final class Endpoints
             ],
             'teleport' => [
                 'type' => ['string', 'null'],
-                'description' => 'The link a viewer follows to go there (hop://host:port/Region/x/y/z)',
+                'description' => 'The link a viewer follows to go there (hop://host:port:Region/x/y/z)',
             ],
         ];
         $paths['/grids/{grid}/avatars/{id}/picks']['get'] = [

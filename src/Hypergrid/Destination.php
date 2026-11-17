@@ -9,7 +9,7 @@ final class Destination
 {
     /** secondlife://Region Name/x/y/z */
     public const LOCAL = 1;
-    /** secondlife://yourgrid.org:8002 Region/x/y/z (original HG format, obsolete?) */
+    /** secondlife://yourgrid.org:8002:Region/x/y/z (original HG format, obsolete?) */
     public const HG = 2;
     /** the overcomplicated stuff! */
     public const V3HG = 4;
@@ -25,6 +25,15 @@ final class Destination
     public const ALL = 255;
     /** output as array */
     public const AS_ARRAY = 256;
+    /**
+     * The link for where it is shown (the `context` of format()): in a viewer, LOCAL for a region of the grid itself (it works
+     * everywhere in a viewer, its login screen too), HOP for another grid, none on the login screen (a viewer cannot land on
+     * another grid from there: the destination is shown as text); HOP in a web browser.
+     */
+    public const AUTO = 512;
+
+    /** The user agents of the viewers (their own browser, the login screen). */
+    public const VIEWER_PATTERN = '/SecondLife|OpenSim|Firestorm|Singularity|Kokua|Alchemy|Catznip/i';
 
     /** The port of a grid an address does not say (the one of Robust). */
     public const PORT = 8002;
@@ -181,6 +190,39 @@ final class Destination
         ];
     }
 
+    /** Whether a user agent is the one of a viewer (its own browser, its login screen). */
+    public static function isViewer(string $userAgent): bool
+    {
+        return preg_match(self::VIEWER_PATTERN, $userAgent) === 1;
+    }
+
+    /**
+     * The link of a destination for where it is shown (AUTO).
+     *
+     * @param array{viewer?:bool,splash?:bool,login?:?string} $context
+     */
+    private static function auto(string $destination, int $array, string $sep, array $context): string|array
+    {
+        $login = trim((string) ($context['login'] ?? ''));
+        $parsed = self::parse($destination, $login !== '' ? $login : null);
+        $own = self::loginParts($login);
+        $local =
+            ($parsed['host'] ?? '') === '' ||
+            ($own !== null && strtolower((string) $own['host']) === $parsed['host'] && (int) ($own['port'] ?? 80) === (int) $parsed['port']);
+        $viewer = (bool) ($context['viewer'] ?? false);
+        $format = match (true) {
+            $viewer && $local => self::LOCAL,
+            $viewer && (bool) ($context['splash'] ?? false) => 0,
+            default => self::HOP,
+        };
+        if ($format === 0) {
+            return $array ? [] : '';
+        }
+        $uri = $format === self::LOCAL ? $parsed['region'] . ($parsed['pos'] === '' ? '' : '/' . $parsed['pos']) : $parsed['dest_uri'];
+
+        return self::format($uri, $format | $array, $sep);
+    }
+
     /** The height a point is landed at: the one it gives, HEIGHT when it gives none or zero. */
     public static function height(mixed $z): float
     {
@@ -254,14 +296,23 @@ final class Destination
      * 							128:                 (for future use, not implemented)
      *                          TPLINK or 255:       output all formats
      *                          TPLINK_ARRAY or 256: output all formats as array
+     *                          AUTO or 512:         the link for where it is shown (see AUTO), with `$context`
+     *
+     * The region of a hop:// or secondlife:// link of a grid comes after a colon, its spaces as %20
+     * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.
      *
      * @param  string  $sep      Separator for multiple formats, default new line
+     * @param  array{viewer?:bool,splash?:bool,login?:?string} $context where AUTO is shown: in a viewer (isViewer()), on its login
+     *         screen (`splash`), the login address of the grid itself (`login`)
      * @return string
      */
-    public static function format($destination, $format = null, $sep = "\n"): string|array
+    public static function format($destination, $format = null, $sep = "\n", array $context = []): string|array
     {
         if (empty($destination)) {
             return $format & self::AS_ARRAY ? [] : '';
+        }
+        if ($format !== null && $format & self::AUTO) {
+            return self::auto((string) $destination, $format & self::AS_ARRAY, $sep, $context);
         }
         // TODO: allow Region, Destination or Event classes
         // if (is_object($destination) && !empty($destination->uri)) {
@@ -296,7 +347,7 @@ final class Destination
         }
         // A region of this grid, by its name alone; the link of a grid without a region ends at its port
         $local = "secondlife://$region_percentencode" . (empty($pos_sl) ? '' : "/$pos_sl");
-        $named = empty($region) ? '' : "%20$region_percentencode";
+        $named = empty($region) ? '' : ":$region_percentencode";
         if ($format & self::LOCAL) {
             // Web only, do not use for in-world messages
             $links[self::LOCAL] = $local;
@@ -310,7 +361,7 @@ final class Destination
         if ($format & self::V3HG) {
             // Web only, do not use for in-world messages
             $links[self::V3HG] =
-                (empty($host) ? $local : "secondlife://http|!!$host|$port$named") .
+                (empty($host) ? $local : "secondlife://http|!!$host|$port" . (empty($region) ? "" : "%20$region_percentencode")) .
                 (empty($pos_sl) || empty($host) ? '' : "/$pos_sl");
         }
         if ($format & self::HOP) {
@@ -319,7 +370,7 @@ final class Destination
             // - required for in-world messages
             $links[self::HOP] = empty($gatekeeper)
                 ? ''
-                : trim("hop://$host:$port/$region_urlencode", '/') . (empty($pos) ? '' : "/$pos");
+                : "hop://$host:$port$named" . (empty($pos) ? '' : "/$pos");
         }
         if ($format & self::APPTP) {
             // In-world messages, do not use for web links

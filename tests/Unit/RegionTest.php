@@ -260,7 +260,7 @@ describe('Regions', function () {
             ->and(Region::all($config, ['filters' => ['owner' => '11111111-1111-1111-1111-111111111111']])->applied())
             ->toBe(['owner' => '11111111-1111-1111-1111-111111111111'])
             ->and(Region::find($config, 'Quiet Harbour')->detail()['teleport'])
-            ->toBe('hop://play.example.org:8002/Quiet+Harbour')
+            ->toBe('hop://play.example.org:8002:Quiet%20Harbour')
             ->and($teleports)
             ->toBe([null]);
     });
