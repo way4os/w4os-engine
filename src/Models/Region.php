@@ -84,9 +84,6 @@ final class Region extends Model
     /** The flags a region can be given, its roles, written by name in the config of Robust: all but what Robust sets itself. */
     private const ROLES = (self::DEFAULT_HGREGION * 2 - 1) & ~(self::REGION_ONLINE | self::HYPERLINK);
 
-    /** The size of a region that does not say it. */
-    private const DEFAULT_SIZE = 256;
-
     /** Where a region is known from. */
     public const GRID = 'grid';
     public const CONFIG = 'config';
@@ -161,6 +158,19 @@ final class Region extends Model
         $uri = $this->isHyperlink() ? null : $this->uri();
 
         return $uri === null || $uri === '' ? null : (string) Destination::format($uri, Destination::HOP);
+    }
+
+    /** The size of a region that says none, and the unit of every size: a region is a square of 256 meters, or of a multiple of it. */
+    public const SIZE = 256;
+
+    /** The size of a region: a multiple of 256 meters, 256 to 8192 (a region of more than 256 meters is a var region). */
+    public static function validateSize(mixed $value): ?string
+    {
+        $size = filter_var($value, FILTER_VALIDATE_INT);
+
+        return $size !== false && $size >= self::SIZE && $size <= 8192 && $size % self::SIZE === 0
+            ? null
+            : _('invalid: a multiple of 256 meters, 256 to 8192');
     }
 
     /** The name of the file of a region in the regions folder of its simulator, without .ini: its name without spaces. */
@@ -264,12 +274,12 @@ final class Region extends Model
     /** Its place on the map, in regions of 256 meters. */
     public function x(): int
     {
-        return isset($this->row['locX']) ? intdiv((int) $this->row['locX'], self::DEFAULT_SIZE) : $this->place()[0];
+        return isset($this->row['locX']) ? intdiv((int) $this->row['locX'], self::SIZE) : $this->place()[0];
     }
 
     public function y(): int
     {
-        return isset($this->row['locY']) ? intdiv((int) $this->row['locY'], self::DEFAULT_SIZE) : $this->place()[1];
+        return isset($this->row['locY']) ? intdiv((int) $this->row['locY'], self::SIZE) : $this->place()[1];
     }
 
     /** @return array{0:int,1:int} the place its file gives, in regions */
@@ -281,13 +291,13 @@ final class Region extends Model
     /** The size in meters, 256 when nothing says it. */
     public function width(): int
     {
-        return (int) ($this->row['sizeX'] ?? ($this->local['SizeX'] ?? 0)) ?: self::DEFAULT_SIZE;
+        return (int) ($this->row['sizeX'] ?? ($this->local['SizeX'] ?? 0)) ?: self::SIZE;
     }
 
     public function height(): int
     {
         return (int) ($this->row['sizeY'] ?? ($this->local['SizeY'] ?? ($this->local['SizeX'] ?? 0))) ?:
-            self::DEFAULT_SIZE;
+            self::SIZE;
     }
 
     public function detail(): array
@@ -1224,6 +1234,16 @@ final class Region extends Model
                 'label' => _('Region location (x,y)'),
                 'callback' => [Grid::class, 'validateCenter'],
                 'condition' => $made,
+            ],
+            [
+                'name' => 'size',
+                'group' => 'region',
+                'type' => 'integer',
+                'default' => self::SIZE,
+                'label' => _('Region size (meters, a multiple of 256)'),
+                'callback' => [self::class, 'validateSize'],
+                'condition' => $made,
+                'enable' => !$fixed,
             ],
             [
                 'name' => 'simulator',

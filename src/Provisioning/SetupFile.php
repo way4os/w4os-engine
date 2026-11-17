@@ -19,7 +19,7 @@ use Symfony\Component\Yaml\Yaml;
  *   owner:       name (First Last), password, or password_hash and password_salt (as Robust keeps them),
  *                email (optional): the account that owns the estate
  *   simulators:  a list of: name, http_port, console, estate: name, owner, database: driver (mysql|sqlite), host, name, user, password,
- *                regions: a list of: name, location (x,y), port, roles (DefaultRegion, DefaultHGRegion, FallbackRegion,
+ *                regions: a list of: name, location (x,y), size (meters, 256 by default), port, roles (DefaultRegion, DefaultHGRegion, FallbackRegion,
  *                or default, default_hg, fallback); an adopted region also retains its uuid and original INI text in source
  *   users:       a list of: first, last, email (optional), password (made when empty) or password_hash
  *                and password_salt (written as they are)
@@ -82,6 +82,7 @@ final class SetupFile
     private const REGION = [
         'name' => 'simulators.$i.regions.$j.name',
         'location' => 'simulators.$i.regions.$j.location',
+        'size' => 'simulators.$i.regions.$j.size',
         'port' => 'simulators.$i.regions.$j.port',
         'roles' => 'simulators.$i.regions.$j.roles',
     ];
@@ -459,6 +460,7 @@ final class SetupFile
                     'uuid' => $plan->existingRegionConfig !== '' ? $plan->regionUuid : null,
                     'source' => $plan->existingRegionConfig !== '' ? $plan->existingRegionConfig : null,
                     'location' => $plan->regionLocation,
+                    'size' => $plan->regionSize,
                     'port' => $plan->regionPort,
                     'roles' => $plan->regionRoles ?: null,
                 ],

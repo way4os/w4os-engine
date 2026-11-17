@@ -63,24 +63,24 @@ final class LocationFinder
      * @param array<string,true> $used
      * @return array{0:int,1:int}
      */
-    public static function nearestFree(array $used, int $x, int $y, int $gap = 0): array
+    public static function nearestFree(array $used, int $x, int $y, int $gap = 0, int $span = 1): array
     {
         for ($radius = 8; ; $radius *= 2) {
             foreach (self::offsets($radius) as [$dx, $dy]) {
                 $cx = $x + $dx;
                 $cy = $y + $dy;
-                if ($cx >= 0 && $cy >= 0 && self::free($used, $cx, $cy, $gap)) {
+                if ($cx >= 0 && $cy >= 0 && self::free($used, $cx, $cy, $gap, $span)) {
                     return [$cx, $cy];
                 }
             }
         }
     }
 
-    /** No place taken within $gap blocks of this one (itself included). */
-    private static function free(array $used, int $x, int $y, int $gap): bool
+    /** No place taken within $gap blocks of the $span x $span places from this one (themselves included). */
+    private static function free(array $used, int $x, int $y, int $gap, int $span = 1): bool
     {
-        for ($dx = -$gap; $dx <= $gap; $dx++) {
-            for ($dy = -$gap; $dy <= $gap; $dy++) {
+        for ($dx = -$gap; $dx < max(1, $span) + $gap; $dx++) {
+            for ($dy = -$gap; $dy < max(1, $span) + $gap; $dy++) {
                 if (isset($used[self::key($x + $dx, $y + $dy)])) {
                     return false;
                 }

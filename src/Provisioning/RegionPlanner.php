@@ -53,7 +53,7 @@ final class RegionPlanner
             'known' => [], // places taken, "x,y" => true
             'ports' => [], // ports used by the regions the grid knows
             'remoteHas' => null, // Closure(string $name): ?bool, whether the Robust of a remote grid has the name (default: asks it)
-            'freePlace' => null, // Closure(int $x, int $y, ?string $ignored): array{0:int,1:int,2:bool}, the nearest free place and whether the grid answered
+            'freePlace' => null, // Closure(int $x, int $y, ?string $ignored, int $span): array{0:int,1:int,2:bool}, the nearest free place and whether the grid answered
             'randomName' => null, // Closure(Closure $problem): string
             'uuid' => null, // Closure(): string
             'nextPort' => null, // Closure(int $httpPort, array $taken): int, the next port for a region (default: Ports)
@@ -153,7 +153,7 @@ final class RegionPlanner
      * What the region is for these answers.
      *
      * @param array<string,mixed> $answers by the names of the fields
-     * @return array<string,mixed> create, name, roles (list), location, simulator, port (a number)
+     * @return array<string,mixed> create, name, roles (list), location, size (meters), simulator, port (a number)
      */
     public function resolve(array $answers = []): array
     {
@@ -163,7 +163,8 @@ final class RegionPlanner
             $simulator !== '+' && $c['portOfSimulator'] !== null ? $c['portOfSimulator']($simulator) : $c['httpPort'];
         $problem = fn(string $name): ?string => $this->nameProblem($name);
         // What is not answered is worked out, and only then (the place of a region of a grid on another machine is asked to it)
-        $place = fn(): string => implode(',', array_slice($this->freePlace(...$this->center()), 0, 2));
+        $size = (int) ($answers['size'] ?? Region::SIZE);
+        $place = fn(): string => implode(',', array_slice($this->freePlace(...[...$this->center(), null, self::span($size)]), 0, 2));
 
         return [
             'create' => Result::isTrue($answers['create'] ?? true),
@@ -171,6 +172,7 @@ final class RegionPlanner
             // Checked at first: the default region and the one of the visitors, when the grid has none yet (and not the fallback)
             'roles' => array_values((array) ($answers['roles'] ?? $this->missingRoles())),
             'location' => trim((string) ($answers['location'] ?? $place())),
+            'size' => $size,
             'simulator' => $simulator,
             'port' => (int) ($answers['port'] ?? $this->nextPort($httpPort)),
         ];
@@ -209,14 +211,14 @@ final class RegionPlanner
      *
      * @return array{asked:string,free:string,moved:bool,unreachable:bool}
      */
-    public function settle(string $asked, ?string $current = null): array
+    public function settle(string $asked, ?string $current = null, int $size = Region::SIZE): array
     {
         $ignored =
             $current !== null && ($place = LocationFinder::parse($current)) !== null
                 ? LocationFinder::key($place[0], $place[1])
                 : null;
         [$x, $y] = LocationFinder::parse($asked) ?? $this->center();
-        [$freeX, $freeY, $unreachable] = $this->freePlace($x, $y, $ignored);
+        [$freeX, $freeY, $unreachable] = $this->freePlace($x, $y, $ignored, self::span($size));
 
         return [
             'asked' => "$x,$y",
@@ -251,8 +253,15 @@ final class RegionPlanner
         $plan->regionName = Slug::ascii($v['name']);
         $plan->regionRoles = $v['roles'];
         $plan->regionUuid = $this->context['uuid'] !== null ? $this->context['uuid']() : self::uuid();
-        $plan->regionLocation = $this->settle($v['location'], $current)['free'];
+        $plan->regionLocation = $this->settle($v['location'], $current, $v['size'])['free'];
+        $plan->regionSize = $v['size'];
         $plan->regionPort = $v['port'];
+    }
+
+    /** The places a side of a region of this size takes: a place is 256 meters. */
+    private static function span(int $size): int
+    {
+        return max(1, intdiv($size + Region::SIZE - 1, Region::SIZE));
     }
 
     /** Why a name is refused, null when it is fine: not valid, or a region of the grid has it (a name is unique in a grid). */
@@ -286,10 +295,10 @@ final class RegionPlanner
     }
 
     /** @return array{0:int,1:int,2:bool} the nearest free place, and whether the grid answered when it is on another machine */
-    private function freePlace(int $x, int $y, ?string $ignored = null): array
+    private function freePlace(int $x, int $y, ?string $ignored = null, int $span = 1): array
     {
         if ($this->context['freePlace'] !== null) {
-            return $this->context['freePlace']($x, $y, $ignored);
+            return $this->context['freePlace']($x, $y, $ignored, $span);
         }
         // A region that moves frees the place it holds
         $known = $this->context['known'];
@@ -297,7 +306,7 @@ final class RegionPlanner
             unset($known[$ignored]);
         }
         $unreachable = false;
-        [$freeX, $freeY] = Places::nearestFree($this->context['grid'], $known, $x, $y, $ignored, $unreachable);
+        [$freeX, $freeY] = Places::nearestFree($this->context['grid'], $known, $x, $y, $ignored, $unreachable, $span);
 
         return [$freeX, $freeY, $unreachable];
     }

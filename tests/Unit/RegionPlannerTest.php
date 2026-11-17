@@ -318,12 +318,36 @@ describe('A region', function () {
         expect($plan->regionUuid)->toBe('');
     });
 
+    test('has a size, 256 meters by default, a multiple of 256, and a place where all its squares are free', function () {
+        $plan = new OpenSim\Provisioning\SimulatorPlan();
+        region_planner()->apply($plan, ['name' => 'Big Garden', 'size' => 512]);
+        // 1000,1000 is taken: a region of 512 meters needs the four places from where it is
+        $used = ['1001,1000' => true];
+
+        expect(region_planner()->resolve([])['size'])
+            ->toBe(256)
+            ->and($plan->regionSize)
+            ->toBe(512)
+            ->and(region_planner()->problems(['size' => 300]))
+            ->toHaveKey('size')
+            ->and(OpenSim\Models\Region::validateSize(1024))
+            ->toBeNull()
+            ->and(OpenSim\Models\Region::validateSize(8448))
+            ->not->toBeNull()
+            ->and(OpenSim\Provisioning\LocationFinder::nearestFree($used, 1000, 1000))
+            ->toBe([1000, 1000])
+            ->and(OpenSim\Provisioning\LocationFinder::nearestFree($used, 1000, 1000, 0, 2))
+            ->not->toBe([1000, 1000]);
+    });
+
     test('that exists only moves: its name, its roles and its simulator stay', function () {
         $fields = region_planner()->fixed()->fields();
 
         expect($fields->names())
-            ->toBe(['create', 'name', 'roles', 'location', 'simulator', 'port'])
+            ->toBe(['create', 'name', 'roles', 'location', 'size', 'simulator', 'port'])
             ->and($fields->visible('name', []))
+            ->toBeFalse()
+            ->and($fields->visible('size', []))
             ->toBeFalse()
             ->and($fields->visible('roles', []))
             ->toBeFalse()
