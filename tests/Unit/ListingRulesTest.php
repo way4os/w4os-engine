@@ -172,3 +172,20 @@ describe('The type of an avatar', function () {
             ->toBe(['user' => 'avatar_type_user', 'model' => 'avatar_type_model', 'service' => 'avatar_type_service']);
     });
 });
+
+describe('The page of an item', function () {
+    test('says what its head shows, as its row in the list: its name, its picture, under it its address, its status', function () {
+        $paths = Contract::document()['paths'];
+        $avatar = $paths['/grids/{grid}/avatars/{id}']['get']['x-form']['header'];
+        $region = $paths['/grids/{grid}/regions/{id}']['get']['x-form']['header'];
+
+        expect(array_diff_key($avatar, ['indicators' => 1]))
+            ->toBe(['title' => 'name', 'picture' => 'profileImage', 'default' => 'person'])
+            ->and(array_column($avatar['indicators'], 'name'))
+            ->toBe(['accountState', 'ban'])
+            ->and(array_diff_key($region, ['indicators' => 1]))
+            ->toBe(['title' => 'name', 'picture' => 'mapImage', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport'])
+            ->and(array_column($region['indicators'], 'name'))
+            ->toBe(['enabled', 'online']);
+    });
+});
