@@ -143,6 +143,7 @@ final class Grid extends InstalledModel
                 'type' => 'string',
                 'required' => true,
                 'label' => _('Grid nick (snake_case, hyphens kept)'),
+                'callback' => [self::class, 'validateNick'],
                 'description' => _('Names its folder, its database and its instances'),
                 'enable' => !($options['modify'] ?? false),
             ],
@@ -443,6 +444,14 @@ final class Grid extends InstalledModel
     public static function standaloneRegionName(string $name): string
     {
         return trim((string) preg_replace('/ +/', ' ', str_replace('.', ' ', $name)));
+    }
+
+    /** The nick of a grid, as Slug::nick() makes it: small letters and digits, words joined by _ or -. */
+    public static function validateNick(mixed $value): ?string
+    {
+        return Slug::isNick(trim((string) $value))
+            ? null
+            : _('invalid: small letters and digits, the words joined by _ or - (friendly_fowl, mary-jane_world)');
     }
 
     /** A host name or an IPv6 address in brackets: labels of ASCII letters, digits and hyphens (the viewers refuse any other character). */

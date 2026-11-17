@@ -35,6 +35,12 @@ final class Slug
         return str_replace("\x01", '-', $words);
     }
 
+    /** Whether a value is a nick as nick() makes it: what nick() leaves as it is. */
+    public static function isNick(string $value): bool
+    {
+        return $value !== '' && self::nick($value) === $value;
+    }
+
     /**
      * The slug: kebab-case. A name written in camel case keeps its words apart (OliviersGrid), an apostrophe is dropped, not a
      * separator ("Olivier's" is "oliviers"), any other run of characters is one hyphen.

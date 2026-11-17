@@ -2,6 +2,8 @@
 
 namespace OpenSim\Provisioning;
 
+use OpenSim\Models\Region;
+
 use OpenSim\Config\ConnectionString;
 use OpenSim\Config\GridConfig;
 
@@ -127,9 +129,7 @@ final class SimulatorPlan
 
     public function regionIni(): string
     {
-        $file = preg_replace('/[^A-Za-z0-9._-]/', '', $this->regionName) ?: 'region';
-
-        return "{$this->regionsDir()}/$file.ini";
+        return "{$this->regionsDir()}/" . Region::fileName($this->regionName) . '.ini';
     }
 
     public function connectionString(): string
@@ -162,7 +162,7 @@ final class SimulatorPlan
             'bin_dir' => $this->binDir(),
             'config_dir' => $this->configDir(),
             'regions_dir' => $this->regionsDir(),
-            'region_file' => preg_replace('/[^A-Za-z0-9._-]/', '', $this->regionName) ?: 'region',
+            'region_file' => Region::fileName($this->regionName),
             'architecture_file' => $this->configDir() . '/config-include/' . ($this->standalone ? 'Standalone' : 'Grid') . ($this->hypergrid ? 'Hypergrid' : '') . '.ini',
             // A grid with a master (SimulatorMaster) has the rest: its simulators say only what makes them their own
             'master' => SimulatorMaster::exists($this->gridDir) ? 'true' : '',

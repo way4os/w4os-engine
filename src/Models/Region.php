@@ -163,6 +163,12 @@ final class Region extends Model
         return $uri === null || $uri === '' ? null : (string) Destination::format($uri, Destination::HOP);
     }
 
+    /** The name of the file of a region in the regions folder of its simulator, without .ini: its name without spaces. */
+    public static function fileName(string $name): string
+    {
+        return (string) preg_replace('/[^A-Za-z0-9._-]/', '', $name) ?: 'region';
+    }
+
     /** The file that describes it in its simulator, empty when the config does not know it. */
     public function file(): string
     {

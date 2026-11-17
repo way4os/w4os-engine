@@ -2,6 +2,7 @@
 
 namespace OpenSim\Health;
 
+use OpenSim\Models\Avatar;
 use OpenSim\Config\GridConfig;
 
 /**
@@ -158,7 +159,7 @@ class Health
                     [
                         'label' => $key,
                         self::isUrl($value) ? 'url' : 'text' => $profile
-                            ? str_replace('[AGENT_NAME]', $owner, $value)
+                            ? Avatar::profileAt($value, $owner) ?? $value
                             : $value,
                         'level' => $same ? 'ok' : 'error',
                         'status' => $same ? _('OK') : _('differs'),
@@ -309,7 +310,7 @@ class Health
      */
     private static function profileRow($key, $value, $owner)
     {
-        return self::page($key, str_replace('[AGENT_NAME]', $owner, $value)) + ['display' => $value];
+        return self::page($key, Avatar::profileAt($value, $owner) ?? $value) + ['display' => $value];
     }
 
     /**

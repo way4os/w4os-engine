@@ -1494,7 +1494,15 @@ final class Avatar extends Model
      */
     public static function profilePage(GridConfig $config, string $name): ?string
     {
-        $page = (string) $config->find('GridInfoService', 'web_profile_url');
+        return self::profileAt((string) $config->find('GridInfoService', 'web_profile_url'), $name);
+    }
+
+    /**
+     * The web page of the profile of an avatar from the address a grid gives them (`web_profile_url`, live or configured): First.Last
+     * for `[AGENT_NAME]`. Null for an address that is not one for an avatar, or a name that is not First Last (or First.Last).
+     */
+    public static function profileAt(string $page, string $name): ?string
+    {
         $parts = preg_split('/[\s.]+/', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
         if (!str_contains($page, '[AGENT_NAME]') || count($parts) !== 2) {
             return null;

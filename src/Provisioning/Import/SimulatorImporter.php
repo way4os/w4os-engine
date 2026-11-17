@@ -6,6 +6,7 @@ use OpenSim\Config\GridFileService;
 use OpenSim\Config\ConfigReader;
 use OpenSim\Config\ConnectionString;
 use OpenSim\Models\Grid;
+use OpenSim\Models\Simulator;
 use OpenSim\Provisioning\GridOptions;
 use OpenSim\Provisioning\SimulatorMaster;
 use OpenSim\Provisioning\SimulatorPlan;
@@ -42,9 +43,12 @@ final class SimulatorImporter
         $name =
             $name !== null && $name !== ''
                 ? $name
-                : (string) preg_replace('/[^A-Za-z0-9 _-]/', '', basename(dirname($path, 2)));
+                : Simulator::normalizeName(basename(dirname($path, 2)));
         if ($name === '') {
             return 'the simulator has no name: give one with --name';
+        }
+        if (($wrong = Simulator::validateName($name)) !== null) {
+            return "the simulator name '$name' is $wrong: give one with --name";
         }
 
         $plan = new SimulatorPlan();

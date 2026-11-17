@@ -133,7 +133,7 @@ final class Presets
 
         return [
             'name' => $this->setting($name, 'DataSnapshot', 'gridname') ?? $name,
-            'nick' => (string) preg_replace('/[^A-Za-z0-9]/', '', $name),
+            'nick' => Slug::nick($name),
             'host' => $gatekeeper['host'],
             'publicPort' => $gatekeeper['port'],
             'privatePort' => $private['port'] ?? $gatekeeper['port'] + 1,

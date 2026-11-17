@@ -99,7 +99,7 @@ describe('A grid on another machine', function () {
         $grid = $planner->plan([
             'address' => 'play.example.org:8002',
             'name' => 'My Name',
-            'nick' => 'my-nick!',
+            'nick' => 'my-nick',
             'private_port' => '9999',
             'hypergrid' => false,
         ])['grid'];
@@ -148,6 +148,25 @@ describe('A grid on another machine', function () {
             ->toBe('mary-jane_world')
             ->and($planner->plan(['address' => 'play.example.org:8002'])['error'])
             ->toContain("already has the nick 'friendly_fowl'");
+    });
+
+    test('refuses a nick that is not one, given or said, and never changes it', function () {
+        [$planner] = remote_planner(['gridname' => 'Far', 'gridnick' => 'FarWorld']);
+        $said = $planner->plan(['address' => 'play.example.org:8002']);
+        $typed = $planner->plan(['address' => 'play.example.org:8002', 'nick' => 'my-nick!']);
+        [$silent] = remote_planner(['gridname' => 'Far World']);
+
+        expect($said['grid'])
+            ->toBeNull()
+            ->and($said['error'])
+            ->toStartWith("The nick 'FarWorld' is invalid")
+            ->and($typed['error'])
+            ->toStartWith("The nick 'my-nick!' is invalid")
+            // A grid that says no nick gets the one of its name
+            ->and($silent->plan(['address' => 'play.example.org:8002'])['grid']->nick())
+            ->toBe('far_world')
+            ->and([\OpenSim\Provisioning\Slug::isNick('friendly_fowl'), \OpenSim\Provisioning\Slug::isNick('Friendly_Fowl'), \OpenSim\Provisioning\Slug::isNick('')])
+            ->toBe([true, false, false]);
     });
 
     test('is kept as it was described when it is already known here', function () {

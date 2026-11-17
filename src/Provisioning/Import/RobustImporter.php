@@ -37,10 +37,13 @@ final class RobustImporter
     ): GridPlan|string {
         $ini = ConfigReader::expand($raw);
         $name = $ini['GridInfoService']['gridname'] ?? '';
-        $nick = $nick ?: $ini['GridInfoService']['gridnick'] ?? '' ?: Slug::nick($name);
-        $nick = preg_replace('/[^A-Za-z0-9]/', '', $nick) ?? '';
+        // The nick given, or the one of the grid as it is: never changed, refused when it is not one (Grid::validateNick())
+        $nick = trim((string) ($nick ?: $ini['GridInfoService']['gridnick'] ?? '' ?: Slug::nick($name)));
         if ($nick === '') {
             return 'the grid has no nick (gridnick of [GridInfoService]): give one with --nick';
+        }
+        if (($wrong = Grid::validateNick($nick)) !== null) {
+            return "the nick '$nick' is $wrong: give one with --nick";
         }
         if (($db = ConnectionString::parse($ini['DatabaseService']['ConnectionString'] ?? '')) === null) {
             return 'no database in [DatabaseService] ConnectionString';

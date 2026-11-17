@@ -153,15 +153,14 @@ final class RemoteGridPlanner
             trim((string) $v['name']) !== ''
                 ? trim((string) $v['name'])
                 : $said['gridname'] ?? ucfirst(explode('.', $host)[0]);
-        // What a nick has (Slug::nick()): letters, digits, underscores and hyphens, as typed (nick() would lower what is already a
-        // nick), so friendly_fowl stays the grid of that folder
-        $nick = (string) preg_replace(
-            '/[^A-Za-z0-9_-]/',
-            '',
-            trim((string) $v['nick']) !== '' ? (string) $v['nick'] : $said['gridnick'] ?? Slug::nick($name),
-        );
-        if ($nick === '') {
-            $nick = Slug::nick($name);
+        // The nick given or the one the grid says, as it is (it names the folder of a grid of this machine): refused when it is not
+        // one, never changed; a grid that says none gets the one of its name
+        $nick = trim((string) $v['nick']) !== '' ? trim((string) $v['nick']) : trim((string) ($said['gridnick'] ?? ''));
+        $nick = $nick !== '' ? $nick : Slug::nick($name);
+        if (($wrong = Grid::validateNick($nick)) !== null) {
+            $result['error'] = sprintf(_("The nick '%s' is %s: give the nick of the grid."), $nick, $wrong);
+
+            return $result;
         }
 
         $known = Grid::find($environment, $nick);
