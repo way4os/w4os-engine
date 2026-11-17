@@ -89,9 +89,6 @@ final class Parcel extends Model
         return Slug::slug($this->name());
     }
 
-    /** The height of a point worked out for a parcel without a landing point: above the ground of most regions. */
-    private const HEIGHT = 25;
-
     /**
      * Its URI, where it is reached from other grids: the URI of its region and the point it is entered at, host:port/Region
      * Name/x/y/z. It changes when the parcel changes.
@@ -118,7 +115,8 @@ final class Parcel extends Model
 
     /**
      * Where it is entered: its landing point when it has one; else a point it holds (the square of its bitmap nearest to the middle
-     * of its squares, never its geometric center, which may be out of it), at its own height or HEIGHT. Null when neither is known.
+     * of its squares, never its geometric center, which may be out of it), at its own height. A height of zero is none: a little
+     * above the sea (Destination::HEIGHT). Null when neither is known.
      *
      * @return ?list<int> x, y, z in meters
      */
@@ -128,6 +126,7 @@ final class Parcel extends Model
             fn(string $key): int => (int) round((float) ($this->row[$key] ?? 0)),
             ['UserLocationX', 'UserLocationY', 'UserLocationZ'],
         );
+        $z = (int) round(Destination::height($z));
         if ($x !== 0 || $y !== 0) {
             return [$x, $y, $z];
         }
@@ -161,7 +160,7 @@ final class Parcel extends Model
         return [
             $squares[0][0] * self::SQUARE + intdiv(self::SQUARE, 2),
             $squares[0][1] * self::SQUARE + intdiv(self::SQUARE, 2),
-            $z > 0 ? $z : self::HEIGHT,
+            $z,
         ];
     }
 

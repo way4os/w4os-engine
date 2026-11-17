@@ -546,7 +546,7 @@ final class Avatar extends Model
             $position = [
                 (int) ($x === null ? fmod((float) $m[1], 256) : (float) $m[1] - $x),
                 (int) ($y === null ? fmod((float) $m[2], 256) : (float) $m[2] - $y),
-                (int) $m[3],
+                (int) Destination::height($m[3]),
             ];
         }
 

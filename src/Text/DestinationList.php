@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Text;
 
+use OpenSim\Hypergrid\Destination;
 use OpenSim\Network\Http;
 
 /**
@@ -123,7 +124,9 @@ final class DestinationList
                 // The place in the region: 128,128,30
                 $url !== '' && preg_match($place, $parts[2] ?? '') === 1 && ($landing = $parts[2]);
             }
-            $url = (string) preg_replace('#^https?://#i', '', $url);
+            $url = Destination::withHeight((string) preg_replace('#^https?://#i', '', $url));
+            // A point without a height, or at zero, lands a little above the sea
+            $landing = Destination::position($landing);
             $landing === '' || $layout || ($url .= '/' . str_replace(',', '/', $landing));
             // An address listed already, as the board leaves it out
             if ($url !== '' && isset($seen[strtolower($url)])) {

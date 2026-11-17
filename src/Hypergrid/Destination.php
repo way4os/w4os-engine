@@ -29,6 +29,12 @@ final class Destination
     /** The port of a grid an address does not say (the one of Robust). */
     public const PORT = 8002;
 
+    /**
+     * The height a point is landed at when it gives none or zero: a little above the sea, not in the water or under the ground. Zero
+     * is the absence of a height; any other height is kept, meant.
+     */
+    public const HEIGHT = 21;
+
     /** The format asked when none is: the environment says (TPLINK_DEFAULT), else hop://. */
     public static function defaultFormat(): int
     {
@@ -97,6 +103,7 @@ final class Destination
                 array_slice(array_filter($split_path, fn($item) => is_numeric($item)), 0, 3),
             );
             if (count($split_path) >= 2) {
+                $split_path[2] = self::height($split_path[2] ?? null);
                 $parsed['pos'] = implode('/', $split_path);
             }
         }
@@ -172,6 +179,41 @@ final class Destination
             'host' => $parts['host'],
             'port' => isset($parts['port']) ? (int) $parts['port'] : null,
         ];
+    }
+
+    /** The height a point is landed at: the one it gives, HEIGHT when it gives none or zero. */
+    public static function height(mixed $z): float
+    {
+        $z = is_numeric($z) ? (float) $z : 0.0;
+
+        return $z == 0.0 ? (float) self::HEIGHT : $z;
+    }
+
+    /**
+     * A point in a region as it is written (`x/y/z` or `x,y,z`), its height HEIGHT when it gives none or zero; empty stays empty
+     * (the landing point of the region).
+     */
+    public static function position(string $position): string
+    {
+        $position = trim($position);
+        $parts = preg_split('#[/,]#', trim($position, '/,')) ?: [];
+        if (count($parts) < 2 || !is_numeric($parts[0]) || !is_numeric($parts[1])) {
+            return $position;
+        }
+        $z = $parts[2] ?? '';
+        $parts[2] = is_numeric($z) && (float) $z != 0.0 ? $z : (string) self::HEIGHT;
+
+        return implode(str_contains($position, ',') ? ',' : '/', array_slice($parts, 0, 3));
+    }
+
+    /** An address as it is written, the point at its end landed as position() does. */
+    public static function withHeight(string $url): string
+    {
+        return (string) preg_replace_callback(
+            '#^(.*[^/\d.][^/]*)((?:/-?\d+(?:\.\d+)?){2,3})/?$#',
+            static fn(array $m): string => $m[1] . '/' . self::position(ltrim($m[2], '/')),
+            $url,
+        );
     }
 
     /** The login URL of a grid from the address its people write, `scheme://host[:port]` as it gives them; null when it is no address. */

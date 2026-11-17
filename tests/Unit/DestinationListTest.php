@@ -146,6 +146,17 @@ describe('The sections of a guide', function () {
     });
 });
 
+describe('The heights of a guide', function () {
+    test('are a little above the sea when the line gives zero or none, as given else', function () {
+        $text = "Beach|grid.example.org:8002/Beach|128,128,0\nHill|grid.example.org:8002/Hill/10/20/0\nTower|grid.example.org:8002/Tower|5,6,300\n";
+
+        expect(array_column(DestinationList::parse($text)[_('Destinations Guide')], 'url'))
+            ->toBe(['grid.example.org:8002/Beach/128/128/21', 'grid.example.org:8002/Hill/10/20/21', 'grid.example.org:8002/Tower/5/6/300'])
+            ->and(array_column(DestinationList::parse($text, null, true)[_('Destinations Guide')], 'landing'))
+            ->toBe(['128,128,21', '5,6,300']);
+    });
+});
+
 describe('The pictures of a guide', function () {
     test('are the pictures of the parcels of the destinations, by their name, else their landing point, else the only one of the region', function () {
         $search = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);

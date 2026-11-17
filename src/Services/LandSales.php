@@ -8,6 +8,7 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Data\Connections;
 use OpenSim\Data\OSPDO;
 use OpenSim\Exceptions\ChannelUnavailable;
+use OpenSim\Hypergrid\Destination;
 use OpenSim\Models\Estate;
 use OpenSim\Models\Parcel;
 
@@ -60,7 +61,7 @@ final class LandSales
                 'parcelUUID' => (string) $d['uuid'],
                 'area' => (int) $d['area'],
                 'saleprice' => (int) $d['price'],
-                'landingpoint' => "$x/$y/$z",
+                'landingpoint' => "$x/$y/" . (int) round(Destination::height($z)),
                 'infoUUID' => self::infoUuid($places[$region]['handle'] ?? 0, $x, $y),
                 'dwell' => (int) $d['dwell'],
                 'parentestate' => $estates[$region] ?? 1,

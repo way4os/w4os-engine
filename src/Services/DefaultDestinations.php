@@ -93,7 +93,7 @@ final class DefaultDestinations
     {
         $login = Destination::loginParts((string) ($row['gatekeeper'] ?? ''));
         $base = $login === null ? $this->base : $login['host'] . ($login['port'] !== null ? ':' . $login['port'] : '');
-        $position = trim(str_replace(',', '/', (string) ($row['landing'] ?? '')), '/');
+        $position = Destination::position(trim(str_replace(',', '/', (string) ($row['landing'] ?? '')), '/'));
 
         return [
             'name' => (string) $row['name'],

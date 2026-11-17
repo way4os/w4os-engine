@@ -53,6 +53,36 @@ describe('Destinations', function () {
             ->toMatchArray(['region' => 'Plaza', 'pos' => '10/20/30', 'gatekeeper' => '', 'host' => '']);
     });
 
+    test('land a little above the sea when their height is zero or missing, at the height they give else', function () {
+        expect(Destination::parse('ursull.magiiic.dev:8012/Welcome/128/128/0')['pos'])
+            ->toBe('128/128/' . Destination::HEIGHT)
+            ->and(Destination::HEIGHT)
+            ->toBe(21)
+            ->and(Destination::parse('grid.example:8002:Plaza/128/64')['pos'])
+            ->toBe('128/64/21')
+            ->and(Destination::parse('grid.example:8002:Plaza/128/64/2')['pos'])
+            ->toBe('128/64/2')
+            ->and(Destination::format('hop://ursull.magiiic.dev:8012/Welcome/128/128/0', TPLINK_HOP))
+            ->toBe('hop://ursull.magiiic.dev:8012/Welcome/128/128/21')
+            ->and(Destination::format('grid.example:8002:Plaza/10/20/0', TPLINK_APPTP))
+            ->toBe('secondlife:///app/teleport/grid.example:8002+Plaza/10/20/21')
+            // A point written by hand keeps its separator; no point stays none (the landing point of the region)
+            ->and(Destination::position('128,128,0'))
+            ->toBe('128,128,21')
+            ->and(Destination::position('10/20'))
+            ->toBe('10/20/21')
+            ->and(Destination::position('10/20/0.5'))
+            ->toBe('10/20/0.5')
+            ->and(Destination::position(''))
+            ->toBe('')
+            ->and(Destination::height(0))
+            ->toBe(21.0)
+            ->and(Destination::height(null))
+            ->toBe(21.0)
+            ->and(Destination::height(600))
+            ->toBe(600.0);
+    });
+
     test('get the default gatekeeper when they have none', function () {
         expect(Destination::parse('Plaza/1/2/3', 'http://login.example:8002')['gatekeeper'])->toBe(
             'http://login.example:8002',

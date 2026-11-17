@@ -654,7 +654,9 @@ final class Grid extends InstalledModel
     {
         $uri = $this->uri();
 
-        return $uri === null ? null : $uri . '/' . $region . ($position !== '' ? '/' . ltrim($position, '/') : '');
+        $position = Destination::position(ltrim($position, '/'));
+
+        return $uri === null ? null : $uri . '/' . $region . ($position !== '' ? '/' . $position : '');
     }
 
     /** The channels a write can go through: the config of its Robust. */
