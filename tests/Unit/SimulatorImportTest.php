@@ -366,6 +366,34 @@ describe('Several simulators imported together', function () {
             ->and(array_filter(array_column($plan['steps'], 'config'), 'is_file'))
             ->toHaveCount(2);
     });
+    test('dump a database they share once, each backup keeping its copy', function () {
+        $machine = new Machine();
+        $a = old_install($machine, 'redoutable', 'Redoutable', '11111111-2222-4333-8444-555555555555', 9250, '1000,1000');
+        $b = old_install($machine, 'residences', 'Residence', '99999999-2222-4333-8444-555555555555', 9260, '1001,1000');
+        // The estates of the grid, in a database both simulators name through the file they include
+        $grid = $machine->root . '/old/opensim/etc/grids/speculoos/OpenSim.ini';
+        file_put_contents($grid, "[EstateDataStore]\nConnectionString = \"Data Source=localhost;Database=osestate;User ID=opensim;Password=secret;\"\n", FILE_APPEND);
+        $dumps = [];
+        $dump = static function (array $db, string $file) use (&$dumps): void {
+            $dumps[] = $db['name'];
+            fake_dump()($db, $file);
+        };
+        $imports = OpenSim\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
+        $imports->apply($machine->environment, new NullUi(), $dump);
+        $archives = array_column(array_column($imports->document()['steps'], 'backup'), 'file');
+        $held = array_map(static function (string $archive): array {
+            exec('tar -tzf ' . escapeshellarg($archive), $names);
+
+            return array_values(array_filter($names, static fn(string $name): bool => str_contains($name, 'db/') && str_ends_with($name, '.sql.gz')));
+        }, $archives);
+
+        expect($dumps)
+            ->toBe(['osredoutable', 'osestate', 'osresidences'])
+            ->and($held[0])
+            ->toContain('./db/osestate.sql.gz', './db/osredoutable.sql.gz')
+            ->and($held[1])
+            ->toContain('./db/osestate.sql.gz', './db/osresidences.sql.gz');
+    });
 });
 
 describe('The API, for an import', function () {

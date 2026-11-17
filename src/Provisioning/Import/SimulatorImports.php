@@ -106,7 +106,8 @@ final class SimulatorImports
     }
 
     /**
-     * Write them, in their order, each disabled (SimulatorImport::apply(), its source backed up first).
+     * Write them, in their order, each disabled (SimulatorImport::apply(), its source backed up first). A database several of them
+     * name is dumped once: the backup of each holds a copy of that dump, so that each can be put back on its own.
      *
      * @param ?\Closure $dump writes the dump of a database (default: DatabaseDump::write())
      * @throws InvalidValue when something is wrong: nothing is written then
@@ -120,8 +121,28 @@ final class SimulatorImports
                 $this->problems,
             )));
         }
-        foreach ($this->imports as $import) {
-            $import->apply($environment, $ui, $dump);
+        $dump ??= \OpenSim\Archives\DatabaseDump::write(...);
+        // A database several of them name (the estates, a module of the grid) is dumped once, each backup keeping a copy of it
+        $cache = sys_get_temp_dir() . '/opensim-dumps-' . bin2hex(random_bytes(6));
+        mkdir($cache, 0o700);
+        $dumped = [];
+        $once = static function (array $db, string $file) use ($dump, $cache, &$dumped): void {
+            $key = strtolower("{$db['host']}/{$db['name']}");
+            if (!isset($dumped[$key])) {
+                $dump($db, $file);
+                $dumped[$key] = $cache . '/' . count($dumped) . '.sql.gz';
+                copy($file, $dumped[$key]) || throw new \RuntimeException("cannot keep the dump of {$db['name']}");
+
+                return;
+            }
+            copy($dumped[$key], $file) || throw new \RuntimeException("cannot copy the dump of {$db['name']}");
+        };
+        try {
+            foreach ($this->imports as $import) {
+                $import->apply($environment, $ui, $once);
+            }
+        } finally {
+            exec('rm -rf ' . escapeshellarg($cache));
         }
     }
 }
