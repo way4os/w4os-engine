@@ -858,7 +858,11 @@ final class Api
             'data' => [
                 'type' => 'files',
                 'id' => $setup->grid->nick(),
-                'attributes' => ['mode' => $mode, 'applied' => $mode === 'apply'] + $setup->document(),
+                'attributes' => ['mode' => $mode, 'applied' => $mode === 'apply'] + $setup->document() + [
+                    'notes' => $mode === 'apply' ? [] : [
+                        'A plan reserves nothing: the places and the ports it proposes are the free ones now, chosen again when it is applied. Apply a plan before planning the next one, or give the regions in one file.',
+                    ],
+                ],
             ],
             'links' => ['self' => $instance],
         ]);

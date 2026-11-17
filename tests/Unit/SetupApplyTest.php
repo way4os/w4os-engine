@@ -49,9 +49,13 @@ describe('A setup file applied', function () {
             ->toBe(['demo.north', 'Small Garden', 256])
             ->and([$alpha['slug'], $alpha['region']['location']])
             ->toBe(['alpha', '1200,1200'])
-            // Two regions of the file never get one port or one place
+            // Two regions of the file never get one port or one place; the regions of a new simulator are in its block of ports
             ->and($small['region']['port'])
             ->not->toBe($north['region']['port'])
+            ->and(intdiv($north['region']['port'], 10) * 10)
+            ->toBe($north['ports']['http'])
+            ->and(intdiv($small['region']['port'], 10) * 10)
+            ->toBe($north['ports']['http'])
             ->and($small['region']['location'])
             ->not->toBe($north['region']['location'])
             ->and($plan['reminders'])
@@ -103,6 +107,9 @@ describe('The API, for a setup file', function () {
 
         expect([$plan->status, $plan->document['data']['attributes']['applied'], count($plan->document['data']['attributes']['steps'])])
             ->toBe([200, false, 3])
+            // A plan reserves nothing: what it proposes is chosen again when it is applied
+            ->and($plan->document['data']['attributes']['notes'][0])
+            ->toContain('reserves nothing')
             ->and([$wrong->status, $wrong->document['code'] ?? null])
             ->toBe([400, 'invalid-request'])
             ->and($wrong->document['detail'] ?? '')

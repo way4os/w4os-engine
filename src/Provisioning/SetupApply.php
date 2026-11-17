@@ -91,7 +91,8 @@ final class SetupApply
                 $plan = $planner->plan($answers);
                 // Written, not started: the operator starts it (reminders)
                 $plan->start = false;
-                $taken['ports'] = array_merge($taken['ports'], range($plan->httpPort, $plan->httpPort + 9));
+                // Its ports are taken, its block with them (the next simulator gets another); its regions are given the free ones of it
+                $taken['ports'] = array_merge($taken['ports'], array_filter([$plan->httpPort, $plan->consolePort]));
             }
             // A new simulator is written with its first region, the others after it
             $added = [];

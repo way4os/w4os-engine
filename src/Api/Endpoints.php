@@ -714,7 +714,7 @@ final class Endpoints
             ],
             'responses' => [
                 '200' => [
-                    'description' => 'The plan, or what was written: `grid`, `steps` (`kind` simulator or region, `simulator`, `slug`, `config`, `ports`, `database`, `region`: name, location, size, roles, port, file), `writes`, `problems`, `reminders`, `applied`',
+                    'description' => 'The plan, or what was written: `grid`, `steps` (`kind` simulator or region, `simulator`, `slug`, `config`, `ports`, `database`, `region`: name, location, size, roles, port, file), `writes`, `problems`, `reminders`, `applied`, `notes` (a plan reserves nothing: what it proposes is chosen again when it is applied)',
                     'content' => [Response::JSON_API => ['schema' => ['type' => 'object']]],
                 ],
                 '400' => Contract::problem('A file that cannot be read, that makes a grid, that names no grid, or that has problems'),
