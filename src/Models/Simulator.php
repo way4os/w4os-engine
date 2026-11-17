@@ -47,6 +47,9 @@ final class Simulator extends InstalledModel
     /** @var ?list<Process> the processes of the machine, read once for a list (all()); null: read when asked */
     private ?array $processes = null;
 
+    /** @var ?array{key:string,label:string} the machine it runs on, once resolved (server()) */
+    private ?array $server = null;
+
     /** Whether connections() tries each way rather than saying it is configured (probe()). */
     private bool $probed = false;
 
@@ -397,6 +400,13 @@ final class Simulator extends InstalledModel
         }
         $yesNo = static fn(\Closure $is): \Closure => static fn(self $simulator, string $value): bool => $is($simulator) ===
             ($value === 'yes');
+        // The servers there are, by their key, named
+        $servers = [];
+        foreach ($simulators as $simulator) {
+            $server = $simulator->server();
+            $servers[$server['key']] = ['value' => $server['key'], 'label' => $server['label']];
+        }
+        uasort($servers, static fn(array $a, array $b): int => strnatcasecmp($a['label'], $b['label']));
 
         return self::paged(
             $simulators,
@@ -412,14 +422,30 @@ final class Simulator extends InstalledModel
                 'cpu' => static fn(self $simulator): float => (float) $simulator->process()?->cpu,
                 'memory' => static fn(self $simulator): float => (float) $simulator->process()?->memory,
                 'grid' => static fn(self $simulator): string => (string) $simulator->grid()?->nick(),
+                'server' => static fn(self $simulator): string => $simulator->server()['label'] . ' ' . $simulator->server()['key'],
             ],
             [
                 'grid' => static fn(self $simulator, string $nick): bool => $simulator->grid()?->nick() === $nick,
+                'server' => static fn(self $simulator, string $key): bool => $simulator->server()['key'] === strtolower($key),
                 'enabled' => $yesNo(static fn(self $simulator): bool => $simulator->isEnabled()),
                 'running' => $yesNo(static fn(self $simulator): bool => $simulator->isRunning()),
             ],
             self::listing(),
+            ['server' => array_values($servers)],
         );
+    }
+
+    /**
+     * The machine it runs on, however its address writes it (ServerNames): `key` the address it resolves to, `label` its real name.
+     *
+     * @return array{key:string,label:string}
+     */
+    public function server(): array
+    {
+        $uri = (string) $this->uri();
+        $host = $uri === '' ? '' : (string) parse_url("http://$uri", PHP_URL_HOST);
+
+        return $this->server ??= \OpenSim\Network\ServerNames::of($this->environment, $host);
     }
 
     /**
@@ -458,6 +484,7 @@ final class Simulator extends InstalledModel
                 // Its address under its name, else its slug
                 Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri', 'slug']]),
                 Listing::column('grid', 'column_grid', sort: 'grid'),
+                Listing::column('server', 'column_server', sort: 'server'),
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
                 Listing::column('regions', 'column_regions', 'number', 'regions'),
                 Listing::column('area', 'column_area', 'number', 'area'),
@@ -488,6 +515,8 @@ final class Simulator extends InstalledModel
             ],
             [
                 Listing::filter('grid', 'column_grid', [], 'grid'),
+                // The machines there are: meta.available.server, each by its key, named
+                Listing::filter('server', 'column_server', [], 'server', ['dynamic' => true]),
                 Listing::filter('enabled', 'column_enabled'),
                 Listing::filter('running', 'column_running'),
             ],
@@ -545,6 +574,8 @@ final class Simulator extends InstalledModel
                 'httpPort' => $this->httpPort(),
                 'regions' => $this->regionsAndArea()[0],
                 'area' => $this->regionsAndArea()[1],
+                'server' => $this->server()['label'],
+                'serverKey' => $this->server()['key'],
                 'cpu' => null,
                 'memory' => null,
             ] + array_fill_keys(['consolePort', 'console', 'databaseHost', 'databaseName', 'databaseUser', 'estateDatabaseName', 'estateName', 'estateOwner', 'regionsDirectory', 'core'], null);
@@ -566,6 +597,9 @@ final class Simulator extends InstalledModel
             'httpPort' => $this->httpPort(),
             'regions' => $this->regionsAndArea()[0],
             'area' => $this->regionsAndArea()[1],
+            // The machine it runs on, by its real name, and what its aliases and addresses resolve to
+            'server' => $this->server()['label'],
+            'serverKey' => $this->server()['key'],
             // What its process takes while it runs, as opensim status says it (percents of the machine)
             'cpu' => $this->process()?->cpu,
             'memory' => $this->process()?->memory,

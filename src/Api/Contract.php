@@ -94,6 +94,8 @@ final class Contract
                 'local' => ['boolean', 'It runs on this machine, from a config of one of its grids'],
                 'regions' => ['integer', 'The regions it loads (its region files that are enabled; for a simulator of another machine, its regions in the table of the grid)'],
                 'area' => ['integer', 'Their area, in square meters'],
+                'server' => ['string', 'The machine it runs on, by its real name: this one for its own addresses (SYSTEMIP, localhost), the reverse DNS of the others, else its host as written'],
+                'serverKey' => ['string', 'The address its host resolves to: its aliases and addresses one server, what `filter[server]` and the sort take'],
                 'cpu' => ['number?', 'The cpu its process takes, in percent of the machine, while it runs on this machine'],
                 'memory' => ['number?', 'The memory its process takes, in percent of the machine, while it runs on this machine'],
                 'connections' => ['object', 'How the engine reaches it: console, screen, config, regions, mysql, sqlite, each none, configured, ok or failed'],

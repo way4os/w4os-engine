@@ -220,3 +220,50 @@ describe('The size and the load of a simulator', function () {
             ->toBe(['regions' => 1, 'area' => 65536, 'cpu' => null, 'memory' => null]);
     });
 });
+
+describe('The server of a simulator', function () {
+    test('is the machine its address resolves to: its aliases and IPs one server, named by its reverse DNS, this one by its name', function () {
+        $machine = new Machine();
+        OpenSim\Data\Cache::flush();
+        $asked = [];
+        OpenSim\Network\ServerNames::using([
+            'addresses' => static function (string $host) use (&$asked): array {
+                $asked[] = $host;
+
+                return ['suzi.osgrid.example' => ['203.0.113.7'], 'alias.osgrid.example' => ['203.0.113.7']][$host] ?? [];
+            },
+            'name' => static fn(string $ip): ?string => ['203.0.113.7' => 'srv7.osgrid.example'][$ip] ?? null,
+            'self' => static fn(): array => ['name' => (string) gethostname(), 'addresses' => ['10.0.0.5']],
+        ]);
+        $pdo = status_regions();
+        $pdo->exec("INSERT INTO regions (uuid, regionName, locX, locY, serverURI, flags) VALUES ('55555555-1111-4111-8111-111111111111', 'Alias', 0, 256, 'http://alias.osgrid.example:9010/', 4), ('66666666-1111-4111-8111-111111111111', 'Bare', 0, 512, 'http://203.0.113.7:9020/', 0), ('77777777-1111-4111-8111-111111111111', 'Here', 0, 768, 'http://10.0.0.5:9030/', 0)");
+        Connections::using(static fn() => $pdo);
+        try {
+            $all = Simulator::all($machine->environment);
+            $servers = array_column(array_map(static fn(Simulator $s): array => $s->detail(), $all->items()), 'server', 'uri');
+            $suzi = Simulator::all($machine->environment, ['filters' => ['server' => '203.0.113.7']])->items();
+        } finally {
+            Connections::using(null);
+            OpenSim\Network\ServerNames::using(null);
+            OpenSim\Data\Cache::flush();
+        }
+        $here = (string) gethostname();
+
+        expect($servers)
+            ->toMatchArray([
+                "$here:9000" => $here,
+                'suzi.osgrid.example:9000' => 'srv7.osgrid.example',
+                'alias.osgrid.example:9010' => 'srv7.osgrid.example',
+                '203.0.113.7:9020' => 'srv7.osgrid.example',
+                // One of the addresses of this machine
+                '10.0.0.5:9030' => $here,
+            ])
+            ->and(array_map(static fn(Simulator $s): string => (string) $s->uri(), $suzi))
+            ->toBe(['203.0.113.7:9020', 'alias.osgrid.example:9010', 'suzi.osgrid.example:9000'])
+            ->and($all->available()['server'] ?? [])
+            ->toContain(['value' => '203.0.113.7', 'label' => 'srv7.osgrid.example'])
+            // A host is resolved once for the list
+            ->and(count($asked))
+            ->toBe(count(array_unique($asked)));
+    });
+});

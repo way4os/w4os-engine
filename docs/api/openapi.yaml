@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 451ef6a
+  version: 56fd85d
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -486,6 +486,7 @@ paths:
             enum:
               - name
               - grid
+              - server
               - port
               - regions
               - area
@@ -493,6 +494,7 @@ paths:
               - memory
               - '-name'
               - '-grid'
+              - '-server'
               - '-port'
               - '-regions'
               - '-area'
@@ -512,6 +514,11 @@ paths:
             minimum: 0
         -
           name: 'filter[grid]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[server]'
           in: query
           schema:
             type: string
@@ -580,6 +587,13 @@ paths:
             label: column_grid
             type: text
             sort: grid
+            bare: false
+            priority: secondary
+          -
+            name: server
+            label: column_server
+            type: text
+            sort: server
             bare: false
             priority: secondary
           -
@@ -775,6 +789,7 @@ paths:
           values:
             - name
             - grid
+            - server
             - port
             - regions
             - area
@@ -790,6 +805,11 @@ paths:
             name: grid
             label: column_grid
             format: grid
+          -
+            name: server
+            label: column_server
+            format: server
+            dynamic: true
           -
             name: enabled
             label: column_enabled
@@ -8005,6 +8025,12 @@ components:
             area:
               type: integer
               description: 'Their area, in square meters'
+            server:
+              type: string
+              description: 'The machine it runs on, by its real name: this one for its own addresses (SYSTEMIP, localhost), the reverse DNS of the others, else its host as written'
+            serverKey:
+              type: string
+              description: 'The address its host resolves to: its aliases and addresses one server, what `filter[server]` and the sort take'
             cpu:
               type:
                 - number

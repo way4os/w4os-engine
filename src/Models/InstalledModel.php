@@ -94,6 +94,7 @@ abstract class InstalledModel implements InstalledModelInterface
         array $sorts,
         array $filters,
         Listing $listing,
+        array $available = [],
     ): Collection {
         $listing->check($options);
         foreach (
@@ -168,6 +169,6 @@ abstract class InstalledModel implements InstalledModelInterface
             'filters' => $listing->filterValues(),
             'applied' => $applied,
             'counts' => $counts,
-        ]);
+        ] + ($available === [] ? [] : ['available' => $available]));
     }
 }
