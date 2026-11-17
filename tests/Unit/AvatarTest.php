@@ -412,13 +412,13 @@ describe('avatars', function () {
         );
 
         expect(array_column($list->columns(), 'name'))
-            ->toBe(['name', 'email', 'role', 'created', 'lastSeen', 'status'])
+            ->toBe(['name', 'email', 'role', 'type', 'created', 'lastSeen', 'status'])
             ->and($sortable)
-            ->toBe(['name', 'email', 'role', 'created', 'lastSeen', 'status'])
+            ->toBe(['name', 'email', 'role', 'type', 'created', 'lastSeen', 'status'])
             ->and($list->columns()[0]['label'])
             ->toBe('Avatar Name')
             ->and(array_keys($list->filters()))
-            ->toBe(['status', 'online', 'role', 'published', 'email', 'model', 'technical', 'god', 'active']);
+            ->toBe(['status', 'online', 'role', 'type', 'published', 'email', 'model', 'technical', 'god', 'active']);
     });
 
     test('are found by their UUID or their name', function () {
@@ -447,9 +447,9 @@ describe('avatars', function () {
         expect(json_decode($list->json(), true)[0]['name'])
             ->toBe('Ada Love')
             ->and($csv[0])
-            ->toBe('name,email,role,created,lastSeen,status')
+            ->toBe('name,email,role,type,created,lastSeen,status')
             ->and($csv[1])
-            ->toBe('"Ada Love",ada@example.org,resident,1700000000,1700005000,active');
+            ->toBe('"Ada Love",ada@example.org,resident,user,1700000000,1700005000,active');
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
@@ -487,8 +487,8 @@ describe('What a list of avatars offers', function () {
     test('is the visits too when the accounts and the visits are in one database', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
-                'sortable' => ['name', 'email', 'level', 'created', 'lastSeen', 'active', 'online'],
-                'filters' => ['status', 'online', 'role', 'published', 'email', 'model', 'technical', 'god', 'active'],
+                'sortable' => ['name', 'email', 'level', 'type', 'created', 'lastSeen', 'active', 'online'],
+                'filters' => ['status', 'online', 'role', 'type', 'published', 'email', 'model', 'technical', 'god', 'active'],
             ])
             ->and(
                 Avatar::capabilities(
@@ -498,8 +498,8 @@ describe('What a list of avatars offers', function () {
                 ),
             )
             ->toBe([
-                'sortable' => ['name', 'email', 'level', 'created', 'active'],
-                'filters' => ['status', 'role', 'published', 'email', 'model', 'technical', 'god', 'active'],
+                'sortable' => ['name', 'email', 'level', 'type', 'created', 'active'],
+                'filters' => ['status', 'role', 'type', 'published', 'email', 'model', 'technical', 'god', 'active'],
             ]);
     });
 });
@@ -1067,7 +1067,7 @@ describe('avatars of a grid whose services have their own databases', function (
             ->and($list->applied())
             ->toBe([])
             ->and(array_keys($list->filters()))
-            ->toBe(['status', 'role', 'published', 'email', 'model', 'technical', 'god', 'active'])
+            ->toBe(['status', 'role', 'type', 'published', 'email', 'model', 'technical', 'god', 'active'])
             ->and($ada->isOnline())
             ->toBeTrue()
             ->and($ada->lastSeen()->getTimestamp())
@@ -1079,7 +1079,7 @@ describe('avatars of a grid whose services have their own databases', function (
             ->and($bob->detail()['profileImage'])
             ->toBe('img-bob')
             ->and(array_column(array_filter($list->columns(), static fn(array $c) => $c['sortable']), 'name'))
-            ->toBe(['name', 'email', 'role', 'created', 'status']);
+            ->toBe(['name', 'email', 'role', 'type', 'created', 'status']);
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 

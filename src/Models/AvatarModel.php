@@ -198,6 +198,19 @@ final class AvatarModel extends Model
         return [$match, $pattern, $list];
     }
 
+    /** Whether an account is a model by the rule of the grid, as condition() picks them: an active one only. */
+    public static function matches(GridConfig $config, string $uuid, string $first, string $last, bool $active): bool
+    {
+        [$match, $pattern, $list] = self::rule($config);
+
+        return $active && match ($match) {
+            'uuid' => in_array(strtolower($uuid), $list, true),
+            'first' => $first === $pattern,
+            'last' => $last === $pattern,
+            default => $first === $pattern || $last === $pattern,
+        };
+    }
+
     /**
      * The models the rule picks, with a condition of the caller (one of them).
      *

@@ -692,6 +692,18 @@ msgctxt "status_banned"
 msgid "Banned"
 msgstr "Gebannt"
 
+msgctxt "avatar_type_user"
+msgid "User"
+msgstr "Benutzer"
+
+msgctxt "avatar_type_model"
+msgid "Model"
+msgstr "Modell"
+
+msgctxt "avatar_type_service"
+msgid "Service"
+msgstr "Dienst"
+
 msgctxt "state_grid_banned"
 msgid "Banned from the grid"
 msgstr "Aus dem Grid gebannt"

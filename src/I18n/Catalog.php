@@ -246,6 +246,10 @@ final class Catalog
         'status_disabled' => 'Disabled',
         'status_pending' => 'Pending',
         'status_banned' => 'Banned',
+        // What an avatar is: a person's, a model of the grid, the account of its services
+        'avatar_type_user' => 'User',
+        'avatar_type_model' => 'Model',
+        'avatar_type_service' => 'Service',
         // A ban of some estates, not of the grid; the bans, a god's
         'state_grid_banned' => 'Banned from the grid',
         'state_estate_banned' => 'Banned from estates',

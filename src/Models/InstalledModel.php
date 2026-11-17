@@ -102,6 +102,26 @@ abstract class InstalledModel implements InstalledModelInterface
         ) {
             $items = array_filter($items, static fn($model): bool => stripos($text($model), $word) !== false);
         }
+        // How many each value of each filter gives, with the other filters asked, not its own
+        $asked = array_filter((array) ($options['filters'] ?? []), static fn($value, $name): bool => isset($filters[$name]) && (string) $value !== '', ARRAY_FILTER_USE_BOTH);
+        $counts = [];
+        foreach ($listing->filterValues() as $name => $values) {
+            if (!isset($filters[$name]) || $values === []) {
+                continue;
+            }
+            $others = array_filter($items, static function ($model) use ($asked, $filters, $name): bool {
+                foreach ($asked as $other => $value) {
+                    if ($other !== $name && !$filters[$other]($model, (string) $value)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+            foreach ($values as $value) {
+                $counts[$name][$value] = count(array_filter($others, static fn($model): bool => $filters[$name]($model, $value)));
+            }
+        }
         $applied = [];
         foreach ((array) ($options['filters'] ?? []) as $name => $value) {
             if (isset($filters[$name]) && (string) $value !== '') {
@@ -147,6 +167,7 @@ abstract class InstalledModel implements InstalledModelInterface
             'columns' => $listing->columns(),
             'filters' => $listing->filterValues(),
             'applied' => $applied,
+            'counts' => $counts,
         ]);
     }
 }

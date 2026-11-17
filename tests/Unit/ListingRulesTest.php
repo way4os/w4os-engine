@@ -18,6 +18,8 @@ function contract_lists(): array
     );
 }
 
+afterEach(fn() => OpenSim\Data\Connections::using(null));
+
 describe('Every list', function () {
     test('shows the address or the slug under the name, never in a column of its own', function () {
         $wrong = [];
@@ -122,5 +124,51 @@ describe('Every list', function () {
             ->toBe('born')
             ->and(OpenSim\I18n\Catalog::messages('fr_FR')['born'])
             ->toBe('Né(e) le');
+    });
+});
+
+describe('The counts of a list', function () {
+    test('are by filter and value, each counted with the search and the other filters, not its own', function () {
+        avatars_in(avatar_database());
+        $counts = OpenSim\Models\Avatar::all(avatar_grid(), ['filters' => ['status' => 'active', 'role' => 'resident']])->counts();
+
+        // Ada and Bob are active, Cy is not; among the active, Ada is a resident, Bob of the maintenance
+        expect($counts['status'])
+            ->toBe(['active' => 1, 'disabled' => 1, 'pending' => 0, 'banned' => 0])
+            ->and(array_intersect_key($counts['role'], ['resident' => 1, 'maintenance' => 1]))
+            ->toBe(['resident' => 1, 'maintenance' => 1])
+            ->and($counts['type'])
+            ->toBe(['user' => 1, 'model' => 0, 'service' => 0]);
+    });
+
+    test('are given by the API with the list, and by the lists kept in memory', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $api = new OpenSim\Api\Api($machine->environment);
+        $meta = $api->list('simulators', ['filter' => ['running' => 'yes']])->document['meta'];
+
+        expect($meta['counts']['running'])
+            ->toBe(['yes' => 0, 'no' => 2])
+            ->and($meta['counts']['enabled'])
+            ->toBe(['yes' => 0, 'no' => 0]);
+    });
+});
+
+describe('The type of an avatar', function () {
+    test('is a user, a model of the grid, or the account of its services, sorted and filtered so', function () {
+        avatars_in(avatar_database());
+        $config = avatar_grid("[Models]\n Match = \"uuid\"\n List = \"11111111-1111-1111-1111-111111111111\"\n");
+        $types = static fn(array $options = []): array => array_column(OpenSim\Models\Avatar::all($config, $options)->array(), 'type', 'name');
+        $columns = array_column(OpenSim\Models\Avatar::listing()->columns, null, 'name');
+
+        expect($types())
+            ->toMatchArray(['Ada Love' => 'model', 'Bob Root' => 'user'])
+            ->and(array_keys($types(['filters' => ['type' => 'user']])))
+            ->toBe(['Bob Root', 'Cy Gone'])
+            ->and(array_keys($types(['sort' => 'type desc'])))
+            ->toBe(['Ada Love', 'Bob Root', 'Cy Gone'])
+            ->and($columns['type']['sort'] ?? null)
+            ->toBe('type')
+            ->and(array_column($columns['type']['values'], 'label', 'value'))
+            ->toBe(['user' => 'avatar_type_user', 'model' => 'avatar_type_model', 'service' => 'avatar_type_service']);
     });
 });

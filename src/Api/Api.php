@@ -228,6 +228,7 @@ final class Api
                 'filters' => $collection->applied(),
             ] +
                 ($collection->available() === [] ? [] : ['available' => $collection->available()]) +
+                ($collection->counts() === [] ? [] : ['counts' => $collection->counts()]) +
                 ($type === 'avatars' ? ['profileFlags' => Avatar::profileFlags()] : []),
             'links' => ['self' => $instance],
         ]);

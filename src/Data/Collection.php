@@ -125,6 +125,17 @@ final class Collection implements \Countable, \IteratorAggregate, \JsonSerializa
     }
 
     /**
+     * How many items each value of each filter gives, by filter: each counted with the search and the other filters asked, not
+     * its own (All (n), Active (n)).
+     *
+     * @return array<string,array<string,int>>
+     */
+    public function counts(): array
+    {
+        return $this->meta['counts'] ?? [];
+    }
+
+    /**
      * The values of the dynamic filters (Listing) that the data has now, by filter: the ones that give something.
      *
      * @return array<string,list<string>>

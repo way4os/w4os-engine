@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (api): the counts of a list by filter and value (`meta.counts.<filter>.<value>`, each with the search and the other filters, not its own: one query for the avatars); the type of an avatar (`type`: user, model, service), a column sorted and a filter
 - feature (api): a column of a list says whether its value reads without its label (`bare`: an email, a role, a status, a picture) and whether it shows at every width (`priority`: primary, secondary)
 - feature (i18n): `profile_tab_feed`, the tab of the stream of a profile, as the viewers name it (Feed, Flux)
 - feature (flux): the stream of the avatars, the first step of w4os-flux: their posts in `avatar_posts` of the profiles database, kept by the engine (`OpenSim\Flux\Posts`), listed, written and deleted by the avatar itself or a manager (`/grids/{grid}/avatars/{id}/posts`, `post-invalid`); the posts of w4os-wp brought in, planned first (`kind` flux of `/setups/imports`, from the wp-config.php of the site)

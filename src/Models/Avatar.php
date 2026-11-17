@@ -69,6 +69,9 @@ final class Avatar extends Model
      */
     public const STATUSES = ['active', 'disabled', 'pending', 'banned'];
 
+    /** What an avatar is: a person's (user), a model of the grid (an outfit to copy, [Models]), the account of its services. */
+    public const TYPES = ['user', 'model', 'service'];
+
     /**
      * What an avatar wants to do, the check boxes of its profile in the viewer (profileWantToMask), as OpenSimulator and w4os have
      * them: the name of each flag and its bit.
@@ -206,6 +209,8 @@ final class Avatar extends Model
         'active' => ['u.active'],
         'lastSeen' => [self::LAST_SEEN],
         'online' => ["CASE WHEN g.Online = 'true' THEN 1 ELSE 0 END"],
+        // What it is: the condition of the models is the grid's (order())
+        'type' => [],
     ];
 
     /** The sorts and filters that need the visits in the same query. */
@@ -425,6 +430,16 @@ final class Avatar extends Model
     public function isEnabled(): bool
     {
         return $this->status() === 'active';
+    }
+
+    /** What it is (TYPES): the account of the services of the grid, a model of the grid ([Models]), else a user. */
+    public function type(): string
+    {
+        return match (true) {
+            $this->isTechnical() => 'service',
+            AvatarModel::matches($this->config, (string) ($this->row['PrincipalID'] ?? ''), (string) ($this->row['FirstName'] ?? ''), (string) ($this->row['LastName'] ?? ''), (int) ($this->row['active'] ?? 1) === 1) => 'model',
+            default => 'user',
+        };
     }
 
     /** Whether it is an account of the services of the grid, not a person. */
@@ -684,6 +699,7 @@ final class Avatar extends Model
             'homeRegion' => $row['HomeRegionID'] ?? null,
             'lastRegion' => $row['LastRegionID'] ?? null,
             'technical' => $this->isTechnical(),
+            'type' => $this->type(),
             // Its web profile: the address the grid gives with First.Last (profilePage()), null when it gives none
             'profilePage' => $this->isLocal() ? self::profilePage($this->config, $this->name()) : null,
             'profileImage' => $row['profileImage'] ?? null,
@@ -1474,17 +1490,22 @@ final class Avatar extends Model
         self::listing($joined)->check($options);
         $accounts = self::connect($config, 'UserAccountService', null, 'read the avatars');
         [$sortName, $direction] = self::sort((string) ($options['sort'] ?? 'name'), $joined);
-        [$where, $params, $applied] = self::conditions($options, $joined, AvatarModel::condition($config, 'u.'));
+        $model = AvatarModel::condition($config, 'u.');
+        [$where, $params, $applied] = self::conditions($options, $joined, $model);
 
         $from = self::from($joined);
         $total = (int) $accounts->get_var("SELECT COUNT(*) FROM $from$where", $params);
-        $sql = 'SELECT ' . self::select($joined) . " FROM $from$where ORDER BY " . self::order($sortName, $direction);
+        $order = self::order($sortName, $direction, $model);
+        $sortParams = $sortName === 'type' ? $model[1] : [];
+        $sql = 'SELECT ' . self::select($joined) . " FROM $from$where ORDER BY " . $order;
+        $params += $sortParams;
         $perPage = max(0, (int) ($options['perPage'] ?? 0));
         $page = max(1, (int) ($options['page'] ?? 1));
         if ($perPage > 0) {
             $sql .= ' LIMIT ' . $perPage . ' OFFSET ' . ($page - 1) * $perPage;
         }
         $rows = $accounts->get_results($sql, $params, \PDO::FETCH_ASSOC);
+        $counts = self::counts($accounts, $from, $options, $joined, $model);
         if (!$joined) {
             $rows = self::withVisits($config, $rows);
         }
@@ -1506,6 +1527,7 @@ final class Avatar extends Model
             'search' => trim((string) ($options['search'] ?? '')),
             'columns' => self::columns($joined),
             'filters' => self::filters($joined),
+            'counts' => $counts,
             'applied' => $applied,
         ]);
     }
@@ -1567,6 +1589,8 @@ final class Avatar extends Model
             ]),
             Listing::column('email', 'email', 'email', 'email'),
             Listing::column('role', 'role', 'role', 'level'),
+            // A person's, a model of the grid, the account of its services
+            Listing::column('type', 'column_type', 'list', 'type', ['values' => Listing::values(array_combine(self::TYPES, array_map(static fn(string $type): string => "avatar_type_$type", self::TYPES)))]),
             // Born, as the viewers say it, then last seen
             Listing::column('created', 'born', 'datetime', 'created'),
             Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
@@ -1592,6 +1616,7 @@ final class Avatar extends Model
             // In the world now or not: what the visits say, apart from the status of the account
             ...($joined ? [Listing::filter('online', 'presence', ['online' => 'online', 'offline' => 'offline'])] : []),
             Listing::filter('role', 'role', $roles),
+            Listing::filter('type', 'column_type', array_combine(self::TYPES, array_map(static fn(string $type): string => "avatar_type_$type", self::TYPES))),
 
             Listing::filter('published', 'show_in_search'),
             Listing::filter('email', 'filter_email'),
@@ -1772,8 +1797,14 @@ final class Avatar extends Model
         return [$name, strtolower((string) $direction) === 'desc' ? 'desc' : 'asc'];
     }
 
-    private static function order(string $name, string $direction): string
+    private static function order(string $name, string $direction, ?array $model = null): string
     {
+        // By what it is, the names of each kind in their order
+        if ($name === 'type') {
+            $type = self::filterConditions(true, $model)['type'];
+
+            return "CASE WHEN {$type['service']} THEN 2 WHEN {$type['model']} THEN 1 ELSE 0 END " . strtoupper($direction) . ', u.FirstName ASC, u.LastName ASC, u.PrincipalID';
+        }
         $parts = array_map(
             static fn(string $expression): string => $expression . ' ' . strtoupper($direction),
             self::SORTS[$name],
@@ -1799,11 +1830,34 @@ final class Avatar extends Model
                 ')';
             $params["w$i"] = self::contains($word);
         }
+        $filters = self::filterConditions($joined, $model);
+        foreach ((array) ($options['filters'] ?? []) as $name => $value) {
+            if (is_string($value) && isset($filters[$name][$value])) {
+                $where[] = $filters[$name][$value];
+                $applied[$name] = $value;
+                in_array($name, ['model', 'type'], true) && ($params += $model[1] ?? []);
+            }
+        }
+
+        return [$where === [] ? '' : ' WHERE ' . implode(' AND ', $where), $params, $applied];
+    }
+
+    /**
+     * The condition of each value of each filter of the list on the query of the avatars (the states as statusOf() tells them).
+     *
+     * @param ?array{0:string,1:array<string,string>} $model the condition of the models of the grid (AvatarModel::condition())
+     * @return array<string,array<string,string>>
+     */
+    private static function filterConditions(bool $joined, ?array $model): array
+    {
         // The states as statusOf() tells them
         $banned = '(u.UserFlags & ' . self::BANNED_FLAG . ') <> 0';
         $pending = "(u.UserFlags & " . self::PENDING_FLAG . ") <> 0 AND NOT ($banned)";
         $active = '(u.UserFlags & ' . self::PENDING_FLAG . ') = 0 AND u.active = 1 AND u.UserLevel >= 0';
-        $filters =
+        $technical = "(u.FirstName = '" . self::TECHNICAL[0] . "' AND u.LastName = '" . self::TECHNICAL[1] . "')";
+        $isModel = $model[0] ?? '1 = 0';
+
+        return
             [
                 'active' => ['yes' => "($active)", 'no' => "NOT ($active)"],
                 'status' => [
@@ -1823,6 +1877,12 @@ final class Avatar extends Model
                 ],
                 // The avatar models of the grid, as AvatarModel picks them
                 'model' => $model === null ? [] : ['yes' => "($model[0])", 'no' => "NOT ($model[0])"],
+                // What it is (type()): the account of the services first, then a model
+                'type' => [
+                    'user' => "(NOT $technical AND NOT ($isModel))",
+                    'model' => "(NOT $technical AND ($isModel))",
+                    'service' => $technical,
+                ],
                 'email' => [
                     'yes' => "(u.Email IS NOT NULL AND u.Email <> '')",
                     'no' => "(u.Email IS NULL OR u.Email = '')",
@@ -1835,15 +1895,46 @@ final class Avatar extends Model
                 ($joined
                     ? ['online' => ['online' => "g.Online = 'true'", 'offline' => "(g.Online IS NULL OR g.Online <> 'true')"]]
                     : []);
-        foreach ((array) ($options['filters'] ?? []) as $name => $value) {
-            if (is_string($value) && isset($filters[$name][$value])) {
-                $where[] = $filters[$name][$value];
-                $applied[$name] = $value;
-                $name === 'model' && ($params += $model[1] ?? []);
+    }
+
+    /**
+     * How many avatars each value of each filter of the list gives, in one query: each counted with the search and the other
+     * filters asked, not its own (as the views of a list of WordPress: All (n), Active (n)).
+     *
+     * @param array<string,mixed> $options
+     * @param array{0:string,1:array<string,string>} $model
+     * @return array<string,array<string,int>>
+     */
+    private static function counts(OSPDO $accounts, string $from, array $options, bool $joined, array $model): array
+    {
+        $filters = self::filterConditions($joined, $model);
+        $asked = array_filter((array) ($options['filters'] ?? []), static fn($value, $name): bool => is_string($value) && isset($filters[$name][$value]), ARRAY_FILTER_USE_BOTH);
+        [$search, $params] = self::conditions(['search' => $options['search'] ?? '', 'searchEmail' => $options['searchEmail'] ?? false], $joined, $model);
+        $sums = [];
+        $keys = [];
+        foreach (self::listing($joined)->filterValues() as $name => $values) {
+            foreach ($values as $value) {
+                if (!isset($filters[$name][$value])) {
+                    continue;
+                }
+                $others = array_map(static fn(string $other, string $was): string => $filters[$other][$was], array_keys(array_diff_key($asked, [$name => 1])), array_diff_key($asked, [$name => 1]));
+                $sums[] = 'SUM(CASE WHEN ' . implode(' AND ', [$filters[$name][$value], ...$others]) . ' THEN 1 ELSE 0 END) AS c' . count($keys);
+                $keys[] = [$name, $value];
             }
         }
+        if ($sums === []) {
+            return [];
+        }
+        $sql = 'SELECT ' . implode(', ', $sums) . " FROM $from$search";
+        // The condition of the models has its parameters, wherever it is
+        str_contains($sql, ':model') && ($params += $model[1]);
+        $row = $accounts->get_results($sql, $params, \PDO::FETCH_NUM)[0] ?? [];
+        $counts = [];
+        foreach ($keys as $i => [$name, $value]) {
+            $counts[$name][$value] = (int) ($row[$i] ?? 0);
+        }
 
-        return [$where === [] ? '' : ' WHERE ' . implode(' AND ', $where), $params, $applied];
+        return $counts;
     }
 
     /** @return array<string,string> the condition of each role on the level of an account (ROLES) */
