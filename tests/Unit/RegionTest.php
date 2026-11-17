@@ -31,11 +31,11 @@ function region_database(): OSPDO
 {
     $pdo = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
     $pdo->exec(
-        'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, PrincipalID CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
+        'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, owner_uuid CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
     );
     $pdo->exec('CREATE TABLE UserAccounts (PrincipalID CHAR(36), FirstName VARCHAR(64), LastName VARCHAR(64))');
     $pdo->exec("INSERT INTO UserAccounts VALUES ('11111111-1111-1111-1111-111111111111', 'Ada', 'Love')");
-    $pdo->exec("INSERT INTO regions (uuid, regionHandle, regionName, locX, locY, sizeX, sizeY, serverIP, serverPort, serverURI, flags, last_seen, PrincipalID) VALUES
+    $pdo->exec("INSERT INTO regions (uuid, regionHandle, regionName, locX, locY, sizeX, sizeY, serverIP, serverPort, serverURI, flags, last_seen, owner_uuid) VALUES
         ('aaaaaaaa-0000-0000-0000-000000000001', 1, 'Welcome', 256000, 256000, 256, 256, '10.0.0.1', 9001, 'http://10.0.0.1:9000/', 1029, 1700000000, '11111111-1111-1111-1111-111111111111'),
         ('aaaaaaaa-0000-0000-0000-000000000002', 2, 'Garden', 256256, 256000, 512, 512, '10.0.0.1', 9002, 'http://10.0.0.1:9000/', 22, 1600000000, '11111111-1111-1111-1111-111111111111'),
         ('aaaaaaaa-0000-0000-0000-000000000003', 3, 'Quiet Harbour', 255744, 256000, 0, 0, '10.0.0.2', 9011, 'http://10.0.0.2:9010/', 1040, 0, '00000000-0000-0000-0000-000000000000'),

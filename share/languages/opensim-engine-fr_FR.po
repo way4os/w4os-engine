@@ -253,7 +253,7 @@ msgstr "À propos"
 
 msgctxt "wants"
 msgid "Wants to"
-msgstr "J'aimerais"
+msgstr "Souhaite"
 
 msgctxt "skills"
 msgid "Skills"

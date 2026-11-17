@@ -38,7 +38,7 @@ describe('regions of a simulator', function () {
         [, $config] = region_config_grid();
         $pdo = new \OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         $pdo->exec(
-            'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, PrincipalID CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
+            'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, owner_uuid CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
         );
         $pdo->exec("INSERT INTO regions (uuid, regionName, locX, locY, serverURI, flags) VALUES
             ('607c44e9-3d01-45eb-a07e-937dc72dbadb', 'Plaza', 307200, 307456, 'http://10.0.0.1:9000/', 0),
@@ -60,7 +60,10 @@ describe('regions of a simulator', function () {
                 ->and(array_column($all->array(), 'serverName', 'name'))
                 ->toBe(['Plaza' => 'Alpha', 'Welcome' => '10.0.0.2:9010'])
                 ->and(array_column($all->array(), 'server', 'name'))
-                ->toBe(['Plaza' => '10.0.0.1:9000', 'Welcome' => '10.0.0.2:9010']);
+                ->toBe(['Plaza' => '10.0.0.1:9000', 'Welcome' => '10.0.0.2:9010'])
+                // One region alone is named as in the list
+                ->and([Region::find($config, 'Plaza')->detail()['serverName'], Region::find($config, 'Welcome')->detail()['serverName']])
+                ->toBe(['Alpha', '10.0.0.2:9010']);
         } finally {
             \OpenSim\Data\Connections::using(null);
         }

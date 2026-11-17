@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "8269052",
+        "version": "b6e7e83",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -9704,7 +9704,7 @@
                                     "string",
                                     "null"
                                 ],
-                                "description": "The UUID of its owner"
+                                "description": "The UUID of its owner: the owner of its estate, as the grid has it since the region registered (owner_uuid)"
                             },
                             "ownerName": {
                                 "type": [

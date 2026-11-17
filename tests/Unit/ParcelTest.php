@@ -52,7 +52,7 @@ function parcel_database(array $parcels): OSPDO
         'CREATE TABLE land (UUID VARCHAR(255) PRIMARY KEY, RegionUUID VARCHAR(255), LocalLandID INT, Bitmap BLOB, Name VARCHAR(255), Description VARCHAR(255), OwnerUUID VARCHAR(255), IsGroupOwned INT, GroupUUID VARCHAR(255), Area INT, Category INT, ClaimDate INT, SalePrice INT, LandFlags INT, LandingType INT, SnapshotUUID VARCHAR(255), UserLocationX FLOAT, UserLocationY FLOAT, UserLocationZ FLOAT, Dwell INT, MusicURL VARCHAR(255), MediaURL VARCHAR(255))',
     );
     $pdo->exec(
-        'CREATE TABLE regions (uuid VARCHAR(36), regionHandle BIGINT, regionName VARCHAR(128), sizeX INT, sizeY INT, locX INT, locY INT, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT, last_seen INT, PrincipalID CHAR(36), access INT, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
+        'CREATE TABLE regions (uuid VARCHAR(36), regionHandle BIGINT, regionName VARCHAR(128), sizeX INT, sizeY INT, locX INT, locY INT, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT, last_seen INT, owner_uuid CHAR(36), access INT, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
     );
     $pdo->exec(
         "INSERT INTO regions (uuid, regionName, sizeX, sizeY) VALUES ('aaaaaaaa-0000-0000-0000-000000000001', 'Welcome', 256, 256), ('bbbbbbbb-0000-0000-0000-000000000001', 'Harbour', 256, 256)",

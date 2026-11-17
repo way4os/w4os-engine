@@ -344,7 +344,7 @@ final class Contract
                 'server' => ['string?', 'The simulator that has it, as the grid knows it: host:port of serverUri; null for a link to another grid'],
                 'serverName' => ['string?', 'The name of its simulator: the one of its files on this machine, else `server`'],
                 'handle' => ['integer?', 'The handle of its location'],
-                'owner' => ['string?', 'The UUID of its owner'],
+                'owner' => ['string?', 'The UUID of its owner: the owner of its estate, as the grid has it since the region registered (owner_uuid)'],
                 'ownerName' => ['string?', ''],
                 'ownerProfile' => [
                     'string?',

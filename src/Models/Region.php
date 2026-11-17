@@ -98,7 +98,7 @@ final class Region extends Model
     /** @var array<string,mixed> the row of the search tables */
     private array $indexed = [];
 
-    private const COLUMNS = 'r.uuid, r.regionName, r.regionHandle, r.locX, r.locY, r.sizeX, r.sizeY, r.serverIP, r.serverPort, r.serverURI, r.flags, r.last_seen, r.PrincipalID, r.access, r.ScopeID, r.regionMapTexture';
+    private const COLUMNS = 'r.uuid, r.regionName, r.regionHandle, r.locX, r.locY, r.sizeX, r.sizeY, r.serverIP, r.serverPort, r.serverURI, r.flags, r.last_seen, r.owner_uuid, r.access, r.ScopeID, r.regionMapTexture';
 
     /** The columns a list can be sorted on, by their name in the collection: the expressions they are sorted by. */
     private const SORTS = [
@@ -215,10 +215,13 @@ final class Region extends Model
         return $grid === null ? null : Destination::uri($grid . '/' . $this->name());
     }
 
-    /** The owner of the region, the user the grid services know as its principal. */
+    /**
+     * The owner of the region: the owner of its estate, which the grid copies when the region registers (`owner_uuid`; the
+     * `PrincipalID` of the table is who may register a reserved place, not its owner).
+     */
     public function owner(): ?string
     {
-        $owner = (string) ($this->row['PrincipalID'] ?? '');
+        $owner = (string) ($this->row['owner_uuid'] ?? '');
 
         return $owner !== '' && $owner !== '00000000-0000-0000-0000-000000000000' ? $owner : null;
     }
@@ -763,7 +766,7 @@ final class Region extends Model
         ($mask & self::HYPERLINK) !== 0 || ($where[] = '(r.flags & ' . self::HYPERLINK . ') = 0');
         $owner = strtolower(trim((string) ($asked['owner'] ?? '')));
         if ($owner !== '') {
-            $where[] = 'LOWER(r.PrincipalID) = :owner';
+            $where[] = 'LOWER(r.owner_uuid) = :owner';
             $params['owner'] = $owner;
             $applied['owner'] = $owner;
         }
@@ -794,14 +797,7 @@ final class Region extends Model
         if ($perPage > 0) {
             $sql .= ' LIMIT ' . $perPage . ' OFFSET ' . ($page - 1) * $perPage;
         }
-        $rows = self::withOwnerNames($config, $pdo->get_results($sql, $params, \PDO::FETCH_ASSOC));
-        // The name of the simulator of each: the one of its files here, else the address the grid has of it
-        $names = array_column($servers, 'label', 'id');
-        foreach ($rows as &$row) {
-            $server = self::server((string) ($row['serverURI'] ?? ''));
-            $row['serverName'] = $server === null ? null : $names[$server] ?? $server;
-        }
-        unset($row);
+        $rows = self::withServerNames(self::withOwnerNames($config, $pdo->get_results($sql, $params, \PDO::FETCH_ASSOC)), $servers);
 
         return new Collection(array_map(static fn(array $row): self => new self($config, $row), $rows), [
             'total' => $total,
@@ -883,6 +879,25 @@ final class Region extends Model
     }
 
     /**
+     * The rows with the name of their simulator (`serverName`): the one of its files here, else the address the grid has of it.
+     *
+     * @param list<array<string,mixed>> $rows
+     * @param array<string,array{id:string,label:string,uris:list<string>}> $servers servers()
+     * @return list<array<string,mixed>>
+     */
+    private static function withServerNames(array $rows, array $servers): array
+    {
+        $names = array_column($servers, 'label', 'id');
+        foreach ($rows as &$row) {
+            $server = self::server((string) ($row['serverURI'] ?? ''));
+            $row['serverName'] = $server === null ? null : $names[$server] ?? $server;
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    /**
      * Which of these regions the grid knows (registered or linked).
      *
      * @param list<string> $uuids
@@ -925,7 +940,7 @@ final class Region extends Model
             ['id' => $isUuid ? strtolower($id) : $id],
             \PDO::FETCH_ASSOC,
         );
-        $rows = self::withOwnerNames($config, $rows);
+        $rows = $rows === [] ? [] : self::withServerNames(self::withOwnerNames($config, $rows), self::servers($config, $pdo));
 
         return isset($rows[0]) ? new self($config, $rows[0]) : null;
     }
@@ -1145,7 +1160,7 @@ final class Region extends Model
     {
         $ids = array_values(
             array_unique(
-                array_filter(array_column($rows, 'PrincipalID'), static fn($id): bool => $id !== null && $id !== ''),
+                array_filter(array_column($rows, 'owner_uuid'), static fn($id): bool => $id !== null && $id !== ''),
             ),
         );
         $accounts = $ids === [] ? null : Connections::pdo($config, 'UserAccountService');
@@ -1161,10 +1176,10 @@ final class Region extends Model
             \PDO::FETCH_ASSOC,
         );
         foreach ($found as $row) {
-            $names[$row['PrincipalID']] = trim($row['FirstName'] . ' ' . $row['LastName']);
+            $names[strtolower((string) $row['PrincipalID'])] = trim($row['FirstName'] . ' ' . $row['LastName']);
         }
         foreach ($rows as &$row) {
-            $row['ownerName'] = $names[$row['PrincipalID'] ?? ''] ?? null;
+            $row['ownerName'] = $names[strtolower((string) ($row['owner_uuid'] ?? ''))] ?? null;
         }
 
         return $rows;
