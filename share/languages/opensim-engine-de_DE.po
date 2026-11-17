@@ -235,7 +235,7 @@ msgstr "Avatar-Profil"
 
 msgctxt "born"
 msgid "Born"
-msgstr "Geboren"
+msgstr "Geboren am"
 
 msgctxt "profile_title"
 msgid "Profile"

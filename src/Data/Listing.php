@@ -26,6 +26,7 @@ final class Listing
      * How a column shows its value:
      * - `text`, `email`, `number`: as it is;
      * - `date`: a Unix time, shown as a day;
+     * - `datetime`: a Unix time, shown with its time (when it was created, last seen);
      * - `boolean`: yes or no;
      * - `picture`, `map`: the UUID of an asset, shown as an image (`/grids/{grid}/assets/{uuid}.jpg`), `map` being the map tile of
      *   a region;
@@ -42,6 +43,7 @@ final class Listing
         'email',
         'number',
         'date',
+        'datetime',
         'boolean',
         'picture',
         'map',
@@ -89,7 +91,9 @@ final class Listing
      * A column: the attribute it shows, the key of its title, how it shows it (TYPES), and the sort that orders the list by it (none:
      * it does not sort).
      *
-     * @param array<string,mixed> $more `picture`: an attribute whose asset is shown beside the value; `tag`: an attribute that,
+     * @param array<string,mixed> $more `picture`: an attribute whose asset is shown beside the value; `subtitle`: the attributes shown
+     *        under the value, the first that has one (its address, else its slug), `subtitleLink` the attribute that gives the address
+     *        it links to; `tag`: an attribute that,
      *        when true, adds the text of `tagLabel` beside it; `link`: the attribute that gives the address of a `link`
      */
     public static function column(

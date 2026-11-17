@@ -281,7 +281,7 @@ class Asset extends Model
                 Listing::column('name', 'column_name', sort: 'name'),
                 Listing::column('type', 'column_type', sort: 'type'),
                 Listing::column('size', 'column_size', 'size', 'size'),
-                Listing::column('created', 'created', 'date', 'created'),
+                Listing::column('created', 'created', 'datetime', 'created'),
             ],
             [
                 Listing::filter(

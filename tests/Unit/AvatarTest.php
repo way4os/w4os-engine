@@ -412,9 +412,9 @@ describe('avatars', function () {
         );
 
         expect(array_column($list->columns(), 'name'))
-            ->toBe(['name', 'email', 'role', 'lastSeen', 'created', 'status'])
+            ->toBe(['name', 'email', 'role', 'created', 'lastSeen', 'status'])
             ->and($sortable)
-            ->toBe(['name', 'email', 'role', 'lastSeen', 'created', 'status'])
+            ->toBe(['name', 'email', 'role', 'created', 'lastSeen', 'status'])
             ->and($list->columns()[0]['label'])
             ->toBe('Avatar Name')
             ->and(array_keys($list->filters()))
@@ -447,9 +447,9 @@ describe('avatars', function () {
         expect(json_decode($list->json(), true)[0]['name'])
             ->toBe('Ada Love')
             ->and($csv[0])
-            ->toBe('name,email,role,lastSeen,created,status')
+            ->toBe('name,email,role,created,lastSeen,status')
             ->and($csv[1])
-            ->toBe('"Ada Love",ada@example.org,resident,1700005000,1700000000,active');
+            ->toBe('"Ada Love",ada@example.org,resident,1700000000,1700005000,active');
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
@@ -487,7 +487,7 @@ describe('What a list of avatars offers', function () {
     test('is the visits too when the accounts and the visits are in one database', function () {
         expect(Avatar::capabilities(avatar_grid()))
             ->toBe([
-                'sortable' => ['name', 'email', 'level', 'lastSeen', 'created', 'active', 'online'],
+                'sortable' => ['name', 'email', 'level', 'created', 'lastSeen', 'active', 'online'],
                 'filters' => ['status', 'online', 'role', 'published', 'email', 'model', 'technical', 'god', 'active'],
             ])
             ->and(

@@ -445,10 +445,9 @@ final class Simulator extends InstalledModel
 
         return new Listing(
             [
-                Listing::column('name', 'column_name', sort: 'name'),
-                Listing::column('slug', 'column_slug'),
+                // Its address under its name, else its slug
+                Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri', 'slug']]),
                 Listing::column('grid', 'column_grid', sort: 'grid'),
-                Listing::column('uri', 'column_uri'),
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
                 // Enabled and running, each the button that changes it, then the ways the engine reaches it
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [

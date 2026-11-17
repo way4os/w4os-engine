@@ -426,15 +426,14 @@ final class Parcel extends Model
     {
         return new Listing(
             [
-                Listing::column('name', 'column_name', sort: 'name'),
+                // Its URI under its name, linked to the teleport there
+                Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
                 Listing::column('regionName', 'column_region'),
                 Listing::column('ownerName', 'column_owner'),
                 Listing::column('area', 'column_area', 'number', 'area'),
                 Listing::column('dwell', 'column_traffic', 'number', 'dwell'),
                 Listing::column('forSale', 'column_for_sale', 'boolean'),
                 Listing::column('shownInSearch', 'column_in_search', 'boolean'),
-                // Its URI, linked to the teleport there
-                Listing::column('uri', 'column_uri', 'link', more: ['link' => 'teleport']),
             ],
             [
                 Listing::filter('shown', 'column_in_search'),

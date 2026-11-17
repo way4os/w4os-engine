@@ -302,9 +302,8 @@ describe('Regions', function () {
                 'ownerName' => 'link',
                 'serverName' => 'text',
                 'flagNames' => 'list',
+                'lastSeen' => 'datetime',
                 'status' => 'indicators',
-                'lastSeen' => 'date',
-                'uri' => 'link',
             ])
             ->and($listing->sorts())
             ->toBe(['name', 'location', 'size', 'flags', 'lastSeen'])
@@ -349,7 +348,7 @@ describe('Regions', function () {
             // Enabled, the button that changes it where its file is, then online, in one column
             ->and(array_map(
                 static fn(array $indicator): array => [$indicator['name'], $indicator['icon'], array_column($indicator['states'], 'tone', 'label'), $indicator['actions'] ?? []],
-                $listing->columns[6]['indicators'],
+                $listing->columns[7]['indicators'],
             ))
             ->toBe([
                 ['enabled', 'power', ['state_enabled' => 'ok', 'state_disabled' => 'off'], ['enable', 'disable']],

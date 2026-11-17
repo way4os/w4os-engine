@@ -1468,10 +1468,11 @@ final class Avatar extends Model
             ]),
             Listing::column('email', 'email', 'email', 'email'),
             Listing::column('role', 'role', 'role', 'level'),
-            Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
-            Listing::column('created', 'created', 'date', 'created'),
+            // Born, as the viewers say it, then last seen
+            Listing::column('created', 'born', 'datetime', 'created'),
+            Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
             // The account, the button that enables or disables it, and the presence in the world
-            Listing::column('status', 'status', 'indicators', 'active', ['indicators' => [
+            Listing::column('status', 'column_status', 'indicators', 'active', ['indicators' => [
                 Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off']], ['enable', 'disable']),
                 Listing::indicator('online', 'online', 'presence', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
             ]]),
@@ -1567,7 +1568,7 @@ final class Avatar extends Model
                 ItemForm::shown('profileImage', 'profile_picture', 'picture', 'inworld', ['default' => 'person']),
                 ItemForm::shown('name', 'avatar_name', 'text', 'inworld'),
                 ItemForm::shown('uuid', 'profile_key', 'text', 'inworld'),
-                ItemForm::shown('created', 'born', 'date', 'inworld'),
+                ItemForm::shown('created', 'born', 'datetime', 'inworld'),
                 ItemForm::shown('partner', 'partner', 'avatar', 'inworld'),
                 ItemForm::field('about', 'about', 'text', 'inworld', more: $both),
                 ItemForm::field('published', 'show_in_search', 'boolean', 'inworld', more: $both),
@@ -1589,7 +1590,7 @@ final class Avatar extends Model
                     'account',
                     more: $both + ['description' => 'password_help', 'writeOnly' => true],
                 ),
-                ItemForm::shown('lastSeen', 'last_seen', 'date', 'account'),
+                ItemForm::shown('lastSeen', 'last_seen', 'datetime', 'account'),
             ],
             [
                 ItemForm::group('inworld', 'profile_tab_inworld'),

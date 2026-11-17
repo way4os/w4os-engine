@@ -586,10 +586,13 @@ final class Grid extends InstalledModel
     {
         return new Listing(
             [
-                Listing::column('name', 'column_name', sort: 'name'),
+                // Its address under its name
+                Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri']]),
                 Listing::column('nick', 'column_nick', sort: 'nick'),
-                Listing::column('uri', 'column_uri'),
-                Listing::column('enabled', 'column_enabled', 'boolean'),
+                // Enabled, the button that changes it
+                Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
+                    Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
+                ]]),
             ],
             [
                 Listing::filter('remote', 'filter_remote'),

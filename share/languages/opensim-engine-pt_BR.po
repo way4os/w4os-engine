@@ -539,7 +539,7 @@ msgstr "Visão geral"
 
 msgctxt "column_status"
 msgid "Status"
-msgstr "Estado"
+msgstr "Status"
 
 msgctxt "state_enabled"
 msgid "Enabled"

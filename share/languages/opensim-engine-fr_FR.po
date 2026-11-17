@@ -233,7 +233,7 @@ msgstr "Profil de l’avatar"
 
 msgctxt "born"
 msgid "Born"
-msgstr "Naissance"
+msgstr "Né(e) le"
 
 msgctxt "profile_title"
 msgid "Profile"
@@ -541,7 +541,7 @@ msgstr "Aperçu"
 
 msgctxt "column_status"
 msgid "Status"
-msgstr "État"
+msgstr "Statut"
 
 msgctxt "state_enabled"
 msgid "Enabled"

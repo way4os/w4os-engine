@@ -1195,21 +1195,20 @@ final class Region extends Model
 
         return new Listing(
             [
-                Listing::column('name', 'column_region', sort: 'name', more: ['picture' => 'mapImage', 'default' => 'place']),
+                // Its address (host:port:name) under its name, linked to the teleport there
+                Listing::column('name', 'column_region', sort: 'name', more: ['picture' => 'mapImage', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('size', 'column_size', 'size', 'size'),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
                 Listing::column('serverName', 'filter_simulator'),
                 // Every flag but RegionOnline, which the column of the status shows
                 Listing::column('flagNames', 'column_flags', 'list', 'flags', ['values' => Listing::values(self::shownFlagKeys())]),
+                Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
                 // Enabled, the button that changes it where its file is, then online
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
                     Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
                     Listing::indicator('online', 'online', 'online', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
                 ]]),
-                Listing::column('lastSeen', 'last_seen', 'date', 'lastSeen'),
-                // Its address (host:port:name), linked to the teleport there
-                Listing::column('uri', 'column_uri', 'link', more: ['link' => 'teleport']),
             ],
             [
                 Listing::filter('status', 'status', ['online' => 'online', 'offline' => 'offline']),
@@ -1272,7 +1271,7 @@ final class Region extends Model
                     'condition' => ['hyperlink' => [true]],
                 ]),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
-                ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
+                ItemForm::shown('lastSeen', 'last_seen', 'datetime', 'region'),
                 ItemForm::shown('uri', 'column_uri', 'link', 'region', ['link' => 'teleport']),
                 // Whether the simulator loads its file: known only where the file is, hidden otherwise, with the actions that change it
                 ItemForm::field('enabled', 'column_enabled', 'boolean', 'region', more: ['condition' => ['local' => [true]]]),

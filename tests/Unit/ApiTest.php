@@ -540,8 +540,8 @@ describe('The contract', function () {
                 'name' => 'text',
                 'email' => 'email',
                 'role' => 'role',
-                'lastSeen' => 'date',
-                'created' => 'date',
+                'created' => 'datetime',
+                'lastSeen' => 'datetime',
                 'status' => 'indicators',
             ])
             // The account, the button that enables or disables it, and the presence in the world
@@ -558,7 +558,7 @@ describe('The contract', function () {
             ->and($avatars['x-list']['sort'])
             ->toBe([
                 'default' => '-created',
-                'values' => ['name', 'email', 'level', 'lastSeen', 'created', 'active', 'online'],
+                'values' => ['name', 'email', 'level', 'created', 'lastSeen', 'active', 'online'],
                 'descending' => '-',
             ])
             ->and($avatars['x-list']['search'])
@@ -612,8 +612,8 @@ describe('The contract', function () {
             ->toBe(['type' => 'string'])
             ->and(array_keys($parameters($regions)))
             ->toContain('filter[simulator]', 'filter[flags]', 'filter[owner]')
-            ->and($regions['x-list']['columns'][8])
-            ->toBe(['name' => 'uri', 'label' => 'column_uri', 'type' => 'link', 'link' => 'teleport'])
+            ->and(array_intersect_key($regions['x-list']['columns'][0], ['subtitle' => 1, 'subtitleLink' => 1]))
+            ->toBe(['subtitle' => ['uri'], 'subtitleLink' => 'teleport'])
             ->and($described)
             ->toEqualCanonicalizing([
                 '/grids',
