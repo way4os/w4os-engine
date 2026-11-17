@@ -41,7 +41,14 @@ final class Access
     private const CUSTOMER_SERVICE = ['createAvatar', 'updateAvatar'];
 
     /** The fields of a page that need more than the change of the page: a role, a level, as a god sets them (LLLoginService). */
-    private const FIELDS = ['avatars' => ['role' => Avatar::GOD_FULL, 'level' => Avatar::GOD_FULL]];
+    private const FIELDS = ['avatars' => [
+        'role' => Avatar::GOD_FULL,
+        'level' => Avatar::GOD_FULL,
+        // A ban, hard or of the estates, is a god's
+        'banned' => Avatar::GOD_FULL,
+        'estateBanned' => Avatar::GOD_FULL,
+        'estateBans' => Avatar::GOD_FULL,
+    ]];
 
     /** @var ?array<string,array{level:?int,self:bool}> by operation, from the contract */
     private static ?array $index = null;

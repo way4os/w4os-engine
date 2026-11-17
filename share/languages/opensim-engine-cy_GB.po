@@ -691,6 +691,42 @@ msgctxt "status_pending"
 msgid "Pending"
 msgstr "Yn aros"
 
+msgctxt "status_banned"
+msgid "Banned"
+msgstr "Wedi'i wahardd"
+
+msgctxt "state_estate_banned"
+msgid "Banned from estates"
+msgstr "Wedi'i wahardd o ystadau"
+
+msgctxt "filter_estate_banned"
+msgid "Estate bans"
+msgstr "Gwaharddiadau ystadau"
+
+msgctxt "action_ban"
+msgid "Ban"
+msgstr "Gwahardd"
+
+msgctxt "action_unban"
+msgid "Unban"
+msgstr "Dad-wahardd"
+
+msgctxt "action_estate_ban"
+msgid "Ban from estates"
+msgstr "Gwahardd o ystadau"
+
+msgctxt "action_estate_unban"
+msgid "Unban from estates"
+msgstr "Dad-wahardd o ystadau"
+
+msgctxt "ask_ban"
+msgid "Ban this avatar? It can no longer log in, until it is unbanned."
+msgstr "Gwahardd yr afatar hwn? Ni all fewngofnodi mwyach, nes iddo gael ei ddad-wahardd."
+
+msgctxt "ask_estate_ban"
+msgid "Ban this avatar from every estate of the grid?"
+msgstr "Gwahardd yr afatar hwn o bob ystâd yn y grid?"
+
 msgctxt "role"
 msgid "Role"
 msgstr "Rôl"
@@ -1281,6 +1317,10 @@ msgstr "Mae’r enw neu’r cyfrinair yn anghywir."
 msgctxt "error_account_disabled"
 msgid "This avatar is disabled. Contact the managers of the grid."
 msgstr "Mae’r avatar hwn wedi’i analluogi. Cysylltwch â rheolwyr y grid."
+
+msgctxt "error_account_banned"
+msgid "This avatar is banned."
+msgstr "Mae'r afatar hwn wedi'i wahardd."
 
 msgctxt "error_email_unconfirmed"
 msgid ""

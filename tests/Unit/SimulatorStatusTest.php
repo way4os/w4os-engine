@@ -50,7 +50,7 @@ describe('The list of the simulators', function () {
                 ['value' => 'crashed', 'label' => 'state_crashed', 'tone' => 'failed', 'icon' => 'pause'],
             ])
             ->and(OpenSim\Data\Listing::TONES)
-            ->toBe(['ok', 'off', 'failed'])
+            ->toBe(['ok', 'off', 'warning', 'failed'])
             ->and($indicators['enabled']['actions'])
             ->toBe(['enable', 'disable'])
             // None shows no icon; each state says it all on its own: the thing, and what is wrong with it when something is

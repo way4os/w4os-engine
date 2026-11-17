@@ -63,9 +63,11 @@ final class Avatar extends Model
      * The states of an account: it can log in (active), a manager disabled it (disabled), it waits for the confirmation of its
      * email (pending). A state other than active keeps the account out of the grid as Robust reads it: its UserLevel is below 0,
      * which the login of Robust refuses (MinLoginLevel, 0 by default), the level it had being kept as -1 - level; a pending one
-     * has PENDING_FLAG in its UserFlags. `active` is 0 for both, as the search of Robust and w4os read it.
+     * has PENDING_FLAG in its UserFlags. `active` is 0 for both, as the search of Robust and w4os read it. A banned one (a hard ban)
+     * is disabled with BANNED_FLAG besides: only an unban lets it in again, never an enable; its account stays, its name taken, its
+     * UUID kept (what it made or owns can be found by it). Being in the ban list of an estate is another thing (estateBans()).
      */
-    public const STATUSES = ['active', 'disabled', 'pending'];
+    public const STATUSES = ['active', 'disabled', 'pending', 'banned'];
 
     /**
      * What an avatar wants to do, the check boxes of its profile in the viewer (profileWantToMask), as OpenSimulator and w4os have
@@ -116,6 +118,12 @@ final class Avatar extends Model
 
     /** The bit of UserFlags of an account that waits for the confirmation of its email (bit 12: OpenSimulator uses 0 to 11). */
     public const PENDING_FLAG = 1 << 12;
+
+    /** The bit of UserFlags of an account banned for good (bit 13): a convention of the engine, as PENDING_FLAG; OpenSimulator has none. */
+    public const BANNED_FLAG = 1 << 13;
+
+    /** @var ?array<string,list<string>> the estates whose ban lists have each avatar, read once for a list (all()); null: not read */
+    private ?array $estateBanned = null;
 
     /** What the name of an account may have besides letters and digits. */
     private const NAME_PUNCTUATION = '-';
@@ -291,10 +299,67 @@ final class Avatar extends Model
     public static function statusOf(int $level, int $flags, int $active = 1): string
     {
         return match (true) {
+            ($flags & self::BANNED_FLAG) !== 0 => 'banned',
             ($flags & self::PENDING_FLAG) !== 0 => 'pending',
             $level < 0 || $active === 0 => 'disabled',
             default => 'active',
         };
+    }
+
+    /**
+     * The estates whose ban lists have it, by their ids (Estate::id()): the bans of a region or a parcel are not counted. None when
+     * no database of estates can be read.
+     *
+     * @return list<string>
+     */
+    public function estateBans(): array
+    {
+        $this->estateBanned ??= self::estateBanLists($this->config);
+
+        return $this->estateBanned[strtolower((string) $this->uuid())] ?? [];
+    }
+
+    /**
+     * The avatars in the ban lists of the estates of the grid, read once: each with the ids of the estates that ban it.
+     *
+     * @return array<string,list<string>>
+     */
+    private static function estateBanLists(GridConfig $config): array
+    {
+        try {
+            $estates = Estate::all($config)->items();
+        } catch (\OpenSim\Exceptions\ChannelUnavailable) {
+            return [];
+        }
+        $banned = [];
+        foreach ($estates as $estate) {
+            foreach ($estate->bans() as $ban) {
+                $ban['uuid'] === '' || ($banned[$ban['uuid']][] = $estate->id());
+            }
+        }
+
+        return $banned;
+    }
+
+    /**
+     * Put it in the ban lists of these estates (their ids) and take it out of the others.
+     *
+     * @param list<string>|string|bool $estates the ids; true: every estate, false: none
+     * @throws InvalidValue for an estate the grid does not have
+     */
+    private function banInEstates(array|string|bool $estates): void
+    {
+        $all = Estate::all($this->config)->items();
+        $ids = array_map(static fn(Estate $estate): string => $estate->id(), $all);
+        $wanted = $estates === true ? $ids : ($estates === false ? [] : array_map('strval', (array) $estates));
+        foreach (array_diff($wanted, $ids) as $unknown) {
+            throw InvalidValue::because('invalid-request', "the grid has no estate '$unknown': " . implode(', ', $ids));
+        }
+        $uuid = (string) $this->uuid();
+        foreach ($all as $estate) {
+            in_array($estate->id(), $wanted, true) ? $estate->ban($uuid) : ($estate->isBanned($uuid) && $estate->unban($uuid));
+        }
+        $this->estateBanned = null;
     }
 
     /** The level an account has when it is active, from its UserLevel. */
@@ -606,6 +671,10 @@ final class Avatar extends Model
             'published' => $this->isPublished(),
             'active' => $this->isEnabled(),
             'status' => $this->status(),
+            'banned' => $this->status() === 'banned',
+            // The estates whose ban lists have it (their ids), whether any does: a hard ban is the account's, these are the estates'
+            'estateBans' => $this->estateBans(),
+            'estateBanned' => $this->estateBans() !== [],
             'online' => $this->isOnline(),
             'lastSeen' => $this->lastSeenTime() ?: null,
             'homeRegion' => $row['HomeRegionID'] ?? null,
@@ -921,6 +990,15 @@ final class Avatar extends Model
             $values['level'] = (int) ($values['level'] ?? self::ROLES[$role]);
             unset($values['role']);
         }
+        // A hard ban is a state (status banned), lifted by `banned` false only; the bans of the estates are their lists
+        if (array_key_exists('banned', $values)) {
+            $banned = Result::isTrue($values['banned']);
+            unset($values['banned']);
+            $banned ? ($values['status'] = 'banned') : ($values['unban'] = true);
+        }
+        $estateBans = array_key_exists('estateBans', $values) ? (array) $values['estateBans'] : null;
+        array_key_exists('estateBanned', $values) && ($estateBans = Result::isTrue($values['estateBanned']));
+        unset($values['estateBans'], $values['estateBanned']);
         // The check boxes of the profile: their names, or the number the viewer keeps
         isset($values['wantsList']) && ($values['wantsList'] = self::profileMask($values['wantsList'], self::WANTS, 'wants'));
         isset($values['skillsList']) && ($values['skillsList'] = self::profileMask($values['skillsList'], self::SKILLS, 'skills'));
@@ -928,7 +1006,7 @@ final class Avatar extends Model
             if (
                 !isset(self::ACCOUNT_SETTINGS[$name]) &&
                 !isset(self::PROFILE_SETTINGS[$name]) &&
-                !in_array($name, ['password', 'home'], true)
+                !in_array($name, ['password', 'home', 'unban'], true)
             ) {
                 throw InvalidValue::because('field-unknown', "an avatar has no changeable '$name'");
             }
@@ -944,15 +1022,22 @@ final class Avatar extends Model
             throw InvalidValue::because('email-invalid', "'{$values['email']}' is not an email");
         }
         // The state is read again: this avatar may have been changed since it was read (enabled, then its level changed)
-        $state = ['active' => 1, 'status' => 1, 'level' => 1, 'published' => 1];
+        $state = ['active' => 1, 'status' => 1, 'level' => 1, 'published' => 1, 'unban' => 1];
         $current = array_intersect_key($values, $state) !== [] ? static::find($this->config, $this->id()) ?? $this : $this;
         $was = $current->status();
-        $status = self::requestedStatus($values, $was);
+        $unban = (bool) ($values['unban'] ?? false);
+        unset($values['unban']);
+        $status = $unban && $was === 'banned' && !isset($values['status']) && !isset($values['active']) ? 'active' : self::requestedStatus($values, $was);
+        // A ban is lifted by an unban only: an enable, a change of state, does not
+        $was === 'banned' && $status !== 'banned' && !$unban && throw InvalidValue::because(
+            'account-banned',
+            'this avatar is banned: only an unban (banned false) lets it in again',
+        );
         $id = $this->id();
         $writes = [];
 
         $account = array_diff_key(array_intersect_key($values, self::ACCOUNT_SETTINGS), $state);
-        if ($account !== [] || array_intersect_key($values, $state) !== []) {
+        if ($account !== [] || array_intersect_key($values, $state) !== [] || $status !== $was) {
             $set = [];
             $params = ['id' => $id];
             foreach ($account as $name => $value) {
@@ -963,9 +1048,9 @@ final class Avatar extends Model
             $set[] = 'active = :active, UserLevel = :level, UserFlags = :flags';
             $params['active'] = $status === 'active' ? 1 : 0;
             $params['level'] = self::storedLevel((int) ($values['level'] ?? $current->level()), $status === 'active');
-            $params['flags'] = $status === 'pending'
-                ? $current->flags() | self::PENDING_FLAG
-                : $current->flags() & ~self::PENDING_FLAG;
+            $params['flags'] = ($current->flags() & ~(self::PENDING_FLAG | self::BANNED_FLAG))
+                | ($status === 'pending' ? self::PENDING_FLAG : 0)
+                | ($status === 'banned' ? self::BANNED_FLAG : 0);
             if (array_key_exists('published', $values)) {
                 $params['flags'] = Result::isTrue($values['published'])
                     ? $params['flags'] | self::PUBLISHED_FLAG
@@ -992,6 +1077,7 @@ final class Avatar extends Model
         }
 
         self::writeAll($this->config, $writes, 'change ' . $this->name());
+        $estateBans === null || $this->banInEstates($estateBans);
         if ($was === 'pending' && $status !== 'pending') {
             self::forgetConfirmation($this->config, $id);
         }
@@ -1399,7 +1485,16 @@ final class Avatar extends Model
             $rows = self::withVisits($config, $rows);
         }
 
-        return new Collection(array_map(static fn(array $row): self => new self($config, $row), $rows), [
+        // The ban lists of the estates, read once for the list
+        $lists = $rows === [] ? [] : self::estateBanLists($config);
+        $avatars = array_map(static function (array $row) use ($config, $lists): self {
+            $avatar = new self($config, $row);
+            $avatar->estateBanned = $lists;
+
+            return $avatar;
+        }, $rows);
+
+        return new Collection($avatars, [
             'total' => $total,
             'page' => $page,
             'perPage' => $perPage,
@@ -1473,7 +1568,9 @@ final class Avatar extends Model
             Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
             // The account, the button that enables or disables it, and the presence in the world
             Listing::column('status', 'column_status', 'indicators', 'active', ['indicators' => [
-                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off']], ['enable', 'disable']),
+                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off'], ['banned', 'status_banned', 'failed']], ['enable', 'disable']),
+                // In the ban list of an estate at least: a ban of some regions, not of the grid
+                Listing::indicator('estateBanned', 'ban', 'filter_estate_banned', [[true, 'state_estate_banned', 'warning']]),
                 Listing::indicator('online', 'online', 'presence', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
             ]]),
         ];
@@ -1514,6 +1611,11 @@ final class Avatar extends Model
                 ['email'],
                 ['link' => 'reset'],
             ),
+            // The bans, a god's: hard (the account), or in the lists of every estate; asked first
+            Listing::action('ban', 'action_ban', $method, $path, ['banned' => true], ['status' => ['active', 'disabled', 'pending']], more: ['notSelf' => true, 'level' => self::GOD_FULL, 'ask' => 'ask_ban']),
+            Listing::action('unban', 'action_unban', $method, $path, ['banned' => false], ['status' => ['banned']], more: ['level' => self::GOD_FULL]),
+            Listing::action('estateBan', 'action_estate_ban', $method, $path, ['estateBanned' => true], ['estateBanned' => [false]], more: ['notSelf' => true, 'level' => self::GOD_FULL, 'ask' => 'ask_estate_ban']),
+            Listing::action('estateUnban', 'action_estate_unban', $method, $path, ['estateBanned' => false], ['estateBanned' => [true]], more: ['level' => self::GOD_FULL]),
         ];
         if (!$joined) {
             $columns = array_map(
@@ -1687,15 +1789,17 @@ final class Avatar extends Model
             $params["w$i"] = self::contains($word);
         }
         // The states as statusOf() tells them
-        $pending = '(u.UserFlags & ' . self::PENDING_FLAG . ') <> 0';
+        $banned = '(u.UserFlags & ' . self::BANNED_FLAG . ') <> 0';
+        $pending = "(u.UserFlags & " . self::PENDING_FLAG . ") <> 0 AND NOT ($banned)";
         $active = '(u.UserFlags & ' . self::PENDING_FLAG . ') = 0 AND u.active = 1 AND u.UserLevel >= 0';
         $filters =
             [
                 'active' => ['yes' => "($active)", 'no' => "NOT ($active)"],
                 'status' => [
                     'active' => "($active)",
-                    'disabled' => "(NOT ($pending) AND NOT ($active))",
+                    'disabled' => "(NOT ($pending) AND NOT ($active) AND NOT ($banned))",
                     'pending' => "($pending)",
+                    'banned' => "($banned)",
                 ],
                 'role' => self::roleConditions(),
                 'god' => [

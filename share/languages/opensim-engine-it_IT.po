@@ -683,6 +683,42 @@ msgctxt "status_pending"
 msgid "Pending"
 msgstr "In attesa"
 
+msgctxt "status_banned"
+msgid "Banned"
+msgstr "Bannato"
+
+msgctxt "state_estate_banned"
+msgid "Banned from estates"
+msgstr "Bannato dalle proprietà"
+
+msgctxt "filter_estate_banned"
+msgid "Estate bans"
+msgstr "Ban delle proprietà"
+
+msgctxt "action_ban"
+msgid "Ban"
+msgstr "Banna"
+
+msgctxt "action_unban"
+msgid "Unban"
+msgstr "Revoca il ban"
+
+msgctxt "action_estate_ban"
+msgid "Ban from estates"
+msgstr "Banna dalle proprietà"
+
+msgctxt "action_estate_unban"
+msgid "Unban from estates"
+msgstr "Revoca il ban dalle proprietà"
+
+msgctxt "ask_ban"
+msgid "Ban this avatar? It can no longer log in, until it is unbanned."
+msgstr "Bannare questo avatar? Non potrà più connettersi finché il ban non sarà revocato."
+
+msgctxt "ask_estate_ban"
+msgid "Ban this avatar from every estate of the grid?"
+msgstr "Bannare questo avatar da tutte le proprietà della griglia?"
+
 msgctxt "role"
 msgid "Role"
 msgstr "Ruolo"
@@ -1263,6 +1299,10 @@ msgstr "Il nome o la password è sbagliato."
 msgctxt "error_account_disabled"
 msgid "This avatar is disabled. Contact the managers of the grid."
 msgstr "Questo avatar è disattivato. Contatta i gestori della griglia."
+
+msgctxt "error_account_banned"
+msgid "This avatar is banned."
+msgstr "Questo avatar è bannato."
 
 msgctxt "error_email_unconfirmed"
 msgid ""

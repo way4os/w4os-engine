@@ -642,6 +642,42 @@ msgctxt "status_pending"
 msgid "Pending"
 msgstr ""
 
+msgctxt "status_banned"
+msgid "Banned"
+msgstr ""
+
+msgctxt "state_estate_banned"
+msgid "Banned from estates"
+msgstr ""
+
+msgctxt "filter_estate_banned"
+msgid "Estate bans"
+msgstr ""
+
+msgctxt "action_ban"
+msgid "Ban"
+msgstr ""
+
+msgctxt "action_unban"
+msgid "Unban"
+msgstr ""
+
+msgctxt "action_estate_ban"
+msgid "Ban from estates"
+msgstr ""
+
+msgctxt "action_estate_unban"
+msgid "Unban from estates"
+msgstr ""
+
+msgctxt "ask_ban"
+msgid "Ban this avatar? It can no longer log in, until it is unbanned."
+msgstr ""
+
+msgctxt "ask_estate_ban"
+msgid "Ban this avatar from every estate of the grid?"
+msgstr ""
+
 msgctxt "role"
 msgid "Role"
 msgstr ""
@@ -1206,6 +1242,10 @@ msgstr ""
 
 msgctxt "error_account_disabled"
 msgid "This avatar is disabled. Contact the managers of the grid."
+msgstr ""
+
+msgctxt "error_account_banned"
+msgid "This avatar is banned."
 msgstr ""
 
 msgctxt "error_email_unconfirmed"

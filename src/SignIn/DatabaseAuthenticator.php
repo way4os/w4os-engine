@@ -97,6 +97,7 @@ final class DatabaseAuthenticator implements AvatarAuthenticator
         return match ($status) {
             'pending' => SignInResult::refused(_('The account is not active: its email is not confirmed yet'), 'email-unconfirmed'),
             'disabled' => SignInResult::refused(_('The account is not active'), 'account-disabled'),
+            'banned' => SignInResult::refused(_('The account is banned'), 'account-banned'),
             default => null,
         };
     }

@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "c3dbd4d",
+        "version": "a18ad5e",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1925,7 +1925,8 @@
                             "enum": [
                                 "active",
                                 "disabled",
-                                "pending"
+                                "pending",
+                                "banned"
                             ]
                         }
                     },
@@ -2134,11 +2135,28 @@
                                             "value": "disabled",
                                             "label": "status_disabled",
                                             "tone": "off"
+                                        },
+                                        {
+                                            "value": "banned",
+                                            "label": "status_banned",
+                                            "tone": "failed"
                                         }
                                     ],
                                     "actions": [
                                         "enable",
                                         "disable"
+                                    ]
+                                },
+                                {
+                                    "name": "estateBanned",
+                                    "icon": "ban",
+                                    "label": "filter_estate_banned",
+                                    "states": [
+                                        {
+                                            "value": true,
+                                            "label": "state_estate_banned",
+                                            "tone": "warning"
+                                        }
                                     ]
                                 },
                                 {
@@ -2194,6 +2212,10 @@
                                 {
                                     "value": "pending",
                                     "label": "status_pending"
+                                },
+                                {
+                                    "value": "banned",
+                                    "label": "status_banned"
                                 }
                             ]
                         },
@@ -2374,6 +2396,72 @@
                                 "email"
                             ],
                             "link": "reset"
+                        },
+                        {
+                            "name": "ban",
+                            "label": "action_ban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "banned": true
+                            },
+                            "when": {
+                                "status": [
+                                    "active",
+                                    "disabled",
+                                    "pending"
+                                ]
+                            },
+                            "notSelf": true,
+                            "level": 200,
+                            "ask": "ask_ban"
+                        },
+                        {
+                            "name": "unban",
+                            "label": "action_unban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "banned": false
+                            },
+                            "when": {
+                                "status": [
+                                    "banned"
+                                ]
+                            },
+                            "level": 200
+                        },
+                        {
+                            "name": "estateBan",
+                            "label": "action_estate_ban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "estateBanned": true
+                            },
+                            "when": {
+                                "estateBanned": [
+                                    false
+                                ]
+                            },
+                            "notSelf": true,
+                            "level": 200,
+                            "ask": "ask_estate_ban"
+                        },
+                        {
+                            "name": "estateUnban",
+                            "label": "action_estate_unban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "estateBanned": false
+                            },
+                            "when": {
+                                "estateBanned": [
+                                    true
+                                ]
+                            },
+                            "level": 200
                         }
                     ]
                 },
@@ -2871,7 +2959,8 @@
                             "options": {
                                 "active": "status_active",
                                 "disabled": "status_disabled",
-                                "pending": "status_pending"
+                                "pending": "status_pending",
+                                "banned": "status_banned"
                             },
                             "access": {
                                 "level": 100
@@ -2948,6 +3037,72 @@
                                 "email"
                             ],
                             "link": "reset"
+                        },
+                        {
+                            "name": "ban",
+                            "label": "action_ban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "banned": true
+                            },
+                            "when": {
+                                "status": [
+                                    "active",
+                                    "disabled",
+                                    "pending"
+                                ]
+                            },
+                            "notSelf": true,
+                            "level": 200,
+                            "ask": "ask_ban"
+                        },
+                        {
+                            "name": "unban",
+                            "label": "action_unban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "banned": false
+                            },
+                            "when": {
+                                "status": [
+                                    "banned"
+                                ]
+                            },
+                            "level": 200
+                        },
+                        {
+                            "name": "estateBan",
+                            "label": "action_estate_ban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "estateBanned": true
+                            },
+                            "when": {
+                                "estateBanned": [
+                                    false
+                                ]
+                            },
+                            "notSelf": true,
+                            "level": 200,
+                            "ask": "ask_estate_ban"
+                        },
+                        {
+                            "name": "estateUnban",
+                            "label": "action_estate_unban",
+                            "method": "PATCH",
+                            "path": "/grids/{grid}/avatars/{id}",
+                            "body": {
+                                "estateBanned": false
+                            },
+                            "when": {
+                                "estateBanned": [
+                                    true
+                                ]
+                            },
+                            "level": 200
                         }
                     ]
                 },
@@ -3015,7 +3170,19 @@
                                                     },
                                                     "status": {
                                                         "type": "string",
-                                                        "description": "`active`, `disabled` or `pending`; a `pending` avatar that becomes another forgets its confirmation token"
+                                                        "description": "`active`, `disabled`, `pending` or `banned`; a `pending` avatar that becomes another forgets its confirmation token; a banned one is refused another (`account-banned`) unless `banned` false comes with it"
+                                                    },
+                                                    "banned": {
+                                                        "type": "boolean",
+                                                        "description": "true: a hard ban (a god); false: the unban, the avatar active again"
+                                                    },
+                                                    "estateBanned": {
+                                                        "type": "boolean",
+                                                        "description": "true: in the ban lists of every estate of the grid; false: out of all of them (a god)"
+                                                    },
+                                                    "estateBans": {
+                                                        "type": "array",
+                                                        "description": "The ids of the estates whose ban lists have it, the others leaving it out (a god)"
                                                     },
                                                     "password": {
                                                         "type": "string",
@@ -9830,6 +9997,7 @@
                             "internal-error",
                             "sign-in-refused",
                             "account-disabled",
+                            "account-banned",
                             "email-unconfirmed",
                             "name-invalid",
                             "name-reserved",
@@ -9858,7 +10026,7 @@
                             "no-confirmation-pending",
                             "mail-failed"
                         ],
-                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `source-not-readable`: The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god, maintenance; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
+                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `account-banned`: The account is banned: only an unban (banned false) lets it in again; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `source-not-readable`: The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god, maintenance; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
                     },
                     "detail": {
                         "type": "string",
@@ -10586,7 +10754,7 @@
                             },
                             "flags": {
                                 "type": "integer",
-                                "description": "The user flags (bit 12: waits for the confirmation of its email)"
+                                "description": "The user flags (bit 12: waits for the confirmation of its email; bit 13: banned; both conventions of the engine)"
                             },
                             "active": {
                                 "type": "boolean",
@@ -10594,7 +10762,19 @@
                             },
                             "status": {
                                 "type": "string",
-                                "description": "`active`: it can log in; `disabled`: a manager disabled it; `pending`: it waits for the confirmation of its email. Robust refuses the login of an avatar that is not active (its UserLevel is kept below 0, the level it had kept with it)"
+                                "description": "`active`: it can log in; `disabled`: a manager disabled it; `pending`: it waits for the confirmation of its email; `banned`: a god banned it (a hard ban: only an unban lets it in again, its account, its name and its UUID kept). Robust refuses the login of an avatar that is not active (its UserLevel is kept below 0, the level it had kept with it)"
+                            },
+                            "banned": {
+                                "type": "boolean",
+                                "description": "A hard ban (status banned)"
+                            },
+                            "estateBans": {
+                                "type": "array",
+                                "description": "The estates whose ban lists have it (their ids); the bans of a region or a parcel are not counted"
+                            },
+                            "estateBanned": {
+                                "type": "boolean",
+                                "description": "In the ban list of an estate at least: kept out of some regions, not of the grid"
                             },
                             "online": {
                                 "type": "boolean",

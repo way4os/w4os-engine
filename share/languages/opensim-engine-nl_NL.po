@@ -681,6 +681,42 @@ msgctxt "status_pending"
 msgid "Pending"
 msgstr "In afwachting"
 
+msgctxt "status_banned"
+msgid "Banned"
+msgstr "Verbannen"
+
+msgctxt "state_estate_banned"
+msgid "Banned from estates"
+msgstr "Verbannen uit landgoederen"
+
+msgctxt "filter_estate_banned"
+msgid "Estate bans"
+msgstr "Landgoedbans"
+
+msgctxt "action_ban"
+msgid "Ban"
+msgstr "Verbannen"
+
+msgctxt "action_unban"
+msgid "Unban"
+msgstr "Ban opheffen"
+
+msgctxt "action_estate_ban"
+msgid "Ban from estates"
+msgstr "Uit landgoederen verbannen"
+
+msgctxt "action_estate_unban"
+msgid "Unban from estates"
+msgstr "Landgoedban opheffen"
+
+msgctxt "ask_ban"
+msgid "Ban this avatar? It can no longer log in, until it is unbanned."
+msgstr "Dit avatar verbannen? Het kan niet meer inloggen tot de ban is opgeheven."
+
+msgctxt "ask_estate_ban"
+msgid "Ban this avatar from every estate of the grid?"
+msgstr "Dit avatar uit elk landgoed van de grid verbannen?"
+
 msgctxt "role"
 msgid "Role"
 msgstr "Rol"
@@ -1261,6 +1297,10 @@ msgctxt "error_account_disabled"
 msgid "This avatar is disabled. Contact the managers of the grid."
 msgstr ""
 "Deze avatar is gedeactiveerd. Neem contact op met de beheerders van de grid."
+
+msgctxt "error_account_banned"
+msgid "This avatar is banned."
+msgstr "Dit avatar is verbannen."
 
 msgctxt "error_email_unconfirmed"
 msgid ""

@@ -33,6 +33,7 @@ final class Problem
         'internal-error' => 'The server failed, the log says why',
         'sign-in-refused' => 'The name (or the email) or the password is wrong',
         'account-disabled' => 'The password is right, but a manager disabled the account',
+        'account-banned' => 'The account is banned: only an unban (banned false) lets it in again',
         'email-unconfirmed' => 'The password is right, but the account waits for the confirmation of its email',
         'name-invalid' => 'The name is not a first and a last name of letters, digits and -',
         'name-reserved' => 'A part of the name is reserved: Default, Test, Admin, the name of the grid',
@@ -63,7 +64,7 @@ final class Problem
     ];
 
     /** The status of a refusal that is not a wrong value of the request: it is right, this process cannot do it. */
-    private const REASON_STATUSES = ['config-not-writable' => 403, 'instance-user-required' => 403];
+    private const REASON_STATUSES = ['config-not-writable' => 403, 'instance-user-required' => 403, 'account-banned' => 403];
 
     /** The titles of the statuses of a refusal. */
     private const TITLES = [400 => 'Invalid request', 403 => 'Forbidden'];

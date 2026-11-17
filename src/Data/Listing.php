@@ -62,10 +62,13 @@ final class Listing
      * `files` config files, `database` a database, `server` a server or its config, `account` an account, `play` and `pause` running
      * or not (a state may have its own icon).
      */
-    public const ICONS = ['power', 'run', 'play', 'pause', 'online', 'console', 'screen', 'file', 'files', 'database', 'server', 'account'];
+    public const ICONS = ['power', 'run', 'play', 'pause', 'online', 'console', 'screen', 'file', 'files', 'database', 'server', 'account', 'ban'];
 
-    /** The tones of the states of an indicator: `ok` (green: all is well), `off` (grey: off as it normally is), `failed` (red: an error). */
-    public const TONES = ['ok', 'off', 'failed'];
+    /**
+     * The tones of the states of an indicator: `ok` (green: all is well), `off` (grey: off as it normally is), `warning` (orange: a
+     * part of it is kept out, a ban of some estates), `failed` (red: an error, a hard ban).
+     */
+    public const TONES = ['ok', 'off', 'warning', 'failed'];
 
     /** The values of a yes or no filter, with the keys of their texts. */
     public const YES_NO = ['yes' => 'yes', 'no' => 'no'];
@@ -217,7 +220,8 @@ final class Listing
      * @param array<string,mixed> $more `notSelf`: never offered on the avatar of whoever acts; `link`: the page of the site the mail
      *        of the operation links to (`reset` for a new password, `confirm` for the confirmation of an email): whoever calls adds
      *        to the body `link`, the address of its own page with `{token}` in it, and may add `send` false to get the token back
-     *        instead of mailing it; `ask`: the key of the question a site asks before (stopping a simulator sends avatars away)
+     *        instead of mailing it; `ask`: the key of the question a site asks before (stopping a simulator sends avatars away);
+     *        `level`: the lowest user level of a manager who does it, when it is above the one of the operation (a ban: GOD_FULL)
      */
     public static function action(
         string $name,

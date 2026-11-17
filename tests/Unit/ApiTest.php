@@ -550,7 +550,8 @@ describe('The contract', function () {
                 $avatars['x-list']['columns'][5]['indicators'],
             ))
             ->toBe([
-                ['status', 'account', ['status_active' => 'ok', 'status_pending' => 'off', 'status_disabled' => 'off'], ['enable', 'disable']],
+                ['status', 'account', ['status_active' => 'ok', 'status_pending' => 'off', 'status_disabled' => 'off', 'status_banned' => 'failed'], ['enable', 'disable']],
+                ['estateBanned', 'ban', ['state_estate_banned' => 'warning'], []],
                 ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
             ])
             ->and($avatars['x-list']['columns'][5]['sort'])
@@ -571,9 +572,11 @@ describe('The contract', function () {
                     ['value' => 'active', 'label' => 'status_active'],
                     ['value' => 'disabled', 'label' => 'status_disabled'],
                     ['value' => 'pending', 'label' => 'status_pending'],
+                    ['value' => 'banned', 'label' => 'status_banned'],
                 ],
             ])
-            ->and($avatars['x-list']['actions'])
+            // The bans after them (AvatarBanTest)
+            ->and(array_slice($avatars['x-list']['actions'], 0, 3))
             ->toBe([
                 [
                     'name' => 'enable',
@@ -693,7 +696,7 @@ describe('The contract', function () {
             ->and(array_column($avatar['fields'], null, 'name')['about']['access'])
             ->toBe(['edit' => ['self', 'manager'], 'level' => 100])
             ->and(array_column($avatar['actions'], 'name'))
-            ->toBe(['enable', 'disable', 'reset'])
+            ->toBe(['enable', 'disable', 'reset', 'ban', 'unban', 'estateBan', 'estateUnban'])
             ->and(array_column($region['fields'], null, 'name')['enabled'])
             ->toBe([
                 'name' => 'enabled',
