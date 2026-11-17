@@ -1206,6 +1206,10 @@ msgctxt "notice_import_no_region"
 msgid "No region was found for {simulator} in {folder}, the folder its config names: check that it is the one it reads before applying, nothing of its regions would be copied."
 msgstr ""
 
+msgctxt "notice_import_module_missing"
+msgid "The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install: the simulator would not load it. Add it to the modules, or leave the setting out."
+msgstr ""
+
 msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr ""

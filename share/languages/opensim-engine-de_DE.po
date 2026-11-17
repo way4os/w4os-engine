@@ -1341,6 +1341,13 @@ msgstr ""
 "nennt, keine Region gefunden: prüfe vor dem Anwenden, dass er diesen liest, "
 "sonst wird keine seiner Regionen kopiert."
 
+msgctxt "notice_import_module_missing"
+msgid ""
+"The module {module} ({key} of [{section}]) is in neither the core nor the "
+"modules of this install: the simulator would not load it. Add it to the "
+"modules, or leave the setting out."
+msgstr "Das Modul {module} ({key} von [{section}]) ist weder im Kern noch in den Modulen dieser Installation: der Simulator würde es nicht laden. Füge es den Modulen hinzu oder lass die Einstellung weg."
+
 msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr "Dann: {enable}, {start}."

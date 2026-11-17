@@ -1334,6 +1334,13 @@ msgstr ""
 "nomme sa configuration : vérifiez que c'est bien celui qu'il lit avant "
 "d'appliquer, aucune de ses régions ne serait copiée."
 
+msgctxt "notice_import_module_missing"
+msgid ""
+"The module {module} ({key} of [{section}]) is in neither the core nor the "
+"modules of this install: the simulator would not load it. Add it to the "
+"modules, or leave the setting out."
+msgstr "Le module {module} ({key} de [{section}]) n'est ni dans le core ni dans les modules de cette installation : le simulateur ne le chargerait pas. Ajoutez-le aux modules, ou laissez le réglage de côté."
+
 msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr "Ensuite : {enable}, {start}."

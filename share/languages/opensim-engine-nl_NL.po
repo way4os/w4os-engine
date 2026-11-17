@@ -1330,6 +1330,13 @@ msgstr ""
 "configuratie noemt: controleer vóór het toepassen dat hij die leest, anders "
 "wordt geen van zijn regio's gekopieerd."
 
+msgctxt "notice_import_module_missing"
+msgid ""
+"The module {module} ({key} of [{section}]) is in neither the core nor the "
+"modules of this install: the simulator would not load it. Add it to the "
+"modules, or leave the setting out."
+msgstr "De module {module} ({key} van [{section}]) staat niet in de kern en niet in de modules van deze installatie: de simulator zou hem niet laden. Voeg hem toe aan de modules, of laat de instelling weg."
+
 msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr "Daarna: {enable}, {start}."

@@ -1349,6 +1349,13 @@ msgstr ""
 "ei ffurfweddiad yn ei enwi: gwiriwch mai dyna'r un y mae'n ei ddarllen cyn "
 "cymhwyso, ni fyddai dim o'i ranbarthau yn cael ei gopïo."
 
+msgctxt "notice_import_module_missing"
+msgid ""
+"The module {module} ({key} of [{section}]) is in neither the core nor the "
+"modules of this install: the simulator would not load it. Add it to the "
+"modules, or leave the setting out."
+msgstr "Nid yw'r modiwl {module} ({key} o [{section}]) yn y craidd nac ym modiwlau'r gosodiad hwn: ni fyddai'r efelychydd yn ei lwytho. Ychwanegwch ef at y modiwlau, neu gadewch y gosodiad allan."
+
 msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr "Yna: {enable}, {start}."

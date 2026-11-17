@@ -227,6 +227,23 @@ describe('What a simulator imported keeps of its old install', function () {
     });
 });
 
+describe('The modules a simulator imported names', function () {
+    test('are looked for in its core and the modules of the install: one that is in neither is said', function () {
+        $machine = new Machine();
+        $source = old_install($machine);
+        file_put_contents($source, (string) file_get_contents($source) . "[Search]\nModule = OpenSimSearch\n[Economy]\neconomymodule = DTLNSLMoneyModule\n");
+        // The search module is a DLL of the core (its name in UTF-16, as .NET keeps its strings); the money module is nowhere
+        file_put_contents($machine->core . '/bin/OpenSimSearch.Modules.dll', 'MZ' . mb_convert_encoding('OpenSimSearch', 'UTF-16LE'));
+        $plan = SimulatorImport::prepare($machine->environment, $source, 'demo')->document();
+        $missing = array_values(array_filter($plan['reminders'], static fn(array $n): bool => $n['code'] === 'import-module-missing'));
+
+        expect(array_column(array_column($missing, 'params'), 'module'))
+            ->toBe(['DTLNSLMoneyModule'])
+            ->and($missing[0]['params'])
+            ->toMatchArray(['section' => 'Economy', 'key' => 'economymodule']);
+    });
+});
+
 describe('The folders of a simulator imported', function () {
     test('are the ones of the new simulator, never the ones of the old install, and the plan says they are replaced', function () {
         $machine = new Machine();

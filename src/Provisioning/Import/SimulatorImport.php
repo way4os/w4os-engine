@@ -49,6 +49,7 @@ final class SimulatorImport
         public readonly ?SourceBackup $backup = null,
         public readonly array $scripts = [],
         public readonly bool $copyScripts = true,
+        public readonly array $missingModules = [],
     ) {}
 
     /**
@@ -144,7 +145,14 @@ final class SimulatorImport
             is_dir($path) && ($folders[(string) realpath($path)] = true);
         }
 
-        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped, $backup, array_keys($folders), $scripts);
+        // The modules its kept settings name, looked for in the core and the modules of the install
+        $missing = self::missingModules(
+            $customizations,
+            $exampleText,
+            [$plan->binDir(), $environment->layout->modulesRoot()],
+        );
+
+        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped, $backup, array_keys($folders), $scripts, $missing);
     }
 
     /**
@@ -196,6 +204,8 @@ final class SimulatorImport
                 $this->regions === []
                     ? Notice::of('import-no-region', ['simulator' => $plan->simulatorName, 'folder' => $this->regionsDirectory])
                     : Notice::of('import-stop-source', ['regions' => implode(', ', array_column($this->regions, 'name'))]),
+                // A module a kept setting names that neither the core nor the modules of the install have: the simulator would not load it
+                ...array_map(static fn(array $m): array => Notice::of('import-module-missing', $m), $this->missingModules),
                 Notice::of('import-enable-start', ['enable' => "opensim enable {$plan->slug}", 'start' => "opensim start {$plan->slug}"]),
             ],
         ];
@@ -278,6 +288,49 @@ final class SimulatorImport
         $value = str_starts_with($masked, "{$setting['key']} = ") ? substr($masked, strlen("{$setting['key']} = ")) : Secrets::MASK;
 
         return ['value' => $masked === $line ? $setting['value'] : $value] + $setting;
+    }
+
+    /**
+     * The modules the kept settings name (a key that ends in Module: `[Search] Module`, `economymodule`...) that the core does not
+     * know: neither in its example, nor in a DLL of its bin folder or of the modules of the install (the name of a region module is a
+     * string of its DLL, UTF-16 as .NET keeps it).
+     *
+     * @param list<array{section:string,key:string,value:string}> $kept
+     * @param list<string> $folders where the DLLs are
+     * @return list<array{section:string,key:string,module:string}>
+     */
+    private static function missingModules(array $kept, string $exampleText, array $folders): array
+    {
+        $named = [];
+        foreach ($kept as $setting) {
+            $module = trim($setting['value'], " \t\"");
+            if (preg_match('/Module$/i', $setting['key']) === 1 && preg_match('/^[A-Za-z][\w.]*$/', $module) === 1
+                && preg_match('/\b' . preg_quote($module, '/') . '\b/', $exampleText) !== 1) {
+                $named[] = ['section' => $setting['section'], 'key' => $setting['key'], 'module' => $module];
+            }
+        }
+        if ($named === []) {
+            return [];
+        }
+        $dlls = [];
+        foreach (array_filter($folders, 'is_dir') as $folder) {
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($folder, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::FOLLOW_SYMLINKS)) as $file) {
+                $file->isFile() && str_ends_with(strtolower($file->getFilename()), '.dll') && ($dlls[] = $file->getPathname());
+            }
+        }
+        $missing = $named;
+        foreach ($dlls as $dll) {
+            $bytes = (string) file_get_contents($dll);
+            $missing = array_values(array_filter(
+                $missing,
+                static fn(array $m): bool => !str_contains($bytes, $m['module']) && !str_contains($bytes, mb_convert_encoding($m['module'], 'UTF-16LE')),
+            ));
+            if ($missing === []) {
+                break;
+            }
+        }
+
+        return $missing;
     }
 
     /** Where the new simulator keeps the state of its scripts (the ScriptEnginesPath of its layout). */

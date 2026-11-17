@@ -391,6 +391,7 @@ final class Catalog
         'notice_import_read_access' => 'The files of the older install are read by the user that runs the import: give it read access to them (its config, its includes, its regions) before applying.',
         'notice_import_stop_source' => 'The simulator that runs {regions} now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same.',
         'notice_import_no_region' => 'No region was found for {simulator} in {folder}, the folder its config names: check that it is the one it reads before applying, nothing of its regions would be copied.',
+        'notice_import_module_missing' => 'The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install: the simulator would not load it. Add it to the modules, or leave the setting out.',
         'notice_import_enable_start' => 'Then: {enable}, {start}.',
         'notice_restore_estate_missing' => 'The regions {regions} have no estate in {database}, the database of the grid here, which is kept as it is: they would start with none. Restore their estate there, or link them to one (estate link region) before starting.',
         'notice_restore_estate_unchecked' => 'The estates of the regions could not be checked in {database}, the database of the grid here, which is kept as it is: check that they are there before starting.',
