@@ -115,6 +115,7 @@ final class Machine
                 'DataRoot' => $this->root . '/data',
                 'LogsRoot' => $this->root . '/logs',
                 'CacheRoot' => $this->root . '/cache',
+                'ModulesRoot' => $this->root . '/modules',
             ]),
             $this->processes,
             $this->launcher,

@@ -32,8 +32,9 @@ final class Notice
         'import-read-access' => ['paths'],
         'import-stop-source' => ['regions'],
         'import-no-region' => ['simulator', 'folder'],
-        'import-module-missing' => ['section', 'key', 'module', 'folder'],
-        'import-module-found' => ['section', 'key', 'module', 'folder', 'file'],
+        'import-module-package' => ['section', 'key', 'module', 'package', 'name'],
+        'import-module-missing' => ['section', 'key', 'module', 'folder', 'name'],
+        'import-module-found' => ['section', 'key', 'module', 'folder', 'name', 'file'],
         'import-enable-start' => ['enable', 'start'],
         // The plan of a restore (Archives\BackupRestore)
         'restore-start' => ['instance', 'command'],

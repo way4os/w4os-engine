@@ -281,10 +281,12 @@ describe('The modules a simulator imported names', function () {
             ->toMatchArray([
                 'section' => 'Economy',
                 'key' => 'economymodule',
-                'folder' => $machine->environment->layout->modulesRoot() . '/' . basename($machine->core) . '/DTLNSLMoneyModule',
+                // The folder the packages of the modules use: the core, then the module in lowercase
+                'folder' => $machine->root . '/modules/0.9.3.0/dtlnslmoneymodule',
+                'name' => 'dtlnslmoneymodule',
             ])
             ->and($missing[0]['detail'])
-            ->toContain('/DTLNSLMoneyModule and add DTLNSLMoneyModule to EnabledModules');
+            ->toContain('/modules/0.9.3.0/dtlnslmoneymodule and add dtlnslmoneymodule to EnabledModules');
 
         return [$machine, $source];
     });
@@ -295,6 +297,7 @@ describe('The modules a simulator imported names', function () {
         file_put_contents($dll, 'MZ' . mb_convert_encoding('DTLNSLMoneyModule', 'UTF-16LE'));
         $plan = SimulatorImport::prepare($machine->environment, $source, 'demo')->document();
         $notices = array_column($plan['reminders'], null, 'code');
+        unlink($dll);
 
         expect($notices)
             ->not->toHaveKey('import-module-missing')
@@ -302,8 +305,37 @@ describe('The modules a simulator imported names', function () {
             ->toMatchArray(['module' => 'DTLNSLMoneyModule', 'file' => $dll])
             ->and($notices['import-module-found']['detail'] ?? '')
             ->toContain("has it in $dll")
-            ->toContain('a build of it for this core in ' . $machine->environment->layout->modulesRoot());
+            ->toContain('a build of it for this core in ' . $machine->root . '/modules/0.9.3.0/dtlnslmoneymodule');
     })->depends('are looked for in its core and the modules of the install: one that is in neither is said');
+
+    test('are found only in the modules of its core, a build for another core does not count', function (array $setup) {
+        [$machine, $source] = $setup;
+        $build = static function (string $folder) use ($machine): void {
+            mkdir("{$machine->root}/modules/$folder", 0o755, true);
+            file_put_contents("{$machine->root}/modules/$folder/MoneyServer.Modules.dll", 'MZ' . mb_convert_encoding('DTLNSLMoneyModule', 'UTF-16LE'));
+        };
+        $codes = static fn(): array => array_column(SimulatorImport::prepare($machine->environment, $source, 'demo')->document()['reminders'], 'code');
+        $build('0.9.2.2/dtlnslmoneymodule');
+        $elsewhere = $codes();
+        $build('0.9.3.0/dtlnslmoneymodule');
+
+        expect($elsewhere)->toContain('import-module-missing')->and($codes())->not->toContain('import-module-missing');
+    })->depends('are looked for in its core and the modules of the install: one that is in neither is said');
+
+    test('says the package of one the kit packages', function () {
+        $machine = new Machine();
+        $source = old_install($machine);
+        file_put_contents($source, (string) file_get_contents($source) . "[Search]\nModule = OpenSimSearch\n[Economy]\neconomymodule = Gloebit\n");
+        $plan = SimulatorImport::prepare($machine->environment, $source, 'demo')->document();
+        $packages = array_values(array_filter($plan['reminders'], static fn(array $n): bool => $n['code'] === 'import-module-package'));
+
+        expect(array_column(array_column($packages, 'params'), 'package'))
+            ->toBe(['opensim-0.9.3.0-opensimsearch', 'opensim-0.9.3.0-gloebit'])
+            ->and($packages[0]['detail'])
+            ->toContain('apt install opensim-0.9.3.0-opensimsearch', 'add opensimsearch to EnabledModules')
+            ->and(array_column($plan['reminders'], 'code'))
+            ->not->toContain('import-module-missing');
+    });
 });
 
 describe('The folders of a simulator imported', function () {

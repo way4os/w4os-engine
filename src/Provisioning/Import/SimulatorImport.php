@@ -146,13 +146,26 @@ final class SimulatorImport
             is_dir($path) && ($folders[(string) realpath($path)] = true);
         }
 
-        // The modules its kept settings name, looked for in the core and the modules of the install; for one that is in neither, where
-        // a build of it goes (the folder of its core in the modules, ModuleLinker) and the DLL of the older install that has it
-        $modules = rtrim($environment->layout->modulesRoot(), '/') . '/' . basename($plan->coreDirectory);
+        // The modules its kept settings name, looked for in the core and in the modules of this core (ModuleLinker: the folder of its
+        // name or of its version); for one that is in neither, its package when the kit has one, else the folder a build of it goes
+        // to (the module in lowercase, as the packages have it) and the DLL of the older install that has it
+        $core = basename($plan->coreDirectory);
+        $version = preg_match('/\d+(?:\.\d+)+/', $core, $m) === 1 ? $m[0] : $core;
+        $modules = rtrim($environment->layout->modulesRoot(), '/');
+        $packaged = array_merge([], ...array_values(array_map(
+            static fn(\OpenSim\Provisioning\OptionTemplate $option): array => $option->modules(),
+            (new \OpenSim\Provisioning\Presets([], $environment->layout->etcRoot()))->options(),
+        )));
         $missing = [];
-        foreach (self::missingModules($customizations, $exampleText, [$plan->binDir(), $environment->layout->modulesRoot()]) as $module) {
+        foreach (self::missingModules($customizations, $exampleText, [$plan->binDir(), "$modules/$core", "$modules/$version"]) as $module) {
+            $name = strtolower($module['module']);
+            if (in_array($name, $packaged, true)) {
+                $missing[] = $module + ['package' => "opensim-$version-$name", 'name' => $name];
+
+                continue;
+            }
             $found = self::dllOf($module['module'], self::dlls(array_unique([...array_map('dirname', $backup->files), $base]), false));
-            $missing[] = $module + ['folder' => "$modules/{$module['module']}"] + ($found !== null ? ['file' => $found] : []);
+            $missing[] = $module + ['folder' => "$modules/$version/$name", 'name' => $name] + ($found !== null ? ['file' => $found] : []);
         }
 
         // What the import reads, checked first: an old install keeps its files to its own user (setfacl gives them to the user of the
@@ -212,7 +225,7 @@ final class SimulatorImport
                     ? Notice::of('import-no-region', ['simulator' => $plan->simulatorName, 'folder' => $this->regionsDirectory])
                     : Notice::of('import-stop-source', ['regions' => implode(', ', array_column($this->regions, 'name'))]),
                 // A module a kept setting names that neither the core nor the modules of the install have: the simulator would not load it
-                ...array_map(static fn(array $m): array => Notice::of(isset($m['file']) ? 'import-module-found' : 'import-module-missing', $m), $this->missingModules),
+                ...array_map(static fn(array $m): array => Notice::of(isset($m['package']) ? 'import-module-package' : (isset($m['file']) ? 'import-module-found' : 'import-module-missing'), $m), $this->missingModules),
                 Notice::of('import-enable-start', ['enable' => "opensim enable {$plan->slug}", 'start' => "opensim start {$plan->slug}"]),
             ],
         ];
