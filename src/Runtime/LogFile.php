@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OpenSim\Runtime;
 
+use OpenSim\Text\Secrets;
+
 /**
  * The log file of an instance, read from the point where a start began: what an earlier run wrote is not about this one.
  */
@@ -41,7 +43,7 @@ final class LogFile
         $text = (string) stream_get_contents($handle);
         fclose($handle);
 
-        return $text;
+        return Secrets::mask($text);
     }
 
     /** The last line of the log without its date and level, null when there is none. */
@@ -65,6 +67,6 @@ final class LogFile
             return null;
         }
 
-        return (string) preg_replace('/^[0-9-]+ [0-9:,.]+ +[A-Z]+ +/', '', (string) end($lines));
+        return Secrets::mask((string) preg_replace('/^[0-9-]+ [0-9:,.]+ +[A-Z]+ +/', '', (string) end($lines)));
     }
 }

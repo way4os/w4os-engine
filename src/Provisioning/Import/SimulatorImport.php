@@ -16,6 +16,7 @@ use OpenSim\Provisioning\SimulatorPlan;
 use OpenSim\Provisioning\SimulatorProvisioner;
 use OpenSim\Provisioning\UiInterface;
 use OpenSim\Runtime\Environment;
+use OpenSim\Text\Secrets;
 
 /**
  * A simulator that runs with another install (its OpenSim.ini and its regions: the layout of opensim-debian, or of a release) moved
@@ -124,7 +125,11 @@ final class SimulatorImport
             'database' => ['host' => $plan->dbHost, 'name' => $plan->dbName, 'user' => $plan->dbUser, 'kept' => true],
             'ports' => ['http' => $plan->httpPort, 'console' => $consolePort],
             'regions' => $this->regions,
-            'settings' => $this->customizations,
+            // What is kept, its secrets masked: they are in the config written
+            'settings' => array_map(
+                static fn(array $setting): array => ['value' => Secrets::mask("{$setting['key']} = {$setting['value']}") === "{$setting['key']} = {$setting['value']}" ? $setting['value'] : Secrets::MASK] + $setting,
+                $this->customizations,
+            ),
             'report' => $this->reportPath(),
             'writes' => array_values(
                 array_unique([
@@ -181,7 +186,7 @@ final class SimulatorImport
             count($this->customizations) . ' setting(s) of the original kept in the new config:',
         ];
         foreach ($this->customizations as $setting) {
-            $lines[] = "  [{$setting['section']}] {$setting['key']} = {$setting['value']}" . ($setting['unknown'] ? ' (not a setting of the core)' : '');
+            $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ($setting['unknown'] ? ' (not a setting of the core)' : '');
         }
 
         return implode("\n", $lines) . "\n";

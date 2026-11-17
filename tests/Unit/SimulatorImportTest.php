@@ -30,7 +30,7 @@ function old_install(Machine $machine, string $sim = 'redoutable', string $regio
         "[Launch]\nSimName = $sim\nBinDir = /opt/opensim/lib/opensim-0.9.2.2/bin\n" .
             "[Const]\nEtcDirectory = \"$etc\"\nDataDirectory = \"/opt/opensim/var/$sim\"\n" .
             "[Startup]\nregionload_regionsdir = \"\${Const|EtcDirectory}/grids/speculoos/sims/$sim/regions\"\nInclude-Grid = \"$etc/grids/speculoos/OpenSim.ini\"\n" .
-            "[Network]\nhttp_listener_port = 9250\n" .
+            "[Network]\nhttp_listener_port = 9250\nConsolePass = \"hidden\"\n" .
             "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=os$sim;User ID=opensim;Password=secret;Old Guids=true;\"\n" .
             "[Estates]\nDefaultEstateName = \"Redoutable Estate\"\nDefaultEstateOwnerName = \"Gudule Lapointe\"\n",
     );
@@ -58,6 +58,11 @@ describe('A simulator imported', function () {
             ->toContain($plan['config'], $plan['regions'][0]['to'], $plan['report'])
             ->and(array_column($plan['settings'], 'value', 'key'))
             ->toHaveKey('MinThreads')
+            // A password kept is not shown
+            ->and(json_encode($plan))
+            ->not->toContain('hidden')
+            ->and($import->report())
+            ->not->toContain('hidden')
             ->and($plan['reminders'][0])
             ->toContain('give it read access to them')
             ->and($plan['reminders'][2])
