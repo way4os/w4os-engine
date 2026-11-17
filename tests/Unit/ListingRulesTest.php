@@ -59,7 +59,10 @@ describe('Every list', function () {
             ->and(array_column(contract_lists()['/grids']['columns'], 'type', 'name'))
             ->toHaveKey('status')
             ->and(OpenSim\I18n\Catalog::messages('fr_FR')['column_status'])
-            ->toBe('Statut');
+            ->toBe('Statut')
+            // Every tone an indicator uses is one the contract describes
+            ->and(array_filter(OpenSim\Data\Listing::TONES, static fn(string $tone): bool => !str_contains(Contract::document()['info']['description'], "$tone ")))
+            ->toBe([]);
     });
 
     test('has, for each of its actions, the message a site says once it is done (manage_<action>)', function () {
