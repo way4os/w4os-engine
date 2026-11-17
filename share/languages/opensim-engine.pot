@@ -1098,6 +1098,22 @@ msgctxt "error_field_unknown"
 msgid "This cannot be done."
 msgstr ""
 
+msgctxt "error_field_read_only"
+msgid "The name, the place and the size of a region are changed in its file, by its operator."
+msgstr ""
+
+msgctxt "error_flag_unknown"
+msgid "This flag does not exist."
+msgstr ""
+
+msgctxt "error_owner_unknown"
+msgid "This avatar does not exist."
+msgstr ""
+
+msgctxt "error_estate_shared"
+msgid "The owner of this region is the owner of its estate, which has other regions: change the owner of the estate."
+msgstr ""
+
 msgctxt "error_filter_unknown"
 msgid "This list cannot be filtered this way."
 msgstr ""

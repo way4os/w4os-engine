@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "b6e7e83",
+        "version": "702ec2e",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -3344,7 +3344,23 @@
                             "type": "link",
                             "group": "region",
                             "readOnly": true,
-                            "link": "ownerProfile"
+                            "link": "ownerProfile",
+                            "condition": {
+                                "local": [
+                                    false
+                                ]
+                            }
+                        },
+                        {
+                            "name": "owner",
+                            "label": "column_owner",
+                            "type": "avatar",
+                            "group": "region",
+                            "condition": {
+                                "local": [
+                                    true
+                                ]
+                            }
                         },
                         {
                             "name": "serverName",
@@ -3352,6 +3368,28 @@
                             "type": "text",
                             "group": "region",
                             "readOnly": true
+                        },
+                        {
+                            "name": "roles",
+                            "label": "column_flags",
+                            "type": "checkboxes",
+                            "group": "region",
+                            "options": {
+                                "DefaultRegion": "region_flag_default_region",
+                                "FallbackRegion": "region_flag_fallback_region",
+                                "NoDirectLogin": "region_flag_no_direct_login",
+                                "Persistent": "region_flag_persistent",
+                                "LockedOut": "region_flag_locked_out",
+                                "NoMove": "region_flag_no_move",
+                                "Reservation": "region_flag_reservation",
+                                "Authenticate": "region_flag_authenticate",
+                                "DefaultHGRegion": "region_flag_default_hg_region"
+                            },
+                            "condition": {
+                                "hyperlink": [
+                                    false
+                                ]
+                            }
                         },
                         {
                             "name": "flagNames",
@@ -3410,7 +3448,12 @@
                                     "label": "region_flag_default_hg_region",
                                     "description": "region_flag_default_hg_region_help"
                                 }
-                            ]
+                            ],
+                            "condition": {
+                                "hyperlink": [
+                                    true
+                                ]
+                            }
                         },
                         {
                             "name": "online",
@@ -3525,6 +3568,14 @@
                                                     "enabled": {
                                                         "type": "boolean",
                                                         "description": "Enable or disable the region (its file); the simulator has to restart"
+                                                    },
+                                                    "roles": {
+                                                        "type": "array",
+                                                        "description": "The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust's, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` saying to restart Robust. `flag-unknown` for a name that is not a flag"
+                                                    },
+                                                    "owner": {
+                                                        "type": "string",
+                                                        "description": "The UUID of its new owner, the owner of its estate: through the console of its simulator, else the database of the estate when the simulator is stopped; the table of regions of the grid at once. `estate-shared` when its estate has other regions, `owner-unknown` for an avatar the grid does not have. Its name, its place and its size are its file's: `field-read-only`"
                                                     }
                                                 }
                                             }
@@ -8735,6 +8786,10 @@
                             "model-unknown",
                             "link-invalid",
                             "field-unknown",
+                            "field-read-only",
+                            "flag-unknown",
+                            "owner-unknown",
+                            "estate-shared",
                             "filter-unknown",
                             "filter-value-unknown",
                             "sort-unknown",
@@ -8744,7 +8799,7 @@
                             "no-confirmation-pending",
                             "mail-failed"
                         ],
-                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
+                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar); `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
                     },
                     "detail": {
                         "type": "string",

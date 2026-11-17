@@ -365,6 +365,10 @@ final class Api
             }
             $attributes !== [] && $model->update($attributes);
             $meta = [];
+            // What is left to do after the change (a restart)
+            if ($model instanceof Region && $model->reminders() !== []) {
+                $meta['reminders'] = $model->reminders();
+            }
             if ($email !== null) {
                 $send = !Result::isFalse($options['send'] ?? true);
                 $meta = self::confirmation(

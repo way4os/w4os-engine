@@ -28,13 +28,15 @@ final class InstanceConsoleService
         self::$sender = $sender;
     }
 
-    /** Whether an instance runs, from the config file it was started with (the link in opensim.d or robust.d). */
+    /**
+     * Whether an instance runs, from the config file it was started with: the link in opensim.d or robust.d, or the file it links to.
+     */
     public static function running(string $ini, ?Environment $environment = null): bool
     {
         $processes = $environment?->processes ?? new SystemProcessTable();
         $real = realpath($ini) ?: $ini;
         foreach ($processes->all() as $process) {
-            if ($process->runs($ini) || $process->runs($real)) {
+            if ($process->runs($ini) || $process->runs($real) || ($process->ini() !== '' && realpath($process->ini()) === $real)) {
                 return true;
             }
         }

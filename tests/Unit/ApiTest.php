@@ -679,7 +679,10 @@ describe('The contract', function () {
             ->and(array_column($region['groups'], 'name'))
             ->toBe(['region'])
             ->and(array_column($region['fields'], 'name'))
-            ->toBe(['mapImage', 'name', 'uuid', 'location', 'size', 'ownerName', 'serverName', 'flagNames', 'online', 'lastSeen', 'uri', 'enabled'])
+            ->toBe(['mapImage', 'name', 'uuid', 'location', 'size', 'ownerName', 'owner', 'serverName', 'roles', 'flagNames', 'online', 'lastSeen', 'uri', 'enabled'])
+            // Its roles and its owner are changed; its name, its place and its size are its file's
+            ->and(array_column(array_filter($region['fields'], static fn(array $f): bool => !($f['readOnly'] ?? false)), 'type', 'name'))
+            ->toBe(['owner' => 'avatar', 'roles' => 'checkboxes', 'enabled' => 'boolean'])
             // Unknown (null) when this machine has no file of the region (local false): neither the field nor its actions are shown
             ->and((new \OpenSim\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => false, 'enabled' => null]))
             ->toBeFalse()
@@ -691,7 +694,7 @@ describe('The contract', function () {
                 'disable' => ['local' => [true], 'enabled' => [true]],
             ])
             ->and(\OpenSim\Models\Region::itemForm()->writable())
-            ->toBe(['enabled'])
+            ->toBe(['owner', 'roles', 'enabled'])
             // A parcel is only shown: it is changed in the viewer
             ->and(\OpenSim\Models\Parcel::itemForm()->writable())
             ->toBe([])

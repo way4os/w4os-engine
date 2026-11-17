@@ -1155,6 +1155,26 @@ msgctxt "error_field_unknown"
 msgid "This cannot be done."
 msgstr "Non è possibile."
 
+msgctxt "error_field_read_only"
+msgid ""
+"The name, the place and the size of a region are changed in its file, by its "
+"operator."
+msgstr "Il nome, la posizione e la dimensione di una regione si cambiano nel suo file, dal suo gestore."
+
+msgctxt "error_flag_unknown"
+msgid "This flag does not exist."
+msgstr "Questo flag non esiste."
+
+msgctxt "error_owner_unknown"
+msgid "This avatar does not exist."
+msgstr "Questo avatar non esiste."
+
+msgctxt "error_estate_shared"
+msgid ""
+"The owner of this region is the owner of its estate, which has other "
+"regions: change the owner of the estate."
+msgstr "Il proprietario di questa regione è quello della sua proprietà, che ha altre regioni: cambia il proprietario della proprietà."
+
 msgctxt "error_filter_unknown"
 msgid "This list cannot be filtered this way."
 msgstr "Questo elenco non può essere filtrato così."

@@ -16,7 +16,10 @@ use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
 use OpenSim\Data\Listing;
 use OpenSim\Data\OSPDO;
+use OpenSim\Console\InstanceConsoleService;
+use OpenSim\Controllers\AbstractController;
 use OpenSim\Exceptions\ChannelUnavailable;
+use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Hypergrid\Destination;
 use OpenSim\Provisioning\Slug;
 
@@ -97,6 +100,15 @@ final class Region extends Model
 
     /** @var array<string,mixed> the row of the search tables */
     private array $indexed = [];
+
+    /** The roles that make a region a place of the grid: Robust keeps them in its config (Region_<Name>), read when it starts. */
+    private const GRID_ROLES = self::DEFAULT_REGION | self::DEFAULT_HGREGION | self::FALLBACK_REGION;
+
+    /** What a region has that its file says, changed there by its operator: refused by update(). */
+    private const FILE_FIELDS = ['name', 'uuid', 'location', 'x', 'y', 'size', 'width', 'height', 'internalPort', 'file', 'simulator'];
+
+    /** @var list<string> what is left to do after the last change (update()) */
+    private array $reminders = [];
 
     private const COLUMNS = 'r.uuid, r.regionName, r.regionHandle, r.locX, r.locY, r.sizeX, r.sizeY, r.serverIP, r.serverPort, r.serverURI, r.flags, r.last_seen, r.owner_uuid, r.access, r.ScopeID, r.regionMapTexture';
 
@@ -353,6 +365,163 @@ final class Region extends Model
             'local' => $this->in(self::CONFIG),
             'enabled' => $this->in(self::CONFIG) ? $this->isEnabled() : null,
         ];
+    }
+
+    /**
+     * Change what a region lets change: its roles (`roles`, the flags a region can be given, by name; the ones Robust sets itself,
+     * RegionOnline and Hyperlink, are left as they are) and its owner (`owner`, a UUID: the owner of its estate). What its file says
+     * (its name, its place, its size) is changed there by its operator: refused. What is left to do is said by reminders().
+     *
+     * @param array<string,mixed> $values
+     * @throws InvalidValue `field-read-only`, `field-unknown`, `flag-unknown`, `owner-unknown`, `estate-shared`
+     * @throws ChannelUnavailable when nothing can make the change now
+     */
+    public function update(array $values): void
+    {
+        $this->reminders = [];
+        foreach (array_keys($values) as $name) {
+            if (in_array($name, ['roles', 'owner'], true)) {
+                continue;
+            }
+            throw in_array($name, self::FILE_FIELDS, true)
+                ? InvalidValue::because('field-read-only', "the $name of a region is the one of its file, changed there by its operator")
+                : InvalidValue::because('field-unknown', "a region has no changeable '$name'");
+        }
+        array_key_exists('roles', $values) && $this->changeRoles($values['roles']);
+        array_key_exists('owner', $values) && $this->changeOwner(trim((string) $values['owner']));
+    }
+
+    /** The roles and the owner are changed in the databases of the grid when no console can (update()). */
+    public function channels(): array
+    {
+        return Connections::pdo($this->config, 'GridService') === null ? [] : ['database'];
+    }
+
+    /** @return list<string> what is left to do after the last change (a restart), none when nothing is */
+    public function reminders(): array
+    {
+        return $this->reminders;
+    }
+
+    /**
+     * Give a region these roles and only them: through the console of Robust (`set region flags`, which writes the regions table),
+     * else in the regions table as it does. The roles of a place of the grid are also kept in the config of Robust (GRID_ROLES), a
+     * role taken away taken from there too: Robust gives the region the ones it says each time the region registers.
+     *
+     * @param mixed $roles names, a list or separated by commas
+     */
+    private function changeRoles(mixed $roles): void
+    {
+        $names = is_array($roles) ? $roles : preg_split('/[\s,]+/', (string) $roles, -1, PREG_SPLIT_NO_EMPTY);
+        $wanted = 0;
+        foreach ($names as $name) {
+            $flag = self::flagValue((string) $name);
+            $flag !== 0 || throw InvalidValue::because('flag-unknown', "'$name' is not a flag of a region: " . implode(', ', self::NAMES));
+            $wanted |= $flag;
+        }
+        $current = $this->flags() & self::ROLES;
+        $wanted &= self::ROLES;
+        $add = $wanted & ~$current;
+        $remove = $current & ~$wanted;
+        if ($add === 0 && $remove === 0) {
+            return;
+        }
+        $this->isHyperlink() && throw InvalidValue::because('invalid-request', 'a link to a region of another grid has the flags of its grid');
+        $changes = implode(',', [
+            ...array_map(static fn(string $name): string => "+$name", self::flagNames($add)),
+            ...array_map(static fn(string $name): string => "-$name", self::flagNames($remove)),
+        ]);
+        $robust = $this->robustInstance();
+        $sent = $robust !== '' && InstanceConsoleService::send($robust, sprintf('set region flags "%s" %s', $this->name(), $changes));
+        if (!$sent) {
+            self::connect($this->config, 'GridService', null, 'change the flags of ' . $this->name())->prepareAndExecute(
+                'UPDATE regions SET flags = (flags | :add) & ~:remove WHERE LOWER(uuid) = :uuid',
+                ['add' => $add, 'remove' => $remove, 'uuid' => (string) $this->uuid()],
+            );
+        }
+        $this->keepRoles($add, $remove);
+    }
+
+    /** The roles of a place of the grid given, and every role taken away, in the Region_<Name> key of the config of Robust. */
+    private function keepRoles(int $add, int $remove): void
+    {
+        $file = $this->config->file('Robust');
+        $key = self::configKey($this->name());
+        if ($file === null) {
+            ($add & self::GRID_ROLES) === 0 ||
+                ($this->reminders[] = sprintf(
+                    _('The config of Robust is not on this machine: give %s = "%s" there, so the region keeps its roles when it registers again.'),
+                    $key,
+                    implode(', ', self::flagNames($add & self::GRID_ROLES)),
+                ));
+
+            return;
+        }
+        $ini = IniEditor::load($file);
+        $before = array_values(array_filter(array_map('trim', explode(',', trim((string) $ini->get('GridService', $key), " \t\"")))));
+        $taken = self::flagNames($remove);
+        $after = array_values(array_filter($before, static fn(string $flag): bool => !in_array(ltrim($flag, '+-'), $taken, true)));
+        foreach (self::flagNames($add & self::GRID_ROLES) as $role) {
+            in_array($role, $after, true) || ($after[] = $role);
+        }
+        if ($after === $before) {
+            return;
+        }
+        $after === [] ? $ini->remove('GridService', $key) : $ini->set('GridService', $key, '"' . implode(', ', $after) . '"', 'Region_');
+        $ini->save($file);
+        $this->reminders[] = sprintf(
+            _('Robust reads %s when it starts: restart Robust (opensim restart %s) so it gives the region these roles when it registers again.'),
+            $key,
+            $this->robustInstance(),
+        );
+    }
+
+    /** The instance of the Robust of the grid: the nick of its folder on this machine (Grid::robustInstance()), else the one it says. */
+    private function robustInstance(): string
+    {
+        $file = $this->config->file('Robust');
+
+        return AbstractController::cleanName(
+            $file !== null ? basename(dirname($file)) : (string) $this->config->find('GridInfoService', 'gridnick'),
+        );
+    }
+
+    /**
+     * Give a region another owner: the owner of its estate, through the console of its simulator (`estate set owner`, which the
+     * simulators of the estate reload at once), else in the database of the estate when the simulator is stopped (it reads it when it
+     * starts; a running one would write back what it holds). The regions table of the grid is changed too, so its list follows at
+     * once, as the region would say when it registers again. Refused for an estate that has other regions: they would change owner.
+     */
+    private function changeOwner(string $owner): void
+    {
+        Uuid::isValid($owner) || throw InvalidValue::because('invalid-request', "the owner is the UUID of an avatar, not '$owner'");
+        $owner = strtolower($owner);
+        if ($owner === $this->owner()) {
+            return;
+        }
+        Avatar::find($this->config, $owner) ?? throw InvalidValue::because('owner-unknown', "the grid has no avatar $owner");
+        $simulator = $this->simulator();
+        $action = 'change the owner of ' . $this->name();
+        $simulator !== '' || throw ChannelUnavailable::for($action, 'its simulator is not on this machine');
+        $estate = Estate::all($this->config, ['filters' => ['region' => (string) $this->uuid()]])->items()[0] ??
+            throw ChannelUnavailable::for($action, 'no estate of this machine holds it');
+        count($estate->regions()) > 1 &&
+            throw InvalidValue::because(
+                'estate-shared',
+                sprintf('the owner of %s is the one of its estate %s, which has %d regions: they would all change owner', $this->name(), $estate->name(), count($estate->regions())),
+            );
+        if (!InstanceConsoleService::send($simulator, "estate set owner {$estate->number()} $owner")) {
+            InstanceConsoleService::running((string) $this->config->file("simulators/$simulator")) &&
+                throw ChannelUnavailable::for($action, "the simulator $simulator runs and its console cannot be reached");
+            self::connect($this->config, Database::Estate, $estate->simulator() ?? $simulator, $action)->prepareAndExecute(
+                'UPDATE estate_settings SET EstateOwner = :owner WHERE EstateID = :id',
+                ['owner' => $owner, 'id' => $estate->number()],
+            );
+        }
+        self::connect($this->config, 'GridService', null, $action)->prepareAndExecute(
+            'UPDATE regions SET owner_uuid = :owner WHERE LOWER(uuid) = :uuid',
+            ['owner' => $owner, 'uuid' => (string) $this->uuid()],
+        );
     }
 
     /** A region from its file in the regions folder of a simulator. */
@@ -941,8 +1110,20 @@ final class Region extends Model
             \PDO::FETCH_ASSOC,
         );
         $rows = $rows === [] ? [] : self::withServerNames(self::withOwnerNames($config, $rows), self::servers($config, $pdo));
+        if (!isset($rows[0])) {
+            return null;
+        }
+        $region = new self($config, $rows[0]);
+        // What its file says, when it is on this machine: its simulator, whether it is enabled
+        foreach (static::configured($config) as $local) {
+            if ($local->uuid() !== null && $local->uuid() === $region->uuid()) {
+                $region->local = $local->local;
 
-        return isset($rows[0]) ? new self($config, $rows[0]) : null;
+                break;
+            }
+        }
+
+        return $region;
     }
 
     /** What the list of the regions shows (Listing). */
@@ -996,8 +1177,9 @@ final class Region extends Model
     }
 
     /**
-     * What the page of a region shows and lets change (ItemForm): what the grid knows of it, and the name of its simulator; only
-     * whether it is enabled is changed, for a region whose file is on this machine.
+     * What the page of a region shows and lets change (ItemForm): what the grid knows of it, and the name of its simulator. Its roles
+     * are changed, and its owner and whether it is enabled for a region whose file is on this machine (update()); its name, its
+     * place and its size are its file's.
      */
     public static function itemForm(): ItemForm
     {
@@ -1008,9 +1190,23 @@ final class Region extends Model
                 ItemForm::shown('uuid', 'profile_key', 'text', 'region'),
                 ItemForm::shown('location', 'profile_location', 'text', 'region'),
                 ItemForm::shown('size', 'column_size', 'size', 'region'),
-                ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile']),
+                // The owner is the one of its estate, changed where its simulator is
+                ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile', 'condition' => ['local' => [false]]]),
+                ItemForm::field('owner', 'column_owner', 'avatar', 'region', more: ['condition' => ['local' => [true]]]),
                 ItemForm::shown('serverName', 'filter_simulator', 'text', 'region'),
-                ItemForm::shown('flagNames', 'column_flags', 'list', 'region', ['values' => Listing::values(self::shownFlagKeys())]),
+                // The flags a region can be given, changed; a link to another grid has the ones of its grid
+                ItemForm::field(
+                    'roles',
+                    'column_flags',
+                    'checkboxes',
+                    'region',
+                    array_map(static fn(array $keys): string => $keys[0], self::roleKeys(true)),
+                    ['condition' => ['hyperlink' => [false]]],
+                ),
+                ItemForm::shown('flagNames', 'column_flags', 'list', 'region', [
+                    'values' => Listing::values(self::shownFlagKeys()),
+                    'condition' => ['hyperlink' => [true]],
+                ]),
                 ItemForm::shown('online', 'online', 'boolean', 'region'),
                 ItemForm::shown('lastSeen', 'last_seen', 'date', 'region'),
                 ItemForm::shown('uri', 'column_uri', 'link', 'region', ['link' => 'teleport']),

@@ -429,16 +429,16 @@ describe('Regions', function () {
             ->toBeNull();
     });
 
-    test('are not changed by any channel yet', function () {
+    test('have their name in their file: neither renamed nor disabled without it', function () {
         Connections::using(static fn() => region_database());
         $welcome = Region::find(region_config(), 'Welcome');
 
         expect($welcome->channels())
-            ->toBe([])
+            ->toBe(['database'])
             ->and(fn() => $welcome->disable())
             ->toThrow(ChannelUnavailable::class)
             ->and(fn() => $welcome->update(['name' => 'Home']))
-            ->toThrow(ChannelUnavailable::class);
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('field-read-only'));
     });
 
     test('cannot be listed when the database cannot be reached', function () {

@@ -374,6 +374,14 @@ final class Contract
             ],
             'writable' => [
                 'enabled' => ['boolean', 'Enable or disable the region (its file); the simulator has to restart'],
+                'roles' => [
+                    'array',
+                    'The flags it is given, all of them (DefaultRegion, FallbackRegion, Persistent...; RegionOnline and Hyperlink are Robust\'s, left as they are): through the console of Robust, else its table of regions; the roles of a place of the grid (DefaultRegion, DefaultHGRegion, FallbackRegion) kept in Region_<Name> of Robust.ini too, `meta.reminders` saying to restart Robust. `flag-unknown` for a name that is not a flag',
+                ],
+                'owner' => [
+                    'string',
+                    'The UUID of its new owner, the owner of its estate: through the console of its simulator, else the database of the estate when the simulator is stopped; the table of regions of the grid at once. `estate-shared` when its estate has other regions, `owner-unknown` for an avatar the grid does not have. Its name, its place and its size are its file\'s: `field-read-only`',
+                ],
             ],
         ],
         'parcels' => [
