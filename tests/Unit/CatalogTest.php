@@ -20,8 +20,8 @@ describe('the catalog of the texts of the sites', function () {
             // French puts a narrow no-break space before its colon
             ->and(Catalog::messages('fr_FR')['label_value'])
             ->toBe("%1\$s\u{202F}: %2\$s")
-            ->and([Catalog::MESSAGES['label_value'], Catalog::messages('fr_FR')['filters']])
-            ->toBe(['%1$s: %2$s', 'Filtres']);
+            ->and([Catalog::MESSAGES['label_value'], Catalog::messages('fr_FR')['filters'], Catalog::messages('fr_FR')['tab_overview']])
+            ->toBe(['%1$s: %2$s', 'Filtres', 'Aperçu']);
     });
 
     test('has a text for every status, every role, every want and every skill of an avatar', function () {

@@ -202,6 +202,8 @@ final class Catalog
         'filters' => 'Filters',
         'filters_active' => '%d active filters',
         'label_value' => '%1$s: %2$s',
+        // The first tab of the page of an item
+        'tab_overview' => 'Overview',
         'column_status' => 'Status',
         'state_enabled' => 'Enabled',
         'state_disabled' => 'Disabled',

@@ -533,6 +533,10 @@ msgctxt "label_value"
 msgid "%1$s: %2$s"
 msgstr "%1$s: %2$s"
 
+msgctxt "tab_overview"
+msgid "Overview"
+msgstr "Visão geral"
+
 msgctxt "column_status"
 msgid "Status"
 msgstr "Estado"
