@@ -54,6 +54,7 @@ final class Catalog
         'regions_count' => '%d region',
         'avatars_count' => '%d avatar',
         'simulators_count' => '%d simulator',
+        'filters_active' => '%d active filter',
     ];
 
     /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s, %d). */
@@ -197,6 +198,10 @@ final class Catalog
         'no_simulators' => 'No simulator',
         // Its status, each state saying it all on its own: enabled, running, and the ways the engine reaches it, named as they are
         // (a file, a program: the same in every language) while they are there, with what is wrong when they are not
+        // The toolbar of a list: its filters, how many are on (filters_active changes with the number), a label before its value
+        'filters' => 'Filters',
+        'filters_active' => '%d active filters',
+        'label_value' => '%1$s: %2$s',
         'column_status' => 'Status',
         'state_enabled' => 'Enabled',
         'state_disabled' => 'Disabled',

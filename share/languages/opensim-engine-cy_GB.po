@@ -524,6 +524,24 @@ msgctxt "no_simulators"
 msgid "No simulator"
 msgstr "Dim efelychydd"
 
+msgctxt "filters"
+msgid "Filters"
+msgstr "Hidlyddion"
+
+#, php-format
+msgctxt "filters_active"
+msgid "%d active filter"
+msgid_plural "%d active filters"
+msgstr[0] "%d hidlydd gweithredol"
+msgstr[1] "%d hidlydd gweithredol"
+msgstr[2] "%d hidlydd gweithredol"
+msgstr[3] "%d hidlydd gweithredol"
+
+#, php-format
+msgctxt "label_value"
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
 msgctxt "column_status"
 msgid "Status"
 msgstr "Statws"

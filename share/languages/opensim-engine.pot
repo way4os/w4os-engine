@@ -479,6 +479,22 @@ msgctxt "no_simulators"
 msgid "No simulator"
 msgstr ""
 
+msgctxt "filters"
+msgid "Filters"
+msgstr ""
+
+#, php-format
+msgctxt "filters_active"
+msgid "%d active filter"
+msgid_plural "%d active filters"
+msgstr[0] ""
+msgstr[1] ""
+
+#, php-format
+msgctxt "label_value"
+msgid "%1$s: %2$s"
+msgstr ""
+
 msgctxt "column_status"
 msgid "Status"
 msgstr ""
