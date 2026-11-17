@@ -23,6 +23,8 @@ use OpenSim\Models\AvatarModel;
 use OpenSim\Models\Estate;
 use OpenSim\Models\Grid;
 use OpenSim\Provisioning\QuickSetup;
+use OpenSim\Provisioning\SetupApply;
+use OpenSim\Provisioning\SetupFile;
 use OpenSim\Provisioning\Import\SimulatorImport;
 use OpenSim\Provisioning\NullUi;
 use OpenSim\Models\Parcel;
@@ -823,6 +825,38 @@ final class Api
         return Response::document([
             'data' => ['type' => 'setups', 'id' => 'quick', 'attributes' => $result],
             'links' => ['self' => '/setups/quick'],
+        ]);
+    }
+
+    /**
+     * A setup file applied to a grid of this machine (SetupApply): the simulators it names made, or given the regions it names;
+     * planned, or written with `mode` apply. The file is `text` (JSON or YAML, `format` when its first character does not tell), or
+     * `setup`, the same as an object.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function setupFile(array $attributes): Response
+    {
+        $instance = '/setups/files';
+        try {
+            $mode = (string) ($attributes['mode'] ?? 'plan');
+            in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
+            $data = is_array($attributes['setup'] ?? null)
+                ? $attributes['setup']
+                : SetupFile::read((string) ($attributes['text'] ?? ''), ($attributes['format'] ?? '') !== '' ? (string) $attributes['format'] : null);
+            $setup = SetupApply::prepare($this->environment, $data);
+            $mode === 'apply' && $setup->apply(new NullUi());
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document([
+            'data' => [
+                'type' => 'files',
+                'id' => $setup->grid->nick(),
+                'attributes' => ['mode' => $mode, 'applied' => $mode === 'apply'] + $setup->document(),
+            ],
+            'links' => ['self' => $instance],
         ]);
     }
 

@@ -1,0 +1,113 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * A setup file applied to a grid of this machine without a question: a new simulator with its regions, a region given to a
+ * simulator that exists. Planned (nothing written), then applied.
+ */
+
+use OpenSim\Exceptions\InvalidValue;
+use OpenSim\Provisioning\DatabaseService;
+use OpenSim\Provisioning\NullUi;
+use OpenSim\Provisioning\SetupApply;
+use OpenSim\Testing\Machine;
+
+/** A file that adds the simulator North (two regions, the first of 512 meters, a fallback) and a region to alpha. */
+function setup_apply_file(array $first = []): array
+{
+    return [
+        'grid' => ['nick' => 'demo'],
+        'owner' => ['name' => 'Ada Love', 'password' => 'secret-pass'],
+        'simulators' => [
+            [
+                'name' => 'North',
+                'database' => ['user' => 'opensim', 'password' => 'secret'],
+                'regions' => [
+                    $first + ['name' => 'Big Garden', 'size' => 512, 'roles' => ['FallbackRegion']],
+                    ['name' => 'Small Garden'],
+                ],
+            ],
+            ['name' => 'alpha', 'regions' => [['name' => 'Alpha Two', 'location' => '1200,1200']]],
+        ],
+    ];
+}
+
+describe('A setup file applied', function () {
+    test('is planned first: a new simulator with its regions, a region of a simulator that exists, apart, nothing written', function () {
+        $machine = new Machine();
+        $plan = SetupApply::prepare($machine->environment, setup_apply_file())->document();
+        [$north, $small, $alpha] = $plan['steps'];
+
+        expect($plan['problems'])
+            ->toBe([])
+            ->and(array_column($plan['steps'], 'kind'))
+            ->toBe(['simulator', 'region', 'region'])
+            ->and([$north['slug'], $north['region']['name'], $north['region']['size'], $north['region']['roles']])
+            ->toBe(['demo.north', 'Big Garden', 512, ['FallbackRegion']])
+            ->and([$small['slug'], $small['region']['name'], $small['region']['size']])
+            ->toBe(['demo.north', 'Small Garden', 256])
+            ->and([$alpha['slug'], $alpha['region']['location']])
+            ->toBe(['alpha', '1200,1200'])
+            // Two regions of the file never get one port or one place
+            ->and($small['region']['port'])
+            ->not->toBe($north['region']['port'])
+            ->and($small['region']['location'])
+            ->not->toBe($north['region']['location'])
+            ->and($plan['reminders'])
+            ->toBe(['opensim start demo.north', 'opensim restart alpha (it loads its new regions when it starts)'])
+            ->and(array_filter($plan['writes'], 'file_exists'))
+            ->toBe([]);
+    });
+
+    test('is written: the database of the new simulator first, then its files and the regions', function () {
+        $machine = new Machine();
+        $setup = SetupApply::prepare($machine->environment, setup_apply_file());
+        $made = [];
+        $setup->apply(new NullUi(), static function ($db) use (&$made): int {
+            $made[] = $db->dbName;
+
+            return DatabaseService::OK;
+        });
+        $plan = $setup->document();
+
+        expect($made)
+            ->toHaveCount(1)
+            ->and(array_filter($plan['writes'], 'is_file'))
+            ->toBe($plan['writes'])
+            ->and(file_get_contents($plan['steps'][0]['region']['file']))
+            ->toContain('SizeX = 512');
+    });
+
+    test('says what is wrong by its place in the file, and is not written then; a file that makes a grid is refused', function () {
+        $machine = new Machine();
+        $setup = SetupApply::prepare($machine->environment, setup_apply_file(['size' => 300]));
+
+        expect($setup->problems)
+            ->toHaveKey('simulators.0.regions.0.size')
+            ->and(fn() => $setup->apply(new NullUi(), static fn(): int => DatabaseService::OK))
+            ->toThrow(InvalidValue::class, 'simulators.0.regions.0.size')
+            ->and(fn() => SetupApply::prepare($machine->environment, ['grid' => ['name' => 'New World', 'nick' => 'new_world']]))
+            ->toThrow(InvalidValue::class, 'this file makes a grid');
+    });
+});
+
+describe('The API, for a setup file', function () {
+    test('plans the file it is given as text, and says what is wrong', function () {
+        $machine = new Machine();
+        $api = new OpenSim\Api\Api($machine->environment);
+
+        $plan = $api->setupFile(['text' => json_encode(setup_apply_file())]);
+        $wrong = $api->setupFile(['setup' => setup_apply_file(['size' => 300]), 'mode' => 'apply']);
+        $grid = $api->setupFile(['setup' => ['grid' => ['name' => 'New World', 'nick' => 'new_world']]]);
+
+        expect([$plan->status, $plan->document['data']['attributes']['applied'], count($plan->document['data']['attributes']['steps'])])
+            ->toBe([200, false, 3])
+            ->and([$wrong->status, $wrong->document['code'] ?? null])
+            ->toBe([400, 'invalid-request'])
+            ->and($wrong->document['detail'] ?? '')
+            ->toContain('simulators.0.regions.0.size')
+            ->and($grid->status)
+            ->toBe(400);
+    });
+});

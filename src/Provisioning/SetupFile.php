@@ -95,6 +95,22 @@ final class SetupFile
      */
     public static function parse(string $text, ?string $format = null): array
     {
+        $data = self::read($text, $format);
+        $problems = self::problems($data);
+        if ($problems !== []) {
+            throw new \InvalidArgumentException(implode("\n", $problems));
+        }
+
+        return $data;
+    }
+
+    /**
+     * A setup as it is written, JSON or YAML, not checked yet (problems() checks it, knowing the simulators that exist).
+     *
+     * @return array<string,mixed>
+     */
+    public static function read(string $text, ?string $format = null): array
+    {
         $text = ltrim($text, "\xEF\xBB\xBF");
         $format ??= in_array(substr(ltrim($text), 0, 1), ['{', '['], true) ? 'json' : 'yaml';
         try {
@@ -106,10 +122,6 @@ final class SetupFile
             throw new \InvalidArgumentException(
                 'The setup file is a list of settings (grid, owner, simulators, users).',
             );
-        }
-        $problems = self::problems($data);
-        if ($problems !== []) {
-            throw new \InvalidArgumentException(implode("\n", $problems));
         }
 
         return $data;
@@ -132,9 +144,10 @@ final class SetupFile
      * What is missing or wrong in a setup.
      *
      * @param array<string,mixed> $data
+     * @param list<int> $existing the places in `simulators` of the simulators the grid has: no database is made for them
      * @return list<string>
      */
-    public static function problems(array $data): array
+    public static function problems(array $data, array $existing = []): array
     {
         $problems = [];
         $grid = $data['grid'] ?? [];
@@ -166,7 +179,7 @@ final class SetupFile
             $simulatorDriver = $simulatorDriver !== '' ? $simulatorDriver : ($standalone ? $databaseDriver : 'mysql');
             if (!in_array($simulatorDriver, ['mysql', 'sqlite'], true)) {
                 $problems[] = "simulators.$i.database.driver must be mysql or sqlite";
-            } elseif ($simulatorDriver === 'mysql' && !$creates) {
+            } elseif ($simulatorDriver === 'mysql' && !$creates && !in_array($i, $existing, true)) {
                 foreach (['user', 'password'] as $key) {
                     if (trim((string) ($simulator['database'][$key] ?? '')) === '') {
                         $problems[] = "simulators.$i.database.$key is required (the simulators of a grid that is not in the file)";

@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "ff20072",
+        "version": "836f7f6",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -7345,6 +7345,96 @@
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/setups/files": {
+            "post": {
+                "operationId": "applySetupFile",
+                "tags": [
+                    "Setup"
+                ],
+                "summary": "Setup file",
+                "description": "A setup file (the format of the setup files: JSON or YAML) applied to a grid of this machine, `grid.nick` or the only one, without a question: the simulators it names are made with their regions, or, when the grid has them, given the regions it names (name, location, size, roles, port). What the file does not say is what the planners propose; two simulators or regions of the file never get one port or one place. `mode` `plan` (the default) writes nothing and says what would be written and where (`steps`, `writes`), `apply` writes it: the database of a new simulator is made when it is missing, nothing is started (`reminders`). A file with `problems` (by the place of the answer in the file, `simulators.0.regions.1.size`) is not applied (400). A file that makes a grid is the setup of a grid (400).",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "const": "files"
+                                            },
+                                            "attributes": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "text": {
+                                                        "type": "string",
+                                                        "description": "The setup file, as it is written"
+                                                    },
+                                                    "format": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "json",
+                                                            "yaml"
+                                                        ],
+                                                        "description": "When its first character does not tell"
+                                                    },
+                                                    "setup": {
+                                                        "type": "object",
+                                                        "description": "The setup, as an object, instead of text"
+                                                    },
+                                                    "mode": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "plan",
+                                                            "apply"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The plan, or what was written: `grid`, `steps` (`kind` simulator or region, `simulator`, `slug`, `config`, `ports`, `database`, `region`: name, location, size, roles, port, file), `writes`, `problems`, `reminders`, `applied`",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "A file that cannot be read, that makes a grid, that names no grid, or that has problems",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid of the file is not known here",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
                                 }
                             }
                         }
