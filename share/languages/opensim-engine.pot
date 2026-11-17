@@ -1265,7 +1265,11 @@ msgid "No region was found for {simulator} in {folder}, the folder its config na
 msgstr ""
 
 msgctxt "notice_import_module_missing"
-msgid "The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install: the simulator would not load it. Add it to the modules, or leave the setting out."
+msgid "The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install: the simulator would not load it. Put a build of it for this core in {folder} and add {module} to EnabledModules of opensim.conf, or leave the setting out."
+msgstr ""
+
+msgctxt "notice_import_module_found"
+msgid "The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install, the older install has it in {file}: the simulator would not load it. Put a build of it for this core in {folder} (a module is built for a version of OpenSimulator: that file only if both cores are the same version) and add {module} to EnabledModules of opensim.conf, or leave the setting out."
 msgstr ""
 
 msgctxt "notice_import_enable_start"

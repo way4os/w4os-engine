@@ -146,12 +146,14 @@ final class SimulatorImport
             is_dir($path) && ($folders[(string) realpath($path)] = true);
         }
 
-        // The modules its kept settings name, looked for in the core and the modules of the install
-        $missing = self::missingModules(
-            $customizations,
-            $exampleText,
-            [$plan->binDir(), $environment->layout->modulesRoot()],
-        );
+        // The modules its kept settings name, looked for in the core and the modules of the install; for one that is in neither, where
+        // a build of it goes (the folder of its core in the modules, ModuleLinker) and the DLL of the older install that has it
+        $modules = rtrim($environment->layout->modulesRoot(), '/') . '/' . basename($plan->coreDirectory);
+        $missing = [];
+        foreach (self::missingModules($customizations, $exampleText, [$plan->binDir(), $environment->layout->modulesRoot()]) as $module) {
+            $found = self::dllOf($module['module'], self::dlls(array_unique([...array_map('dirname', $backup->files), $base]), false));
+            $missing[] = $module + ['folder' => "$modules/{$module['module']}"] + ($found !== null ? ['file' => $found] : []);
+        }
 
         // What the import reads, checked first: an old install keeps its files to its own user (setfacl gives them to the user of the
         // grid), a path this process cannot read is said in the plan, and nothing is written
@@ -210,7 +212,7 @@ final class SimulatorImport
                     ? Notice::of('import-no-region', ['simulator' => $plan->simulatorName, 'folder' => $this->regionsDirectory])
                     : Notice::of('import-stop-source', ['regions' => implode(', ', array_column($this->regions, 'name'))]),
                 // A module a kept setting names that neither the core nor the modules of the install have: the simulator would not load it
-                ...array_map(static fn(array $m): array => Notice::of('import-module-missing', $m), $this->missingModules),
+                ...array_map(static fn(array $m): array => Notice::of(isset($m['file']) ? 'import-module-found' : 'import-module-missing', $m), $this->missingModules),
                 Notice::of('import-enable-start', ['enable' => "opensim enable {$plan->slug}", 'start' => "opensim start {$plan->slug}"]),
             ],
         ];
@@ -322,25 +324,47 @@ final class SimulatorImport
         if ($named === []) {
             return [];
         }
+        $dlls = self::dlls($folders, true);
+
+        return array_values(array_filter($named, static fn(array $m): bool => self::dllOf($m['module'], $dlls) === null));
+    }
+
+    /**
+     * The DLLs of folders, of their subfolders too when $deep.
+     *
+     * @param list<string> $folders
+     * @return list<string>
+     */
+    private static function dlls(array $folders, bool $deep): array
+    {
         $dlls = [];
-        foreach (array_filter($folders, 'is_dir') as $folder) {
-            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($folder, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::FOLLOW_SYMLINKS)) as $file) {
+        foreach (array_filter($folders, static fn(string $folder): bool => is_dir($folder) && is_readable($folder)) as $folder) {
+            $files = $deep
+                ? new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($folder, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::FOLLOW_SYMLINKS))
+                : new \FilesystemIterator($folder);
+            foreach ($files as $file) {
                 $file->isFile() && str_ends_with(strtolower($file->getFilename()), '.dll') && ($dlls[] = $file->getPathname());
             }
         }
-        $missing = $named;
+
+        return $dlls;
+    }
+
+    /**
+     * The first DLL that has a module: its name as a string of it, UTF-16 as .NET keeps it, or as it is.
+     *
+     * @param list<string> $dlls
+     */
+    private static function dllOf(string $module, array $dlls): ?string
+    {
         foreach ($dlls as $dll) {
-            $bytes = (string) file_get_contents($dll);
-            $missing = array_values(array_filter(
-                $missing,
-                static fn(array $m): bool => !str_contains($bytes, $m['module']) && !str_contains($bytes, mb_convert_encoding($m['module'], 'UTF-16LE')),
-            ));
-            if ($missing === []) {
-                break;
+            $bytes = is_readable($dll) ? (string) file_get_contents($dll) : '';
+            if (str_contains($bytes, mb_convert_encoding($module, 'UTF-16LE')) || str_contains($bytes, $module)) {
+                return $dll;
             }
         }
 
-        return $missing;
+        return null;
     }
 
     /**

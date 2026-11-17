@@ -278,8 +278,32 @@ describe('The modules a simulator imported names', function () {
         expect(array_column(array_column($missing, 'params'), 'module'))
             ->toBe(['DTLNSLMoneyModule'])
             ->and($missing[0]['params'])
-            ->toMatchArray(['section' => 'Economy', 'key' => 'economymodule']);
+            ->toMatchArray([
+                'section' => 'Economy',
+                'key' => 'economymodule',
+                'folder' => $machine->environment->layout->modulesRoot() . '/' . basename($machine->core) . '/DTLNSLMoneyModule',
+            ])
+            ->and($missing[0]['detail'])
+            ->toContain('/DTLNSLMoneyModule and add DTLNSLMoneyModule to EnabledModules');
+
+        return [$machine, $source];
     });
+
+    test('names the DLL of the older install that has one, beside its config', function (array $setup) {
+        [$machine, $source] = $setup;
+        $dll = dirname($source) . '/MoneyServer.Modules.dll';
+        file_put_contents($dll, 'MZ' . mb_convert_encoding('DTLNSLMoneyModule', 'UTF-16LE'));
+        $plan = SimulatorImport::prepare($machine->environment, $source, 'demo')->document();
+        $notices = array_column($plan['reminders'], null, 'code');
+
+        expect($notices)
+            ->not->toHaveKey('import-module-missing')
+            ->and($notices['import-module-found']['params'] ?? [])
+            ->toMatchArray(['module' => 'DTLNSLMoneyModule', 'file' => $dll])
+            ->and($notices['import-module-found']['detail'] ?? '')
+            ->toContain("has it in $dll")
+            ->toContain('a build of it for this core in ' . $machine->environment->layout->modulesRoot());
+    })->depends('are looked for in its core and the modules of the install: one that is in neither is said');
 });
 
 describe('The folders of a simulator imported', function () {
