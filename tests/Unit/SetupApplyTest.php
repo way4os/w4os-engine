@@ -83,6 +83,34 @@ describe('A setup file applied', function () {
             ->toContain('SizeX = 512');
     });
 
+    test('makes the database of a new simulator with the administrator the file gives, never shown', function () {
+        $machine = new Machine();
+        $file = setup_apply_file();
+        $file['simulators'][0]['database'] += ['admin_user' => 'root', 'admin_password' => 'admin-secret'];
+        $setup = SetupApply::prepare($machine->environment, $file);
+        $setup->apply(new NullUi(), static fn(): int => DatabaseService::OK);
+        $admins = (new ReflectionProperty(DatabaseService::class, 'admins'))->getValue();
+
+        expect($admins[$setup->steps[0]['plan']->dbHost] ?? null)
+            ->toBe(['root', 'admin-secret'])
+            ->and(json_encode($setup->document()))
+            ->not->toContain('admin-secret');
+    });
+
+    test('says why a database cannot be had, and how to give an administrator', function () {
+        $machine = new Machine();
+        $setup = SetupApply::prepare($machine->environment, setup_apply_file());
+
+        expect(fn() => $setup->apply(new NullUi(), static function ($db, $ui): int {
+            $ui->error('Could not create the database: access denied');
+            $ui->note("From an account with administrator rights on the database server, run what is missing:\n  CREATE DATABASE `demo_north`;");
+
+            return DatabaseService::ABORT;
+        }))->toThrow(InvalidValue::class, 'CREATE DATABASE `demo_north`')
+            ->and(fn() => $setup->apply(new NullUi(), static fn(): int => DatabaseService::ABORT))
+            ->toThrow(InvalidValue::class, 'admin_user');
+    });
+
     test('says what is wrong by its place in the file, and is not written then; a file that makes a grid is refused', function () {
         $machine = new Machine();
         $setup = SetupApply::prepare($machine->environment, setup_apply_file(['size' => 300]));

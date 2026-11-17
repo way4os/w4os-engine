@@ -27,12 +27,14 @@ final class SetupApply
     /**
      * @param list<array{kind:string,plan:SimulatorPlan}> $steps what is written, in order: a simulator (with its first region), a region
      * @param array<string,string> $problems by the place of the answer in the file (simulators.0.regions.1.location)
+     * @param array<string,array{0:string,1:string}> $admins the administrator of the database server of a new simulator, by its slug
      */
     private function __construct(
         private readonly Environment $environment,
         public readonly Grid $grid,
         public readonly array $steps,
         public readonly array $problems,
+        private readonly array $admins = [],
     ) {}
 
     /**
@@ -70,6 +72,7 @@ final class SetupApply
         }
         $steps = [];
         $problems = [];
+        $admins = [];
         foreach (SetupFile::problems($data, $existing) as $n => $message) {
             $problems["file.$n"] = $message;
         }
@@ -91,6 +94,12 @@ final class SetupApply
                 $plan = $planner->plan($answers);
                 // Written, not started: the operator starts it (reminders)
                 $plan->start = false;
+                // The administrator that makes its database: the one of the simulator, else the one of the grid
+                $admin = array_filter([
+                    $simulator['database']['admin_user'] ?? ($data['grid']['database']['admin_user'] ?? null),
+                    $simulator['database']['admin_password'] ?? ($data['grid']['database']['admin_password'] ?? null),
+                ], static fn($value): bool => $value !== null);
+                isset($admin[0]) && ($admins[$plan->slug] = [(string) $admin[0], (string) ($admin[1] ?? '')]);
                 // Its ports are taken, its block with them (the next simulator gets another); its regions are given the free ones of it
                 $taken['ports'] = array_merge($taken['ports'], array_filter([$plan->httpPort, $plan->consolePort]));
             }
@@ -119,7 +128,7 @@ final class SetupApply
             array_push($steps, ...$added);
         }
 
-        return new self($environment, $grid, $steps, $problems);
+        return new self($environment, $grid, $steps, $problems, $admins);
     }
 
     /**
@@ -188,8 +197,19 @@ final class SetupApply
         }
         $database ??= static fn(GridPlan $db, UiInterface $said): int => (new DatabaseService($said))->ensure($db);
         foreach ($this->steps as ['kind' => $kind, 'plan' => $plan]) {
+            if ($kind === 'simulator' && !$plan->standalone) {
+                isset($this->admins[$plan->slug]) && DatabaseService::rememberAdmin($plan->dbHost, ...$this->admins[$plan->slug]);
+                DatabaseService::remember($plan->dbHost, $plan->dbUser, $plan->dbPass);
+            }
+            $mark = $ui instanceof NullUi ? count($ui->said) : 0;
             if ($kind === 'simulator' && !$plan->standalone && $database($plan->databasePlan(), $ui) !== DatabaseService::OK) {
-                throw InvalidValue::because('invalid-request', "the database of the simulator {$plan->slug} cannot be had: {$plan->dbName} @ {$plan->dbHost}");
+                // What the database service said: why, and the commands to run by hand
+                $said = $ui instanceof NullUi ? array_column(array_slice($ui->said, $mark), 1) : [];
+                throw InvalidValue::because('invalid-request', implode("\n", [
+                    "the database of the simulator {$plan->slug} cannot be had: {$plan->dbName} @ {$plan->dbHost}",
+                    ...$said,
+                    'An administrator of the database server makes it: database.admin_user and database.admin_password of the file (OPENSIM_DB_ADMIN_USER and OPENSIM_DB_ADMIN_PASS for opensim), or the commands above run by hand.',
+                ]));
             }
             (new SimulatorProvisioner($ui))->apply($plan, $this->environment);
         }
