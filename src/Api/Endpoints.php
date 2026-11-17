@@ -740,10 +740,15 @@ final class Endpoints
                                         'type' => ['const' => 'imports'],
                                         'attributes' => [
                                             'type' => 'object',
-                                            'required' => ['file', 'grid'],
+                                            'required' => ['grid'],
                                             'properties' => [
                                                 'kind' => ['type' => 'string', 'enum' => ['simulator']],
                                                 'file' => ['type' => 'string', 'description' => 'The config of the simulator, on this machine'],
+                                                'simulators' => [
+                                                    'type' => 'array',
+                                                    'items' => ['type' => 'object', 'properties' => ['file' => ['type' => 'string'], 'name' => ['type' => 'string'], 'core' => ['type' => 'string']]],
+                                                    'description' => 'Several simulators instead of one (`file`, `name`, `core` each), planned together and checked between them (slugs, ports, region names and UUIDs, places of the map), written in their order; the answer has their `steps`, `problems` by the place of the simulator (simulators.1), `writes`, `reminders`',
+                                                ],
                                                 'grid' => ['type' => 'string', 'description' => 'The nick of the grid of this machine it joins'],
                                                 'name' => ['type' => 'string', 'description' => 'Its name, when it is not the one of its config (SimName of [Launch], else its file)'],
                                                 'core' => ['type' => 'string', 'description' => 'The core it runs with, when it is not the one of the grid'],

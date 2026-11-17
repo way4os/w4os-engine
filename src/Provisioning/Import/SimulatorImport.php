@@ -34,7 +34,7 @@ use OpenSim\Text\Secrets;
 final class SimulatorImport
 {
     /**
-     * @param list<array{file:string,to:string,name:string,uuid:string,location:string}> $regions
+     * @param list<array{file:string,to:string,name:string,uuid:string,location:string,port:int,size:int}> $regions
      * @param list<array{section:string,key:string,value:string,unknown:bool}> $customizations
      */
     private function __construct(
@@ -221,7 +221,7 @@ final class SimulatorImport
      * one of them, or when two of them have the same.
      *
      * @param list<string> $files
-     * @return list<array{file:string,to:string,name:string,uuid:string,location:string}>
+     * @return list<array{file:string,to:string,name:string,uuid:string,location:string,port:int,size:int}>
      */
     private static function regions(array $files, string $to, GridConfig $config): array
     {
@@ -250,6 +250,8 @@ final class SimulatorImport
                     'name' => (string) $name,
                     'uuid' => $uuid,
                     'location' => trim((string) ($settings['Location'] ?? ''), " \t\""),
+                    'port' => (int) trim((string) ($settings['InternalPort'] ?? '0'), " \t\""),
+                    'size' => (int) trim((string) ($settings['SizeX'] ?? '0'), " \t\"") ?: Region::SIZE,
                 ];
             }
         }

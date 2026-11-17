@@ -14,7 +14,7 @@ use OpenSim\Provisioning\NullUi;
 use OpenSim\Testing\Machine;
 
 /** The install of opensim-debian, as on redoutable: its config in opensim.d, the grid's shared one included, one region. */
-function old_install(Machine $machine, string $sim = 'redoutable', string $region = 'Redoutable', string $uuid = '11111111-2222-4333-8444-555555555555'): string
+function old_install(Machine $machine, string $sim = 'redoutable', string $region = 'Redoutable', string $uuid = '11111111-2222-4333-8444-555555555555', int $port = 9250, string $location = '1000,1000'): string
 {
     $etc = $machine->root . '/old/opensim/etc';
     $machine->write(
@@ -23,14 +23,14 @@ function old_install(Machine $machine, string $sim = 'redoutable', string $regio
     );
     $machine->write(
         "$etc/grids/speculoos/sims/$sim/regions/$region.ini",
-        "[$region]\nRegionUUID = $uuid\nLocation = 1000,1000\nSizeX = 256\nInternalPort = 9251\nExternalHostName = $sim.speculoos.world\n",
+        "[$region]\nRegionUUID = $uuid\nLocation = $location\nSizeX = 256\nInternalPort = " . ($port + 1) . "\nExternalHostName = $sim.speculoos.world\n",
     );
     $machine->write(
         "$etc/opensim.d/$sim.ini",
         "[Launch]\nSimName = $sim\nBinDir = /opt/opensim/lib/opensim-0.9.2.2/bin\n" .
             "[Const]\nEtcDirectory = \"$etc\"\nDataDirectory = \"/opt/opensim/var/$sim\"\n" .
             "[Startup]\nregionload_regionsdir = \"\${Const|EtcDirectory}/grids/speculoos/sims/$sim/regions\"\nInclude-Grid = \"$etc/grids/speculoos/OpenSim.ini\"\n" .
-            "[Network]\nhttp_listener_port = 9250\nConsolePass = \"hidden\"\n" .
+            "[Network]\nhttp_listener_port = $port\nConsolePass = \"hidden\"\n" .
             "[DatabaseService]\nConnectionString = \"Data Source=localhost;Database=os$sim;User ID=opensim;Password=secret;Old Guids=true;\"\n" .
             "[Estates]\nDefaultEstateName = \"Redoutable Estate\"\nDefaultEstateOwnerName = \"Gudule Lapointe\"\n",
     );
@@ -159,6 +159,40 @@ describe('A simulator of Speculoos imported', function () {
     });
 });
 
+describe('Several simulators imported together', function () {
+    test('are checked between them: no two get one port, one region name or UUID, or one place of the map', function () {
+        $machine = new Machine();
+        $a = old_install($machine, 'redoutable', 'Redoutable', '11111111-2222-4333-8444-555555555555');
+        $b = old_install($machine, 'residences', 'Redoutable', '11111111-2222-4333-8444-555555555555');
+        $imports = OpenSim\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
+
+        expect(array_keys($imports->problems))
+            ->toBe(['simulators.1'])
+            ->and($imports->problems['simulators.1'])
+            ->toContain('the port 9250', 'the region name Redoutable', 'the region UUID 11111111-2222-4333-8444-555555555555', 'the port 9251', 'the place 1000,1000')
+            ->and(fn() => $imports->apply($machine->environment, new NullUi()))
+            ->toThrow(InvalidValue::class, 'simulators.1')
+            ->and(is_file($imports->document()['steps'][0]['config']))
+            ->toBeFalse();
+    });
+
+    test('are planned together and written in their order when nothing is wrong', function () {
+        $machine = new Machine();
+        $a = old_install($machine, 'redoutable', 'Redoutable', '11111111-2222-4333-8444-555555555555', 9250, '1000,1000');
+        $b = old_install($machine, 'residences', 'Residence', '99999999-2222-4333-8444-555555555555', 9260, '1001,1000');
+        $imports = OpenSim\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
+        $imports->apply($machine->environment, new NullUi());
+        $plan = $imports->document();
+
+        expect($plan['problems'])
+            ->toBe([])
+            ->and(array_column($plan['steps'], 'slug'))
+            ->toBe(['demo.redoutable', 'demo.residences'])
+            ->and(array_filter(array_column($plan['steps'], 'config'), 'is_file'))
+            ->toHaveCount(2);
+    });
+});
+
 describe('The API, for an import', function () {
     test('plans by default, applies when asked, and says why it refuses', function () {
         $machine = new Machine();
@@ -170,7 +204,14 @@ describe('The API, for an import', function () {
         $applied = $api->import(['file' => $source, 'grid' => 'demo', 'mode' => 'apply']);
         $again = $api->import(['file' => $source, 'grid' => 'demo']);
 
-        expect([$plan->status, $plan->document['data']['attributes']['applied'], $plan->document['data']['id']])
+        $two = $api->import(['grid' => 'demo', 'simulators' => [
+            ['file' => old_install($machine, 'first', 'First', '66666666-2222-4333-8444-555555555555', 9280, '1003,1000')],
+            ['file' => old_install($machine, 'other', 'Other', '77777777-2222-4333-8444-555555555555', 9270, '1002,1000')],
+        ]]);
+
+        expect([$two->status, $two->document['data']['type'], count($two->document['data']['attributes']['steps']), $two->document['data']['attributes']['problems']])
+            ->toBe([200, 'imports', 2, []])
+            ->and([$plan->status, $plan->document['data']['attributes']['applied'], $plan->document['data']['id']])
             ->toBe([200, false, 'demo.redoutable'])
             ->and($writtenByPlan)
             ->toBeFalse()

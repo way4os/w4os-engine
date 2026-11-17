@@ -919,6 +919,24 @@ final class Api
             $kind === 'simulator' || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator");
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
+            // Several simulators into one grid: planned together, checked between them, written in their order
+            if (is_array($attributes['simulators'] ?? null)) {
+                $imports = \OpenSim\Provisioning\Import\SimulatorImports::prepare(
+                    $this->environment,
+                    array_values(array_filter($attributes['simulators'], 'is_array')),
+                    (string) ($attributes['grid'] ?? ''),
+                );
+                $mode === 'apply' && $imports->apply($this->environment, new NullUi());
+
+                return Response::document([
+                    'data' => [
+                        'type' => 'imports',
+                        'id' => $imports->grid,
+                        'attributes' => ['kind' => $kind, 'mode' => $mode, 'applied' => $mode === 'apply'] + $imports->document(),
+                    ],
+                    'links' => ['self' => $instance],
+                ]);
+            }
             $import = SimulatorImport::prepare(
                 $this->environment,
                 (string) ($attributes['file'] ?? ''),

@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "c2a0992",
+        "version": "6dd6132",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -7776,7 +7776,6 @@
                                             "attributes": {
                                                 "type": "object",
                                                 "required": [
-                                                    "file",
                                                     "grid"
                                                 ],
                                                 "properties": {
@@ -7789,6 +7788,24 @@
                                                     "file": {
                                                         "type": "string",
                                                         "description": "The config of the simulator, on this machine"
+                                                    },
+                                                    "simulators": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "file": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "core": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "description": "Several simulators instead of one (`file`, `name`, `core` each), planned together and checked between them (slugs, ports, region names and UUIDs, places of the map), written in their order; the answer has their `steps`, `problems` by the place of the simulator (simulators.1), `writes`, `reminders`"
                                                     },
                                                     "grid": {
                                                         "type": "string",
