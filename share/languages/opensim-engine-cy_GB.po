@@ -1204,7 +1204,9 @@ msgstr ""
 
 msgctxt "error_restore_conflict"
 msgid "This backup holds what this server has already: nothing was replaced."
-msgstr "Mae'r copi wrth gefn hwn yn dal yr hyn sydd gan y gweinydd hwn eisoes: ni ddisodlwyd dim."
+msgstr ""
+"Mae'r copi wrth gefn hwn yn dal yr hyn sydd gan y gweinydd hwn eisoes: ni "
+"ddisodlwyd dim."
 
 msgctxt "error_estate_shared"
 msgid ""
@@ -1348,6 +1350,22 @@ msgstr "Pan fydd gan afatar yr enw hwn neu'r e-bost hwn, anfonwyd neges ato."
 msgctxt "notice_mail_sent"
 msgid "A mail was sent to the avatar."
 msgstr "Anfonwyd neges at yr afatar."
+
+msgctxt "notice_registered"
+msgid "The avatar {name} is ready: sign in with its name and its password."
+msgstr "Mae'r afatar {name} yn barod: mewngofnodwch gyda'i enw a'i gyfrinair."
+
+msgctxt "notice_registered_confirm"
+msgid ""
+"A mail was sent to {email}: the account is made once the link it holds is "
+"followed."
+msgstr "Anfonwyd neges at {email}: caiff y cyfrif ei wneud unwaith y dilynir y ddolen sydd ynddi."
+
+msgctxt "notice_registered_mail_failed"
+msgid ""
+"The registration is kept, but the mail to {email} could not be sent: ask for "
+"it again later."
+msgstr "Mae'r cofrestriad wedi'i gadw, ond ni ellid anfon y neges at {email}: gofynnwch amdani eto yn nes ymlaen."
 
 #~ msgctxt "region_flag_default_region"
 #~ msgid "Default region"

@@ -328,7 +328,12 @@ final class Api
                             'id' => $given['id'],
                             'attributes' => $given['registration'],
                         ],
-                        'meta' => self::confirmation($given, $send),
+                        'meta' => self::confirmation($given, $send) + match (true) {
+                            // A site that delivers the token itself says what it does with it
+                            !$send => [],
+                            (bool) $given['sent'] => self::said(Notice::of('registered-confirm', ['email' => (string) $given['email']])),
+                            default => self::said(Notice::of('registered-mail-failed', ['email' => (string) $given['email']])),
+                        },
                     ],
                     202,
                 );
@@ -340,11 +345,13 @@ final class Api
             return Response::problem(Problem::from($error, $instance));
         }
         $self = self::path($type, (string) $created->id(), $grid);
+        // A new avatar is ready to sign in: said as a notice, for a site to say it in its language
+        $meta = $created instanceof Avatar ? ['meta' => self::said(Notice::of('registered', ['name' => $created->name()]))] : [];
 
         return new Response(
             201,
             ['Content-Type' => Response::JSON_API, 'Location' => $self],
-            ['data' => self::resource($type, $created, $grid), 'links' => ['self' => $self]],
+            ['data' => self::resource($type, $created, $grid), 'links' => ['self' => $self]] + $meta,
         );
     }
 

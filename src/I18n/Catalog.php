@@ -393,6 +393,9 @@ final class Catalog
         'notice_restore_start' => 'Start {instance} once it is restored: {command}',
         'notice_mail_sent_if_known' => 'When an avatar has this name or this email, a mail was sent to it.',
         'notice_mail_sent' => 'A mail was sent to the avatar.',
+        'notice_registered' => 'The avatar {name} is ready: sign in with its name and its password.',
+        'notice_registered_confirm' => 'A mail was sent to {email}: the account is made once the link it holds is followed.',
+        'notice_registered_mail_failed' => 'The registration is kept, but the mail to {email} could not be sent: ask for it again later.',
     ];
 
     /** The key of the text of a problem code. */

@@ -37,6 +37,9 @@ final class Notice
         // The messages of the API
         'mail-sent-if-known' => [],
         'mail-sent' => [],
+        'registered' => ['name'],
+        'registered-confirm' => ['email'],
+        'registered-mail-failed' => ['email'],
     ];
 
     /**

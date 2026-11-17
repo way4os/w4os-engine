@@ -1334,6 +1334,22 @@ msgctxt "notice_mail_sent"
 msgid "A mail was sent to the avatar."
 msgstr "Er is een mail naar de avatar gestuurd."
 
+msgctxt "notice_registered"
+msgid "The avatar {name} is ready: sign in with its name and its password."
+msgstr "De avatar {name} is klaar: log in met zijn naam en zijn wachtwoord."
+
+msgctxt "notice_registered_confirm"
+msgid ""
+"A mail was sent to {email}: the account is made once the link it holds is "
+"followed."
+msgstr "Er is een mail naar {email} gestuurd: het account wordt aangemaakt zodra de link erin wordt gevolgd."
+
+msgctxt "notice_registered_mail_failed"
+msgid ""
+"The registration is kept, but the mail to {email} could not be sent: ask for "
+"it again later."
+msgstr "De registratie blijft bewaard, maar de mail naar {email} kon niet worden verzonden: vraag hem later opnieuw aan."
+
 #~ msgctxt "region_flag_default_region"
 #~ msgid "Default region"
 #~ msgstr "Standaardregio"

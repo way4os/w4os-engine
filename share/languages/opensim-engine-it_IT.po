@@ -1188,7 +1188,9 @@ msgstr ""
 
 msgctxt "error_restore_conflict"
 msgid "This backup holds what this server has already: nothing was replaced."
-msgstr "Questo backup contiene ciò che questo server ha già: non è stato sostituito nulla."
+msgstr ""
+"Questo backup contiene ciò che questo server ha già: non è stato sostituito "
+"nulla."
 
 msgctxt "error_estate_shared"
 msgid ""
@@ -1330,6 +1332,22 @@ msgstr ""
 msgctxt "notice_mail_sent"
 msgid "A mail was sent to the avatar."
 msgstr "È stata inviata una mail all'avatar."
+
+msgctxt "notice_registered"
+msgid "The avatar {name} is ready: sign in with its name and its password."
+msgstr "L'avatar {name} è pronto: accedi con il suo nome e la sua password."
+
+msgctxt "notice_registered_confirm"
+msgid ""
+"A mail was sent to {email}: the account is made once the link it holds is "
+"followed."
+msgstr "È stata inviata una mail a {email}: l'account viene creato non appena si segue il link che contiene."
+
+msgctxt "notice_registered_mail_failed"
+msgid ""
+"The registration is kept, but the mail to {email} could not be sent: ask for "
+"it again later."
+msgstr "La registrazione è conservata, ma la mail a {email} non è stata inviata: richiedila più tardi."
 
 #~ msgctxt "region_flag_default_region"
 #~ msgid "Default region"

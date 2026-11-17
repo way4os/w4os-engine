@@ -288,6 +288,9 @@ describe('The API, for the resources of a grid', function () {
             ->toBe("/grids/demo/avatars/$id")
             ->and($made->document['data']['attributes']['name'])
             ->toBe('Api Person')
+            // Ready to sign in, said as a notice for a site to say it in its language
+            ->and($made->document['meta']['notice'])
+            ->toMatchArray(['code' => 'registered', 'params' => ['name' => 'Api Person']])
             ->and($changed->status)
             ->toBe(200)
             ->and($changed->document['data']['attributes'])
