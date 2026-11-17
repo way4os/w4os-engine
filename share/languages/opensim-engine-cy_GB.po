@@ -912,6 +912,10 @@ msgctxt "column_regions"
 msgid "Regions"
 msgstr "Rhanbarthau"
 
+msgctxt "parcel"
+msgid "Parcel"
+msgstr "Parsel"
+
 msgctxt "column_type"
 msgid "Type"
 msgstr "Math"

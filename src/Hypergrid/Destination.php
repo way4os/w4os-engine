@@ -115,7 +115,7 @@ final class Destination
      *
      * @param  string  $url				url or uri or tp link (secondlife:// url, hop:// url, region name...)
      * @param  string  $default_gatekeeper	default login uri to add to urls sithout host:port
-     * @return string					$host:$port $region/$pos
+     * @return string					the canonical uri, host:port/Region Name/x/y/z (the name as it is); host:port:Region is read too
      */
     public static function uri($url, $default_gatekeeper = null): string
     {

@@ -197,7 +197,7 @@ describe('parcels', function () {
             ->and($garden['regionName'])
             ->toBe('Welcome')
             ->and($garden['uri'])
-            ->toBe('play.example.org:8002:Welcome/128/128/22')
+            ->toBe('play.example.org:8002/Welcome/128/128/22')
             ->and($garden['owner'])
             ->toBe('11111111-1111-1111-1111-111111111111')
             ->and($garden['ownerName'])
@@ -309,10 +309,38 @@ describe('bitmap of a parcel', function () {
             ->toBe(3);
     });
 
-    test('is not loaded for a parcel of a list', function () {
+    test('is loaded for a parcel of a list too: its point needs it', function () {
         parcels_in(parcel_databases());
 
-        expect(fn() => Parcel::all(parcel_config())->first()->holds(0, 0))->toThrow(LogicException::class);
+        expect(Parcel::all(parcel_config(), ['sort' => 'name'])->first()->holds(0, 0))->toBeFalse();
+    });
+
+    test('gives the point a parcel is entered at: its landing point, else one it holds, near the middle of its squares', function () {
+        $config = parcel_config();
+        $parcel = static fn(array $row): Parcel => new Parcel($config, $row + [
+            'UUID' => 'p9',
+            'RegionUUID' => 'aaaaaaaa-0000-0000-0000-000000000001',
+            'regionName' => 'Quiet Harbour',
+            // The squares 0,0 2,0 and 2,1: their geometric center, 1,0, is not the parcel's
+            'Bitmap' => parcel_bitmap([[0, 0], [2, 0], [2, 1]]),
+        ]);
+        $landed = $parcel(['UserLocationX' => 64.4, 'UserLocationY' => 27, 'UserLocationZ' => 600]);
+        $computed = $parcel(['UserLocationX' => 0, 'UserLocationY' => 0, 'UserLocationZ' => 0]);
+
+        expect($landed->point())
+            ->toBe([64, 27, 600])
+            ->and($landed->uri())
+            ->toBe('play.example.org:8002/Quiet Harbour/64/27/600')
+            ->and($landed->teleport())
+            ->toBe('hop://play.example.org:8002/Quiet+Harbour/64/27/600')
+            ->and($computed->point())
+            ->toBe([10, 2, 25])
+            ->and($computed->holds(10, 2))
+            ->toBeTrue()
+            ->and($parcel(['UserLocationZ' => 40])->point())
+            ->toBe([10, 2, 40])
+            ->and((new Parcel($config, ['regionName' => 'Welcome']))->uri())
+            ->toBeNull();
     });
 
     test('finds the parcel of a region that holds a point', function () {

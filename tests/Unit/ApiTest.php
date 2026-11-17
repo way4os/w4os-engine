@@ -622,7 +622,8 @@ describe('The contract', function () {
         $avatar = $paths['/grids/{grid}/avatars/{id}']['get']['x-form'];
         $region = $paths['/grids/{grid}/regions/{id}']['get']['x-form'];
         $checks = [];
-        foreach (['avatars' => $avatar, 'regions' => $region] as $type => $form) {
+        $parcel = $paths['/grids/{grid}/parcels/{id}']['get']['x-form'];
+        foreach (['avatars' => $avatar, 'regions' => $region, 'parcels' => $parcel] as $type => $form) {
             $attributes = array_keys(Contract::attributes($type));
             $writable = array_keys(Contract::RESOURCES[$type]['writable']);
             $keys = [...array_column($form['groups'], 'label'), ...array_column($form['fields'], 'label')];
@@ -686,7 +687,12 @@ describe('The contract', function () {
             ])
             ->and(\OpenSim\Models\Region::itemForm()->writable())
             ->toBe(['enabled'])
-            ->and($paths['/grids/{grid}/parcels/{id}']['get'])
+            // A parcel is only shown: it is changed in the viewer
+            ->and(\OpenSim\Models\Parcel::itemForm()->writable())
+            ->toBe([])
+            ->and(array_column($parcel['fields'], null, 'name')['uri'])
+            ->toBe(['name' => 'uri', 'label' => 'column_uri', 'type' => 'link', 'group' => 'parcel', 'readOnly' => true, 'link' => 'teleport'])
+            ->and($paths['/grids/{grid}/estates/{id}']['get'])
             ->not->toHaveKey('x-form');
     });
 

@@ -906,6 +906,10 @@ msgctxt "column_regions"
 msgid "Regions"
 msgstr "Régions"
 
+msgctxt "parcel"
+msgid "Parcel"
+msgstr "Parcelle"
+
 msgctxt "column_type"
 msgid "Type"
 msgstr "Type"

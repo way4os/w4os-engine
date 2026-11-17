@@ -158,9 +158,9 @@ final class Region extends Model
     /** Its hop:// address on the grid, null for a link to a region of another grid or when the address of the grid is not known. */
     public function teleport(): ?string
     {
-        $host = $this->isHyperlink() ? null : $this->config->gridUri();
+        $uri = $this->isHyperlink() ? null : $this->uri();
 
-        return $host === null || $host === '' ? null : (string) Destination::format($host . ':' . $this->name(), 8);
+        return $uri === null || $uri === '' ? null : (string) Destination::format($uri, Destination::HOP);
     }
 
     /** The file that describes it in its simulator, empty when the config does not know it. */
@@ -188,12 +188,15 @@ final class Region extends Model
         return Slug::slug($this->name());
     }
 
-    /** Where it is reached from other grids: host:port:Region Name. */
+    /**
+     * Its URI, where it is reached from other grids: host:port/Region Name, the name as it is (its spaces too). Read in either form,
+     * host:port/Region or host:port:Region (Destination).
+     */
     public function uri(): ?string
     {
         $grid = $this->config->gridUri();
 
-        return $grid === null ? null : $grid . ':' . $this->name();
+        return $grid === null ? null : Destination::uri($grid . '/' . $this->name());
     }
 
     /** The owner of the region, the user the grid services know as its principal. */

@@ -296,6 +296,7 @@ final class Catalog
         'column_for_sale' => 'For sale',
         'column_in_search' => 'In search',
         'column_regions' => 'Regions',
+        'parcel' => 'Parcel',
         'column_type' => 'Type',
         'filter_local' => 'Local',
         'filter_temporary' => 'Temporary',

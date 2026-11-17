@@ -11,6 +11,8 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Data\Collection;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
+use OpenSim\Forms\ItemForm;
+use OpenSim\Hypergrid\Destination;
 use OpenSim\Provisioning\Slug;
 
 /**
@@ -87,21 +89,80 @@ final class Parcel extends Model
         return Slug::slug($this->name());
     }
 
-    /** Where it is reached from other grids: host:port:Region Name/x/y/z, its landing point. */
+    /** The height of a point worked out for a parcel without a landing point: above the ground of most regions. */
+    private const HEIGHT = 25;
+
+    /**
+     * Its URI, where it is reached from other grids: the URI of its region and the point it is entered at, host:port/Region
+     * Name/x/y/z. It changes when the parcel changes.
+     */
     public function uri(): ?string
     {
         $grid = $this->config->gridUri();
         $region = (string) ($this->row['regionName'] ?? '');
-        if ($grid === null || $region === '') {
+        $point = $this->point();
+        if ($grid === null || $region === '' || $point === null) {
             return null;
         }
-        $at = array_map(fn(string $key): int => (int) round((float) ($this->row[$key] ?? 0)), [
-            'UserLocationX',
-            'UserLocationY',
-            'UserLocationZ',
-        ]);
 
-        return "$grid:$region/" . implode('/', $at);
+        return Destination::uri("$grid/$region/" . implode('/', $point));
+    }
+
+    /** Its hop:// address, to the point of its URI. */
+    public function teleport(): ?string
+    {
+        $uri = $this->uri();
+
+        return $uri === null ? null : (string) Destination::format($uri, Destination::HOP);
+    }
+
+    /**
+     * Where it is entered: its landing point when it has one; else a point it holds (the square of its bitmap nearest to the middle
+     * of its squares, never its geometric center, which may be out of it), at its own height or HEIGHT. Null when neither is known.
+     *
+     * @return ?list<int> x, y, z in meters
+     */
+    public function point(): ?array
+    {
+        [$x, $y, $z] = array_map(
+            fn(string $key): int => (int) round((float) ($this->row[$key] ?? 0)),
+            ['UserLocationX', 'UserLocationY', 'UserLocationZ'],
+        );
+        if ($x !== 0 || $y !== 0) {
+            return [$x, $y, $z];
+        }
+        $bitmap = $this->row['Bitmap'] ?? null;
+        if (!is_string($bitmap) || $bitmap === '') {
+            return null;
+        }
+        $length = strlen($bitmap);
+        $width = match (true) {
+            $length === self::LEGACY_BITMAP => 64,
+            isset($this->row['regionWidth']) => intdiv((int) $this->row['regionWidth'], self::SQUARE),
+            default => (int) round(sqrt($length * 8)),
+        };
+        $squares = [];
+        for ($i = 0; $i < $length * 8; $i++) {
+            (ord($bitmap[$i >> 3]) & (1 << ($i & 7))) === 0 || ($squares[] = [$i % $width, intdiv($i, $width)]);
+        }
+        if ($squares === [] || $width < 1) {
+            return null;
+        }
+        $middle = [
+            array_sum(array_column($squares, 0)) / count($squares),
+            array_sum(array_column($squares, 1)) / count($squares),
+        ];
+        usort(
+            $squares,
+            static fn(array $a, array $b): int => ($a[0] - $middle[0]) ** 2 + ($a[1] - $middle[1]) ** 2 <=>
+                ($b[0] - $middle[0]) ** 2 + ($b[1] - $middle[1]) ** 2,
+        );
+
+        return [
+            $squares[0][0] * self::SQUARE + intdiv(self::SQUARE, 2),
+            $squares[0][1] * self::SQUARE + intdiv(self::SQUARE, 2),
+            $z > 0 ? $z : self::HEIGHT,
+        ];
     }
 
     /** The user who owns it, null when a group does. */
@@ -217,6 +278,7 @@ final class Parcel extends Model
             'name' => $this->name(),
             'slug' => $this->slug(),
             'uri' => $this->uri(),
+            'teleport' => $this->teleport(),
             'description' => $row['Description'] ?? '',
             'region' => $this->region(),
             'regionName' => $row['regionName'] ?? null,
@@ -271,7 +333,7 @@ final class Parcel extends Model
         foreach (self::databases($config) as $pdo) {
             $reached++;
             foreach (
-                $pdo->get_results('SELECT ' . self::COLUMNS . " FROM land$where", $params, \PDO::FETCH_ASSOC)
+                $pdo->get_results('SELECT ' . self::COLUMNS . ", Bitmap FROM land$where", $params, \PDO::FETCH_ASSOC)
                 as $row
             ) {
                 $rows[(string) $row['UUID']] = $row;
@@ -371,6 +433,8 @@ final class Parcel extends Model
                 Listing::column('dwell', 'column_traffic', 'number', 'dwell'),
                 Listing::column('forSale', 'column_for_sale', 'boolean'),
                 Listing::column('shownInSearch', 'column_in_search', 'boolean'),
+                // Its URI, linked to the teleport there
+                Listing::column('uri', 'column_uri', 'link', more: ['link' => 'teleport']),
             ],
             [
                 Listing::filter('shown', 'column_in_search'),
@@ -380,6 +444,26 @@ final class Parcel extends Model
             ],
             ['name', 'description'],
             moreSorts: ['claimed', 'price'],
+        );
+    }
+
+    /** What the page of a parcel shows (ItemForm): only shown, a parcel is changed in the viewer. */
+    public static function itemForm(): ItemForm
+    {
+        return new ItemForm(
+            [
+                ItemForm::shown('snapshot', 'profile_picture', 'picture', 'parcel', ['default' => 'place']),
+                ItemForm::shown('name', 'column_name', 'text', 'parcel'),
+                ItemForm::shown('description', 'about', 'text', 'parcel'),
+                ItemForm::shown('regionName', 'column_region', 'text', 'parcel'),
+                ItemForm::shown('ownerName', 'column_owner', 'text', 'parcel'),
+                ItemForm::shown('area', 'column_area', 'number', 'parcel'),
+                ItemForm::shown('dwell', 'column_traffic', 'number', 'parcel'),
+                ItemForm::shown('forSale', 'column_for_sale', 'boolean', 'parcel'),
+                ItemForm::shown('shownInSearch', 'column_in_search', 'boolean', 'parcel'),
+                ItemForm::shown('uri', 'column_uri', 'link', 'parcel', ['link' => 'teleport']),
+            ],
+            [ItemForm::group('parcel', 'parcel')],
         );
     }
 
@@ -508,13 +592,13 @@ final class Parcel extends Model
         if (($uuids = $ids('RegionUUID')) !== [] && ($pdo = Connections::pdo($config, 'GridService'))) {
             foreach (
                 $pdo->get_results(
-                    'SELECT uuid, regionName FROM regions WHERE uuid IN (' . $marks($uuids) . ')',
+                    'SELECT uuid, regionName, sizeX FROM regions WHERE uuid IN (' . $marks($uuids) . ')',
                     $uuids,
                     \PDO::FETCH_ASSOC,
                 )
                 as $row
             ) {
-                $regions[strtolower((string) $row['uuid'])] = $row['regionName'];
+                $regions[strtolower((string) $row['uuid'])] = $row;
             }
         }
         if (($uuids = $ids('OwnerUUID')) !== [] && ($pdo = Connections::pdo($config, 'UserAccountService'))) {
@@ -532,7 +616,10 @@ final class Parcel extends Model
             }
         }
         foreach ($rows as &$row) {
-            $row['regionName'] = $regions[strtolower((string) ($row['RegionUUID'] ?? ''))] ?? null;
+            $region = $regions[strtolower((string) ($row['RegionUUID'] ?? ''))] ?? [];
+            $row['regionName'] = $region['regionName'] ?? null;
+            // The width of the region, which a bitmap of another size than 256 meters needs to be read
+            empty($region['sizeX']) || ($row['regionWidth'] = (int) $region['sizeX']);
             $row['ownerName'] = $owners[strtolower((string) ($row['OwnerUUID'] ?? ''))] ?? null;
         }
 

@@ -17,12 +17,12 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "79c889d",
+        "version": "d399875",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
         },
-        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it; `default` what a missing picture stands for, `person` or `place`, as `default` of the pictures of the assets; `values` the words of a `list` with their `label` and `description`, as the values of a filter), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value; `multiple` for one that takes several values separated by commas, keeping what has any of them; `dynamic` for one whose values that give something are in `meta.available.<name>` of the list: the values, or `value` and `label` (a text, not a key) for one without `values`, such as the simulators) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
+        "description": "The grids, the simulators and the services of an install, and what is in the databases of a grid, as JSON:API resources; the errors are problem details (RFC 9457).\n\nA list takes `search`, `sort` (`-` before a column for the descending order), `filter[<name>]`, `page[number]` and `page[size]`. The list operation of a model that describes its list says what a site shows of it in `x-list`: `columns` in their order (`name` the attribute, `label` a key of the catalog of texts, `type` how it shows: text, email, number, date, boolean, picture, map, link, hop, size, status, role, list; `sort` the sort it takes; `picture`, `tag` and `tagLabel`, `link` the attributes shown with it; `default` what a missing picture stands for, `person` or `place`, as `default` of the pictures of the assets; `values` the words of a `list` with their `label` and `description`, as the values of a filter), `sort` (`default`, `values`, `descending`), `search` (the attributes it looks in), `filters` (`name`, `label`, `values` with their `label`, or `format` for one that takes any value; `multiple` for one that takes several values separated by commas, keeping what has any of them; `dynamic` for one whose values that give something are in `meta.available.<name>` of the list: the values, or `value` and `label` (a text, not a key) for one without `values`, such as the simulators) and `actions` (`name`, `label`, the operation as `method` and `path`, `{id}` the row, its `body` with `{attribute}` of the row, `when` the values of attributes a row must have, `requires` the attributes it must have, `notSelf` never on the avatar of whoever acts, `link` the page of the site its mail links to, `reset` or `confirm`: the site adds `link` to the body, the address of that page with `{token}` in it, and may add `send` false to get the token instead of a mail). The operation that reads an item of such a model says what its page shows and changes in `x-form`: `groups` (`name`, `label`) in their order, `fields` in the standard field format of the engine (`name`, `label`, `type`: a type of column or `string`, `text`, `integer`, `select`, `checkboxes`, `secret`, `url`, `avatar`; `group`; `options` value => label for a select; `readOnly` for one that is only shown, the others being what the PATCH of the item takes; `writeOnly` for one the item does not give back; `condition` the values of other fields it is shown for; `access` `view` and `edit`, the roles `manager`, `self`, `owner` of whoever a site shows it to, the managers by default; `description`) and `actions` as in `x-list`. The labels are keys of the catalog (`share/languages`), so the document is the same in every language.\n\nThe URI of a region is `host:port/Region Name` (the name as it is, its spaces too), the one of a parcel `host:port/Region Name/x/y/z` (the point it is entered at); a hop:// link (`teleport`) has the name encoded. Both `host:port/Region` and `host:port:Region` are read. This is an important change in the canonical form 3.0 gives: not tested against 2.x, but in theory compatible, since 2.x already accepted both forms.\n\n## Authentication\n\nThe API is closed: what manages the machine and the grids (the resources, the tasks, the health) needs an API key, sent as `Authorization: Bearer <key>`. A key is made on the machine and shown once: `opensim api-key create <label>`; `opensim api-key list` lists them without what opens them, `opensim api-key revoke <id>` closes one. A key opens everything for now. To try the API from this documentation, open the [test page](try.html), enter the address of the API and click Authorize.\n\nWhat the viewers, the simulators and the visitors of a site call needs none (the message of the day, the guide, the pictures, the status of the grid, the pages): the operations marked as open. The calls in a format of OpenSimulator and the viewers (search, registration, offline messages, currency, land tools) are protected by what the protocol has: the secure session of an avatar, the secret of a region, the key of the money server."
     },
     "servers": [
         {
@@ -3788,6 +3788,12 @@
                             "name": "shownInSearch",
                             "label": "column_in_search",
                             "type": "boolean"
+                        },
+                        {
+                            "name": "uri",
+                            "label": "column_uri",
+                            "type": "link",
+                            "link": "teleport"
                         }
                     ],
                     "sort": {
@@ -3902,6 +3908,89 @@
                             }
                         }
                     }
+                },
+                "x-form": {
+                    "groups": [
+                        {
+                            "name": "parcel",
+                            "label": "parcel"
+                        }
+                    ],
+                    "fields": [
+                        {
+                            "name": "snapshot",
+                            "label": "profile_picture",
+                            "type": "picture",
+                            "group": "parcel",
+                            "readOnly": true,
+                            "default": "place"
+                        },
+                        {
+                            "name": "name",
+                            "label": "column_name",
+                            "type": "text",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "description",
+                            "label": "about",
+                            "type": "text",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "regionName",
+                            "label": "column_region",
+                            "type": "text",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "ownerName",
+                            "label": "column_owner",
+                            "type": "text",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "area",
+                            "label": "column_area",
+                            "type": "number",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "dwell",
+                            "label": "column_traffic",
+                            "type": "number",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "forSale",
+                            "label": "column_for_sale",
+                            "type": "boolean",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "shownInSearch",
+                            "label": "column_in_search",
+                            "type": "boolean",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "uri",
+                            "label": "column_uri",
+                            "type": "link",
+                            "group": "parcel",
+                            "readOnly": true,
+                            "link": "teleport"
+                        }
+                    ],
+                    "actions": []
                 }
             }
         },
@@ -9387,7 +9476,7 @@
                                     "string",
                                     "null"
                                 ],
-                                "description": "Its address, host:port:name, as a viewer and another grid reach it (its hop:// link is `teleport`)"
+                                "description": "Its URI, host:port/Region Name (the name as it is), as a viewer and another grid reach it; host:port:Region Name is read too. Its hop:// link is `teleport`"
                             },
                             "location": {
                                 "type": "string",
@@ -9597,7 +9686,15 @@
                                 "type": [
                                     "string",
                                     "null"
-                                ]
+                                ],
+                                "description": "Its URI, host:port/Region Name/x/y/z: the URI of its region and the point it is entered at, its landing point, else one it holds (it changes when the parcel changes)"
+                            },
+                            "teleport": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "Its hop:// address, to the point of its URI"
                             },
                             "description": {
                                 "type": [

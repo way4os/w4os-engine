@@ -140,7 +140,7 @@ describe('Regions', function () {
             ->and($welcome['slug'])
             ->toBe('welcome')
             ->and($welcome['uri'])
-            ->toBe('play.example.org:8002:Welcome')
+            ->toBe('play.example.org:8002/Welcome')
             ->and([$welcome['x'], $welcome['y']])
             ->toBe([1000, 1000])
             ->and($welcome['location'])
