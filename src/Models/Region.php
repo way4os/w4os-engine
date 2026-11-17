@@ -16,6 +16,7 @@ use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
 use OpenSim\Data\Listing;
 use OpenSim\Data\OSPDO;
+use OpenSim\Data\Stats;
 use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Controllers\AbstractController;
 use OpenSim\Exceptions\ChannelUnavailable;
@@ -101,6 +102,9 @@ final class Region extends Model
 
     /** @var array<string,mixed> the row of the search tables */
     private array $indexed = [];
+
+    /** @var ?array{members:int,visitors:int} who is in it (Stats::presence()), null when it is not known */
+    private ?array $present = null;
 
     /** The roles that make a region a place of the grid: Robust keeps them in its config (Region_<Name>), read when it starts. */
     private const GRID_ROLES = self::DEFAULT_REGION | self::DEFAULT_HGREGION | self::FALLBACK_REGION;
@@ -358,6 +362,10 @@ final class Region extends Model
             'lastSeen' => ((int) ($row['last_seen'] ?? 0)) ?: null,
             'access' => isset($row['access']) ? (int) $row['access'] : null,
             'mapImage' => $row['regionMapTexture'] ?? null,
+            // The people in it, members of the grid and visitors of other grids, never a NPC (null when it is not known)
+            'avatars' => $this->present === null ? null : $this->present['members'] + $this->present['visitors'],
+            'members' => $this->present['members'] ?? null,
+            'visitors' => $this->present['visitors'] ?? null,
             'teleport' => $this->teleport(),
             'sources' => $this->sources(),
             'simulator' => $this->simulator() ?: null,
@@ -1043,6 +1051,11 @@ final class Region extends Model
         foreach ($regions as $region) {
             isset($files[(string) $region->uuid()]) && ($region->local = $files[(string) $region->uuid()]);
         }
+        // Who is in each, read once for them
+        $here = Stats::presence(static fn(string $service): ?OSPDO => Connections::pdo($config, $service));
+        foreach ($here === null ? [] : $regions as $region) {
+            $region->present = $here[strtolower((string) $region->uuid())] ?? ['members' => 0, 'visitors' => 0];
+        }
 
         return $regions;
     }
@@ -1097,7 +1110,7 @@ final class Region extends Model
      * The simulators the grid has regions of that no simulator of this machine runs (a region of another machine registered with its
      * Robust): their address (host:port) and whether one of their regions is online. The links to other grids left out.
      *
-     * @return list<array{id:string,online:bool,regions:int,area:int}> in the order of their addresses, with their regions and their area
+     * @return list<array{id:string,online:bool,regions:int,area:int,uuids:list<string>}> in the order of their addresses, with their regions
      * @throws ChannelUnavailable when the database of the grid service cannot be reached
      */
     public static function elsewhere(GridConfig $config): array
@@ -1106,12 +1119,14 @@ final class Region extends Model
         $servers = array_filter(self::servers($config, $pdo), static fn(array $server): bool => $server['label'] === $server['id']);
         $online = [];
         $sizes = [];
-        foreach ($pdo->get_results('SELECT serverURI, flags, sizeX, sizeY FROM regions WHERE (flags & ' . self::HYPERLINK . ') = 0', [], \PDO::FETCH_ASSOC) as $row) {
+        $uuids = [];
+        foreach ($pdo->get_results('SELECT uuid, serverURI, flags, sizeX, sizeY FROM regions WHERE (flags & ' . self::HYPERLINK . ') = 0', [], \PDO::FETCH_ASSOC) as $row) {
             $id = self::server((string) ($row['serverURI'] ?? ''));
             if ($id === null) {
                 continue;
             }
             $online[$id] = ($online[$id] ?? false) || ((int) ($row['flags'] ?? 0) & self::REGION_ONLINE) !== 0;
+            $uuids[$id][] = strtolower((string) $row['uuid']);
             // A size the table does not say is the one of a region, 256 meters
             $sizes[$id][] = ((int) ($row['sizeX'] ?? 0) ?: self::SIZE) * ((int) ($row['sizeY'] ?? 0) ?: self::SIZE);
         }
@@ -1120,6 +1135,7 @@ final class Region extends Model
             'online' => $online[$server['id']] ?? false,
             'regions' => count($sizes[$server['id']] ?? []),
             'area' => (int) array_sum($sizes[$server['id']] ?? []),
+            'uuids' => $uuids[$server['id']] ?? [],
         ], array_values($servers));
         usort($found, static fn(array $a, array $b): int => strnatcasecmp($a['id'], $b['id']));
 
@@ -1214,6 +1230,7 @@ final class Region extends Model
                 Listing::column('serverName', 'filter_simulator'),
                 // Every flag but RegionOnline, which the column of the status shows
                 Listing::column('flagNames', 'column_flags', 'list', 'flags', ['values' => Listing::values(self::shownFlagKeys())]),
+                Listing::column('avatars', 'column_avatars', 'number'),
                 Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
                 // Enabled, the button that changes it where its file is, then online
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [

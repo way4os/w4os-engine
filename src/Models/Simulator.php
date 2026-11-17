@@ -47,6 +47,9 @@ final class Simulator extends InstalledModel
     /** @var ?list<Process> the processes of the machine, read once for a list (all()); null: read when asked */
     private ?array $processes = null;
 
+    /** @var ?array<string,array{members:int,visitors:int}> who is in each region of its grid (Stats::presence()), read once for a list */
+    private ?array $present = null;
+
     /** @var ?array{key:string,label:string} the machine it runs on, once resolved (server()) */
     private ?array $server = null;
 
@@ -78,10 +81,10 @@ final class Simulator extends InstalledModel
      * A simulator of another machine that runs regions of a grid of this one (registered with its Robust): known by its address
      * only, the engine has no way to it.
      */
-    public static function elsewhere(Environment $environment, Grid $grid, string $uri, bool $online, int $regions = 0, int $area = 0): self
+    public static function elsewhere(Environment $environment, Grid $grid, string $uri, bool $online, int $regions = 0, int $area = 0, array $uuids = []): self
     {
         $simulator = new self($environment, '', $uri);
-        $simulator->elsewhere = ['uri' => $uri, 'grid' => $grid, 'online' => $online, 'regions' => $regions, 'area' => $area];
+        $simulator->elsewhere = ['uri' => $uri, 'grid' => $grid, 'online' => $online, 'regions' => $regions, 'area' => $area, 'uuids' => $uuids];
 
         return $simulator;
     }
@@ -396,7 +399,15 @@ final class Simulator extends InstalledModel
                 $simulator->bound = $bound;
                 $simulator->processes = $processes;
             }
-            array_push($simulators, ...$here, ...self::ofOthers($environment, $grid, $here));
+            $all = [...$here, ...self::ofOthers($environment, $grid, $here)];
+            // Who is in the regions of the grid, read once for its simulators
+            $directory = $grid->directory();
+            $config = $directory !== '' && is_dir($directory) ? \OpenSim\Config\GridConfig::fromFolder($directory, ['Helpers' => 'Helpers.ini']) : null;
+            $present = $config === null ? null : \OpenSim\Data\Stats::presence(static fn(string $service): ?\OpenSim\Data\OSPDO => \OpenSim\Data\Connections::pdo($config, $service));
+            foreach ($all as $simulator) {
+                $simulator->present = $present;
+            }
+            array_push($simulators, ...$all);
         }
         $yesNo = static fn(\Closure $is): \Closure => static fn(self $simulator, string $value): bool => $is($simulator) ===
             ($value === 'yes');
@@ -419,6 +430,7 @@ final class Simulator extends InstalledModel
                 'port' => static fn(self $simulator): int => (int) $simulator->httpPort(),
                 'regions' => static fn(self $simulator): int => $simulator->regionsAndArea()[0],
                 'area' => static fn(self $simulator): int => $simulator->regionsAndArea()[1],
+                'avatars' => static fn(self $simulator): int => array_sum($simulator->present() ?? []),
                 'cpu' => static fn(self $simulator): float => (float) $simulator->process()?->cpu,
                 'memory' => static fn(self $simulator): float => (float) $simulator->process()?->memory,
                 'grid' => static fn(self $simulator): string => (string) $simulator->grid()?->nick(),
@@ -469,7 +481,7 @@ final class Simulator extends InstalledModel
         }
 
         return array_values(array_map(
-            static fn(array $server): self => self::elsewhere($environment, $grid, $server['id'], $server['online'], $server['regions'], $server['area']),
+            static fn(array $server): self => self::elsewhere($environment, $grid, $server['id'], $server['online'], $server['regions'], $server['area'], $server['uuids']),
             array_filter($servers, static fn(array $server): bool => !in_array(strtolower($server['id']), $local, true)),
         ));
     }
@@ -488,6 +500,7 @@ final class Simulator extends InstalledModel
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
                 Listing::column('regions', 'column_regions', 'number', 'regions'),
                 Listing::column('area', 'column_area', 'number', 'area'),
+                Listing::column('avatars', 'column_avatars', 'number', 'avatars'),
                 // What its process takes, in percents of the machine, while it runs
                 Listing::column('cpu', 'column_cpu', 'number', 'cpu'),
                 Listing::column('memory', 'column_memory', 'number', 'memory'),
@@ -576,6 +589,9 @@ final class Simulator extends InstalledModel
                 'area' => $this->regionsAndArea()[1],
                 'server' => $this->server()['label'],
                 'serverKey' => $this->server()['key'],
+                'avatars' => $this->present() === null ? null : array_sum($this->present()),
+                'members' => $this->present()['members'] ?? null,
+                'visitors' => $this->present()['visitors'] ?? null,
                 'cpu' => null,
                 'memory' => null,
             ] + array_fill_keys(['consolePort', 'console', 'databaseHost', 'databaseName', 'databaseUser', 'estateDatabaseName', 'estateName', 'estateOwner', 'regionsDirectory', 'core'], null);
@@ -600,6 +616,10 @@ final class Simulator extends InstalledModel
             // The machine it runs on, by its real name, and what its aliases and addresses resolve to
             'server' => $this->server()['label'],
             'serverKey' => $this->server()['key'],
+            // The people in its regions, members and visitors of other grids, never a NPC
+            'avatars' => $this->present() === null ? null : array_sum($this->present()),
+            'members' => $this->present()['members'] ?? null,
+            'visitors' => $this->present()['visitors'] ?? null,
             // What its process takes while it runs, as opensim status says it (percents of the machine)
             'cpu' => $this->process()?->cpu,
             'memory' => $this->process()?->memory,
@@ -731,6 +751,29 @@ final class Simulator extends InstalledModel
         }
 
         return null;
+    }
+
+    /**
+     * The people in its regions: the members of the grid and the visitors of other grids, never a NPC; null when it is not known.
+     *
+     * @return ?array{members:int,visitors:int}
+     */
+    public function present(): ?array
+    {
+        if ($this->present === null) {
+            return null;
+        }
+        $uuids = $this->elsewhere !== null ? $this->elsewhere['uuids'] : array_map(
+            static fn(Region $region): string => strtolower((string) $region->uuid()),
+            array_filter($this->regionsDirectory() !== '' ? Region::inDirectory($this->regionsDirectory()) : [], static fn(Region $region): bool => $region->isEnabled()),
+        );
+        $sum = ['members' => 0, 'visitors' => 0];
+        foreach ($uuids as $uuid) {
+            $sum['members'] += $this->present[$uuid]['members'] ?? 0;
+            $sum['visitors'] += $this->present[$uuid]['visitors'] ?? 0;
+        }
+
+        return $sum;
     }
 
     /**

@@ -364,6 +364,8 @@ final class Catalog
         'column_area' => 'Area',
         // What the process of a simulator takes, in percents of the machine
         'column_cpu' => 'CPU',
+        // The people in a region or a simulator: members and visitors of other grids, never a NPC
+        'column_avatars' => 'Avatars',
         'column_memory' => 'Memory',
         'column_traffic' => 'Traffic',
         'column_for_sale' => 'For sale',

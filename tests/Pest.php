@@ -55,3 +55,18 @@ function robust_made(OpenSim\Provisioning\GridPlan $plan, ?array $answers = null
 
     return (string) file_get_contents($plan->robustIni());
 }
+
+/**
+ * Names resolved without the network: no host resolves, no address has a name, this machine is itself. A test that needs more gives
+ * its own (ServerNames::using()) and puts this one back.
+ */
+function offline_names(): array
+{
+    return [
+        'addresses' => static fn(string $host): array => [],
+        'name' => static fn(string $ip): ?string => null,
+        'self' => static fn(): array => ['name' => (string) gethostname(), 'addresses' => []],
+    ];
+}
+
+OpenSim\Network\ServerNames::using(offline_names());

@@ -84,3 +84,25 @@ describe('numbers of a grid', function () {
         expect(Stats::counts(static fn() => null, STATS_NOW))->toBeNull();
     });
 });
+
+describe('who is in each region', function () {
+    test('are the members and the visitors of other grids there, the same people the numbers of the grid count', function () {
+        $one = stats_database();
+        $dbs = [
+            'UserAccountService' => stats_database(['accounts']),
+            'GridUserService' => stats_database(['visits']),
+            'PresenceService' => stats_database(['presence']),
+            'GridService' => stats_database(['regions']),
+        ];
+        $presence = Stats::presence(static fn() => $one);
+        $counts = Stats::counts(static fn() => $one, STATS_NOW);
+
+        // A NPC never reaches Presence (PresenceDetector of OpenSimulator): only people are counted
+        expect($presence)
+            ->toBe(['r1' => ['members' => 1, 'visitors' => 1]])
+            ->and(Stats::presence(static fn(string $service) => $dbs[$service]))
+            ->toBe($presence)
+            ->and([array_sum(array_column($presence, 'members')), array_sum(array_map('array_sum', $presence))])
+            ->toBe([$counts['members_in_world'], $counts['total_users']]);
+    });
+})->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');

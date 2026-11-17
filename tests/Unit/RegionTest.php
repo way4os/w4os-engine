@@ -302,6 +302,7 @@ describe('Regions', function () {
                 'ownerName' => 'link',
                 'serverName' => 'text',
                 'flagNames' => 'list',
+                'avatars' => 'number',
                 'lastSeen' => 'datetime',
                 'status' => 'indicators',
             ])
@@ -348,14 +349,14 @@ describe('Regions', function () {
             // Enabled, the button that changes it where its file is, then online, in one column
             ->and(array_map(
                 static fn(array $indicator): array => [$indicator['name'], $indicator['icon'], array_column($indicator['states'], 'tone', 'label'), $indicator['actions'] ?? []],
-                $listing->columns[7]['indicators'],
+                $listing->columns[8]['indicators'],
             ))
             ->toBe([
                 ['enabled', 'power', ['state_enabled' => 'ok', 'state_disabled' => 'off'], ['enable', 'disable']],
                 ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
             ])
             // In the world or not: a globe, a crossed one, never the color alone
-            ->and(array_column($listing->columns[7]['indicators'][1]['states'], 'icon', 'label'))
+            ->and(array_column($listing->columns[8]['indicators'][1]['states'], 'icon', 'label'))
             ->toBe(['online' => 'online', 'offline' => 'offline'])
             ->and(array_column($listing->columns, 'name'))
             ->not->toContain('online')

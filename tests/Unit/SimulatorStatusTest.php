@@ -244,7 +244,7 @@ describe('The server of a simulator', function () {
             $suzi = Simulator::all($machine->environment, ['filters' => ['server' => '203.0.113.7']])->items();
         } finally {
             Connections::using(null);
-            OpenSim\Network\ServerNames::using(null);
+            OpenSim\Network\ServerNames::using(offline_names());
             OpenSim\Data\Cache::flush();
         }
         $here = (string) gethostname();
@@ -265,5 +265,37 @@ describe('The server of a simulator', function () {
             // A host is resolved once for the list
             ->and(count($asked))
             ->toBe(count(array_unique($asked)));
+    });
+});
+
+describe('The people in a simulator and its regions', function () {
+    test('are the members and the visitors of other grids in its regions, as the grid counts them, never a NPC', function () {
+        $machine = new Machine();
+        $pdo = status_regions();
+        $pdo->exec('CREATE TABLE UserAccounts (PrincipalID CHAR(36), active INT DEFAULT 1)');
+        $pdo->exec("INSERT INTO UserAccounts (PrincipalID) VALUES ('aaaaaaaa-0000-4000-8000-000000000001'), ('aaaaaaaa-0000-4000-8000-000000000002')");
+        $pdo->exec('CREATE TABLE GridUser (UserID VARCHAR(255), Login CHAR(16))');
+        $pdo->exec('CREATE TABLE Presence (UserID VARCHAR(255), RegionID CHAR(36))');
+        // A member and a visitor of another grid in Plaza, a member in Suzi's region, one logged out; a NPC is never in Presence
+        $pdo->exec("INSERT INTO Presence VALUES ('aaaaaaaa-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111'), ('bbbbbbbb-0000-4000-8000-000000000009', '11111111-1111-4111-8111-111111111111'), ('aaaaaaaa-0000-4000-8000-000000000002', '22222222-1111-4111-8111-111111111111'), ('cccccccc-0000-4000-8000-000000000003', '00000000-0000-0000-0000-000000000000')");
+        Connections::using(static fn() => $pdo);
+        try {
+            $simulators = array_column(array_map(static fn(Simulator $s): array => $s->detail(), Simulator::all($machine->environment)->items()), null, 'uri');
+            $regions = array_column(OpenSim\Models\Region::all(OpenSim\Config\GridConfig::fromFolder($machine->grid))->array(), null, 'name');
+            $stats = OpenSim\Data\Stats::of(OpenSim\Config\GridConfig::fromFolder($machine->grid));
+        } finally {
+            Connections::using(null);
+        }
+        $here = gethostname() . ':9000';
+
+        expect(array_intersect_key($simulators[$here], array_flip(['avatars', 'members', 'visitors'])))
+            ->toBe(['avatars' => 2, 'members' => 1, 'visitors' => 1])
+            ->and($simulators['suzi.osgrid.example:9000']['avatars'])
+            ->toBe(1)
+            ->and(array_intersect_key($regions['Plaza'], array_flip(['avatars', 'members', 'visitors'])))
+            ->toBe(['avatars' => 2, 'members' => 1, 'visitors' => 1])
+            // The same people the status of the grid counts
+            ->and(array_sum(array_column($regions, 'avatars')))
+            ->toBe($stats['total_users'] ?? null);
     });
 });

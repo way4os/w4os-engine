@@ -28,6 +28,44 @@ final class Stats
     }
 
     /**
+     * Who is in each region: the members of the grid (its accounts) and the visitors of other grids, by region (in lower case). Only
+     * people: a NPC never reaches Presence (PresenceDetector of OpenSimulator leaves them out). Null when a database cannot be reached.
+     *
+     * @param callable(string):?OSPDO $dbFor gives the database of a service of Robust
+     * @return ?array<string,array{members:int,visitors:int}>
+     */
+    public static function presence(callable $dbFor): ?array
+    {
+        $accounts = $dbFor('UserAccountService');
+        $presence = $dbFor('PresenceService');
+        if ($accounts === null || empty($accounts->connected) || $presence === null || empty($presence->connected)) {
+            return null;
+        }
+        if (!$presence->table_exists('Presence')) {
+            return [];
+        }
+        $statement = $presence->prepareAndExecute('SELECT UserID, RegionID FROM Presence WHERE RegionID != :zero', ['zero' => NULL_KEY]);
+        $rows = $statement ? $statement->fetchAll(\PDO::FETCH_NUM) : [];
+        // Which of them are accounts of the grid, by groups of identifiers
+        $members = [];
+        foreach (array_chunk(array_values(array_unique(array_column($rows, 0))), self::GROUP) as $group) {
+            $marks = implode(',', array_fill(0, count($group), '?'));
+            $found = $accounts->prepareAndExecute("SELECT PrincipalID FROM UserAccounts WHERE PrincipalID IN ($marks)", $group);
+            foreach ($found ? $found->fetchAll(\PDO::FETCH_COLUMN) : [] as $id) {
+                $members[strtolower((string) $id)] = true;
+            }
+        }
+        $regions = [];
+        foreach ($rows as [$user, $region]) {
+            $region = strtolower((string) $region);
+            $regions[$region] ??= ['members' => 0, 'visitors' => 0];
+            isset($members[strtolower((string) $user)]) ? $regions[$region]['members']++ : $regions[$region]['visitors']++;
+        }
+
+        return $regions;
+    }
+
+    /**
      * The numbers, from the databases a function gives.
      *
      * @param callable(string):?OSPDO $dbFor gives the database of a service of Robust
@@ -76,6 +114,8 @@ final class Stats
             return $count;
         };
 
+        $here = self::presence($dbFor) ?? [];
+
         return [
             'members' => (int) $one($accounts, 'SELECT COUNT(*) FROM UserAccounts WHERE active = 1'),
             'active_members' => $accountsAmong(
@@ -84,16 +124,10 @@ final class Stats
                 [],
                 "SELECT UserID FROM GridUser WHERE Login + 0 > $month",
             ),
-            'members_in_world' => $accountsAmong(
-                $presence,
-                'SELECT COUNT(*) FROM Presence p, UserAccounts u WHERE p.RegionID != :zero AND p.UserID = u.PrincipalID',
-                ['zero' => $zero],
-                'SELECT UserID FROM Presence WHERE RegionID != :zero',
-            ),
+            // Who is in world, as each region counts them (presence()): one definition for the grid and its lists
+            'members_in_world' => array_sum(array_column($here, 'members')),
             'active_users' => (int) $one($users, "SELECT COUNT(*) FROM GridUser WHERE Login + 0 > $month"),
-            'total_users' => (int) $one($presence, 'SELECT COUNT(*) FROM Presence WHERE RegionID != :zero', [
-                'zero' => $zero,
-            ]),
+            'total_users' => (int) array_sum(array_map('array_sum', $here)),
             'regions' => (int) $one($grid, 'SELECT COUNT(*) FROM regions'),
             // Square kilometers, exact (a region of 256 m is 0.065536)
             'area' => ($area = $one($grid, 'SELECT SUM(sizeX * sizeY) FROM regions')) ? (int) $area / 1000000 : 0,

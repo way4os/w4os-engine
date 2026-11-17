@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (regions, simulators): the people in each region and in the regions of each simulator (`avatars`, with `members` and `visitors` of other grids), never a NPC (they do not reach Presence), counted as the status of the grid counts them (`Stats::presence()`, one definition); the names of the machines resolved offline in the tests
 - feature (simulators): the machine each runs on (`server`, its real name: this one for its own addresses, the reverse DNS of the others; `serverKey`, the address its host resolves to, so that its aliases and addresses are one server), a column sorted and a filter (`meta.available.server`), each host resolved once for ten minutes (`ServerNames`)
 - feature (simulators): their regions and their area (`regions`, `area`: the region files enabled, the table of the grid for one of another machine), and the cpu and memory of their process while they run (`cpu`, `memory`, as opensim status says them), columns sorted; the processes read once for a list
 - fix (monitor): the level of a grid is the one of its own services: ok whatever its simulators and regions do (they keep their counts), degraded only when a Robust of several does not run or the database of its grid service does not answer, down when its Robust (the simulator of a standalone) does not run

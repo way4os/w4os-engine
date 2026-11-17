@@ -1143,6 +1143,10 @@ msgctxt "column_cpu"
 msgid "CPU"
 msgstr "CPU"
 
+msgctxt "column_avatars"
+msgid "Avatars"
+msgstr "Avatars"
+
 msgctxt "column_memory"
 msgid "Memory"
 msgstr "Geheugen"

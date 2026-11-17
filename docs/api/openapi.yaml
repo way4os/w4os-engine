@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 56fd85d
+  version: 5b9ae89
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -490,6 +490,7 @@ paths:
               - port
               - regions
               - area
+              - avatars
               - cpu
               - memory
               - '-name'
@@ -498,6 +499,7 @@ paths:
               - '-port'
               - '-regions'
               - '-area'
+              - '-avatars'
               - '-cpu'
               - '-memory'
         -
@@ -615,6 +617,13 @@ paths:
             label: column_area
             type: number
             sort: area
+            bare: false
+            priority: secondary
+          -
+            name: avatars
+            label: column_avatars
+            type: number
+            sort: avatars
             bare: false
             priority: secondary
           -
@@ -793,6 +802,7 @@ paths:
             - port
             - regions
             - area
+            - avatars
             - cpu
             - memory
           descending: '-'
@@ -2737,6 +2747,12 @@ paths:
                 value: DefaultHGRegion
                 label: region_flag_default_hg_region
                 description: region_flag_default_hg_region_help
+            bare: false
+            priority: secondary
+          -
+            name: avatars
+            label: column_avatars
+            type: number
             bare: false
             priority: secondary
           -
@@ -8025,6 +8041,21 @@ components:
             area:
               type: integer
               description: 'Their area, in square meters'
+            avatars:
+              type:
+                - integer
+                - 'null'
+              description: 'The people in it: the members of the grid and the visitors of other grids, never a NPC (they do not reach Presence); null when it is not known'
+            members:
+              type:
+                - integer
+                - 'null'
+              description: 'The members of the grid in it'
+            visitors:
+              type:
+                - integer
+                - 'null'
+              description: 'The visitors of other grids in it'
             server:
               type: string
               description: 'The machine it runs on, by its real name: this one for its own addresses (SYSTEMIP, localhost), the reverse DNS of the others, else its host as written'
@@ -8633,6 +8664,21 @@ components:
                 - string
                 - 'null'
               description: 'The UUID of its map tile'
+            avatars:
+              type:
+                - integer
+                - 'null'
+              description: 'The people in it: the members of the grid and the visitors of other grids, never a NPC (they do not reach Presence); null when it is not known'
+            members:
+              type:
+                - integer
+                - 'null'
+              description: 'The members of the grid in it'
+            visitors:
+              type:
+                - integer
+                - 'null'
+              description: 'The visitors of other grids in it'
             teleport:
               type:
                 - string
