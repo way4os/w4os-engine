@@ -58,9 +58,24 @@ describe('A setup file applied', function () {
             ->toBe($north['ports']['http'])
             ->and($small['region']['location'])
             ->not->toBe($north['region']['location'])
-            ->and($plan['reminders'])
-            ->toBe(['opensim start demo.north', 'opensim restart alpha (it loads its new regions when it starts)'])
+            ->and(array_slice($plan['reminders'], 0, 2))
+            ->toBe(['opensim start demo.north', 'opensim start alpha (it loads its new regions when it starts)'])
+            // The role of a region of a new simulator: Robust gives it once it has read its config, or opensim region set
+            ->and($plan['reminders'][2])
+            ->toContain('Big Garden', 'FallbackRegion', 'opensim restart demo', 'opensim region set demo "Big Garden" --roles FallbackRegion')
             ->and(array_filter($plan['writes'], 'file_exists'))
+            ->toBe([]);
+    });
+
+    test('loads the regions of a running simulator through its console, which needs no restart', function () {
+        $machine = new Machine();
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $grid->simulatorLink($grid->simulator('alpha')->slug()));
+        $plan = SetupApply::prepare($machine->environment, ['grid' => ['nick' => 'demo'], 'simulators' => [['name' => 'alpha', 'regions' => [['name' => 'Alpha Two']]]]]);
+
+        expect($plan->steps[0]['plan']->start)
+            ->toBeTrue()
+            ->and($plan->document()['reminders'])
             ->toBe([]);
     });
 

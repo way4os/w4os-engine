@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Provisioning;
 
+use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Exceptions\NotFound;
 use OpenSim\Models\Grid;
@@ -84,6 +85,8 @@ final class SetupApply
             $exists = $found !== null;
             if ($found !== null) {
                 $plan = self::existing($grid, $found);
+                // A running simulator loads its new regions through its console (start), a stopped one when it starts
+                $plan->start = InstanceConsoleService::running($grid->simulatorLink($found->slug()), $environment);
             } else {
                 $planner = SimulatorPlanner::forGrid($grid, $database, $ui, null, $regions[0]['name'] ?? null);
                 $answers = SetupFile::simulatorValues($data, $i) + $planner->ownerAnswers(SetupFile::owner($data, $i));
@@ -165,10 +168,24 @@ final class SetupApply
         }
 
         $reminders = [];
+        $roles = [];
         foreach ($this->steps as ['kind' => $kind, 'plan' => $plan]) {
-            $reminders[$plan->slug] = $kind === 'simulator'
-                ? "opensim start {$plan->slug}"
-                : $reminders[$plan->slug] ?? "opensim restart {$plan->slug} (it loads its new regions when it starts)";
+            if ($kind === 'simulator') {
+                $reminders[$plan->slug] = "opensim start {$plan->slug}";
+            } elseif (!$plan->start) {
+                $reminders[$plan->slug] ??= "opensim start {$plan->slug} (it loads its new regions when it starts)";
+            }
+            // The roles of a region a running simulator loads are given then; the others when Robust has read its config
+            $plan->start || $plan->regionRoles === [] || ($roles[] = sprintf(
+                'Robust gives %s its roles (%s) from Robust.ini, read when it starts: restart Robust (opensim restart %s) before starting %s, or once the region runs: opensim region set %s "%s" --roles %s',
+                $plan->regionName,
+                implode(', ', $plan->regionRoles),
+                $this->grid->nick(),
+                $plan->slug,
+                $this->grid->nick(),
+                $plan->regionName,
+                implode(',', $plan->regionRoles),
+            ));
         }
 
         return [
@@ -176,7 +193,7 @@ final class SetupApply
             'steps' => $steps,
             'writes' => $writes,
             'problems' => $this->problems,
-            'reminders' => array_values($reminders),
+            'reminders' => [...array_values($reminders), ...$roles],
         ];
     }
 
@@ -241,10 +258,10 @@ final class SetupApply
     /** The plan of a region of the simulator of this plan: only its region is written. */
     private static function regionOf(SimulatorPlan $simulator): SimulatorPlan
     {
+        // Loaded through the console when the simulator runs (start, as the simulator's plan says), else written only
         $plan = clone $simulator;
         $plan->regionOnly = true;
         $plan->createRegion = true;
-        $plan->start = false;
         // The address the regions of the simulator announce, when it has some
         $files = glob("{$plan->regionsDir()}/*.ini") ?: [];
         $files === [] || ($plan->externalHost = Import\SimulatorImporter::externalHost($files));

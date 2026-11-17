@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenSim\Provisioning;
 
 use OpenSim\Exceptions\SetupFailedException;
+use OpenSim\Config\GridConfig;
 use OpenSim\Config\GridFileService;
 use OpenSim\Console\InstanceConsoleService;
 use OpenSim\Models\Grid;
@@ -456,10 +457,6 @@ final class SimulatorProvisioner
             return;
         }
 
-        // Robust reads the roles of its regions when it starts
-        if ($plan->regionRoles !== [] && !$grid->isRemote()) {
-            $this->restartGrid($grid);
-        }
         // The questions of a region with no estate are answered with their default (the estate it has)
         $file = basename($plan->regionIni());
         if (!InstanceConsoleService::send($plan->slug, "create region \"{$plan->regionName}\" $file\n\n\n")) {
@@ -482,20 +479,32 @@ final class SimulatorProvisioner
             );
         }
         $this->giveHome($plan, $grid);
+        $this->rolesNow($plan, $grid);
         $this->initRegion($plan, $environment);
         $this->ui->note(sprintf(_('Region %s is online.'), $plan->regionName));
     }
-    /** Robust gives the roles to a region when it registers, from its config read when it starts. */
-    private function restartGrid(Grid $grid): void
+    /**
+     * The roles of a region that registered, given now (Region::update(), through the console of Robust): Robust gives the ones of
+     * its config only to a region that registers once it has read them, when it starts. The regions table keeps them.
+     */
+    private function rolesNow(SimulatorPlan $plan, Grid $grid): void
     {
-        [$code] = InstanceControl::run($this->ui, 'restart', $grid->nick(), true);
-        if ($code !== 0) {
+        if ($plan->regionRoles === []) {
+            return;
+        }
+        try {
+            $region = Region::find(GridConfig::fromFolder($grid->directory()), $plan->regionName);
+            $region?->update(['roles' => array_values(array_unique([...$region->roles(), ...$plan->regionRoles]))]);
+            $region === null || $this->ui->note(sprintf(_('Region %s is %s.'), $plan->regionName, implode(', ', $plan->regionRoles)));
+        } catch (\Throwable $error) {
             $this->ui->warn(
                 sprintf(
-                    _("The grid '%s' did not restart: try %s -v restart now %s"),
+                    _('The roles of %s are not given yet (%s): opensim region set %s "%s" --roles %s'),
+                    $plan->regionName,
+                    $error->getMessage(),
                     $grid->nick(),
-                    'opensim',
-                    $grid->nick(),
+                    $plan->regionName,
+                    implode(',', $plan->regionRoles),
                 ),
             );
         }
