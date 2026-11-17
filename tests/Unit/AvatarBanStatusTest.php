@@ -93,16 +93,23 @@ describe('The bans of the estates', function () {
         $ada()->update(['estateBanned' => true]);
         $all = [$ada()->detail()['estateBans'], array_column(Avatar::all($config)->array(), 'estateBanned', 'name')];
         $ada()->update(['estateBans' => ['102']]);
-        $some = $ada()->detail()['estateBans'];
+        $some = [$ada()->detail()['estateBans'], $ada()->detail()['ban']];
+        // Banned for good besides
+        $ada()->update(['banned' => true]);
+        $both = $ada()->detail()['ban'];
+        $ada()->update(['banned' => false]);
         $ada()->update(['estateBanned' => false]);
 
         expect($all)
             ->toBe([['101', '102'], ['Ada Love' => true, 'Bob Root' => false, 'Cy Gone' => false]])
+            // The sign of the ban: a hard one wins over those of the estates
+            ->and($both)
+            ->toBe('hard')
             ->and($some)
-            ->toBe(['102'])
+            ->toBe([['102'], 'estates'])
             // Its account is not touched: it can still log in, to the regions of no estate that bans it
-            ->and([$ada()->detail()['estateBans'], $ada()->detail()['status']])
-            ->toBe([[], 'active']);
+            ->and([$ada()->detail()['estateBans'], $ada()->detail()['status'], $ada()->detail()['ban']])
+            ->toBe([[], 'active', null]);
     });
 });
 
@@ -113,10 +120,14 @@ describe('The list of the avatars', function () {
         $indicators = array_column(end($columns)['indicators'], null, 'name');
         $actions = array_column($listing->actions, null, 'name');
 
-        expect(array_column($indicators['status']['states'], 'tone', 'value'))
-            ->toMatchArray(['banned' => 'failed'])
-            ->and(array_column($indicators['estateBanned']['states'], 'tone', 'value'))
-            ->toBe([true => 'warning'])
+        // A difference that matters is never the color alone: the account of a banned avatar has its own icon, the sign of the ban
+        // shows for both bans, red and said banned for a hard one, orange and said banned from estates for those of estates
+        expect(array_column($indicators['status']['states'], null, 'value')['banned'])
+            ->toBe(['value' => 'banned', 'label' => 'status_banned', 'tone' => 'failed', 'icon' => 'user-off'])
+            ->and(array_map(static fn(array $state): array => [$state['label'], $state['tone']], array_column($indicators['ban']['states'], null, 'value')))
+            ->toBe(['hard' => ['status_banned', 'failed'], 'estates' => ['state_estate_banned', 'warning']])
+            ->and($indicators['ban']['icon'])
+            ->toBe('ban')
             ->and(array_map(static fn(string $name): array => [$actions[$name]['body'], $actions[$name]['level'] ?? null, isset($actions[$name]['ask'])], ['ban', 'unban', 'estateBan', 'estateUnban']))
             ->toBe([
                 [['banned' => true], 200, true],

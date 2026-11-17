@@ -675,6 +675,8 @@ final class Avatar extends Model
             // The estates whose ban lists have it (their ids), whether any does: a hard ban is the account's, these are the estates'
             'estateBans' => $this->estateBans(),
             'estateBanned' => $this->estateBans() !== [],
+            // The ban it has, the hard one first: hard, estates, or none
+            'ban' => $this->status() === 'banned' ? 'hard' : ($this->estateBans() !== [] ? 'estates' : null),
             'online' => $this->isOnline(),
             'lastSeen' => $this->lastSeenTime() ?: null,
             'homeRegion' => $row['HomeRegionID'] ?? null,
@@ -1568,9 +1570,10 @@ final class Avatar extends Model
             Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
             // The account, the button that enables or disables it, and the presence in the world
             Listing::column('status', 'column_status', 'indicators', 'active', ['indicators' => [
-                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off'], ['banned', 'status_banned', 'failed']], ['enable', 'disable']),
-                // In the ban list of an estate at least: a ban of some regions, not of the grid
-                Listing::indicator('estateBanned', 'ban', 'filter_estate_banned', [[true, 'state_estate_banned', 'warning']]),
+                // A banned account has an icon of its own: a difference that matters is never the color alone
+                Listing::indicator('status', 'account', 'status', [['active', 'status_active', 'ok'], ['pending', 'status_pending', 'off'], ['disabled', 'status_disabled', 'off'], ['banned', 'status_banned', 'failed', 'user-off']], ['enable', 'disable']),
+                // The sign of a ban, for both: a hard one (red), else the ban lists of some estates (orange)
+                Listing::indicator('ban', 'ban', 'status_banned', [['hard', 'status_banned', 'failed'], ['estates', 'state_estate_banned', 'warning']]),
                 Listing::indicator('online', 'online', 'presence', [[true, 'online', 'ok'], [false, 'offline', 'off']]),
             ]]),
         ];
