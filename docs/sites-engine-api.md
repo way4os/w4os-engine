@@ -21,6 +21,18 @@ never a 500.
 The helpers do not serve it: `/helpers/api` is a 404. They serve the pages, the services the viewers and the simulators call, and the
 pictures of the grid (`/helpers/pictures/<uuid>.<format>`), and run the due tasks of the grid after their pages.
 
+## Only the engine exposes it
+
+The API gives critical rights and destructive methods: the engine alone serves it (its entry point) and sets the conditions to use
+it: the keys of the install (`ApiKeys`), what is open (`Router::PUBLIC`), who may do what (`x-access`, `Api\Access`). A bridge (the
+helpers, a plugin, a site) never exposes it, proxies it or passes it through, and never decides those conditions:
+
+- a bridge that calls the engine in its own process for its own work (a page, an action of its admin) uses the Router as a library,
+  and checks the level of the person with `Api\Access` (or `x-access`);
+- a bridge that answers a request of the web with the engine (the services of the viewers, the pictures of the grid) gives the
+  Router a locked authenticator (`new Router($api, authenticator: new Locked())`, or `Api\Handler` with `Locked`): the engine then
+  answers only what it says is public, whatever the request brings.
+
 ## Running it as the user of the instances
 
 `opensim web GRID api caddy|nginx|apache` prints the two pieces:
