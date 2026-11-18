@@ -220,7 +220,8 @@ describe('An option enabled', function () {
 
         $beta = $options->enable('economy-beta');
         $gloebit = $options->enable('economy-gloebit');
-        $economy = fn(): array => ConfigReader::load($machine->grid . '/sims/alpha.ini');
+        // The simulators include the Gloebit.ini of the grid, the one place of its settings
+        $economy = fn(): array => ConfigReader::load($machine->grid . '/sims/alpha.ini', ['EtcDirectory' => $machine->grid]);
 
         expect($beta['error'])
             ->toBeNull()
@@ -229,7 +230,9 @@ describe('An option enabled', function () {
             ->and($economy()['Economy']['economymodule'])
             ->toBe('Gloebit')
             ->and($economy()['Gloebit'])
-            ->toBe(['Enabled' => 'true', 'GLBEnvironment' => 'sandbox'])
+            ->toMatchArray(['Include-Gloebit' => $machine->grid . '/Gloebit.ini', 'Enabled' => 'true', 'GLBEnvironment' => 'sandbox'])
+            ->and((string) file_get_contents($machine->grid . '/sims/alpha.ini'))
+            ->not->toContain('GLBEnvironment')
             ->and(implode("\n", $gloebit['notes']))
             ->toContain('the module gloebit is not in EnabledModules')
             ->toContain('GLBKey, GLBSecret, GLBOwnerName')
@@ -239,12 +242,8 @@ describe('An option enabled', function () {
 
         // The environment is the administrator's after the first time, and the keys are no longer missing once given
         $machine->write(
-            $machine->grid . '/sims/alpha.ini',
-            str_replace('GLBEnvironment = sandbox', "GLBEnvironment = production\n    GLBKey = k\n    GLBSecret = s\n    GLBOwnerName = o", file_get_contents($machine->grid . '/sims/alpha.ini')),
-        );
-        $machine->write(
-            $machine->grid . '/sims/beta.ini',
-            file_get_contents($machine->grid . '/sims/beta.ini') . "\n[Gloebit]\n    GLBKey = k\n    GLBSecret = s\n    GLBOwnerName = o\n",
+            $machine->grid . '/Gloebit.ini',
+            str_replace('GLBEnvironment = sandbox', "GLBEnvironment = production\n    GLBKey = k\n    GLBSecret = s\n    GLBOwnerName = o", file_get_contents($machine->grid . '/Gloebit.ini')),
         );
         $again = $options->enable('economy-gloebit');
 
@@ -428,7 +427,8 @@ describe('The options of a grid that is made', function () {
             ->toBe([
                 'index_sims' => 'true',
                 'gridname' => 'Demo World',
-                'DATA_SRV_Demo' => 'https://demo.example.org/helpers/register.php',
+                'DATA_SRV_demo' => 'https://demo.example.org/helpers/register.php',
+                'DATA_SRV_2do' => 'https://2do.directory/helpers/register.php',
             ])
             ->and($settings['Messaging']['OfflineMessageURL'])
             ->toBe('https://demo.example.org/helpers/offline.php')

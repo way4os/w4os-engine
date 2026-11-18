@@ -362,7 +362,7 @@ final class GridOptions
     {
         $said = [];
         foreach ($this->gridFiles() as $file) {
-            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($file, expand: false)) as $section => $keys) {
+            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($file, $this->gridConstants(), expand: false)) as $section => $keys) {
                 is_array($keys) && ($said[$section] = array_merge($said[$section] ?? [], array_change_key_case(array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys))));
             }
         }
@@ -381,10 +381,16 @@ final class GridOptions
             if ($this->unmet($option) !== null && !$this->givenByGrid($option, $said)) {
                 continue;
             }
-            // Its own settings, without the values of the grid: the lines that need a variable are left out
+            // Its own settings, without the values of the grid: the lines that need a variable are left out; those of the files of the
+            // simulators (OpenSim.ini, and a file of the grid they include: the Gloebit.ini of Gloebit), not of Robust
+            $own = [];
+            foreach ($option->files() as $file) {
+                preg_match('/\.ini$/i', $file) === 1 && preg_match('/^Robust/i', basename($file)) !== 1 && array_push($own, ...$option->settings($file, [], true));
+            }
             $telling = array_filter(
-                $option->settings('OpenSim.ini', [], true),
+                $own,
                 static fn(array $s): bool => !in_array(strtolower(trim($s[2], " \"")), ['', 'true', 'false'], true)
+                    && stripos($s[1], 'Include-') !== 0
                     && !$option->lists('Existing', $s[0], $s[1]) && !$option->lists('Initial', $s[0], $s[1]),
             );
             $told = false;
@@ -481,7 +487,7 @@ final class GridOptions
             if (!is_file($source)) {
                 continue;
             }
-            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($source, expand: false)) as $section => $keys) {
+            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($source, $this->gridConstants(), expand: false)) as $section => $keys) {
                 if (!in_array($section, $sections, true) || !is_array($keys)) {
                     continue;
                 }
@@ -505,6 +511,17 @@ final class GridOptions
         $own = rtrim($this->grid->directory(), '/') . '/OpenSim.ini';
 
         return array_values(array_unique(array_filter([$own, $this->general()], 'is_file')));
+    }
+
+    /**
+     * The constants a file of the grid is read with, for the files it includes (`${Const|EtcDirectory}/Gloebit.ini`): those the
+     * master of its simulators gives, the folder of the grid.
+     *
+     * @return array<string,string>
+     */
+    private function gridConstants(): array
+    {
+        return ['EtcDirectory' => rtrim($this->grid->directory(), '/')];
     }
 
     /**
@@ -567,8 +584,15 @@ final class GridOptions
             $chosen === null ? ($unknown[] = "$section/$key") : ($writes[] = [$section, $key, $chosen]);
             $has[$s][$k] = true;
         }
+        // An option set in a file of the grid the simulators include (Gloebit.ini) has its settings there only: the simulator gets
+        // the include, never a copy; the file is the grid's to have
+        $includes = array_filter($option->settings('OpenSim.ini', $this->variables(), true), static fn(array $s): bool => stripos($s[1], 'Include-') === 0);
+        foreach ($includes as [, , $value]) {
+            $file = str_ireplace('${Const|EtcDirectory}', rtrim($this->grid->directory(), '/'), trim($value, '"'));
+            is_file($file) || ($unknown[] = basename($file) . ' of the grid (its settings, in one place)');
+        }
         // The rest of what the grid says in the sections of the option: its keys, its owner, its storage
-        foreach ($grid as $s => $keys) {
+        foreach ($includes !== [] ? [] : $grid as $s => $keys) {
             foreach ($keys as $k => [$key, $value]) {
                 if (!array_key_exists($k, $has[$s] ?? [])) {
                     $section = $this->sectionName($option, $s);
@@ -774,6 +798,8 @@ final class GridOptions
             'grid_name' => $this->grid->name(),
             'grid_nick' => $this->grid->nick(),
             'grid_dir' => $this->grid->directory(),
+            // Where the files of the grid an option sets are (the folder of its preset, for a grid joined by one)
+            'config_dir' => $this->root(),
             'data_service' => SimulatorConfig::dataServiceNameOf($this->grid->nick(), $this->grid->name()),
             // The address of the economy the grid tells the viewers: the one given, the one it tells, else where its helpers are
             'economy_url' => $prefix !== '' ? $prefix : (($current ?? '') !== '' ? (string) $current : ($currency === '' ? '' : dirname($currency))),
@@ -1054,6 +1080,21 @@ final class GridOptions
     private function missing(OptionTemplate $option): array
     {
         $missing = [];
+        // A file of the grid the option sets (the Gloebit.ini the simulators include) says it for all of them
+        $own = [];
+        foreach ($option->files() as $file) {
+            if (preg_match('/\.ini$/i', $file) !== 1 || $file === 'OpenSim.ini' || preg_match('/^Robust/i', basename($file)) === 1) {
+                continue;
+            }
+            $name = $option->path($file, $this->variables());
+            $name === null || !is_file($this->root() . "/$name") || ($own[] = IniEditor::load($this->root() . "/$name"));
+        }
+        foreach ($option->asks() as $ask) {
+            [$section, $key] = explode('/', $ask, 2) + [1 => ''];
+            foreach ($own as $ini) {
+                $ini->get($section, $key) === null || ($missing[$key] = false);
+            }
+        }
         $general = $this->layered() ? IniEditor::load($this->general()) : null;
         foreach ([null, ...array_values($this->simulators())] as $file) {
             $ini = $file === null ? $general : IniEditor::load($file);
@@ -1062,13 +1103,13 @@ final class GridOptions
             }
             foreach ($option->asks() as $ask) {
                 [$section, $key] = explode('/', $ask, 2) + [1 => ''];
-                if ($ini->get($section, $key) === null && ($file === null || $general?->get($section, $key) === null)) {
+                if (($missing[$key] ?? null) !== false && $ini->get($section, $key) === null && ($file === null || $general?->get($section, $key) === null)) {
                     $missing[$key] = true;
                 }
             }
         }
 
-        return array_keys($missing);
+        return array_keys(array_filter($missing));
     }
 
     /**

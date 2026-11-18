@@ -18,42 +18,51 @@ use OpenSim\Testing\Machine;
 const GRID_SETTINGS = __DIR__ . '/../fixtures/grid-settings/OpenSim.ini';
 
 describe('The settings of an old grid', function () {
-    test('are read as OpenSimulator reads them: its includes, the last word of each, its constants, its quotes', function () {
+    test('are read as OpenSimulator reads them: its includes, the last word of each, its quotes, its comments; its constants kept', function () {
         $machine = new Machine();
         $plan = GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo');
         $settings = $plan->settings();
+        $gloebit = $plan->settings('Gloebit.ini');
+        $notes = implode("\n", $plan->document()['notes']);
 
+        // The constants as they are: the ones this machine has (the address of the grid), the others defined for the grid (its site)
         expect($settings['Search'])
-            ->toBe(['Module' => 'OpenSimSearch', 'SearchURL' => 'https://web.example.org/helpers/query.php?gk=http://grid.example.org:8002'])
-            // Both data services of the grid, as they are; the cache of a snapshot is the simulator's own
+            ->toBe(['Module' => 'OpenSimSearch', 'SearchURL' => '${Const|WebURL}/helpers/query.php?gk=${Const|BaseURL}:${Const|PublicPort}'])
+            ->and($settings['Const'])
+            ->toBe(['WebURL' => 'https://web.example.org'])
+            // The data service of the helpers of the grid by its name now, DATA_SRV_<nick>, and the shared directory; the cache of a
+            // snapshot is the simulator's own
             ->and($settings['DataSnapshot'])
             ->toBe([
                 'index_sims' => 'true',
                 'gridname' => 'Example',
                 'default_snapshot_period' => '3600',
-                'DATA_SRV_MISearch' => 'https://web.example.org/helpers/register.php',
+                'DATA_SRV_demo' => '${Const|WebURL}/helpers/register.php',
                 'DATA_SRV_2do' => 'https://2do.directory/helpers/register.php',
             ])
-            // The included Gloebit.ini says the economy last: DTL/NSL is not used any more
-            ->and($settings['Economy'])
-            ->toBe(['economymodule' => 'Gloebit', 'economy' => 'https://web.example.org/gloebit', 'SellEnabled' => 'true', 'PriceUpload' => '0', 'PriceGroupCreate' => '0'])
-            ->and($settings['Gloebit']['GLBEnvironment'])
+            // Gloebit in one place, the Gloebit.ini of the grid, which the simulators include: the economy it says last there too
+            ->and($settings['Gloebit'])
+            ->toBe(['Include-Gloebit' => '${Const|EtcDirectory}/Gloebit.ini'])
+            ->and($settings)
+            ->not->toHaveKey('Economy')
+            ->and($gloebit['Economy'])
+            ->toBe(['economymodule' => 'Gloebit', 'economy' => '${Const|WebURL}/gloebit', 'SellEnabled' => 'true', 'PriceUpload' => '0', 'PriceGroupCreate' => '0'])
+            ->and($gloebit['Gloebit']['GLBEnvironment'])
             ->toBe('production')
-            // What follows the closing quote is left out, as OpenSimulator reads it
-            ->and($settings['Gloebit']['GLBSpecificStorageProvider'])
+            // What follows the closing quote is left out, as OpenSimulator reads it, and said
+            ->and($gloebit['Gloebit']['GLBSpecificStorageProvider'])
             ->toBe('OpenSim.Data.MySQL.dll')
             ->and($settings['Groups']['GroupsServerURI'])
-            ->toBe('http://grid.example.org:8003')
-            // What is not of an option of the grid stays in the old install
+            ->toBe('${Const|PrivURL}:${Const|PrivatePort}')
             ->and($settings)
             ->not->toHaveKey('Startup')
-            ->and(json_encode($settings))
-            ->not->toContain('${');
+            ->and($notes)
+            ->toContain('DTL/NSL is not handled', 'DATA_SRV_MISearch', 'GLBSpecificStorageProvider: what follows its closing quote');
 
         return $machine;
     });
 
-    test('are planned without their secrets, and laid in the OpenSim.ini of the grid without replacing what is there, once', function (Machine $machine) {
+    test('are planned without their secrets, and laid in the files of the grid without replacing what is there, once', function (Machine $machine) {
         $general = $machine->grid . '/OpenSim.ini';
         file_put_contents($general, (is_file($general) ? (string) file_get_contents($general) : '') . "\n[UserProfiles]\n    ProfileServiceURL = \"http://mine.example.org:8002\"\n");
         $plan = GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo');
@@ -61,8 +70,8 @@ describe('The settings of an old grid', function () {
 
         $applied = $plan->apply();
         $again = GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo')->document();
-        $file = (string) file_get_contents($general);
         $read = ConfigReader::load($general, expand: false);
+        $gloebit = ConfigReader::load($machine->grid . '/Gloebit.ini', expand: false);
 
         expect($said)
             ->not->toContain('made-up-key-of-the-old-grid')
@@ -73,36 +82,48 @@ describe('The settings of an old grid', function () {
             ->toBeTrue()
             ->and($read['Search']['Module'] ?? null)
             ->toBe('OpenSimSearch')
-            ->and($read['Gloebit']['GLBKey'] ?? null)
+            ->and($read['Const']['WebURL'] ?? null)
+            ->toBe('https://web.example.org')
+            ->and($read)
+            ->not->toHaveKey('Economy')
+            ->and($gloebit['Gloebit']['GLBKey'] ?? null)
             ->toBe('made-up-key-of-the-old-grid')
             // What the grid said is its own
             ->and($read['UserProfiles']['ProfileServiceURL'] ?? null)
             ->toBe('http://mine.example.org:8002')
-            ->and($file)
+            ->and((string) file_get_contents($general) . file_get_contents($machine->grid . '/Gloebit.ini'))
             ->not->toContain('DTLNSLMoneyModule')
-            ->and($again['settings'])
+            ->not->toContain('MISearch')
+            ->and($again['files'])
             ->toBe([]);
 
         return $machine;
-    })->depends('are read as OpenSimulator reads them: its includes, the last word of each, its constants, its quotes');
+    })->depends('are read as OpenSimulator reads them: its includes, the last word of each, its quotes, its comments; its constants kept');
 
-    test('are then laid in the simulators of the grid by the repair of the options, once', function (Machine $machine) {
+    test('give the simulators the constants they use: the site of the grid in the master, as the OpenSim.ini of the grid defines it', function (Machine $machine) {
+        $master = (new OpenSim\Provisioning\SimulatorMaster($machine->environment))->render($machine->grid, $machine->core . '/bin');
+
+        expect(ConfigReader::parse($master)['Const']['WebURL'] ?? null)->toBe('https://web.example.org');
+    })->depends('are planned without their secrets, and laid in the files of the grid without replacing what is there, once');
+
+    test('are then laid in the simulators of the grid by the repair of the options, once: Gloebit by the include of its file', function (Machine $machine) {
         $options = static fn() => new GridOptions(Grid::find($machine->environment, 'demo'));
 
         $options()->repair(true);
         $alpha = ConfigReader::load(GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini', expand: false);
 
         expect($alpha['Search']['SearchURL'] ?? null)
-            ->toBe('https://web.example.org/helpers/query.php?gk=http://grid.example.org:8002')
+            ->toBe('${Const|WebURL}/helpers/query.php?gk=${Const|BaseURL}:${Const|PublicPort}')
             ->and($alpha['DataSnapshot']['DATA_SRV_2do'] ?? null)
             ->toBe('https://2do.directory/helpers/register.php')
-            ->and($alpha['Gloebit']['GLBEnvironment'] ?? null)
-            ->toBe('production')
-            ->and($alpha['Economy']['economymodule'] ?? null)
-            ->toBe('Gloebit')
+            ->and($alpha['Gloebit']['Include-Gloebit'] ?? null)
+            ->toBe('${Const|EtcDirectory}/Gloebit.ini')
+            // One source: the simulator has no copy of the settings of Gloebit
+            ->and($alpha['Gloebit'] ?? [])
+            ->not->toHaveKey('GLBEnvironment')
             ->and($options()->repair(false)['simulators'])
             ->toBe([]);
-    })->depends('are planned without their secrets, and laid in the OpenSim.ini of the grid without replacing what is there, once');
+    })->depends('are planned without their secrets, and laid in the files of the grid without replacing what is there, once');
 
     test('are imported through the API, planned first, the secrets masked', function () {
         $machine = new Machine();
@@ -112,9 +133,11 @@ describe('The settings of an old grid', function () {
         $plan = $ask('plan');
         $applied = $ask('apply');
 
-        expect($plan->document['data']['attributes']['settings']['Gloebit']['GLBSecret'] ?? null)
+        $gloebit = $plan->document['data']['attributes']['files'][$machine->grid . '/Gloebit.ini']['Gloebit'] ?? [];
+
+        expect($gloebit['GLBSecret'] ?? null)
             ->toBe('***')
-            ->and($plan->document['data']['attributes']['settings']['Gloebit']['GLBSpecificConnectionString'] ?? null)
+            ->and($gloebit['GLBSpecificConnectionString'] ?? null)
             ->toBe('***')
             ->and($plan->document['data']['attributes']['applied'])
             ->toBeFalse()
