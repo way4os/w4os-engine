@@ -908,6 +908,38 @@ final class Api
         ]);
     }
 
+    /** The settings of a grid, a group of them (GridSettings): the models... */
+    public function settings(string $grid, string $group): Response
+    {
+        return $this->gridSettings($grid, $group, null);
+    }
+
+    /**
+     * Change settings of a grid, of a group (GridSettings::write()).
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function updateSettings(string $grid, string $group, array $attributes): Response
+    {
+        return $this->gridSettings($grid, $group, $attributes);
+    }
+
+    /** @param ?array<string,mixed> $changes */
+    private function gridSettings(string $grid, string $group, ?array $changes): Response
+    {
+        $instance = self::path('grids', $grid, null) . "/settings/$group";
+        try {
+            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            in_array($group, \OpenSim\Models\GridSettings::groups(), true) || throw NotFound::for("settings called '$group'");
+            $settings = new \OpenSim\Models\GridSettings($found);
+            $values = $changes === null ? $settings->read($group) : $settings->write($group, $changes);
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document(['data' => ['type' => 'settings', 'id' => $group, 'attributes' => $values], 'links' => ['self' => $instance]]);
+    }
+
     /**
      * The options of the grid its simulators miss in their files, `mode` plan (the default) or apply (GridOptions::repair()).
      *

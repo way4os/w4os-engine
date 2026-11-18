@@ -104,6 +104,45 @@ final class Endpoints
                 ],
             ],
         ];
+        // The settings of a grid by group, each with its form, the same fields for its reading and its change
+        foreach (\OpenSim\Models\GridSettings::groups() as $group) {
+            $form = \OpenSim\Models\GridSettings::form($group);
+            $properties = [];
+            foreach ($form['fields'] as $field) {
+                $properties[$field['name']] = ($field['multiple'] ?? false)
+                    ? ['type' => 'array', 'items' => ['type' => 'string']]
+                    : ['type' => 'string'] + (isset($field['options']) ? ['enum' => array_keys($field['options'])] : []);
+            }
+            $body = ['type' => 'object', 'properties' => ['data' => ['type' => 'object', 'properties' => ['type' => ['const' => 'settings'], 'id' => ['const' => $group], 'attributes' => ['type' => 'object', 'properties' => $properties]]]]];
+            $name = ucfirst($group);
+            $paths["/grids/{grid}/settings/$group"] = [
+                'get' => [
+                    'operationId' => "get{$name}Settings",
+                    'tags' => ['Settings'],
+                    'summary' => "The settings of the grid: $group",
+                    'description' => \OpenSim\Models\GridSettings::description($group),
+                    'parameters' => [Contract::gridParameter()],
+                    'x-form' => $form,
+                    'responses' => [
+                        '200' => ['description' => 'The settings, as the grid says them, else their defaults'],
+                        '404' => Contract::problem('The grid is not known here'),
+                    ],
+                ],
+                'patch' => [
+                    'operationId' => "update{$name}Settings",
+                    'tags' => ['Settings'],
+                    'summary' => "Change the settings of the grid: $group",
+                    'description' => 'The settings given, checked against the choices of their field (`invalid-request`): each is written in the file of the grid that says it already (Robust, OpenSim.ini, Helpers.ini), else in its Helpers.ini. The answer is the settings now.',
+                    'parameters' => [Contract::gridParameter()],
+                    'requestBody' => ['required' => true, 'content' => [Response::JSON_API => ['schema' => $body]]],
+                    'responses' => [
+                        '200' => ['description' => 'The settings now'],
+                        '400' => Contract::problem('A value its field does not take, or a setting the group does not have (`invalid-request`)'),
+                        '404' => Contract::problem('The grid is not known here'),
+                    ],
+                ],
+            ];
+        }
         $paths['/grids/{grid}/options/repair']['post'] = [
             'operationId' => 'repairOptions',
             'tags' => ['Setup'],

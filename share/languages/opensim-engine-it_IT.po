@@ -364,6 +364,58 @@ msgctxt "post_help"
 msgid "Plain text, 1000 characters at most."
 msgstr ""
 
+msgctxt "action_save"
+msgid "Save"
+msgstr ""
+
+msgctxt "settings_models"
+msgid "Avatar models"
+msgstr ""
+
+msgctxt "models_match"
+msgid "The models are the avatars whose"
+msgstr ""
+
+msgctxt "models_match_first"
+msgid "First name is the name below"
+msgstr ""
+
+msgctxt "models_match_last"
+msgid "Last name is the name below"
+msgstr ""
+
+msgctxt "models_match_any"
+msgid "First or last name is the name below"
+msgstr ""
+
+msgctxt "models_match_uuid"
+msgid "UUID is in the list below"
+msgstr ""
+
+msgctxt "models_match_help"
+msgid ""
+"An avatar model is an avatar of the grid, dressed in a viewer and given a "
+"profile picture: a new avatar gets its outfit and its appearance."
+msgstr ""
+
+msgctxt "models_pattern"
+msgid "Name"
+msgstr ""
+
+msgctxt "models_pattern_help"
+msgid ""
+"The first or the last name of the models, as written (Default: Default Ruth, "
+"Default Kitty...)."
+msgstr ""
+
+msgctxt "models_list"
+msgid "Models"
+msgstr ""
+
+msgctxt "models_list_help"
+msgid "The avatars that are models, chosen one by one."
+msgstr ""
+
 msgctxt "action_post"
 msgid "Post"
 msgstr ""

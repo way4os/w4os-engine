@@ -256,6 +256,13 @@ final class Router
         } elseif ($grid !== null && $tail === ['motd']) {
             $template = '/grids/{grid}/motd';
             $routes = ['GET' => fn() => $this->api->motd($grid, (string) ($query['username'] ?? ''))];
+        } elseif ($grid !== null && count($tail) === 2 && $tail[0] === 'settings') {
+            $template = '/grids/{grid}/settings/' . $tail[1];
+            $routes = [
+                'GET' => fn() => $this->api->settings($grid, $tail[1]),
+                'PATCH' => fn() => $this->check($body, $parsed, $path, 'settings') ??
+                    $this->api->updateSettings($grid, $tail[1], $this->attributes($body, $parsed)),
+            ];
         } elseif ($grid !== null && $tail === ['options', 'repair']) {
             $template = '/grids/{grid}/options/repair';
             $routes = [
