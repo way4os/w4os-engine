@@ -310,6 +310,10 @@ msgctxt "profile_tab_inworld"
 msgid "In-world"
 msgstr ""
 
+msgctxt "profile_tab_about"
+msgid "About"
+msgstr ""
+
 msgctxt "profile_tab_web"
 msgid "Web"
 msgstr ""

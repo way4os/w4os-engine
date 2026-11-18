@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (profiles): the banner of a profile, over all its tabs: the picture, the name, the birth and the role of the avatar, marked `banner` in its form (`ItemForm::banner()`, `x-form`); the About tab (`profile_tab_about`) for the rest of the in-world tab
 - feature (texts): the entry of the visitor in the menu of a site, `menu_account` (My avatar)
 - feature (posts): the form a site shows to write a post and delete one (`x-form` of POST `/grids/{grid}/avatars/{id}/posts`: the text, its length limit, the delete action and its question), its texts in English and French
 - feature (guide): the picture of a hypergrid destination asked to the land service of its simulator (`land_data`, the parcel at the landing point and its snapshot, as a viewer asks the place of a landmark of another grid), the simulator given by the gatekeeper of its grid; the snapshot of the simulator (DataSnapshot) no more asked: it is sent to a search on conditions, maybe not ours, and holds no picture of its own

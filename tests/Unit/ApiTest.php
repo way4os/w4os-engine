@@ -677,6 +677,7 @@ describe('The contract', function () {
                 'group' => 'inworld',
                 'readOnly' => true,
                 'default' => 'person',
+                'banner' => true,
             ])
             ->and(array_column($avatar['fields'], null, 'name')['role'])
             ->toBe([
@@ -692,6 +693,7 @@ describe('The contract', function () {
                     'god' => 'role_god',
                     'maintenance' => 'role_maintenance',
                 ],
+                'banner' => true,
                 // A role is set by a god, as OpenSimulator sets a level
                 'access' => ['level' => 200],
             ])

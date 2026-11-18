@@ -1691,7 +1691,7 @@ final class Avatar extends Model
     /**
      * What the page of an avatar shows and lets change (ItemForm), in the tabs of its profile and the one of its account: the avatar
      * changes its profile, its email (confirmed, see confirmEmail) and its password; the managers change everything, its role and
-     * its status too.
+     * its status too. The banner of its profile, over every tab: its picture, its name, its birth, its role (`banner`).
      */
     public static function itemForm(): ItemForm
     {
@@ -1703,10 +1703,10 @@ final class Avatar extends Model
 
         return new ItemForm(
             [
-                ItemForm::shown('profileImage', 'profile_picture', 'picture', 'inworld', ['default' => 'person']),
-                ItemForm::shown('name', 'avatar_name', 'text', 'inworld'),
+                ItemForm::shown('profileImage', 'profile_picture', 'picture', 'inworld', ['default' => 'person', 'banner' => true]),
+                ItemForm::shown('name', 'avatar_name', 'text', 'inworld', ['banner' => true]),
                 ItemForm::shown('uuid', 'profile_key', 'text', 'inworld'),
-                ItemForm::shown('created', 'born', 'datetime', 'inworld'),
+                ItemForm::shown('created', 'born', 'datetime', 'inworld', ['banner' => true]),
                 ItemForm::shown('partner', 'partner', 'avatar', 'inworld'),
                 ItemForm::field('about', 'about', 'text', 'inworld', more: $both),
                 ItemForm::field('published', 'show_in_search', 'boolean', 'inworld', more: $both),
@@ -1719,7 +1719,7 @@ final class Avatar extends Model
                 ItemForm::shown('firstImage', 'profile_picture', 'picture', 'real_life', ['default' => 'person']),
                 ItemForm::field('firstLife', 'real_life', 'text', 'real_life', more: $both),
                 ItemForm::field('email', 'email', 'email', 'account', more: $both),
-                ItemForm::field('role', 'role', 'select', 'account', $roles),
+                ItemForm::field('role', 'role', 'select', 'account', $roles, ['banner' => true]),
                 ItemForm::field('status', 'status', 'select', 'account', $statuses),
                 ItemForm::field(
                     'password',

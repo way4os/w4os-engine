@@ -341,6 +341,10 @@ msgctxt "profile_tab_inworld"
 msgid "In-world"
 msgstr "No mundo"
 
+msgctxt "profile_tab_about"
+msgid "About"
+msgstr "Sobre"
+
 msgctxt "profile_tab_web"
 msgid "Web"
 msgstr "Web"

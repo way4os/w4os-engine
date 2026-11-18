@@ -55,7 +55,8 @@ final class ItemForm
     /**
      * A field that is shown, never sent: the attribute, the key of its title, its type, its group.
      *
-     * @param array<string,mixed> $more `condition`, `access` (FieldSet), `picture`, `link` (as a column)
+     * @param array<string,mixed> $more `condition`, `access` (FieldSet), `picture`, `link` (as a column), `banner` (shown over every
+     *        tab of the page)
      */
     public static function shown(string $name, string $label, string $type, string $group, array $more = []): array
     {
@@ -80,6 +81,12 @@ final class ItemForm
         return ['name' => $name, 'label' => $label, 'type' => $type, 'group' => $group] +
             ($options === [] ? [] : ['options' => $options]) +
             $more;
+    }
+
+    /** @return list<string> the fields the banner of the page shows over every tab (`banner`), in their order */
+    public function banner(): array
+    {
+        return array_values(array_column(array_filter($this->fields, static fn(array $field): bool => (bool) ($field['banner'] ?? false)), 'name'));
     }
 
     /** The fields in the standard format (FieldSet), for whoever checks or asks them in PHP. */

@@ -342,6 +342,10 @@ msgctxt "profile_tab_inworld"
 msgid "In-world"
 msgstr "Yn y byd"
 
+msgctxt "profile_tab_about"
+msgid "About"
+msgstr "Amdanaf"
+
 msgctxt "profile_tab_web"
 msgid "Web"
 msgstr "Gwe"
