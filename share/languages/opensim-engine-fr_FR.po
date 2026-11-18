@@ -343,6 +343,10 @@ msgctxt "profile_tab_inworld"
 msgid "In-world"
 msgstr "Dans le monde"
 
+msgctxt "profile_tab_about"
+msgid "About"
+msgstr "À propos"
+
 msgctxt "profile_tab_web"
 msgid "Web"
 msgstr "Web"
@@ -350,6 +354,34 @@ msgstr "Web"
 msgctxt "profile_tab_feed"
 msgid "Feed"
 msgstr "Flux"
+
+msgctxt "post_label"
+msgid "New post"
+msgstr "Nouvelle publication"
+
+msgctxt "post_help"
+msgid "Plain text, 1000 characters at most."
+msgstr "Texte brut, 1000 caractères au plus."
+
+msgctxt "action_post"
+msgid "Post"
+msgstr "Publier"
+
+msgctxt "action_delete_post"
+msgid "Delete"
+msgstr "Supprimer"
+
+msgctxt "ask_delete_post"
+msgid "Delete this post?"
+msgstr "Supprimer cette publication ?"
+
+msgctxt "manage_post"
+msgid "Your post is published."
+msgstr "Votre publication est en ligne."
+
+msgctxt "manage_delete_post"
+msgid "Your post is deleted."
+msgstr "Votre publication est supprimée."
 
 msgctxt "profile_tab_interests"
 msgid "Interests"
@@ -622,6 +654,10 @@ msgstr "SQLite illisible"
 msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Admin"
+
+msgctxt "menu_account"
+msgid "My avatar"
+msgstr "Mon avatar"
 
 msgctxt "dashboard_title"
 msgid "Dashboard"

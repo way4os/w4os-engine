@@ -147,9 +147,17 @@ final class Catalog
         // screen reader
         'profile_sections' => 'Profile sections',
         'profile_tab_inworld' => 'In-world',
+        'profile_tab_about' => 'About',
         'profile_tab_web' => 'Web',
         // The stream of the avatar (w4os-flux), the tab the viewers call Feed
         'profile_tab_feed' => 'Feed',
+        'post_label' => 'New post',
+        'post_help' => 'Plain text, 1000 characters at most.',
+        'action_post' => 'Post',
+        'action_delete_post' => 'Delete',
+        'ask_delete_post' => 'Delete this post?',
+        'manage_post' => 'Your post is published.',
+        'manage_delete_post' => 'Your post is deleted.',
         'profile_tab_interests' => 'Interests',
         'profile_tab_picks' => 'Picks',
         'profile_tab_classifieds' => 'Classifieds',
@@ -228,6 +236,7 @@ final class Catalog
 
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',
+        'menu_account' => 'My avatar',
         'dashboard_title' => 'Dashboard',
         'manage_title' => 'Avatars',
         'search_avatars' => 'Name or email',
