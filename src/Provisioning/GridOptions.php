@@ -320,15 +320,16 @@ final class GridOptions
     }
 
     /**
-     * The options of the grid a config does not have: the ones of OpenSim.ini whose sections are not in it, its settings as read
-     * (the master of the grid and the file of the simulator).
+     * The options of the grid a config does not have: the ones of OpenSim.ini of which a setting is not in it (a section that is
+     * there without it too: a [Gloebit] without its environment), its settings as read (the master of the grid and the file of
+     * the simulator). The settings written only where they already are (`Existing`) are not asked.
      *
      * @param array<string,array<string,mixed>> $settings by section
      * @return list<string>
      */
     public function missingIn(array $settings): array
     {
-        $sections = array_change_key_case($settings);
+        $sections = array_map(static fn($keys): array => is_array($keys) ? array_change_key_case($keys) : [], array_change_key_case($settings));
         $variables = $this->variables();
         $missing = [];
         foreach ($this->enabled() as $name) {
@@ -337,7 +338,7 @@ final class GridOptions
                 continue;
             }
             foreach ($option->settings('OpenSim.ini', $variables, true, fn(string $word): bool => $this->fact($word, '')) as [$section, $key, $value]) {
-                if ($value !== '' && !$option->lists('Existing', $section, $key) && !isset($sections[strtolower($section)])) {
+                if ($value !== '' && !$option->lists('Existing', $section, $key) && !array_key_exists(strtolower($key), $sections[strtolower($section)] ?? [])) {
                     $missing[] = $name;
 
                     break;

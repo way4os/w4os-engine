@@ -126,6 +126,23 @@ describe('modules of an install', function () {
             ->toBeTrue();
     });
 
+    test('have the config they copy at their start in the folder of the instance, empty, so that nothing is written in the core', function () {
+        $root = modules_root();
+        file_put_contents("$root/0.9.3.0/gloebit/Gloebit.ini.example", "[Gloebit]\nGLBEnvironment = production\n");
+        $addins = sys_get_temp_dir() . '/addins-' . bin2hex(random_bytes(4));
+        $configs = sys_get_temp_dir() . '/configs-' . bin2hex(random_bytes(4));
+
+        ModuleLinker::sync($addins, probe_core('0.9.3.0'), ['gloebit', 'opensimsearch'], $root, $configs);
+        file_put_contents("$configs/Gloebit.ini", "; mine\n");
+        ModuleLinker::sync($addins, probe_core('0.9.3.0'), ['gloebit', 'opensimsearch'], $root, $configs);
+
+        // The example is not copied: its values would replace those of the grid
+        expect(glob("$configs/*"))
+            ->toBe(["$configs/Gloebit.ini"])
+            ->and((string) file_get_contents("$configs/Gloebit.ini"))
+            ->toBe("; mine\n");
+    });
+
     test('that are not enabled any more are unlinked, the other files of the folder are not touched', function () {
         $root = modules_root();
         $addins = sys_get_temp_dir() . '/addins-' . bin2hex(random_bytes(4));

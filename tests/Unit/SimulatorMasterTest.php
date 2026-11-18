@@ -51,6 +51,9 @@ describe('master', function () {
                 ->toBe('core')
                 ->and($ini['Startup']['RegistryLocation'])
                 ->toBe('${Const|DataDirectory}/registry')
+                // Where the add-ins write their config (Util.MergeConfigurationFile): the folder of the simulator, never the core
+                ->and($ini['Startup']['ConfigDirectory'])
+                ->toBe('${Const|DataDirectory}/config')
                 ->and($ini['Network']['http_listener_port'])
                 ->toBe('9000')
                 ->and($ini['DatabaseService']['StorageProvider'])
@@ -684,6 +687,30 @@ describe('The repair of the options', function () {
             ->toBe([[], 0])
             ->and($alpha)
             ->toContain('[UserProfiles]', '[Groups]');
+    });
+});
+
+describe('The repair of the options, setting by setting', function () {
+    test('lays again a setting of an option a simulator misses in a section it has: the economy of Gloebit, its environment', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        (new OpenSim\Provisioning\GridOptions($grid))->enable('economy-gloebit');
+        $alpha = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        // A simulator whose [Gloebit] has no environment (made by hand, or by an older engine): the module says "None"
+        file_put_contents($alpha, str_replace('GLBEnvironment = sandbox', '', (string) file_get_contents($alpha)));
+        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+
+        $plan = $options()->repair(false);
+        $applied = $options()->repair(true);
+
+        expect($plan['simulators']['alpha'] ?? [])
+            ->toContain('economy-gloebit')
+            ->and($applied['applied'])
+            ->toContain('economy-gloebit')
+            ->and((string) file_get_contents($alpha))
+            ->toContain('GLBEnvironment = sandbox')
+            ->and($options()->repair(false)['simulators'])
+            ->toBe([]);
     });
 });
 
