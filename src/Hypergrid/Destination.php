@@ -13,16 +13,25 @@ final class Destination
      */
     public const LOCAL = 1;
     /**
-     * secondlife://yourgrid.org:8002:Region%20Name/x/y/z (original HG format). Failed in every place the viewers were tried
-     * (2026-11): kept for the callers of 2.x (TPLINK_HG) and the helpers until they ask AUTO.
+     * secondlife://yourgrid.org:8002:Region%20Name/x/y/z (original HG format).
+     *
+     * @deprecated failed in every place the viewers were tried (2026-11), hop:// won: still given for the callers of 2.x
+     *             (TPLINK_HG); before 3.0, dropped or answered with hop:// or secondlife:// (ROADMAP). Ask AUTO.
      */
     public const HG = 2;
     /**
-     * secondlife://http|!!yourgrid.org|8002%20Region/x/y/z (v3 HG format, Singularity). Failed in every place the viewers were tried
-     * (2026-11): kept for the callers of 2.x (TPLINK_V3HG).
+     * secondlife://http|!!yourgrid.org|8002%20Region/x/y/z (v3 HG format, Singularity).
+     *
+     * @deprecated failed in every place the viewers were tried (2026-11), hop:// won: still given for the callers of 2.x
+     *             (TPLINK_V3HG); before 3.0, dropped or answered with hop:// or secondlife:// (ROADMAP). Ask AUTO.
      */
     public const V3HG = 4;
-    /** hop:// in the form HOP_FORM says: the one out of a viewer (a web browser, the URL handler of a system) */
+    /**
+     * hop://yourgrid.org:8002/Region%20Name/x/y/z, the region after a slash, always: the form the viewer writes itself (Firestorm,
+     * in the chat after a teleport: LLSLURL::getSLURLString() of fsslurl.cpp escapes the region after the grid, and its tests read
+     * it back), the one of the OpenSimulator wiki (`[hop://]<hg-host>:<hg-port>[/<region-name>][/x/y]`, Hypergrid), and the only
+     * one the URL handler of a system passes on (host:port/something). The link out of a viewer.
+     */
     public const HOP = 8;
     /** yourgrid.org:8002:Region/x/y/z */
     public const TXT = 16;
@@ -38,22 +47,15 @@ final class Destination
     /** output as array */
     public const AS_ARRAY = 256;
     /**
-     * hop://yourgrid.org:8002/Region%20Name/x/y/z, the region after a slash: the form the viewer writes itself (Firestorm, in the
-     * chat after a teleport: LLSLURL::getSLURLString() of fsslurl.cpp escapes the region after the grid, and its tests read it
-     * back), the one of the OpenSimulator wiki (`[hop://]<hg-host>:<hg-port>[/<region-name>][/x/y]`, Hypergrid), and the only one
-     * the URL handler of a system passes on (host:port/something). The one HOP gives, tried in the browsers.
+     * yourgrid.org:8002:Region Name/x/y/z, the region after a colon: the name a script gives llMapDestination() (a region after a
+     * slash is read as its x), the one of the teleport boards. Not a link: the colon form exists only here and in APPTP, never in
+     * a hop:// link.
      */
-    public const HOP_SLASH = 1024;
+    public const LSL = 1024;
     /**
-     * hop://yourgrid.org:8002:Region%20Name/x/y/z, the region after a colon: the form llMapDestination() needs (a region after a
-     * slash is read as its x), the one of the teleport boards, an SL form for the scripts only.
-     */
-    public const HOP_COLON = 2048;
-    /** The form of HOP. */
-    public const HOP_FORM = self::HOP_SLASH;
-    /**
-     * The link for where it is shown (the `context` of format(), AUTO_LINKS): in a viewer (its user agent, any page, its login
-     * screen too), LOCAL for a region of the grid itself and APPTP for another grid; HOP out of a viewer.
+     * The link for where it is shown (the `context` of format(), AUTO_LINKS), so that no site tells it again: in a viewer (told by
+     * the user agent of the request, isViewer(); any page, its login screen too), LOCAL for a region of the grid itself and APPTP
+     * for another grid; HOP out of a viewer. Grid::link() gives it with the login of the grid.
      */
     public const AUTO = 512;
 
@@ -241,7 +243,7 @@ final class Destination
     /**
      * The link of a destination for where it is shown (AUTO).
      *
-     * @param array{viewer?:bool,splash?:bool,login?:?string} $context
+     * @param array{agent?:?string,splash?:bool,login?:?string} $context
      */
     private static function auto(string $destination, int $array, string $sep, array $context): string|array
     {
@@ -251,8 +253,9 @@ final class Destination
         $local =
             ($parsed['host'] ?? '') === '' ||
             ($own !== null && strtolower((string) $own['host']) === $parsed['host'] && (int) ($own['port'] ?? 80) === (int) $parsed['port']);
+        $agent = array_key_exists('agent', $context) ? (string) $context['agent'] : (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
         $where = match (true) {
-            !($context['viewer'] ?? false) => 'web',
+            !self::isViewer($agent) => 'web',
             (bool) ($context['splash'] ?? false) => 'splash',
             default => 'viewer',
         };
@@ -344,8 +347,9 @@ final class Destination
      * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.
      *
      * @param  string  $sep      Separator for multiple formats, default new line
-     * @param  array{viewer?:bool,splash?:bool,login?:?string} $context where AUTO is shown: in a viewer (isViewer()), on its login
-     *         screen (`splash`), the login address of the grid itself (`login`)
+     * @param  array{agent?:?string,splash?:bool,login?:?string} $context where AUTO is shown: the user agent of the request
+     *         (`agent`, the one of the request served when none is given), on the login screen of a viewer (`splash`), the login
+     *         address of the grid itself (`login`)
      * @return string
      */
     public static function format($destination, $format = null, $sep = "\n", array $context = []): string|array
@@ -406,18 +410,17 @@ final class Destination
                 (empty($host) ? $local : "secondlife://http|!!$host|$port" . (empty($region) ? '' : "%20$region_percentencode")) .
                 (empty($pos_sl) || empty($host) ? '' : "/$pos_sl");
         }
-        // A hop:// link in one of its forms, the region after a slash or after a colon; none without a gatekeeper
-        $hop = static fn(int $form): string => empty($gatekeeper)
-            ? ''
-            : "hop://$host:$port" . (empty($region) ? '' : ($form === self::HOP_SLASH ? '/' : ':') . str_replace('%20', self::SPACE, $region_percentencode)) . (empty($pos) ? '' : "/$pos");
         if ($format & self::HOP) {
-            // Web and in-world. Position (/x/y/z) is
+            // Web and in-world, the region after a slash, never a colon. Position (/x/y/z) is
             // - optional for web browser links (viewer applies default)
             // - required for in-world messages
-            $links[self::HOP] = $hop(self::HOP_FORM);
+            $links[self::HOP] = empty($gatekeeper)
+                ? ''
+                : "hop://$host:$port" . (empty($region) ? '' : '/' . str_replace('%20', self::SPACE, $region_percentencode)) . (empty($pos) ? '' : "/$pos");
         }
-        foreach ([self::HOP_SLASH, self::HOP_COLON] as $form) {
-            $format & $form && ($links[$form] = $hop($form));
+        if ($format & self::LSL) {
+            // The name of a region for llMapDestination(): host:port:Region Name, the point apart
+            $links[self::LSL] = (empty($host) ? '' : "$host:$port:") . ($region ?? '') . (empty($pos) ? '' : "/$pos");
         }
         if ($format & self::APPTP) {
             // In a viewer: secondlife:///app/teleport/speculoos.world:8002:Grand%20Place/128/128/21

@@ -11,6 +11,7 @@ foreach (
     [
         'NULL_KEY' => '00000000-0000-0000-0000-000000000000',
         'TPLINK_LOCAL' => Destination::LOCAL,
+        // Deprecated: failed in every viewer tried, hop:// won (Destination::HG, V3HG)
         'TPLINK_HG' => Destination::HG,
         'TPLINK_V3HG' => Destination::V3HG,
         'TPLINK_HOP' => Destination::HOP,

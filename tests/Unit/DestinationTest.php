@@ -103,8 +103,7 @@ describe('Teleport links', function () {
         'viewer link' => [TPLINK_HG, 'secondlife://hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
         'viewer v3 link' => [TPLINK_V3HG, 'secondlife://http|!!hg.example.org|8002%20My%20Region/128/64/22'],
         'hop' => [TPLINK_HOP, 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22'],
-        'hop, the region after a slash (the viewer)' => [Destination::HOP_SLASH, 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22'],
-        'hop, the region after a colon (llMapDestination)' => [Destination::HOP_COLON, 'hop://hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
+        'for the scripts (llMapDestination)' => [Destination::LSL, 'hg.example.org:8002:My Region/128/64/22'],
         'teleport link' => [TPLINK_APPTP, 'secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
     ]);
 
@@ -131,17 +130,19 @@ describe('Teleport links', function () {
         expect(Destination::format('wyldwoodbayou.com:8002', TPLINK_HOP))->toBe('hop://wyldwoodbayou.com:8002');
     });
 
-    test('hop in the form HOP_FORM says, both forms asked together too', function () {
-        expect(Destination::format(TP_DESTINATION, TPLINK_HOP))
-            ->toBe(Destination::format(TP_DESTINATION, Destination::HOP_FORM))
-            ->and(Destination::format(TP_DESTINATION, Destination::HOP_SLASH | Destination::HOP_COLON | TPLINK_ARRAY))
-            ->toBe([
-                Destination::HOP_SLASH => 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22',
-                Destination::HOP_COLON => 'hop://hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22',
-            ])
-            ->and(Destination::format('wyldwoodbayou.com:8002', Destination::HOP_SLASH))
-            ->toBe('hop://wyldwoodbayou.com:8002');
-    });
+    test('never have a colon before the region in a hop link: only the scripts and the teleport of the viewer have one', function (string $written) {
+        $links = [Destination::format($written, TPLINK_HOP), Destination::format($written, Destination::AUTO, context: ['agent' => ''])];
+
+        expect(array_filter($links, static fn(string $link): bool => preg_match('#^hop://[^/]+:\d+:#', $link) === 1))
+            ->toBe([])
+            ->and(Destination::format($written, TPLINK_HOP))
+            ->toStartWith('hop://grid.example:8002/');
+    })->with([
+        'with colons' => 'grid.example:8002:Region Name/1/2/3',
+        'as a hop link with a colon' => 'hop://grid.example:8002:Region%20Name/1/2/3',
+        'as a viewer link' => 'secondlife://grid.example:8002/Region%20Name',
+        'with a space' => 'grid.example:8002 Region Name/1/2/3',
+    ]);
 
     test('are none for nothing', function () {
         expect(Destination::format('', TPLINK_HG))
@@ -253,37 +254,40 @@ describe('A destination of a guide', function () {
     });
 });
 
+const TP_VIEWER = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 SecondLife/7.1.9 (Firestorm)';
+const TP_BROWSER = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36';
+
 describe('A link made for where it is shown (AUTO)', function () {
     $login = 'http://ursull.magiiic.dev:8012';
     $here = 'ursull.magiiic.dev:8012/Welcome/128/128/25';
     $there = 'hg.example.org:8002/My Region/10/20/30';
 
     test('in a viewer, its login screen too: the local link for the grid itself, which shows the place before going', function () use ($login, $here) {
-        expect(Destination::format($here, Destination::AUTO, context: ['viewer' => true, 'login' => $login]))
+        expect(Destination::format($here, Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
             ->toBe('secondlife://Welcome/128/128/25')
-            ->and(Destination::format($here, Destination::AUTO, context: ['viewer' => true, 'splash' => true, 'login' => $login]))
+            ->and(Destination::format($here, Destination::AUTO, context: ['agent' => TP_VIEWER, 'splash' => true, 'login' => $login]))
             ->toBe('secondlife://Welcome/128/128/25')
             // A region named alone is of the grid itself
-            ->and(Destination::format('Welcome/128/128/25', Destination::AUTO, context: ['viewer' => true]))
+            ->and(Destination::format('Welcome/128/128/25', Destination::AUTO, context: ['agent' => TP_VIEWER]))
             ->toBe('secondlife://Welcome/128/128/25');
     });
 
     test('in a viewer, its login screen too: the teleport of the viewer for another grid', function () use ($login, $there) {
-        expect(Destination::format($there, Destination::AUTO, context: ['viewer' => true, 'login' => $login]))
+        expect(Destination::format($there, Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
             ->toBe('secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/10/20/30')
-            ->and(Destination::format($there, Destination::AUTO, context: ['viewer' => true, 'splash' => true, 'login' => $login]))
+            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_VIEWER, 'splash' => true, 'login' => $login]))
             ->toBe('secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/10/20/30');
     });
 
     test('out of a viewer: hop, for the grid itself too', function () use ($login, $here, $there) {
-        expect(Destination::format($here, Destination::AUTO, context: ['login' => $login]))
+        expect(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login]))
             ->toBe('hop://ursull.magiiic.dev:8012/Welcome/128/128/25')
-            ->and(Destination::format($there, Destination::AUTO, context: ['viewer' => false, 'login' => $login]))
+            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login]))
             ->toBe('hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/10/20/30');
     });
 
     test('follow the rules of AUTO_LINKS, the one place they are written', function () use ($login, $here, $there) {
-        $contexts = ['viewer' => ['viewer' => true], 'splash' => ['viewer' => true, 'splash' => true], 'web' => []];
+        $contexts = ['viewer' => ['agent' => TP_VIEWER], 'splash' => ['agent' => TP_VIEWER, 'splash' => true], 'web' => ['agent' => TP_BROWSER]];
         foreach (Destination::AUTO_LINKS as $where => $links) {
             foreach (['local' => $here, 'other' => $there] as $kind => $destination) {
                 $expected = $links[$kind] === 0 ? '' : Destination::format($kind === 'local' && $links[$kind] === Destination::LOCAL ? 'Welcome/128/128/25' : Destination::uri($destination), $links[$kind]);
@@ -292,10 +296,34 @@ describe('A link made for where it is shown (AUTO)', function () {
         }
     });
 
+    test('read the user agent of the request when none is given', function () use ($login, $here) {
+        $before = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $_SERVER['HTTP_USER_AGENT'] = TP_VIEWER;
+        $viewer = Destination::format($here, Destination::AUTO, context: ['login' => $login]);
+        $_SERVER['HTTP_USER_AGENT'] = TP_BROWSER;
+        $browser = Destination::format($here, Destination::AUTO, context: ['login' => $login]);
+        if ($before === null) {
+            unset($_SERVER['HTTP_USER_AGENT']);
+        } else {
+            $_SERVER['HTTP_USER_AGENT'] = $before;
+        }
+
+        expect([$viewer, $browser])->toBe(['secondlife://Welcome/128/128/25', 'hop://ursull.magiiic.dev:8012/Welcome/128/128/25']);
+    });
+
+    test('of a grid: its login tells its own places', function () {
+        $grid = OpenSim\Models\Grid::find((new OpenSim\Testing\Machine())->environment, 'demo');
+        $login = (string) Destination::loginParts((string) $grid->loginUrl())['host'];
+
+        expect($grid->link('Welcome/128/128/25', TP_VIEWER))
+            ->toBe('secondlife://Welcome/128/128/25')
+            ->and($grid->link('hg.example.org:8002/Far/1/2/3', TP_VIEWER))
+            ->toBe('secondlife:///app/teleport/hg.example.org:8002:Far/1/2/3')
+            ->and($grid->link('Welcome/128/128/25', TP_BROWSER))
+            ->toStartWith("hop://$login:");
+    });
+
     test('tell a viewer by its user agent', function () {
-        expect(Destination::isViewer('Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 SecondLife/7.1.9 (Firestorm)'))
-            ->toBeTrue()
-            ->and(Destination::isViewer('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36'))
-            ->toBeFalse();
+        expect(Destination::isViewer(TP_VIEWER))->toBeTrue()->and(Destination::isViewer(TP_BROWSER))->toBeFalse();
     });
 });

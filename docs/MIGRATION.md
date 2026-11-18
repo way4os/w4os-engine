@@ -191,7 +191,7 @@ Dropped on purpose: `do_not_sanitize()` (a no-op), `escape_url()` (a `htmlspecia
 ## Constants
 
 `NULL_KEY` and the `TPLINK_*` flags are still global (`includes/constants.php`, loaded by the autoloader); the flags are also
-`OpenSim\Hypergrid\Destination::LOCAL`, `HG`, `V3HG`, `HOP`, `TXT`, `APPTP`, `MAP`, `ALL`, `AS_ARRAY`.
+`OpenSim\Hypergrid\Destination::LOCAL`, `HG`, `V3HG`, `HOP`, `TXT`, `APPTP`, `MAP`, `ALL`, `AS_ARRAY`. `HG` and `V3HG` are deprecated (they failed in every viewer tried, hop:// won): ask `Destination::AUTO` (or `Grid::link()`), which gives the local link or the teleport of the viewer in a viewer and hop:// elsewhere. A hop:// link always has its region after a slash (`hop://host:port/Region%20Name/x/y/z`); the `host:port:Region` form is `Destination::LSL`, for llMapDestination(), and the one inside `APPTP`.
 
 ## State that was global
 

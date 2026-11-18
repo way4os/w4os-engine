@@ -649,6 +649,20 @@ final class Grid extends InstalledModel
         return $this->hostPort() !== null ? Destination::loginUrl((string) $this->hostPort()) : null;
     }
 
+    /**
+     * The link to a destination for where it is shown (Destination::AUTO): in a viewer, the local link for a place of this grid
+     * and the teleport of the viewer for another grid; hop:// out of a viewer.
+     *
+     * @param ?string $agent the user agent of the request, the one of the request served when null
+     * @param bool $splash shown on the login screen of a viewer
+     */
+    public function link(string $destination, ?string $agent = null, bool $splash = false): string
+    {
+        $context = ['login' => $this->loginUrl(), 'splash' => $splash] + ($agent === null ? [] : ['agent' => $agent]);
+
+        return (string) Destination::format($destination, Destination::AUTO, context: $context);
+    }
+
     /** The address of a region of the grid, from where the grid says its login is: `host:port/Region Name[/x/y/z]`. */
     public function regionUri(string $region, string $position = ''): ?string
     {
