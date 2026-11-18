@@ -731,9 +731,57 @@ describe('The repair of the options a grid uses without having recorded them', f
             // The search needs the helpers this grid does not have
             ->not->toContain('search')
             ->and((string) file_get_contents($alpha))
-            ->toContain('[Gloebit]', 'GLBEnvironment = sandbox')
-            ->and($options()->repair(false)['simulators'])
-            ->toBe([]);
+            ->toContain('[Gloebit]', 'economymodule = Gloebit')
+            // The environment is the grid's to give: not invented, still said until it is given
+            ->not->toContain('GLBEnvironment')
+            ->and($options()->repair(false)['simulators']['alpha'] ?? [])
+            ->toBe(['economy-gloebit']);
+    });
+});
+
+describe('The repair of the options, with the values of the grid', function () {
+    /** The grid demo using Gloebit (its OpenSim.ini says it), beta with the block of the grid, alpha without it. */
+    function gloebit_grid(string $block): array
+    {
+        $machine = new OpenSim\Testing\Machine();
+        $general = $machine->grid . '/OpenSim.ini';
+        file_put_contents($general, (is_file($general) ? (string) file_get_contents($general) : '') . "\n[Economy]\n    economymodule = Gloebit\n");
+        $sims = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid);
+        file_put_contents("$sims/beta.ini", (string) file_get_contents("$sims/beta.ini") . "\n[Economy]\n    economymodule = Gloebit\n    economy = \"https://web.example.org/gloebit\"\n[Gloebit]\n    Enabled = true\n$block");
+        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+
+        return [$options, "$sims/alpha.ini"];
+    }
+
+    test('takes the settings of the grid a simulator misses from another simulator of the grid, its keys too, and never prints them', function () {
+        [$options, $alpha] = gloebit_grid("    GLBEnvironment = production\n    GLBKey = key-of-the-grid\n    GLBSecret = secret-of-the-grid\n    GLBOwnerName = \"Owner\"\n");
+
+        $plan = $options()->repair(false);
+        $applied = $options()->repair(true);
+        $file = (string) file_get_contents($alpha);
+
+        expect($plan['simulators']['alpha'] ?? [])
+            ->toContain('economy-gloebit')
+            ->and($applied['applied'])
+            ->toContain('economy-gloebit')
+            ->and($file)
+            ->toContain('GLBEnvironment = production', 'GLBKey = key-of-the-grid', 'GLBSecret = secret-of-the-grid', 'https://web.example.org/gloebit')
+            ->not->toContain('GLBEnvironment = sandbox')
+            // What is said of the repair has the names of the settings, never their values
+            ->and(json_encode([$plan, $applied]))
+            ->not->toContain('key-of-the-grid')
+            ->not->toContain('secret-of-the-grid');
+    });
+
+    test('does not invent what the grid does not say: the environment of Gloebit is named, not written', function () {
+        [$options, $alpha] = gloebit_grid('');
+
+        $applied = $options()->repair(true);
+
+        expect((string) file_get_contents($alpha))
+            ->not->toContain('GLBEnvironment')
+            ->and(implode("\n", $applied['notes']))
+            ->toContain('Gloebit/GLBEnvironment');
     });
 });
 

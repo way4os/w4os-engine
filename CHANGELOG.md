@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (options): the repair lays the values of the grid, never invented ones: what the option says (its module, its addresses), else what the grid has (its OpenSim.ini, else the file of a simulator of the grid that has the option: the keys of Gloebit, its owner, its storage too), and a default the grid did not choose (`Initial`, the environment of Gloebit) is named in the notes, to be given, not written, in the files nor under them in the master; what is said of a repair has the names of the settings, never their values
 - fix (options): the repair of the options lays also the ones a grid uses without having recorded them (`GridOptions::inUse()`: a grid made before its options were, or by hand, whose OpenSim.ini tells them, `[Economy] economymodule = Gloebit`, `[Search] Module = OpenSimSearch`), the economy and the search as the profiles and the groups; one of a group only, and only what the grid can have (the search needs its helpers)
 - fix (options): the repair of the options sees a setting an option needs that a simulator misses in a section it has (a `[Gloebit]` without its environment, the economy of Gloebit "None"), not only a section that is not there: every option of the grid, the economy and the search too
 - feature (packages): an upgrade lays again the options of a grid its simulators miss, planned then applied, as the account of the instances (`opensim-complete-grids` in the postinst, `GridCompletion`): nothing by hand, a second run does nothing, the simulators take them at their next start

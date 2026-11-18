@@ -310,7 +310,8 @@ final class GridOptions
                 continue;
             }
             foreach ($option->settings('OpenSim.ini', $variables, true, fn(string $word): bool => $this->fact($word, '')) as [$section, $key, $value]) {
-                if ($value !== '' && !$option->lists('Existing', $section, $key)) {
+                // A default the grid did not choose (Initial) is not laid under the simulators: it is theirs or the grid's to give
+                if ($value !== '' && !$option->lists('Existing', $section, $key) && !$option->lists('Initial', $section, $key)) {
                     $ini->set($section, $key, $value);
                 }
             }
@@ -395,27 +396,168 @@ final class GridOptions
 
     /**
      * The options of the grid its simulators of this machine miss in their files (a simulator made before an option became a
-     * preset, or by an older engine): planned, then laid again with `$apply` (enable(), which sets what is there in place).
+     * preset, by an older engine, or by hand): planned, then laid again in the files of the simulators that miss them with
+     * `$apply`, with the values of the grid: what the option says (its module, its addresses), else what the grid has (its
+     * OpenSim.ini, else the file of a simulator of the grid that has the option: its keys too, Gloebit's), never a default the
+     * grid did not choose (`Initial`: named in the notes, to be given). Nothing said of it has a value: only the names of the
+     * settings, a secret never leaves the files.
      *
      * @return array{simulators:array<string,list<string>>,applied:list<string>,notes:list<string>} the options each simulator
-     *         misses (none: nothing to repair), the ones laid again, what is left to do (Robust, a restart)
+     *         misses (none: nothing to repair), the ones laid again, what is left to do (a setting to give, a restart)
      */
     public function repair(bool $apply): array
     {
         $missing = [];
+        $merged = [];
         foreach ($this->grid->simulators() as $simulator) {
-            $lacks = $this->missingIn($simulator->settings());
-            $lacks === [] || ($missing[$simulator->slug()] = $lacks);
+            $settings = $simulator->settings();
+            $lacks = $this->missingIn($settings);
+            $lacks === [] || ($missing[$simulator->slug()] = $lacks) && ($merged[$simulator->slug()] = $settings);
         }
         $applied = [];
         $notes = [];
-        foreach ($apply ? array_values(array_unique(array_merge(...array_values($missing ?: [[]])))) : [] as $name) {
-            $result = $this->enable($name);
-            $result['error'] === null && ($applied[] = $name);
-            array_push($notes, ...$result['notes'], ...($result['error'] === null ? [] : ["$name: {$result['error']}"]));
+        if ($apply && $missing !== []) {
+            $files = [];
+            foreach ($this->simulators() as $path) {
+                $files[basename($path, '.ini')] = $path;
+            }
+            foreach ($missing as $slug => $names) {
+                $path = $files[$slug] ?? null;
+                if ($path === null) {
+                    $notes[] = "$slug: its file is not on this machine, the options are not laid";
+
+                    continue;
+                }
+                foreach ($names as $name) {
+                    $unknown = [];
+                    if ($this->fill($path, $name, $merged[$slug], $this->gridValues($name, array_keys(array_filter($missing, static fn(array $lacks): bool => in_array($name, $lacks, true))), $files), $unknown)) {
+                        $applied[] = $name;
+                    }
+                    foreach ($unknown as $setting) {
+                        $notes[] = "$slug: $name needs $setting, which the grid does not say: give it in the OpenSim.ini of the grid or of the simulator (it is not invented)";
+                    }
+                }
+            }
+            $applied = array_values(array_unique($applied));
+            if ($applied !== []) {
+                // The grid has them now: the master, made again, holds them for the simulators that take it
+                $result = self::RESULT;
+                $this->record(array_values(array_unique([...$this->enabled(), ...$applied])));
+                $this->finish($result);
+                foreach ($applied as $name) {
+                    array_push($notes, ...$this->notes($this->template($name)));
+                }
+                $notes[] = 'the simulators take them at their next start (opensim restart)';
+            }
         }
 
         return ['simulators' => $missing, 'applied' => $applied, 'notes' => array_values(array_unique($notes))];
+    }
+
+    /**
+     * What the grid says of the sections of an option: its OpenSim.ini, then the files of its simulators that do not miss it, the
+     * first that says a setting.
+     *
+     * @param list<string> $lacking the simulators that miss the option (none of them gives a value)
+     * @param array<string,string> $files the files of the simulators, by slug
+     * @return array<string,array<string,string>> by section (lower case), then key (lower case): [key as written, value]
+     */
+    private function gridValues(string $name, array $lacking, array $files): array
+    {
+        $option = $this->template($name);
+        if ($option === null) {
+            return [];
+        }
+        $sections = array_unique(array_map(static fn(array $s): string => strtolower($s[0]), $option->settings('OpenSim.ini', $this->variables(), true)));
+        $sources = [$this->general(), ...array_values(array_diff_key($files, array_flip($lacking)))];
+        $values = [];
+        foreach ($sources as $source) {
+            if (!is_file($source)) {
+                continue;
+            }
+            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($source, expand: false)) as $section => $keys) {
+                if (!in_array($section, $sections, true) || !is_array($keys)) {
+                    continue;
+                }
+                foreach ($keys as $key => $value) {
+                    $values[$section][strtolower((string) $key)] ??= [(string) $key, (string) $value];
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * Lay in the file of a simulator the settings of an option it misses: the option's own (its module), else the grid's, else
+     * what the option makes of the grid (its addresses), never an `Initial` default; and the other settings the grid has in the
+     * sections of the option (keys, owner, storage), when the simulator has none.
+     *
+     * @param array<string,array<string,mixed>> $settings the settings of the simulator as read (the master included)
+     * @param array<string,array<string,array{0:string,1:string}>> $grid gridValues()
+     * @param list<string> $unknown the settings the grid does not say, `Section/key`
+     * @return bool whether something was written
+     */
+    private function fill(string $path, string $name, array $settings, array $grid, array &$unknown): bool
+    {
+        $option = $this->template($name);
+        if ($option === null) {
+            return false;
+        }
+        $has = array_map(static fn($keys): array => is_array($keys) ? array_change_key_case($keys) : [], array_change_key_case($settings));
+        $literal = [];
+        foreach ($option->settings('OpenSim.ini', [], true) as [$section, $key]) {
+            $literal[strtolower("$section/$key")] = true;
+        }
+        $quote = static fn(string $value): string => preg_match('/^[A-Za-z0-9_.+-]*$/', $value) === 1 ? $value : '"' . str_replace('"', '', $value) . '"';
+        $writes = [];
+        foreach ($option->settings('OpenSim.ini', $this->variables(), true, fn(string $word): bool => $this->fact($word, '')) as [$section, $key, $value]) {
+            [$s, $k] = [strtolower($section), strtolower($key)];
+            if ($option->lists('Existing', $section, $key) || array_key_exists($k, $has[$s] ?? [])) {
+                continue;
+            }
+            $initial = $option->lists('Initial', $section, $key);
+            $said = $grid[$s][$k][1] ?? null;
+            $chosen = match (true) {
+                isset($literal["$s/$k"]) && !$initial => $value,
+                $said !== null => $quote($said),
+                !$initial && $value !== '' => $value,
+                default => null,
+            };
+            $chosen === null ? ($unknown[] = "$section/$key") : ($writes[] = [$section, $key, $chosen]);
+            $has[$s][$k] = true;
+        }
+        // The rest of what the grid says in the sections of the option: its keys, its owner, its storage
+        foreach ($grid as $s => $keys) {
+            foreach ($keys as $k => [$key, $value]) {
+                if (!array_key_exists($k, $has[$s] ?? [])) {
+                    $section = $this->sectionName($option, $s);
+                    $writes[] = [$section, $key, $quote($value)];
+                    $has[$s][$k] = true;
+                }
+            }
+        }
+        if ($writes === []) {
+            return false;
+        }
+
+        return $this->edit($path, static function (IniEditor $ini) use ($writes): void {
+            foreach ($writes as [$section, $key, $value]) {
+                $ini->set($section, $key, $value);
+            }
+        });
+    }
+
+    /** The name of a section as an option writes it, from its name in lower case. */
+    private function sectionName(OptionTemplate $option, string $lower): string
+    {
+        foreach ($option->settings('OpenSim.ini', [], false) as [$section]) {
+            if (strtolower($section) === $lower) {
+                return $section;
+            }
+        }
+
+        return $lower;
     }
 
     /**
