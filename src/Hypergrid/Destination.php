@@ -235,6 +235,20 @@ final class Destination
         ];
     }
 
+    /** The classes of the clients a link is made for: a viewer (its own browser, its login screen), a web browser. */
+    public const CLIENTS = ['viewer', 'browser'];
+
+    /**
+     * The class of a client, `viewer` or `browser` (CLIENTS), by its user agent (isViewer()): what a site keeps a page or a block
+     * for, rather than for each user agent.
+     *
+     * @param ?string $agent the user agent, the one of the request served when null
+     */
+    public static function client(?string $agent): string
+    {
+        return self::isViewer($agent ?? (string) ($_SERVER['HTTP_USER_AGENT'] ?? '')) ? 'viewer' : 'browser';
+    }
+
     /** Whether a user agent is the one of a viewer (its own browser, its login screen). */
     public static function isViewer(string $userAgent): bool
     {
@@ -244,7 +258,7 @@ final class Destination
     /**
      * The link of a destination for where it is shown (AUTO).
      *
-     * @param array{agent?:?string,splash?:bool,login?:?string} $context
+     * @param array{agent?:?string,client?:string,splash?:bool,login?:?string} $context
      */
     private static function auto(string $destination, int $array, string $sep, array $context): string|array
     {
@@ -254,9 +268,11 @@ final class Destination
         $local =
             ($parsed['host'] ?? '') === '' ||
             ($own !== null && strtolower((string) $own['host']) === $parsed['host'] && (int) ($own['port'] ?? 80) === (int) $parsed['port']);
-        $agent = array_key_exists('agent', $context) ? (string) $context['agent'] : (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
+        $client = in_array($context['client'] ?? null, self::CLIENTS, true)
+            ? $context['client']
+            : self::client(array_key_exists('agent', $context) ? (string) $context['agent'] : null);
         $where = match (true) {
-            !self::isViewer($agent) => 'web',
+            $client !== 'viewer' => 'web',
             (bool) ($context['splash'] ?? false) => 'splash',
             default => 'viewer',
         };
@@ -348,8 +364,9 @@ final class Destination
      * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.
      *
      * @param  string  $sep      Separator for multiple formats, default new line
-     * @param  array{agent?:?string,splash?:bool,login?:?string} $context where AUTO is shown: the user agent of the request
-     *         (`agent`, the one of the request served when none is given), on the login screen of a viewer (`splash`), the login
+     * @param  array{agent?:?string,client?:string,splash?:bool,login?:?string} $context where AUTO is shown: the user agent of the request
+     *         (`agent`, the one of the request served when none is given) or the class of the client (`client`, CLIENTS: it wins
+     *         over the agent), on the login screen of a viewer (`splash`), the login
      *         address of the grid itself (`login`)
      * @return string
      */

@@ -655,10 +655,11 @@ final class Grid extends InstalledModel
      *
      * @param ?string $agent the user agent of the request, the one of the request served when null
      * @param bool $splash shown on the login screen of a viewer
+     * @param ?string $client the class of the client, `viewer` or `browser` (Destination::client()): it wins over the agent
      */
-    public function link(string $destination, ?string $agent = null, bool $splash = false): string
+    public function link(string $destination, ?string $agent = null, bool $splash = false, ?string $client = null): string
     {
-        $context = ['login' => $this->loginUrl(), 'splash' => $splash] + ($agent === null ? [] : ['agent' => $agent]);
+        $context = ['login' => $this->loginUrl(), 'splash' => $splash] + ($agent === null ? [] : ['agent' => $agent]) + ($client === null ? [] : ['client' => $client]);
 
         return (string) Destination::format($destination, Destination::AUTO, context: $context);
     }

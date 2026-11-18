@@ -341,7 +341,35 @@ describe('A link made for where it is shown (AUTO)', function () {
             ->and($grid->link('hg.example.org:8002/Far/1/2/3', TP_VIEWER))
             ->toBe('secondlife:///app/teleport/hg.example.org:8002:Far/1/2/3')
             ->and($grid->link('Welcome/128/128/25', TP_BROWSER))
+            ->toStartWith("hop://$login:")
+            // The class of the client, as a site keeps a block for each
+            ->and($grid->link('Welcome/128/128/25', client: 'viewer'))
+            ->toBe('secondlife://Welcome/128/128/25')
+            ->and($grid->link('Welcome/128/128/25', TP_VIEWER, client: 'browser'))
             ->toStartWith("hop://$login:");
+    });
+
+    test('tell the class of a client, viewer or browser, by its user agent or the one of the request served', function () {
+        $before = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $_SERVER['HTTP_USER_AGENT'] = TP_VIEWER;
+        $served = Destination::client(null);
+        if ($before === null) {
+            unset($_SERVER['HTTP_USER_AGENT']);
+        } else {
+            $_SERVER['HTTP_USER_AGENT'] = $before;
+        }
+
+        expect([Destination::client(TP_VIEWER), Destination::client(TP_BROWSER), Destination::client(''), $served])
+            ->toBe(['viewer', 'browser', 'browser', 'viewer']);
+    });
+
+    test('take the class of the client, which wins over the user agent', function () use ($login, $here, $there) {
+        expect(Destination::format($here, Destination::AUTO, context: ['client' => 'viewer', 'login' => $login]))
+            ->toBe('secondlife://Welcome/128/128/25')
+            ->and(Destination::format($here, Destination::AUTO, context: ['client' => 'browser', 'agent' => TP_VIEWER, 'login' => $login]))
+            ->toBe('hop://ursull.magiiic.dev:8012/Welcome/128/128/25')
+            ->and(Destination::format($there, Destination::AUTO, context: ['client' => 'viewer', 'agent' => TP_BROWSER, 'login' => $login]))
+            ->toBe('secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/10/20/30');
     });
 
     test('tell a viewer by its user agent', function () {
