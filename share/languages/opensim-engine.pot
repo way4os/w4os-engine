@@ -611,6 +611,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr ""
 
+msgctxt "menu_account"
+msgid "My avatar"
+msgstr ""
+
 msgctxt "dashboard_title"
 msgid "Dashboard"
 msgstr ""

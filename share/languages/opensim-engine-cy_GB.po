@@ -658,6 +658,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Gweinyddu"
 
+msgctxt "menu_account"
+msgid "My avatar"
+msgstr "Fy afatar"
+
 msgctxt "dashboard_title"
 msgid "Dashboard"
 msgstr "Bwrdd rheoli"

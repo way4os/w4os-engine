@@ -235,6 +235,7 @@ final class Catalog
 
         // Avatars of the grid (managers)
         'menu_admin' => 'Admin',
+        'menu_account' => 'My avatar',
         'dashboard_title' => 'Dashboard',
         'manage_title' => 'Avatars',
         'search_avatars' => 'Name or email',

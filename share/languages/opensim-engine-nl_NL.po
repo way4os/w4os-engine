@@ -650,6 +650,10 @@ msgctxt "menu_admin"
 msgid "Admin"
 msgstr "Beheer"
 
+msgctxt "menu_account"
+msgid "My avatar"
+msgstr "Mijn avatar"
+
 msgctxt "dashboard_title"
 msgid "Dashboard"
 msgstr "Dashboard"
