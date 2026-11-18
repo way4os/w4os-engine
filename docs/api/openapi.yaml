@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: b69724c
+  version: 100f82a
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -2663,6 +2663,11 @@ paths:
           schema:
             type: string
           description: 'One or more, separated by commas: what has any of them (`meta.available.simulator` of the list gives the ones there are)'
+        -
+          name: 'filter[size]'
+          in: query
+          schema:
+            type: string
       responses:
         200:
           description: 'A page of the regions'
@@ -2734,6 +2739,12 @@ paths:
             name: serverName
             label: filter_simulator
             type: text
+            bare: false
+            priority: secondary
+          -
+            name: internalPort
+            label: column_port
+            type: number
             bare: false
             priority: secondary
           -
@@ -2912,6 +2923,11 @@ paths:
             label: filter_simulator
             format: simulator
             multiple: true
+            dynamic: true
+          -
+            name: size
+            label: column_size
+            format: size
             dynamic: true
         actions:
           -

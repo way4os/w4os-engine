@@ -180,6 +180,11 @@ final class Region extends Model
     /** The size of a region that says none, and the unit of every size: a region is a square of 256 meters, or of a multiple of it. */
     public const SIZE = 256;
 
+    /** The width and the height of a region in the table, the standard size when it does not say it. */
+    private const SIZE_X = 'COALESCE(NULLIF(r.sizeX, 0), 256)';
+
+    private const SIZE_Y = 'COALESCE(NULLIF(r.sizeY, 0), 256)';
+
     /** The size of a region: a multiple of 256 meters, 256 to 8192 (a region of more than 256 meters is a var region). */
     public static function validateSize(mixed $value): ?string
     {
@@ -982,11 +987,20 @@ final class Region extends Model
         }
         $asked = (array) ($options['filters'] ?? []);
         $applied = [];
+        // The conditions of the filters a list is counted by (counts()), by filter then value
+        $counted = ['status' => self::statusConditions()];
         // Online or offline: whether the grid has it running (the flag RegionOnline, as isOnline() reads it)
         $status = (string) ($asked['status'] ?? '');
+        $filtered = [];
         if ($status !== '') {
-            $where[] = '(r.flags & ' . self::REGION_ONLINE . ($status === 'online' ? ') <> 0' : ') = 0');
+            $filtered['status'] = $counted['status'][$status];
             $applied['status'] = $status;
+        }
+        // Its size, the standard one when the table does not say it (width())
+        $size = trim((string) ($asked['size'] ?? ''));
+        if ($size !== '') {
+            $filtered['size'] = self::sizeCondition($size);
+            $applied['size'] = $size;
         }
         // The regions that have any of the flags asked (DefaultRegion,DefaultHGRegion); the links to other grids only when asked
         $flags = self::listing()->asked('flags', $asked['flags'] ?? '');
@@ -1015,9 +1029,17 @@ final class Region extends Model
                 : 'r.serverURI IN (' . implode(', ', array_map(static fn(int $i): string => ":s$i", array_keys($uris))) . ')';
             $applied['simulator'] = implode(',', $simulators);
         }
-        $clause = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
+        $clause = ($where === [] && $filtered === []) ? '' : ' WHERE ' . implode(' AND ', [...$where, ...array_values($filtered)]);
 
         $total = (int) $pdo->get_var("SELECT COUNT(*) FROM regions r$clause", $params);
+        // The sizes the regions of the grid have, smallest first: the values of the size filter that give something
+        $sizes = [];
+        foreach ($pdo->get_results('SELECT DISTINCT ' . self::SIZE_X . ' AS w, ' . self::SIZE_Y . ' AS h FROM regions r WHERE (r.flags & ' . self::HYPERLINK . ') = 0', [], \PDO::FETCH_ASSOC) as $row) {
+            $sizes[(int) $row['w'] . 'x' . (int) $row['h']] = (int) $row['w'] * (int) $row['h'];
+        }
+        uksort($sizes, static fn(string $a, string $b): int => [$sizes[$a], $a] <=> [$sizes[$b], $b]);
+        $counted['size'] = array_combine(array_keys($sizes), array_map(self::sizeCondition(...), array_keys($sizes)));
+        $counts = self::counts($pdo, $where, $filtered, $counted, $params);
         $order =
             implode(
                 ', ',
@@ -1039,8 +1061,10 @@ final class Region extends Model
             'search' => trim((string) ($options['search'] ?? '')),
             'columns' => self::columns(),
             'filters' => self::listing()->filterValues(),
+            'counts' => $counts,
             // The flags the regions of the grid have now: the values of the filter that give something
             'available' => [
+                'size' => array_map(static fn(string $size): array => ['value' => $size, 'label' => $size], array_keys($sizes)),
                 'simulator' => array_values(
                     array_map(static fn(array $server): array => ['value' => $server['id'], 'label' => $server['label']], $servers),
                 ),
@@ -1062,6 +1086,57 @@ final class Region extends Model
             ],
             'applied' => $applied,
         ]);
+    }
+
+    /** @return array{online:string,offline:string} the condition of each status: the flag RegionOnline */
+    private static function statusConditions(): array
+    {
+        return ['online' => '(r.flags & ' . self::REGION_ONLINE . ') <> 0', 'offline' => '(r.flags & ' . self::REGION_ONLINE . ') = 0'];
+    }
+
+    /**
+     * The condition of a size, width x height (256x256), the standard one when the table does not say it.
+     *
+     * @throws InvalidValue for what is not a size (`filter-value-unknown`)
+     */
+    private static function sizeCondition(string $size): string
+    {
+        preg_match('/^(\d{1,6})x(\d{1,6})$/', $size, $m) === 1 ||
+            throw InvalidValue::because('filter-value-unknown', "'$size' is not a size of a region: width x height in meters (256x256)");
+
+        return '(' . self::SIZE_X . ' = ' . (int) $m[1] . ' AND ' . self::SIZE_Y . ' = ' . (int) $m[2] . ')';
+    }
+
+    /**
+     * How many regions each value of a filter gives, with the search and the other filters asked, not its own: one query.
+     *
+     * @param list<string> $where the conditions of the list that are not a filter counted
+     * @param array<string,string> $filtered the condition of each filter asked, by its name
+     * @param array<string,array<string,string>> $counted the condition of each value, by filter
+     * @param array<string,mixed> $params
+     * @return array<string,array<string,int>>
+     */
+    private static function counts(OSPDO $pdo, array $where, array $filtered, array $counted, array $params): array
+    {
+        $sums = [];
+        $keys = [];
+        foreach ($counted as $name => $values) {
+            $others = array_values(array_diff_key($filtered, [$name => 1]));
+            foreach ($values as $value => $condition) {
+                $sums[] = 'SUM(CASE WHEN ' . implode(' AND ', [$condition, ...$others]) . ' THEN 1 ELSE 0 END) AS c' . count($keys);
+                $keys[] = [$name, (string) $value];
+            }
+        }
+        if ($sums === []) {
+            return [];
+        }
+        $row = $pdo->get_results('SELECT ' . implode(', ', $sums) . ' FROM regions r' . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where)), $params, \PDO::FETCH_NUM)[0] ?? [];
+        $counts = [];
+        foreach ($keys as $i => [$name, $value]) {
+            $counts[$name][$value] = (int) ($row[$i] ?? 0);
+        }
+
+        return $counts;
     }
 
     /**
@@ -1256,6 +1331,8 @@ final class Region extends Model
                 Listing::column('size', 'column_size', 'size', 'size'),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
                 Listing::column('serverName', 'filter_simulator'),
+                // The port of the region on its simulator (InternalPort of its file), where its file is
+                Listing::column('internalPort', 'column_port', 'number'),
                 // Every flag but RegionOnline, which the column of the status shows
                 Listing::column('flagNames', 'column_flags', 'list', 'flags', ['values' => Listing::values(self::shownFlagKeys())]),
                 Listing::column('avatars', 'column_avatars', 'number'),
@@ -1276,6 +1353,8 @@ final class Region extends Model
                 ),
                 Listing::filter('owner', 'column_owner', [], 'uuid'),
                 Listing::filter('simulator', 'filter_simulator', [], 'simulator', ['multiple' => true, 'dynamic' => true]),
+                // Its size, width x height in meters (256x256): the sizes of the regions of the grid are the values that give something
+                Listing::filter('size', 'column_size', [], 'size', ['dynamic' => true]),
             ],
             ['name'],
             [

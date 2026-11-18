@@ -244,6 +244,26 @@ describe('Regions', function () {
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'));
     });
 
+    test('are filtered by their size and counted by status and size, each value with the other filters asked', function () {
+        Connections::using(static fn() => region_database());
+        $config = region_config();
+        $list = static fn(array $filters) => Region::all($config, ['filters' => $filters]);
+
+        expect(array_column($list(['size' => '256x256'])->array(), 'name'))
+            // A region whose size the table does not say is of the standard size
+            ->toBe(['Quiet Harbour', 'Welcome'])
+            ->and($list([])->counts())
+            ->toBe(['status' => ['online' => 2, 'offline' => 1], 'size' => ['256x256' => 2, '512x512' => 1]])
+            ->and($list(['status' => 'online'])->counts())
+            ->toBe(['status' => ['online' => 2, 'offline' => 1], 'size' => ['256x256' => 1, '512x512' => 1]])
+            ->and($list(['size' => '256x256'])->counts()['status'])
+            ->toBe(['online' => 1, 'offline' => 1])
+            ->and($list([])->available()['size'])
+            ->toBe([['value' => '256x256', 'label' => '256x256'], ['value' => '512x512', 'label' => '512x512']])
+            ->and(fn() => $list(['size' => 'big']))
+            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'));
+    });
+
     test('are filtered by their owner, and give their hop address on the grid', function () {
         Connections::using(static fn() => region_database());
         $config = region_config();
@@ -301,6 +321,7 @@ describe('Regions', function () {
                 'size' => 'size',
                 'ownerName' => 'link',
                 'serverName' => 'text',
+                'internalPort' => 'number',
                 'flagNames' => 'list',
                 'avatars' => 'number',
                 'lastSeen' => 'datetime',
@@ -314,6 +335,7 @@ describe('Regions', function () {
                 'flags' => array_values(array_diff(Region::NAMES, ['RegionOnline'])),
                 'owner' => [],
                 'simulator' => [],
+                'size' => [],
             ])
             ->and($listing->filters[0])
             ->toBe([
@@ -335,9 +357,9 @@ describe('Regions', function () {
             ->and(array_intersect_key($listing->filters[1], ['multiple' => 1, 'dynamic' => 1]))
             ->toBe(['multiple' => true, 'dynamic' => true])
             // The column of the flags has every flag but the status, with the texts of the filter
-            ->and($listing->columns[5]['values'])
+            ->and($listing->columns[6]['values'])
             ->toBe($listing->filters[1]['values'])
-            ->and(array_column($listing->columns[5]['values'], 'value'))
+            ->and(array_column($listing->columns[6]['values'], 'value'))
             ->toBe(array_values(array_diff(Region::NAMES, ['RegionOnline'])))
             // The map tile of the region beside its name, as the picture of an avatar
             ->and(array_intersect_key($listing->columns[0], ['picture' => 1, 'default' => 1]))
@@ -349,14 +371,14 @@ describe('Regions', function () {
             // Enabled, the button that changes it where its file is, then online, in one column
             ->and(array_map(
                 static fn(array $indicator): array => [$indicator['name'], $indicator['icon'], array_column($indicator['states'], 'tone', 'label'), $indicator['actions'] ?? []],
-                $listing->columns[8]['indicators'],
+                $listing->columns[9]['indicators'],
             ))
             ->toBe([
                 ['enabled', 'power', ['state_enabled' => 'ok', 'state_disabled' => 'off'], ['enable', 'disable']],
                 ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
             ])
             // In the world or not: a globe, a crossed one, never the color alone
-            ->and(array_column($listing->columns[8]['indicators'][1]['states'], 'icon', 'label'))
+            ->and(array_column($listing->columns[9]['indicators'][1]['states'], 'icon', 'label'))
             ->toBe(['online' => 'online', 'offline' => 'offline'])
             ->and(array_column($listing->columns, 'name'))
             ->not->toContain('online')
