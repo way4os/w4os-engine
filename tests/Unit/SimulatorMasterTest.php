@@ -714,6 +714,29 @@ describe('The repair of the options, setting by setting', function () {
     });
 });
 
+describe('The repair of the options a grid uses without having recorded them', function () {
+    test('lays the economy the OpenSim.ini of the grid names in the simulators that miss it, an option that is not met stays out', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $general = $machine->grid . '/OpenSim.ini';
+        // A grid made before its options were recorded, or by hand: its OpenSim.ini says Gloebit, and the search
+        file_put_contents($general, (is_file($general) ? (string) file_get_contents($general) : '') . "\n[Economy]\n    economymodule = Gloebit\n[Search]\n    Module = OpenSimSearch\n");
+        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+        $alpha = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+
+        $plan = $options()->repair(false);
+        $options()->repair(true);
+
+        expect($plan['simulators']['alpha'] ?? [])
+            ->toContain('economy-gloebit')
+            // The search needs the helpers this grid does not have
+            ->not->toContain('search')
+            ->and((string) file_get_contents($alpha))
+            ->toContain('[Gloebit]', 'GLBEnvironment = sandbox')
+            ->and($options()->repair(false)['simulators'])
+            ->toBe([]);
+    });
+});
+
 describe('An option enabled on a grid that runs elsewhere', function () {
     test('is written in the files of its simulators here, what its Robust must carry only said', function () {
         $machine = master_machine();

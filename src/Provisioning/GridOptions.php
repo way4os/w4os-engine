@@ -332,7 +332,7 @@ final class GridOptions
         $sections = array_map(static fn($keys): array => is_array($keys) ? array_change_key_case($keys) : [], array_change_key_case($settings));
         $variables = $this->variables();
         $missing = [];
-        foreach ($this->enabled() as $name) {
+        foreach (array_values(array_unique([...$this->enabled(), ...$this->inUse()])) as $name) {
             $option = $this->template($name);
             if ($option === null || !in_array('OpenSim.ini', $option->files(), true)) {
                 continue;
@@ -347,6 +347,50 @@ final class GridOptions
         }
 
         return $missing;
+    }
+
+    /**
+     * The options the grid uses without having them recorded (a grid made before its options were, or by hand): the ones of which
+     * the OpenSim.ini of the grid has a setting that tells them, as the option writes it (one of their own, not a value of the
+     * grid, nor `Initial` or `Existing`, nor a mere true or false: `[Economy] economymodule = Gloebit`, `[Search] Module =
+     * OpenSimSearch`), that it can have (not unmet), and of a group it has no other option of.
+     *
+     * @return list<string>
+     */
+    public function inUse(): array
+    {
+        $general = $this->general();
+        $said = is_file($general) ? array_map(
+            static fn($keys): array => is_array($keys) ? array_change_key_case(array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys)) : [],
+            array_change_key_case(\OpenSim\Config\ConfigReader::load($general, expand: false)),
+        ) : [];
+        if ($said === []) {
+            return [];
+        }
+        $enabled = $this->enabled();
+        $groups = array_filter(array_map(fn(string $name): string => $this->template($name)?->group() ?? '', $enabled));
+        $used = [];
+        foreach ($this->templates() as $name => $option) {
+            if (in_array($name, $enabled, true) || in_array('OpenSim.ini', $option->files(), true) === false || ($option->group() !== '' && in_array($option->group(), $groups, true)) || $this->unmet($option) !== null) {
+                continue;
+            }
+            // Its own settings, without the values of the grid: the lines that need a variable are left out
+            $telling = array_filter(
+                $option->settings('OpenSim.ini', [], true),
+                static fn(array $s): bool => !in_array(strtolower(trim($s[2], " \"")), ['', 'true', 'false'], true)
+                    && !$option->lists('Existing', $s[0], $s[1]) && !$option->lists('Initial', $s[0], $s[1]),
+            );
+            $told = false;
+            foreach ($telling as [$section, $key, $value]) {
+                $told = $told || ($said[strtolower($section)][strtolower($key)] ?? null) === strtolower(trim($value, " \""));
+            }
+            if ($told) {
+                $used[] = $name;
+                $option->group() === '' || ($groups[] = $option->group());
+            }
+        }
+
+        return $used;
     }
 
     /**
