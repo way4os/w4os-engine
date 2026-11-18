@@ -986,11 +986,26 @@ final class Api
         $instance = '/setups/imports';
         try {
             $kind = (string) ($attributes['kind'] ?? 'simulator');
-            in_array($kind, ['simulator', 'flux'], true) || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator, flux");
+            in_array($kind, ['simulator', 'flux', 'grid-settings'], true) || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator, flux, grid-settings");
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
             if ($kind === 'flux') {
                 return $this->importFlux($attributes, $mode, $instance);
+            }
+            // The settings of a grid of another install, in the OpenSim.ini of a grid of this machine
+            if ($kind === 'grid-settings') {
+                $settings = \OpenSim\Provisioning\Import\GridSettingsImport::prepare($this->environment, (string) ($attributes['file'] ?? ''), (string) ($attributes['grid'] ?? ''));
+                $document = $settings->document();
+                $applied = $mode === 'apply' && $settings->apply();
+
+                return Response::document([
+                    'data' => [
+                        'type' => 'imports',
+                        'id' => $document['grid'],
+                        'attributes' => ['kind' => $kind, 'mode' => $mode, 'applied' => $applied] + $document,
+                    ],
+                    'links' => ['self' => $instance],
+                ]);
             }
             // Several simulators into one grid: planned together, checked between them, written in their order
             if (is_array($attributes['simulators'] ?? null)) {

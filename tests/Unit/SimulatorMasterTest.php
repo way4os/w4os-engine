@@ -51,6 +51,9 @@ describe('master', function () {
                 ->toBe('core')
                 ->and($ini['Startup']['RegistryLocation'])
                 ->toBe('${Const|DataDirectory}/registry')
+                // Where the add-ins write their config (Util.MergeConfigurationFile): the folder of the simulator, never the core
+                ->and($ini['Startup']['ConfigDirectory'])
+                ->toBe('${Const|DataDirectory}/config')
                 ->and($ini['Network']['http_listener_port'])
                 ->toBe('9000')
                 ->and($ini['DatabaseService']['StorageProvider'])
@@ -684,6 +687,101 @@ describe('The repair of the options', function () {
             ->toBe([[], 0])
             ->and($alpha)
             ->toContain('[UserProfiles]', '[Groups]');
+    });
+});
+
+describe('The repair of the options, setting by setting', function () {
+    test('lays again a setting of an option a simulator misses in a section it has: the economy of Gloebit, its environment', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        (new OpenSim\Provisioning\GridOptions($grid))->enable('economy-gloebit');
+        $alpha = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        // A simulator whose [Gloebit] has no environment (made by hand, or by an older engine): the module says "None"
+        file_put_contents($alpha, str_replace('GLBEnvironment = sandbox', '', (string) file_get_contents($alpha)));
+        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+
+        $plan = $options()->repair(false);
+        $applied = $options()->repair(true);
+
+        expect($plan['simulators']['alpha'] ?? [])
+            ->toContain('economy-gloebit')
+            ->and($applied['applied'])
+            ->toContain('economy-gloebit')
+            ->and((string) file_get_contents($alpha))
+            ->toContain('GLBEnvironment = sandbox')
+            ->and($options()->repair(false)['simulators'])
+            ->toBe([]);
+    });
+});
+
+describe('The repair of the options a grid uses without having recorded them', function () {
+    test('lays the economy the OpenSim.ini of the grid names in the simulators that miss it, an option that is not met stays out', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $general = $machine->grid . '/OpenSim.ini';
+        // A grid made before its options were recorded, or by hand: its OpenSim.ini says Gloebit, and the search
+        file_put_contents($general, (is_file($general) ? (string) file_get_contents($general) : '') . "\n[Economy]\n    economymodule = Gloebit\n[Search]\n    Module = OpenSimSearch\n");
+        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+        $alpha = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+
+        $plan = $options()->repair(false);
+        $options()->repair(true);
+
+        expect($plan['simulators']['alpha'] ?? [])
+            ->toContain('economy-gloebit')
+            // The search needs the helpers this grid does not have
+            ->not->toContain('search')
+            ->and((string) file_get_contents($alpha))
+            ->toContain('[Gloebit]', 'economymodule = Gloebit')
+            // The environment is the grid's to give: not invented, still said until it is given
+            ->not->toContain('GLBEnvironment')
+            ->and($options()->repair(false)['simulators']['alpha'] ?? [])
+            ->toBe(['economy-gloebit']);
+    });
+});
+
+describe('The repair of the options, with the values of the grid', function () {
+    /** The grid demo using Gloebit (its OpenSim.ini says it), beta with the block of the grid, alpha without it. */
+    function gloebit_grid(string $block): array
+    {
+        $machine = new OpenSim\Testing\Machine();
+        $general = $machine->grid . '/OpenSim.ini';
+        file_put_contents($general, (is_file($general) ? (string) file_get_contents($general) : '') . "\n[Economy]\n    economymodule = Gloebit\n");
+        $sims = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid);
+        file_put_contents("$sims/beta.ini", (string) file_get_contents("$sims/beta.ini") . "\n[Economy]\n    economymodule = Gloebit\n    economy = \"https://web.example.org/gloebit\"\n[Gloebit]\n    Enabled = true\n$block");
+        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+
+        return [$options, "$sims/alpha.ini"];
+    }
+
+    test('takes the settings of the grid a simulator misses from another simulator of the grid, its keys too, and never prints them', function () {
+        [$options, $alpha] = gloebit_grid("    GLBEnvironment = production\n    GLBKey = key-of-the-grid\n    GLBSecret = secret-of-the-grid\n    GLBOwnerName = \"Owner\"\n");
+
+        $plan = $options()->repair(false);
+        $applied = $options()->repair(true);
+        $file = (string) file_get_contents($alpha);
+
+        expect($plan['simulators']['alpha'] ?? [])
+            ->toContain('economy-gloebit')
+            ->and($applied['applied'])
+            ->toContain('economy-gloebit')
+            ->and($file)
+            ->toContain('GLBEnvironment = production', 'GLBKey = key-of-the-grid', 'GLBSecret = secret-of-the-grid', 'https://web.example.org/gloebit')
+            ->not->toContain('GLBEnvironment = sandbox')
+            // What is said of the repair has the names of the settings, never their values
+            ->and(json_encode([$plan, $applied]))
+            ->not->toContain('key-of-the-grid')
+            ->not->toContain('secret-of-the-grid');
+    });
+
+    test('does not invent what the grid does not say: the environment of Gloebit is named, not written', function () {
+        [$options, $alpha] = gloebit_grid('');
+
+        $applied = $options()->repair(true);
+
+        expect((string) file_get_contents($alpha))
+            ->not->toContain('GLBEnvironment')
+            ->and(implode("\n", $applied['notes']))
+            ->toContain('Gloebit/GLBEnvironment');
     });
 });
 

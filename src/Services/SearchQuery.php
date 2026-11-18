@@ -130,7 +130,9 @@ final class SearchQuery
             $rows,
         );
 
-        return $data === [] ? XmlRpc::envelope(false, 'No results', $data) : XmlRpc::envelope(true, '', $data);
+        // Nothing found is an empty answer, not an error: the viewer says it in its list, once, where an error is an alert for each
+        // request, and the viewers ask a search several times (they show the answers of their last request only)
+        return XmlRpc::envelope(true, '', $data);
     }
 
     /**
@@ -208,7 +210,7 @@ final class SearchQuery
         if ($type !== 4294967295) {
             // Auctions first, to leave quickly: (24 is bits 3 and 4 of SearchTypeFlags)
             if (($type & 26) === 2) {
-                return XmlRpc::envelope(false, 'No auctions listed');
+                return XmlRpc::envelope(true, '', []);
             }
             ($type & 24) === 8 && ($terms[] = 'parentestate = 1');
             ($type & 24) === 16 && ($terms[] = 'parentestate <> 1');

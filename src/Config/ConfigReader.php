@@ -43,7 +43,8 @@ final class ConfigReader
                 continue;
             }
             $value = trim($m[2]);
-            if (preg_match('/^"(.*)"\s*(?:[;#].*)?$/', $value, $quoted)) {
+            // A quoted value: what is between its quotes, what follows them (a comment, a stray character) left out
+            if (preg_match('/^"(.*)"\s*(?:[;#].*)?$/', $value, $quoted) || preg_match('/^"([^"]*)"/', $value, $quoted)) {
                 $value = $quoted[1];
             }
             // A key given twice in a section: the first is the one OpenSimulator keeps
