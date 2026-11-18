@@ -1085,7 +1085,7 @@ describe('The API, for a change of the email of an avatar', function () {
             ->and($asked->document['data']['attributes']['about'])
             ->toBe('Changed')
             ->and($asked->document['meta'])
-            ->toBe(['emailConfirmation' => 'sent'])
+            ->toBe(['emailConfirmation' => 'sent', 'settings' => ['allowUserProfileWebUrls' => true]])
             ->and($mailer->sent[0]['to'])
             ->toBe('ada@new.example.org')
             ->and($mailer->sent[0]['html'])

@@ -268,7 +268,11 @@ final class Api
 
         return $model instanceof Response
             ? $model
-            : Response::document(['data' => self::resource($type, $model, $grid), 'links' => ['self' => $instance]]);
+            : Response::document(
+                ['data' => self::resource($type, $model, $grid), 'links' => ['self' => $instance]] +
+                    // The settings of the grid the form of the item needs (its fields that say `setting`)
+                    ($model instanceof Avatar ? ['meta' => ['settings' => $model->formSettings()]] : []),
+            );
     }
 
     /**
@@ -407,6 +411,7 @@ final class Api
                 );
             }
             $model = $this->find($type, $id, $grid, $instance);
+            $model instanceof Avatar && ($meta['settings'] = $model->formSettings());
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }

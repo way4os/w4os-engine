@@ -1009,6 +1009,15 @@ final class Grid extends InstalledModel
         return $pictures->refresh($this->guide($config));
     }
 
+    /**
+     * Whether its avatars may give a web address in their profile (AllowUserProfileWebURLs of `[UserProfiles]`, Avatar::profileWebUrls()):
+     * true when its OpenSim.ini says nothing, as OpenSimulator.
+     */
+    public function allowUserProfileWebUrls(): bool
+    {
+        return $this->directory === '' || !is_dir($this->directory) || Avatar::profileWebUrls(GridConfig::fromFolder($this->directory));
+    }
+
     /** The address of the logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini). */
     public function logoUrl(): ?string
     {
@@ -1440,6 +1449,7 @@ final class Grid extends InstalledModel
             'databaseUser' => $this->databaseUser(),
             'webUrl' => $this->webUrl() ?: null,
             'logoUrl' => $this->logoUrl(),
+            'allowUserProfileWebUrls' => $this->allowUserProfileWebUrls(),
             'helpers' => $this->hasHelpers(),
             'simulators' => $folder ? $this->simulatorNames() : null,
             'announcement' => $this->said() ?: null,

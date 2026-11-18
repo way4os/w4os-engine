@@ -704,7 +704,8 @@ final class Avatar extends Model
             'profilePage' => $this->isLocal() ? self::profilePage($this->config, $this->name()) : null,
             'profileImage' => $row['profileImage'] ?? null,
             'about' => $row['profileAboutText'] ?? null,
-            'profileUrl' => $row['profileURL'] ?? null,
+            // Its web address, only when the grid allows it, as the viewers show it
+            'profileUrl' => self::profileWebUrls($this->config) ? $row['profileURL'] ?? null : null,
             'partner' => self::uuidOrNull($row['profilePartner'] ?? null),
             'wants' => $row['profileWantToText'] ?? null,
             'wantsList' => Bitmask::names((int) ($row['profileWantToMask'] ?? 0), array_flip(self::WANTS)),
@@ -1019,6 +1020,10 @@ final class Avatar extends Model
         $estateBans = array_key_exists('estateBans', $values) ? (array) $values['estateBans'] : null;
         array_key_exists('estateBanned', $values) && ($estateBans = Result::isTrue($values['estateBanned']));
         unset($values['estateBans'], $values['estateBanned']);
+        // A web address the grid does not allow is ignored, as the viewers do
+        if (!self::profileWebUrls($this->config)) {
+            unset($values['profileUrl']);
+        }
         // The check boxes of the profile: their names, or the number the viewer keeps
         isset($values['wantsList']) && ($values['wantsList'] = self::profileMask($values['wantsList'], self::WANTS, 'wants'));
         isset($values['skillsList']) && ($values['skillsList'] = self::profileMask($values['skillsList'], self::SKILLS, 'skills'));
@@ -1666,6 +1671,28 @@ final class Avatar extends Model
     }
 
     /**
+     * The settings of the grid its form needs (the fields that say `setting`), for a site: `allowUserProfileWebUrls`.
+     *
+     * @return array{allowUserProfileWebUrls:bool}
+     */
+    public function formSettings(): array
+    {
+        return ['allowUserProfileWebUrls' => self::profileWebUrls($this->config)];
+    }
+
+    /**
+     * Whether the grid lets its avatars give a web address in their profile (the Web tab of the viewers, `profileUrl`):
+     * AllowUserProfileWebURLs of `[UserProfiles]` in its OpenSim.ini, read as OpenSimulator reads it (the files it includes, its
+     * constants), true when it says nothing or nothing it knows.
+     */
+    public static function profileWebUrls(GridConfig $config): bool
+    {
+        $value = strtolower(trim((string) $config->get('OpenSim.UserProfiles.AllowUserProfileWebURLs', '')));
+
+        return !in_array($value, ['false', 'no', 'off'], true);
+    }
+
+    /**
      * The web page of the profile of an avatar of the grid, by its name: `web_profile_url` of `[GridInfoService]` with First.Last for
      * `[AGENT_NAME]`, as the viewers open it. Null when the grid has none, or one that is not for an avatar.
      */
@@ -1710,7 +1737,7 @@ final class Avatar extends Model
                 ItemForm::shown('partner', 'partner', 'avatar', 'inworld'),
                 ItemForm::field('about', 'about', 'text', 'inworld', more: $both),
                 ItemForm::field('published', 'show_in_search', 'boolean', 'inworld', more: $both),
-                ItemForm::field('profileUrl', 'profile_url', 'url', 'web', more: $both),
+                ItemForm::field('profileUrl', 'profile_url', 'url', 'web', more: $both + ['setting' => 'allowUserProfileWebUrls']),
                 ItemForm::field('wantsList', 'wants', 'checkboxes', 'interests', $flags($profile['wants']), $both),
                 ItemForm::field('wants', 'profile_other', 'string', 'interests', more: $both),
                 ItemForm::field('skillsList', 'skills', 'checkboxes', 'interests', $flags($profile['skills']), $both),
