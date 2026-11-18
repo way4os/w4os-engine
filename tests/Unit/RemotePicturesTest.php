@@ -14,6 +14,7 @@ use OpenSim\Hypergrid\Gatekeeper;
 use OpenSim\Services\DestinationPictures;
 use OpenSim\Services\RemotePictures;
 use OpenSim\Support\FileCache;
+use OpenSim\Testing\Machine;
 use OpenSim\Testing\ClockFake;
 
 const REMOTE_REGION = 'cccccccc-0000-4000-8000-000000000001';
@@ -53,14 +54,11 @@ function remote_grid(): object
 
         public Cache $cache;
 
-        public FileCache $images;
-
         public RemotePictures $pictures;
     };
     $world->clock = new ClockFake();
     $folder = test_tmp() . '/remote-pictures-' . bin2hex(random_bytes(4));
     $world->cache = new Cache(new FileCacheStore("$folder/cache"), $world->clock);
-    $world->images = new FileCache("$folder/images", RemotePictures::KEEP, $world->clock);
     Gatekeeper::using(static function (string $url, string $body) use ($world): ?string {
         preg_match('#<methodName>(.*?)</methodName>#', $body, $method);
         $world->asked[] = "$url {$method[1]}";
@@ -89,7 +87,7 @@ function remote_grid(): object
             default => null,
         };
     };
-    $world->pictures = new RemotePictures($world->cache, $world->images, $http, new GridConfig(), 'http://grid.example.org:8002', $world->clock);
+    $world->pictures = new RemotePictures($world->cache, $http, new GridConfig(), 'http://grid.example.org:8002', $world->clock);
 
     return $world;
 }
@@ -112,9 +110,10 @@ describe('The pictures of the hypergrid destinations', function () {
                 'http://sim.far.example.net:9000/ land_data',
                 'http://far.example.net:8002/assets/' . REMOTE_BEACH,
             ])
-            // The picture is kept for the pages of the grid (WebAssets), with what the asset service said of it
-            ->and($world->images->get(REMOTE_BEACH))
-            ->toBe(['data' => 'JP2-BYTES', 'meta' => ['type' => 0, 'name' => 'Beach']])
+            // The picture is kept for the pages of the grid (WebAssets), with what the asset service said of it, in the cache every
+            // process of the grid shares (the task runs as the web server, the pages as the account of the instances)
+            ->and(RemotePictures::image($world->cache, REMOTE_BEACH))
+            ->toBe(['data' => 'JP2-BYTES', 'type' => 0, 'name' => 'Beach'])
             ->and(RemotePictures::lookup($world->cache, 'far.example.net:8002/Far/10/20/30', 'Far beach'))
             ->toBe(REMOTE_BEACH);
 
@@ -181,7 +180,7 @@ describe('The pictures of the hypergrid destinations', function () {
         $answers = ['http://far.example.net:8002/get_grid_info' => '<gridinfo><gridname>Far World</gridname></gridinfo>'];
         $asked = [];
         $grids = new OpenSim\Network\GridInfoCache(grid_info_world($answers, $asked)->environment, cache: $world->cache);
-        $pictures = new RemotePictures($world->cache, $world->images, static fn(string $url): ?string => null, new GridConfig(), 'http://grid.example.org:8002', $world->clock, $grids);
+        $pictures = new RemotePictures($world->cache, static fn(string $url): ?string => null, new GridConfig(), 'http://grid.example.org:8002', $world->clock, $grids);
         $guide = ['Visit' => ['picture' => null, 'destinations' => [
             ['name' => 'Known', 'url' => 'far.example.net:8002/Far', 'picture' => REMOTE_HILL],
             ['name' => 'Home', 'url' => 'grid.example.org:8002/Welcome', 'picture' => null],
@@ -207,8 +206,8 @@ describe('The pictures of the hypergrid destinations', function () {
         expect($found)->toBe(0)->and($world->asked)->toBe([]);
     });
 
-    test('are given by the pages of the grid as its own pictures, without asking the other grid', function () {
-        $machine = new OpenSim\Testing\Machine();
+    test('are given by the pages of the grid as its own pictures, from the cache of the grid, without asking the other grid', function () {
+        $machine = new Machine();
         $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
         $converter = new class implements OpenSim\Assets\ConverterInterface {
             public function convert(string $data, string $format, ?int $width = null): ?string
@@ -216,7 +215,7 @@ describe('The pictures of the hypergrid destinations', function () {
                 return "$format:$data";
             }
         };
-        OpenSim\Assets\WebAssets::remote($grid)->put(REMOTE_BEACH, 'JP2-BYTES', ['type' => 0, 'name' => 'Beach']);
+        RemotePictures::keep(OpenSim\Data\Cache::for($machine->environment, OpenSim\Config\GridConfig::fromFolder($machine->grid)), REMOTE_BEACH, 'JP2-BYTES', 0, 'Beach');
         $asked = [];
         $web = new OpenSim\Assets\WebAssets(
             $grid,
@@ -228,12 +227,59 @@ describe('The pictures of the hypergrid destinations', function () {
 
                 return null;
             },
-            remote: OpenSim\Assets\WebAssets::remote($grid),
         );
 
         expect($web->get(REMOTE_BEACH, 'png'))
             ->toBe(['data' => 'png:JP2-BYTES', 'mime' => 'image/png', 'found' => true])
             ->and($asked)
             ->toBe([]);
+    });
+
+    test('are asked again when the picture of a destination is known but not kept any more', function () {
+        $world = remote_grid();
+        $guide = (new DestinationPictures(null))->of(['Visit' => [['name' => 'Far beach', 'url' => 'far.example.net:8002/Far/10/20/30']]]);
+        $world->pictures->refresh($guide);
+        $world->cache->forget('guide.image.' . REMOTE_BEACH);
+        $world->asked = [];
+
+        $world->pictures->refresh($guide);
+
+        expect($world->asked)
+            ->toContain('http://far.example.net:8002/assets/' . REMOTE_BEACH)
+            ->and(RemotePictures::image($world->cache, REMOTE_BEACH))
+            ->not->toBeNull();
+    });
+
+    test('are fetched from the asset service the user agents of their grid give, when its gatekeeper has none', function () {
+        $world = remote_grid();
+        $owner = 'eeeeeeee-0000-4000-8000-000000000001';
+        // A grid whose gatekeeper serves no asset: its user agents say the one of its users (as OSGrid)
+        Gatekeeper::using(static function (string $url, string $body) use ($world, $owner): ?string {
+            preg_match('#<methodName>(.*?)</methodName>#', $body, $method);
+            $world->asked[] = "$url {$method[1]}";
+
+            return match ($method[1]) {
+                'link_region' => remote_rpc(['uuid' => REMOTE_REGION, 'result' => 'True']),
+                'get_region' => remote_rpc(['uuid' => REMOTE_REGION, 'server_uri' => 'http://sim.far.example.net:9000/', 'x' => '256000', 'y' => '256000', 'result' => 'True']),
+                'land_data' => remote_rpc(['Name' => 'Beach', 'SnapshotID' => REMOTE_BEACH, 'OwnerID' => $owner]),
+                'get_server_urls' => str_contains($body, $owner) ? remote_rpc(['SRV_AssetServerURI' => 'http://assets.far.example.net/', 'SRV_HomeURI' => 'http://far.example.net:8002']) : null,
+                default => null,
+            };
+        });
+        $http = static function (string $url) use ($world): ?string {
+            $world->asked[] = $url;
+
+            return $url === 'http://assets.far.example.net/assets/' . REMOTE_BEACH
+                ? '<AssetBase><Data>' . base64_encode('JP2-BYTES') . '</Data><ID>' . REMOTE_BEACH . '</ID><Name>Beach</Name><Type>0</Type></AssetBase>'
+                : null;
+        };
+        $pictures = new RemotePictures($world->cache, $http, new GridConfig(), 'http://grid.example.org:8002', $world->clock);
+
+        $found = $pictures->refresh((new DestinationPictures(null))->of(['Visit' => [['name' => 'Far beach', 'url' => 'far.example.net:8002/Far/10/20/30']]]));
+
+        expect($found)
+            ->toBe(1)
+            ->and($world->asked)
+            ->toContain('http://far.example.net:8002/assets/' . REMOTE_BEACH, 'http://far.example.net:8002 get_server_urls', 'http://assets.far.example.net/assets/' . REMOTE_BEACH);
     });
 });

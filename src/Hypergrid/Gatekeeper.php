@@ -43,6 +43,9 @@ final class Gatekeeper
      */
     public static function request($gatekeeper, $method, $request)
     {
+        if (!is_string($gatekeeper) || trim($gatekeeper) === '') {
+            return false;
+        }
         if (!function_exists('xmlrpc_encode_request')) {
             error_log('[ERROR] (XML RPC missing) self::request() requires xmlrpc_encode_request()');
             return false;

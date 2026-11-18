@@ -53,7 +53,6 @@ final class WebAssets
      * @param ?\Closure(string):?string $http the body of an address, null when it does not answer (default: curl)
      * @param ?string $placeholder the file of the picture of nothing (default: a transparent pixel)
      * @param ?string $person the file of the picture of a person who has none (default: the picture of nothing)
-     * @param ?FileCache $remote the pictures other grids gave (remote()), kept longer
      */
     public function __construct(
         private readonly Grid $grid,
@@ -63,7 +62,6 @@ final class WebAssets
         private readonly ?\Closure $http = null,
         private readonly ?string $placeholder = null,
         private readonly ?string $person = null,
-        private readonly ?FileCache $remote = null,
     ) {}
 
     /** The cache folder of the assets of a grid of this machine. */
@@ -87,17 +85,7 @@ final class WebAssets
             $grid->environment()->http,
             self::placeholderFile(),
             self::placeholderFile('person'),
-            self::remote($grid),
         );
-    }
-
-    /**
-     * The pictures other grids gave for the guide of a grid (the parcels of its hypergrid destinations, RemotePictures), kept as
-     * long as it keeps what it asked: their grid is not asked when a page shows them.
-     */
-    public static function remote(Grid $grid): FileCache
-    {
-        return new FileCache(self::folder($grid) . '/remote', \OpenSim\Services\RemotePictures::KEEP, $grid->environment()->clock);
     }
 
     /** The picture of the kit for what has none, a place or a person (DEFAULTS), null when it is not installed. */
@@ -171,7 +159,7 @@ final class WebAssets
             $this->grid->directory() !== '' && is_dir($this->grid->directory())
                 ? GridConfig::fromFolder($this->grid->directory())
                 : new GridConfig();
-        if (($kept = $this->sources->get($id) ?? $this->remote?->get($id)) !== null) {
+        if (($kept = $this->sources->get($id) ?? $this->remote($config, $id)) !== null) {
             return $this->rebuilt($config, $id, $kept);
         }
         $http = $this->http ?? GridInfoReader::get(...);
@@ -195,6 +183,19 @@ final class WebAssets
         }
 
         return $asset;
+    }
+
+    /**
+     * A picture another grid gave for the guide (RemotePictures), from the cache of the grid every process of it shares: its grid
+     * is not asked when a page shows it.
+     *
+     * @return ?array{data:string,meta:array<string,mixed>}
+     */
+    private function remote(GridConfig $config, string $id): ?array
+    {
+        $image = \OpenSim\Services\RemotePictures::image(\OpenSim\Data\Cache::for($this->grid->environment(), $config), $id);
+
+        return $image === null ? null : ['data' => $image['data'], 'meta' => ['type' => $image['type'], 'name' => $image['name']]];
     }
 
     /**

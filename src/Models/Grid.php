@@ -999,7 +999,6 @@ final class Grid extends InstalledModel
         $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
         $pictures = new \OpenSim\Services\RemotePictures(
             \OpenSim\Data\Cache::for($this->environment, $config),
-            \OpenSim\Assets\WebAssets::remote($this),
             $this->environment->http ?? \OpenSim\Network\GridInfoReader::get(...),
             $config ?? new GridConfig(),
             (string) $this->loginUrl(),
