@@ -125,6 +125,7 @@ describe('Teleport links', function () {
         'viewer v3 link' => [TPLINK_V3HG, 'secondlife://http|!!hg.example.org|8002%20My%20Region/128/64/22'],
         'hop' => [TPLINK_HOP, 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22'],
         'for the scripts (llMapDestination)' => [Destination::LSL, 'hg.example.org:8002:My Region/128/64/22'],
+        'the map of the viewer at the place' => [Destination::MAP, 'secondlife:///app/worldmap/hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
         'a location of a grid, in a viewer' => [Destination::GRID, 'secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/128/64/22'],
         'teleport link' => [TPLINK_APPTP, 'secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
     ]);
@@ -158,6 +159,17 @@ describe('Teleport links', function () {
             ->toBe('secondlife:///secondlife/Plaza/10/20/30')
             ->and(Destination::format('grid.example:8002', Destination::GRID))
             ->toBe('');
+    });
+
+    test('of the map: the region named as the search of the map takes it, its grid before a colon, the height above the sea', function () {
+        expect(Destination::format('grid.example:8002/Grand Place/10/20/0', Destination::MAP))
+            ->toBe('secondlife:///app/worldmap/grid.example:8002:Grand' . Destination::SPACE . 'Place/10/20/21')
+            // A region alone: on the grid the viewer is on
+            ->and(Destination::format('Plaza/116.5/136/21.75', Destination::MAP))
+            ->toBe('secondlife:///app/worldmap/Plaza/116.5/136/21.75')
+            // A grid alone: its default region, as the search of the map links it
+            ->and(Destination::format('hop://hg.osgrid.org:80', Destination::MAP))
+            ->toBe('secondlife:///app/worldmap/hg.osgrid.org:80');
     });
 
     test('of a grid alone end at its port, with no colon after it', function () {

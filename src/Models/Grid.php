@@ -678,12 +678,12 @@ final class Grid extends InstalledModel
      * and the teleport of the viewer for another grid; hop:// out of a viewer.
      *
      * @param ?string $agent the user agent of the request, the one of the request served when null
-     * @param bool $splash shown on the login screen of a viewer
+     * @param bool $splash shown on the login screen of a viewer: it takes the same links as the other pages, kept for its callers
      * @param ?string $client the class of the client, `viewer` or `browser` (Destination::client()): it wins over the agent
      */
     public function link(string $destination, ?string $agent = null, bool $splash = false, ?string $client = null): string
     {
-        $context = ['login' => $this->loginUrl(), 'splash' => $splash] + ($agent === null ? [] : ['agent' => $agent]) + ($client === null ? [] : ['client' => $client]);
+        $context = ['login' => $this->loginUrl()] + ($agent === null ? [] : ['agent' => $agent]) + ($client === null ? [] : ['client' => $client]);
 
         return (string) Destination::format($destination, Destination::AUTO, context: $context);
     }

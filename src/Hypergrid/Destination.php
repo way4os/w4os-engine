@@ -43,7 +43,15 @@ final class Destination
      * it works in the browser of a viewer, for another grid.
      */
     public const APPTP = 32;
-    /** secondlife:///app/map/yourgrid.org:8002:Region/x/y/z (not implemented) */
+    /**
+     * secondlife:///app/worldmap/yourgrid.org:8002:Region%20Name/x/y/z, the map of the viewer at the place, as llMapDestination()
+     * opens it. Firestorm takes `app/worldmap/<region>/<x>/<y>/<z>` (LLWorldMapHandler of llfloaterworldmap.cpp) and asks the
+     * simulator for the region by its name as it is, as the search box of the map does (the grid of the link is not read); the
+     * simulator links a name with a grid before a colon as a region of that grid (MapSearchModule of OpenSimulator, the names with
+     * `:`), so the region of another grid is named `host:port:Region Name`, the one of the grid itself by its name alone, a grid
+     * alone by `host:port` (its default region). The colon form exists here, in APPTP and in LSL, never in a hop:// link. Not
+     * tried yet; it does nothing before the login (the handler waits for the session, FIRE-17927).
+     */
     public const MAP = 64;
     /** all formats */
     public const ALL = 255;
@@ -59,8 +67,7 @@ final class Destination
      * secondlife://yourgrid.org:8002/secondlife/Region%20Name/x/y/z, the grid and then its region: a location of a grid, read by
      * the viewer as `secondlife://<Grid>/secondlife/<region>/<x>/<y>/<z>` (the parser of the links of Firestorm, fsslurl.cpp),
      * for the grid it is on and for another one alike. Tried (2026-11): it works in a viewer, for the grid itself and for another
-     * grid. Not tried yet on the login screen of a viewer: Firestorm sets the location of the login with any location it is
-     * given there (dispatchRegion()), so it may; else AUTO keeps LOCAL there for the grid itself (AUTO_LINKS, `splash`). A region
+     * grid, and on the login screen of a viewer, where it sets the landing of the login (dispatchRegion() of Firestorm). A region
      * without its grid is of the grid the viewer is on (`secondlife:///secondlife/Region`).
      */
     public const GRID = 2048;
@@ -85,13 +92,12 @@ final class Destination
     public const SPACE = '%20';
 
     /**
-     * The link AUTO gives, by where it is shown (a viewer, its login screen, a web browser) and whether the destination is of the
-     * grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as text. On the login screen,
-     * LOCAL was the only form tried that sets the landing of the login: `splash` gives LOCAL for the grid itself if GRID does not.
+     * The link AUTO gives, by where it is shown (a viewer, any page of it and its login screen alike, or a web browser) and whether
+     * the destination is of the grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as
+     * text.
      */
     public const AUTO_LINKS = [
         'viewer' => ['local' => self::GRID, 'other' => self::GRID],
-        'splash' => ['local' => self::GRID, 'other' => self::GRID],
         'web' => ['local' => self::HOP, 'other' => self::HOP],
     ];
 
@@ -306,7 +312,7 @@ final class Destination
     /**
      * The link of a destination for where it is shown (AUTO).
      *
-     * @param array{agent?:?string,client?:string,splash?:bool,login?:?string} $context
+     * @param array{agent?:?string,client?:string,login?:?string} $context
      */
     private static function auto(string $destination, int $array, string $sep, array $context): string|array
     {
@@ -316,12 +322,7 @@ final class Destination
         $client = in_array($context['client'] ?? null, self::CLIENTS, true)
             ? $context['client']
             : self::client(array_key_exists('agent', $context) ? (string) $context['agent'] : null);
-        $where = match (true) {
-            $client !== 'viewer' => 'web',
-            (bool) ($context['splash'] ?? false) => 'splash',
-            default => 'viewer',
-        };
-        $format = self::AUTO_LINKS[$where][$local ? 'local' : 'other'];
+        $format = self::AUTO_LINKS[$client === 'viewer' ? 'viewer' : 'web'][$local ? 'local' : 'other'];
         if ($format === 0) {
             return $array ? [] : '';
         }
@@ -409,9 +410,9 @@ final class Destination
      * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.
      *
      * @param  string  $sep      Separator for multiple formats, default new line
-     * @param  array{agent?:?string,client?:string,splash?:bool,login?:?string} $context where AUTO is shown: the user agent of the request
+     * @param  array{agent?:?string,client?:string,login?:?string} $context where AUTO is shown: the user agent of the request
      *         (`agent`, the one of the request served when none is given) or the class of the client (`client`, CLIENTS: it wins
-     *         over the agent), on the login screen of a viewer (`splash`), the login
+     *         over the agent), the login
      *         address of the grid itself (`login`)
      * @return string
      */
@@ -505,14 +506,11 @@ final class Destination
                     : "secondlife:///app/teleport/$host:$port:$tp_region/") .
                 (!empty($pos_sl) ? "$pos_sl/" : '');
         }
-        // TODO: Alternative web url when maps implemented in API
-        // (No direct map slurl support in the viewer)
-        // Example map URLs (TBD in API)
-        //  - API_HOST/api/v3/map/$host:$port/$region/128/64/32/
-        //  - API_HOST/maps/$host:$port/$region/128/64/32/
-        //  - WEB_HOST/maps/$host:$port/$region/128/64/32/
-        // if ($format & self::MAP) {
-        // }
+        if ($format & self::MAP) {
+            // The map of the viewer: secondlife:///app/worldmap/speculoos.world:8002:Grand%20Place/128/128/21
+            $named = implode(':', array_filter([empty($host) ? '' : "$host:$port", str_replace('%20', self::SPACE, $region_percentencode)]));
+            $links[self::MAP] = $named === '' ? '' : "secondlife:///app/worldmap/$named" . (empty($pos) || empty($region) ? '' : "/$pos");
+        }
 
         // clean up trailing/leading non-alphanumeric characters
         $links = preg_replace('#^[^[:alnum:]]*|[^[:alnum:]]+$#', '', $links);
