@@ -126,7 +126,8 @@ final class Destination
             ),
         );
 
-        if (!preg_match("#^$e_scheme#", $url) && preg_match("#$e_host|$e_short_host{$e_port}#", $url)) {
+        // A host is the start of an address, before its port or its region: a point in decimals (21.75) is not one
+        if (!preg_match("#^$e_scheme#", $url) && preg_match("#^\\s*(?:$e_host|$e_short_host{$e_port})(?=[:/ +_|]|$)#", $url)) {
             $parsed = parse_url('http://' . $normalized_url) ?: [];
             unset($parsed['scheme']);
         } else {

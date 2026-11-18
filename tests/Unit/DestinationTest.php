@@ -88,6 +88,27 @@ describe('Destinations', function () {
             ->toBe(600.0);
     });
 
+    test('keep their region with a point in decimals, with a host or without', function (string $url, string $host, string $region, string $pos) {
+        $parsed = Destination::parse($url);
+
+        expect([$parsed['host'], $parsed['region'], $parsed['pos']])->toBe([$host, $region, $pos]);
+    })->with([
+        'z in decimals, no host' => ['Welcome/116/136/21.75', '', 'Welcome', '116/136/21.75'],
+        'x in decimals, no host' => ['Welcome/116.5/136/21', '', 'Welcome', '116.5/136/21'],
+        'y in decimals, no host' => ['Welcome/116/136.25/21', '', 'Welcome', '116/136.25/21'],
+        'a name with a space, no host' => ['Welcome Plaza/1.5/2.5/3.5', '', 'Welcome Plaza', '1.5/2.5/3.5'],
+        'with a host' => ['grid.example:8002/Welcome/116.5/136.25/21.75', 'grid.example', 'Welcome', '116.5/136.25/21.75'],
+        'with a host and colons' => ['grid.example:8002:Welcome/116.5/136/21.75', 'grid.example', 'Welcome', '116.5/136/21.75'],
+        'with a host without its port' => ['grid.example:Welcome/1.5/2/3', 'grid.example', 'Welcome', '1.5/2/3'],
+    ]);
+
+    test('in decimals make the local link of their region', function () {
+        expect(Destination::format('Welcome/116/136/21.75', Destination::LOCAL))
+            ->toBe('secondlife://Welcome/116/136/21.75')
+            ->and(Destination::format('Welcome/116.5/136/21', Destination::AUTO, context: ['agent' => 'SecondLife/7.1 (Firestorm)']))
+            ->toBe('secondlife://Welcome/116.5/136/21');
+    });
+
     test('get the default gatekeeper when they have none', function () {
         expect(Destination::parse('Plaza/1/2/3', 'http://login.example:8002')['gatekeeper'])->toBe(
             'http://login.example:8002',
