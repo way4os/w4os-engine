@@ -7,20 +7,29 @@ namespace OpenSim\Hypergrid;
  */
 final class Destination
 {
-    /** secondlife://Region Name/x/y/z */
+    /**
+     * secondlife://Region%20Name/x/y/z, a region of the grid the viewer is on: in a viewer, its login screen too (where it sets
+     * the landing of the login), it shows the place before going (its picture, its description, teleport or show on the map).
+     */
     public const LOCAL = 1;
     /**
-     * secondlife://yourgrid.org:8002:Region%20Name/x/y/z (original HG format, obsolete?). 2.x wrote a raw space after the port,
-     * which a browser sends as %20; the colon follows the hop:// form a viewer took in its own browser. Not tried in a viewer yet.
+     * secondlife://yourgrid.org:8002:Region%20Name/x/y/z (original HG format). Failed in every place the viewers were tried
+     * (2026-11): kept for the callers of 2.x (TPLINK_HG) and the helpers until they ask AUTO.
      */
     public const HG = 2;
-    /** the overcomplicated stuff! */
+    /**
+     * secondlife://http|!!yourgrid.org|8002%20Region/x/y/z (v3 HG format, Singularity). Failed in every place the viewers were tried
+     * (2026-11): kept for the callers of 2.x (TPLINK_V3HG).
+     */
     public const V3HG = 4;
-    /** hop:// in the form HOP_FORM says (HOP_SLASH or HOP_COLON), until the viewers are tried in each place a link is shown */
+    /** hop:// in the form HOP_FORM says: the one out of a viewer (a web browser, the URL handler of a system) */
     public const HOP = 8;
     /** yourgrid.org:8002:Region/x/y/z */
     public const TXT = 16;
-    /** secondlife:///app/teleport/yourgrid.org:8002:Region/x/y/z */
+    /**
+     * secondlife:///app/teleport/yourgrid.org:8002:Region%20Name/x/y/z, the region after a colon: the teleport of the viewer to
+     * another grid, from its own browser and its login screen too (there it asks, then does nothing: no harm).
+     */
     public const APPTP = 32;
     /** secondlife:///app/map/yourgrid.org:8002:Region/x/y/z (not implemented) */
     public const MAP = 64;
@@ -32,36 +41,36 @@ final class Destination
      * hop://yourgrid.org:8002/Region%20Name/x/y/z, the region after a slash: the form the viewer writes itself (Firestorm, in the
      * chat after a teleport: LLSLURL::getSLURLString() of fsslurl.cpp escapes the region after the grid, and its tests read it
      * back), the one of the OpenSimulator wiki (`[hop://]<hg-host>:<hg-port>[/<region-name>][/x/y]`, Hypergrid), and the only one
-     * the URL handler of a system passes on (host:port/something).
+     * the URL handler of a system passes on (host:port/something). The one HOP gives, tried in the browsers.
      */
     public const HOP_SLASH = 1024;
     /**
      * hop://yourgrid.org:8002:Region%20Name/x/y/z, the region after a colon: the form llMapDestination() needs (a region after a
-     * slash is read as its x), the one of the teleport boards, an SL form for the scripts; the browser of a viewer takes it too.
+     * slash is read as its x), the one of the teleport boards, an SL form for the scripts only.
      */
     public const HOP_COLON = 2048;
     /** The form of HOP. */
-    public const HOP_FORM = self::HOP_COLON;
+    public const HOP_FORM = self::HOP_SLASH;
     /**
-     * The link for where it is shown (the `context` of format()): in a viewer, LOCAL for a region of the grid itself (it works
-     * everywhere in a viewer, its login screen too), HOP for another grid, none on the login screen (a viewer cannot land on
-     * another grid from there: the destination is shown as text); HOP in a web browser.
+     * The link for where it is shown (the `context` of format(), AUTO_LINKS): in a viewer (its user agent, any page, its login
+     * screen too), LOCAL for a region of the grid itself and APPTP for another grid; HOP out of a viewer.
      */
     public const AUTO = 512;
 
     /**
-     * How a space of the name of a region is written in a hop:// link and a hypergrid secondlife:// link (a raw space, `+`, `_` or
-     * `%20`: the one the viewers take everywhere, their login screen too).
+     * How a space of the name of a region is written in a hop:// link and a secondlife:///app/teleport link: %20, the one the
+     * viewers take everywhere (a `+` is not read as a space there).
      */
     public const SPACE = '%20';
 
     /**
      * The link AUTO gives, by where it is shown (a viewer, its login screen, a web browser) and whether the destination is of the
-     * grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as text.
+     * grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as text. Only the local link
+     * sets the landing of a login on the login screen; the teleport there asks, then does nothing.
      */
     public const AUTO_LINKS = [
-        'viewer' => ['local' => self::LOCAL, 'other' => self::HOP],
-        'splash' => ['local' => self::LOCAL, 'other' => 0],
+        'viewer' => ['local' => self::LOCAL, 'other' => self::APPTP],
+        'splash' => ['local' => self::LOCAL, 'other' => self::APPTP],
         'web' => ['local' => self::HOP, 'other' => self::HOP],
     ];
 
@@ -411,12 +420,12 @@ final class Destination
             $format & $form && ($links[$form] = $hop($form));
         }
         if ($format & self::APPTP) {
-            // In-world messages, do not use for web links
-            // secondlife:///app/teleport/speculoos:8002+Grand+Place/" .
+            // In a viewer: secondlife:///app/teleport/speculoos.world:8002:Grand%20Place/128/128/21
+            $tp_region = str_replace('%20', self::SPACE, $region_percentencode);
             $links[self::APPTP] =
                 (empty($host)
-                    ? "secondlife:///app/teleport/$region_urlencode/"
-                    : "secondlife:///app/teleport/$host:$port+$region_urlencode/") .
+                    ? "secondlife:///app/teleport/$tp_region/"
+                    : "secondlife:///app/teleport/$host:$port:$tp_region/") .
                 (!empty($pos_sl) ? "$pos_sl/" : '');
         }
         // TODO: Alternative web url when maps implemented in API

@@ -613,7 +613,7 @@ describe('picks and the classifieds of an avatar', function () {
                 'parcel' => 'Rose Garden',
                 'region' => 'Welcome',
                 'position' => [266, 20, 30],
-                'teleport' => 'hop://play.example.org:8002:Welcome/266/20/30',
+                'teleport' => 'hop://play.example.org:8002/Welcome/266/20/30',
             ])
             ->and($shown($picks['k3']))
             ->toBe([
@@ -621,7 +621,7 @@ describe('picks and the classifieds of an avatar', function () {
                 'parcel' => null,
                 'region' => 'Harbour',
                 'position' => [244, 20, 30],
-                'teleport' => 'hop://other.example.org:8002:Harbour/244/20/30',
+                'teleport' => 'hop://other.example.org:8002/Harbour/244/20/30',
             ])
             ->and($picks['k1']['posglobal'])
             ->toBe('<256010,256020,30>')
@@ -631,7 +631,7 @@ describe('picks and the classifieds of an avatar', function () {
                 'parcel' => 'The Garden',
                 'region' => 'Welcome',
                 'position' => [356, 200, 22],
-                'teleport' => 'hop://play.example.org:8002:Welcome/356/200/22',
+                'teleport' => 'hop://play.example.org:8002/Welcome/356/200/22',
             ]);
     });
 

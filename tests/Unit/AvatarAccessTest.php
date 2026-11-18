@@ -884,7 +884,7 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
                 'region' => 'Welcome',
                 'parcel' => null,
                 'position' => [10, 20, 30],
-                'teleport' => 'hop://play.example.org:8002:Welcome/10/20/30',
+                'teleport' => 'hop://play.example.org:8002/Welcome/10/20/30',
                 'gatekeeper' => null,
                 'picture' => null,
             ])
@@ -899,7 +899,7 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
                 'region' => 'Welcome',
                 'parcel' => 'The Garden',
                 'position' => null,
-                'teleport' => 'hop://play.example.org:8002:Welcome',
+                'teleport' => 'hop://play.example.org:8002/Welcome',
                 'picture' => null,
                 'created' => 1700000000,
                 'expires' => 1900000000,
