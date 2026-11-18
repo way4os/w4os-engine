@@ -16,8 +16,9 @@ use OpenSim\Text\Uuid;
 
 /**
  * The pictures of the hypergrid destinations of a guide that the search has none of, asked to their own grid: its gatekeeper gives
- * the simulator of the region (link_region, get_region), the snapshot of the simulator its parcels (DataSnapshot, the parcels shown
- * in search), the parcel of the destination its picture (by the name of the destination, else its landing point, else the only
+ * the simulator of the region (link_region, get_region), the land service of the simulator the parcel at the landing point and its
+ * picture (`land_data`, what a viewer asks for the place of a landmark of another grid), else the snapshot of the simulator its
+ * parcels (DataSnapshot, the parcels shown in search: by the name of the destination, else its landing point, else the only
  * parcel of the region), and the asset service of the grid the picture itself, kept where the pages of the grid find it
  * (WebAssets). A task of the scheduler asks (refresh()), a guide only reads what was kept (lookup()): a viewer never waits for
  * another grid. A picture is asked again after a day (CHECK), what was not found after a few hours (RETRY), and both are kept a
@@ -122,12 +123,17 @@ final class RemotePictures
      */
     private function ask(array $at, string $name): ?string
     {
-        $server = Gatekeeper::region((string) $at['region_uri'], 'server_uri');
-        if (!is_string($server) || $server === '') {
+        $region = Gatekeeper::region((string) $at['region_uri']);
+        $server = is_array($region) ? (string) ($region['server_uri'] ?? '') : '';
+        if ($server === '') {
             return null;
         }
-        $parcels = $this->parcels($server, (string) $at['region']);
-        $picture = strtolower((string) (DestinationPictures::choose($parcels, $name, (string) ($at['pos'] ?? ''))['picture'] ?? ''));
+        // The land of the simulator at the point, as a viewer asks it the place of a landmark; else its snapshot
+        $picture = $this->landPicture($server, $region, (string) ($at['pos'] ?? ''));
+        if ($picture === null) {
+            $parcels = $this->parcels($server, (string) $at['region']);
+            $picture = strtolower((string) (DestinationPictures::choose($parcels, $name, (string) ($at['pos'] ?? ''))['picture'] ?? ''));
+        }
         if (!Uuid::isValid($picture) || in_array($picture, Uuid::NULL_KEYS, true)) {
             return null;
         }
@@ -143,6 +149,28 @@ final class RemotePictures
         }
 
         return $this->images->put($picture, $data, ['type' => $asset->typeNumber(), 'name' => $asset->name()]) ? $picture : null;
+    }
+
+    /**
+     * The picture of the parcel at a point of a region, from the land service of its simulator (`land_data` of OpenSimulator, which
+     * the simulators of the grids answer for the place of a landmark of another grid): the region by its handle on its own grid
+     * (its corner in meters, `x << 32 | y`, as get_region gives it), the point the one of the destination, else the middle. Null
+     * when the simulator does not answer or the parcel has no picture.
+     *
+     * @param array<string,mixed> $region Gatekeeper::region()
+     */
+    private function landPicture(string $server, array $region, string $pos): ?string
+    {
+        if (!is_numeric($region['x'] ?? null) || !is_numeric($region['y'] ?? null)) {
+            return null;
+        }
+        $handle = ((int) $region['x'] << 32) | (int) $region['y'];
+        $point = array_map(static fn($v): string => (string) (int) round((float) $v), array_slice(explode('/', $pos), 0, 2));
+        [$x, $y] = count($point) === 2 ? $point : ['128', '128'];
+        $land = Gatekeeper::request($server, 'land_data', ['region_handle' => (string) $handle, 'x' => $x, 'y' => $y]);
+        $picture = strtolower(trim((string) (is_array($land) ? $land['SnapshotID'] ?? '' : '')));
+
+        return Uuid::isValid($picture) && !in_array($picture, Uuid::NULL_KEYS, true) ? $picture : null;
     }
 
     /**

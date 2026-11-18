@@ -70,7 +70,14 @@ function remote_grid(): object
 
         return match ($method[1]) {
             'link_region' => remote_rpc(['uuid' => REMOTE_REGION, 'result' => 'True']),
-            'get_region' => remote_rpc(['uuid' => REMOTE_REGION, 'region_name' => 'Far', 'server_uri' => 'http://sim.far.example.net:9000/', 'result' => 'True']),
+            'get_region' => remote_rpc(['uuid' => REMOTE_REGION, 'region_name' => 'Far', 'server_uri' => 'http://sim.far.example.net:9000/', 'x' => '256000', 'y' => '256000', 'result' => 'True']),
+            // The land of the simulator: the parcel at a point of the region, by its handle (x << 32 | y)
+            'land_data' => remote_rpc(
+                str_contains($body, (string) ((256000 << 32) | 256000)) && str_contains($body, '<string>10</string>') && str_contains($body, '<string>20</string>')
+                    ? ['Name' => 'Beach', 'SnapshotID' => REMOTE_BEACH, 'UserLocation' => '<10, 20, 30>']
+                    : ['Name' => 'Hill', 'SnapshotID' => '00000000-0000-0000-0000-000000000000'],
+            ),
+            default => null,
         };
     });
     $http = static function (string $url) use ($world): ?string {
@@ -90,7 +97,7 @@ function remote_grid(): object
 afterEach(fn() => Gatekeeper::using(null));
 
 describe('The pictures of the hypergrid destinations', function () {
-    test('are asked to their grid: its gatekeeper, the snapshot of the simulator of the region, the parcel at the landing point, its picture', function () {
+    test('are asked to their grid: its gatekeeper, the land of the simulator of the region at the landing point, its picture', function () {
         $world = remote_grid();
         $guide = (new DestinationPictures(null))->of(['Visit' => [['name' => 'Far beach', 'url' => 'far.example.net:8002/Far/10/20/30']]]);
 
@@ -102,7 +109,7 @@ describe('The pictures of the hypergrid destinations', function () {
             ->toBe([
                 'http://far.example.net:8002 link_region',
                 'http://far.example.net:8002 get_region',
-                'http://sim.far.example.net:9000/?method=collector',
+                'http://sim.far.example.net:9000/ land_data',
                 'http://far.example.net:8002/assets/' . REMOTE_BEACH,
             ])
             // The picture is kept for the pages of the grid (WebAssets), with what the asset service said of it
@@ -124,7 +131,7 @@ describe('The pictures of the hypergrid destinations', function () {
             ->toBe(REMOTE_BEACH)
             ->and($world->asked)
             ->toBe([]);
-    })->depends('are asked to their grid: its gatekeeper, the snapshot of the simulator of the region, the parcel at the landing point, its picture');
+    })->depends('are asked to their grid: its gatekeeper, the land of the simulator of the region at the landing point, its picture');
 
     test('are asked again after a day, a failure after a few hours; a grid that stops answering keeps its picture', function () {
         $world = remote_grid();
@@ -148,13 +155,26 @@ describe('The pictures of the hypergrid destinations', function () {
 
         expect($soon)
             ->toBe([])
-            // The failure only: its gatekeeper, its simulator, its asset service, asked again
+            // The failure only: its gatekeeper, the land of its simulator, its snapshot, its asset service, asked again
             ->and($retried)
-            ->toBe(4)
+            ->toBe(5)
             ->and(RemotePictures::lookup($world->cache, 'far.example.net:8002/Far/10/20/30', 'Far beach'))
             ->toBe(REMOTE_BEACH)
             ->and(RemotePictures::lookup($world->cache, 'far.example.net:8002/Far', 'Hill'))
             ->toBeNull();
+    });
+
+    test('take the snapshot of the simulator when its land has no picture at the point', function () {
+        $world = remote_grid();
+        $guide = (new DestinationPictures(null))->of(['Visit' => [['name' => 'Hill', 'url' => 'far.example.net:8002/Far/128/128/25']]]);
+
+        $world->pictures->refresh($guide);
+
+        expect(array_slice($world->asked, 2, 3))->toBe([
+            'http://sim.far.example.net:9000/ land_data',
+            'http://sim.far.example.net:9000/?method=collector',
+            'http://far.example.net:8002/assets/' . REMOTE_HILL,
+        ]);
     });
 
     test('ask the grids their info too, once a day, so that their cards can say the names they give themselves', function () {
