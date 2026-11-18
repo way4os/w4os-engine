@@ -649,6 +649,30 @@ final class Grid extends InstalledModel
         return $this->hostPort() !== null ? Destination::loginUrl((string) $this->hostPort()) : null;
     }
 
+    /** The label of a destination, as a card shows it under its name (Destination::LABEL): its own places by their region and point. */
+    public function label(string $destination): string
+    {
+        return Destination::label($destination, $this->loginUrl());
+    }
+
+    /**
+     * The popular places of the search of the grid, for their cards: the most visited first, of every grid the search serves, with
+     * their address (`url`), their picture (an asset UUID, null without one), their visits (`dwell`) and their label (label()).
+     *
+     * @return list<array{name:string,url:string,picture:?string,dwell:int,label:string}> empty without a search
+     */
+    public function popularPlaces(int $count = \OpenSim\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null): array
+    {
+        $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
+        $search = $config === null ? null : Connections::pdo($config, Database::Search);
+        if ($search === null || !$search->connected) {
+            return [];
+        }
+        $places = (new \OpenSim\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri()))->popular($count);
+
+        return array_map(fn(array $place): array => $place + ['label' => $this->label($place['url'])], $places);
+    }
+
     /**
      * The link to a destination for where it is shown (Destination::AUTO): in a viewer, the local link for a place of this grid
      * and the teleport of the viewer for another grid; hop:// out of a viewer.
@@ -930,8 +954,15 @@ final class Grid extends InstalledModel
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
 
         $cache = \OpenSim\Data\Cache::for($this->environment, $config);
+        $guide = (new \OpenSim\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
+        // The label of each destination, as its card shows it under its name
+        foreach ($guide as &$section) {
+            foreach ($section['destinations'] as &$destination) {
+                $destination['label'] = $this->label($destination['url']);
+            }
+        }
 
-        return (new \OpenSim\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
+        return $guide;
     }
 
     /**

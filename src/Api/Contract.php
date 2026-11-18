@@ -532,6 +532,7 @@ final class Contract
                     'string',
                     'The region address it leads to, as the source gives it (grid and region, with the place when there is one)',
                 ],
+                'label' => ['string', 'What its card shows under its name, as text: its region and its point on the grid itself (`Region Name/x/y/z`), its grid and its region elsewhere (`host:port/Region Name`, or `host:port` for a grid alone)'],
                 'picture' => ['string?', 'The picture of its parcel (an asset UUID), as the search knows it: by the name of the destination, else its landing point, else the only parcel of its region; null when none is known'],
                 'sectionPicture' => ['string?', 'The picture of its section (`category`): the first of its destinations that has one; null when none has (the site shows its placeholder)'],
             ],

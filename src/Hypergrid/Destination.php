@@ -65,6 +65,13 @@ final class Destination
      */
     public const GRID = 2048;
     /**
+     * The label of a destination, as a card shows it under its name: text, not a link, its spaces as they are. On the grid itself
+     * its region and its point (`Region Name/x/y/z`, the height a little above the sea when it is zero); on another grid its grid
+     * and its region, without its point (`host:port/Region Name`), or its grid alone (`host:port`). The grid itself is the one
+     * of the `login` of the context (label()).
+     */
+    public const LABEL = 4096;
+    /**
      * The link for where it is shown (the `context` of format(), AUTO_LINKS), so that no site tells it again: in a viewer (told by
      * the user agent of the request, isViewer(); any page, its login screen too), GRID for every destination, of the grid itself
      * or of another one; HOP out of a viewer. Grid::link() gives it with the login of the grid.
@@ -261,6 +268,35 @@ final class Destination
         return self::isViewer($agent ?? (string) ($_SERVER['HTTP_USER_AGENT'] ?? '')) ? 'viewer' : 'browser';
     }
 
+    /**
+     * The label of a destination, as a card shows it (LABEL).
+     *
+     * @param ?string $login the login address of the grid itself: its places are labelled by their region and their point
+     */
+    public static function label(string $destination, ?string $login = null): string
+    {
+        $login = trim((string) $login);
+        $parsed = self::parse($destination, $login !== '' ? $login : null);
+        if (self::isLocal($parsed, $login)) {
+            return trim($parsed['region'] . ($parsed['pos'] === '' ? '' : '/' . $parsed['pos']), '/');
+        }
+
+        return "$parsed[host]:$parsed[port]" . ($parsed['region'] === '' ? '' : '/' . $parsed['region']);
+    }
+
+    /**
+     * Whether a destination is of the grid itself: no grid of its own, or the one of the login.
+     *
+     * @param array<string,mixed> $parsed parse()
+     */
+    private static function isLocal(array $parsed, string $login): bool
+    {
+        $own = self::loginParts($login);
+
+        return ($parsed['host'] ?? '') === '' ||
+            ($own !== null && strtolower((string) $own['host']) === $parsed['host'] && (int) ($own['port'] ?? 80) === (int) $parsed['port']);
+    }
+
     /** Whether a user agent is the one of a viewer (its own browser, its login screen). */
     public static function isViewer(string $userAgent): bool
     {
@@ -276,10 +312,7 @@ final class Destination
     {
         $login = trim((string) ($context['login'] ?? ''));
         $parsed = self::parse($destination, $login !== '' ? $login : null);
-        $own = self::loginParts($login);
-        $local =
-            ($parsed['host'] ?? '') === '' ||
-            ($own !== null && strtolower((string) $own['host']) === $parsed['host'] && (int) ($own['port'] ?? 80) === (int) $parsed['port']);
+        $local = self::isLocal($parsed, $login);
         $client = in_array($context['client'] ?? null, self::CLIENTS, true)
             ? $context['client']
             : self::client(array_key_exists('agent', $context) ? (string) $context['agent'] : null);
@@ -389,6 +422,11 @@ final class Destination
         }
         if ($format !== null && $format & self::AUTO) {
             return self::auto((string) $destination, $format & self::AS_ARRAY, $sep, $context);
+        }
+        if ($format !== null && $format & self::LABEL) {
+            $label = self::label((string) $destination, $context['login'] ?? null);
+
+            return $format & self::AS_ARRAY ? [self::LABEL => $label] : $label;
         }
         // TODO: allow Region, Destination or Event classes
         // if (is_object($destination) && !empty($destination->uri)) {

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (destinations): the label of a destination, as a card shows it under its name (`Destination::LABEL`, `Destination::label()`, `Grid::label()`): text, its spaces as they are, `Region Name/x/y/z` on the grid itself, `host:port/Region Name` (or `host:port`) on another grid; `label` of the destinations of the guide; the popular places for their cards (`Grid::popularPlaces()`, `DefaultDestinations::popular()`: the most visited first, of every grid of the search, with their picture, their visits and their label)
 - fix (locale): the numbers the engine writes keep their dot whatever the locale: the language a request asks for is the one of its texts only (`LC_NUMERIC` stays `C`), the CPU and the memory of the status of a grid written without the locale (`%.1F`)
 - change (destinations): in a viewer, `AUTO` gives every destination, of the grid itself or of another one, as a location with its grid (`Destination::GRID`, `secondlife://host:port/secondlife/Region%20Name/x/y/z`, as the viewer reads it), no more the local link or the teleport of the viewer; hop:// out of a viewer; `LOCAL` and `APPTP` still given, each format says where it was tried
 - feature (destinations): the class of a client, `viewer` or `browser` (`Destination::client()`, by its user agent or the one of the request served), taken by `AUTO` (`client` of its context, which wins over `agent`) and `Grid::link()`, so that a site keeps a block for each class rather than for each user agent

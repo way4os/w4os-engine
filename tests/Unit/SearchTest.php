@@ -824,6 +824,34 @@ describe('The guide of a grid that has no list', function () {
         },
     );
 
+    test('gives the popular places for their cards: the most visited first, of every grid of the search, with their picture', function () {
+        $db = guide_database();
+        $db->exec("UPDATE parcels SET imageUUID = 'aaaaaaaa-0000-4000-8000-000000000001' WHERE parcelUUID = 'p1'");
+
+        $popular = (new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'))->popular(2);
+
+        expect($popular)->toBe([
+            ['name' => 'Elsewhere', 'url' => 'other.example.org:8002/Far', 'picture' => null, 'dwell' => 50],
+            ['name' => 'Rose garden', 'url' => 'grid.example.org:8002/Welcome/128/128/25', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000001', 'dwell' => 30],
+        ]);
+    });
+
+    test('of a grid: the popular places with the label of their address, as a card shows it', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $db = guide_database();
+        OpenSim\Data\Connections::using(static fn() => $db);
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+
+        $popular = $grid->popularPlaces(3);
+        OpenSim\Data\Connections::using(null);
+
+        expect(array_column($popular, 'label', 'name'))->toBe([
+            'Elsewhere' => 'other.example.org:8002/Far',
+            'Rose garden' => 'grid.example.org:8002/Welcome',
+            'Market' => 'grid.example.org:8002/Welcome',
+        ]);
+    });
+
     test('keep ten of each section', function () {
         $db = search_database();
         $db->exec("INSERT INTO regionsregister VALUES ('Welcome', 'r1', '1', 'http://sim:9000/', 'Ada', 'o', '')");

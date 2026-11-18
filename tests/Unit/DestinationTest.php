@@ -291,6 +291,32 @@ describe('A destination of a guide', function () {
 const TP_VIEWER = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 SecondLife/7.1.9 (Firestorm)';
 const TP_BROWSER = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36';
 
+describe('The label of a destination, as a card shows it under its name', function () {
+    test('is its region and its point on the grid itself, its grid and its region elsewhere, as text', function (string $destination, string $label) {
+        expect(Destination::format($destination, Destination::LABEL, context: ['login' => 'http://ursull.magiiic.dev:8012']))
+            ->toBe($label)
+            ->and(Destination::label($destination, 'http://ursull.magiiic.dev:8012'))
+            ->toBe($label);
+    })->with([
+        'of the grid itself' => ['ursull.magiiic.dev:8012/Welcome/128/128/25', 'Welcome/128/128/25'],
+        'of the grid itself, a height of zero' => ['hop://ursull.magiiic.dev:8012/Test%20North/116.5/136/0', 'Test North/116.5/136/21'],
+        'a region alone' => ['Welcome', 'Welcome'],
+        'another grid: no point' => ['hop://speculoos.world:8002/Grand%20Place/128/128/25', 'speculoos.world:8002/Grand Place'],
+        'another grid, its port 80' => ['hop://hg.osgrid.org:80/Lbsa%20Plaza', 'hg.osgrid.org:80/Lbsa Plaza'],
+        'another grid without a region' => ['hop://hg.osgrid.org:80', 'hg.osgrid.org:80'],
+    ]);
+
+    test('of the guide of a grid: its own places by their region and their point', function () {
+        $grid = OpenSim\Models\Grid::find((new OpenSim\Testing\Machine())->environment, 'demo');
+        $login = (string) $grid->loginUrl();
+
+        expect($grid->label(Destination::uri('Welcome/10/20/30', $login)))
+            ->toBe('Welcome/10/20/30')
+            ->and($grid->label('hg.example.org:8002/Far/1/2/3'))
+            ->toBe('hg.example.org:8002/Far');
+    });
+});
+
 describe('A link made for where it is shown (AUTO)', function () {
     $login = 'http://ursull.magiiic.dev:8012';
     $here = 'ursull.magiiic.dev:8012/Welcome/128/128/25';

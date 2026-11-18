@@ -69,17 +69,48 @@ final class DefaultDestinations
     }
 
     /**
+     * The popular places, for their cards: the most visited first (their visits, `dwell`, above zero), with their picture (an
+     * asset UUID, null without one); of every grid the search serves, unless the guide was asked for one grid only.
+     *
+     * @return list<array{name:string,url:string,picture:?string,dwell:int}>
+     */
+    public function popular(int $limit = self::LIMIT): array
+    {
+        if (!$this->search->tables_exist(['popularplaces', 'parcels', $this->regions])) {
+            return [];
+        }
+        $rows = $this->rows(
+            'SELECT pop.name AS name, r.regionname AS region, par.landingpoint AS landing, pop.gatekeeperURL AS gatekeeper, par.imageUUID AS picture, pop.dwell AS dwell FROM popularplaces AS pop ' .
+                "INNER JOIN parcels AS par ON pop.parcelUUID = par.parcelUUID INNER JOIN {$this->regions} AS r ON par.regionUUID = r.regionUUID %s ORDER BY pop.dwell DESC, par.parcelname",
+            'pop.gatekeeperURL',
+            max(1, $limit),
+            'pop.dwell > 0',
+        );
+
+        return array_map(function (array $row): array {
+            $picture = strtolower(trim((string) ($row['picture'] ?? '')));
+
+            return $this->destination($row) + [
+                'picture' => $picture === '' || in_array($picture, \OpenSim\Text\Uuid::NULL_KEYS, true) ? null : $picture,
+                'dwell' => (int) $row['dwell'],
+            ];
+        }, $rows);
+    }
+
+    /**
+     * @param string $condition what the rows must meet besides their grid
      * @return list<array<string,mixed>>
      */
-    private function rows(string $sql, string $column, int $limit): array
+    private function rows(string $sql, string $column, int $limit, string $condition = ''): array
     {
         $values = [];
-        $where = '';
+        $conditions = $condition === '' ? [] : [$condition];
         if ($this->gatekeeper !== null && $this->gatekeeper !== '') {
             // The tables keep the address with or without its last slash
-            $where = "WHERE $column IN (:one, :two)";
+            $conditions[] = "$column IN (:one, :two)";
             $values = ['one' => rtrim($this->gatekeeper, '/'), 'two' => rtrim($this->gatekeeper, '/') . '/'];
         }
+        $where = $conditions === [] ? '' : 'WHERE ' . implode(' AND ', $conditions);
         $found = $this->search->prepareAndExecute(sprintf($sql, $where) . " LIMIT $limit", $values ?: null);
 
         return $found ? $found->fetchAll(\PDO::FETCH_ASSOC) : [];
