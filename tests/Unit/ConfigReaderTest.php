@@ -51,6 +51,11 @@ describe('Parsing a text', function () {
         )->toBe('Data Source=localhost;Database=a;');
     });
 
+    test('reads a quoted value without what follows its quotes, a comment or a stray character, as OpenSimulator does', function () {
+        expect(ConfigReader::parse("[S]\nModule = \"OpenSimSearch\"; //optional\nP = \"OpenSim.Data.MySQL.dll\"n\n")['S'])
+            ->toBe(['Module' => 'OpenSimSearch', 'P' => 'OpenSim.Data.MySQL.dll']);
+    });
+
     test('says nothing of a file that cannot be read', function () {
         expect(ConfigReader::file('/nonexistent.ini'))->toBe([])->and(ConfigReader::load('/nonexistent.ini'))->toBe([]);
     });

@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "d521653",
+        "version": "8a5dbab",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -9357,7 +9357,7 @@
                     "Setup"
                 ],
                 "summary": "Import",
-                "description": "What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already. `kind` `flux`: the posts of the stream of a site of w4os-wp (its `flux_post` posts, published, with their author `_avatar_uuid`) brought into the stream of the `grid`, each once; `file` the wp-config.php of the site, which says its database and the prefix of its tables. The plan says how many posts (`posts`), by avatar (`avatars`), the ones it skips and why (`skipped`), and how many were brought before (`imported`).",
+                "description": "What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already. `kind` `flux`: the posts of the stream of a site of w4os-wp (its `flux_post` posts, published, with their author `_avatar_uuid`) brought into the stream of the `grid`, each once; `file` the wp-config.php of the site, which says its database and the prefix of its tables. The plan says how many posts (`posts`), by avatar (`avatars`), the ones it skips and why (`skipped`), and how many were brought before (`imported`). `kind` `grid-settings`: the settings of a grid of another install (`file`, its OpenSim.ini, with the files it includes, as OpenSimulator reads them: its constants replaced, the last word of each key) brought into the OpenSim.ini of the `grid` of this machine, for the sections of its options (search and data services, economy and Gloebit, offline messages, profiles, groups): what the grid has already is never replaced, a folder of a simulator and the money of DTL/NSL are left out; the plan says the `settings` (a secret masked: a key, a secret, a password, a connection string), the `target` file and the `notes` (what is left out and why); the repair of the options then lays them in the simulators of the grid.",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -9380,12 +9380,14 @@
                                                     "kind": {
                                                         "type": "string",
                                                         "enum": [
-                                                            "simulator"
+                                                            "simulator",
+                                                            "flux",
+                                                            "grid-settings"
                                                         ]
                                                     },
                                                     "file": {
                                                         "type": "string",
-                                                        "description": "The config of the simulator, on this machine"
+                                                        "description": "The config of the simulator, on this machine (grid-settings: the OpenSim.ini of the grid of the other install)"
                                                     },
                                                     "simulators": {
                                                         "type": "array",

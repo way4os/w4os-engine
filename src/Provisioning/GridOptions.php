@@ -360,11 +360,12 @@ final class GridOptions
      */
     public function inUse(): array
     {
-        $general = $this->general();
-        $said = is_file($general) ? array_map(
-            static fn($keys): array => is_array($keys) ? array_change_key_case(array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys)) : [],
-            array_change_key_case(\OpenSim\Config\ConfigReader::load($general, expand: false)),
-        ) : [];
+        $said = [];
+        foreach ($this->gridFiles() as $file) {
+            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($file, expand: false)) as $section => $keys) {
+                is_array($keys) && ($said[$section] = array_merge($said[$section] ?? [], array_change_key_case(array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys))));
+            }
+        }
         if ($said === []) {
             return [];
         }
@@ -372,7 +373,12 @@ final class GridOptions
         $groups = array_filter(array_map(fn(string $name): string => $this->template($name)?->group() ?? '', $enabled));
         $used = [];
         foreach ($this->templates() as $name => $option) {
-            if (in_array($name, $enabled, true) || in_array('OpenSim.ini', $option->files(), true) === false || ($option->group() !== '' && in_array($option->group(), $groups, true)) || $this->unmet($option) !== null) {
+            if (in_array($name, $enabled, true) || in_array('OpenSim.ini', $option->files(), true) === false || ($option->group() !== '' && in_array($option->group(), $groups, true))) {
+                continue;
+            }
+            // An option the grid cannot have here (the search without helpers on this machine) is in use when its files give what the
+            // option would take from the grid (the address of the search)
+            if ($this->unmet($option) !== null && !$this->givenByGrid($option, $said)) {
                 continue;
             }
             // Its own settings, without the values of the grid: the lines that need a variable are left out
@@ -434,7 +440,7 @@ final class GridOptions
                         $applied[] = $name;
                     }
                     foreach ($unknown as $setting) {
-                        $notes[] = "$slug: $name needs $setting, which the grid does not say: give it in the OpenSim.ini of the grid or of the simulator (it is not invented)";
+                        $notes[] = "$slug: $name needs $setting, which the grid does not say (it is not invented): bring the settings of the grid from its other install, opensim import --grid-settings <its OpenSim.ini> {$this->grid->nick()}";
                     }
                 }
             }
@@ -469,7 +475,7 @@ final class GridOptions
             return [];
         }
         $sections = array_unique(array_map(static fn(array $s): string => strtolower($s[0]), $option->settings('OpenSim.ini', $this->variables(), true)));
-        $sources = [$this->general(), ...array_values(array_diff_key($files, array_flip($lacking)))];
+        $sources = [...$this->gridFiles(), ...array_values(array_diff_key($files, array_flip($lacking)))];
         $values = [];
         foreach ($sources as $source) {
             if (!is_file($source)) {
@@ -486,6 +492,40 @@ final class GridOptions
         }
 
         return $values;
+    }
+
+    /**
+     * The files of the grid that say what its simulators share: its OpenSim.ini (the one of its preset when it is joined by one,
+     * and its own), with the files they include.
+     *
+     * @return list<string>
+     */
+    private function gridFiles(): array
+    {
+        $own = rtrim($this->grid->directory(), '/') . '/OpenSim.ini';
+
+        return array_values(array_unique(array_filter([$own, $this->general()], 'is_file')));
+    }
+
+    /**
+     * Whether the files of the grid give the settings an option takes from the grid (the ones whose value is a variable of the grid:
+     * the address of a service), those whose name is a variable left aside.
+     *
+     * @param array<string,array<string,string>> $said the settings of the files of the grid, in lower case
+     */
+    private function givenByGrid(OptionTemplate $option, array $said): bool
+    {
+        $needed = array_filter(
+            $option->settings('OpenSim.ini', [], false),
+            static fn(array $s): bool => str_contains($s[2], '{{') && $s[2] !== '{{off}}',
+        );
+        foreach ($needed as [$section, $key]) {
+            if (!array_key_exists(strtolower($key), $said[strtolower($section)] ?? [])) {
+                return false;
+            }
+        }
+
+        return $needed !== [];
     }
 
     /**
