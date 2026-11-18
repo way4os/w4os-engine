@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (destinations): in a viewer, `AUTO` gives every destination, of the grid itself or of another one, as a location with its grid (`Destination::GRID`, `secondlife://host:port/secondlife/Region%20Name/x/y/z`, as the viewer reads it), no more the local link or the teleport of the viewer; hop:// out of a viewer; `LOCAL` and `APPTP` still given, each format says where it was tried
 - feature (destinations): the class of a client, `viewer` or `browser` (`Destination::client()`, by its user agent or the one of the request served), taken by `AUTO` (`client` of its context, which wins over `agent`) and `Grid::link()`, so that a site keeps a block for each class rather than for each user agent
 - fix (destinations): a region without a host keeps its name when its point is in decimals (`Welcome/116/136/21.75` gave `secondlife:///116/136/21.75`): a host is read only at the start of an address
 - change (destinations): a hop:// link always has its region after a slash, `HOP_SLASH`, `HOP_COLON` and `HOP_FORM` gone; the `host:port:Region` form is `Destination::LSL` (the name a script gives llMapDestination()) and the one inside `APPTP`; `AUTO` tells a viewer by the user agent of the request (`agent` of its context, else the one of the request served), and `Grid::link()` gives it with the login of the grid, so that no site tells it again; `HG` and `V3HG` deprecated (`TPLINK_HG`, `TPLINK_V3HG`), still given

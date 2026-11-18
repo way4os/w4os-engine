@@ -10,6 +10,7 @@ final class Destination
     /**
      * secondlife://Region%20Name/x/y/z, a region of the grid the viewer is on: in a viewer, its login screen too (where it sets
      * the landing of the login), it shows the place before going (its picture, its description, teleport or show on the map).
+     * Tried (2026-11): it works everywhere in a viewer, the only form tried that works on its login screen.
      */
     public const LOCAL = 1;
     /**
@@ -30,14 +31,16 @@ final class Destination
      * hop://yourgrid.org:8002/Region%20Name/x/y/z, the region after a slash, always: the form the viewer writes itself (Firestorm,
      * in the chat after a teleport: LLSLURL::getSLURLString() of fsslurl.cpp escapes the region after the grid, and its tests read
      * it back), the one of the OpenSimulator wiki (`[hop://]<hg-host>:<hg-port>[/<region-name>][/x/y]`, Hypergrid), and the only
-     * one the URL handler of a system passes on (host:port/something). The link out of a viewer.
+     * one the URL handler of a system passes on (host:port/something). The link out of a viewer. Tried (2026-11): it works from a
+     * web browser and the chat of a viewer; the login screen of a viewer takes no hop:// link.
      */
     public const HOP = 8;
     /** yourgrid.org:8002:Region/x/y/z */
     public const TXT = 16;
     /**
      * secondlife:///app/teleport/yourgrid.org:8002:Region%20Name/x/y/z, the region after a colon: the teleport of the viewer to
-     * another grid, from its own browser and its login screen too (there it asks, then does nothing: no harm).
+     * another grid, from its own browser and its login screen too (there it asks, then does nothing: no harm). Tried (2026-11):
+     * it works in the browser of a viewer, for another grid.
      */
     public const APPTP = 32;
     /** secondlife:///app/map/yourgrid.org:8002:Region/x/y/z (not implemented) */
@@ -53,26 +56,35 @@ final class Destination
      */
     public const LSL = 1024;
     /**
+     * secondlife://yourgrid.org:8002/secondlife/Region%20Name/x/y/z, the grid and then its region: a location of a grid, read by
+     * the viewer as `secondlife://<Grid>/secondlife/<region>/<x>/<y>/<z>` (the parser of the links of Firestorm, fsslurl.cpp),
+     * for the grid it is on and for another one alike. Tried (2026-11): it works in a viewer, for the grid itself and for another
+     * grid. Not tried yet on the login screen of a viewer: Firestorm sets the location of the login with any location it is
+     * given there (dispatchRegion()), so it may; else AUTO keeps LOCAL there for the grid itself (AUTO_LINKS, `splash`). A region
+     * without its grid is of the grid the viewer is on (`secondlife:///secondlife/Region`).
+     */
+    public const GRID = 2048;
+    /**
      * The link for where it is shown (the `context` of format(), AUTO_LINKS), so that no site tells it again: in a viewer (told by
-     * the user agent of the request, isViewer(); any page, its login screen too), LOCAL for a region of the grid itself and APPTP
-     * for another grid; HOP out of a viewer. Grid::link() gives it with the login of the grid.
+     * the user agent of the request, isViewer(); any page, its login screen too), GRID for every destination, of the grid itself
+     * or of another one; HOP out of a viewer. Grid::link() gives it with the login of the grid.
      */
     public const AUTO = 512;
 
     /**
-     * How a space of the name of a region is written in a hop:// link and a secondlife:///app/teleport link: %20, the one the
+     * How a space of the name of a region is written in a hop:// link and a secondlife:// link of a grid: %20, the one the
      * viewers take everywhere (a `+` is not read as a space there).
      */
     public const SPACE = '%20';
 
     /**
      * The link AUTO gives, by where it is shown (a viewer, its login screen, a web browser) and whether the destination is of the
-     * grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as text. Only the local link
-     * sets the landing of a login on the login screen; the teleport there asks, then does nothing.
+     * grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as text. On the login screen,
+     * LOCAL was the only form tried that sets the landing of the login: `splash` gives LOCAL for the grid itself if GRID does not.
      */
     public const AUTO_LINKS = [
-        'viewer' => ['local' => self::LOCAL, 'other' => self::APPTP],
-        'splash' => ['local' => self::LOCAL, 'other' => self::APPTP],
+        'viewer' => ['local' => self::GRID, 'other' => self::GRID],
+        'splash' => ['local' => self::GRID, 'other' => self::GRID],
         'web' => ['local' => self::HOP, 'other' => self::HOP],
     ];
 
@@ -435,6 +447,12 @@ final class Destination
             $links[self::HOP] = empty($gatekeeper)
                 ? ''
                 : "hop://$host:$port" . (empty($region) ? '' : '/' . str_replace('%20', self::SPACE, $region_percentencode)) . (empty($pos) ? '' : "/$pos");
+        }
+        if ($format & self::GRID) {
+            // In a viewer: secondlife://speculoos.world:8002/secondlife/Grand%20Place/128/128/21
+            $links[self::GRID] = empty($region)
+                ? ''
+                : 'secondlife://' . (empty($host) ? '' : "$host:$port") . '/secondlife/' . str_replace('%20', self::SPACE, $region_percentencode) . (empty($pos) ? '' : "/$pos");
         }
         if ($format & self::LSL) {
             // The name of a region for llMapDestination(): host:port:Region Name, the point apart

@@ -106,7 +106,7 @@ describe('Destinations', function () {
         expect(Destination::format('Welcome/116/136/21.75', Destination::LOCAL))
             ->toBe('secondlife://Welcome/116/136/21.75')
             ->and(Destination::format('Welcome/116.5/136/21', Destination::AUTO, context: ['agent' => 'SecondLife/7.1 (Firestorm)']))
-            ->toBe('secondlife://Welcome/116.5/136/21');
+            ->toBe('secondlife:///secondlife/Welcome/116.5/136/21');
     });
 
     test('get the default gatekeeper when they have none', function () {
@@ -125,6 +125,7 @@ describe('Teleport links', function () {
         'viewer v3 link' => [TPLINK_V3HG, 'secondlife://http|!!hg.example.org|8002%20My%20Region/128/64/22'],
         'hop' => [TPLINK_HOP, 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22'],
         'for the scripts (llMapDestination)' => [Destination::LSL, 'hg.example.org:8002:My Region/128/64/22'],
+        'a location of a grid, in a viewer' => [Destination::GRID, 'secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/128/64/22'],
         'teleport link' => [TPLINK_APPTP, 'secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
     ]);
 
@@ -145,6 +146,18 @@ describe('Teleport links', function () {
                 TPLINK_TXT => 'hg.example.org:8002 My Region/128/64/22',
                 TPLINK_HOP => 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22',
             ]);
+    });
+
+    test('of a grid in a viewer: the grid then its region, the height a little above the sea when it is zero', function () {
+        expect(Destination::format('grid.example:8002/Plaza/10/20/0', Destination::GRID))
+            ->toBe('secondlife://grid.example:8002/secondlife/Plaza/10/20/21')
+            ->and(Destination::format('grid.example:8002:Grand Place/300/20/30.5', Destination::GRID))
+            ->toBe('secondlife://grid.example:8002/secondlife/Grand' . Destination::SPACE . 'Place/300/20/30.5')
+            // A region alone: of the grid the viewer is on
+            ->and(Destination::format('Plaza/10/20/30', Destination::GRID))
+            ->toBe('secondlife:///secondlife/Plaza/10/20/30')
+            ->and(Destination::format('grid.example:8002', Destination::GRID))
+            ->toBe('');
     });
 
     test('of a grid alone end at its port, with no colon after it', function () {
@@ -283,21 +296,18 @@ describe('A link made for where it is shown (AUTO)', function () {
     $here = 'ursull.magiiic.dev:8012/Welcome/128/128/25';
     $there = 'hg.example.org:8002/My Region/10/20/30';
 
-    test('in a viewer, its login screen too: the local link for the grid itself, which shows the place before going', function () use ($login, $here) {
+    test('in a viewer, its login screen too: the location with its grid, for the grid itself and another one alike', function () use ($login, $here, $there) {
         expect(Destination::format($here, Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
-            ->toBe('secondlife://Welcome/128/128/25')
+            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
             ->and(Destination::format($here, Destination::AUTO, context: ['agent' => TP_VIEWER, 'splash' => true, 'login' => $login]))
-            ->toBe('secondlife://Welcome/128/128/25')
+            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
             // A region named alone is of the grid itself
-            ->and(Destination::format('Welcome/128/128/25', Destination::AUTO, context: ['agent' => TP_VIEWER]))
-            ->toBe('secondlife://Welcome/128/128/25');
-    });
-
-    test('in a viewer, its login screen too: the teleport of the viewer for another grid', function () use ($login, $there) {
-        expect(Destination::format($there, Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
-            ->toBe('secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/10/20/30')
+            ->and(Destination::format('Welcome/128/128/25', Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
+            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
+            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
+            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30')
             ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_VIEWER, 'splash' => true, 'login' => $login]))
-            ->toBe('secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/10/20/30');
+            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
     });
 
     test('out of a viewer: hop, for the grid itself too', function () use ($login, $here, $there) {
@@ -329,7 +339,7 @@ describe('A link made for where it is shown (AUTO)', function () {
             $_SERVER['HTTP_USER_AGENT'] = $before;
         }
 
-        expect([$viewer, $browser])->toBe(['secondlife://Welcome/128/128/25', 'hop://ursull.magiiic.dev:8012/Welcome/128/128/25']);
+        expect([$viewer, $browser])->toBe(['secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25', 'hop://ursull.magiiic.dev:8012/Welcome/128/128/25']);
     });
 
     test('of a grid: its login tells its own places', function () {
@@ -337,14 +347,15 @@ describe('A link made for where it is shown (AUTO)', function () {
         $login = (string) Destination::loginParts((string) $grid->loginUrl())['host'];
 
         expect($grid->link('Welcome/128/128/25', TP_VIEWER))
-            ->toBe('secondlife://Welcome/128/128/25')
+            ->toStartWith("secondlife://$login:")
+            ->toEndWith('/secondlife/Welcome/128/128/25')
             ->and($grid->link('hg.example.org:8002/Far/1/2/3', TP_VIEWER))
-            ->toBe('secondlife:///app/teleport/hg.example.org:8002:Far/1/2/3')
+            ->toBe('secondlife://hg.example.org:8002/secondlife/Far/1/2/3')
             ->and($grid->link('Welcome/128/128/25', TP_BROWSER))
             ->toStartWith("hop://$login:")
             // The class of the client, as a site keeps a block for each
             ->and($grid->link('Welcome/128/128/25', client: 'viewer'))
-            ->toBe('secondlife://Welcome/128/128/25')
+            ->toStartWith("secondlife://$login:")
             ->and($grid->link('Welcome/128/128/25', TP_VIEWER, client: 'browser'))
             ->toStartWith("hop://$login:");
     });
@@ -365,11 +376,11 @@ describe('A link made for where it is shown (AUTO)', function () {
 
     test('take the class of the client, which wins over the user agent', function () use ($login, $here, $there) {
         expect(Destination::format($here, Destination::AUTO, context: ['client' => 'viewer', 'login' => $login]))
-            ->toBe('secondlife://Welcome/128/128/25')
+            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
             ->and(Destination::format($here, Destination::AUTO, context: ['client' => 'browser', 'agent' => TP_VIEWER, 'login' => $login]))
             ->toBe('hop://ursull.magiiic.dev:8012/Welcome/128/128/25')
             ->and(Destination::format($there, Destination::AUTO, context: ['client' => 'viewer', 'agent' => TP_BROWSER, 'login' => $login]))
-            ->toBe('secondlife:///app/teleport/hg.example.org:8002:My' . Destination::SPACE . 'Region/10/20/30');
+            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
     });
 
     test('tell a viewer by its user agent', function () {
