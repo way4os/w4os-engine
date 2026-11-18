@@ -2,7 +2,7 @@
 
 ### Unreleased
 
-- feature (guide): the picture of a hypergrid destination asked first to the land service of its simulator (`land_data`, the parcel at the landing point and its snapshot, as a viewer asks the place of a landmark of another grid), the snapshot of the simulator (DataSnapshot) when it gives none: the simulators of most grids do not publish their snapshot
+- feature (guide): the picture of a hypergrid destination asked to the land service of its simulator (`land_data`, the parcel at the landing point and its snapshot, as a viewer asks the place of a landmark of another grid), the simulator given by the gatekeeper of its grid; the snapshot of the simulator (DataSnapshot) no more asked: it is sent to a search on conditions, maybe not ours, and holds no picture of its own
 - update (destinations): the card of a destination of another grid is titled by its region (`title`, `Destination::title()`), its grid under it (`label`, `host:port`), not the name of its grid again; the name its grid gives itself kept as `gridName`, asked once a day by the task of the guide (`GridInfoCache`), never by a page; on the guide (`Grid::card()`, the destinations of the API) and the popular places
 - feature (destinations): the map of the viewer at a place (`Destination::MAP`, `secondlife:///app/worldmap/host:port:Region%20Name/x/y/z`, the region named as the search of the map takes it: its grid before a colon, the region of the grid itself by its name alone), as llMapDestination() opens it
 - update (destinations): the login screen of a viewer takes the location with its grid as the other pages do (tried): `AUTO` gives it there too, the `splash` of its context gone (`Grid::link()` keeps the argument for its callers)

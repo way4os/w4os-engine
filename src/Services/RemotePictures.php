@@ -17,9 +17,8 @@ use OpenSim\Text\Uuid;
 /**
  * The pictures of the hypergrid destinations of a guide that the search has none of, asked to their own grid: its gatekeeper gives
  * the simulator of the region (link_region, get_region), the land service of the simulator the parcel at the landing point and its
- * picture (`land_data`, what a viewer asks for the place of a landmark of another grid), else the snapshot of the simulator its
- * parcels (DataSnapshot, the parcels shown in search: by the name of the destination, else its landing point, else the only
- * parcel of the region), and the asset service of the grid the picture itself, kept where the pages of the grid find it
+ * picture (`land_data`, what a viewer asks for the place of a landmark of another grid), and the asset service of the grid the
+ * picture itself, kept where the pages of the grid find it
  * (WebAssets). A task of the scheduler asks (refresh()), a guide only reads what was kept (lookup()): a viewer never waits for
  * another grid. A picture is asked again after a day (CHECK), what was not found after a few hours (RETRY), and both are kept a
  * month (KEEP): a grid that does not answer for a while keeps the picture it gave. The grids are asked their info too (GridInfoCache),
@@ -38,9 +37,6 @@ final class RemotePictures
 
     /** Seconds a picture and what was asked are kept, the grid answering or not. */
     public const KEEP = 2_592_000;
-
-    /** @var array<string,?string> the snapshots of the simulators, by their address, read once a run */
-    private array $snapshots = [];
 
     /**
      * @param Cache $cache where what was asked is kept (the cache of the grid)
@@ -84,7 +80,6 @@ final class RemotePictures
     public function refresh(array $guide): int
     {
         Gatekeeper::forget();
-        $this->snapshots = [];
         $own = Destination::loginParts($this->login);
         $found = 0;
         foreach ($guide as $section) {
@@ -104,7 +99,7 @@ final class RemotePictures
                 if ($due > $this->now()) {
                     continue;
                 }
-                $asked = $this->ask($at, $destination['name']);
+                $asked = $this->ask($at);
                 // A grid that does not answer keeps the picture it gave
                 $failed = $asked === null;
                 $asked ??= $picture;
@@ -121,20 +116,17 @@ final class RemotePictures
      *
      * @param array<string,mixed> $at Destination::parse()
      */
-    private function ask(array $at, string $name): ?string
+    private function ask(array $at): ?string
     {
         $region = Gatekeeper::region((string) $at['region_uri']);
         $server = is_array($region) ? (string) ($region['server_uri'] ?? '') : '';
         if ($server === '') {
             return null;
         }
-        // The land of the simulator at the point, as a viewer asks it the place of a landmark; else its snapshot
+        // The land of the simulator at the point, as a viewer asks it the place of a landmark (the snapshot a simulator sends a
+        // search is not asked: it is sent on conditions, to a search that may not be ours, and does not hold the picture itself)
         $picture = $this->landPicture($server, $region, (string) ($at['pos'] ?? ''));
         if ($picture === null) {
-            $parcels = $this->parcels($server, (string) $at['region']);
-            $picture = strtolower((string) (DestinationPictures::choose($parcels, $name, (string) ($at['pos'] ?? ''))['picture'] ?? ''));
-        }
-        if (!Uuid::isValid($picture) || in_array($picture, Uuid::NULL_KEYS, true)) {
             return null;
         }
         // The picture kept, for a while again; else the asset service of its grid gives it
@@ -171,48 +163,6 @@ final class RemotePictures
         $picture = strtolower(trim((string) (is_array($land) ? $land['SnapshotID'] ?? '' : '')));
 
         return Uuid::isValid($picture) && !in_array($picture, Uuid::NULL_KEYS, true) ? $picture : null;
-    }
-
-    /**
-     * The parcels of a region in the snapshot of its simulator: the ones shown in search.
-     *
-     * @return list<array{name:string,landing:string,picture:string}>
-     */
-    private function parcels(string $server, string $region): array
-    {
-        $url = rtrim($server, '/') . '/?method=collector';
-        if (!array_key_exists($url, $this->snapshots)) {
-            $xml = ($this->http)($url);
-            $this->snapshots[$url] = is_string($xml) && $xml !== '' ? $xml : null;
-        }
-        $xml = $this->snapshots[$url];
-        if ($xml === null) {
-            return [];
-        }
-        $document = new \DOMDocument();
-        $document->resolveExternals = false;
-        $previous = libxml_use_internal_errors(true);
-        $loaded = $document->loadXML($xml, LIBXML_NONET);
-        libxml_clear_errors();
-        libxml_use_internal_errors($previous);
-        if (!$loaded) {
-            return [];
-        }
-        $text = static fn(\DOMElement $parent, string $tag): string => trim((string) $parent->getElementsByTagName($tag)->item(0)?->nodeValue);
-        foreach ($document->getElementsByTagName('region') as $node) {
-            $info = $node->getElementsByTagName('info')->item(0);
-            if ($info === null || strcasecmp($text($info, 'name'), $region) !== 0) {
-                continue;
-            }
-            $parcels = [];
-            foreach ($node->getElementsByTagName('parcel') as $parcel) {
-                $parcels[] = ['name' => $text($parcel, 'name'), 'landing' => $text($parcel, 'location'), 'picture' => $text($parcel, 'image')];
-            }
-
-            return $parcels;
-        }
-
-        return [];
     }
 
     private function now(): int

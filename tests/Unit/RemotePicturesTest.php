@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 /**
- * The pictures of the hypergrid destinations of a guide: asked to their grid by the scheduler (its gatekeeper, the snapshot of
- * the simulator of the region, its asset service), kept, and read by the guide without asking anything.
+ * The pictures of the hypergrid destinations of a guide: asked to their grid by the scheduler (its gatekeeper, the land of the
+ * simulator of the region, its asset service), kept, and read by the guide without asking anything.
  */
 
 use OpenSim\Config\GridConfig;
@@ -137,7 +137,7 @@ describe('The pictures of the hypergrid destinations', function () {
         $world = remote_grid();
         $guide = (new DestinationPictures(null))->of(['Visit' => [
             ['name' => 'Far beach', 'url' => 'far.example.net:8002/Far/10/20/30'],
-            // A picture its asset service does not give: not found
+            // A parcel without a picture at the point: not found
             ['name' => 'Hill', 'url' => 'far.example.net:8002/Far'],
         ]]);
         $world->pictures->refresh($guide);
@@ -155,26 +155,25 @@ describe('The pictures of the hypergrid destinations', function () {
 
         expect($soon)
             ->toBe([])
-            // The failure only: its gatekeeper, the land of its simulator, its snapshot, its asset service, asked again
+            // The failure only: its gatekeeper and the land of its simulator, asked again
             ->and($retried)
-            ->toBe(5)
+            ->toBe(3)
             ->and(RemotePictures::lookup($world->cache, 'far.example.net:8002/Far/10/20/30', 'Far beach'))
             ->toBe(REMOTE_BEACH)
             ->and(RemotePictures::lookup($world->cache, 'far.example.net:8002/Far', 'Hill'))
             ->toBeNull();
     });
 
-    test('take the snapshot of the simulator when its land has no picture at the point', function () {
+    test('are not taken from the snapshot of the simulator: the land of the simulator only', function () {
         $world = remote_grid();
         $guide = (new DestinationPictures(null))->of(['Visit' => [['name' => 'Hill', 'url' => 'far.example.net:8002/Far/128/128/25']]]);
 
-        $world->pictures->refresh($guide);
+        $found = $world->pictures->refresh($guide);
 
-        expect(array_slice($world->asked, 2, 3))->toBe([
-            'http://sim.far.example.net:9000/ land_data',
-            'http://sim.far.example.net:9000/?method=collector',
-            'http://far.example.net:8002/assets/' . REMOTE_HILL,
-        ]);
+        expect($found)
+            ->toBe(0)
+            ->and($world->asked)
+            ->toBe(['http://far.example.net:8002 link_region', 'http://far.example.net:8002 get_region', 'http://sim.far.example.net:9000/ land_data']);
     });
 
     test('ask the grids their info too, once a day, so that their cards can say the names they give themselves', function () {
