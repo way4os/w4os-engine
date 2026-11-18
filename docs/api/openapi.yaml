@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 6ed80bc
+  version: 56fabce
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -14,7 +14,7 @@ info:
 
     ## Who may do what through a site
 
-    Every operation says it in `x-access`, by the user levels of OpenSimulator (0 GOD_NOT, 1 GOD_LIKE, 100 GOD_CUSTOMER_SERVICE, 150 GOD_LIAISON, 200 GOD_FULL, 250 GOD_MAINTENANCE; a level has every right of the ones below it): `level`, the lowest level of a person who does it on what is not their own (none: anybody may), and `self`, whether a visitor may do it for their own account. Reading and the care of the accounts are for the customer service and above (100); what changes the grid itself (its instances, its regions, its setups, its backups and restores, the role of an avatar) for a god (200), as only GOD_FULL has rights of its own in OpenSimulator; 250 is never needed. A site asks `OpenSim\Api\Access` (or reads `x-access`), it never writes a level. The key of the site is what opens the API: the level is the one of the person the site acts for.
+    Every operation says it in `x-access`, by the user levels of OpenSimulator (0 GOD_NOT, 1 GOD_LIKE, 100 GOD_CUSTOMER_SERVICE, 150 GOD_LIAISON, 200 GOD_FULL, 250 GOD_MAINTENANCE; a level has every right of the ones below it): `level`, the lowest level of a person who does it on what is not their own (none: anybody may), and `self`, whether a visitor may do it for their own account. Reading and the care of the accounts are for the customer service and above (100); what changes the grid itself (its instances, its regions, its setups, its backups and restores, the role of an avatar) for a god (200), as only GOD_FULL has rights of its own in OpenSimulator; 250 is never needed. What belongs to a site and not to the engine (its own settings, such as its theme) is changed by whom `x-site` says at the root of this document (`settings`: a god, as any change). A site asks `OpenSim\Api\Access` (or reads `x-access` and `x-site`), it never writes a level. The key of the site is what opens the API: the level is the one of the person the site acts for.
 
     ## Authentication
 
@@ -7886,6 +7886,10 @@ paths:
       x-access:
         level: null
         self: true
+x-site:
+  settings:
+    level: 200
+    self: false
 components:
   securitySchemes:
     ApiKey:

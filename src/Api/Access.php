@@ -58,6 +58,17 @@ final class Access
     private static ?array $index = null;
 
     /**
+     * Who may change what belongs to a site, not to the engine (its own settings: its theme...), as any change that is not the care
+     * of an account: a god. The contract says it (`x-site`); the bridges ask here, they never write a level.
+     *
+     * @return array{settings: array{level:int,self:bool}}
+     */
+    public static function site(): array
+    {
+        return ['settings' => ['level' => Avatar::GOD_FULL, 'self' => false]];
+    }
+
+    /**
      * The access of an operation, from what it is: open, a visitor's own, a read (GOD_CUSTOMER_SERVICE), the care of an account
      * (GOD_CUSTOMER_SERVICE), any other change (GOD_FULL).
      *
