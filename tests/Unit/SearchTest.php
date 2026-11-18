@@ -845,11 +845,14 @@ describe('The guide of a grid that has no list', function () {
         $popular = $grid->popularPlaces(3);
         OpenSim\Data\Connections::using(null);
 
-        expect(array_column($popular, 'label', 'name'))->toBe([
-            'Elsewhere' => 'other.example.org:8002/Far',
-            'Rose garden' => 'grid.example.org:8002/Welcome',
-            'Market' => 'grid.example.org:8002/Welcome',
-        ]);
+        // The grid of the search is another one than demo: its places are hypergrid, titled by their region
+        expect(array_map(static fn(array $place): array => [$place['title'], $place['label'], $place['gridName']], $popular))->toBe([
+            ['Far', 'other.example.org:8002', null],
+            ['Welcome', 'grid.example.org:8002', null],
+            ['Welcome', 'grid.example.org:8002', null],
+        ])
+            ->and(array_column($popular, 'name'))
+            ->toBe(['Elsewhere', 'Rose garden', 'Market']);
     });
 
     test('keep ten of each section', function () {

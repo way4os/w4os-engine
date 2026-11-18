@@ -1682,8 +1682,10 @@ final class Api
                         'name' => $destination['name'],
                         'category' => (string) $category,
                         'url' => $destination['url'],
-                        // What its card shows under its name: its region and point here, its grid and region elsewhere
+                        // What its card shows: its title (its region elsewhere), its label (its grid elsewhere), the name of its grid
+                        'title' => $destination['title'],
                         'label' => $destination['label'],
+                        'gridName' => $destination['gridName'],
                         // The pictures the engine finds, as asset UUIDs: of its parcel, of the first of its section that has one
                         'picture' => $destination['picture'],
                         'sectionPicture' => $section['picture'],

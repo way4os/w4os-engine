@@ -157,6 +157,26 @@ describe('The pictures of the hypergrid destinations', function () {
             ->toBeNull();
     });
 
+    test('ask the grids their info too, once a day, so that their cards can say the names they give themselves', function () {
+        $world = remote_grid();
+        $answers = ['http://far.example.net:8002/get_grid_info' => '<gridinfo><gridname>Far World</gridname></gridinfo>'];
+        $asked = [];
+        $grids = new OpenSim\Network\GridInfoCache(grid_info_world($answers, $asked)->environment, cache: $world->cache);
+        $pictures = new RemotePictures($world->cache, $world->images, static fn(string $url): ?string => null, new GridConfig(), 'http://grid.example.org:8002', $world->clock, $grids);
+        $guide = ['Visit' => ['picture' => null, 'destinations' => [
+            ['name' => 'Known', 'url' => 'far.example.net:8002/Far', 'picture' => REMOTE_HILL],
+            ['name' => 'Home', 'url' => 'grid.example.org:8002/Welcome', 'picture' => null],
+        ]]];
+
+        $pictures->refresh($guide);
+        $pictures->refresh($guide);
+
+        expect($asked)
+            ->toBe(['http://far.example.net:8002/get_grid_info'])
+            ->and($grids->saved('http://far.example.net:8002')['gridname'] ?? null)
+            ->toBe('Far World');
+    });
+
     test('are not asked for the places of the grid, nor for the ones the search has a picture of', function () {
         $world = remote_grid();
 

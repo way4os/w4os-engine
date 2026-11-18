@@ -313,10 +313,36 @@ describe('The label of a destination, as a card shows it under its name', functi
         'of the grid itself' => ['ursull.magiiic.dev:8012/Welcome/128/128/25', 'Welcome/128/128/25'],
         'of the grid itself, a height of zero' => ['hop://ursull.magiiic.dev:8012/Test%20North/116.5/136/0', 'Test North/116.5/136/21'],
         'a region alone' => ['Welcome', 'Welcome'],
-        'another grid: no point' => ['hop://speculoos.world:8002/Grand%20Place/128/128/25', 'speculoos.world:8002/Grand Place'],
-        'another grid, its port 80' => ['hop://hg.osgrid.org:80/Lbsa%20Plaza', 'hg.osgrid.org:80/Lbsa Plaza'],
+        'another grid: its grid alone, the region is the title' => ['hop://speculoos.world:8002/Grand%20Place/128/128/25', 'speculoos.world:8002'],
+        'another grid, its port 80' => ['hop://hg.osgrid.org:80/Lbsa%20Plaza', 'hg.osgrid.org:80'],
         'another grid without a region' => ['hop://hg.osgrid.org:80', 'hg.osgrid.org:80'],
     ]);
+
+    test('has a title: the name in the list on the grid itself, the region on another grid, else the name', function (string $destination, string $name, string $title) {
+        expect(Destination::title($destination, $name, 'http://ursull.magiiic.dev:8012'))->toBe($title);
+    })->with([
+        'of the grid itself' => ['ursull.magiiic.dev:8012/Welcome/128/128/25', 'Our welcome', 'Our welcome'],
+        'another grid' => ['hop://speculoos.world:8002/Grand%20Place/128/128/25', 'Speculoos', 'Grand Place'],
+        'another grid without a region' => ['hop://hg.osgrid.org:80', 'OSGrid', 'OSGrid'],
+    ]);
+
+    test('of a card of a grid: its title, its label and the name its grid gives itself, as it was kept', function () {
+        $answers = [];
+        $asked = [];
+        $machine = grid_info_world($answers, $asked);
+        (new OpenSim\Network\GridInfoCache($machine->environment))->save('http://speculoos.world:8002', ['gridname' => 'Speculoos World']);
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+
+        expect($grid->card('hop://speculoos.world:8002/Grand%20Place/128/128/25', 'Speculoos'))
+            ->toBe(['title' => 'Grand Place', 'label' => 'speculoos.world:8002', 'gridName' => 'Speculoos World'])
+            ->and($grid->card('hop://hg.osgrid.org:80/Lbsa%20Plaza', 'OSGrid'))
+            ->toBe(['title' => 'Lbsa Plaza', 'label' => 'hg.osgrid.org:80', 'gridName' => null])
+            ->and($grid->card('Welcome/10/20/30', 'Our welcome'))
+            ->toBe(['title' => 'Our welcome', 'label' => 'Welcome/10/20/30', 'gridName' => $grid->name()])
+            // Nothing asked to the grids: what the scheduler kept is read
+            ->and($asked)
+            ->toBe([]);
+    });
 
     test('of the guide of a grid: its own places by their region and their point', function () {
         $grid = OpenSim\Models\Grid::find((new OpenSim\Testing\Machine())->environment, 'demo');
@@ -325,7 +351,7 @@ describe('The label of a destination, as a card shows it under its name', functi
         expect($grid->label(Destination::uri('Welcome/10/20/30', $login)))
             ->toBe('Welcome/10/20/30')
             ->and($grid->label('hg.example.org:8002/Far/1/2/3'))
-            ->toBe('hg.example.org:8002/Far');
+            ->toBe('hg.example.org:8002');
     });
 });
 

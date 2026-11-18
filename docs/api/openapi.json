@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "7366d0b",
+        "version": "1648ff2",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -12498,9 +12498,20 @@
                                 "type": "string",
                                 "description": "The region address it leads to, as the source gives it (grid and region, with the place when there is one)"
                             },
+                            "title": {
+                                "type": "string",
+                                "description": "What its card shows first: its name on the grid itself, its region on another grid (the name of a list there is often the one of the grid), its name for a grid without a region"
+                            },
                             "label": {
                                 "type": "string",
-                                "description": "What its card shows under its name, as text: its region and its point on the grid itself (`Region Name/x/y/z`), its grid and its region elsewhere (`host:port/Region Name`, or `host:port` for a grid alone)"
+                                "description": "What its card shows under its title, as text: its region and its point on the grid itself (`Region Name/x/y/z`), its grid on another one (`host:port`)"
+                            },
+                            "gridName": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The name its grid gives itself (`gridname` of its grid info, as the scheduler last asked it), null when it is not known"
                             },
                             "picture": {
                                 "type": [

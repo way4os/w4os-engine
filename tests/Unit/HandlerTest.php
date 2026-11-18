@@ -297,7 +297,7 @@ describe('The API handler, for the pages of a grid', function () {
             ->toBe(['destinations-guide-welcome', 'gardens-rose-garden', 'gardens-welcome'])
             ->and($list['data'][1]['attributes'])
             // No search here: no picture is known
-            ->toBe(['name' => 'Rose garden', 'category' => 'Gardens', 'url' => 'grid.example.org:8002/Roses/128/64/30', 'label' => 'grid.example.org:8002/Roses', 'picture' => null, 'sectionPicture' => null])
+            ->toBe(['name' => 'Rose garden', 'category' => 'Gardens', 'url' => 'grid.example.org:8002/Roses/128/64/30', 'title' => 'Roses', 'label' => 'grid.example.org:8002', 'gridName' => null, 'picture' => null, 'sectionPicture' => null])
             ->and($list['meta']['categories'])
             ->toBe(['Destinations Guide', 'Gardens'])
             ->and($list['data'][1]['links']['self'])

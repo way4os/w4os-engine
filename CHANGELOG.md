@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (destinations): the card of a destination of another grid is titled by its region (`title`, `Destination::title()`), its grid under it (`label`, `host:port`), not the name of its grid again; the name its grid gives itself kept as `gridName`, asked once a day by the task of the guide (`GridInfoCache`), never by a page; on the guide (`Grid::card()`, the destinations of the API) and the popular places
 - feature (destinations): the map of the viewer at a place (`Destination::MAP`, `secondlife:///app/worldmap/host:port:Region%20Name/x/y/z`, the region named as the search of the map takes it: its grid before a colon, the region of the grid itself by its name alone), as llMapDestination() opens it
 - update (destinations): the login screen of a viewer takes the location with its grid as the other pages do (tried): `AUTO` gives it there too, the `splash` of its context gone (`Grid::link()` keeps the argument for its callers)
 - feature (destinations): the label of a destination, as a card shows it under its name (`Destination::LABEL`, `Destination::label()`, `Grid::label()`): text, its spaces as they are, `Region Name/x/y/z` on the grid itself, `host:port/Region Name` (or `host:port`) on another grid; `label` of the destinations of the guide; the popular places for their cards (`Grid::popularPlaces()`, `DefaultDestinations::popular()`: the most visited first, of every grid of the search, with their picture, their visits and their label)

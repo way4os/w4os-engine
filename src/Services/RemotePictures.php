@@ -9,6 +9,7 @@ use OpenSim\Data\Cache;
 use OpenSim\Hypergrid\Destination;
 use OpenSim\Hypergrid\Gatekeeper;
 use OpenSim\Models\Asset;
+use OpenSim\Network\GridInfoCache;
 use OpenSim\Runtime\ClockInterface;
 use OpenSim\Support\FileCache;
 use OpenSim\Text\Uuid;
@@ -20,7 +21,8 @@ use OpenSim\Text\Uuid;
  * parcel of the region), and the asset service of the grid the picture itself, kept where the pages of the grid find it
  * (WebAssets). A task of the scheduler asks (refresh()), a guide only reads what was kept (lookup()): a viewer never waits for
  * another grid. A picture is asked again after a day (CHECK), what was not found after a few hours (RETRY), and both are kept a
- * month (KEEP): a grid that does not answer for a while keeps the picture it gave.
+ * month (KEEP): a grid that does not answer for a while keeps the picture it gave. The grids are asked their info too (GridInfoCache),
+ * once a day, so that the cards can say the names they give themselves.
  *
  *     (new RemotePictures($cache, $images, $http, $config, $login))->refresh($grid->guide());
  *     RemotePictures::lookup($cache, 'far.example.net:8002/Far/10/20/30', 'Far beach');   // '<uuid>'
@@ -44,6 +46,8 @@ final class RemotePictures
      * @param FileCache $images where the pictures are kept for the pages of the grid (WebAssets::remote())
      * @param \Closure(string):?string $http the body of an address, null when it does not answer
      * @param string $login the login address of the grid: its own places are the search's
+     * @param ?GridInfoCache $grids where what the grids of the destinations say of themselves is kept (their names, for the cards):
+     *        each is asked once a day, here
      */
     public function __construct(
         private readonly Cache $cache,
@@ -52,6 +56,7 @@ final class RemotePictures
         private readonly GridConfig $config,
         private readonly string $login = '',
         private readonly ?ClockInterface $clock = null,
+        private readonly ?GridInfoCache $grids = null,
     ) {}
 
     /** The key of what is kept of a destination. */
@@ -85,6 +90,8 @@ final class RemotePictures
             foreach ($section['destinations'] as $destination) {
                 $at = Destination::parse($destination['url']);
                 $local = $own !== null && strtolower((string) $own['host']) === strtolower((string) ($at['host'] ?? '')) && (int) ($own['port'] ?? 80) === (int) ($at['port'] ?? 0);
+                // What the grid says of itself (its name, for the cards), once a day
+                $local || ($at['host'] ?? '') === '' || $this->grids?->login((string) $at['gatekeeper'], true);
                 if (($destination['picture'] ?? null) !== null || $local || ($at['region'] ?? '') === '' || ($at['host'] ?? '') === '') {
                     continue;
                 }

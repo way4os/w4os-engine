@@ -72,10 +72,9 @@ final class Destination
      */
     public const GRID = 2048;
     /**
-     * The label of a destination, as a card shows it under its name: text, not a link, its spaces as they are. On the grid itself
-     * its region and its point (`Region Name/x/y/z`, the height a little above the sea when it is zero); on another grid its grid
-     * and its region, without its point (`host:port/Region Name`), or its grid alone (`host:port`). The grid itself is the one
-     * of the `login` of the context (label()).
+     * The label of a destination, as a card shows it under its title (title()): text, not a link, its spaces as they are. On the
+     * grid itself its region and its point (`Region Name/x/y/z`, the height a little above the sea when it is zero); on another
+     * grid its grid (`host:port`), the region being its title. The grid itself is the one of the `login` of the context (label()).
      */
     public const LABEL = 4096;
     /**
@@ -287,7 +286,29 @@ final class Destination
             return trim($parsed['region'] . ($parsed['pos'] === '' ? '' : '/' . $parsed['pos']), '/');
         }
 
-        return "$parsed[host]:$parsed[port]" . ($parsed['region'] === '' ? '' : '/' . $parsed['region']);
+        return "$parsed[host]:$parsed[port]";
+    }
+
+    /**
+     * The title of a destination, as a card shows it above its label: the name the list gives it on the grid itself, its region
+     * on another grid (the name of a list is often the one of the grid there), else that name for a grid without a region.
+     *
+     * @param ?string $login the login address of the grid itself
+     */
+    public static function title(string $destination, string $name, ?string $login = null): string
+    {
+        $login = trim((string) $login);
+        $parsed = self::parse($destination, $login !== '' ? $login : null);
+
+        return self::isLocal($parsed, $login) || $parsed['region'] === '' ? $name : $parsed['region'];
+    }
+
+    /** Whether a destination is on the grid of a login: it names no grid, or the one of the login. */
+    public static function isHere(string $destination, ?string $login): bool
+    {
+        $login = trim((string) $login);
+
+        return self::isLocal(self::parse($destination, $login !== '' ? $login : null), $login);
     }
 
     /**

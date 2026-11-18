@@ -649,17 +649,40 @@ final class Grid extends InstalledModel
         return $this->hostPort() !== null ? Destination::loginUrl((string) $this->hostPort()) : null;
     }
 
-    /** The label of a destination, as a card shows it under its name (Destination::LABEL): its own places by their region and point. */
+    /** The label of a destination, as a card shows it under its title (Destination::LABEL): its own places by their region and point. */
     public function label(string $destination): string
     {
         return Destination::label($destination, $this->loginUrl());
     }
 
     /**
-     * The popular places of the search of the grid, for their cards: the most visited first, of every grid the search serves, with
-     * their address (`url`), their picture (an asset UUID, null without one), their visits (`dwell`) and their label (label()).
+     * What the card of a destination shows: its `title` (the name of the list on this grid, the region on another one), its
+     * `label` (its region and point here, the grid elsewhere) and `gridName`, the name its grid gives itself (this one's, or what
+     * another grid said of itself when the scheduler asked it: nothing is asked here), null when it is not known.
      *
-     * @return list<array{name:string,url:string,picture:?string,dwell:int,label:string}> empty without a search
+     * @return array{title:string,label:string,gridName:?string}
+     */
+    public function card(string $destination, string $name, ?GridConfig $config = null): array
+    {
+        $login = $this->loginUrl();
+        $parsed = Destination::parse($destination, $login);
+        $here = Destination::isHere($destination, $login);
+        $said = $here ? null : (new \OpenSim\Network\GridInfoCache($this->environment, cache: \OpenSim\Data\Cache::for($this->environment, $config)))->saved((string) $parsed['gatekeeper']);
+        $gridName = $here ? $this->name() : trim((string) ($said['gridname'] ?? ''));
+
+        return [
+            'title' => Destination::title($destination, $name, $login),
+            'label' => Destination::label($destination, $login),
+            'gridName' => $gridName === '' ? null : $gridName,
+        ];
+    }
+
+    /**
+     * The popular places of the search of the grid, for their cards: the most visited first, of every grid the search serves, with
+     * their address (`url`), their picture (an asset UUID, null without one), their visits (`dwell`) and what their card shows
+     * (card(): `title`, `label`, `gridName`).
+     *
+     * @return list<array{name:string,url:string,picture:?string,dwell:int,title:string,label:string,gridName:?string}> empty without a search
      */
     public function popularPlaces(int $count = \OpenSim\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null): array
     {
@@ -670,7 +693,7 @@ final class Grid extends InstalledModel
         }
         $places = (new \OpenSim\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri()))->popular($count);
 
-        return array_map(fn(array $place): array => $place + ['label' => $this->label($place['url'])], $places);
+        return array_map(fn(array $place): array => $place + $this->card($place['url'], $place['name'], $config), $places);
     }
 
     /**
@@ -955,10 +978,10 @@ final class Grid extends InstalledModel
 
         $cache = \OpenSim\Data\Cache::for($this->environment, $config);
         $guide = (new \OpenSim\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
-        // The label of each destination, as its card shows it under its name
+        // What the card of each destination shows: its title, its label, the name of its grid
         foreach ($guide as &$section) {
             foreach ($section['destinations'] as &$destination) {
-                $destination['label'] = $this->label($destination['url']);
+                $destination += $this->card($destination['url'], $destination['name'], $config);
             }
         }
 
@@ -981,6 +1004,7 @@ final class Grid extends InstalledModel
             $config ?? new GridConfig(),
             (string) $this->loginUrl(),
             $this->environment->clock,
+            new \OpenSim\Network\GridInfoCache($this->environment, cache: \OpenSim\Data\Cache::for($this->environment, $config)),
         );
 
         return $pictures->refresh($this->guide($config));
