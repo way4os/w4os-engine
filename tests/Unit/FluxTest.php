@@ -63,6 +63,24 @@ describe('The posts of an avatar', function () {
     });
 });
 
+describe('The form of a post', function () {
+    test('is described by the operation that makes one (x-form): its text, its length, the action that deletes one, their texts in the catalog', function () {
+        $form = OpenSim\Api\Contract::document()['paths']['/grids/{grid}/avatars/{id}/posts']['post']['x-form'] ?? null;
+        $field = $form['fields'][0] ?? [];
+        $delete = array_column($form['actions'] ?? [], null, 'name')['deletePost'] ?? [];
+
+        expect($field)->toMatchArray(['name' => 'content', 'type' => 'text', 'maxLength' => OpenSim\Flux\Posts::MAX, 'required' => true])
+            ->and($form['submit'] ?? null)->toBe('action_post')
+            ->and($delete)->toMatchArray(['method' => 'DELETE', 'path' => '/grids/{grid}/avatars/{id}/posts/{post}', 'ask' => 'ask_delete_post'])
+            // The operation of the action is one of the contract
+            ->and(OpenSim\Api\Contract::document()['paths'][$delete['path']]['delete']['operationId'] ?? null)->toBe('deleteAvatarPost');
+        foreach ([$field['label'], $field['description'], $form['submit'], $delete['label'], $delete['ask'], OpenSim\I18n\Catalog::doneKey('post'), OpenSim\I18n\Catalog::doneKey('deletePost')] as $key) {
+            expect(OpenSim\I18n\Catalog::MESSAGES)->toHaveKey($key)
+                ->and(OpenSim\I18n\Catalog::messages('fr_FR'))->toHaveKey($key);
+        }
+    });
+});
+
 describe('The posts of w4os-wp', function () {
     test('are brought in from its database, planned first, once each', function () {
         $pdo = avatar_database();

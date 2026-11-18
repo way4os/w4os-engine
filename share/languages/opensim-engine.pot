@@ -318,6 +318,34 @@ msgctxt "profile_tab_feed"
 msgid "Feed"
 msgstr ""
 
+msgctxt "post_label"
+msgid "New post"
+msgstr ""
+
+msgctxt "post_help"
+msgid "Plain text, 1000 characters at most."
+msgstr ""
+
+msgctxt "action_post"
+msgid "Post"
+msgstr ""
+
+msgctxt "action_delete_post"
+msgid "Delete"
+msgstr ""
+
+msgctxt "ask_delete_post"
+msgid "Delete this post?"
+msgstr ""
+
+msgctxt "manage_post"
+msgid "Your post is published."
+msgstr ""
+
+msgctxt "manage_delete_post"
+msgid "Your post is deleted."
+msgstr ""
+
 msgctxt "profile_tab_interests"
 msgid "Interests"
 msgstr ""

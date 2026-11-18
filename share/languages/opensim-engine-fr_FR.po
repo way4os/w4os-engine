@@ -351,6 +351,34 @@ msgctxt "profile_tab_feed"
 msgid "Feed"
 msgstr "Flux"
 
+msgctxt "post_label"
+msgid "New post"
+msgstr "Nouvelle publication"
+
+msgctxt "post_help"
+msgid "Plain text, 1000 characters at most."
+msgstr "Texte brut, 1000 caractères au plus."
+
+msgctxt "action_post"
+msgid "Post"
+msgstr "Publier"
+
+msgctxt "action_delete_post"
+msgid "Delete"
+msgstr "Supprimer"
+
+msgctxt "ask_delete_post"
+msgid "Delete this post?"
+msgstr "Supprimer cette publication ?"
+
+msgctxt "manage_post"
+msgid "Your post is published."
+msgstr "Votre publication est en ligne."
+
+msgctxt "manage_delete_post"
+msgid "Your post is deleted."
+msgstr "Votre publication est supprimée."
+
 msgctxt "profile_tab_interests"
 msgid "Interests"
 msgstr "Centres d’intérêt"

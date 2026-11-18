@@ -342,6 +342,12 @@ final class Endpoints
                     ],
                 ],
             ],
+            // What a site shows to write one, and to delete one (its own stream, `self`)
+            'x-form' => [
+                'fields' => [['name' => 'content', 'label' => 'post_label', 'type' => 'text', 'maxLength' => \OpenSim\Flux\Posts::MAX, 'required' => true, 'description' => 'post_help']],
+                'submit' => 'action_post',
+                'actions' => [['name' => 'deletePost', 'label' => 'action_delete_post', 'method' => 'DELETE', 'path' => '/grids/{grid}/avatars/{id}/posts/{post}', 'ask' => 'ask_delete_post']],
+            ],
             'responses' => [
                 '201' => ['description' => 'The post', 'content' => $items('posts', $post)],
                 '400' => Contract::problem('The post is empty or too long (`post-invalid`)'),
