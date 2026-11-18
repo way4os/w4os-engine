@@ -1765,7 +1765,23 @@ final class Avatar extends Model
                 ItemForm::group('account', 'profile_tab_account'),
             ],
             self::listing()->actions,
+            // The sections of a profile, in the order of the tabs of the viewers, its stream first; the account is not one of them
+            [
+                ItemForm::section('feed', 'profile_tab_feed', items: 'posts'),
+                ItemForm::section('about', 'profile_tab_about', 'inworld'),
+                ItemForm::section('web', 'profile_tab_web', 'web'),
+                ItemForm::section('interests', 'profile_tab_interests', 'interests'),
+                ItemForm::section('picks', 'profile_tab_picks', items: 'picks'),
+                ItemForm::section('classifieds', 'profile_tab_classifieds', items: 'classifieds'),
+                ItemForm::section('real-life', 'profile_tab_real_life', 'real_life'),
+            ],
         );
+    }
+
+    /** What its page shows and lets change as its grid has it (itemForm() without what the grid does not allow, formSettings()). */
+    public function form(): ItemForm
+    {
+        return self::itemForm()->for($this->formSettings());
     }
 
     /**

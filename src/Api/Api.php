@@ -271,7 +271,7 @@ final class Api
             : Response::document(
                 ['data' => self::resource($type, $model, $grid), 'links' => ['self' => $instance]] +
                     // The settings of the grid the form of the item needs (its fields that say `setting`)
-                    ($model instanceof Avatar ? ['meta' => ['settings' => $model->formSettings()]] : []),
+                    ($model instanceof Avatar ? ['meta' => self::avatarForm($model)] : []),
             );
     }
 
@@ -411,7 +411,7 @@ final class Api
                 );
             }
             $model = $this->find($type, $id, $grid, $instance);
-            $model instanceof Avatar && ($meta['settings'] = $model->formSettings());
+            $model instanceof Avatar && ($meta += self::avatarForm($model));
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1855,6 +1855,17 @@ final class Api
                     'expires' => (int) ($row['expirationdate'] ?? 0),
                 ],
             ];
+    }
+
+    /**
+     * The form of an avatar as its grid has it, for the meta of the item: the settings it needs, its `x-form` without what the grid
+     * does not allow (a section, a field).
+     *
+     * @return array{settings:array<string,bool>,form:array<string,mixed>}
+     */
+    private static function avatarForm(Avatar $avatar): array
+    {
+        return ['settings' => $avatar->formSettings(), 'form' => Contract::formDocument('avatars', $avatar->form())];
     }
 
     /** @return array{type:string,id:string,attributes:array<string,mixed>,links:array{self:string}} */

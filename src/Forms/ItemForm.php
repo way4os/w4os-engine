@@ -31,12 +31,19 @@ final class ItemForm
      * @param list<array<string,mixed>> $fields made by field()
      * @param list<array{name:string,label:string}> $groups made by group(), in their order
      * @param list<array<string,mixed>> $actions made by Listing::action()
+     * @param list<array<string,string>> $sections made by section(), in their order: what the page of the item shows, each a group of
+     *        its fields or a list of its own, that a site shows as tabs or one after the other
      */
     public function __construct(
         public readonly array $fields,
         public readonly array $groups = [],
         public readonly array $actions = [],
+        public readonly array $sections = [],
     ) {
+        foreach ($sections as $section) {
+            !isset($section['group']) || in_array($section['group'], array_column($groups, 'name'), true) ||
+                throw new \InvalidArgumentException("'{$section['group']}' is not a group of the form");
+        }
         foreach ($fields as $field) {
             in_array($field['type'], [...Listing::TYPES, ...self::INPUTS], true) ||
                 throw new \InvalidArgumentException("'{$field['type']}' is not a type of field");
@@ -44,6 +51,33 @@ final class ItemForm
                 in_array($field['group'], array_column($groups, 'name'), true) ||
                 throw new \InvalidArgumentException("'{$field['group']}' is not a group of the form");
         }
+    }
+
+    /**
+     * A section of the page of the item: its name, the key of its title, and what it shows: the fields of a group (`group`), or the
+     * items of a list of its own (`items`, the path under the item: posts, picks...).
+     *
+     * @return array{name:string,label:string,group?:string,items?:string}
+     */
+    public static function section(string $name, string $label, ?string $group = null, ?string $items = null): array
+    {
+        return ['name' => $name, 'label' => $label] + ($group === null ? [] : ['group' => $group]) + ($items === null ? [] : ['items' => $items]);
+    }
+
+    /**
+     * The form as a grid has it: without the fields whose setting (`setting`) it has false, the groups left without a field, the
+     * sections of those groups.
+     *
+     * @param array<string,bool> $settings by name, a setting not given being true
+     */
+    public function for(array $settings): self
+    {
+        $fields = array_values(array_filter($this->fields, static fn(array $field): bool => !isset($field['setting']) || ($settings[$field['setting']] ?? true)));
+        $used = array_unique(array_column($fields, 'group'));
+        $groups = array_values(array_filter($this->groups, static fn(array $group): bool => in_array($group['name'], $used, true)));
+        $sections = array_values(array_filter($this->sections, static fn(array $section): bool => !isset($section['group']) || in_array($section['group'], $used, true)));
+
+        return new self($fields, $groups, $this->actions, $sections);
     }
 
     /** A group of fields: its name, and the key of its title. */
@@ -106,11 +140,11 @@ final class ItemForm
     /**
      * What the contract says of the item (`x-form`).
      *
-     * @return array{groups:list<array<string,string>>,fields:list<array<string,mixed>>,actions:list<array<string,mixed>>}
+     * @return array{groups:list<array<string,string>>,fields:list<array<string,mixed>>,actions:list<array<string,mixed>>,sections?:list<array<string,string>>}
      */
     public function document(): array
     {
-        return ['groups' => $this->groups, 'fields' => $this->fields, 'actions' => $this->actions];
+        return ['groups' => $this->groups, 'fields' => $this->fields, 'actions' => $this->actions] + ($this->sections === [] ? [] : ['sections' => $this->sections]);
     }
 
     /**
@@ -125,6 +159,7 @@ final class ItemForm
             ...array_column($this->fields, 'label'),
             ...array_column($this->fields, 'description'),
             ...array_column($this->actions, 'label'),
+            ...array_column($this->sections, 'label'),
         ];
         foreach ($this->fields as $field) {
             array_push(

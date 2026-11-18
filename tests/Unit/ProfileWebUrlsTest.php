@@ -81,6 +81,50 @@ describe('The web address of a profile', function () {
             ->toBe(['profileUrl' => 'allowUserProfileWebUrls']);
     });
 
+    test('leaves out of the form of the grid its field and its section when the grid does not allow it', function () {
+        avatars_in(avatar_database());
+        $open = Avatar::find(avatar_grid(), 'Ada Love')->form();
+        $closed = Avatar::find(web_urls_grid("[UserProfiles]\n AllowUserProfileWebURLs = false\n"), 'Ada Love')->form();
+        $full = Avatar::itemForm();
+
+        expect(array_column($full->sections, 'name'))
+            ->toBe(['feed', 'about', 'web', 'interests', 'picks', 'classifieds', 'real-life'])
+            ->and(array_column($open->sections, 'name'))
+            ->toBe(array_column($full->sections, 'name'))
+            ->and(array_column($open->fields, 'name'))
+            ->toContain('profileUrl')
+            ->and(array_column($closed->sections, 'name'))
+            ->toBe(['feed', 'about', 'interests', 'picks', 'classifieds', 'real-life'])
+            ->and(array_column($closed->groups, 'name'))
+            ->not->toContain('web')
+            ->and(array_column($closed->fields, 'name'))
+            ->not->toContain('profileUrl')
+            ->and($closed->writable())
+            ->not->toContain('profileUrl')
+            ->and(array_diff($full->keys(), array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->toBe([]);
+    });
+
+    test('gives the API of a grid the form of its avatars as the grid has it, the sections of a profile in their order', function () {
+        avatars_in(avatar_database());
+        [$closed] = access_api(web_urls_grid("[UserProfiles]\n AllowUserProfileWebURLs = false\n"));
+        $meta = $closed->get('/grids/demo/avatars/' . WEB_ADA)->document['meta'] ?? [];
+        $contract = Contract::document()['paths']['/grids/{grid}/avatars/{id}']['get']['x-form'];
+
+        expect(array_column($contract['sections'], 'name'))
+            ->toBe(['feed', 'about', 'web', 'interests', 'picks', 'classifieds', 'real-life'])
+            ->and($contract['sections'][0])
+            ->toBe(['name' => 'feed', 'label' => 'profile_tab_feed', 'items' => 'posts'])
+            ->and($contract['sections'][1])
+            ->toBe(['name' => 'about', 'label' => 'profile_tab_about', 'group' => 'inworld'])
+            ->and(array_column($meta['form']['sections'] ?? [], 'name'))
+            ->toBe(['feed', 'about', 'interests', 'picks', 'classifieds', 'real-life'])
+            ->and(array_column($meta['form']['fields'] ?? [], 'name'))
+            ->not->toContain('profileUrl')
+            ->and(array_keys($meta['form'] ?? []))
+            ->toBe(array_keys($contract));
+    });
+
     test('is never set by the presets of the options: OpenSimulator keeps its own default', function () {
         $said = [];
         foreach (array_filter(glob(dirname(__DIR__, 2) . '/share/presets/*/*') ?: [], 'is_file') as $file) {
