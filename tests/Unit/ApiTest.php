@@ -694,6 +694,7 @@ describe('The contract', function () {
                     'maintenance' => 'role_maintenance',
                 ],
                 'banner' => true,
+                'bare' => true,
                 // A role is set by a god, as OpenSimulator sets a level
                 'access' => ['level' => 200],
             ])

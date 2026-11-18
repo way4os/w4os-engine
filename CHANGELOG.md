@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (profiles): the role of an avatar reads without its label in the banner of its profile, as in a list (`bare` of its field)
 - feature (access): who changes the settings of a site, its own and not the engine's (its theme...): a god, as any change (`Access::site()`, `x-site` of the contract)
 - feature (profiles): the banner of a profile, over all its tabs: the picture, the name, the birth and the role of the avatar, marked `banner` in its form (`ItemForm::banner()`, `x-form`); the About tab (`profile_tab_about`) for the rest of the in-world tab
 - feature (texts): the entry of the visitor in the menu of a site, `menu_account` (My avatar)

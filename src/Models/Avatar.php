@@ -1719,7 +1719,7 @@ final class Avatar extends Model
                 ItemForm::shown('firstImage', 'profile_picture', 'picture', 'real_life', ['default' => 'person']),
                 ItemForm::field('firstLife', 'real_life', 'text', 'real_life', more: $both),
                 ItemForm::field('email', 'email', 'email', 'account', more: $both),
-                ItemForm::field('role', 'role', 'select', 'account', $roles, ['banner' => true]),
+                ItemForm::field('role', 'role', 'select', 'account', $roles, ['banner' => true, 'bare' => true]),
                 ItemForm::field('status', 'status', 'select', 'account', $statuses),
                 ItemForm::field(
                     'password',
