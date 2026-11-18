@@ -103,6 +103,8 @@ describe('Teleport links', function () {
         'viewer link' => [TPLINK_HG, 'secondlife://hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
         'viewer v3 link' => [TPLINK_V3HG, 'secondlife://http|!!hg.example.org|8002%20My%20Region/128/64/22'],
         'hop' => [TPLINK_HOP, 'hop://hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
+        'hop, the region after a slash (the viewer)' => [Destination::HOP_SLASH, 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22'],
+        'hop, the region after a colon (llMapDestination)' => [Destination::HOP_COLON, 'hop://hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22'],
         'teleport link' => [TPLINK_APPTP, 'secondlife:///app/teleport/hg.example.org:8002+My+Region/128/64/22'],
     ]);
 
@@ -127,6 +129,18 @@ describe('Teleport links', function () {
 
     test('of a grid alone end at its port, with no colon after it', function () {
         expect(Destination::format('wyldwoodbayou.com:8002', TPLINK_HOP))->toBe('hop://wyldwoodbayou.com:8002');
+    });
+
+    test('hop in the form HOP_FORM says, both forms asked together too', function () {
+        expect(Destination::format(TP_DESTINATION, TPLINK_HOP))
+            ->toBe(Destination::format(TP_DESTINATION, Destination::HOP_FORM))
+            ->and(Destination::format(TP_DESTINATION, Destination::HOP_SLASH | Destination::HOP_COLON | TPLINK_ARRAY))
+            ->toBe([
+                Destination::HOP_SLASH => 'hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/128/64/22',
+                Destination::HOP_COLON => 'hop://hg.example.org:8002:My' . Destination::SPACE . 'Region/128/64/22',
+            ])
+            ->and(Destination::format('wyldwoodbayou.com:8002', Destination::HOP_SLASH))
+            ->toBe('hop://wyldwoodbayou.com:8002');
     });
 
     test('are none for nothing', function () {

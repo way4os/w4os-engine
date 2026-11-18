@@ -9,11 +9,14 @@ final class Destination
 {
     /** secondlife://Region Name/x/y/z */
     public const LOCAL = 1;
-    /** secondlife://yourgrid.org:8002:Region/x/y/z (original HG format, obsolete?) */
+    /**
+     * secondlife://yourgrid.org:8002:Region%20Name/x/y/z (original HG format, obsolete?). 2.x wrote a raw space after the port,
+     * which a browser sends as %20; the colon follows the hop:// form a viewer took in its own browser. Not tried in a viewer yet.
+     */
     public const HG = 2;
     /** the overcomplicated stuff! */
     public const V3HG = 4;
-    /** hop://yourgrid.org:8002:Region/x/y/z */
+    /** hop:// in the form HOP_FORM says (HOP_SLASH or HOP_COLON), until the viewers are tried in each place a link is shown */
     public const HOP = 8;
     /** yourgrid.org:8002:Region/x/y/z */
     public const TXT = 16;
@@ -25,6 +28,20 @@ final class Destination
     public const ALL = 255;
     /** output as array */
     public const AS_ARRAY = 256;
+    /**
+     * hop://yourgrid.org:8002/Region%20Name/x/y/z, the region after a slash: the form the viewer writes itself (Firestorm, in the
+     * chat after a teleport: LLSLURL::getSLURLString() of fsslurl.cpp escapes the region after the grid, and its tests read it
+     * back), the one of the OpenSimulator wiki (`[hop://]<hg-host>:<hg-port>[/<region-name>][/x/y]`, Hypergrid), and the only one
+     * the URL handler of a system passes on (host:port/something).
+     */
+    public const HOP_SLASH = 1024;
+    /**
+     * hop://yourgrid.org:8002:Region%20Name/x/y/z, the region after a colon: the form llMapDestination() needs (a region after a
+     * slash is read as its x), the one of the teleport boards, an SL form for the scripts; the browser of a viewer takes it too.
+     */
+    public const HOP_COLON = 2048;
+    /** The form of HOP. */
+    public const HOP_FORM = self::HOP_COLON;
     /**
      * The link for where it is shown (the `context` of format()): in a viewer, LOCAL for a region of the grid itself (it works
      * everywhere in a viewer, its login screen too), HOP for another grid, none on the login screen (a viewer cannot land on
@@ -380,13 +397,18 @@ final class Destination
                 (empty($host) ? $local : "secondlife://http|!!$host|$port" . (empty($region) ? '' : "%20$region_percentencode")) .
                 (empty($pos_sl) || empty($host) ? '' : "/$pos_sl");
         }
+        // A hop:// link in one of its forms, the region after a slash or after a colon; none without a gatekeeper
+        $hop = static fn(int $form): string => empty($gatekeeper)
+            ? ''
+            : "hop://$host:$port" . (empty($region) ? '' : ($form === self::HOP_SLASH ? '/' : ':') . str_replace('%20', self::SPACE, $region_percentencode)) . (empty($pos) ? '' : "/$pos");
         if ($format & self::HOP) {
             // Web and in-world. Position (/x/y/z) is
             // - optional for web browser links (viewer applies default)
             // - required for in-world messages
-            $links[self::HOP] = empty($gatekeeper)
-                ? ''
-                : "hop://$host:$port$named" . (empty($pos) ? '' : "/$pos");
+            $links[self::HOP] = $hop(self::HOP_FORM);
+        }
+        foreach ([self::HOP_SLASH, self::HOP_COLON] as $form) {
+            $format & $form && ($links[$form] = $hop($form));
         }
         if ($format & self::APPTP) {
             // In-world messages, do not use for web links

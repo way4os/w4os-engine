@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (destinations): both forms of a hop:// link, each asked by its own format, with where it comes from: the region after a slash (`Destination::HOP_SLASH`, the form the viewer writes itself, the one of the OpenSimulator wiki and of the URL handlers of the systems) and after a colon (`Destination::HOP_COLON`, the form llMapDestination() needs, of the teleport boards); `HOP` gives the one `HOP_FORM` says, the colon until the viewers are tried in each place
 - update (destinations): the space of a hop:// or hypergrid link (`Destination::SPACE`, %20 for now) and the links of AUTO by where they are shown (`Destination::AUTO_LINKS`) written in one place each, until the viewers are tried on their login screen
 - fix (destinations): the hop:// links put the region after a colon, its spaces as %20 (`hop://host:port:Region%20Name/x/y/z`), the form the browser of a viewer takes (a slash there is an unknown scheme), and the hypergrid secondlife:// links too (`secondlife://host:port:Region/x/y/z`); the URI of a place stays `host:port/Region/x/y/z`
 - feature (destinations): the link for where it is shown (`Destination::AUTO`, with a context): in a viewer the local link for the grid itself (it works on the login screen too), hop:// for another grid and no link on the login screen, where a viewer cannot land on another grid; hop:// in a web browser; a viewer told by its user agent (`Destination::isViewer()`)
