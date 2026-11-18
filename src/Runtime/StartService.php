@@ -103,12 +103,18 @@ final class StartService
         // Regions load the modules enabled for the install from the addins folder of their registry
         $registry = $instance->launchSetting('RegistryLocation');
         if ($base === 'OpenSim' && $registry !== '') {
+            // The folder the modules keep their own config in: one of the instance, never the core (relative, it is in the core)
+            $configs = $instance->launchSetting('ConfigDirectory');
+            $configs === '' || str_starts_with($configs, "/") || $env->reporter->info(
+                "$name: ConfigDirectory of [Startup] is \"$configs\", a folder of the core: the add-ins cannot write their config there (opensim enable or the master give one of the simulator)",
+            );
             foreach (
                 ModuleLinker::sync(
                     "$registry/addins",
                     $core,
                     $env->layout->enabledModules(),
                     $env->layout->modulesRoot(),
+                    str_starts_with($configs, '/') ? $configs : null,
                 )
                 as $note
             ) {

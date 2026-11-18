@@ -541,10 +541,13 @@ describe('The questions of the search', function () {
                 'auction' => 'False',
                 'regionname' => 'Welcome',
             ])
+            // Nothing found is not an error: the viewer says it in its list, once, where an error is an alert for each request (the
+            // viewer asks a search several times, and shows the answers of its last one only)
             ->and($none)
-            ->toBe(['success' => false, 'errorMessage' => 'No results'])
-            ->and($other['success'])
-            ->toBeFalse()
+            ->toMatchArray(['success' => true, 'data' => []])
+            // The places of another grid are not ours: none found
+            ->and($other['data'] ?? null)
+            ->toBe([])
             ->and($invalid)
             ->toBe(['success' => false, 'errorMessage' => 'Invalid search terms'])
             ->and(
@@ -617,8 +620,9 @@ describe('The questions of the search', function () {
             ])
             ->and($cheap['data'] ?? [])
             ->toBe([])
+            // No auction is none found, not an error
             ->and($auctions)
-            ->toBe(['success' => false, 'errorMessage' => 'No auctions listed']);
+            ->toMatchArray(['success' => true, 'data' => []]);
     });
 
     test('list the events of a day, or the ones to come, by category and words, and tell one in full', function () {
