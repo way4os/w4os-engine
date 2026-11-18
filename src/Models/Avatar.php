@@ -1682,14 +1682,20 @@ final class Avatar extends Model
 
     /**
      * Whether the grid lets its avatars give a web address in their profile (the Web tab of the viewers, `profileUrl`):
-     * AllowUserProfileWebURLs of `[UserProfiles]` in its OpenSim.ini, read as OpenSimulator reads it (the files it includes, its
-     * constants), true when it says nothing or nothing it knows.
+     * AllowUserProfileWebURLs of `[UserProfiles]`, read as each of its simulators reads it (its OpenSim.ini, then the file of the
+     * simulator, each with the files it includes and its constants), true when it says nothing or nothing it knows; false when one
+     * of them says false, so that a site never shows what a viewer hides.
      */
     public static function profileWebUrls(GridConfig $config): bool
     {
-        $value = strtolower(trim((string) $config->get('OpenSim.UserProfiles.AllowUserProfileWebURLs', '')));
+        $said = static fn(?array $ini): ?string => isset($ini['UserProfiles']['AllowUserProfileWebURLs']) && trim((string) $ini['UserProfiles']['AllowUserProfileWebURLs']) !== ''
+            ? strtolower(trim((string) $ini['UserProfiles']['AllowUserProfileWebURLs']))
+            : null;
+        $grid = $said($config->tree()['OpenSim'] ?? null);
+        $simulators = $config->tree()['simulators'] ?? [];
+        $values = $simulators === [] ? [$grid] : array_map(static fn(array $ini): ?string => $said($ini) ?? $grid, $simulators);
 
-        return !in_array($value, ['false', 'no', 'off'], true);
+        return array_intersect($values, ['false', 'no', 'off']) === [];
     }
 
     /**

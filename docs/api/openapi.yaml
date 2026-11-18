@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 65500f6
+  version: b69724c
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -8222,7 +8222,7 @@ components:
               description: 'The logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini)'
             allowUserProfileWebUrls:
               type: boolean
-              description: 'Its avatars may give a web address in their profile: AllowUserProfileWebURLs of `[UserProfiles]` (its OpenSim.ini), true when it says nothing; the field of the form that needs it says so (`setting`)'
+              description: 'Its avatars may give a web address in their profile: AllowUserProfileWebURLs of `[UserProfiles]` as its simulators read it (its OpenSim.ini, then the file of each), true when they say nothing, false when one says false; the field of the form that needs it says so (`setting`)'
             helpers:
               type: boolean
               description: 'Its helpers are installed'

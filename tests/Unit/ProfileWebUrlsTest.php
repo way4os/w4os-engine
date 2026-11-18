@@ -22,6 +22,7 @@ function web_urls_grid(?string $opensim, array $files = []): GridConfig
     $dir = dirname((string) avatar_grid()->file('Robust'));
     $opensim === null || file_put_contents("$dir/OpenSim.ini", str_replace('{dir}', $dir, $opensim));
     foreach ($files as $name => $text) {
+        is_dir(dirname("$dir/$name")) || mkdir(dirname("$dir/$name"), 0o755, true);
         file_put_contents("$dir/$name", $text);
     }
 
@@ -42,6 +43,21 @@ describe('The web address of a profile', function () {
             $allowed("[Includes]\n Include-Profiles = \"{dir}/Profiles.ini\"\n", ['Profiles.ini' => "[UserProfiles]\n AllowUserProfileWebURLs = off\n"]),
             $allowed("[UserProfiles]\n AllowUserProfileWebURLs = maybe\n"),
         ])->toBe([true, true, false, false, true, false, false, true]);
+    });
+
+    test('is allowed as each simulator reads it, its own file after the grid: none of them may say false', function () {
+        $allowed = static fn(?string $opensim, array $sims): bool => Avatar::profileWebUrls(web_urls_grid($opensim, array_combine(
+            array_map(static fn(string $name): string => "sims/$name.ini", array_keys($sims)),
+            $sims,
+        )));
+        $says = static fn(string $value): string => "[UserProfiles]\nAllowUserProfileWebURLs = $value\n";
+
+        expect([
+            $allowed($says('false'), ['one' => $says('true'), 'two' => $says('true')]),
+            $allowed($says('false'), ['one' => $says('true'), 'two' => "[Network]\nhttp_listener_port = 9010\n"]),
+            $allowed(null, ['one' => $says('true'), 'two' => $says('false')]),
+            $allowed($says('true'), ['one' => "[Network]\nhttp_listener_port = 9010\n"]),
+        ])->toBe([true, false, false, true]);
     });
 
     test('is not given nor changed when the grid does not allow it, as the viewers do', function () {

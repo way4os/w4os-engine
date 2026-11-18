@@ -68,7 +68,7 @@ final class Contract
                 'databaseUser' => ['string', 'The user of its database'],
                 'webUrl' => ['string?', 'The web site of its helpers'],
                 'logoUrl' => ['string?', 'The logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini)'],
-                'allowUserProfileWebUrls' => ['boolean', 'Its avatars may give a web address in their profile: AllowUserProfileWebURLs of `[UserProfiles]` (its OpenSim.ini), true when it says nothing; the field of the form that needs it says so (`setting`)'],
+                'allowUserProfileWebUrls' => ['boolean', 'Its avatars may give a web address in their profile: AllowUserProfileWebURLs of `[UserProfiles]` as its simulators read it (its OpenSim.ini, then the file of each), true when they say nothing, false when one says false; the field of the form that needs it says so (`setting`)'],
                 'helpers' => ['boolean', 'Its helpers are installed'],
                 'simulators' => ['array?', 'The names of its simulators'],
                 'announcement' => ['object?', 'What the grid says of itself at get_grid_info'],
