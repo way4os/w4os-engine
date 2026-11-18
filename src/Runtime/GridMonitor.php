@@ -210,8 +210,8 @@ final class GridMonitor
                 $instance['type'],
                 $instance['running'] ? 'up' : 'down',
                 $simulator !== null ? "{$simulator['online']}/{$simulator['regions']}" : '-',
-                $instance['running'] ? sprintf('%.1f', $instance['cpu']) : '-',
-                $instance['running'] ? sprintf('%.1f', $instance['memory']) : '-',
+                $instance['running'] ? sprintf('%.1F', $instance['cpu']) : '-',
+                $instance['running'] ? sprintf('%.1F', $instance['memory']) : '-',
             ];
         }
         foreach ($monitor['simulators'] as $simulator) {

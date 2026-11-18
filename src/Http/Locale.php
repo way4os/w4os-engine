@@ -52,6 +52,9 @@ final class Locale
             return 0;
         }
 
+        // The language of the texts only: the numbers keep their dot (a French locale writes a comma for it)
+        setlocale(LC_NUMERIC, 'C');
+
         bindtextdomain($domain, './locales');
         textdomain($domain);
         return $locale;
