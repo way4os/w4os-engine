@@ -974,6 +974,10 @@ msgctxt "offline"
 msgid "Offline"
 msgstr ""
 
+msgctxt "degraded"
+msgid "Degraded"
+msgstr ""
+
 msgctxt "presence"
 msgid "Presence"
 msgstr ""

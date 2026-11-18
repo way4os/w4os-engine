@@ -1022,6 +1022,10 @@ msgctxt "offline"
 msgid "Offline"
 msgstr "Offline"
 
+msgctxt "degraded"
+msgid "Degraded"
+msgstr "Verstoord"
+
 msgctxt "presence"
 msgid "Presence"
 msgstr "Aanwezigheid"

@@ -193,6 +193,15 @@ final class GridMonitor
     }
 
     /**
+     * The key of the text of a level in the catalog (Online, Degraded, Offline), for a page; null when the machine cannot tell.
+     * The viewers read their own keyword (ONLINE, DEGRADED, OFFLINE), never translated.
+     */
+    public static function labelKey(string $level): ?string
+    {
+        return [self::OK => 'online', self::DEGRADED => 'degraded', self::DOWN => 'offline'][$level] ?? null;
+    }
+
+    /**
      * The lines of the monitor, as `opensim status` shows its table: a title, the instances and the simulators elsewhere, the summary.
      *
      * @param array<string,mixed> $monitor see of()

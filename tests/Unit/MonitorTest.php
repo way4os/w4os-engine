@@ -127,6 +127,28 @@ describe('The monitor of a grid', function () {
         expect($monitor['level'])->toBe('degraded');
     });
 
+    test('says its level by a text of the catalog, in every language, never the keyword of the viewers', function () {
+        $keys = array_map(GridMonitor::labelKey(...), [GridMonitor::OK, GridMonitor::DEGRADED, GridMonitor::DOWN, GridMonitor::UNKNOWN]);
+        $french = OpenSim\I18n\Catalog::messages('fr_FR');
+        $missing = [];
+        foreach (glob(OpenSim\I18n\Catalog::directory() . '/*.po') ?: [] as $file) {
+            preg_match('/-([a-z]{2}_[A-Z]{2})\.po$/', $file, $m);
+            $texts = OpenSim\I18n\Catalog::messages($m[1], false);
+            foreach (array_filter($keys) as $key) {
+                ($texts[$key] ?? '') === '' && ($missing[] = "$m[1] $key");
+            }
+        }
+
+        expect($keys)
+            ->toBe(['online', 'degraded', 'offline', null])
+            ->and(array_intersect_key(OpenSim\I18n\Catalog::MESSAGES, array_flip(array_filter($keys))))
+            ->toBe(['online' => 'Online', 'offline' => 'Offline', 'degraded' => 'Degraded'])
+            ->and([$french['online'], $french['degraded'], $french['offline']])
+            ->toBe(['En ligne', 'Dégradé', 'Hors ligne'])
+            ->and($missing)
+            ->toBe([]);
+    });
+
     test('is written as the table of opensim status, with a title and a summary', function () {
         $machine = monitor_machine();
         $db = monitor_database();

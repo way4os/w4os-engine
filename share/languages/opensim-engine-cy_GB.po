@@ -1033,6 +1033,10 @@ msgctxt "offline"
 msgid "Offline"
 msgstr "All-lein"
 
+msgctxt "degraded"
+msgid "Degraded"
+msgstr "Diraddiedig"
+
 msgctxt "presence"
 msgid "Presence"
 msgstr "Presenoldeb"

@@ -331,6 +331,8 @@ final class Catalog
         'column_flags' => 'Flags',
         // Online or offline: a region that runs (its status), an avatar in the world (its presence)
         'offline' => 'Offline',
+        // A grid partly broken (GridMonitor::DEGRADED)
+        'degraded' => 'Degraded',
         'presence' => 'Presence',
         // The roles of a region (Region::roleKeys()): region_flag_ and the name of its flag in the config of Robust, in snake case
         'region_flag_default_region' => 'Default',

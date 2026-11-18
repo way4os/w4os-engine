@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (monitor): the level of a grid has its text in the catalog for a page (`GridMonitor::labelKey()`: Online, Degraded, Offline, in every language), the viewers keeping their keyword (ONLINE, DEGRADED, OFFLINE)
 - feature (settings): the settings of a grid a site shows and changes, by group, each with its form (`GET` and `PATCH /grids/{grid}/settings/{group}`, `x-form`: its `title`, its fields, its `submit`; read by the customer service, changed by a god); first the rule of the avatar models (`models`: `match` first, last, any or uuid, `pattern`, `list` of avatars, the keys of `[Models]` of w4os), written in the file of the grid that says it already, else its Helpers.ini (`GridSettings`); a field of a form may take several values (`multiple`)
 - change (options): Gloebit is set in one place, the Gloebit.ini of the grid, which every simulator includes (`Include-Gloebit` of `[Gloebit]`): its module, its environment, its keys, never also in an OpenSim.ini; the repair gives a simulator the include, never a copy, and says when the grid has no Gloebit.ini; the keys asked are found in that file too
 - change (search): the data services of a grid are `DATA_SRV_<nick of the grid>` (its helpers) and `DATA_SRV_2do` (the shared public directory, a documented line of the preset), no longer a name made of the grid's
