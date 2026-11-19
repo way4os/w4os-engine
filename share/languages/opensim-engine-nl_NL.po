@@ -1064,6 +1064,22 @@ msgctxt "column_region"
 msgid "Region"
 msgstr "Regio"
 
+msgctxt "column_region_name"
+msgid "Region Name"
+msgstr "Regio Naam"
+
+msgctxt "column_presence"
+msgid "Presence"
+msgstr "Aanwezigheid"
+
+msgctxt "column_internal_port"
+msgid "Internal Port"
+msgstr "Interne poort"
+
+msgctxt "last_activity"
+msgid "Last Activity"
+msgstr "Laatste Activiteit"
+
 msgctxt "column_size"
 msgid "Size"
 msgstr "Grootte"
@@ -2426,10 +2442,6 @@ msgstr ""
 "De registratie blijft bewaard, maar de mail naar {email} kon niet worden "
 "verzonden: vraag hem later opnieuw aan."
 
-#~ msgctxt "column_region_name"
-#~ msgid "Region Name"
-#~ msgstr "Regio Naam"
-
 #~ msgctxt "column_region_uri"
 #~ msgid "Region URI"
 #~ msgstr "Regio-URI"
@@ -2437,18 +2449,6 @@ msgstr ""
 #~ msgctxt "column_control"
 #~ msgid "Control"
 #~ msgstr "Bediening"
-
-#~ msgctxt "column_presence"
-#~ msgid "Presence"
-#~ msgstr "Aanwezigheid"
-
-#~ msgctxt "column_internal_port"
-#~ msgid "Internal Port"
-#~ msgstr "Interne poort"
-
-#~ msgctxt "last_activity"
-#~ msgid "Last Activity"
-#~ msgstr "Laatste Activiteit"
 
 #~ msgctxt "error_not_found"
 #~ msgid "There is no such avatar."

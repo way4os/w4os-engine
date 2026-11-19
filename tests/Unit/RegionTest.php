@@ -317,18 +317,18 @@ describe('Regions', function () {
         expect(array_column($listing->columns, 'type', 'name'))
             ->toBe([
                 'name' => 'text',
-                'location' => 'text',
-                'size' => 'size',
                 'ownerName' => 'link',
                 'serverName' => 'text',
-                'internalPort' => 'number',
-                'flagNames' => 'list',
                 'avatars' => 'number',
+                'internalPort' => 'number',
+                'size' => 'size',
+                'location' => 'text',
                 'lastSeen' => 'datetime',
+                'flagNames' => 'list',
                 'status' => 'indicators',
             ])
             ->and($listing->sorts())
-            ->toBe(['name', 'location', 'size', 'flags', 'lastSeen'])
+            ->toBe(['name', 'size', 'location', 'lastSeen', 'flags'])
             ->and($listing->filterValues())
             ->toBe([
                 'status' => ['online', 'offline'],
@@ -357,9 +357,9 @@ describe('Regions', function () {
             ->and(array_intersect_key($listing->filters[1], ['multiple' => 1, 'dynamic' => 1]))
             ->toBe(['multiple' => true, 'dynamic' => true])
             // The column of the flags has every flag but the status, with the texts of the filter
-            ->and($listing->columns[6]['values'])
+            ->and($listing->columns[8]['values'])
             ->toBe($listing->filters[1]['values'])
-            ->and(array_column($listing->columns[6]['values'], 'value'))
+            ->and(array_column($listing->columns[8]['values'], 'value'))
             ->toBe(array_values(array_diff(Region::NAMES, ['RegionOnline'])))
             // The map tile of the region beside its name, as the picture of an avatar
             ->and(array_intersect_key($listing->columns[0], ['picture' => 1, 'default' => 1]))
@@ -387,7 +387,7 @@ describe('Regions', function () {
             ->and(array_diff($listing->keys(), array_keys(\OpenSim\I18n\Catalog::MESSAGES)))
             ->toBe([])
             ->and(array_column(Region::columns(), 'label', 'name')['name'])
-            ->toBe('Region');
+            ->toBe('Region Name');
     });
 
     test('are searched, sorted and paged', function () {

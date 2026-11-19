@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "a56a050",
+        "version": "1aac455",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -3956,15 +3956,15 @@
                             "type": "string",
                             "enum": [
                                 "name",
-                                "location",
                                 "size",
-                                "flags",
+                                "location",
                                 "lastSeen",
+                                "flags",
                                 "-name",
-                                "-location",
                                 "-size",
-                                "-flags",
-                                "-lastSeen"
+                                "-location",
+                                "-lastSeen",
+                                "-flags"
                             ]
                         }
                     },
@@ -4083,7 +4083,7 @@
                     "columns": [
                         {
                             "name": "name",
-                            "label": "column_region",
+                            "label": "column_region_name",
                             "type": "text",
                             "sort": "name",
                             "picture": "mapImage",
@@ -4094,22 +4094,6 @@
                             "subtitleLink": "teleport",
                             "bare": false,
                             "priority": "primary"
-                        },
-                        {
-                            "name": "location",
-                            "label": "profile_location",
-                            "type": "text",
-                            "sort": "location",
-                            "bare": false,
-                            "priority": "secondary"
-                        },
-                        {
-                            "name": "size",
-                            "label": "column_size",
-                            "type": "size",
-                            "sort": "size",
-                            "bare": true,
-                            "priority": "secondary"
                         },
                         {
                             "name": "ownerName",
@@ -4129,9 +4113,40 @@
                             "priority": "secondary"
                         },
                         {
-                            "name": "internalPort",
-                            "label": "column_port",
+                            "name": "avatars",
+                            "label": "column_presence",
                             "type": "number",
+                            "bare": false,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "internalPort",
+                            "label": "column_internal_port",
+                            "type": "number",
+                            "bare": false,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "size",
+                            "label": "column_size",
+                            "type": "size",
+                            "sort": "size",
+                            "bare": true,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "location",
+                            "label": "profile_location",
+                            "type": "text",
+                            "sort": "location",
+                            "bare": false,
+                            "priority": "secondary"
+                        },
+                        {
+                            "name": "lastSeen",
+                            "label": "last_activity",
+                            "type": "datetime",
+                            "sort": "lastSeen",
                             "bare": false,
                             "priority": "secondary"
                         },
@@ -4196,21 +4211,6 @@
                             "priority": "secondary"
                         },
                         {
-                            "name": "avatars",
-                            "label": "column_avatars",
-                            "type": "number",
-                            "bare": false,
-                            "priority": "secondary"
-                        },
-                        {
-                            "name": "lastSeen",
-                            "label": "last_seen",
-                            "type": "datetime",
-                            "sort": "lastSeen",
-                            "bare": false,
-                            "priority": "secondary"
-                        },
-                        {
                             "name": "status",
                             "label": "column_status",
                             "type": "indicators",
@@ -4264,10 +4264,10 @@
                         "default": "name",
                         "values": [
                             "name",
-                            "location",
                             "size",
-                            "flags",
-                            "lastSeen"
+                            "location",
+                            "lastSeen",
+                            "flags"
                         ],
                         "descending": "-"
                     },

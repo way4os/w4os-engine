@@ -994,6 +994,22 @@ msgctxt "column_region"
 msgid "Region"
 msgstr ""
 
+msgctxt "column_region_name"
+msgid "Region Name"
+msgstr ""
+
+msgctxt "column_presence"
+msgid "Presence"
+msgstr ""
+
+msgctxt "column_internal_port"
+msgid "Internal Port"
+msgstr ""
+
+msgctxt "last_activity"
+msgid "Last Activity"
+msgstr ""
+
 msgctxt "column_size"
 msgid "Size"
 msgstr ""

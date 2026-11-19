@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (regions): the list of the regions has the columns of w4os-wp in its order and its words, within the rules of the new interface: Region Name (its address under it), Owner, Simulator, Presence (the avatars in it), Internal Port, Size, then Location, Last Activity, then Flags, and Status last (enabled, the control of w4os-wp, and online)
 - feature (lists): a column that repeats a filter says which (`mirrors` in `x-list`: the region and the owner of the parcels, the owner and the simulator of the regions), so a site leaves it out of a list of one region, one owner
 - feature (parcels): a parcel says what it allows, as the DataSnapshot of OpenSimulator says it (`scripts`: the scripts of others run, `build`: anybody builds, `public`: no access list), shown on its page; the list shows its picture (`snapshot`) beside its name: what the region page of w4os-wp shows of its parcels (its picture, its name, its owner, its area, its landing point), through `filter[region]`
 - fix (texts): the text of not-found is neutral ("Not found", was "There is no such avatar." for any resource); a problem not-found names the kind of resource that is not there (`resource`: grids, avatars, regions, posts...) and the catalog has a text for each (`error_not_found_avatar`, in the words of w4os-wp: Avatar not found; `Catalog::errorKey($code, $resource)`)

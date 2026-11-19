@@ -1070,6 +1070,22 @@ msgctxt "column_region"
 msgid "Region"
 msgstr "Region"
 
+msgctxt "column_region_name"
+msgid "Region Name"
+msgstr "Region Name"
+
+msgctxt "column_presence"
+msgid "Presence"
+msgstr "Anwesenheit"
+
+msgctxt "column_internal_port"
+msgid "Internal Port"
+msgstr "Interner Port"
+
+msgctxt "last_activity"
+msgid "Last Activity"
+msgstr "Letzte Aktivität"
+
 msgctxt "column_size"
 msgid "Size"
 msgstr "Größe"
@@ -2444,10 +2460,6 @@ msgstr ""
 "Die Registrierung bleibt bestehen, aber die Mail an {email} konnte nicht "
 "gesendet werden: fordere sie später erneut an."
 
-#~ msgctxt "column_region_name"
-#~ msgid "Region Name"
-#~ msgstr "Region Name"
-
 #~ msgctxt "column_region_uri"
 #~ msgid "Region URI"
 #~ msgstr "Region URI"
@@ -2455,18 +2467,6 @@ msgstr ""
 #~ msgctxt "column_control"
 #~ msgid "Control"
 #~ msgstr "Steuerung"
-
-#~ msgctxt "column_presence"
-#~ msgid "Presence"
-#~ msgstr "Anwesenheit"
-
-#~ msgctxt "column_internal_port"
-#~ msgid "Internal Port"
-#~ msgstr "Interner Port"
-
-#~ msgctxt "last_activity"
-#~ msgid "Last Activity"
-#~ msgstr "Letzte Aktivität"
 
 #~ msgctxt "error_not_found"
 #~ msgid "There is no such avatar."

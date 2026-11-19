@@ -1074,6 +1074,22 @@ msgctxt "column_region"
 msgid "Region"
 msgstr "Rhanbarth"
 
+msgctxt "column_region_name"
+msgid "Region Name"
+msgstr "Enw'r Rhanbarth"
+
+msgctxt "column_presence"
+msgid "Presence"
+msgstr "Presenoldeb"
+
+msgctxt "column_internal_port"
+msgid "Internal Port"
+msgstr "Porth Mewnol"
+
+msgctxt "last_activity"
+msgid "Last Activity"
+msgstr "Diweddaraeth Ola"
+
 msgctxt "column_size"
 msgid "Size"
 msgstr "Maint"
@@ -2446,10 +2462,6 @@ msgstr ""
 "Mae'r cofrestriad wedi'i gadw, ond ni ellid anfon y neges at {email}: "
 "gofynnwch amdani eto yn nes ymlaen."
 
-#~ msgctxt "column_region_name"
-#~ msgid "Region Name"
-#~ msgstr "Enw'r Rhanbarth"
-
 #~ msgctxt "column_region_uri"
 #~ msgid "Region URI"
 #~ msgstr "Rhanbarth URI"
@@ -2457,18 +2469,6 @@ msgstr ""
 #~ msgctxt "column_control"
 #~ msgid "Control"
 #~ msgstr "Rheoli"
-
-#~ msgctxt "column_presence"
-#~ msgid "Presence"
-#~ msgstr "Presenoldeb"
-
-#~ msgctxt "column_internal_port"
-#~ msgid "Internal Port"
-#~ msgstr "Porth Mewnol"
-
-#~ msgctxt "last_activity"
-#~ msgid "Last Activity"
-#~ msgstr "Diweddaraeth Ola"
 
 #~ msgctxt "error_not_found"
 #~ msgid "There is no such avatar."
