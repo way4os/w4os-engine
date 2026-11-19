@@ -88,6 +88,8 @@ final class Grid extends InstalledModel
         'preset' => '',
         'planned' => false,
         'connectors' => [],
+        // The text of its list of destinations a description gives (SiteDescription)
+        'destinationsText' => '',
         'webUrl' => '',
         'helpers' => false,
         'helpersPath' => '/helpers',
@@ -1005,8 +1007,10 @@ final class Grid extends InstalledModel
      */
     public function destinations(?GridConfig $config = null, bool $layout = false): array
     {
+        // The text a description gives (SiteDescription), else the list its source gives
+        $text = $this->get('destinationsText');
         $listed = DestinationList::parse(
-            (string) DestinationList::read(
+            is_string($text) && $text !== '' ? $text : (string) DestinationList::read(
                 $this->setting('Helpers', 'GuideSource'),
                 $this->directory !== '' ? $this->directory : null,
                 $this->environment->http,

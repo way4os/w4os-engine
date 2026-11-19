@@ -266,6 +266,9 @@ final class Router
                 'PATCH' => fn() => $this->check($body, $parsed, $path, 'settings') ??
                     $this->api->updateSettings($grid, $tail[1], $this->attributes($body, $parsed)),
             ];
+        } elseif ($grid !== null && $tail === ['site-description']) {
+            $template = '/grids/{grid}/site-description';
+            $routes = ['GET' => fn() => $this->api->siteDescription($grid)];
         } elseif ($grid !== null && $tail === ['options', 'repair']) {
             $template = '/grids/{grid}/options/repair';
             $routes = [

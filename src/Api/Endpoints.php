@@ -149,6 +149,18 @@ final class Endpoints
                 ],
             ];
         }
+        $paths['/grids/{grid}/site-description']['get'] = [
+            'operationId' => 'getSiteDescription',
+            'tags' => ['Setup'],
+            'summary' => 'The description of the grid for a site',
+            'description' => 'What a site needs of the grid for its helpers, from the files of this machine: `grid` who it is (`nick`, `name`, `baseHostname`, `publicPort`, `standalone`), `config` the settings its helpers read by file (Robust, OpenSim, Helpers, MoneyServer) and section (the addresses, the names of the databases as `Data Source=;Database=<name>;`, the settings of the helpers, the database of the money server by its name), `destinations` the text of its list of destinations when it is a file of this machine (its `GuideSource` then empty), `checkedAt` when it was read, for a site to keep it. Never a secret: no password, no key, no server of a database (the site reaches them with its own access, `Environment::system(databases:)`). The engine a site bundles makes its grid of it with `OpenSim\\Models\\SiteDescription::grid()`, never of a folder.',
+            'parameters' => [Contract::gridParameter()],
+            'responses' => [
+                '200' => ['description' => 'The description of the grid'],
+                '404' => Contract::problem('The grid is not known here'),
+                '503' => Contract::problem('The grid has no files on this machine (`channel-unavailable`)'),
+            ],
+        ];
         $paths['/grids/{grid}/options/repair']['post'] = [
             'operationId' => 'repairOptions',
             'tags' => ['Setup'],

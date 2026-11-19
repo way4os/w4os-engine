@@ -990,6 +990,21 @@ final class Api
         ]);
     }
 
+    /** What a site needs of a grid for its helpers (SiteDescription): from the files of this machine, never a secret. */
+    public function siteDescription(string $grid): Response
+    {
+        $instance = self::path('grids', $grid, null) . '/site-description';
+        try {
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            in_array('files', $found->access(), true) || throw ChannelUnavailable::because("describe $grid for a site", 'options-no-files');
+            $description = \OpenSim\Models\SiteDescription::of($found);
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document(['data' => ['type' => 'site-descriptions', 'id' => $grid, 'attributes' => $description], 'links' => ['self' => $instance]]);
+    }
+
     /**
      * Write a post on the profile of an avatar (its stream), as the avatar or a manager: `content`, plain text of Posts::MAX
      * characters at most (`post-invalid`).
