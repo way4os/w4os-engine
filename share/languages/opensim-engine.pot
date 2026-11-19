@@ -1857,7 +1857,47 @@ msgid "Too many registrations from this address. Try again in %s minutes."
 msgstr ""
 
 msgctxt "error_not_found"
-msgid "There is no such avatar."
+msgid "Not found"
+msgstr ""
+
+msgctxt "error_not_found_grid"
+msgid "Grid not found"
+msgstr ""
+
+msgctxt "error_not_found_avatar"
+msgid "Avatar not found"
+msgstr ""
+
+msgctxt "error_not_found_avatar_model"
+msgid "Avatar model not found"
+msgstr ""
+
+msgctxt "error_not_found_region"
+msgid "Region not found"
+msgstr ""
+
+msgctxt "error_not_found_simulator"
+msgid "Simulator not found"
+msgstr ""
+
+msgctxt "error_not_found_estate"
+msgid "Estate not found"
+msgstr ""
+
+msgctxt "error_not_found_parcel"
+msgid "Parcel not found"
+msgstr ""
+
+msgctxt "error_not_found_asset"
+msgid "Asset not found"
+msgstr ""
+
+msgctxt "error_not_found_post"
+msgid "Post not found"
+msgstr ""
+
+msgctxt "error_not_found_destination"
+msgid "Destination not found"
 msgstr ""
 
 msgctxt "error_invalid_request"

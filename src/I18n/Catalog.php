@@ -569,7 +569,18 @@ final class Catalog
         'error_too_many_registrations' => 'Too many registrations from this address. Try again in %s minutes.',
 
         // The problem codes of the API (Problem::CODES)
-        'error_not_found' => 'There is no such avatar.',
+        'error_not_found' => 'Not found',
+        // What is not there, by the kind of resource the problem names (`resource`)
+        'error_not_found_grid' => 'Grid not found',
+        'error_not_found_avatar' => 'Avatar not found',
+        'error_not_found_avatar_model' => 'Avatar model not found',
+        'error_not_found_region' => 'Region not found',
+        'error_not_found_simulator' => 'Simulator not found',
+        'error_not_found_estate' => 'Estate not found',
+        'error_not_found_parcel' => 'Parcel not found',
+        'error_not_found_asset' => 'Asset not found',
+        'error_not_found_post' => 'Post not found',
+        'error_not_found_destination' => 'Destination not found',
         'error_invalid_request' => 'This cannot be done.',
         'error_invalid_document' => 'This cannot be done.',
         'error_type_conflict' => 'This cannot be done.',
@@ -636,10 +647,19 @@ final class Catalog
         'notice_registered_mail_failed' => 'The registration is kept, but the mail to {email} could not be sent: ask for it again later.',
     ];
 
-    /** The key of the text of a problem code. */
-    public static function errorKey(string $code): string
+    /**
+     * The key of the text of a problem code; for not-found, the one of the kind of resource the problem names (`resource`, a type
+     * of the API: avatars is error_not_found_avatar) when the catalog has it, else the neutral one.
+     */
+    public static function errorKey(string $code, ?string $resource = null): string
     {
-        return 'error_' . str_replace('-', '_', $code);
+        $key = 'error_' . str_replace('-', '_', $code);
+        if ($code !== 'not-found' || $resource === null || $resource === '') {
+            return $key;
+        }
+        $named = $key . '_' . str_replace('-', '_', rtrim($resource, 's'));
+
+        return isset(self::MESSAGES[$named]) ? $named : $key;
     }
 
     /** The key of the text of the status of an avatar (active, disabled, pending). */
@@ -660,10 +680,10 @@ final class Catalog
         return 'manage_' . strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $action));
     }
 
-    /** The text of a problem code in English (the one of `invalid-request` for a code it does not know). */
-    public static function error(string $code): string
+    /** The text of a problem code in English (the one of `invalid-request` for a code it does not know), of its resource for not-found. */
+    public static function error(string $code, ?string $resource = null): string
     {
-        return self::MESSAGES[self::errorKey($code)] ?? self::MESSAGES[self::errorKey('invalid-request')];
+        return self::MESSAGES[self::errorKey($code, $resource)] ?? self::MESSAGES[self::errorKey('invalid-request')];
     }
 
     /**

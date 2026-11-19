@@ -188,7 +188,7 @@ final class Api
                 ]);
             }
             if ($type === 'destinations' && $grid !== null && ($query['format'] ?? '') === 'list') {
-                $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+                $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
 
                 return Response::binary(
                     DestinationList::format($found->destinations(($this->config)($found), true)),
@@ -264,7 +264,7 @@ final class Api
 
                 return $found !== null
                     ? Response::document(['data' => $found, 'links' => ['self' => $instance]])
-                    : Response::problem(Problem::notFound("destination called '$id'", $instance));
+                    : Response::problem(Problem::notFound("destination called '$id'", $instance, 'destinations'));
             }
             if ($type === 'forms') {
                 return in_array($id, self::FORMS, true)
@@ -298,7 +298,7 @@ final class Api
         try {
             $avatar = Avatar::find($this->gridConfig($grid), $id);
             if ($avatar === null) {
-                return Response::problem(Problem::notFound("avatar called '$id'", $instance));
+                return Response::problem(Problem::notFound("avatar called '$id'", $instance, 'avatars'));
             }
             $rows = match ($kind) {
                 'picks' => $avatar->picks(),
@@ -536,7 +536,7 @@ final class Api
         }
 
         return $given === []
-            ? Response::problem(Problem::notFound("avatar called '$login'", $instance))
+            ? Response::problem(Problem::notFound("avatar called '$login'", $instance, 'avatars'))
             : Response::document([
                 'data' => array_map(static fn(array $one): array => self::given('password-resets', $one), $given),
                 'links' => ['self' => $instance],
@@ -581,7 +581,7 @@ final class Api
                 // A registration that waits: the avatar is not made yet
                 $given = $id === '' ? [] : $access->renewRegistration($id, self::link($attributes), $send);
                 if ($given === []) {
-                    return Response::problem(Problem::notFound("avatar called '$id'", $instance));
+                    return Response::problem(Problem::notFound("avatar called '$id'", $instance, 'avatars'));
                 }
             } elseif (!$access->waitsForConfirmation($avatar)) {
                 return Response::problem(
@@ -653,7 +653,7 @@ final class Api
     ): Response {
         $instance = self::path('assets', $id, $grid);
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             $picture = WebAssets::for($found, $converter)->get($id, $format, $width, $of);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -678,7 +678,7 @@ final class Api
     public function motd(string $grid, string $username = ''): Response
     {
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, self::path('motd', null, $grid)));
         }
@@ -946,7 +946,7 @@ final class Api
     {
         $instance = self::path('grids', $grid, null) . "/settings/$group";
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             in_array($group, \OpenSim\Models\GridSettings::groups(), true) || throw NotFound::for("settings called '$group'");
             $settings = new \OpenSim\Models\GridSettings($found);
             $values = $changes === null ? $settings->read($group) : $settings->write($group, $changes);
@@ -968,7 +968,7 @@ final class Api
         try {
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             $repair = (new \OpenSim\Provisioning\GridOptions($found))->repair($mode === 'apply');
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -993,7 +993,7 @@ final class Api
             $config = $this->gridConfig($grid);
             $avatar = Avatar::find($config, $id);
             if ($avatar === null) {
-                return Response::problem(Problem::notFound("avatar called '$id'", $instance));
+                return Response::problem(Problem::notFound("avatar called '$id'", $instance, 'avatars'));
             }
             $post = \OpenSim\Flux\Posts::for($config)->add((string) $avatar->uuid(), $avatar->name(), (string) ($attributes['content'] ?? ''));
         } catch (\Throwable $error) {
@@ -1013,7 +1013,7 @@ final class Api
             $posts = \OpenSim\Flux\Posts::for($config);
             $found = $avatar === null ? null : $posts->find($post);
             if ($found === null || $found['avatar'] !== strtolower((string) $avatar->uuid())) {
-                return Response::problem(Problem::notFound("post '$post' of the avatar '$id'", $instance));
+                return Response::problem(Problem::notFound("post '$post' of the avatar '$id'", $instance, 'posts'));
             }
             $posts->remove($post);
         } catch (\Throwable $error) {
@@ -1236,7 +1236,7 @@ final class Api
     {
         $instance = self::path('addresses', null, $grid);
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             $addresses = $found->addresses();
             // Each service, what it is, where it is set: file by file, then section by section
             $services = array_map(static fn(Service $service): array => $service->address(), Service::of($found)->items());
@@ -1287,7 +1287,7 @@ final class Api
     {
         $instance = self::path('info', null, $grid);
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1318,7 +1318,7 @@ final class Api
     {
         $instance = self::path('monitor', null, $grid);
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             $monitor = GridMonitor::of($found, ($this->config)($found));
             $text = GridMonitor::text($monitor);
             $format = (string) ($query['format'] ?? 'json');
@@ -1363,7 +1363,7 @@ final class Api
     {
         $instance = self::path('health', null, $grid);
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             $config = ($this->config)($found);
             $tasks = $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot();
             $last = $refresh ? null : HealthCheck::last($this->environment, $found, $config);
@@ -1387,7 +1387,7 @@ final class Api
     {
         $instance = self::path('health', null, $grid) . '/' . rawurlencode($id);
         try {
-            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             $tasks = $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot();
             $line = HealthCheck::one($this->environment, $found, ($this->config)($found), $tasks, $id)
                 ?? throw NotFound::for("check '$id' of the health of $grid");
@@ -1581,6 +1581,7 @@ final class Api
                 Problem::notFound(
                     $known ? rtrim($type, 's') . " called '$id'" : "kind of resource called '$type'",
                     $instance,
+                    $known ? $type : null,
                 ),
             );
         }
@@ -1591,7 +1592,7 @@ final class Api
     /** What lets the avatars of a grid of this machine back in: its tokens and its mails. */
     private function access(string $nick): AvatarAccess
     {
-        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'");
+        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
         $config = ($this->config)($grid) ?? throw NotFound::for("config of the grid '$nick' on this machine");
         $sender = $config->find('Helpers', 'MailSender') ?? 'no-reply@' . $grid->baseHostname();
 
@@ -1681,7 +1682,7 @@ final class Api
     /** The config of a grid of this machine. */
     private function gridConfig(string $nick): GridConfig
     {
-        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'");
+        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
 
         return ($this->config)($grid) ?? throw NotFound::for("config of the grid '$nick' on this machine");
     }
@@ -1710,7 +1711,7 @@ final class Api
      */
     private function destinations(string $grid): array
     {
-        $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
+        $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
         $resources = [];
         foreach ($found->guide(($this->config)($found)) as $category => $section) {
             foreach ($section['destinations'] as $destination) {

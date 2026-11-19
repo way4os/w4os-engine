@@ -58,7 +58,7 @@ final class SetupApply
             count($known) === 1 || throw InvalidValue::because('invalid-request', 'the file names no grid (grid.nick), and this machine has not exactly one');
             $nick = $known[0];
         }
-        $grid = Grid::find($environment, $nick) ?? throw NotFound::for("grid called '$nick'");
+        $grid = Grid::find($environment, $nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
         $ui = new NullUi();
         $database ??= new DatabaseService($ui);
         $registry = new GridRegistry($database);

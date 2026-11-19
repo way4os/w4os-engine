@@ -49,11 +49,15 @@ msgstr "Nom de famille"
 msgctxt "first_name_help"
 msgid ""
 "First name must start with a letter and contain only letters and numbers"
-msgstr "Le prénom doit commencer par une lettre et ne contenir que des lettres et des chiffres"
+msgstr ""
+"Le prénom doit commencer par une lettre et ne contenir que des lettres et "
+"des chiffres"
 
 msgctxt "last_name_help"
 msgid "Last name must start with a letter and contain only letters and numbers"
-msgstr "Le nom doit commencer par une lettre et ne contenir que des lettres et des chiffres"
+msgstr ""
+"Le nom doit commencer par une lettre et ne contenir que des lettres et des "
+"chiffres"
 
 msgctxt "email"
 msgid "Email"
@@ -2020,8 +2024,48 @@ msgid "Too many registrations from this address. Try again in %s minutes."
 msgstr "Trop d’inscriptions depuis cette adresse. Réessayez dans %s minutes."
 
 msgctxt "error_not_found"
-msgid "There is no such avatar."
-msgstr "Cet avatar n’existe pas."
+msgid "Not found"
+msgstr "Introuvable"
+
+msgctxt "error_not_found_grid"
+msgid "Grid not found"
+msgstr "Grille introuvable"
+
+msgctxt "error_not_found_avatar"
+msgid "Avatar not found"
+msgstr "Avatar inexistant"
+
+msgctxt "error_not_found_avatar_model"
+msgid "Avatar model not found"
+msgstr "Modèle d’avatar introuvable"
+
+msgctxt "error_not_found_region"
+msgid "Region not found"
+msgstr "Région introuvable"
+
+msgctxt "error_not_found_simulator"
+msgid "Simulator not found"
+msgstr "Simulateur introuvable"
+
+msgctxt "error_not_found_estate"
+msgid "Estate not found"
+msgstr "Domaine introuvable"
+
+msgctxt "error_not_found_parcel"
+msgid "Parcel not found"
+msgstr "Parcelle introuvable"
+
+msgctxt "error_not_found_asset"
+msgid "Asset not found"
+msgstr "Asset introuvable"
+
+msgctxt "error_not_found_post"
+msgid "Post not found"
+msgstr "Publication introuvable"
+
+msgctxt "error_not_found_destination"
+msgid "Destination not found"
+msgstr "Destination introuvable"
 
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
@@ -2402,6 +2446,10 @@ msgid ""
 msgstr ""
 "L'inscription est gardée, mais le message à {email} n'a pas pu être envoyé : "
 "redemandez-le plus tard."
+
+#~ msgctxt "error_not_found"
+#~ msgid "There is no such avatar."
+#~ msgstr "Cet avatar n’existe pas."
 
 #~ msgctxt "connection_regions"
 #~ msgid "Region files"

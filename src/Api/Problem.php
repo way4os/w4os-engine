@@ -22,7 +22,7 @@ final class Problem
 
     /** The codes of the problems, and what each says. */
     public const CODES = [
-        'not-found' => 'What is asked is not there (a grid, a resource, an avatar)',
+        'not-found' => 'What is asked is not there (a grid, a resource, an avatar): `resource` names its kind, a type of the API, when it is one',
         'invalid-request' => 'A value of the request is wrong, the detail says which',
         'invalid-document' => 'The body is not a JSON:API document',
         'type-conflict' => 'The type of the resource of the body is not the one of the address',
@@ -103,10 +103,13 @@ final class Problem
         return new self($status, $title, $detail, $type, $instance, [], $code);
     }
 
-    /** What is asked is not there. */
-    public static function notFound(string $what, ?string $instance = null): self
+    /**
+     * What is asked is not there; `resource` (an extension member) the kind of resource, a type of the API (grids, avatars, regions),
+     * for the text a site says (Catalog::errorKey()).
+     */
+    public static function notFound(string $what, ?string $instance = null, ?string $resource = null): self
     {
-        return new self(404, 'Not found', "There is no $what.", 'urn:opensim:problem:not-found', $instance);
+        return new self(404, 'Not found', "There is no $what.", 'urn:opensim:problem:not-found', $instance, $resource === null ? [] : ['resource' => $resource]);
     }
 
     /** The problem an exception stands for. A failure of the server does not tell its message: it can hold a path or a password. */
@@ -119,6 +122,7 @@ final class Problem
                 $error->getMessage(),
                 'urn:opensim:problem:not-found',
                 $instance,
+                $error->resource === null ? [] : ['resource' => $error->resource],
             ),
             $error instanceof \InvalidArgumentException => new self(
                 self::statusOf($error),

@@ -48,11 +48,15 @@ msgstr "Cyfareddol"
 msgctxt "first_name_help"
 msgid ""
 "First name must start with a letter and contain only letters and numbers"
-msgstr "Rhaid i'r enw cyntaf ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn unig"
+msgstr ""
+"Rhaid i'r enw cyntaf ddechrau gyda llythyren a chynnwys llythrennau a rhifau "
+"yn unig"
 
 msgctxt "last_name_help"
 msgid "Last name must start with a letter and contain only letters and numbers"
-msgstr "Rhaid i'r cyfenw ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn unig"
+msgstr ""
+"Rhaid i'r cyfenw ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn "
+"unig"
 
 msgctxt "email"
 msgid "Email"
@@ -2004,8 +2008,48 @@ msgstr ""
 "munud."
 
 msgctxt "error_not_found"
-msgid "There is no such avatar."
-msgstr "Nid yw’r avatar hwn yn bodoli."
+msgid "Not found"
+msgstr "Heb ei ddarganfod"
+
+msgctxt "error_not_found_grid"
+msgid "Grid not found"
+msgstr "Grid heb ei ddarganfod"
+
+msgctxt "error_not_found_avatar"
+msgid "Avatar not found"
+msgstr "Avatar heb ei ddarganfod"
+
+msgctxt "error_not_found_avatar_model"
+msgid "Avatar model not found"
+msgstr "Model avatar heb ei ddarganfod"
+
+msgctxt "error_not_found_region"
+msgid "Region not found"
+msgstr "Rhanbarth heb ei ddarganfod"
+
+msgctxt "error_not_found_simulator"
+msgid "Simulator not found"
+msgstr "Efelychydd heb ei ddarganfod"
+
+msgctxt "error_not_found_estate"
+msgid "Estate not found"
+msgstr "Ystad heb ei darganfod"
+
+msgctxt "error_not_found_parcel"
+msgid "Parcel not found"
+msgstr "Parsel heb ei ddarganfod"
+
+msgctxt "error_not_found_asset"
+msgid "Asset not found"
+msgstr "Ased heb ei ddarganfod"
+
+msgctxt "error_not_found_post"
+msgid "Post not found"
+msgstr "Neges heb ei darganfod"
+
+msgctxt "error_not_found_destination"
+msgid "Destination not found"
+msgstr "Cyrchfan heb ei darganfod"
 
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
@@ -2389,6 +2433,10 @@ msgid ""
 msgstr ""
 "Mae'r cofrestriad wedi'i gadw, ond ni ellid anfon y neges at {email}: "
 "gofynnwch amdani eto yn nes ymlaen."
+
+#~ msgctxt "error_not_found"
+#~ msgid "There is no such avatar."
+#~ msgstr "Nid yw’r avatar hwn yn bodoli."
 
 #~ msgctxt "connection_regions"
 #~ msgid "Region files"

@@ -48,11 +48,15 @@ msgstr "Achternaam"
 msgctxt "first_name_help"
 msgid ""
 "First name must start with a letter and contain only letters and numbers"
-msgstr "De voornaam moet met een letter beginnen en mag alleen letters en cijfers bevatten"
+msgstr ""
+"De voornaam moet met een letter beginnen en mag alleen letters en cijfers "
+"bevatten"
 
 msgctxt "last_name_help"
 msgid "Last name must start with a letter and contain only letters and numbers"
-msgstr "De achternaam moet met een letter beginnen en mag alleen letters en cijfers bevatten"
+msgstr ""
+"De achternaam moet met een letter beginnen en mag alleen letters en cijfers "
+"bevatten"
 
 msgctxt "email"
 msgid "Email"
@@ -1991,8 +1995,48 @@ msgstr ""
 "Te veel registraties vanaf dit adres. Probeer het over %s minuten opnieuw."
 
 msgctxt "error_not_found"
-msgid "There is no such avatar."
-msgstr "Deze avatar bestaat niet."
+msgid "Not found"
+msgstr "Niet gevonden"
+
+msgctxt "error_not_found_grid"
+msgid "Grid not found"
+msgstr "Grid niet gevonden"
+
+msgctxt "error_not_found_avatar"
+msgid "Avatar not found"
+msgstr "Avatar niet gevonden"
+
+msgctxt "error_not_found_avatar_model"
+msgid "Avatar model not found"
+msgstr "Avatarmodel niet gevonden"
+
+msgctxt "error_not_found_region"
+msgid "Region not found"
+msgstr "Regio niet gevonden"
+
+msgctxt "error_not_found_simulator"
+msgid "Simulator not found"
+msgstr "Simulator niet gevonden"
+
+msgctxt "error_not_found_estate"
+msgid "Estate not found"
+msgstr "Estate niet gevonden"
+
+msgctxt "error_not_found_parcel"
+msgid "Parcel not found"
+msgstr "Perceel niet gevonden"
+
+msgctxt "error_not_found_asset"
+msgid "Asset not found"
+msgstr "Asset niet gevonden"
+
+msgctxt "error_not_found_post"
+msgid "Post not found"
+msgstr "Bericht niet gevonden"
+
+msgctxt "error_not_found_destination"
+msgid "Destination not found"
+msgstr "Bestemming niet gevonden"
 
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
@@ -2369,6 +2413,10 @@ msgid ""
 msgstr ""
 "De registratie blijft bewaard, maar de mail naar {email} kon niet worden "
 "verzonden: vraag hem later opnieuw aan."
+
+#~ msgctxt "error_not_found"
+#~ msgid "There is no such avatar."
+#~ msgstr "Deze avatar bestaat niet."
 
 #~ msgctxt "connection_regions"
 #~ msgid "Region files"

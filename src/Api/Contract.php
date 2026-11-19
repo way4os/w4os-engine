@@ -622,6 +622,10 @@ final class Contract
                     ],
                     'detail' => ['type' => 'string', 'description' => 'What went wrong, in English'],
                     'instance' => ['type' => 'string', 'description' => 'The address that was asked'],
+                    'resource' => [
+                        'type' => 'string',
+                        'description' => 'For `not-found`, the kind of resource that is not there, a type of the API (grids, avatars, regions, posts...): its text is `error_not_found_<the type in the singular>` of the catalog (avatars: error_not_found_avatar, avatar-models: error_not_found_avatar_model) when it has one, else the neutral `error_not_found` (`OpenSim\\I18n\\Catalog::errorKey($code, $resource)`)',
+                    ],
                 ],
             ],
         ];

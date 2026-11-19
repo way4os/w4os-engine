@@ -77,7 +77,7 @@ final class SimulatorImport
             throw InvalidValue::because('invalid-request', "cannot read the config of the simulator: $file");
         }
         $file = (string) realpath($file);
-        $found = Grid::find($environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+        $found = Grid::find($environment, $grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
         if ($found->isRemote()) {
             throw InvalidValue::because('invalid-request', "the grid '$grid' is described here, its Robust runs elsewhere: import into a grid of this machine");
         }

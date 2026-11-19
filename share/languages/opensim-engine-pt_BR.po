@@ -52,7 +52,8 @@ msgstr "O nome deve começar com uma letra e conter apenas letras e números"
 
 msgctxt "last_name_help"
 msgid "Last name must start with a letter and contain only letters and numbers"
-msgstr "O sobrenome deve começar com uma letra e conter apenas letras e números"
+msgstr ""
+"O sobrenome deve começar com uma letra e conter apenas letras e números"
 
 msgctxt "email"
 msgid "Email"
@@ -1986,8 +1987,48 @@ msgstr ""
 "Muitos cadastros a partir deste endereço. Tente novamente em %s minutos."
 
 msgctxt "error_not_found"
-msgid "There is no such avatar."
-msgstr "Este avatar não existe."
+msgid "Not found"
+msgstr "Não encontrado"
+
+msgctxt "error_not_found_grid"
+msgid "Grid not found"
+msgstr "Grade não encontrada"
+
+msgctxt "error_not_found_avatar"
+msgid "Avatar not found"
+msgstr "Avatar não encontrado"
+
+msgctxt "error_not_found_avatar_model"
+msgid "Avatar model not found"
+msgstr "Modelo de avatar não encontrado"
+
+msgctxt "error_not_found_region"
+msgid "Region not found"
+msgstr "Região não encontrada"
+
+msgctxt "error_not_found_simulator"
+msgid "Simulator not found"
+msgstr "Simulador não encontrado"
+
+msgctxt "error_not_found_estate"
+msgid "Estate not found"
+msgstr "Propriedade não encontrada"
+
+msgctxt "error_not_found_parcel"
+msgid "Parcel not found"
+msgstr "Lote não encontrado"
+
+msgctxt "error_not_found_asset"
+msgid "Asset not found"
+msgstr "Asset não encontrado"
+
+msgctxt "error_not_found_post"
+msgid "Post not found"
+msgstr "Publicação não encontrada"
+
+msgctxt "error_not_found_destination"
+msgid "Destination not found"
+msgstr "Destino não encontrado"
 
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
@@ -2358,6 +2399,10 @@ msgid ""
 msgstr ""
 "O cadastro foi mantido, mas a mensagem para {email} não pôde ser enviada: "
 "peça de novo mais tarde."
+
+#~ msgctxt "error_not_found"
+#~ msgid "There is no such avatar."
+#~ msgstr "Este avatar não existe."
 
 #~ msgctxt "connection_regions"
 #~ msgid "Region files"

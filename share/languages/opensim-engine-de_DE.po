@@ -48,11 +48,15 @@ msgstr "Nachname"
 msgctxt "first_name_help"
 msgid ""
 "First name must start with a letter and contain only letters and numbers"
-msgstr "Der Vorname muss mit einem Buchstaben beginnen und darf nur Buchstaben und Ziffern enthalten"
+msgstr ""
+"Der Vorname muss mit einem Buchstaben beginnen und darf nur Buchstaben und "
+"Ziffern enthalten"
 
 msgctxt "last_name_help"
 msgid "Last name must start with a letter and contain only letters and numbers"
-msgstr "Der Nachname muss mit einem Buchstaben beginnen und darf nur Buchstaben und Ziffern enthalten"
+msgstr ""
+"Der Nachname muss mit einem Buchstaben beginnen und darf nur Buchstaben und "
+"Ziffern enthalten"
 
 msgctxt "email"
 msgid "Email"
@@ -1999,8 +2003,48 @@ msgstr ""
 "erneut."
 
 msgctxt "error_not_found"
-msgid "There is no such avatar."
-msgstr "Diesen Avatar gibt es nicht."
+msgid "Not found"
+msgstr "Nicht gefunden"
+
+msgctxt "error_not_found_grid"
+msgid "Grid not found"
+msgstr "Grid nicht gefunden"
+
+msgctxt "error_not_found_avatar"
+msgid "Avatar not found"
+msgstr "Avatar nicht gefunden"
+
+msgctxt "error_not_found_avatar_model"
+msgid "Avatar model not found"
+msgstr "Avatar-Modell nicht gefunden"
+
+msgctxt "error_not_found_region"
+msgid "Region not found"
+msgstr "Region nicht gefunden"
+
+msgctxt "error_not_found_simulator"
+msgid "Simulator not found"
+msgstr "Simulator nicht gefunden"
+
+msgctxt "error_not_found_estate"
+msgid "Estate not found"
+msgstr "Estate nicht gefunden"
+
+msgctxt "error_not_found_parcel"
+msgid "Parcel not found"
+msgstr "Parzelle nicht gefunden"
+
+msgctxt "error_not_found_asset"
+msgid "Asset not found"
+msgstr "Asset nicht gefunden"
+
+msgctxt "error_not_found_post"
+msgid "Post not found"
+msgstr "Beitrag nicht gefunden"
+
+msgctxt "error_not_found_destination"
+msgid "Destination not found"
+msgstr "Ziel nicht gefunden"
 
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
@@ -2387,6 +2431,10 @@ msgid ""
 msgstr ""
 "Die Registrierung bleibt bestehen, aber die Mail an {email} konnte nicht "
 "gesendet werden: fordere sie später erneut an."
+
+#~ msgctxt "error_not_found"
+#~ msgid "There is no such avatar."
+#~ msgstr "Diesen Avatar gibt es nicht."
 
 #~ msgctxt "connection_regions"
 #~ msgid "Region files"

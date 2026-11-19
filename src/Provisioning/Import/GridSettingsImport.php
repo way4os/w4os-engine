@@ -59,7 +59,7 @@ final class GridSettingsImport
     /** The settings of an old config to bring into a grid of this machine, planned. */
     public static function prepare(Environment $environment, string $file, string $nick): self
     {
-        $grid = Grid::find($environment, $nick) ?? throw NotFound::for("grid called '$nick'");
+        $grid = Grid::find($environment, $nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
         is_file($file) && is_readable($file) || throw InvalidValue::because('invalid-request', "$file cannot be read");
         $target = rtrim($grid->directory(), '/') . '/OpenSim.ini';
         $sections = self::optionSections(new GridOptions($grid));

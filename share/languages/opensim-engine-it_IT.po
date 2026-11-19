@@ -49,11 +49,13 @@ msgstr "Cognome"
 msgctxt "first_name_help"
 msgid ""
 "First name must start with a letter and contain only letters and numbers"
-msgstr "Il nome deve iniziare con una lettera e contenere solo lettere e numeri"
+msgstr ""
+"Il nome deve iniziare con una lettera e contenere solo lettere e numeri"
 
 msgctxt "last_name_help"
 msgid "Last name must start with a letter and contain only letters and numbers"
-msgstr "Il cognome deve iniziare con una lettera e contenere solo lettere e numeri"
+msgstr ""
+"Il cognome deve iniziare con una lettera e contenere solo lettere e numeri"
 
 msgctxt "email"
 msgid "Email"
@@ -1997,8 +1999,48 @@ msgid "Too many registrations from this address. Try again in %s minutes."
 msgstr "Troppe registrazioni da questo indirizzo. Riprova tra %s minuti."
 
 msgctxt "error_not_found"
-msgid "There is no such avatar."
-msgstr "Questo avatar non esiste."
+msgid "Not found"
+msgstr "Non trovato"
+
+msgctxt "error_not_found_grid"
+msgid "Grid not found"
+msgstr "Griglia non trovata"
+
+msgctxt "error_not_found_avatar"
+msgid "Avatar not found"
+msgstr "Avatar non trovato"
+
+msgctxt "error_not_found_avatar_model"
+msgid "Avatar model not found"
+msgstr "Modello di avatar non trovato"
+
+msgctxt "error_not_found_region"
+msgid "Region not found"
+msgstr "Regione non trovata"
+
+msgctxt "error_not_found_simulator"
+msgid "Simulator not found"
+msgstr "Simulatore non trovato"
+
+msgctxt "error_not_found_estate"
+msgid "Estate not found"
+msgstr "Proprietà non trovata"
+
+msgctxt "error_not_found_parcel"
+msgid "Parcel not found"
+msgstr "Lotto non trovato"
+
+msgctxt "error_not_found_asset"
+msgid "Asset not found"
+msgstr "Asset non trovato"
+
+msgctxt "error_not_found_post"
+msgid "Post not found"
+msgstr "Post non trovato"
+
+msgctxt "error_not_found_destination"
+msgid "Destination not found"
+msgstr "Destinazione non trovata"
 
 msgctxt "error_invalid_request"
 msgid "This cannot be done."
@@ -2373,6 +2415,10 @@ msgid ""
 msgstr ""
 "La registrazione è conservata, ma la mail a {email} non è stata inviata: "
 "richiedila più tardi."
+
+#~ msgctxt "error_not_found"
+#~ msgid "There is no such avatar."
+#~ msgstr "Questo avatar non esiste."
 
 #~ msgctxt "connection_regions"
 #~ msgid "Region files"
