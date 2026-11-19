@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (settings): the service pages ported from w4os-wp v2: its order, words, conditions, notes, sidebars, ini lines (`meta.snippets`)
 - change (economy): the Podex message and teleport of w4os-wp, its placeholders on the economy page
 - change (economy): the rate of the currency is 10 for 1000 when none is set, as w4os-wp
 - feature (settings): the service pages start with Provide, the path under the site when on, the whole address when off

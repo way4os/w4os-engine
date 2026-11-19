@@ -41,9 +41,9 @@ final class GridSettings
             'description' => ['models_help_choice', 'models_help_create', 'models_help_not_users', 'models_help_outfit', 'models_help_rule'],
             'preview' => ['label' => 'models_preview', 'empty' => 'models_none', 'path' => '/grids/{grid}/avatar-models', 'filters' => ['match', 'pattern', 'list']],
         ],
-        'economy' => ['title' => 'settings_economy', 'menu' => 'settings_menu_economy'],
-        'search' => ['title' => 'settings_search', 'menu' => 'settings_menu_search'],
-        'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide'],
+        'economy' => ['title' => 'settings_economy', 'menu' => 'settings_menu_economy', 'description' => ['economy_help_helpers', 'economy_help_scripts', 'economy_help_module', 'economy_help_modules', 'economy_help_binaries']],
+        'search' => ['title' => 'settings_search', 'menu' => 'settings_menu_search', 'description' => ['search_help_local', 'search_help_external', 'search_help_module', 'search_help_binary']],
+        'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide', 'description' => ['guide_help_feature', 'guide_help_places']],
         'offline' => ['title' => 'settings_offline', 'menu' => 'settings_menu_offline'],
         'assets' => ['title' => 'settings_assets', 'menu' => 'settings_menu_assets'],
     ];
@@ -54,13 +54,41 @@ final class GridSettings
      * the base of the helpers (the economy: currency.php and landtool.php under it).
      */
     private const PROVIDE = [
-        'economy' => ['setting' => 'economyUrl', 'service' => 'currency', 'label' => 'provide_economy', 'base' => true],
-        'search' => ['setting' => 'searchUrl', 'service' => 'query', 'label' => 'provide_search'],
-        'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide'],
-        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'label' => 'provide_offline', 'description' => 'provide_offline_help'],
-        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'label' => 'provide_assets', 'description' => 'provide_assets_help'],
+        'economy' => ['setting' => 'economyUrl', 'service' => 'currency', 'label' => 'provide_economy', 'base' => true, 'url' => 'economy_helper_uri', 'help' => ['economy_helper_uri_help']],
+        'search' => ['setting' => 'searchUrl', 'service' => 'query', 'label' => 'provide_search', 'after' => 'searchDatabase', 'url' => 'search_engine_url', 'help' => ['search_url_help_viewer', 'search_url_help_one', 'search_url_help_web']],
+        'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide', 'after' => 'guideSource', 'url' => 'guide_url'],
+        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'label' => 'provide_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core'], 'after' => 'mailSender', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
+        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'label' => 'provide_assets', 'description' => ['provide_assets_help'], 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'placeholder' => 'https://example.org/assets', 'required' => true],
     ];
 
+    /** The fields of a page in the order w4os-wp shows them, the address of the service and Provide aside. */
+    private const ORDER = [
+        'economy' => ['economyModule', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
+        'search' => ['searchDatabase', 'dataServices', 'eventsUrl'],
+        'offline' => ['mailSender', 'offlineModule'],
+    ];
+
+    /**
+     * What w4os-wp shows of a field on a page that its setting does not say (its label there, its help in points, its placeholder,
+     * what it requires, when it is shown), and the notes it shows (`note`: a text, no value), by page and field.
+     */
+    private const SHOWN_AS = [
+        'economy' => [
+            'currencyRate' => ['condition' => ['economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule']]],
+            'gloebitConfiguration' => ['note' => true, 'after' => 'currencyRate', 'label' => 'gloebit_configuration', 'description' => ['gloebit_help_crash', 'gloebit_help_linux', 'gloebit_help_register', 'gloebit_help_config', 'gloebit_help_dll'], 'condition' => ['economyModule' => ['Gloebit']]],
+            'moneyScriptKey' => ['label' => 'money_script_access_key', 'description' => ['money_script_access_key_help']],
+        ],
+        'search' => [
+            'dataServices' => ['label' => 'search_register_url', 'description' => ['search_register_help_data', 'search_register_help_several', 'search_register_help_prefix']],
+            'eventsUrl' => ['description' => ['events_help_fetch', 'events_help_blank'], 'placeholder' => 'http://2do.directory/events/'],
+        ],
+        'guide' => [
+            'guideSource' => ['required' => true, 'description' => ['guide_source_help_file', 'guide_source_help_where', 'guide_source_help_pipe', 'guide_source_help_categories', 'guide_source_help_comments', 'guide_source_help_board']],
+        ],
+        'offline' => [
+            'mailSender' => ['required' => true],
+        ],
+    ];
     /** The type of a field of the standard format, by type of setting. */
     private const FIELD_TYPES = [
         'text' => 'string',
@@ -240,21 +268,42 @@ final class GridSettings
     {
         $provide = self::PROVIDE[$page];
         $on = ['provide' => [true]];
-        $url = [];
+        $shownAs = self::SHOWN_AS[$page] ?? [];
+        $words = ['label' => $provide['url']] + (isset($provide['help']) ? ['description' => $provide['help']] : []);
+        $address = [
+            ['name' => 'path', 'type' => 'path', 'base' => 'site'] + $words + ['condition' => $on],
+        ];
         $others = [];
         foreach ($fields as $field) {
+            $more = array_diff_key($shownAs[$field['name']] ?? [], ['condition' => 1]);
+            $condition = ($shownAs[$field['name']]['condition'] ?? []) + ($field['condition'] ?? []);
             if ($field['name'] === $provide['setting']) {
-                $url = ['condition' => ['provide' => [false]]] + $field;
+                $address[] = ['condition' => ['provide' => [false]], 'label' => $provide['url'], 'description' => $provide['urlHelp'] ?? $provide['help'] ?? []]
+                    + array_intersect_key($provide, ['placeholder' => 1, 'required' => 1]) + $field;
+                $address[1]['description'] === [] && ($address[1] = array_diff_key($address[1], ['description' => 1]));
                 continue;
             }
-            $others[] = ($field['readOnly'] ?? false) ? $field : ['condition' => $on + ($field['condition'] ?? [])] + $field;
+            $others[] = ($field['readOnly'] ?? false) ? $more + $field : ['condition' => $on + $condition] + $more + $field;
         }
+        $order = array_flip(self::ORDER[$page] ?? []);
+        usort($others, static fn(array $one, array $two): int => ($order[$one['name']] ?? PHP_INT_MAX) <=> ($order[$two['name']] ?? PHP_INT_MAX));
+        // The notes of the page, after the field w4os-wp shows them after
+        foreach ($shownAs as $name => $note) {
+            if (!($note['note'] ?? false)) {
+                continue;
+            }
+            $at = array_search($note['after'], array_column($others, 'name'), true);
+            array_splice($others, $at === false ? count($others) : $at + 1, 0, [
+                ['name' => $name, 'type' => 'note', 'label' => $note['label'], 'description' => $note['description'], 'condition' => $on + $note['condition']],
+            ]);
+        }
+        // The address where w4os-wp shows it: after Provide, or after the field it follows
+        $at = isset($provide['after']) ? array_search($provide['after'], array_column($others, 'name'), true) : false;
+        array_splice($others, $at === false ? 0 : $at + 1, 0, $address);
 
         return [
             ['name' => 'provide', 'label' => $provide['label'], 'type' => 'boolean', 'widget' => 'switch']
                 + (isset($provide['description']) ? ['description' => $provide['description']] : []),
-            ['name' => 'path', 'label' => 'provide_path', 'type' => 'path', 'base' => 'site', 'description' => 'provide_path_help', 'condition' => $on],
-            $url,
             ...$others,
         ];
     }
@@ -278,7 +327,7 @@ final class GridSettings
         $under = static fn(?string $base): bool => $url !== null && $base !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $base);
         $service = new Service($this->grid->environment(), $this->grid, $provide['service']);
 
-        return ['service' => [
+        return ['snippets' => $this->snippets($page), 'service' => [
             'key' => $provide['service'],
             'base' => $site,
             'helpers' => $helpers,
@@ -291,6 +340,104 @@ final class GridSettings
             'block' => $provide['block'] ?? null,
             'endpoint' => $service->endpoint() ?? $service->standard(),
         ]];
+    }
+
+    /**
+     * The lines of the files of the grid each field of a page shows, as w4os-wp shows them, for the values of this grid: by field, a
+     * list of `file` (null for a sample) and `text`. Never a secret: a key, a password are named, not given.
+     *
+     * @return array<string,list<array{file:?string,text:string}>>
+     */
+    private function snippets(string $page): array
+    {
+        $config = $this->config();
+        $robust = Settings::file('robust', $config);
+        $database = \OpenSim\Data\Database::Robust->connection($config);
+        [$host, $name, $user] = $database === null ? ['localhost', 'robust', 'opensim'] : [$database->source, $database->database, $database->user];
+        $url = $this->address($page) ?? '';
+        $line = static fn(?string $file, array $sections): array => ['file' => $file, 'text' => self::ini($sections)];
+
+        return match ($page) {
+            'economy' => [
+                'path' => [$line($robust, ['GridInfoService' => ['economy' => $url], 'LoginService' => ['; Currency' => 'YC$ ;; Your Currency symbol, optional']])],
+                'gloebitConfiguration' => [
+                    $line('OpenSim.ini', [
+                        'Economy' => ['economymodule' => 'Gloebit', 'economy' => $url, 'SellEnabled' => 'true', '; PriceUpload' => '0', '; PriceGroupCreate' => '0'],
+                        'Gloebit' => [
+                            'Enabled' => 'true', 'GLBEnvironment' => 'production', 'GLBKey' => '(your Gloebit app key)', 'GLBSecret' => '(your Gloebit app secret)',
+                            'GLBOwnerName' => 'Banker Name', 'GLBOwnerEmail' => 'banker@example.org',
+                            'GLBSpecificConnectionString' => "\"Data Source=$host;Database=$name;User ID=$user;Password=your_password;Old Guids=true;\"",
+                        ],
+                    ]),
+                    $line("$robust (optional, for grid-wide support)", ['GridInfoService' => ['economy' => $url], 'LoginService' => ['Currency' => 'G$']]),
+                ],
+                'moneyScriptKey' => [$line('MoneyServer.ini', [
+                    'MoneyServer' => ['EnableScriptSendMoney' => 'true', 'MoneyScriptAccessKey' => '(your key)'],
+                    'MySql' => ['hostname' => $host, 'database' => $name, 'username' => $user, 'password' => '(your password)'],
+                ])],
+            ],
+            'search' => $this->searchSnippets($url, $robust, $line),
+            'guide' => [
+                'guideSource' => [['file' => null, 'text' => implode("\n", [
+                    'Section 1', 'Display Name|yourgrid.org:8002/Region Name', 'Display Name|yourgrid.org:8002/Region Name/128/128/22',
+                    'Section 2', 'Display Name|othergrid.org:8002', 'Display Name|othergrid.org:8002/Region Name/128/128/22',
+                ])]],
+                'path' => [$line($robust, ['LoginService' => ['DestinationGuide' => $url]])],
+            ],
+            'offline' => ['path' => [
+                $line('OpenSim.ini', ['Messaging' => ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]),
+                $line($robust, ['GridInfoService' => [
+                    ';; Optional. To allow different grid to communicate their offline messages service' => null,
+                    ';; In previous versions, we recommended the "message" variable to add' => null,
+                    ';; the URL in Robust.HG.ini GridInfoService section, but this value seems' => null,
+                    ';; to be intended for other purposes, although not enforced (yet?).' => null,
+                    'OfflineMessageURL' => $url,
+                ]]),
+            ]],
+            default => [],
+        };
+    }
+
+    /**
+     * The lines of the search: what the simulators call, the web search (another setting of a similar name), the registration.
+     *
+     * @param \Closure(?string,array):array{file:?string,text:string} $line
+     * @return array<string,list<array{file:?string,text:string}>>
+     */
+    private function searchSnippets(string $url, string $robust, \Closure $line): array
+    {
+        $web = $this->grid->searchUrl() ?? 'https://example.org/search/';
+        $provided = (bool) $this->read('search')['provide'];
+        $register = $this->grid->helperUrl('register') ?: 'http://yourgrid.org/helpers/register.php';
+        $own = 'DATA_SRV_' . preg_replace('/[^A-Za-z0-9]/', '', ucwords($this->grid->name() ?: 'Your Grid'));
+
+        return [
+            'path' => [
+                $line('OpenSim.ini', ['Search' => [';; Save your settings before copying the values below' => null, 'Module' => 'OpenSimSearch', 'SearchURL' => "\"$url\""]]),
+                $line($robust, ['LoginService' => ['SearchURL' => $web], 'GridInfoService' => ['search' => $web]]),
+            ],
+            'dataServices' => [$line('OpenSim.ini', ['DataSnapshot' => [
+                'index_sims' => 'true',
+                'gridname' => '"' . $this->grid->name() . '"',
+                ($provided ? '' : '; ') . $own => "\"$register\"",
+                ($provided ? '; ' : '') . 'DATA_SRV_2do' => '"http://2do.directory/helpers/register.php"',
+                '; DATA_SRV_OtherEngine' => '"http://example.org/register.php"',
+            ]])],
+        ];
+    }
+
+    /** @param array<string,array<string,?string>> $sections section => key => value, a key with no value a line of its own */
+    private static function ini(array $sections): string
+    {
+        $text = [];
+        foreach ($sections as $section => $keys) {
+            $text[] = "[$section]";
+            foreach ($keys as $key => $value) {
+                $text[] = '    ' . ($value === null ? $key : "$key = $value");
+            }
+        }
+
+        return implode("\n", $text);
     }
 
     /** The address of the service of a page: the one the grid sets, else where its helpers answer it on its site; null for none. */

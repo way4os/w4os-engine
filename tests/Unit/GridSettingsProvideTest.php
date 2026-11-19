@@ -32,7 +32,13 @@ function provide_grid(string $more = ''): array
 describe('A settings page of a service of the helpers', function () {
     test('starts with Provide, on by default, then the path under the site, or the whole address when off', function () {
         $pages = ['economy', 'search', 'guide', 'offline', 'assets'];
-        $first = static fn(string $page): array => array_slice(GridSettings::form($page)['fields'], 0, 3);
+        // Provide first; the path and the whole address where w4os-wp shows the address
+        $first = static function (string $page): array {
+            $fields = array_column(GridSettings::form($page)['fields'], null, 'name');
+            $url = array_values(array_filter($fields, static fn(array $field): bool => ($field['condition'] ?? []) === ['provide' => [false]]))[0];
+
+            return [GridSettings::form($page)['fields'][0], $fields['path'], $url];
+        };
         $economy = array_column(GridSettings::form('economy')['fields'], null, 'name');
 
         foreach ($pages as $page) {

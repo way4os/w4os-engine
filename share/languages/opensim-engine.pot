@@ -422,6 +422,178 @@ msgctxt "provide_path"
 msgid "Path"
 msgstr ""
 
+msgctxt "provide_offline_help_core"
+msgid "OpenSimulator core offline messages module doesn't handle e-mail forwarding option available in the viewer settings."
+msgstr ""
+
+msgctxt "economy_helper_uri"
+msgid "Economy Helper URI"
+msgstr ""
+
+msgctxt "economy_helper_uri_help"
+msgid "The URL must be set in Robust configuration."
+msgstr ""
+
+msgctxt "economy_help_helpers"
+msgid "Economy helpers are additional scripts needed if you implement economy on your grid (with real or fake currency)."
+msgstr ""
+
+msgctxt "economy_help_scripts"
+msgid "Helper scripts allow communication between the money server and the grid: current balance update, currency cost estimation, land and object sales, payments..."
+msgstr ""
+
+msgctxt "economy_help_module"
+msgid "This plugin only provides the web helpers required by the money server module. A third-party module must be installed and configured on the simulator, for example:"
+msgstr ""
+
+msgctxt "economy_help_modules"
+msgid "Gloebit (gloebit.com), Podex (podex.info), DTL/NSL Money Server (nsl.tuis.ac.jp)"
+msgstr ""
+
+msgctxt "economy_help_binaries"
+msgid "Ready to use binaries and example config files can be downloaded here: github.com/magicoli/opensim-helpers"
+msgstr ""
+
+msgctxt "gloebit_configuration"
+msgid "Gloebit Configuration"
+msgstr ""
+
+msgctxt "gloebit_help_crash"
+msgid "Gloebit module needs to be configured before restarting the region, otherwise it could crash the simulator."
+msgstr ""
+
+msgctxt "gloebit_help_linux"
+msgid "For Linux, see README-Gloebit.md (github.com/magicoli/opensim-helpers) to avoid certificate-related errors."
+msgstr ""
+
+msgctxt "gloebit_help_register"
+msgid "Register an account or connect on gloebit.com and Follow instructions on dev.gloebit.com to setup an app for your grid/simulator."
+msgstr ""
+
+msgctxt "gloebit_help_config"
+msgid "Add Gloebit configuration in OpenSim.ini."
+msgstr ""
+
+msgctxt "gloebit_help_dll"
+msgid "Download the latest dll in your OpenSimulator bin/ folder (rename it Gloebit.dll), from github.com/GuduleLapointe/opensim-debian or dev.gloebit.com"
+msgstr ""
+
+msgctxt "money_script_access_key"
+msgid "Money Script Access Key"
+msgstr ""
+
+msgctxt "money_script_access_key_help"
+msgid "Choose a unique access key and set it in MoneyServer.ini"
+msgstr ""
+
+msgctxt "search_engine_url"
+msgid "Search Engine URL"
+msgstr ""
+
+msgctxt "search_url_help_viewer"
+msgid "URL of the search engine used by the viewer to provide search results (without arguments)."
+msgstr ""
+
+msgctxt "search_url_help_one"
+msgid "Only one can be set, other lines are alternative examples."
+msgstr ""
+
+msgctxt "search_url_help_web"
+msgid "Please note that Search URL is different from Web search URL, which is not handled by W4OS currently. Web search is relevant if you have a web search page dedicated to grid content, providing results with in-world URLs (hop:// or secondlife://). It is optional and is referenced here only to disambiguate settings which unfortunately have similar names."
+msgstr ""
+
+msgctxt "search_register_url"
+msgid "Search Register URL"
+msgstr ""
+
+msgctxt "search_register_help_data"
+msgid "Data service, used to register regions, objects or land for sale."
+msgstr ""
+
+msgctxt "search_register_help_several"
+msgid "You can register to several search engines."
+msgstr ""
+
+msgctxt "search_register_help_prefix"
+msgid "Each line must have a unique identifier beginning with \"DATA_SRV_\""
+msgstr ""
+
+msgctxt "events_help_fetch"
+msgid "HYPEvents Server URL, used to fetch upcoming events and make them available in search."
+msgstr ""
+
+msgctxt "events_help_blank"
+msgid "Leave blank to ignore events or if you have an other events implementation."
+msgstr ""
+
+msgctxt "search_help_local"
+msgid "Enable to use a local search engine, allowing only local results (recommended for private grids)."
+msgstr ""
+
+msgctxt "search_help_external"
+msgid "Disable to use an external search engine like 2do Directory, allowing results from both your grid and other public grids."
+msgstr ""
+
+msgctxt "search_help_module"
+msgid "Search features require the installation of OpenSimSearch Module on OpenSimulator."
+msgstr ""
+
+msgctxt "search_help_binary"
+msgid "Ready to use OpenSimSearch.Modules.dll binary can be found here: github.com/magicoli/opensim-helpers"
+msgstr ""
+
+msgctxt "guide_url"
+msgid "Destinations Guide URL"
+msgstr ""
+
+msgctxt "guide_source_help_file"
+msgid "A text file with a formatted list of destinations."
+msgstr ""
+
+msgctxt "guide_source_help_where"
+msgid "The source can be an URL or the full path of a local file your web server can access."
+msgstr ""
+
+msgctxt "guide_source_help_pipe"
+msgid "Destination name and teleport URL are separated by a pipe (|) character."
+msgstr ""
+
+msgctxt "guide_source_help_categories"
+msgid "Lines containing only text are interpreted as categories."
+msgstr ""
+
+msgctxt "guide_source_help_comments"
+msgid "Lines beginning with \"#\" or \"//\" are ignored."
+msgstr ""
+
+msgctxt "guide_source_help_board"
+msgid "The format is identical to the format used by the in-world object Gudz Teleport Board so the same source URL can be used for both."
+msgstr ""
+
+msgctxt "guide_help_feature"
+msgid "Destinations guide is a Viewer 3 feature, providing a window with places suggestions."
+msgstr ""
+
+msgctxt "guide_help_places"
+msgid "While it is not mandatory, and not every user will benefit from it, it is a useful way to provide them a list of must-see places, from your own grid or outside."
+msgstr ""
+
+msgctxt "offline_helper"
+msgid "Offline Messages Helper"
+msgstr ""
+
+msgctxt "offline_helper_help"
+msgid "Set the URL in OpenSimulator configurations."
+msgstr ""
+
+msgctxt "assets_url"
+msgid "Web Assets Server URL"
+msgstr ""
+
+msgctxt "assets_external_help"
+msgid "If 'Provide Web Assets Server' is disabled, it is necessary to install a third-party service and enter its URL here to ensure the proper functioning of the plugin."
+msgstr ""
+
 msgctxt "provide_path_help"
 msgid "Under the address of the site: under the base of the helpers, the helpers answer; elsewhere, the site, on a page with its block."
 msgstr ""
