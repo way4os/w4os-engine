@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "265b092",
+        "version": "555ded2",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -13855,7 +13855,7 @@
                                     "number",
                                     "null"
                                 ],
-                                "description": "The cpu its process takes, in percent of the machine, while it runs on this machine"
+                                "description": "The cpu its process takes, in percent of all the CPUs of the machine since it started, while it runs on this machine"
                             },
                             "memory": {
                                 "type": [
@@ -13863,6 +13863,20 @@
                                     "null"
                                 ],
                                 "description": "The memory its process takes, in percent of the machine, while it runs on this machine"
+                            },
+                            "memoryUsed": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "description": "The memory its process takes, in MB, while it runs on this machine"
+                            },
+                            "memoryTotal": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "description": "The memory of the machine it runs on, in MB, while it runs on this machine"
                             },
                             "connections": {
                                 "type": "object",
