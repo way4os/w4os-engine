@@ -2,6 +2,8 @@
 
 namespace OpenSim\Health;
 
+use OpenSim\I18n\Catalog;
+
 use OpenSim\Config\Settings;
 use OpenSim\Models\Avatar;
 use OpenSim\Config\GridConfig;
@@ -186,10 +188,10 @@ class Health
                             : $value,
                         // Compared with what the grid says, not asked: the same, or not
                         'level' => $same ? 'ok' : 'error',
-                        'status' => sprintf($same ? _('matches %s of get_grid_info') : _('differs from %s of get_grid_info'), $key),
+                        'status' => self::say($same ? 'health_matches_grid_info' : 'health_differs_grid_info', [$key]),
                     ] +
                     ($profile ? ['display' => $value] : []) +
-                    ($key === 'search' ? ['tag' => _('Web search')] : []) +
+                    ($key === 'search' ? ['tag' => self::say('health_web_search')] : []) +
                     ($same ? [] : ['detail' => "get_grid_info $key: " . ($live[$key] ?? '')]);
             }
             $groups[] = ['file' => $file['robust'], 'title' => '[GridInfoService]', 'rows' => $rows];
@@ -242,7 +244,7 @@ class Health
                 $robust = stripos((string) $config->find($entry['section'], 'OfflineMessageModule'), 'V2') !== false;
 
                 return $robust
-                    ? [self::valueRow('OfflineMessageModule', _('served by Robust (module V2)'))]
+                    ? [self::valueRow('OfflineMessageModule', self::say('health_offline_robust'))]
                     : ($value === '' ? [self::emptyRow($entry['key'])] : self::post($entry['key'], $value, self::retrieveMessages(), 'RetrieveMessages/'));
             case 'secret':
                 // The key of the currency, where the MoneyServer has it: never shown, only whether the grid has one. Without it the
@@ -258,7 +260,7 @@ class Health
                         'kind' => 'secret',
                         'set' => $has,
                         'level' => $has ? 'ok' : ($needed ? 'error' : 'unset'),
-                    ] + ($has ? ['status' => _('set')] : ($needed ? ['status' => _('missing')] : ['reason' => 'health_unset'])),
+                    ] + ($has ? ['status' => self::say('health_set')] : ($needed ? ['status' => self::say('health_missing')] : ['reason' => 'health_unset'])),
                 ];
             default:
                 return self::address($entry['key'], $value, $owner);
@@ -294,7 +296,7 @@ class Health
     private static function address($key, $value, $owner, $home = '', $variants = false)
     {
         if ($value === '') {
-            return [self::emptyRow($key) + ($key === 'search' ? ['tag' => _('Web search')] : [])];
+            return [self::emptyRow($key) + ($key === 'search' ? ['tag' => self::say('health_web_search')] : [])];
         }
         if (!self::isUrl($value)) {
             return [self::valueRow($key, $value)];
@@ -313,7 +315,7 @@ class Health
             $row['expect'] = self::TEAPOT;
         } elseif ($key === 'search') {
             // The web page of the search, not the service the simulators call
-            $row['tag'] = _('Web search');
+            $row['tag'] = self::say('health_web_search');
         } elseif (str_contains($value, '[AGENT_NAME]')) {
             // What the grid says is the address without the name, which is not a page (a teapot); the one with the name of an avatar
             // is the one of the config
@@ -327,7 +329,7 @@ class Health
             // A site answers the profile of whoever asks: signed out, as the check is, its registration
             $helpers = self::$site['helpers'] ?? null;
             if ($helpers !== null && !$helpers($value)) {
-                $row = ['expect' => self::REDIRECTS, 'stay' => true, 'refuse' => true, 'leadsTo' => (string) (self::$site['register'] ?? ''), 'tag' => _('signed out')] + $row;
+                $row = ['expect' => self::REDIRECTS, 'stay' => true, 'refuse' => true, 'leadsTo' => (string) (self::$site['register'] ?? ''), 'tag' => self::say('health_signed_out')] + $row;
                 $row['display'] = $value;
             }
 
@@ -377,20 +379,20 @@ class Health
     private static function loginSearch($value, $search)
     {
         if ($value === '') {
-            return self::emptyRow('SearchURL') + ['tag' => _('Web search')];
+            return self::emptyRow('SearchURL') + ['tag' => self::say('health_web_search')];
         }
         if ($search !== '' && rtrim($value, '/') === rtrim($search, '/')) {
             return [
                 'label' => 'SearchURL',
                 'kind' => 'address',
                 'url' => $value,
-                'tag' => _('Web search'),
+                'tag' => self::say('health_web_search'),
                 'level' => 'ok',
-                'status' => _('matches [GridInfoService] search'),
+                'status' => self::say('health_matches_search'),
             ];
         }
 
-        return self::page('SearchURL', $value, _('Web search'));
+        return self::page('SearchURL', $value, self::say('health_web_search'));
     }
 
     /** The row of an address that is not set: neither served nor tested (`unset`, `health_unset` says why), not a wrong one. */
@@ -400,6 +402,65 @@ class Health
     }
 
     /** The row of a setting that is not an address: its value, shown, nothing to ask. */
+    /** @var array<string,array{key:string,params:list<string|int>}> the texts said in this run, by their English text */
+    private static array $said = [];
+
+    /** The fields of a line that are texts of the catalog. */
+    private const TEXTS = ['status', 'tag', 'detail', 'text'];
+
+    /**
+     * A text of the health: the English sentence of the catalog (`health_*`), its values in it; remembered for withTexts().
+     *
+     * @param list<string|int> $params
+     */
+    public static function say(string $key, array $params = []): string
+    {
+        $text = vsprintf(Catalog::MESSAGES[$key] ?? $key, $params);
+        self::$said[$text] = ['key' => $key, 'params' => $params];
+
+        return $text;
+    }
+
+    /**
+     * The lines with the key and the values of their texts (`texts`, by field), for a site to say them in its language.
+     *
+     * @param list<array<string,mixed>> $groups
+     * @return list<array<string,mixed>>
+     */
+    public static function withTexts($groups)
+    {
+        foreach ($groups as $g => $group) {
+            foreach ((array) ($group['rows'] ?? []) as $r => $row) {
+                foreach (self::TEXTS as $field) {
+                    $value = $row[$field] ?? null;
+                    is_string($value) && isset(self::$said[$value]) && ($groups[$g]['rows'][$r]['texts'][$field] = self::$said[$value]);
+                }
+            }
+        }
+
+        return $groups;
+    }
+
+    /**
+     * The lines in a language: each text of the catalog (`texts`) said in it, the others as they are.
+     *
+     * @param list<array<string,mixed>> $groups
+     * @return list<array<string,mixed>>
+     */
+    public static function translate($groups, $locale)
+    {
+        $messages = Catalog::messages((string) $locale) + Catalog::MESSAGES;
+        foreach ($groups as $g => $group) {
+            foreach ((array) ($group['rows'] ?? []) as $r => $row) {
+                foreach ((array) ($row['texts'] ?? []) as $field => $text) {
+                    isset($messages[$text['key']]) && ($groups[$g]['rows'][$r][$field] = vsprintf($messages[$text['key']], $text['params']));
+                }
+            }
+        }
+
+        return $groups;
+    }
+
     public static function valueRow($label, $value)
     {
         return ['label' => $label, 'kind' => 'value', 'text' => (string) $value, 'level' => 'none'];
@@ -434,7 +495,7 @@ class Health
             $url,
             'post',
             ['method' => 'xmlrpc', 'body' => self::xmlrpcBody($call, $params)],
-            _('with valid XMLRPC request'),
+            self::say('health_with_xmlrpc'),
         );
     }
 
@@ -453,7 +514,7 @@ class Health
             'post',
             ['method' => 'post', 'body' => $body] +
                 ($suffix === '' ? [] : ['probe' => rtrim($url, '/') . '/' . $suffix]),
-            _('with valid post data'),
+            self::say('health_with_post'),
         );
     }
 
@@ -470,7 +531,7 @@ class Health
             $url,
             'get',
             ['method' => 'get', 'probe' => $url . (str_contains($url, '?') ? '&' : '?') . $query],
-            _('with valid query'),
+            self::say('health_with_query'),
         );
     }
 
@@ -492,7 +553,7 @@ class Health
                 'body' => '',
                 'expect' => self::BARE,
                 'refuse' => true,
-                'tag' => _('without data'),
+                'tag' => self::say('health_without_data'),
             ],
             ['label' => $label, 'kind' => 'address', 'url' => $url, 'tag' => $tag] + $good,
         ];
@@ -586,7 +647,7 @@ class Health
                     if ($second !== null && $second['errno'] !== self::TIMED_OUT) {
                         $later = self::verdict($second['code'], $second['error'], $second['ms'], $second['errno'], $row['expect'] ?? [], !empty($row['refuse']));
                         $verdict = $later['level'] === 'ok'
-                            ? ['level' => 'slow', 'status' => $later['status'], 'ms' => $later['ms'], 'detail' => sprintf(_('answered in %d ms, after more than %s s the first time'), $later['ms'], self::seconds($timeout))]
+                            ? ['level' => 'slow', 'status' => $later['status'], 'ms' => $later['ms'], 'detail' => self::say('health_slow', [$later['ms'], self::seconds($timeout)])]
                             : $later;
                         $result = $second;
                     }
@@ -604,12 +665,12 @@ class Health
                     // A page that does not show the block it must is wrong, whatever it answers
                     if (($verdict['level'] ?? '') === 'ok' && isset($row['contains']) && !($result['contains'] ?? false)) {
                         $verdict['level'] = 'error';
-                        $verdict['detail'] = sprintf(_('the page does not show the block %s'), (string) ($row['block'] ?? ''));
+                        $verdict['detail'] = self::say('health_block_missing', [(string) ($row['block'] ?? '')]);
                     }
                     // A redirection that does not lead where it must is wrong
                     if (($verdict['level'] ?? '') === 'ok' && ($row['leadsTo'] ?? '') !== '' && !self::sameAddress((string) ($verdict['location'] ?? ''), $row['leadsTo'])) {
                         $verdict['level'] = 'error';
-                        $verdict['detail'] = sprintf(_('sends to %s, not to %s'), $verdict['location'] ?? '', $row['leadsTo']);
+                        $verdict['detail'] = self::say('health_sends_elsewhere', [$verdict['location'] ?? '', $row['leadsTo']]);
                     }
                 }
                 $address = ($row['kind'] ?? 'address') === 'address';
@@ -743,7 +804,7 @@ class Health
         if ($code === 0) {
             return [
                 'level' => 'error',
-                'status' => sprintf(_('cURL error %d'), $errno),
+                'status' => self::say('health_curl_error', [$errno]),
                 'ms' => null,
                 'detail' => $error,
             ];
@@ -759,7 +820,7 @@ class Health
         return [
             'label' => $label,
             'level' => $good ? 'ok' : 'error',
-            'status' => $good ? _('OK') : _('missing'),
+            'status' => $good ? self::say('health_ok') : self::say('health_missing'),
             'detail' => $detail,
         ];
     }
@@ -785,7 +846,7 @@ class Health
             'path' => $path,
             'readable' => $readable,
             'level' => $readable ? 'ok' : 'error',
-            'status' => $readable ? _('readable') : (is_file($path) ? _('not readable') : _('missing')),
+            'status' => $readable ? self::say('health_readable') : (is_file($path) ? self::say('health_not_readable') : self::say('health_missing')),
         ];
     }
 
@@ -832,7 +893,8 @@ class Health
                 $rows[] = self::emptyRow($page['page']);
                 continue;
             }
-            $tag = ($page['servedBy'] ?? '') === 'helpers' ? _('helpers') : _('site');
+            $helpers = ($page['servedBy'] ?? '') === 'helpers';
+            $tag = self::say($helpers ? 'health_helpers' : 'health_site');
             // A page the site serves shows the block of the helpers it is the page of
             $block = ($page['servedBy'] ?? '') === 'site' && ($page['block'] ?? null) !== null
                 ? ['block' => $page['block'], 'contains' => self::blockMarker($page['block'])]
@@ -844,7 +906,7 @@ class Health
             $bare = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $url), '/');
             $rows[] = ($page['servedBy'] ?? '') === 'site'
                 // The profile of whoever asks, signed out: the registration of the site
-                ? self::page($page['page'], $bare, $tag . ', ' . _('signed out')) + [
+                ? self::page($page['page'], $bare, self::say($helpers ? 'health_helpers_signed_out' : 'health_site_signed_out')) + [
                     'stay' => true,
                     'refuse' => true,
                     'expect' => self::REDIRECTS,
@@ -875,7 +937,7 @@ class Health
             'exists' => $exists,
             'writable' => $good,
             'level' => $good ? 'ok' : 'error',
-            'status' => $good ? ($exists ? _('writable') : _('can be made')) : _('not writable'),
+            'status' => $good ? ($exists ? self::say('health_writable') : self::say('health_can_be_made')) : self::say('health_not_writable'),
         ] + ($good || $user === '' ? [] : ['detail' => $user]);
     }
 
@@ -892,10 +954,10 @@ class Health
         $setting ??= \OpenSim\Config\Settings::where('assetsUrl');
 
         return [
-            self::requirement('xmlrpc', function_exists('xmlrpc_encode'), 'extension or polyfill'),
-            self::requirement('imagick', class_exists('Imagick'), 'text to image, web assets'),
+            self::requirement('xmlrpc', function_exists('xmlrpc_encode'), self::say('health_for_xmlrpc')),
+            self::requirement('imagick', class_exists('Imagick'), self::say('health_for_imagick')),
             self::jpeg2000(class_exists('Imagick') && \Imagick::queryFormats('JP2') !== [], $external, $setting),
-            self::requirement('gettext', function_exists('gettext'), 'translations'),
+            self::requirement('gettext', function_exists('gettext'), self::say('health_for_gettext')),
         ];
     }
 
@@ -915,16 +977,16 @@ class Health
         $where = $setting['file'] . ' · [' . $setting['section'] . '] · ' . $setting['key'];
         $row = ['label' => 'imagick JPEG 2000', 'kind' => 'requirement', 'installed' => $reads, 'version' => null, 'setting' => $setting];
         if ($reads) {
-            return $row + ['level' => 'ok', 'status' => _('reads JPEG 2000'), 'detail' => 'required by the web assets service: the pictures of the world (JPEG 2000)'];
+            return $row + ['level' => 'ok', 'status' => self::say('health_jp2_reads'), 'detail' => self::say('health_jp2_reads_detail')];
         }
         if ($external !== null) {
-            return $row + ['level' => 'ok', 'url' => $external, 'status' => _('external web assets service'), 'detail' => "the pictures of the world are converted by the web assets service of the grid ($where)"];
+            return $row + ['level' => 'ok', 'url' => $external, 'status' => self::say('health_jp2_external'), 'detail' => self::say('health_jp2_external_detail', [$where])];
         }
 
         return $row + [
             'level' => 'error',
-            'status' => _('cannot read JPEG 2000'),
-            'detail' => "required by the web assets service, for the pictures of the world (imagick built with OpenJPEG): without it, set an external web assets service ($where)",
+            'status' => self::say('health_jp2_missing'),
+            'detail' => self::say('health_jp2_missing_detail', [$where]),
         ];
     }
 
@@ -939,7 +1001,7 @@ class Health
             'installed' => $installed,
             'version' => $version,
             'level' => $installed ? 'ok' : 'error',
-            'status' => $installed ? ($version !== null ? sprintf(_('installed %s'), $version) : _('installed (polyfill)')) : _('missing'),
+            'status' => $installed ? ($version !== null ? self::say('health_installed', [$version]) : self::say('health_installed_polyfill')) : self::say('health_missing'),
             'detail' => $for,
         ];
     }

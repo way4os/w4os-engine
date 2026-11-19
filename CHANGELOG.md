@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (health): what the health says is sentences of the catalog in six languages, each line giving their key and values (`texts`); `Health::translate()` says them in a language
 - fix (texts): the message of the day a grid sets none of is one sentence of the catalog in the language of the page (`motd_welcome`, `motd_visitor`); `Grid::motd()` takes the language
 - change (texts): `block_new_avatars_help` (was `block_new_users_help`), for the shortcode new-avatars; `snippet_example`, Example
 - feature (api): `GET /grids/{grid}/site-description`, what a site needs of a grid for its helpers (its addresses, the names of its databases, its destinations, the settings of its helpers), never a secret; `SiteDescription::grid()` makes the grid of the engine a site bundles of it

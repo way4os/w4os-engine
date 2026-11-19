@@ -2130,6 +2130,172 @@ msgctxt "health_unset"
 msgid "Not set: neither served nor tested."
 msgstr ""
 
+msgctxt "health_options_all"
+msgid "all the options of the grid"
+msgstr ""
+
+#, php-format
+msgctxt "health_options_missing"
+msgid "missing: %s"
+msgstr ""
+
+#, php-format
+msgctxt "health_matches_grid_info"
+msgid "matches %s of get_grid_info"
+msgstr ""
+
+#, php-format
+msgctxt "health_differs_grid_info"
+msgid "differs from %s of get_grid_info"
+msgstr ""
+
+msgctxt "health_web_search"
+msgid "Web search"
+msgstr ""
+
+msgctxt "health_offline_robust"
+msgid "served by Robust (module V2)"
+msgstr ""
+
+msgctxt "health_set"
+msgid "set"
+msgstr ""
+
+msgctxt "health_missing"
+msgid "missing"
+msgstr ""
+
+msgctxt "health_signed_out"
+msgid "signed out"
+msgstr ""
+
+msgctxt "health_matches_search"
+msgid "matches [GridInfoService] search"
+msgstr ""
+
+msgctxt "health_with_xmlrpc"
+msgid "with valid XMLRPC request"
+msgstr ""
+
+msgctxt "health_with_post"
+msgid "with valid post data"
+msgstr ""
+
+msgctxt "health_with_query"
+msgid "with valid query"
+msgstr ""
+
+msgctxt "health_without_data"
+msgid "without data"
+msgstr ""
+
+#, php-format
+msgctxt "health_slow"
+msgid "answered in %d ms, after more than %s s the first time"
+msgstr ""
+
+#, php-format
+msgctxt "health_block_missing"
+msgid "the page does not show the block %s"
+msgstr ""
+
+#, php-format
+msgctxt "health_sends_elsewhere"
+msgid "sends to %s, not to %s"
+msgstr ""
+
+#, php-format
+msgctxt "health_curl_error"
+msgid "cURL error %d"
+msgstr ""
+
+msgctxt "health_ok"
+msgid "OK"
+msgstr ""
+
+msgctxt "health_readable"
+msgid "readable"
+msgstr ""
+
+msgctxt "health_not_readable"
+msgid "not readable"
+msgstr ""
+
+msgctxt "health_helpers"
+msgid "helpers"
+msgstr ""
+
+msgctxt "health_site"
+msgid "site"
+msgstr ""
+
+msgctxt "health_helpers_signed_out"
+msgid "helpers, signed out"
+msgstr ""
+
+msgctxt "health_site_signed_out"
+msgid "site, signed out"
+msgstr ""
+
+msgctxt "health_writable"
+msgid "writable"
+msgstr ""
+
+msgctxt "health_can_be_made"
+msgid "can be made"
+msgstr ""
+
+msgctxt "health_not_writable"
+msgid "not writable"
+msgstr ""
+
+msgctxt "health_jp2_reads"
+msgid "reads JPEG 2000"
+msgstr ""
+
+msgctxt "health_jp2_reads_detail"
+msgid "required by the web assets service: the pictures of the world (JPEG 2000)"
+msgstr ""
+
+msgctxt "health_jp2_external"
+msgid "external web assets service"
+msgstr ""
+
+#, php-format
+msgctxt "health_jp2_external_detail"
+msgid "the pictures of the world are converted by the web assets service of the grid (%s)"
+msgstr ""
+
+msgctxt "health_jp2_missing"
+msgid "cannot read JPEG 2000"
+msgstr ""
+
+#, php-format
+msgctxt "health_jp2_missing_detail"
+msgid "required by the web assets service, for the pictures of the world (imagick built with OpenJPEG): without it, set an external web assets service (%s)"
+msgstr ""
+
+#, php-format
+msgctxt "health_installed"
+msgid "installed %s"
+msgstr ""
+
+msgctxt "health_installed_polyfill"
+msgid "installed (polyfill)"
+msgstr ""
+
+msgctxt "health_for_xmlrpc"
+msgid "extension or polyfill"
+msgstr ""
+
+msgctxt "health_for_imagick"
+msgid "text to image, web assets"
+msgstr ""
+
+msgctxt "health_for_gettext"
+msgid "translations"
+msgstr ""
+
 msgctxt "health_third_party"
 msgid "This service requires a separate web application."
 msgstr ""

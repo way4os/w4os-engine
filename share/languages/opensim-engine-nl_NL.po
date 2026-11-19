@@ -2427,7 +2427,178 @@ msgstr ""
 
 msgctxt "health_unset"
 msgid "Not set: neither served nor tested."
-msgstr ""
+msgstr "Niet ingesteld: niet geleverd en niet getest."
+
+msgctxt "health_options_all"
+msgid "all the options of the grid"
+msgstr "alle opties van het grid"
+
+#, php-format
+msgctxt "health_options_missing"
+msgid "missing: %s"
+msgstr "ontbreken: %s"
+
+#, php-format
+msgctxt "health_matches_grid_info"
+msgid "matches %s of get_grid_info"
+msgstr "komt overeen met %s van get_grid_info"
+
+#, php-format
+msgctxt "health_differs_grid_info"
+msgid "differs from %s of get_grid_info"
+msgstr "wijkt af van %s van get_grid_info"
+
+msgctxt "health_web_search"
+msgid "Web search"
+msgstr "Zoeken op het web"
+
+msgctxt "health_offline_robust"
+msgid "served by Robust (module V2)"
+msgstr "geleverd door Robust (module V2)"
+
+msgctxt "health_set"
+msgid "set"
+msgstr "ingesteld"
+
+msgctxt "health_missing"
+msgid "missing"
+msgstr "ontbreekt"
+
+msgctxt "health_signed_out"
+msgid "signed out"
+msgstr "afgemeld"
+
+msgctxt "health_matches_search"
+msgid "matches [GridInfoService] search"
+msgstr "komt overeen met search van [GridInfoService]"
+
+msgctxt "health_with_xmlrpc"
+msgid "with valid XMLRPC request"
+msgstr "met een geldig XMLRPC-verzoek"
+
+msgctxt "health_with_post"
+msgid "with valid post data"
+msgstr "met geldige verzonden gegevens"
+
+msgctxt "health_with_query"
+msgid "with valid query"
+msgstr "met een geldige zoekopdracht"
+
+msgctxt "health_without_data"
+msgid "without data"
+msgstr "zonder gegevens"
+
+#, php-format
+msgctxt "health_slow"
+msgid "answered in %d ms, after more than %s s the first time"
+msgstr "antwoordde in %d ms, na meer dan %s s de eerste keer"
+
+#, php-format
+msgctxt "health_block_missing"
+msgid "the page does not show the block %s"
+msgstr "de pagina toont het blok %s niet"
+
+#, php-format
+msgctxt "health_sends_elsewhere"
+msgid "sends to %s, not to %s"
+msgstr "stuurt naar %s, niet naar %s"
+
+#, php-format
+msgctxt "health_curl_error"
+msgid "cURL error %d"
+msgstr "cURL-fout %d"
+
+msgctxt "health_ok"
+msgid "OK"
+msgstr "OK"
+
+msgctxt "health_readable"
+msgid "readable"
+msgstr "leesbaar"
+
+msgctxt "health_not_readable"
+msgid "not readable"
+msgstr "niet leesbaar"
+
+msgctxt "health_helpers"
+msgid "helpers"
+msgstr "helpers"
+
+msgctxt "health_site"
+msgid "site"
+msgstr "site"
+
+msgctxt "health_helpers_signed_out"
+msgid "helpers, signed out"
+msgstr "helpers, afgemeld"
+
+msgctxt "health_site_signed_out"
+msgid "site, signed out"
+msgstr "site, afgemeld"
+
+msgctxt "health_writable"
+msgid "writable"
+msgstr "schrijfbaar"
+
+msgctxt "health_can_be_made"
+msgid "can be made"
+msgstr "kan worden aangemaakt"
+
+msgctxt "health_not_writable"
+msgid "not writable"
+msgstr "niet schrijfbaar"
+
+msgctxt "health_jp2_reads"
+msgid "reads JPEG 2000"
+msgstr "leest JPEG 2000"
+
+msgctxt "health_jp2_reads_detail"
+msgid ""
+"required by the web assets service: the pictures of the world (JPEG 2000)"
+msgstr "vereist door de webassets-dienst: de afbeeldingen van de wereld (JPEG 2000)"
+
+msgctxt "health_jp2_external"
+msgid "external web assets service"
+msgstr "externe webassets-dienst"
+
+#, php-format
+msgctxt "health_jp2_external_detail"
+msgid ""
+"the pictures of the world are converted by the web assets service of the "
+"grid (%s)"
+msgstr "de afbeeldingen van de wereld worden omgezet door de webassets-dienst van het grid (%s)"
+
+msgctxt "health_jp2_missing"
+msgid "cannot read JPEG 2000"
+msgstr "kan JPEG 2000 niet lezen"
+
+#, php-format
+msgctxt "health_jp2_missing_detail"
+msgid ""
+"required by the web assets service, for the pictures of the world (imagick "
+"built with OpenJPEG): without it, set an external web assets service (%s)"
+msgstr "vereist door de webassets-dienst voor de afbeeldingen van de wereld (imagick gebouwd met OpenJPEG): stel zonder dit een externe webassets-dienst in (%s)"
+
+#, php-format
+msgctxt "health_installed"
+msgid "installed %s"
+msgstr "geïnstalleerd %s"
+
+msgctxt "health_installed_polyfill"
+msgid "installed (polyfill)"
+msgstr "geïnstalleerd (polyfill)"
+
+msgctxt "health_for_xmlrpc"
+msgid "extension or polyfill"
+msgstr "extensie of polyfill"
+
+msgctxt "health_for_imagick"
+msgid "text to image, web assets"
+msgstr "tekst naar afbeelding, webassets"
+
+msgctxt "health_for_gettext"
+msgid "translations"
+msgstr "vertalingen"
 
 msgctxt "health_third_party"
 msgid "This service requires a separate web application."

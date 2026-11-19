@@ -2413,7 +2413,178 @@ msgstr ""
 
 msgctxt "health_unset"
 msgid "Not set: neither served nor tested."
-msgstr ""
+msgstr "Não definido: nem servido nem testado."
+
+msgctxt "health_options_all"
+msgid "all the options of the grid"
+msgstr "todas as opções do grid"
+
+#, php-format
+msgctxt "health_options_missing"
+msgid "missing: %s"
+msgstr "faltando: %s"
+
+#, php-format
+msgctxt "health_matches_grid_info"
+msgid "matches %s of get_grid_info"
+msgstr "corresponde a %s de get_grid_info"
+
+#, php-format
+msgctxt "health_differs_grid_info"
+msgid "differs from %s of get_grid_info"
+msgstr "difere de %s de get_grid_info"
+
+msgctxt "health_web_search"
+msgid "Web search"
+msgstr "Pesquisa na Web"
+
+msgctxt "health_offline_robust"
+msgid "served by Robust (module V2)"
+msgstr "servido pelo Robust (módulo V2)"
+
+msgctxt "health_set"
+msgid "set"
+msgstr "definido"
+
+msgctxt "health_missing"
+msgid "missing"
+msgstr "ausente"
+
+msgctxt "health_signed_out"
+msgid "signed out"
+msgstr "desconectado"
+
+msgctxt "health_matches_search"
+msgid "matches [GridInfoService] search"
+msgstr "corresponde a search de [GridInfoService]"
+
+msgctxt "health_with_xmlrpc"
+msgid "with valid XMLRPC request"
+msgstr "com uma requisição XMLRPC válida"
+
+msgctxt "health_with_post"
+msgid "with valid post data"
+msgstr "com dados enviados válidos"
+
+msgctxt "health_with_query"
+msgid "with valid query"
+msgstr "com uma consulta válida"
+
+msgctxt "health_without_data"
+msgid "without data"
+msgstr "sem dados"
+
+#, php-format
+msgctxt "health_slow"
+msgid "answered in %d ms, after more than %s s the first time"
+msgstr "respondeu em %d ms, após mais de %s s na primeira vez"
+
+#, php-format
+msgctxt "health_block_missing"
+msgid "the page does not show the block %s"
+msgstr "a página não mostra o bloco %s"
+
+#, php-format
+msgctxt "health_sends_elsewhere"
+msgid "sends to %s, not to %s"
+msgstr "envia para %s, não para %s"
+
+#, php-format
+msgctxt "health_curl_error"
+msgid "cURL error %d"
+msgstr "erro cURL %d"
+
+msgctxt "health_ok"
+msgid "OK"
+msgstr "OK"
+
+msgctxt "health_readable"
+msgid "readable"
+msgstr "legível"
+
+msgctxt "health_not_readable"
+msgid "not readable"
+msgstr "ilegível"
+
+msgctxt "health_helpers"
+msgid "helpers"
+msgstr "helpers"
+
+msgctxt "health_site"
+msgid "site"
+msgstr "site"
+
+msgctxt "health_helpers_signed_out"
+msgid "helpers, signed out"
+msgstr "helpers, desconectado"
+
+msgctxt "health_site_signed_out"
+msgid "site, signed out"
+msgstr "site, desconectado"
+
+msgctxt "health_writable"
+msgid "writable"
+msgstr "gravável"
+
+msgctxt "health_can_be_made"
+msgid "can be made"
+msgstr "pode ser criado"
+
+msgctxt "health_not_writable"
+msgid "not writable"
+msgstr "não gravável"
+
+msgctxt "health_jp2_reads"
+msgid "reads JPEG 2000"
+msgstr "lê JPEG 2000"
+
+msgctxt "health_jp2_reads_detail"
+msgid ""
+"required by the web assets service: the pictures of the world (JPEG 2000)"
+msgstr "exigido pelo serviço de recursos web: as imagens do mundo (JPEG 2000)"
+
+msgctxt "health_jp2_external"
+msgid "external web assets service"
+msgstr "serviço de recursos web externo"
+
+#, php-format
+msgctxt "health_jp2_external_detail"
+msgid ""
+"the pictures of the world are converted by the web assets service of the "
+"grid (%s)"
+msgstr "as imagens do mundo são convertidas pelo serviço de recursos web do grid (%s)"
+
+msgctxt "health_jp2_missing"
+msgid "cannot read JPEG 2000"
+msgstr "não lê JPEG 2000"
+
+#, php-format
+msgctxt "health_jp2_missing_detail"
+msgid ""
+"required by the web assets service, for the pictures of the world (imagick "
+"built with OpenJPEG): without it, set an external web assets service (%s)"
+msgstr "exigido pelo serviço de recursos web para as imagens do mundo (imagick compilado com OpenJPEG): sem ele, defina um serviço de recursos web externo (%s)"
+
+#, php-format
+msgctxt "health_installed"
+msgid "installed %s"
+msgstr "instalado %s"
+
+msgctxt "health_installed_polyfill"
+msgid "installed (polyfill)"
+msgstr "instalado (polyfill)"
+
+msgctxt "health_for_xmlrpc"
+msgid "extension or polyfill"
+msgstr "extensão ou polyfill"
+
+msgctxt "health_for_imagick"
+msgid "text to image, web assets"
+msgstr "texto em imagem, recursos web"
+
+msgctxt "health_for_gettext"
+msgid "translations"
+msgstr "traduções"
 
 msgctxt "health_third_party"
 msgid "This service requires a separate web application."

@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "5cda5a8",
+        "version": "dd31a55",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -10660,7 +10660,11 @@
                                                         },
                                                         "tag": {
                                                             "type": "string",
-                                                            "description": "How it was asked or what it is, translated (without data, with valid post data, Web search)"
+                                                            "description": "How it was asked or what it is, in English (without data, with valid post data, Web search): its key in `texts`"
+                                                        },
+                                                        "texts": {
+                                                            "type": "object",
+                                                            "description": "The texts of the line that are sentences of the catalog, by field (`status`, `tag`, `detail`, `text`): their `key` (`health_*`) and their `params`, the values of its placeholders, for a site to say them in its language (`OpenSim\\Health\\Health::translate()`); a field it has not is shown as it is"
                                                         },
                                                         "level": {
                                                             "type": "string",
@@ -10675,7 +10679,7 @@
                                                         },
                                                         "status": {
                                                             "type": "string",
-                                                            "description": "What was found, translated: the HTTP code or the error of curl (an address), installed 8.3 (a requirement), writable, readable, set, as the grid says, missing..."
+                                                            "description": "What was found, in English (its key in `texts`): the HTTP code or the error of curl (an address), installed 8.3 (a requirement), writable, readable, set, as the grid says, missing..."
                                                         },
                                                         "ms": {
                                                             "type": [
@@ -10920,7 +10924,11 @@
                                                                                 },
                                                                                 "tag": {
                                                                                     "type": "string",
-                                                                                    "description": "How it was asked or what it is, translated (without data, with valid post data, Web search)"
+                                                                                    "description": "How it was asked or what it is, in English (without data, with valid post data, Web search): its key in `texts`"
+                                                                                },
+                                                                                "texts": {
+                                                                                    "type": "object",
+                                                                                    "description": "The texts of the line that are sentences of the catalog, by field (`status`, `tag`, `detail`, `text`): their `key` (`health_*`) and their `params`, the values of its placeholders, for a site to say them in its language (`OpenSim\\Health\\Health::translate()`); a field it has not is shown as it is"
                                                                                 },
                                                                                 "level": {
                                                                                     "type": "string",
@@ -10935,7 +10943,7 @@
                                                                                 },
                                                                                 "status": {
                                                                                     "type": "string",
-                                                                                    "description": "What was found, translated: the HTTP code or the error of curl (an address), installed 8.3 (a requirement), writable, readable, set, as the grid says, missing..."
+                                                                                    "description": "What was found, in English (its key in `texts`): the HTTP code or the error of curl (an address), installed 8.3 (a requirement), writable, readable, set, as the grid says, missing..."
                                                                                 },
                                                                                 "ms": {
                                                                                     "type": [

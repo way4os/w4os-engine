@@ -127,7 +127,7 @@ final class HealthCheck
                     'kind' => 'option',
                     'missing' => $missing,
                     'level' => $missing === [] ? 'ok' : 'error',
-                    'status' => $missing === [] ? _('all the options of the grid') : sprintf(_('missing: %s'), implode(', ', $missing)),
+                    'status' => $missing === [] ? Health::say('health_options_all') : Health::say('health_options_missing', [implode(', ', $missing)]),
                 ] + ($missing === [] ? [] : ['fix' => 'POST /grids/{grid}/options/repair']);
             },
             $grid->simulators(),
@@ -176,7 +176,8 @@ final class HealthCheck
     {
         $groups = Health::describe($groups, static fn(string $url): bool => $grid->servedByHelpers($url));
 
-        return Health::expect($groups, (new GridOptions($grid))->expected(), $config?->section('Const') ?? []);
+        // The texts of each line by their key, for a site to say them in its language
+        return Health::withTexts(Health::expect($groups, (new GridOptions($grid))->expected(), $config?->section('Const') ?? []));
     }
 
     /**
