@@ -1064,3 +1064,15 @@ describe('The health, line by line', function () {
             ->toBe(['getHealthCheck', 100]);
     });
 });
+
+describe('The words of the health', function () {
+    test('are the ones of w4os-wp and its translations, where w4os-wp has them', function () {
+        $en = OpenSim\I18n\Catalog::MESSAGES;
+        $fr = OpenSim\I18n\Catalog::messages('fr_FR');
+
+        expect([$en['setting_welcome'], $en['setting_login'], $en['setting_destination_guide'], $en['setting_search_service'], $en['health_third_party']])
+            ->toBe(['Splash', 'Login URI', 'Destinations Guide', 'Search Service', 'This service requires a separate web application.'])
+            ->and([$fr['setting_register'], $fr['setting_offline_messages'], $fr['health_third_party']])
+            ->toBe(["Page d'enregistrement", 'Messages hors-ligne', 'Ce service requiert une application web distincte.']);
+    });
+});

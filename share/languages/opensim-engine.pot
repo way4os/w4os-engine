@@ -1003,7 +1003,7 @@ msgid "Degraded"
 msgstr ""
 
 msgctxt "setting_login"
-msgid "Login address"
+msgid "Login URI"
 msgstr ""
 
 msgctxt "setting_login_help"
@@ -1027,11 +1027,11 @@ msgid "Where the avatars of this grid are known when they visit other grids (hyp
 msgstr ""
 
 msgctxt "setting_welcome"
-msgid "Splash page"
+msgid "Splash"
 msgstr ""
 
 msgctxt "setting_welcome_help"
-msgid "The page the viewer shows with its login form: short, only what matters."
+msgid "The welcome page displayed in the viewer with the login form. A short, no-scroll page, with only essential info. It is required, or at least highly recommended."
 msgstr ""
 
 msgctxt "setting_economy"
@@ -1039,7 +1039,7 @@ msgid "Economy"
 msgstr ""
 
 msgctxt "setting_economy_help"
-msgid "The base of the currency and land services the viewer calls (currency.php, landtool.php): not a page."
+msgid "Currencies and some other services queried by the viewer. They are not accessed directly by the user."
 msgstr ""
 
 msgctxt "setting_about"
@@ -1047,7 +1047,7 @@ msgid "About this grid"
 msgstr ""
 
 msgctxt "setting_about_help"
-msgid "A page of the web site about the grid, linked from the login page of the viewer."
+msgid "Detailed info page on your website, via a link displayed on the viewer login page."
 msgstr ""
 
 msgctxt "setting_register"
@@ -1055,7 +1055,7 @@ msgid "Registration page"
 msgstr ""
 
 msgctxt "setting_register_help"
-msgid "Where a visitor makes an avatar."
+msgid "Link to the user registration."
 msgstr ""
 
 msgctxt "setting_help"
@@ -1063,7 +1063,7 @@ msgid "Help"
 msgstr ""
 
 msgctxt "setting_help_help"
-msgid "A help page of the web site."
+msgid "Link to a help page on your website."
 msgstr ""
 
 msgctxt "setting_password"
@@ -1071,11 +1071,11 @@ msgid "Password recovery"
 msgstr ""
 
 msgctxt "setting_password_help"
-msgid "Where a user who lost their password gets a new one."
+msgid "Link to lost password page."
 msgstr ""
 
 msgctxt "setting_grid_status"
-msgid "Grid status"
+msgid "Grid Status"
 msgstr ""
 
 msgctxt "setting_grid_status_help"
@@ -1095,23 +1095,23 @@ msgid "Avatar profile"
 msgstr ""
 
 msgctxt "setting_web_profile_help"
-msgid "The web profile of an avatar, [AGENT_NAME] standing for its name: the viewers open it."
+msgid "The base URL for avatar web profiles."
 msgstr ""
 
 msgctxt "setting_web_search"
-msgid "Web search"
+msgid "Web Search"
 msgstr ""
 
 msgctxt "setting_web_search_help"
-msgid "The Web tab of the search window of the viewers: a page that searches the grid."
+msgid "Web tab of viewer search windows. Relevant if you have a search page providing content from the grid."
 msgstr ""
 
 msgctxt "setting_destination_guide"
-msgid "Destination guide"
+msgid "Destinations Guide"
 msgstr ""
 
 msgctxt "setting_destination_guide_help"
-msgid "The destinations the viewers show in their guide."
+msgid "Destinations guide is a Viewer 3 feature, providing a window with places suggestions."
 msgstr ""
 
 msgctxt "setting_message_url"
@@ -1123,11 +1123,11 @@ msgid "The message the viewers show at login."
 msgstr ""
 
 msgctxt "setting_search_service"
-msgid "Search service"
+msgid "Search Service"
 msgstr ""
 
 msgctxt "setting_search_service_help"
-msgid "What the simulators ask for the search of the viewers (places, people, events, classifieds); needs the OpenSimSearch module. Not a page."
+msgid "Search service used by the viewer. Search can be provided by the simulator core (limited), or by an external service for additional functionalities (like events). Requires OpenSimSearch.Modules.dll."
 msgstr ""
 
 msgctxt "setting_data_service"
@@ -1143,7 +1143,7 @@ msgid "Offline messages"
 msgstr ""
 
 msgctxt "setting_offline_messages_help"
-msgid "Where the simulators keep the messages of the avatars who are away, delivered at their next login. Not a page."
+msgid "Needed by viewers to keep messages while user is offline and deliver them when they come back online. Internal service, not accessed directly by the user."
 msgstr ""
 
 msgctxt "setting_offline_module"
@@ -1163,7 +1163,7 @@ msgid "The key the currency services and the money server share: never shown, on
 msgstr ""
 
 msgctxt "setting_helpers"
-msgid "Helpers"
+msgid "Helpers base"
 msgstr ""
 
 msgctxt "setting_helpers_help"
@@ -1199,7 +1199,7 @@ msgid "Not set: neither served nor tested."
 msgstr ""
 
 msgctxt "health_third_party"
-msgid "This service needs a web application of its own: the helpers of OpenSim engine, or another one."
+msgid "This service requires a separate web application."
 msgstr ""
 
 msgctxt "presence"
