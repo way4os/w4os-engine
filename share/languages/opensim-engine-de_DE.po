@@ -1704,6 +1704,12 @@ msgctxt "setting_podex_url"
 msgid "Exchange Teleport URL"
 msgstr "Austausch der Teleport-URL"
 
+msgctxt "podex_message_placeholder"
+msgid ""
+"Please use our terminals in-world to proceed. Click OK to teleport to Podex "
+"Exchange area."
+msgstr "Bitte benutzen Sie unsere Terminals in der Welt, um fortzufahren. Klicken Sie auf OK, um sich in den Bereich der Podex-Börse zu teleportieren."
+
 msgctxt "setting_assets_url"
 msgid "Web Assets Server URL"
 msgstr "Web Assets Server URL"

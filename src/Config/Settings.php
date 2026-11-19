@@ -151,8 +151,8 @@ final class Settings
                 'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'placeholder' => '10', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
                 'CurrencyRatePer' => ['name' => 'currencyRatePer', 'type' => 'float', 'label' => 'setting_currency_rate_per', 'default' => 1000.0],
                 'GloebitConversionThreshold' => ['name' => 'gloebitThreshold', 'type' => 'float', 'label' => 'setting_gloebit_threshold', 'default' => 1.2],
-                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
-                'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'placeholder' => 'podex_message_placeholder', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+                'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'placeholder' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
             ],
             'Models' => [
                 'Match' => ['name' => 'match', 'type' => 'select', 'label' => 'models_match', 'widget' => 'radio', 'options' => ['first' => 'models_match_first', 'any' => 'models_match_any', 'last' => 'models_match_last', 'uuid' => 'models_match_uuid'], 'default' => 'any', 'admin' => 'models'],

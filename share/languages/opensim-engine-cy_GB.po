@@ -1706,6 +1706,12 @@ msgctxt "setting_podex_url"
 msgid "Exchange Teleport URL"
 msgstr "交换传送URL"
 
+msgctxt "podex_message_placeholder"
+msgid ""
+"Please use our terminals in-world to proceed. Click OK to teleport to Podex "
+"Exchange area."
+msgstr "Defnyddiwch ein terfynellau yn y byd i fwrw ymlaen. Cliciwch OK i deleportio i ardal Cyfnewid Podex."
+
 msgctxt "setting_assets_url"
 msgid "Web Assets Server URL"
 msgstr "Web Assets Server URL"

@@ -81,6 +81,9 @@ describe('The settings pages of the services', function () {
             ->toMatchArray(['type' => 'secret', 'condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule']]])
             ->and($economy['currencyRate'])
             ->toMatchArray(['type' => 'number', 'description' => 'setting_currency_rate_help'])
+            // The placeholders of w4os-wp
+            ->and([Catalog::MESSAGES[$economy['podexMessage']['placeholder']], $economy['podexUrl']['placeholder'], $economy['podexUrl']['required'] ?? false])
+            ->toBe(['Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area.', 'secondlife://Podex Exchange/128/128/21', true])
             ->and($economy['economyModule'])
             ->toMatchArray(['type' => 'select', 'readOnly' => true])
             ->and(array_keys($economy['economyModule']['options']))

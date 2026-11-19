@@ -71,7 +71,7 @@ final class GridSettings
     ];
 
     /** What a field says of its setting, beside its name and its type. */
-    private const SHOWN = ['label', 'options', 'widget', 'placeholder', 'condition', 'multiple', 'description', 'readOnly'];
+    private const SHOWN = ['label', 'options', 'widget', 'placeholder', 'condition', 'multiple', 'description', 'readOnly', 'required'];
 
     /** The roles of the files of the grid, in the order it reads a setting from them (GridConfig::find()). */
     private const FILES = ['Robust', 'OpenSim', 'Helpers', 'MoneyServer'];

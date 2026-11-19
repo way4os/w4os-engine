@@ -284,7 +284,7 @@ describe('The currency', function () {
             ->and(money_currency($db, $calls, ['provider' => 'podex'])->refusal(MONEY_AGENT))
             ->toBe([
                 'errorMessage' =>
-                    'Please use our terminals in-world to proceed. Click OK to teleport to terminals region. secondlife://Podex Exchange/128/128/21',
+                    'Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area. secondlife://Podex Exchange/128/128/21',
                 'errorURI' => null,
             ])
             ->and(

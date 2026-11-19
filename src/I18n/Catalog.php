@@ -481,6 +481,7 @@ final class Catalog
         'setting_gloebit_threshold' => 'Gloebit Conversion Threshold',
         'setting_podex_message' => 'Podex Redirect Message',
         'setting_podex_url' => 'Exchange Teleport URL',
+        'podex_message_placeholder' => 'Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area.',
         'setting_assets_url' => 'Web Assets Server URL',
         'setting_assets_url_help' => 'The web assets server of the grid when it is not the one of the helpers: it converts the pictures of the world (JPEG 2000) for the web.',
         'offline_module_v1' => 'By the helpers (V1)',

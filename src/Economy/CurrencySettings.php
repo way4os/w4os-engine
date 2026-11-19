@@ -38,7 +38,7 @@ final class CurrencySettings
         public readonly bool $gloebitSandbox = false,
         public readonly array $gloebitPacks = self::GLOEBIT_PACKS,
         public readonly float $gloebitThreshold = 1.2,
-        public readonly string $podexMessage = 'Please use our terminals in-world to proceed. Click OK to teleport to terminals region.',
+        public readonly string $podexMessage = 'Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area.',
         public readonly string $podexUrl = 'secondlife://Podex Exchange/128/128/21',
     ) {}
 
