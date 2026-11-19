@@ -542,22 +542,25 @@ describe('The contract', function () {
             ->toBe([
                 'name' => 'text',
                 'email' => 'email',
-                'role' => 'role',
+                'shownRole' => 'role',
                 'type' => 'list',
                 'created' => 'datetime',
                 'lastSeen' => 'datetime',
+                    'estates' => 'number',
+                    'regions' => 'number',
+                    'parcels' => 'number',
                 'status' => 'indicators',
             ])
             // The account, the button that enables or disables it, and the presence in the world
             ->and(array_map(
                 static fn(array $indicator): array => [$indicator['name'], $indicator['icon'], array_column($indicator['states'], 'tone', 'label'), $indicator['actions'] ?? []],
-                $avatars['x-list']['columns'][6]['indicators'],
+                $avatars['x-list']['columns'][9]['indicators'],
             ))
             ->toBe([
                 ['accountState', 'account', ['online' => 'ok', 'status_active' => 'ok', 'status_pending' => 'off', 'status_disabled' => 'off', 'status_banned' => 'failed'], ['enable', 'disable']],
                 ['ban', 'ban', ['state_grid_banned' => 'failed', 'state_estate_banned' => 'warning'], []],
             ])
-            ->and($avatars['x-list']['columns'][6]['sort'])
+            ->and($avatars['x-list']['columns'][9]['sort'])
             ->toBe('active')
             ->and($avatars['x-list']['sort'])
             ->toBe([

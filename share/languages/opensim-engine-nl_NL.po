@@ -1332,6 +1332,14 @@ msgctxt "role_maintenance"
 msgid "Maintenance"
 msgstr "Onderhoud"
 
+msgctxt "role_model"
+msgid "Model"
+msgstr "Model"
+
+msgctxt "role_service_account"
+msgid "Service Account"
+msgstr "Service Account"
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Activeren"
@@ -2936,6 +2944,10 @@ msgstr "Openbare toegang"
 msgctxt "column_regions"
 msgid "Regions"
 msgstr "Regio's"
+
+msgctxt "column_estates"
+msgid "Estates"
+msgstr "Estates"
 
 msgctxt "parcel"
 msgid "Parcel"

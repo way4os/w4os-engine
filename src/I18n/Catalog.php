@@ -375,6 +375,9 @@ final class Catalog
         'role_liaison' => 'Liaison',
         'role_god' => 'God',
         'role_maintenance' => 'Maintenance',
+        // The roles a list shows besides the levels: a model of the grid, the account of its services
+        'role_model' => 'Model',
+        'role_service_account' => 'Service Account',
         'action_enable' => 'Enable',
         'action_disable' => 'Disable',
         'action_start' => 'Start',
@@ -760,6 +763,7 @@ final class Catalog
         'parcel_build' => 'Build',
         'parcel_public' => 'Public access',
         'column_regions' => 'Regions',
+        'column_estates' => 'Estates',
         'parcel' => 'Parcel',
         'column_type' => 'Type',
         'filter_local' => 'Local',

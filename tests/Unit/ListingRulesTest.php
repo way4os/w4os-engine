@@ -59,7 +59,7 @@ describe('Every list', function () {
         expect($wrong)
             ->toBe([])
             // An email, a role, a status say what they are; a date needs its label
-            ->and([$avatars['email']['bare'], $avatars['role']['bare'], $avatars['status']['bare'], $avatars['created']['bare']])
+            ->and([$avatars['email']['bare'], $avatars['shownRole']['bare'], $avatars['status']['bare'], $avatars['created']['bare']])
             ->toBe([true, true, true, false])
             ->and([$avatars['name']['priority'], $avatars['status']['priority'], $avatars['email']['priority']])
             ->toBe(['primary', 'primary', 'secondary']);

@@ -16,14 +16,14 @@ use OpenSim\Models\Parcel;
 use OpenSim\Models\Region;
 
 describe('The columns of the regions', function () {
-    test('are the ones of w4os-wp in its order and its words, the address under the name and the status last', function () {
+    test('are the ones of w4os-wp in its order and its words, what the region holds after its presence, the address under the name and the status last', function () {
         $columns = Region::listing()->document()['columns'];
         $byName = array_column($columns, null, 'name');
 
         expect(array_column($columns, 'name'))
-            ->toBe(['name', 'ownerName', 'serverName', 'avatars', 'internalPort', 'size', 'location', 'lastSeen', 'flagNames', 'status'])
+            ->toBe(['name', 'ownerName', 'serverName', 'avatars', 'prims', 'scripts', 'internalPort', 'size', 'location', 'lastSeen', 'flagNames', 'status'])
             ->and(array_map(static fn(array $column): string => Catalog::MESSAGES[$column['label']], $columns))
-            ->toBe(['Region Name', 'Owner', 'Simulator', 'Presence', 'Internal Port', 'Size', 'Location', 'Last Activity', 'Flags', 'Status'])
+            ->toBe(['Region Name', 'Owner', 'Simulator', 'Presence', 'Prims', 'Scripts', 'Internal Port', 'Size', 'Location', 'Last Activity', 'Flags', 'Status'])
             ->and(array_map(static fn(array $column): string => Catalog::messages('fr_FR')[$column['label']], [$byName['name'], $byName['avatars'], $byName['lastSeen']]))
             ->toBe(['Nom de la région', 'Présence', 'Dernière activité'])
             ->and(array_intersect_key($byName['name'], ['subtitle' => 1, 'subtitleLink' => 1]))

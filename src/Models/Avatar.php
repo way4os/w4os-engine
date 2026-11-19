@@ -131,6 +131,9 @@ final class Avatar extends Model
     /** @var ?array<string,list<string>> the estates whose ban lists have each avatar, read once for a list (all()); null: not read */
     private ?array $estateBanned = null;
 
+    /** @var ?array{estates:?array<string,int>,regions:?array<string,int>,parcels:?array<string,int>} what the avatars own, read once for a list */
+    private ?array $owned = null;
+
     /** What the name of an account may have besides letters and digits. */
     private const NAME_PUNCTUATION = '-';
 
@@ -140,7 +143,7 @@ final class Avatar extends Model
     private const PROFILE_COLUMNS = 'p.profileImage, p.profileAboutText, p.profileURL, p.profilePartner, p.profileWantToMask, p.profileWantToText, p.profileSkillsMask, p.profileSkillsText, p.profileLanguages, p.profileFirstImage, p.profileFirstText';
 
     /** The account the services of the grid have, which is not a person: Robust makes it for itself. */
-    private const TECHNICAL = ['GRID', 'SERVICES'];
+    public const TECHNICAL = ['GRID', 'SERVICES'];
 
     /** What a person leaves in the databases, by table: the condition that finds it, {id} being their UUID and {like} the start of the ids of GridUser. */
     private const LEFTOVERS = [
@@ -380,6 +383,62 @@ final class Avatar extends Model
     public static function storedLevel(int $level, bool $active): int
     {
         return $active ? $level : -1 - max(0, $level);
+    }
+
+    /**
+     * How many estates, regions and parcels (its own, not a group's) it owns, as the list read them; null for what it could not read.
+     *
+     * @return array{estates:?int,regions:?int,parcels:?int}
+     */
+    private function owned(): array
+    {
+        $id = strtolower((string) ($this->row['PrincipalID'] ?? ''));
+        $count = fn(string $what): ?int => ($this->owned[$what] ?? null) === null ? null : (int) ($this->owned[$what][$id] ?? 0);
+
+        return ['estates' => $count('estates'), 'regions' => $count('regions'), 'parcels' => $count('parcels')];
+    }
+
+    /**
+     * What the avatars of a grid own, by owner: the estates of its estate databases, the regions of its grid, the parcels of its
+     * simulators (not the ones of a group); null for a source that cannot be read.
+     *
+     * @return array{estates:?array<string,int>,regions:?array<string,int>,parcels:?array<string,int>}
+     */
+    private static function ownedBy(GridConfig $config): array
+    {
+        $counts = static function (?\OpenSim\Data\OSPDO $pdo, string $sql): ?array {
+            if ($pdo === null || empty($pdo->connected)) {
+                return null;
+            }
+            try {
+                $statement = $pdo->prepareAndExecute($sql, []);
+            } catch (\Throwable) {
+                return null;
+            }
+            if ($statement === false) {
+                return null;
+            }
+            $counts = [];
+            foreach ($statement->fetchAll(\PDO::FETCH_NUM) as [$owner, $n]) {
+                $counts[strtolower((string) $owner)] = ($counts[strtolower((string) $owner)] ?? 0) + (int) $n;
+            }
+
+            return $counts;
+        };
+        $parcels = null;
+        foreach (Parcel::simulatorDatabases($config) as $pdo) {
+            $found = $counts($pdo, 'SELECT OwnerUUID, COUNT(*) FROM land WHERE IsGroupOwned = 0 GROUP BY OwnerUUID');
+            foreach ($found ?? [] as $owner => $n) {
+                $parcels[$owner] = ($parcels[$owner] ?? 0) + $n;
+            }
+            $found !== null && ($parcels ??= []);
+        }
+
+        return [
+            'estates' => Estate::countsByOwner($config),
+            'regions' => $counts(Connections::pdo($config, 'GridService'), 'SELECT owner_uuid, COUNT(*) FROM regions GROUP BY owner_uuid'),
+            'parcels' => $parcels,
+        ];
     }
 
     /** The role of the avatar, by its level (ROLES). */
@@ -684,6 +743,14 @@ final class Avatar extends Model
             'level' => $this->level(),
             'isGod' => $this->isGod(),
             'role' => $this->role(),
+            // The role a list shows: a model and the account of the services as roles of their own, as w4os-wp
+            'shownRole' => match ($this->type()) {
+                'model' => 'model',
+                'service' => 'service-account',
+                default => $this->role(),
+            },
+            // What it owns, read for a list (null when it cannot be read)
+            ...$this->owned(),
             'standardLevel' => $this->hasStandardLevel(),
             'flags' => $this->flags(),
             'published' => $this->isPublished(),
@@ -1520,9 +1587,12 @@ final class Avatar extends Model
 
         // The ban lists of the estates, read once for the list
         $lists = $rows === [] ? [] : self::estateBanLists($config);
-        $avatars = array_map(static function (array $row) use ($config, $lists): self {
+        // What they own, read once for the list
+        $owned = $rows === [] ? null : self::ownedBy($config);
+        $avatars = array_map(static function (array $row) use ($config, $lists, $owned): self {
             $avatar = new self($config, $row);
             $avatar->estateBanned = $lists;
+            $avatar->owned = $owned;
 
             return $avatar;
         }, $rows);
@@ -1597,12 +1667,16 @@ final class Avatar extends Model
                 'default' => 'person',
             ]),
             Listing::column('email', 'email', 'email', 'email'),
-            Listing::column('role', 'role', 'role', 'level'),
+            Listing::column('shownRole', 'role', 'role', 'level'),
             // A person's, a model of the grid, the account of its services
             Listing::column('type', 'column_type', 'list', 'type', ['values' => Listing::values(array_combine(self::TYPES, array_map(static fn(string $type): string => "avatar_type_$type", self::TYPES)))]),
             // Born, as the viewers say it, then last seen
             Listing::column('created', 'born', 'datetime', 'created'),
             Listing::column('lastSeen', 'last_seen', 'datetime', 'lastSeen'),
+            // What it owns
+            Listing::column('estates', 'column_estates', 'number'),
+            Listing::column('regions', 'column_regions', 'number'),
+            Listing::column('parcels', 'parcels', 'number'),
             // The account, the button that enables or disables it, and the presence in the world
             Listing::column('status', 'column_status', 'indicators', 'active', ['indicators' => [
                 // Its account and its presence in one icon (accountState): a user with a check while it is in the world; a banned account

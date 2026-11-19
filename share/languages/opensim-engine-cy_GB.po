@@ -1337,6 +1337,14 @@ msgctxt "role_maintenance"
 msgid "Maintenance"
 msgstr "Cynnal a chadw"
 
+msgctxt "role_model"
+msgid "Model"
+msgstr "Model"
+
+msgctxt "role_service_account"
+msgid "Service Account"
+msgstr "Cyfrif Gwasanaeth"
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Galluogi"
@@ -2937,6 +2945,10 @@ msgstr "Mynediad cyhoeddus"
 msgctxt "column_regions"
 msgid "Regions"
 msgstr "Rhanbarthau"
+
+msgctxt "column_estates"
+msgid "Estates"
+msgstr "Ystadau"
 
 msgctxt "parcel"
 msgid "Parcel"

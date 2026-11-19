@@ -481,6 +481,28 @@ final class Estate extends Model
      *
      * @return \Generator<int,array{0:?string,1:OSPDO}> the simulator, null for the grid's
      */
+    /**
+     * How many estates each avatar owns, in the estate databases of the grid; null when none can be read.
+     *
+     * @return ?array<string,int> by owner, in lower case
+     */
+    public static function countsByOwner(GridConfig $config): ?array
+    {
+        $counts = null;
+        foreach (self::databases($config) as [, $pdo]) {
+            if (!$pdo->table_exists('estate_settings')) {
+                continue;
+            }
+            $counts ??= [];
+            $statement = $pdo->prepareAndExecute('SELECT EstateOwner, COUNT(*) FROM estate_settings GROUP BY EstateOwner', []);
+            foreach ($statement ? $statement->fetchAll(\PDO::FETCH_NUM) : [] as [$owner, $n]) {
+                $counts[strtolower((string) $owner)] = ($counts[strtolower((string) $owner)] ?? 0) + (int) $n;
+            }
+        }
+
+        return $counts;
+    }
+
     private static function databases(GridConfig $config): \Generator
     {
         if (Database::Estate->scopeIn($config) === Database::GRID) {

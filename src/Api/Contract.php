@@ -226,6 +226,10 @@ final class Contract
                     'string',
                     'From the level, as w4os names it, by the levels of OpenSimulator (GOD_NOT, GOD_LIKE, GOD_CUSTOMER_SERVICE, GOD_LIAISON, GOD_FULL, GOD_MAINTENANCE: a level has every right of the ones below it): `resident` (0 and less), `god-like` (1 and over), `customer-service` (100), `liaison` (150), `god` (200), `maintenance` (250); a disabled avatar has the role of the level it gets back',
                 ],
+                'shownRole' => ['string', 'The role a list shows: `model` for a model of the grid, `service-account` for the account of its services, else its `role` (its text `role_<role>` of the catalog)'],
+                'estates' => ['integer?', 'How many estates it owns, in the estate databases of the grid (a list; null when they cannot be read)'],
+                'regions' => ['integer?', 'How many regions it owns, in the table of the regions of the grid (a list; null when it cannot be read)'],
+                'parcels' => ['integer?', 'How many parcels it owns itself, not a group, in the databases of the simulators (a list; null when they cannot be read)'],
                 'standardLevel' => [
                     'boolean',
                     'The level is the one of its role (0, 1, 100, 150, 200); false for one in between, which a site may show beside the role',

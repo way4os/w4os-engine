@@ -1324,6 +1324,14 @@ msgctxt "role_maintenance"
 msgid "Maintenance"
 msgstr "Manutenção"
 
+msgctxt "role_model"
+msgid "Model"
+msgstr "Modelo"
+
+msgctxt "role_service_account"
+msgid "Service Account"
+msgstr "Conta de Serviço"
+
 msgctxt "action_enable"
 msgid "Enable"
 msgstr "Ativar"
@@ -2921,6 +2929,10 @@ msgstr "Acesso público"
 msgctxt "column_regions"
 msgid "Regions"
 msgstr "Regiões"
+
+msgctxt "column_estates"
+msgid "Estates"
+msgstr "Propriedades"
 
 msgctxt "parcel"
 msgid "Parcel"

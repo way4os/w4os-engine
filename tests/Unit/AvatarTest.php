@@ -49,7 +49,7 @@ function avatar_database(): OSPDO
     $pdo->exec(
         'CREATE TABLE classifieds (classifieduuid CHAR(36), creatoruuid CHAR(36), creationdate INT, expirationdate INT, name VARCHAR(255), description TEXT, simname VARCHAR(255), parcelname VARCHAR(255))',
     );
-    $pdo->exec('CREATE TABLE regions (uuid CHAR(36), regionName VARCHAR(128), locX INT, locY INT, sizeX INT, sizeY INT)');
+    $pdo->exec('CREATE TABLE regions (uuid CHAR(36), regionName VARCHAR(128), locX INT, locY INT, sizeX INT, sizeY INT, owner_uuid CHAR(36))');
     $pdo->exec("INSERT INTO UserAccounts (PrincipalID, FirstName, LastName, Email, Created, UserLevel, UserFlags, active) VALUES
         ('11111111-1111-1111-1111-111111111111', 'Ada', 'Love', 'ada@example.org', 1700000000, 0, 0, 1),
         ('22222222-2222-2222-2222-222222222222', 'Bob', 'Root', 'bob@example.org', 1600000000, 250, 3, 1),
@@ -412,9 +412,9 @@ describe('avatars', function () {
         );
 
         expect(array_column($list->columns(), 'name'))
-            ->toBe(['name', 'email', 'role', 'type', 'created', 'lastSeen', 'status'])
+            ->toBe(['name', 'email', 'shownRole', 'type', 'created', 'lastSeen', 'estates', 'regions', 'parcels', 'status'])
             ->and($sortable)
-            ->toBe(['name', 'email', 'role', 'type', 'created', 'lastSeen', 'status'])
+            ->toBe(['name', 'email', 'shownRole', 'type', 'created', 'lastSeen', 'status'])
             ->and($list->columns()[0]['label'])
             ->toBe('Avatar Name')
             ->and(array_keys($list->filters()))
@@ -447,9 +447,9 @@ describe('avatars', function () {
         expect(json_decode($list->json(), true)[0]['name'])
             ->toBe('Ada Love')
             ->and($csv[0])
-            ->toBe('name,email,role,type,created,lastSeen,status')
+            ->toBe('name,email,shownRole,type,created,lastSeen,estates,regions,parcels,status')
             ->and($csv[1])
-            ->toBe('"Ada Love",ada@example.org,resident,user,1700000000,1700005000,active');
+            ->toBe('"Ada Love",ada@example.org,resident,user,1700000000,1700005000,,0,,active');
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
@@ -601,7 +601,7 @@ describe('picks and the classifieds of an avatar', function () {
         $pdo->exec("UPDATE userpicks SET gatekeeper = 'http://play.example.org:8002' WHERE pickuuid = 'k1'");
         $pdo->exec("UPDATE classifieds SET posglobal = '<256100.5,256200.2,22.7>'");
         // Welcome is a region of 512 meters: the position in it is not the rest of the division by 256
-        $pdo->exec("INSERT INTO regions VALUES ('r1', 'Welcome', 255744, 256000, 512, 512)");
+        $pdo->exec("INSERT INTO regions (uuid, regionName, locX, locY, sizeX, sizeY) VALUES ('r1', 'Welcome', 255744, 256000, 512, 512)");
         avatars_in($pdo);
         $ada = Avatar::find(avatar_grid(), 'Ada Love');
         $picks = array_column($ada->picks(), null, 'pickuuid');
@@ -1080,7 +1080,7 @@ describe('avatars of a grid whose services have their own databases', function (
             ->and($bob->detail()['profileImage'])
             ->toBe('img-bob')
             ->and(array_column(array_filter($list->columns(), static fn(array $c) => $c['sortable']), 'name'))
-            ->toBe(['name', 'email', 'role', 'type', 'created', 'status']);
+            ->toBe(['name', 'email', 'shownRole', 'type', 'created', 'status']);
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
