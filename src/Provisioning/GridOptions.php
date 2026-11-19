@@ -137,13 +137,15 @@ final class GridOptions
         if ($this->telling) {
             return $names;
         }
-        foreach ($this->told() as $name) {
+        $told = $this->told();
+        foreach ($told as $name) {
             $group = $this->template($name)?->group() ?? '';
             if ($group === '' || in_array($name, $names, true)) {
                 continue;
             }
             $others = array_filter($names, fn(string $n): bool => $this->template($n)?->group() === $group);
-            if ($others !== []) {
+            // The option the grid has, when its files tell it too, stays: a repair never changes a choice
+            if ($others !== [] && array_intersect($others, $told) === []) {
                 $names = [...array_values(array_diff($names, $others)), $name];
             }
         }
@@ -485,7 +487,7 @@ final class GridOptions
             if ($this->unmet($option) !== null && !$this->givenByGrid($option, $said)) {
                 continue;
             }
-            self::says($option, $said) && ($used[] = $name);
+            $this->says($option, $said) && ($used[] = $name);
         }
 
         return $used;
@@ -498,23 +500,49 @@ final class GridOptions
      *
      * @param array<string,array<string,string>> $said by section then key, in lower case, the values in lower case without quotes
      */
-    private static function says(OptionTemplate $option, array $said): bool
+    private function says(OptionTemplate $option, array $said): bool
     {
-        $own = [];
-        foreach ($option->files() as $file) {
-            preg_match('/\.ini$/i', $file) === 1 && preg_match('/^Robust/i', basename($file)) !== 1 && array_push($own, ...$option->settings($file, [], true));
-        }
-        foreach ($own as [$section, $key, $value]) {
-            $value = strtolower(trim($value, " \""));
-            if (in_array($value, ['', 'true', 'false'], true) || stripos($key, 'Include-') === 0 || $option->lists('Existing', $section, $key) || $option->lists('Initial', $section, $key)) {
-                continue;
+        // What another option of its group writes the same way does not tell this one (the module of the groups, V2, is all of theirs)
+        $shared = [];
+        foreach ($option->group() === '' ? [] : $this->templates() as $name => $other) {
+            if ($name !== $option->name() && $other->group() === $option->group()) {
+                foreach (self::telling($other) as [$section, $key, $value]) {
+                    $shared[strtolower("$section/$key") . "=$value"] = true;
+                }
             }
-            if (($said[strtolower($section)][strtolower($key)] ?? null) === $value) {
+        }
+        foreach (self::telling($option) as [$section, $key, $value]) {
+            if (!isset($shared[strtolower("$section/$key") . "=$value"]) && ($said[strtolower($section)][strtolower($key)] ?? null) === $value) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * The settings of an option that can tell it, as it writes them, the values in lower case without quotes: its own, in the files
+     * of the simulators, not a value of the grid, nor `Initial` or `Existing`, nor a mere true or false, nor an include.
+     *
+     * @return list<array{0:string,1:string,2:string}>
+     */
+    private static function telling(OptionTemplate $option): array
+    {
+        $telling = [];
+        foreach ($option->files() as $file) {
+            if (preg_match('/\.ini$/i', $file) !== 1 || preg_match('/^Robust/i', basename($file)) === 1) {
+                continue;
+            }
+            foreach ($option->settings($file, [], true) as [$section, $key, $value]) {
+                $value = strtolower(trim($value, " \""));
+                if (in_array($value, ['', 'true', 'false'], true) || str_contains($value, '{{') || stripos($key, 'Include-') === 0 || $option->lists('Existing', $section, $key) || $option->lists('Initial', $section, $key)) {
+                    continue;
+                }
+                $telling[] = [$section, $key, $value];
+            }
+        }
+
+        return $telling;
     }
 
     /**
@@ -525,11 +553,11 @@ final class GridOptions
      */
     private function choseOther(OptionTemplate $option, array $said): bool
     {
-        if ($option->group() === '') {
+        if ($option->group() === '' || $this->says($option, $said)) {
             return false;
         }
         foreach ($this->templates() as $name => $other) {
-            if ($name !== $option->name() && $other->group() === $option->group() && self::says($other, $said)) {
+            if ($name !== $option->name() && $other->group() === $option->group() && $this->says($other, $said)) {
                 return true;
             }
         }

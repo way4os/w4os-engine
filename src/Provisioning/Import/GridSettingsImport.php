@@ -10,6 +10,7 @@ use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Exceptions\NotFound;
 use OpenSim\Models\Grid;
 use OpenSim\Provisioning\GridOptions;
+use OpenSim\Provisioning\SimulatorMaster;
 use OpenSim\Runtime\Environment;
 
 /**
@@ -18,13 +19,14 @@ use OpenSim\Runtime\Environment;
  * OpenSimulator reads the old config: with the files it includes, the last of them saying the last word (a key whatever its case),
  * its constants replaced (by the old install's, else the grid's of this machine: never left to resolve), a quoted value without
  * what follows its closing quote. Left out: what is a simulator's own (a folder, a cache), what is not used any more (the money
- * of DTL/NSL), and what the grid of this machine already says, which is never replaced. The simulators take them from there (the
- * master of the grid holds its OpenSim.ini), the one source: the repair of the options copies none of them in a simulator, and the
- * option of a group they tell is the one the grid has (the offline messages V1 of the helpers).
+ * of DTL/NSL), and what the grid of this machine already says, which is never replaced. They go in one place, where the
+ * simulators read them: the OpenSim.ini of a grid that has a master (it holds it for every simulator), else each simulator, whose
+ * config is whole (a grid that runs elsewhere, its simulators made without a master), Gloebit by the path of its file. The repair
+ * of the options copies none of them again, and the option of a group they tell is the one the grid has (the offline messages V1).
  *
  *     $import = GridSettingsImport::prepare($environment, '/opt/opensim/etc/grids/Old/OpenSim.ini', 'speculoos');
  *     $import->document();   // the plan, the secrets masked
- *     $import->apply();      // laid in /etc/opensim/grids/speculoos/OpenSim.ini
+ *     $import->apply();      // laid in /etc/opensim/grids/speculoos/OpenSim.ini, or in its simulators without a master
  */
 final class GridSettingsImport
 {
@@ -44,11 +46,12 @@ final class GridSettingsImport
      * @param array<string,array<string,array<string,string>>> $files what is laid, by file, then section, then key, as the old config
      *        writes them (its constants as references)
      * @param list<string> $notes what is left out and why, never a value
+     * @param list<string> $targets the files the settings of the simulators go in: the OpenSim.ini of the grid, or each simulator
      */
     private function __construct(
         private readonly Grid $grid,
         private readonly string $source,
-        private readonly string $target,
+        private readonly array $targets,
         private readonly array $files,
         private readonly array $notes,
     ) {}
@@ -81,65 +84,75 @@ final class GridSettingsImport
                 $notes[] = "$setting: what follows its closing quote is left out, as OpenSimulator reads it";
             }
         }
-        $known = self::constantsKnown($grid, $target);
         $gloebit = strtolower(trim($values['economy']['economymodule'][2] ?? '')) === 'gloebit';
         $gloebitFile = rtrim($grid->directory(), '/') . '/Gloebit.ini';
-        $there = [$target => self::lower($target), $gloebitFile => self::lower($gloebitFile)];
+        // Where the settings of the simulators go: the OpenSim.ini of the grid, which its master gives them all; a grid without a
+        // master has simulators whose config is whole, each its own place (SimulatorConfig)
+        $layered = SimulatorMaster::exists($grid->directory());
+        $simulators = array_values((new GridOptions($grid))->simulators());
+        $targets = $layered || $simulators === [] ? [$target] : $simulators;
+        $include = $layered ? '${Const|EtcDirectory}/Gloebit.ini' : $gloebitFile;
+        $gloebitThere = self::lower($gloebitFile);
 
         $files = [];
-        $define = [];
-        foreach ($values as $lower => $keys) {
-            foreach ($keys as $key => [$section, $name, $value]) {
-                $reason = match (true) {
-                    preg_match('/(Directory|Path|Dir|Location)$/i', $name) === 1 => null, // a folder of the old simulators
-                    in_array("$lower/$key", self::RETIRED, true),
-                    $key === 'economymodule' && in_array(strtolower(trim($value)), self::RETIRED_MODULES, true) => "$section/$name: the money of DTL/NSL is not handled (old code, to install by hand), left out",
-                    default => false,
-                };
-                if ($reason !== false) {
-                    $reason === null || ($notes[] = $reason);
+        foreach ($targets as $into) {
+            $known = self::constantsKnown($grid, $into, $layered);
+            $there = self::lower($into);
+            $define = [];
+            foreach ($values as $lower => $keys) {
+                foreach ($keys as $key => [$section, $name, $value]) {
+                    $reason = match (true) {
+                        preg_match('/(Directory|Path|Dir|Location)$/i', $name) === 1 => null, // a folder of the old simulators
+                        in_array("$lower/$key", self::RETIRED, true),
+                        $key === 'economymodule' && in_array(strtolower(trim($value)), self::RETIRED_MODULES, true) => "$section/$name: the money of DTL/NSL is not handled (old code, to install by hand), left out",
+                        default => false,
+                    };
+                    if ($reason !== false) {
+                        $reason === null || ($notes[] = $reason);
 
-                    continue;
-                }
-                // The data service of the helpers of the grid by its old name: DATA_SRV_<nick of the grid> now
-                if ($lower === 'datasnapshot' && in_array($key, self::RETIRED_SERVICES, true)) {
-                    $notes[] = "$section/$name: an old name of the data service of the helpers of the grid, now DATA_SRV_{$grid->nick()}";
-                    $name = 'DATA_SRV_' . $grid->nick();
-                    $key = strtolower($name);
-                }
-                // The constants it uses: the ones of this machine as they are, the others the old install's, defined for the grid
-                $missing = [];
-                preg_match_all('/\$\{Const\|([^}]+)\}/i', $value, $used);
-                foreach ($used[1] as $constant) {
-                    $c = strtolower($constant);
-                    if (isset($known[$c])) {
                         continue;
                     }
-                    isset($constants[$c]) ? ($define[$c] = [$constant, $constants[$c]]) : ($missing[] = $constant);
-                }
-                if ($missing !== [] || preg_match('/\$\{(?!Const\|)/i', $value) === 1) {
-                    $notes[] = "$section/$name: " . (self::secret($name) ? 'its value' : $value) . ' uses what this grid does not know, left out';
+                    // The data service of the helpers of the grid by its old name: DATA_SRV_<nick of the grid> now
+                    if ($lower === 'datasnapshot' && in_array($key, self::RETIRED_SERVICES, true)) {
+                        $notes[] = "$section/$name: an old name of the data service of the helpers of the grid, now DATA_SRV_{$grid->nick()}";
+                        $name = 'DATA_SRV_' . $grid->nick();
+                        $key = strtolower($name);
+                    }
+                    // The constants it uses: the ones the simulators have as they are, the others the old install's, defined
+                    $missing = [];
+                    preg_match_all('/\$\{Const\|([^}]+)\}/i', $value, $used);
+                    foreach ($used[1] as $constant) {
+                        $c = strtolower($constant);
+                        if (isset($known[$c])) {
+                            continue;
+                        }
+                        isset($constants[$c]) ? ($define[$c] = [$constant, $constants[$c]]) : ($missing[] = $constant);
+                    }
+                    if ($missing !== [] || preg_match('/\$\{(?!Const\|)/i', $value) === 1) {
+                        $notes[] = "$section/$name: " . (self::secret($name) ? 'its value' : $value) . ' uses what this grid does not know, left out';
 
-                    continue;
+                        continue;
+                    }
+                    // Gloebit has its settings in one place, the Gloebit.ini of the grid; the rest where the simulators read them
+                    $gloebitHere = $gloebit && in_array($lower, ['economy', 'gloebit'], true);
+                    if (array_key_exists($key, ($gloebitHere ? $gloebitThere : $there)[$lower] ?? [])) {
+                        continue;
+                    }
+                    $files[$gloebitHere ? $gloebitFile : $into][$section][$name] = $value;
                 }
-                // Gloebit has its settings in one place, the Gloebit.ini of the grid; the rest in its OpenSim.ini
-                $into = $gloebit && in_array($lower, ['economy', 'gloebit'], true) ? $gloebitFile : $target;
-                if (array_key_exists($key, $there[$into][$lower] ?? [])) {
-                    continue;
-                }
-                $files[$into][$section][$name] = $value;
+            }
+            // The constants the settings use that the simulators do not have (the web site of the grid, WebURL)
+            foreach ($define as $c => [$constant, $value]) {
+                array_key_exists($c, $there['const'] ?? []) || ($files[$into]['Const'][$constant] = $value);
+            }
+            // The simulators include the Gloebit.ini of the grid
+            if (isset($files[$gloebitFile]) && !self::includes($there, 'gloebit')) {
+                $files[$into]['Gloebit']['Include-Gloebit'] = $include;
             }
         }
-        // The constants the settings use that this machine does not have (the web site of the grid, WebURL)
-        foreach ($define as $c => [$constant, $value]) {
-            array_key_exists($c, $there[$target]['const'] ?? []) || ($files[$target]['Const'][$constant] = $value);
-        }
-        // The simulators include the Gloebit.ini of the grid
-        if (isset($files[$gloebitFile]) && !self::includes($there[$target], 'gloebit')) {
-            $files[$target]['Gloebit']['Include-Gloebit'] = '${Const|EtcDirectory}/Gloebit.ini';
-        }
+        $files = array_filter($files);
 
-        return new self($grid, realpath($file) ?: $file, $target, $files, array_values(array_unique($notes)));
+        return new self($grid, realpath($file) ?: $file, $targets, $files, array_values(array_unique($notes)));
     }
 
     /**
@@ -171,9 +184,11 @@ final class GridSettingsImport
         return [
             'grid' => $this->grid->nick(),
             'source' => $this->source,
-            'target' => $this->target,
-            // The OpenSim.ini of the grid, then every file laid (the Gloebit.ini of the grid too)
-            'settings' => $said[$this->target] ?? [],
+            'target' => $this->targets[0],
+            // Where the settings of the simulators go: the OpenSim.ini of the grid, or each simulator of a grid without a master
+            'targets' => $this->targets,
+            // The first of them, then every file laid (the Gloebit.ini of the grid too)
+            'settings' => $said[$this->targets[0]] ?? [],
             'files' => $said,
             'notes' => $this->notes,
         ];
@@ -218,15 +233,15 @@ final class GridSettingsImport
 
     /**
      * The constants the simulators of the grid have on this machine, by their name in lower case: the ones its master gives every
-     * simulator (but the address of the site of a standalone, WebURL), the folders of each, and those the OpenSim.ini of the grid
-     * defines.
+     * simulator (but the address of the site of a standalone, WebURL), the folders of each, and those the file the settings go in
+     * defines (the OpenSim.ini of the grid, or the simulator itself, whose config is whole without a master).
      *
      * @return array<string,true>
      */
-    private static function constantsKnown(Grid $grid, string $target): array
+    private static function constantsKnown(Grid $grid, string $target, bool $layered = true): array
     {
         $known = ['datadirectory' => true, 'cachedirectory' => true, 'logsdirectory' => true];
-        $master = (new \OpenSim\Provisioning\Presets([], dirname($grid->directory(), 2)))->options()['master'] ?? null;
+        $master = $layered ? (new \OpenSim\Provisioning\Presets([], dirname($grid->directory(), 2)))->options()['master'] ?? null : null;
         foreach ($master?->settings('grid.ini', [], false) ?? [] as [$section, $key]) {
             strtolower($section) === 'const' && strtolower($key) !== 'weburl' && ($known[strtolower($key)] = true);
         }
