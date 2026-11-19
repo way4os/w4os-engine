@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 51404a3
+  version: 27d5ab6
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -402,6 +402,12 @@ paths:
                     $ref: '#/components/schemas/Grids'
         404:
           description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
           content:
             application/problem+json:
               schema:
@@ -930,6 +936,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-access:
         level: 100
         self: false
@@ -1176,6 +1188,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-access:
         level: 100
         self: false
@@ -1406,6 +1424,12 @@ paths:
                     $ref: '#/components/schemas/Archives'
         404:
           description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
           content:
             application/problem+json:
               schema:
@@ -2077,6 +2101,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-form:
         groups:
           -
@@ -2660,6 +2690,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-access:
         level: 100
         self: false
@@ -3068,6 +3104,12 @@ paths:
                     $ref: '#/components/schemas/Regions'
         404:
           description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
           content:
             application/problem+json:
               schema:
@@ -3604,6 +3646,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-form:
         groups:
           -
@@ -3921,6 +3969,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-access:
         level: 100
         self: false
@@ -4228,6 +4282,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-access:
         level: 100
         self: false
@@ -4326,6 +4386,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       security: []
       x-access:
         level: null
@@ -4387,6 +4453,12 @@ paths:
                     $ref: '#/components/schemas/Tasks'
         404:
           description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
           content:
             application/problem+json:
               schema:
@@ -4455,6 +4527,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-access:
         level: 100
         self: false
@@ -4516,6 +4594,12 @@ paths:
                     $ref: '#/components/schemas/Fonts'
         404:
           description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
           content:
             application/problem+json:
               schema:

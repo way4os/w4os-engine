@@ -479,13 +479,13 @@ describe('Regions', function () {
             ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('field-read-only'));
     });
 
-    test('cannot be listed when the database cannot be reached', function () {
+    test('cannot be listed nor found when the database cannot be reached', function () {
         Connections::using(static fn() => null);
 
         expect(fn() => Region::all(region_config()))
             ->toThrow(ChannelUnavailable::class)
-            ->and(Region::find(region_config(), 'Welcome'))
-            ->toBeNull();
+            ->and(fn() => Region::find(region_config(), 'Welcome'))
+            ->toThrow(ChannelUnavailable::class);
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 

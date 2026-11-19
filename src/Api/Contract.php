@@ -679,6 +679,7 @@ final class Contract
                 'responses' => [
                     '200' => self::documentResponse('The resource', $schema, false),
                     '404' => self::problem('There is none with this id'),
+                    '503' => self::problem('What it is read from is not available: a database that does not answer is never an item that is not there'),
                 ],
             ] + ($form === null ? [] : ['x-form' => self::formDocument($type, $form)]);
             if (isset($resource['create'])) {

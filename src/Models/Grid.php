@@ -709,13 +709,31 @@ final class Grid extends InstalledModel
     public function popularPlaces(int $count = \OpenSim\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null): array
     {
         $config ??= $this->config();
-        $search = $config === null ? null : Connections::pdo($config, Database::Search);
-        if ($search === null || !$search->connected) {
+        $search = self::searchDatabase($config, 'read the popular places');
+        if ($search === null) {
             return [];
         }
         $places = (new \OpenSim\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri()))->popular($count);
 
         return array_map(fn(array $place): array => $place + $this->card($place['url'], $place['name'], $config), $places);
+    }
+
+    /**
+     * The database of the search: null when the grid sets none, the reason it cannot be had when it sets one that does not answer.
+     *
+     * @throws \OpenSim\Exceptions\ChannelUnavailable
+     */
+    private static function searchDatabase(?GridConfig $config, string $action): ?\OpenSim\Data\OSPDO
+    {
+        $search = $config === null ? null : Connections::pdo($config, Database::Search);
+        if ($search !== null || $config === null || Connections::key($config, Database::Search) === null) {
+            return $search;
+        }
+
+        throw \OpenSim\Exceptions\ChannelUnavailable::for(
+            $action,
+            Connections::reason($config, Database::Search) ?? 'the database cannot be reached',
+        );
     }
 
     /**
@@ -976,8 +994,8 @@ final class Grid extends InstalledModel
         }
         // No list of its own: the places the search knows
         $config ??= $this->config();
-        $search = $config === null ? null : Connections::pdo($config, Database::Search);
-        if ($search === null || !$search->connected) {
+        $search = self::searchDatabase($config, 'read the destinations');
+        if ($search === null) {
             return [];
         }
 

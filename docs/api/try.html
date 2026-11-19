@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "51404a3",
+        "version": "27d5ab6",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -523,6 +523,16 @@
                     },
                     "404": {
                         "description": "There is none with this id",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
@@ -1247,6 +1257,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-access": {
@@ -1609,6 +1629,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-access": {
@@ -1962,6 +1992,16 @@
                     },
                     "404": {
                         "description": "There is none with this id",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
@@ -2976,6 +3016,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-form": {
@@ -3854,6 +3904,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-access": {
@@ -4396,6 +4456,16 @@
                     },
                     "404": {
                         "description": "There is none with this id",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
@@ -5144,6 +5214,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-form": {
@@ -5595,6 +5675,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-access": {
@@ -6011,6 +6101,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-access": {
@@ -6152,6 +6252,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [],
@@ -6245,6 +6355,16 @@
                     },
                     "404": {
                         "description": "There is none with this id",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
                         "content": {
                             "application/problem+json": {
                                 "schema": {
@@ -6351,6 +6471,16 @@
                                 }
                             }
                         }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-access": {
@@ -6444,6 +6574,16 @@
                     },
                     "404": {
                         "description": "There is none with this id",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "What it is read from is not available: a database that does not answer is never an item that is not there",
                         "content": {
                             "application/problem+json": {
                                 "schema": {

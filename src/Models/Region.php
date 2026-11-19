@@ -1291,10 +1291,7 @@ final class Region extends Model
     /** A region by its UUID or its name. */
     public static function find(GridConfig $config, string $id): ?static
     {
-        $pdo = Connections::pdo($config, 'GridService');
-        if ($pdo === null) {
-            return null;
-        }
+        $pdo = self::connect($config, 'GridService', null, 'read the region');
         $isUuid = Uuid::isValid($id);
         $rows = $pdo->get_results(
             'SELECT ' .

@@ -88,6 +88,24 @@ abstract class Model implements OpenSimModelInterface
     }
 
     /**
+     * The connection to a database the grid may not have: null when its config sets none, the reason it cannot be had when it sets
+     * one that does not answer (never "none" for a database that is down).
+     *
+     * @param Database|string $what a database, or the section of a service of Robust
+     * @param string $action what was being done ("read the picks"), for the message
+     * @throws ChannelUnavailable
+     */
+    protected static function optional(
+        GridConfig $config,
+        Database|string $what,
+        ?string $simulator,
+        string $action,
+    ): ?OSPDO {
+        return Connections::pdo($config, $what, $simulator)
+            ?? (Connections::key($config, $what, $simulator) === null ? null : self::connect($config, $what, $simulator, $action));
+    }
+
+    /**
      * The connection to a database of the grid, or the reason it cannot be had.
      *
      * @param Database|string $what a database, or the section of a service of Robust

@@ -635,12 +635,13 @@ describe('picks and the classifieds of an avatar', function () {
             ]);
     });
 
-    test('are none when the profiles cannot be reached', function () {
+    test('are an error when the profiles cannot be reached, not none', function () {
         avatars_in(avatar_database());
         $ada = Avatar::find(avatar_grid(), 'Ada Love');
         Connections::using(static fn() => null);
 
-        expect($ada->picks())->toBe([])->and($ada->classifieds())->toBe([]);
+        expect(fn() => $ada->picks())->toThrow(ChannelUnavailable::class)
+            ->and(fn() => $ada->classifieds())->toThrow(ChannelUnavailable::class);
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 

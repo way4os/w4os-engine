@@ -161,9 +161,7 @@ final class AvatarModel extends Model
     /** A model by its UUID or its name (First Last), null when the rule does not pick it. */
     public static function find(GridConfig $config, string $id): ?static
     {
-        if (Connections::pdo($config, 'UserAccountService') === null) {
-            return null;
-        }
+        self::connect($config, 'UserAccountService', null, 'read the avatar model');
         if (Uuid::isValid($id)) {
             return self::read($config, ['PrincipalID = :id', ['id' => strtolower($id)]])[0] ?? null;
         }

@@ -459,7 +459,7 @@ final class Avatar extends Model
      */
     public function picks(): array
     {
-        $pdo = Connections::pdo($this->config, Database::Profiles);
+        $pdo = self::optional($this->config, Database::Profiles, null, 'read the picks');
         $rows = $pdo === null
             ? []
             : $pdo->get_results(
@@ -480,7 +480,7 @@ final class Avatar extends Model
      */
     public function classifieds(?int $now = null): array
     {
-        $pdo = Connections::pdo($this->config, Database::Profiles);
+        $pdo = self::optional($this->config, Database::Profiles, null, 'read the classifieds');
         // An integer in the statement: a bound value would be text, which a number is not compared with in every database
         $now = (int) ($now ?? time());
 
@@ -504,7 +504,7 @@ final class Avatar extends Model
      */
     public function groups(): array
     {
-        $pdo = Connections::pdo($this->config, Database::forTable('os_groups_membership') ?? Database::Robust);
+        $pdo = self::optional($this->config, Database::forTable('os_groups_membership') ?? Database::Robust, null, 'read the groups');
         if ($pdo === null || !$pdo->tables_exist(['os_groups_groups', 'os_groups_membership', 'os_groups_roles'])) {
             return [];
         }
@@ -1411,7 +1411,7 @@ final class Avatar extends Model
      */
     public function travelingData(): array
     {
-        $pdo = Connections::pdo($this->config, Database::forTable('hg_traveling_data') ?? 'UserAgentService');
+        $pdo = self::optional($this->config, Database::forTable('hg_traveling_data') ?? 'UserAgentService', null, 'read the travels');
         if ($pdo === null) {
             return [];
         }
@@ -1458,7 +1458,7 @@ final class Avatar extends Model
      */
     private static function visits(GridConfig $config, string $pattern): array
     {
-        $pdo = Connections::pdo($config, 'GridUserService');
+        $pdo = self::optional($config, 'GridUserService', null, 'read the visits');
         if ($pdo === null) {
             return [];
         }
@@ -1545,10 +1545,7 @@ final class Avatar extends Model
      */
     public static function find(GridConfig $config, string $id): ?static
     {
-        $accounts = Connections::pdo($config, 'UserAccountService');
-        if ($accounts === null) {
-            return null;
-        }
+        $accounts = self::connect($config, 'UserAccountService', null, 'read the avatar');
         if (Uuid::isValid($id)) {
             $where = ' WHERE u.PrincipalID = :a';
             $params = ['a' => strtolower($id)];

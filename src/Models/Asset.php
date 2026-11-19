@@ -302,7 +302,8 @@ class Asset extends Model
         if (!Uuid::isValid($id)) {
             return null;
         }
-        $pdo = Connections::pdo($config, Database::Assets);
+        // A grid that sets no database of assets has them in its asset service only
+        $pdo = self::optional($config, Database::Assets, null, 'read the asset');
         $row = $pdo?->get_row(
             'SELECT ' . self::COLUMNS . ' FROM assets WHERE id = :id',
             ['id' => strtolower($id)],
