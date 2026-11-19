@@ -220,12 +220,13 @@ class Health
                 $rows[] =
                     [
                         'label' => $key,
+                        'kind' => self::isUrl($value) ? 'address' : 'value',
                         self::isUrl($value) ? 'url' : 'text' => $profile
                             ? Avatar::profileAt($value, $owner) ?? $value
                             : $value,
+                        // Compared with what the grid says, not asked: the same, or not
                         'level' => $same ? 'ok' : 'error',
-                        'status' => $same ? _('OK') : _('differs'),
-                        'ms' => null,
+                        'status' => $same ? _('as the grid says') : _('differs from what the grid says'),
                     ] +
                     ($profile ? ['display' => $value] : []) +
                     ($key === 'search' ? ['tag' => _('Web search')] : []) +
@@ -277,7 +278,7 @@ class Health
             'file' => $file['opensim'],
             'title' => '[Messaging]',
             'rows' => $robust
-                ? [self::emptyRow('OfflineMessageModule: ' . _('served by Robust (module V2)'))]
+                ? [self::valueRow('OfflineMessageModule', _('served by Robust (module V2)'))]
                 : ($offline === ''
                     ? [self::emptyRow('OfflineMessageURL')]
                     : self::post('OfflineMessageURL', $offline, self::retrieveMessages(), 'RetrieveMessages/')),
@@ -292,13 +293,13 @@ class Health
             'file' => $file['money'],
             'title' => '[MoneyServer]',
             'rows' => [
+                // A secret: never shown, only whether it is set
                 [
                     'label' => 'MoneyScriptAccessKey',
-                    'url' => '',
-                    'level' => $has ? 'ok' : ($needed ? 'error' : 'none'),
-                    'status' => $has ? _('OK') : ($needed ? _('missing') : ''),
-                    'ms' => null,
-                ],
+                    'kind' => 'secret',
+                    'set' => $has,
+                    'level' => $has ? 'ok' : ($needed ? 'error' : 'unset'),
+                ] + ($has ? ['status' => _('set')] : ($needed ? ['status' => _('missing')] : ['reason' => 'health_unset'])),
             ],
         ];
 
@@ -323,7 +324,7 @@ class Health
             return [self::emptyRow($key) + ($key === 'search' ? ['tag' => _('Web search')] : [])];
         }
         if (!self::isUrl($value)) {
-            return [['label' => $key, 'url' => '', 'text' => $value, 'level' => 'none', 'status' => '', 'ms' => null]];
+            return [self::valueRow($key, $value)];
         }
         $row = self::page($key, $value);
         if (
@@ -345,16 +346,7 @@ class Health
             // is the one of the config
             if ($variants) {
                 return [
-                    $owner === null
-                        ? [
-                            'label' => $key,
-                            'url' => '',
-                            'text' => $value,
-                            'level' => 'none',
-                            'status' => '',
-                            'ms' => null,
-                        ]
-                        : self::profileRow($key, $value, $owner),
+                    $owner === null ? self::valueRow($key, $value) : self::profileRow($key, $value, $owner),
                 ];
             }
             $row['url'] = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $value), '/');
@@ -417,27 +409,33 @@ class Health
         if ($search !== '' && rtrim($value, '/') === rtrim($search, '/')) {
             return [
                 'label' => 'SearchURL',
+                'kind' => 'address',
                 'url' => $value,
                 'tag' => _('Web search'),
                 'level' => 'ok',
-                'status' => _('OK'),
-                'ms' => null,
+                'status' => _('the same as search'),
             ];
         }
 
         return self::page('SearchURL', $value, _('Web search'));
     }
 
-    /** The row of a setting that has no value: its name, nothing else. */
+    /** The row of an address that is not set: neither served nor tested (`unset`, `health_unset` says why), not a wrong one. */
     public static function emptyRow($label)
     {
-        return ['label' => $label, 'url' => '', 'level' => 'none', 'status' => '', 'ms' => null];
+        return ['label' => $label, 'kind' => 'address', 'level' => 'unset', 'reason' => 'health_unset'];
+    }
+
+    /** The row of a setting that is not an address: its value, shown, nothing to ask. */
+    public static function valueRow($label, $value)
+    {
+        return ['label' => $label, 'kind' => 'value', 'text' => (string) $value, 'level' => 'none'];
     }
 
     /** A page: asked with a GET, it answers. */
     public static function page($label, $url, $tag = null)
     {
-        return ['label' => $label, 'url' => $url, 'method' => 'get'] + ($tag ? ['tag' => $tag] : []);
+        return ['label' => $label, 'kind' => 'address', 'url' => $url, 'method' => 'get'] + ($tag ? ['tag' => $tag] : []);
     }
 
     /**
@@ -509,6 +507,7 @@ class Health
         return [
             [
                 'label' => $label,
+                'kind' => 'address',
                 'url' => $url,
                 'method' => $how,
                 'body' => '',
@@ -516,7 +515,7 @@ class Health
                 'refuse' => true,
                 'tag' => _('without data'),
             ],
-            ['label' => $label, 'url' => $url, 'tag' => $tag] + $good,
+            ['label' => $label, 'kind' => 'address', 'url' => $url, 'tag' => $tag] + $good,
         ];
     }
 
@@ -629,6 +628,7 @@ class Health
                         $verdict['detail'] = sprintf(_('sends to %s, not to %s'), $verdict['location'] ?? '', $row['leadsTo']);
                     }
                 }
+                $address = ($row['kind'] ?? 'address') === 'address';
                 $groups[$g]['rows'][$r] = array_diff_key($row, [
                     'method' => 0,
                     'probe' => 0,
@@ -639,7 +639,7 @@ class Health
                     'stay' => 0,
                     'leadsTo' => 0,
                 ]) +
-                    $verdict + ['ms' => null];
+                    ($address ? $verdict + ['ms' => null] : $verdict);
             }
         }
 
@@ -766,22 +766,35 @@ class Health
     {
         return [
             'label' => $label,
-            'url' => '',
             'level' => $good ? 'ok' : 'error',
             'status' => $good ? _('OK') : _('missing'),
             'detail' => $detail,
-            'ms' => null,
         ];
     }
 
-    /** A row for something that may not be defined: a file or a folder, read where it says. */
+    /** A row for a file the engine reads: where it is, whether this user can read it; not set when no file is given. */
     public static function path($label, $path)
     {
         if ($path === '' || $path === null) {
-            return ['label' => $label, 'url' => '', 'level' => 'none', 'status' => '', 'ms' => null];
+            return ['label' => $label, 'kind' => 'file', 'level' => 'unset', 'reason' => 'health_unset'];
         }
 
-        return self::row($label, is_readable($path), $path);
+        return self::fileRow($label, (string) $path);
+    }
+
+    /** A file: where it is, whether this user can read it. */
+    private static function fileRow($label, $path)
+    {
+        $readable = is_readable($path);
+
+        return [
+            'label' => $label,
+            'kind' => 'file',
+            'path' => $path,
+            'readable' => $readable,
+            'level' => $readable ? 'ok' : 'error',
+            'status' => $readable ? _('readable') : (is_file($path) ? _('not readable') : _('missing')),
+        ];
     }
 
     /**
@@ -826,35 +839,53 @@ class Health
     }
 
     /**
-     * A row for a folder this user writes in (a cache): it is, or it can be made. One that cannot is an error: what it would keep
-     * is made again on every request.
+     * A row for a folder this user writes in (a cache): where it is, whether it is there, whether this user writes in it (or can make
+     * it). One it cannot is an error: what it would keep is made again on every request.
      */
     public static function writable($label, $folder)
     {
         $good = (new \OpenSim\Support\FileCache($folder))->writable();
         $user = function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : get_current_user();
+        $exists = is_dir($folder);
 
         return [
             'label' => $label,
-            'url' => '',
+            'kind' => 'folder',
+            'path' => $folder,
+            'exists' => $exists,
+            'writable' => $good,
             'level' => $good ? 'ok' : 'error',
-            'status' => $good ? _('OK') : _('not writable'),
-            'detail' => $folder . ($good || $user === '' ? '' : " ($user)"),
-            'ms' => null,
-        ];
+            'status' => $good ? ($exists ? _('writable') : _('can be made')) : _('not writable'),
+        ] + ($good || $user === '' ? [] : ['detail' => $user]);
     }
 
     /**
-     * What an install needs of PHP, one row per extension.
+     * What an install needs of PHP, one row per extension: installed, its version, what it is for.
      *
      * @return list<array<string,mixed>>
      */
     public static function extensions()
     {
         return [
-            self::row('xmlrpc', function_exists('xmlrpc_encode'), 'extension or polyfill'),
-            self::row('imagick', class_exists('Imagick'), 'text to image, web assets'),
-            self::row('gettext', function_exists('gettext'), 'translations'),
+            self::requirement('xmlrpc', function_exists('xmlrpc_encode'), 'extension or polyfill'),
+            self::requirement('imagick', class_exists('Imagick'), 'text to image, web assets'),
+            self::requirement('gettext', function_exists('gettext'), 'translations'),
+        ];
+    }
+
+    /** An extension of PHP: installed or missing, its version (a polyfill has none). */
+    private static function requirement($extension, $installed, $for)
+    {
+        $version = $installed ? (phpversion($extension) ?: null) : null;
+
+        return [
+            'label' => $extension,
+            'kind' => 'requirement',
+            'installed' => $installed,
+            'version' => $version,
+            'level' => $installed ? 'ok' : 'error',
+            'status' => $installed ? ($version !== null ? sprintf(_('installed %s'), $version) : _('installed (polyfill)')) : _('missing'),
+            'detail' => $for,
         ];
     }
 
@@ -869,7 +900,7 @@ class Health
         $rows = [];
         foreach ($paths as $file) {
             if (is_file($file)) {
-                $rows[] = self::row(basename($file), is_readable($file), $file);
+                $rows[] = self::fileRow(basename($file), $file);
             }
         }
 
@@ -877,7 +908,8 @@ class Health
     }
 
     /**
-     * The level of a check, from the levels of its rows: error when one is, else slow, else ok, else none (nothing to ask).
+     * The level of a check, from the levels of its rows: error when one is, else slow, else ok, else none (nothing to ask, a
+     * setting not set counting as nothing).
      *
      * @param list<array{rows:list<array<string,mixed>>}> $groups
      */
@@ -955,7 +987,7 @@ class Health
             foreach ($group['rows'] as $r => $row) {
                 $label = (string) ($row['label'] ?? '');
                 $value = (string) ($row['display'] ?? ($row['url'] ?? ($row['text'] ?? '')));
-                if (!in_array($row['level'] ?? '', ['error', 'none'], true)) {
+                if (!in_array($row['level'] ?? '', ['error', 'none', 'unset'], true)) {
                     continue;
                 }
                 // The key itself, or the one of the grid for a key that is a prefix (DATA_SRV_*)

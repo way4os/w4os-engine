@@ -113,14 +113,14 @@ final class HealthCheck
             static function ($simulator) use ($options): array {
                 $missing = $options->missingIn($simulator->settings());
 
+                // The options of the grid a simulator has, or misses, and what repairs them
                 return [
                     'label' => $simulator->slug(),
-                    'url' => '',
-                    'text' => $missing === [] ? '' : implode(', ', $missing),
+                    'kind' => 'option',
+                    'missing' => $missing,
                     'level' => $missing === [] ? 'ok' : 'error',
-                    'status' => $missing === [] ? _('OK') : _('missing'),
-                    'ms' => null,
-                ];
+                    'status' => $missing === [] ? _('all the options of the grid') : sprintf(_('missing: %s'), implode(', ', $missing)),
+                ] + ($missing === [] ? [] : ['fix' => 'POST /grids/{grid}/options/repair']);
             },
             $grid->simulators(),
         )];

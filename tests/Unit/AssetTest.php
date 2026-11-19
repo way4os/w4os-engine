@@ -359,9 +359,9 @@ describe('the health of a grid, for its cache of assets', function () {
         chmod($machine->root . '/cache', 0o755);
 
         expect($writable['assets'] ?? [])
-            ->toMatchArray(['label' => 'assets', 'level' => 'ok', 'detail' => $machine->root . '/cache/demo/assets'])
+            ->toMatchArray(['label' => 'assets', 'kind' => 'folder', 'level' => 'ok', 'path' => $machine->root . '/cache/demo/assets'])
             ->and($writable['tasks'] ?? [])
-            ->toMatchArray(['label' => 'tasks', 'level' => 'ok', 'detail' => $machine->environment->layout->tasksRoot()])
+            ->toMatchArray(['label' => 'tasks', 'kind' => 'folder', 'level' => 'ok', 'path' => $machine->environment->layout->tasksRoot()])
             ->and($locked['assets'] ?? [])
             ->toMatchArray(['label' => 'assets', 'level' => 'error']);
     })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');

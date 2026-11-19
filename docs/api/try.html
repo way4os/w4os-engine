@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "60b39a2",
+        "version": "43ee042",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8381,13 +8381,69 @@
                                                             "type": "string",
                                                             "description": "The setting as the ini file writes it (its key), the page, or what an install needs"
                                                         },
+                                                        "kind": {
+                                                            "type": "string",
+                                                            "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`)",
+                                                            "enum": [
+                                                                "address",
+                                                                "value",
+                                                                "secret",
+                                                                "requirement",
+                                                                "folder",
+                                                                "file",
+                                                                "option"
+                                                            ]
+                                                        },
+                                                        "reason": {
+                                                            "type": "string",
+                                                            "description": "Why a line is not asked, a key of the catalog: `health_unset`, not set, so neither served nor tested"
+                                                        },
                                                         "url": {
                                                             "type": "string",
-                                                            "description": "The address asked, empty for a row that is not one"
+                                                            "description": "The address asked (an address)"
                                                         },
                                                         "text": {
                                                             "type": "string",
                                                             "description": "A value that is not an address, shown as it is"
+                                                        },
+                                                        "set": {
+                                                            "type": "boolean",
+                                                            "description": "Whether a secret is set (a secret)"
+                                                        },
+                                                        "installed": {
+                                                            "type": "boolean",
+                                                            "description": "Whether an extension is installed (a requirement)"
+                                                        },
+                                                        "version": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ],
+                                                            "description": "Its version, null for a polyfill (a requirement)"
+                                                        },
+                                                        "path": {
+                                                            "type": "string",
+                                                            "description": "Where it is (a folder, a file)"
+                                                        },
+                                                        "exists": {
+                                                            "type": "boolean",
+                                                            "description": "Whether the folder is there (a folder)"
+                                                        },
+                                                        "writable": {
+                                                            "type": "boolean",
+                                                            "description": "Whether this user writes in it, or can make it (a folder)"
+                                                        },
+                                                        "readable": {
+                                                            "type": "boolean",
+                                                            "description": "Whether this user reads it (a file)"
+                                                        },
+                                                        "missing": {
+                                                            "type": "array",
+                                                            "description": "The options of the grid the simulator misses (an option)"
+                                                        },
+                                                        "fix": {
+                                                            "type": "string",
+                                                            "description": "The operation that repairs it (an option): `POST /grids/{grid}/options/repair`"
                                                         },
                                                         "display": {
                                                             "type": "string",
@@ -8399,24 +8455,25 @@
                                                         },
                                                         "level": {
                                                             "type": "string",
-                                                            "description": "ok: it answers as it should; slow: it took longer than the timeout (3 s) and answered as it should when asked again, longer (10 s), a page made after a deploy; error: it does not; none: nothing to ask (not set, or not an address)",
+                                                            "description": "ok: it is as it should (an address answers as it should, a folder is writable...); slow: an address took longer than the timeout (3 s) and answered as it should when asked again, longer (10 s), a page made after a deploy; error: it is not; unset: not set, so neither served nor tested (`reason`); none: nothing to check (a value shown)",
                                                             "enum": [
                                                                 "ok",
                                                                 "slow",
                                                                 "error",
+                                                                "unset",
                                                                 "none"
                                                             ]
                                                         },
                                                         "status": {
                                                             "type": "string",
-                                                            "description": "The HTTP code, OK, the error of curl, or what is wrong (missing, differs), translated"
+                                                            "description": "What was found, translated: the HTTP code or the error of curl (an address), installed 8.3 (a requirement), writable, readable, set, as the grid says, missing..."
                                                         },
                                                         "ms": {
                                                             "type": [
                                                                 "integer",
                                                                 "null"
                                                             ],
-                                                            "description": "How long it took to answer, in milliseconds"
+                                                            "description": "How long it took to answer, in milliseconds (an address)"
                                                         },
                                                         "detail": {
                                                             "type": "string",
@@ -8580,13 +8637,69 @@
                                                                                     "type": "string",
                                                                                     "description": "The setting as the ini file writes it (its key), the page, or what an install needs"
                                                                                 },
+                                                                                "kind": {
+                                                                                    "type": "string",
+                                                                                    "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`)",
+                                                                                    "enum": [
+                                                                                        "address",
+                                                                                        "value",
+                                                                                        "secret",
+                                                                                        "requirement",
+                                                                                        "folder",
+                                                                                        "file",
+                                                                                        "option"
+                                                                                    ]
+                                                                                },
+                                                                                "reason": {
+                                                                                    "type": "string",
+                                                                                    "description": "Why a line is not asked, a key of the catalog: `health_unset`, not set, so neither served nor tested"
+                                                                                },
                                                                                 "url": {
                                                                                     "type": "string",
-                                                                                    "description": "The address asked, empty for a row that is not one"
+                                                                                    "description": "The address asked (an address)"
                                                                                 },
                                                                                 "text": {
                                                                                     "type": "string",
                                                                                     "description": "A value that is not an address, shown as it is"
+                                                                                },
+                                                                                "set": {
+                                                                                    "type": "boolean",
+                                                                                    "description": "Whether a secret is set (a secret)"
+                                                                                },
+                                                                                "installed": {
+                                                                                    "type": "boolean",
+                                                                                    "description": "Whether an extension is installed (a requirement)"
+                                                                                },
+                                                                                "version": {
+                                                                                    "type": [
+                                                                                        "string",
+                                                                                        "null"
+                                                                                    ],
+                                                                                    "description": "Its version, null for a polyfill (a requirement)"
+                                                                                },
+                                                                                "path": {
+                                                                                    "type": "string",
+                                                                                    "description": "Where it is (a folder, a file)"
+                                                                                },
+                                                                                "exists": {
+                                                                                    "type": "boolean",
+                                                                                    "description": "Whether the folder is there (a folder)"
+                                                                                },
+                                                                                "writable": {
+                                                                                    "type": "boolean",
+                                                                                    "description": "Whether this user writes in it, or can make it (a folder)"
+                                                                                },
+                                                                                "readable": {
+                                                                                    "type": "boolean",
+                                                                                    "description": "Whether this user reads it (a file)"
+                                                                                },
+                                                                                "missing": {
+                                                                                    "type": "array",
+                                                                                    "description": "The options of the grid the simulator misses (an option)"
+                                                                                },
+                                                                                "fix": {
+                                                                                    "type": "string",
+                                                                                    "description": "The operation that repairs it (an option): `POST /grids/{grid}/options/repair`"
                                                                                 },
                                                                                 "display": {
                                                                                     "type": "string",
@@ -8598,24 +8711,25 @@
                                                                                 },
                                                                                 "level": {
                                                                                     "type": "string",
-                                                                                    "description": "ok: it answers as it should; slow: it took longer than the timeout (3 s) and answered as it should when asked again, longer (10 s), a page made after a deploy; error: it does not; none: nothing to ask (not set, or not an address)",
+                                                                                    "description": "ok: it is as it should (an address answers as it should, a folder is writable...); slow: an address took longer than the timeout (3 s) and answered as it should when asked again, longer (10 s), a page made after a deploy; error: it is not; unset: not set, so neither served nor tested (`reason`); none: nothing to check (a value shown)",
                                                                                     "enum": [
                                                                                         "ok",
                                                                                         "slow",
                                                                                         "error",
+                                                                                        "unset",
                                                                                         "none"
                                                                                     ]
                                                                                 },
                                                                                 "status": {
                                                                                     "type": "string",
-                                                                                    "description": "The HTTP code, OK, the error of curl, or what is wrong (missing, differs), translated"
+                                                                                    "description": "What was found, translated: the HTTP code or the error of curl (an address), installed 8.3 (a requirement), writable, readable, set, as the grid says, missing..."
                                                                                 },
                                                                                 "ms": {
                                                                                     "type": [
                                                                                         "integer",
                                                                                         "null"
                                                                                     ],
-                                                                                    "description": "How long it took to answer, in milliseconds"
+                                                                                    "description": "How long it took to answer, in milliseconds (an address)"
                                                                                 },
                                                                                 "detail": {
                                                                                     "type": "string",

@@ -389,6 +389,8 @@ final class Catalog
         'setting_cache_assets_help' => 'The folder the pictures are kept in: without it, they are made again on every request.',
         'setting_cache_tasks' => 'Task state',
         'setting_cache_tasks_help' => 'The folder of the state of the tasks: without it, no task runs and the search index never fills.',
+        // A setting of the health that is not given: not served, not asked
+        'health_unset' => 'Not set: neither served nor tested.',
         // A service of the health that does not answer and is not served by the helpers of the grid
         'health_third_party' => 'This service needs a web application of its own: the helpers of OpenSim engine, or another one.',
         'presence' => 'Presence',

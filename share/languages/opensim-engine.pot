@@ -1194,6 +1194,10 @@ msgctxt "setting_cache_tasks_help"
 msgid "The folder of the state of the tasks: without it, no task runs and the search index never fills."
 msgstr ""
 
+msgctxt "health_unset"
+msgid "Not set: neither served nor tested."
+msgstr ""
+
 msgctxt "health_third_party"
 msgid "This service needs a web application of its own: the helpers of OpenSim engine, or another one."
 msgstr ""

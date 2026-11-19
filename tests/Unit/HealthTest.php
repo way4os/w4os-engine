@@ -282,7 +282,8 @@ describe('The pages of a grid', function () {
         $by = array_column($groups[0]['rows'], null, 'label');
 
         expect(array_map(static fn(array $row): string => $row['level'], $by))
-            ->toBe(['helpers' => 'ok', 'search' => 'ok', 'guide' => 'none', 'welcome' => 'error', 'profile' => 'ok', 'directory' => 'none'])
+            // Not declared, or not set: neither served nor tested
+            ->toBe(['helpers' => 'ok', 'search' => 'ok', 'guide' => 'unset', 'welcome' => 'error', 'profile' => 'ok', 'directory' => 'unset'])
             // What it must answer, what it answered
             ->and(array_intersect_key($by['search'], ['expectedStatus' => 1, 'status' => 1]))
             ->toBe(['status' => '200', 'expectedStatus' => '2xx'])
@@ -434,7 +435,7 @@ describe('sections of a grid', function () {
                     'probe' => 'http://play.example.org:8002/get_grid_info',
                 ])
                 ->and($rows['gridname'])
-                ->toMatchArray(['url' => '', 'text' => 'Alpha World', 'level' => 'none']);
+                ->toMatchArray(['kind' => 'value', 'text' => 'Alpha World', 'level' => 'none']);
 
             // The grid does not answer: its login address is there all the same, to be asked
             $down = Health::grid(['login' => 'http://play.example.org:8002/']);
@@ -510,7 +511,7 @@ describe('sections of a grid', function () {
             expect($differs[0])
                 ->toMatchArray([
                     'level' => 'error',
-                    'status' => 'differs',
+                    'status' => 'differs from what the grid says',
                     'display' => 'https://other.example.org/profile/[AGENT_NAME]',
                     'url' => 'https://other.example.org/profile/Jane.Doe',
                 ])
@@ -522,7 +523,7 @@ describe('sections of a grid', function () {
 
             expect($none[0])->toMatchArray([
                 'level' => 'ok',
-                'status' => 'OK',
+                'status' => 'as the grid says',
                 'url' => 'https://play.example.org/profile/[AGENT_NAME]',
             ]);
         },
@@ -648,23 +649,23 @@ describe('sections of a grid', function () {
             );
 
             expect($rows['login'])
-                ->toMatchArray(['level' => 'ok', 'status' => 'OK', 'url' => 'http://play.example.org:8002'])
+                ->toMatchArray(['level' => 'ok', 'status' => 'as the grid says', 'url' => 'http://play.example.org:8002'])
                 ->and($rows['gridname'])
-                ->toMatchArray(['level' => 'ok', 'status' => 'OK', 'text' => 'Alpha World'])
+                ->toMatchArray(['level' => 'ok', 'status' => 'as the grid says', 'text' => 'Alpha World'])
                 // The config says one thing and the grid another: a restart not done, or a config that does not reach it
                 ->and($rows['economy'])
                 ->toMatchArray([
                     'level' => 'error',
-                    'status' => 'differs',
+                    'status' => 'differs from what the grid says',
                     'url' => 'https://other.example.org/helpers',
                     'detail' => 'get_grid_info: https://play.example.org/helpers',
                 ])
                 // The config says it and the grid does not
                 ->and($rows['about'])
-                ->toMatchArray(['level' => 'error', 'status' => 'differs', 'detail' => 'get_grid_info: '])
+                ->toMatchArray(['level' => 'error', 'status' => 'differs from what the grid says', 'detail' => 'get_grid_info: '])
                 // Nothing in the config: nothing to compare
                 ->and($rows['help'])
-                ->toMatchArray(['level' => 'none', 'url' => '']);
+                ->toMatchArray(['level' => 'unset', 'reason' => 'health_unset']);
         },
     );
 
@@ -807,7 +808,7 @@ describe('sections of a grid', function () {
                     ['search' => 'https://play.example.org/search/'],
                 ),
             )
-                ->toMatchArray(['level' => 'ok', 'status' => 'OK'])
+                ->toMatchArray(['level' => 'ok', 'status' => 'the same as search'])
                 ->not->toHaveKey('method')
                 // Two addresses are allowed (the operator's), each is tested for what it is, and `search` is the one the grid says
                 ->and($row(['SearchURL' => 'https://a.example.org/'], ['search' => 'https://b.example.org/']))
@@ -816,7 +817,7 @@ describe('sections of a grid', function () {
                 ->and($row(['SearchURL' => 'https://a.example.org/'], []))
                 ->toMatchArray(['method' => 'get', 'tag' => 'Web search', 'url' => 'https://a.example.org/'])
                 ->and($row([], ['search' => 'https://b.example.org/']))
-                ->toMatchArray(['level' => 'none', 'url' => '', 'tag' => 'Web search']);
+                ->toMatchArray(['level' => 'unset', 'tag' => 'Web search']);
         },
     );
 
@@ -831,37 +832,52 @@ describe('sections of a grid', function () {
             $key = ['MoneyServer' => ['MoneyScriptAccessKey' => 'a-secret-key']];
 
             expect($row($key))
-                ->toMatchArray(['level' => 'ok', 'status' => 'OK'])
+                ->toMatchArray(['kind' => 'secret', 'set' => true, 'level' => 'ok', 'status' => 'set'])
                 ->and(json_encode($row($key)))
                 ->not->toContain('a-secret-key')
                 ->and($row(['Economy' => ['economymodule' => 'Gloebit']]))
                 ->toMatchArray(['level' => 'error', 'status' => 'missing'])
                 // A grid without a currency needs none, and says nothing
                 ->and($row(['Economy' => ['economymodule' => 'BetaGridLikeMoneyModule']]))
-                ->toMatchArray(['level' => 'none', 'status' => '']);
+                ->toMatchArray(['level' => 'unset', 'reason' => 'health_unset']);
         },
     );
 });
 
 describe('What an install needs', function () {
-    test(
-        'is said one row per thing: the extensions of PHP, the files it reads, a path that is not defined',
-        function () {
-            $dir = sys_get_temp_dir() . '/health-' . bin2hex(random_bytes(4));
-            mkdir($dir);
-            file_put_contents("$dir/Robust.ini", '');
-            $extensions = array_column(Health::extensions(), null, 'label');
+    test('is said by what it is, each its own fields and its own words: an extension installed, a folder writable, a file readable', function () {
+        $dir = sys_get_temp_dir() . '/health-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents("$dir/Robust.ini", '');
+        $extensions = array_column(Health::extensions(), null, 'label');
+        $gettext = $extensions['gettext'];
+        $folder = Health::writable('tasks', $dir);
+        $file = Health::files(["$dir/Robust.ini", "$dir/absent.ini"]);
 
-            expect($extensions['xmlrpc']['level'])
-                ->toBeIn(['ok', 'error'])
-                ->and(Health::files(["$dir/Robust.ini", "$dir/absent.ini"]))
-                ->toBe([Health::row('Robust.ini', true, "$dir/Robust.ini")])
-                ->and(Health::path('GuideSource', ''))
-                ->toMatchArray(['label' => 'GuideSource', 'status' => '', 'level' => 'none'])
-                ->and(Health::path('GuideSource', "$dir/Robust.ini")['level'])
-                ->toBe('ok');
-        },
-    );
+        expect($gettext)
+            ->toMatchArray(['kind' => 'requirement', 'installed' => true, 'level' => 'ok', 'version' => phpversion('gettext')])
+            ->and($gettext['status'])
+            ->toBe('installed ' . phpversion('gettext'))
+            ->and($folder)
+            ->toMatchArray(['kind' => 'folder', 'path' => $dir, 'exists' => true, 'writable' => true, 'level' => 'ok', 'status' => 'writable'])
+            ->and($file)
+            ->toBe([['label' => 'Robust.ini', 'kind' => 'file', 'path' => "$dir/Robust.ini", 'readable' => true, 'level' => 'ok', 'status' => 'readable']])
+            // What is not an address has none, nor a time
+            ->and([...array_values($extensions), $folder, ...$file])
+            ->each->not->toHaveKeys(['url', 'ms']);
+    });
+
+    test('says a setting that is not given apart: not set, so neither served nor tested, which is not a wrong one', function () {
+        $unset = Health::emptyRow('DirectoryURL');
+        $groups = static fn(string ...$levels): array => [['rows' => array_map(static fn(string $level): array => ['level' => $level], $levels)]];
+
+        expect($unset)
+            ->toBe(['label' => 'DirectoryURL', 'kind' => 'address', 'level' => 'unset', 'reason' => 'health_unset'])
+            ->and(OpenSim\I18n\Catalog::MESSAGES['health_unset'] ?? null)
+            ->toBe('Not set: neither served nor tested.')
+            ->and([Health::level($groups('unset', 'ok')), Health::level($groups('unset'))])
+            ->toBe(['ok', 'none']);
+    });
 });
 
 describe('The health in the contract', function () {
@@ -878,7 +894,9 @@ describe('The health in the contract', function () {
             ->and($row['cert']['description'] ?? '')
             ->toContain('certificate')
             ->and($row['level']['enum'])
-            ->toBe(['ok', 'slow', 'error', 'none'])
+            ->toBe(['ok', 'slow', 'error', 'unset', 'none'])
+            ->and($row['kind']['enum'])
+            ->toBe(['address', 'value', 'secret', 'requirement', 'folder', 'file', 'option'])
             ->and([Health::level($groups('ok', 'slow', 'error')), Health::level($groups('ok', 'slow')), Health::level($groups('ok', 'none')), Health::level($groups('none'))])
             ->toBe(['error', 'slow', 'ok', 'none']);
     });
