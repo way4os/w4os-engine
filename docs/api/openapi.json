@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "376bf97",
+        "version": "8cf04f4",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -7976,6 +7976,7 @@
                             "name": "moneyDatabase",
                             "type": "connection-string",
                             "label": "economy_database",
+                            "fallback": "db_use_default",
                             "fields": [
                                 {
                                     "name": "host",
@@ -8340,6 +8341,10 @@
                                                             },
                                                             "password": {
                                                                 "type": "string"
+                                                            },
+                                                            "useDefault": {
+                                                                "type": "boolean",
+                                                                "description": "true: the database the grid uses by default, the setting removed"
                                                             }
                                                         },
                                                         "nullable": true

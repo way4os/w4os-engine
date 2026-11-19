@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- feature (economy): the database of the money server takes Use default, the main database of the grid, written in its own keys of [MySql]
+- fix (config): a connection string reads its port given apart (`Port=3307`)
 - change (texts): the people of the world are avatars in every text, never users (Resident for the avatar of a person); the titles of the cards of a dashboard (`dashboard_grid_info`, `dashboard_grid_status`, `total`)
 - fix (offline): the database of the offline messages is in the lines of the page when it is not the one of Robust
 - change (guide): a grid that has saved no source has no guide; its page saves the guide of 2do.directory when the source is left empty or the guide is switched on, the field no longer required

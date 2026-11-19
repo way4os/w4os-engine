@@ -47,6 +47,9 @@ final class ConnectionString
         if ($source === '' || $database === '') {
             return null;
         }
+        // Its port given apart (Port=3307), as the connector of MySQL reads it
+        $port = trim($pairs['Port'] ?? '');
+        ctype_digit($port) && !preg_match('/:\d+$/', $source) && ($source .= ":$port");
 
         return self::for($source, $database, $pairs['User ID'] ?? '', $pairs['Password'] ?? '');
     }

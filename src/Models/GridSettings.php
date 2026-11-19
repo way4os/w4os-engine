@@ -350,6 +350,12 @@ final class GridSettings
         foreach ($writes as [$entry, $value, $where]) {
             // Its default: what the grid uses when the setting says nothing (the database of Robust for the search)
             $default = isset($entry['fallback']) && is_array($value) && filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            // A database in keys of its own (the money server) reads no other: the main database of the grid is written in them
+            if ($default && isset($entry['parts'])) {
+                $main = \OpenSim\Data\Database::Robust->connection($this->config()) ?? throw InvalidValue::because('invalid-request', "the grid says no main database to use for {$entry['name']}");
+                $value = ['host' => $main->host ?: $main->source, 'port' => $main->port, 'database' => $main->database, 'user' => $main->user, 'password' => $main->password];
+                $default = false;
+            }
             // false: the key commented out, as w4os-wp leaves the register the grid does not use
             if ($value === false) {
                 ($where['store'] ?? false) && $this->grid->environment()->settings->set($entry['section'], $entry['key'], '');
@@ -917,6 +923,12 @@ final class GridSettings
             $said[$part] = trim((string) $config->find($entry['section'], $key), " \t\"");
         }
         if ($said['database'] === '') {
+            return null;
+        }
+        // The main database of the grid, its keys written for the money server: its default
+        $main = \OpenSim\Data\Database::Robust->connection($config);
+        if ($main !== null && $main->database === $said['database'] && $main->user === $said['user']
+            && strcasecmp($main->host ?: $main->source, $said['host'] ?: 'localhost') === 0 && (int) ($main->port ?? 3306) === (int) ($said['port'] ?: 3306)) {
             return null;
         }
 

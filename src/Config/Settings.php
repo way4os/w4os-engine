@@ -146,7 +146,7 @@ final class Settings
         'moneyserver' => [
             // Its database in parts of their own, the keys of [MySql] by part
             'MySql' => [
-                'database' => ['name' => 'moneyDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'parts' => ['host' => 'hostname', 'port' => 'port', 'database' => 'database', 'user' => 'username', 'password' => 'password'], 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
+                'database' => ['name' => 'moneyDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'parts' => ['host' => 'hostname', 'port' => 'port', 'database' => 'database', 'user' => 'username', 'password' => 'password'], 'fallback' => 'db_use_default', 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
             ],
             'MoneyServer' => [
                 // The avatar that can create money: it buys it from the system at no cost (zeros: every avatar, empty: nobody)
