@@ -70,12 +70,6 @@ class Health
     /** @var array{register?:string,helpers?:?callable} the site of the grid being checked (grid()) */
     private static $site = [];
 
-    /**
-     * The block of the helpers a page of the site shows (`/blocks/<name>` of the helpers), by page: a page that answers while its
-     * block does not shows nothing.
-     */
-    const PAGE_BLOCKS = ['profile' => 'profile', 'guide' => 'destination_guide', 'search' => 'search'];
-
     /** What an address that sends elsewhere answers. */
     const REDIRECTS = [301, 302, 303, 307, 308];
 
@@ -576,12 +570,6 @@ class Health
                 }
             }
         }
-        // What a row needs besides (the block of the helpers a page of the site shows), asked with the rest
-        foreach ($requests as $id => $row) {
-            foreach ($row['needs'] ?? [] as $n => $need) {
-                $requests["$id/needs/$n"] = ['url' => $need['url'], 'method' => 'get'];
-            }
-        }
         // The same request once, its answer given to each row that asks it (an address the grid says and its config says)
         $unique = [];
         $same = [];
@@ -638,18 +626,6 @@ class Health
                     if (($verdict['level'] ?? '') === 'ok' && ($row['leadsTo'] ?? '') !== '' && !self::sameAddress((string) ($verdict['location'] ?? ''), $row['leadsTo'])) {
                         $verdict['level'] = 'error';
                         $verdict['detail'] = sprintf(_('sends to %s, not to %s'), $verdict['location'] ?? '', $row['leadsTo']);
-                    }
-                }
-                // What it needs: each asked, and the row an error when one does not answer, the page answering or not
-                if (isset($row['needs'])) {
-                    foreach ($row['needs'] as $n => $need) {
-                        $got = $results["$g/$r/needs/$n"] ?? null;
-                        $row['needs'][$n] += $got === null ? ['level' => 'none'] : self::verdict($got['code'], $got['error'], $got['ms'], $got['errno']) + ['expectedStatus' => '2xx'];
-                    }
-                    $failed = array_values(array_filter($row['needs'], static fn(array $need): bool => ($need['level'] ?? '') === 'error'));
-                    if ($failed !== [] && in_array($verdict['level'] ?? '', ['ok', 'slow'], true)) {
-                        $verdict['level'] = 'error';
-                        $verdict['detail'] = sprintf(_('the page answers, but %s does not: %s (%s)'), $failed[0]['label'], $failed[0]['url'], $failed[0]['status']);
                     }
                 }
                 $address = ($row['kind'] ?? 'address') === 'address';
@@ -823,9 +799,8 @@ class Health
 
     /**
      * The pages of a grid as Robust and the simulators set them (Robust.ini or Robust.HG.ini, the base OpenSim.ini): a page set
-     * only in the files of the helpers (DirectoryURL of Helpers.ini) is not, nor are the helpers when no setting of Robust or of
-     * the simulators leads to them (HelpersURL alone is their own file): a grid needs no helpers to run; set, they must answer,
-     * not set, they are not asked (`source` default).
+     * only in the files of the helpers (DirectoryURL of Helpers.ini) is not (`source` default): a grid needs no helpers to run;
+     * set, a page must answer, not set, it is not asked.
      *
      * @param list<array<string,mixed>> $pages SitePages::rows()
      * @param list<string> $urls the addresses Robust and the simulators set
@@ -834,21 +809,18 @@ class Health
      */
     public static function configured($pages, $urls, $servedByHelpers)
     {
-        $helpers = array_filter($urls, static fn(string $url): bool => $servedByHelpers($url)) !== [];
         foreach ($pages as $i => $page) {
             $grid = array_filter((array) ($page['keys'] ?? []), static fn(string $key): bool => !str_starts_with($key, '[Helpers]')) !== [];
-            $set = $page['page'] === 'helpers' ? $helpers : $grid;
-            $set || ($pages[$i]['source'] = 'default');
+            $grid || ($pages[$i]['source'] = 'default');
         }
 
         return $pages;
     }
 
     /**
-     * The pages of a grid for people, as SitePages::rows() gives them: the base of the helpers and each page the grid declares (its
-     * config, or the grid itself), asked at the address it declares; one it does not declare (the default of the helpers, a base
-     * of the helpers guessed from its web site) is not asked. A page of the site that shows a block of the helpers needs the
-     * helpers the grid declares. The profile without a name is not a page: the helpers answer it as a teapot (or a 404), a site sends whoever is signed
+     * The pages of a grid for people, as SitePages::rows() gives them: each page the grid sets (Robust), asked at its address with
+     * the code it must answer; one it does not set is not asked; the base of the helpers is no page of the grid. The profile
+     * without a name is not a page: the helpers answer it as a teapot (or a 404), a site sends whoever is signed
      * out, as the check is, to its registration (`register`).
      *
      * @param  list<array{page:string,url:?string,source?:?string,servedBy:?string,helpersDefault?:?string}> $pages
@@ -858,27 +830,19 @@ class Health
     public static function pages($pages, $register = null)
     {
         $rows = [];
-        $helpers = '';
-        // The helpers the grid declares (HelpersURL, its economy), never the base guessed from its web site
         foreach ($pages as $page) {
-            $page['page'] === 'helpers' && ($page['source'] ?? '') !== 'default' && ($helpers = rtrim((string) ($page['url'] ?? ''), '/'));
-        }
-        foreach ($pages as $page) {
+            // The base of the helpers is no setting of Robust: the pages under it are, each asked for itself
+            if ($page['page'] === 'helpers') {
+                continue;
+            }
             $url = (string) ($page['url'] ?? '');
             if ($url === '' || ($page['source'] ?? '') === 'default') {
                 $rows[] = self::emptyRow($page['page']);
                 continue;
             }
             $tag = ($page['servedBy'] ?? '') === 'helpers' ? _('helpers') : _('site');
-            // What the page needs of the helpers: a page of the site, its block and the pictures; the helpers, what only they answer
-            $needs = [];
-            if ($helpers !== '' && ($page['page'] === 'helpers' || (($page['servedBy'] ?? '') === 'site' && isset(self::PAGE_BLOCKS[$page['page']])))) {
-                $page['page'] === 'helpers' || ($needs[] = ['label' => _('its block of the helpers'), 'url' => "$helpers/blocks/" . self::PAGE_BLOCKS[$page['page']]]);
-                $needs[] = ['label' => _('the pictures of the helpers'), 'url' => "$helpers/pictures/" . \OpenSim\Assets\WebAssets::PERSON . '.png'];
-            }
-            $needs = $needs === [] ? [] : ['needs' => $needs];
             if (!str_contains($url, '[AGENT_NAME]')) {
-                $rows[] = self::page($page['page'], $url, $tag) + $needs;
+                $rows[] = self::page($page['page'], $url, $tag);
                 continue;
             }
             $bare = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $url), '/');
@@ -890,7 +854,7 @@ class Health
                     'expect' => self::REDIRECTS,
                     'leadsTo' => (string) $register,
                     'display' => $url,
-                ] + $needs
+                ]
                 // The profiles without a name: not a page (a teapot for the helpers), or no such profile
                 : self::page($page['page'], $bare, $tag) + ['expect' => [404, 418], 'display' => $url];
         }

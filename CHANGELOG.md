@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (health): the health asks each page Robust sets with the code it must answer, and no more: the blocks and the pictures of the helpers a page of the site shows (`needs`) and the base of the helpers, which no setting of Robust gives, are no longer asked
 - change (addresses): an address the grid does not set is not one of the grid: no service, page nor base of the helpers is given by default where the helpers would answer it (/helpers/currency.php, /helpers/search, the web site and /helpers); the helpers are where the grid sets them (HelpersURL, else its economy), and a grid that sets none has none. Only the tools of the helpers no setting gives (the parser, textgen) are where the helpers the grid has are (source `helpers`)
 - change (health): a setting names its full context (`context`: its instance, its file, its section, its key), and a comparison says plainly what it was compared with (matches web_profile_url of get_grid_info, differs from economy of get_grid_info, matches [GridInfoService] search), never "as the grid says" nor "the same as search"
 - fix (health): the helpers are asked only where Robust (Robust.ini or Robust.HG.ini) or the base OpenSim.ini sets them: a grid needs no helpers to run, set they must answer, not set they are not asked (HelpersURL alone is their own file, a page set only in Helpers.ini neither); a grid without them is healthy

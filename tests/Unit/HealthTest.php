@@ -283,7 +283,8 @@ describe('The pages of a grid', function () {
 
         expect(array_map(static fn(array $row): string => $row['level'], $by))
             // Not declared, or not set: neither served nor tested
-            ->toBe(['helpers' => 'ok', 'search' => 'ok', 'guide' => 'unset', 'welcome' => 'error', 'profile' => 'ok', 'directory' => 'unset'])
+            // The base of the helpers is no page of the grid: not asked
+            ->toBe(['search' => 'ok', 'guide' => 'unset', 'welcome' => 'error', 'profile' => 'ok', 'directory' => 'unset'])
             // What it must answer, what it answered
             ->and(array_intersect_key($by['search'], ['expectedStatus' => 1, 'status' => 1]))
             ->toBe(['status' => '200', 'expectedStatus' => '2xx'])
@@ -1104,99 +1105,15 @@ describe('The words of the health', function () {
     });
 });
 
-describe('A page of the site that shows a block of the helpers', function () {
-    test('asks the helpers the grid declares, where they are, never a base it guesses', function () {
-        $elsewhere = Health::pages([
-            ['page' => 'helpers', 'url' => 'https://tools.example.net/os', 'source' => 'economy', 'servedBy' => 'helpers'],
-            ['page' => 'guide', 'url' => 'https://grid.example.org/guide', 'source' => 'config', 'servedBy' => 'site'],
-        ]);
-        $guessed = Health::pages([
-            ['page' => 'helpers', 'url' => 'https://grid.example.org/helpers', 'source' => 'default', 'servedBy' => 'helpers'],
-            ['page' => 'guide', 'url' => 'https://grid.example.org/guide', 'source' => 'config', 'servedBy' => 'site'],
-        ]);
-        $by = static fn(array $rows): array => array_column($rows, null, 'label');
-
-        expect(array_column($by($elsewhere)['guide']['needs'], 'url'))
-            ->toBe(['https://tools.example.net/os/blocks/destination_guide', 'https://tools.example.net/os/pictures/' . OpenSim\Assets\WebAssets::PERSON . '.png'])
-            ->and($by($elsewhere)['helpers']['url'])
-            ->toBe('https://tools.example.net/os')
-            // The grid says nothing of its helpers: nothing of them asked, nothing guessed
-            ->and($by($guessed)['helpers'])
-            ->toMatchArray(['level' => 'unset', 'reason' => 'health_unset'])
-            ->and($by($guessed)['guide'])
-            ->not->toHaveKey('needs');
-    });
-
-
-    test('is an error when the helpers answer nothing at all, as the helpers themselves are', function () {
-        [$process, $port] = code_server();
-        $rows = Health::answers([['file' => 'pages', 'title' => '', 'rows' => Health::pages([
-            ['page' => 'helpers', 'url' => 'http://127.0.0.1:9/helpers', 'source' => 'config', 'servedBy' => 'helpers'],
-            ['page' => 'profile', 'url' => "http://127.0.0.1:$port/200/[AGENT_NAME]", 'source' => 'config', 'servedBy' => 'site'],
-        ], "http://127.0.0.1:$port/register")]])[0]['rows'];
-        proc_terminate($process);
-        $by = array_column($rows, null, 'label');
-
-        expect($by['helpers'])
-            ->toMatchArray(['level' => 'error', 'status' => 'cURL error 7'])
-            ->and($by['profile']['level'])
-            ->toBe('error')
-            ->and(array_column($by['profile']['needs'], 'status'))
-            ->toBe(['cURL error 7', 'cURL error 7'])
-            ->and(Health::level([['rows' => $rows]]))
-            ->toBe('error');
-    });
-
-
-    test('is an error when its block or its pictures do not answer, though the page does: it would show nothing', function () {
-        [$process, $port] = code_server();
-        $url = fn(string $path) => "http://127.0.0.1:$port/$path";
-        $pages = static fn(string $helpers) => Health::pages([
-            ['page' => 'helpers', 'url' => $url($helpers), 'source' => 'config', 'servedBy' => 'helpers'],
-            ['page' => 'guide', 'url' => $url('200'), 'source' => 'config', 'servedBy' => 'site'],
-            ['page' => 'search', 'url' => $url('200/search'), 'source' => 'config', 'servedBy' => 'helpers'],
-        ]);
-        $up = Health::answers([['file' => 'pages', 'title' => '', 'rows' => $pages('200')]])[0]['rows'];
-        $down = Health::answers([['file' => 'pages', 'title' => '', 'rows' => $pages('404')]])[0]['rows'];
-        proc_terminate($process);
-        $guide = array_column($down, null, 'label')['guide'];
-
-        expect(array_column($up, 'level', 'label'))
-            ->toBe(['helpers' => 'ok', 'guide' => 'ok', 'search' => 'ok'])
-            ->and(array_column(array_column($up, null, 'label')['guide']['needs'], 'url'))
-            ->toBe([$url('200/blocks/destination_guide'), $url('200/pictures/' . OpenSim\Assets\WebAssets::PERSON . '.png')])
-            // The page answers 200, its block of the helpers does not: it shows nothing
-            ->and($guide)
-            ->toMatchArray(['level' => 'error', 'status' => '200'])
-            ->and($guide['detail'] ?? '')
-            ->toContain('blocks/destination_guide')
-            ->and(array_column($guide['needs'], 'level'))
-            ->toBe(['error', 'error'])
-            // A page of the helpers is not a site that calls them: nothing more to ask
-            ->and(array_column($up, null, 'label')['search'])
-            ->not->toHaveKey('needs')
-            // The helpers themselves: what only they answer
-            ->and(array_column($down, 'level', 'label')['helpers'])
-            ->toBe('error');
-    });
-});
-
 describe('The helpers of a grid', function () {
-    test('are tested only where Robust or the base OpenSim.ini sets them: not set, not tested', function () {
+    test('are the pages Robust sets: a page set only in the files of the helpers is not asked', function () {
         $pages = [
-            ['page' => 'helpers', 'url' => 'https://grid.example.org/helpers', 'source' => 'config', 'servedBy' => 'helpers', 'keys' => ['[Helpers] HelpersURL']],
             ['page' => 'guide', 'url' => 'https://grid.example.org/guide', 'source' => 'config', 'servedBy' => 'site', 'keys' => ['[LoginService] DestinationGuide']],
             ['page' => 'directory', 'url' => 'https://grid.example.org/helpers/directory', 'source' => 'config', 'servedBy' => 'helpers', 'keys' => ['[Helpers] DirectoryURL']],
         ];
-        $under = static fn(string $url): bool => str_starts_with($url, 'https://grid.example.org/helpers');
-        $none = array_column(Health::configured($pages, ['https://grid.example.org/guide'], $under), 'source', 'page');
-        $some = array_column(Health::configured($pages, ['https://grid.example.org/guide', 'https://grid.example.org/helpers/query.php'], $under), 'source', 'page');
 
-        expect($none)
-            // HelpersURL alone (the helpers' own file) is not the grid saying it uses them
-            ->toBe(['helpers' => 'default', 'guide' => 'config', 'directory' => 'default'])
-            ->and($some['helpers'])
-            ->toBe('config');
+        expect(array_column(Health::configured($pages, [], static fn(string $url): bool => false), 'source', 'page'))
+            ->toBe(['guide' => 'config', 'directory' => 'default']);
     });
 
     test('a grid with none is healthy, nothing of them asked; one set and down is an error', function () {

@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "fd08119",
+        "version": "55cd083",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8533,10 +8533,6 @@
                                                             "type": "object",
                                                             "description": "The full context of a setting, which says what it is (the same key is several things: SearchURL of [LoginService] is the web search of the viewers, of [Search] the search the simulators ask): `instance` (robust, opensim, moneyserver; grid_info for what the grid says), `file` (the file of the grid it was read in), `section`, `key`"
                                                         },
-                                                        "needs": {
-                                                            "type": "array",
-                                                            "description": "What a page needs besides (an address): a page of the site that shows a block of the helpers, the block (`/blocks/<name>` of the helpers) and their pictures; the helpers, what only they answer (their pictures). Each `label`, `url`, `level`, `status`, `expectedStatus`; the page is an error when one of them is, though it answers: it would show nothing"
-                                                        },
                                                         "expected": {
                                                             "type": "string",
                                                             "description": "What a wrong or missing address should be, as the options of the grid write it (its constants read): a site says should be this, is that"
@@ -8796,10 +8792,6 @@
                                                                                 "context": {
                                                                                     "type": "object",
                                                                                     "description": "The full context of a setting, which says what it is (the same key is several things: SearchURL of [LoginService] is the web search of the viewers, of [Search] the search the simulators ask): `instance` (robust, opensim, moneyserver; grid_info for what the grid says), `file` (the file of the grid it was read in), `section`, `key`"
-                                                                                },
-                                                                                "needs": {
-                                                                                    "type": "array",
-                                                                                    "description": "What a page needs besides (an address): a page of the site that shows a block of the helpers, the block (`/blocks/<name>` of the helpers) and their pictures; the helpers, what only they answer (their pictures). Each `label`, `url`, `level`, `status`, `expectedStatus`; the page is an error when one of them is, though it answers: it would show nothing"
                                                                                 },
                                                                                 "expected": {
                                                                                     "type": "string",
