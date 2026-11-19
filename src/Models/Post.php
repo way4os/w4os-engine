@@ -114,6 +114,7 @@ final class Post extends Model
             [Listing::action('delete', 'action_delete_post', 'DELETE', '/grids/{grid}/posts/{id}', more: ['ask' => 'ask_delete_post'])],
             sort: '-created',
             texts: ['title' => 'flux_title', 'menu' => 'flux_menu', 'placeholder' => 'flux_search', 'empty' => 'flux_empty', 'count' => 'posts_count'],
+            priorities: ['name' => 2, 'created' => 2],
         );
     }
 }

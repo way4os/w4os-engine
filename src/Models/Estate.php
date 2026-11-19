@@ -472,6 +472,7 @@ final class Estate extends Model
             ],
             ['name'],
             moreSorts: ['id'],
+            priorities: ['ownerName' => 2, 'regionCount' => 2, 'simulator' => 3],
         );
     }
 

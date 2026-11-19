@@ -536,7 +536,7 @@ describe('The contract', function () {
                 'picture' => 'profileImage',
                 'default' => 'person',
                 'bare' => false,
-                'priority' => 'primary',
+                'priority' => 1,
             ])
             ->and(array_column($avatars['x-list']['columns'], 'type', 'name'))
             ->toBe([

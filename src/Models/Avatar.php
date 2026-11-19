@@ -1754,7 +1754,9 @@ final class Avatar extends Model
 
         return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : [], $views, $create, [
             'title' => 'avatars_title', 'menu' => 'avatars_menu', 'placeholder' => 'avatars_search', 'empty' => 'list_empty', 'count' => 'avatars_count',
-        ]);
+        ],
+            priorities: ['shownRole' => 2, 'lastSeen' => 2, 'email' => 3, 'type' => 3, 'created' => 3, 'estates' => 4, 'regions' => 4, 'parcels' => 4],
+        );
     }
 
     /**

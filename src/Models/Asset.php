@@ -294,6 +294,7 @@ class Asset extends Model
             ],
             ['name', 'description'],
             moreSorts: ['accessed'],
+            priorities: ['type' => 2, 'size' => 3, 'created' => 3],
         );
     }
 

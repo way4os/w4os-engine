@@ -112,6 +112,7 @@ final class Listing
         public readonly array $views = [],
         public readonly array $create = [],
         public readonly array $texts = [],
+        public readonly array $priorities = [],
     ) {
         // The views: filters of the list, the row of links a site shows above it, in their order
         foreach ($views as $view) {
@@ -358,7 +359,7 @@ final class Listing
     public function document(): array
     {
         return [
-            'columns' => array_map(self::shown(...), $this->columns, array_keys($this->columns)),
+            'columns' => array_map($this->shown(...), $this->columns, array_keys($this->columns)),
             'sort' => ['default' => $this->sort, 'values' => $this->sorts(), 'descending' => '-'],
             'search' => $this->search,
             'filters' => $this->filters,
@@ -368,18 +369,18 @@ final class Listing
     }
 
     /**
-     * A column as a site shows it: `bare` whether its value reads without its label, `priority` primary for the first column and
-     * the status (shown at every width), secondary for the others (folded under the name on a narrow screen); a column may say
-     * its own.
+     * A column as a site shows it: `bare` whether its value reads without its label, `priority` the order in which a site hides it
+     * as the width shrinks (1 at every width: the first column and the status; then 2, 3, 4... by what a manager needs first, the
+     * `priorities` of the list); a column may say its own.
      *
      * @param array<string,mixed> $column
      * @return array<string,mixed>
      */
-    private static function shown(array $column, int $position): array
+    private function shown(array $column, int $position): array
     {
         return $column + [
             'bare' => in_array($column['type'], self::BARE, true) || ($column['type'] === 'link' && ($column['link'] ?? '') === 'teleport'),
-            'priority' => $position === 0 || $column['type'] === 'indicators' ? 'primary' : 'secondary',
+            'priority' => $position === 0 || $column['type'] === 'indicators' ? 1 : ($this->priorities[$column['name']] ?? 2),
         ];
     }
 

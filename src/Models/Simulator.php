@@ -548,6 +548,7 @@ final class Simulator extends InstalledModel
                 Listing::action('stop', 'action_stop', 'POST', '/instances/{slug}/stop', when: ['running' => [true]], requires: ['slug'], more: ['ask' => 'ask_stop_instance']),
                 Listing::action('restart', 'action_restart', 'POST', '/instances/{slug}/restart', when: ['running' => [true]], requires: ['slug'], more: ['ask' => 'ask_restart_instance']),
             ],
+            priorities: ['avatars' => 2, 'regions' => 2, 'cpu' => 2, 'memory' => 2, 'grid' => 3, 'server' => 3, 'area' => 3, 'prims' => 4, 'httpPort' => 4],
         );
     }
 

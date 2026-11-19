@@ -447,6 +447,7 @@ final class Parcel extends Model
             ],
             ['name', 'description'],
             moreSorts: ['claimed', 'price'],
+            priorities: ['regionName' => 2, 'ownerName' => 2, 'area' => 3, 'forSale' => 3, 'dwell' => 4, 'shownInSearch' => 4],
         );
     }
 

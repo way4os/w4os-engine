@@ -1380,6 +1380,7 @@ final class Region extends Model
             // The views: the status, then the size (the ones the grid has, meta.available.size)
             views: ['status', 'size'],
             texts: ['title' => 'regions_title', 'menu' => 'regions_menu', 'placeholder' => 'regions_search', 'empty' => 'list_empty', 'count' => 'regions_count'],
+            priorities: ['ownerName' => 2, 'avatars' => 2, 'serverName' => 3, 'size' => 3, 'location' => 3, 'lastSeen' => 3, 'prims' => 4, 'scripts' => 4, 'internalPort' => 4, 'flagNames' => 4],
         );
     }
 

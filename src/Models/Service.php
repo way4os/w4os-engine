@@ -548,6 +548,7 @@ final class Service extends InstalledModel
             ],
             ['key', 'name', 'url', 'grid'],
             moreSorts: ['key'],
+            priorities: ['provider' => 2, 'url' => 3, 'grid' => 3],
         );
     }
 

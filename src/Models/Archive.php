@@ -108,6 +108,7 @@ final class Archive extends InstalledModel
             ],
             ['name', 'grid', 'kind'],
             sort: 'modified',
+            priorities: ['kind' => 2, 'grid' => 2, 'size' => 3, 'modified' => 3],
         );
     }
 

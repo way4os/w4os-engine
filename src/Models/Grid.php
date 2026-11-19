@@ -634,6 +634,7 @@ final class Grid extends InstalledModel
                 Listing::action('disable', 'action_disable', 'PATCH', '/grids/{id}', ['enabled' => false], ['enabled' => [true]]),
             ],
             moreSorts: ['port'],
+            priorities: ['nick' => 2],
         );
     }
 

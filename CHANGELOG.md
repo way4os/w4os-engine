@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (lists): the `priority` of a column is a number, 1 at every width then 2, 3, 4... hidden in turn as the width shrinks, by what a manager needs first (was primary or secondary)
 - change (regions): the size of a region is a column of its own type, `dimensions`, shown 256 × 256 m (`unit_dimensions`)
 - fix (texts): French typos (monnaie, utiliser, exemple) and the solde of an account
 - feature (economy): the database of the money server takes Use default, the main database of the grid, written in its own keys of [MySql]

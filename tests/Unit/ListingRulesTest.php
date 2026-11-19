@@ -45,14 +45,14 @@ describe('Every list', function () {
             ->toBe(['uri']);
     });
 
-    test('says of each column whether its value reads without its label, and whether it shows at every width', function () {
+    test('says of each column whether its value reads without its label, and its priority: 1 at every width, then hidden in turn', function () {
         $wrong = [];
         foreach (contract_lists() as $path => $list) {
             foreach ($list['columns'] as $i => $column) {
                 is_bool($column['bare'] ?? null) || ($wrong[] = "$path: {$column['name']} bare");
-                in_array($column['priority'] ?? null, ['primary', 'secondary'], true) || ($wrong[] = "$path: {$column['name']} priority");
+                is_int($column['priority'] ?? null) && $column['priority'] >= 1 || ($wrong[] = "$path: {$column['name']} priority");
             }
-            ($list['columns'][0]['priority'] ?? '') === 'primary' || ($wrong[] = "$path: the first column is not primary");
+            ($list['columns'][0]['priority'] ?? 0) === 1 || ($wrong[] = "$path: the first column is not always shown");
         }
         $avatars = array_column(contract_lists()['/grids/{grid}/avatars']['columns'], null, 'name');
 
@@ -61,8 +61,11 @@ describe('Every list', function () {
             // An email, a role, a status say what they are; a date needs its label
             ->and([$avatars['email']['bare'], $avatars['shownRole']['bare'], $avatars['status']['bare'], $avatars['created']['bare']])
             ->toBe([true, true, true, false])
+            // 1 always shown, then 2, 3, 4 hidden in turn as the width shrinks: what a manager needs first
             ->and([$avatars['name']['priority'], $avatars['status']['priority'], $avatars['email']['priority']])
-            ->toBe(['primary', 'primary', 'secondary']);
+            ->toBe([1, 1, 3])
+            ->and(array_column(contract_lists()['/grids/{grid}/regions']['columns'], 'priority', 'name'))
+            ->toBe(['name' => 1, 'ownerName' => 2, 'serverName' => 3, 'avatars' => 2, 'prims' => 4, 'scripts' => 4, 'internalPort' => 4, 'size' => 3, 'location' => 3, 'lastSeen' => 3, 'flagNames' => 4, 'status' => 1]);
     });
 
     test('has its status last, under one label', function () {
