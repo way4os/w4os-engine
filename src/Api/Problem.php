@@ -146,6 +146,7 @@ final class Problem
                 $error->getMessage(),
                 'urn:opensim:problem:channel-unavailable',
                 $instance,
+                $error->reason === null ? [] : ['reason' => $error->reason],
             ),
             // The detail is not for whoever asks: it goes to the log (the error output of the command line)
             default => self::internal($error, $instance),

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (economy): an unset economymodule reads as the free economy (BetaGridLikeMoneyModule), the default of OpenSimulator
+- fix (texts): the reasons a grid cannot be changed or read (`meta.fixed`, 503 problems) are notices of the catalog, in six languages
 - fix (settings): a setting goes to its file when this process can write it, else to the application for what only the helpers read; the others are fixed (`meta.fixed`, the lines to add by hand)
 - feature (settings): the settings an application keeps (`Environment::system(settings:)`), read first; the pages write there for a grid without files
 - fix (economy): the currency and the land tool are served without a money key, with the default key of w4os-wp's helpers

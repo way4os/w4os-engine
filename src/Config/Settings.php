@@ -124,7 +124,7 @@ final class Settings
                 'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'health' => 'offline'],
             ],
             'Economy' => [
-                'economymodule' => ['name' => 'economyModule', 'type' => 'select', 'label' => 'setting_economy_module', 'options' => ['BetaGridLikeMoneyModule' => 'economy_module_free', 'Gloebit' => 'economy_module_gloebit', 'DTLNSLMoneyModule' => 'economy_module_moneyserver'], 'admin' => 'economy', 'readOnly' => true],
+                'economymodule' => ['name' => 'economyModule', 'type' => 'select', 'label' => 'setting_economy_module', 'options' => ['BetaGridLikeMoneyModule' => 'economy_module_free', 'Gloebit' => 'economy_module_gloebit', 'DTLNSLMoneyModule' => 'economy_module_moneyserver'], 'default' => 'BetaGridLikeMoneyModule', 'admin' => 'economy', 'readOnly' => true],
                 'SellEnabled' => ['name' => 'sellEnabled', 'type' => 'bool', 'label' => 'setting_sell_enabled', 'default' => true],
                 'PriceUpload' => ['name' => 'priceUpload', 'type' => 'integer', 'label' => 'setting_price_upload', 'default' => 0],
                 'PriceGroupCreate' => ['name' => 'priceGroupCreate', 'type' => 'integer', 'label' => 'setting_price_group_create', 'default' => 0],

@@ -120,6 +120,9 @@ describe('What a grid has, and what an operation needs', function () {
             ->and([$write->status, $write->document['code'] ?? null, $repair->status, $repair->document['code'] ?? null])
             ->toBe([503, 'channel-unavailable', 503, 'channel-unavailable'])
             ->and($write->document['detail'])->toContain('no files')
+            // Its reason as a notice, for a site to say it in its language
+            ->and([$write->document['reason']['code'] ?? null, $repair->document['reason']['code'] ?? null])->toBe(['setting-no-files-unkept', 'options-no-files'])
+            ->and(OpenSim\I18n\Catalog::notice('fr_FR', 'options-no-files'))->not->toBe($repair->document['reason']['detail'])
             ->and(is_file('/Helpers.ini'))->toBeFalse()
             ->and(glob("$site/{,*/,*/*/}*.ini", GLOB_BRACE))->toBe([]);
     });

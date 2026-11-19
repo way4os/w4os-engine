@@ -39,10 +39,7 @@ final class Posts
      */
     public static function for(GridConfig $config): self
     {
-        $pdo = Connections::pdo($config, Database::Profiles) ?? throw ChannelUnavailable::for(
-            'keep the posts of the avatars',
-            Connections::reason($config, Database::Profiles) ?? 'the database of the profiles cannot be reached',
-        );
+        $pdo = Connections::pdo($config, Database::Profiles) ?? throw ChannelUnavailable::because('keep the posts of the avatars', 'database-unreachable', [], Connections::reason($config, Database::Profiles));
 
         return new self($pdo);
     }

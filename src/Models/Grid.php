@@ -737,10 +737,7 @@ final class Grid extends InstalledModel
             return $search;
         }
 
-        throw \OpenSim\Exceptions\ChannelUnavailable::for(
-            $action,
-            Connections::reason($config, Database::Search) ?? 'the database cannot be reached',
-        );
+        throw \OpenSim\Exceptions\ChannelUnavailable::because($action, 'database-unreachable', [], Connections::reason($config, Database::Search));
     }
 
     /**

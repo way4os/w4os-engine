@@ -122,13 +122,11 @@ abstract class Model implements OpenSimModelInterface
         if ($pdo !== null) {
             return $pdo;
         }
-        $reason =
-            Connections::reason($config, $what, $simulator) ??
-            (Connections::key($config, $what, $simulator) === null
-                ? 'the config of the grid does not say where this database is'
-                : 'the database cannot be reached');
+        if (Connections::key($config, $what, $simulator) === null) {
+            throw ChannelUnavailable::because($action, 'database-unsaid');
+        }
 
-        throw ChannelUnavailable::for($action, $reason);
+        throw ChannelUnavailable::because($action, 'database-unreachable', [], Connections::reason($config, $what, $simulator));
     }
 
     /**

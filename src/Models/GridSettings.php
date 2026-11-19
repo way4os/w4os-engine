@@ -11,6 +11,7 @@ use OpenSim\Config\Settings;
 use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Exceptions\NotFound;
 use OpenSim\Provisioning\Web\HelpersConfig;
+use OpenSim\Text\Notice;
 use OpenSim\Text\Uuid;
 
 /**
@@ -208,7 +209,7 @@ final class GridSettings
             $where = $this->destination($entry);
             if (isset($where['reason'])) {
                 // Where it cannot be written: the same value is no change, another one is refused with its reason
-                $value == ($now[$name] ?? null) || throw \OpenSim\Exceptions\ChannelUnavailable::for("change $name of {$this->grid->nick()}", $where['reason']);
+                $value == ($now[$name] ?? null) || throw \OpenSim\Exceptions\ChannelUnavailable::because("change $name of {$this->grid->nick()}", $where['reason']['code'], $where['reason']['params']);
                 continue;
             }
             $writes[] = [$entry, $value, $where];
@@ -232,10 +233,10 @@ final class GridSettings
     /**
      * Where a setting is written, at the best of what this process can do: the file of the grid that says it (or of its instance)
      * when this process can write it; else the settings the application keeps, for what the helpers and the site read only
-     * (`readers` helpers); else nowhere here, with the reason (`reason`, and the file the grid reads it in, `file`).
+     * (`readers` helpers); else nowhere here, with the reason (`reason`, a notice, and the file the grid reads it in, `file`).
      *
      * @param array<string,mixed> $entry
-     * @return array{file?:?string,store?:bool,reason?:string}
+     * @return array{file?:?string,store?:bool,reason?:array{code:string,params:array<string,string|int>,detail:string}}
      */
     private function destination(array $entry): array
     {
@@ -251,17 +252,13 @@ final class GridSettings
             }
             $name = basename($file);
 
-            return ['file' => $file, 'reason' => ($entry['readers'] ?? 'grid') === 'grid'
-                ? "this server cannot write $name, where the grid reads it: set it there by hand"
-                : "this server cannot write $name, and the application keeps no settings for the grid: set it there by hand"];
+            return ['file' => $file, 'reason' => Notice::of(($entry['readers'] ?? 'grid') === 'grid' ? 'setting-file-unwritable' : 'setting-file-unwritable-unkept', ['file' => $name])];
         }
         if ($kept) {
             return ['store' => true];
         }
 
-        return ['file' => null, 'reason' => ($entry['readers'] ?? 'grid') === 'grid'
-            ? 'the grid has no files on this machine: the grid reads it in its files, set it there by hand'
-            : 'the grid has no files on this machine, and the application keeps no settings for it'];
+        return ['file' => null, 'reason' => Notice::of(($entry['readers'] ?? 'grid') === 'grid' ? 'setting-no-files' : 'setting-no-files-unkept')];
     }
 
     /** Whether this process can write a file: the file itself, or the folder it would be made in. Checked, never assumed. */
@@ -274,7 +271,7 @@ final class GridSettings
      * The fields of a page this process cannot change for the grid: why, the file the grid reads it in, the lines to write there by
      * hand (`file`, `text`, never a secret), by field.
      *
-     * @return array<string,array{reason:string,file:string,text:string}>
+     * @return array<string,array{reason:array{code:string,params:array<string,string|int>,detail:string},file:string,text:string}>
      */
     private function fixed(string $page): array
     {

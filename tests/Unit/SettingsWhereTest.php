@@ -63,10 +63,15 @@ describe('A setting of a grid whose files this process cannot write', function (
 
         expect([$refused->status, $refused->document['code'] ?? null, $same->status])->toBe([503, 'channel-unavailable', 200])
             ->and($refused->document['detail'])->toContain('Robust.HG.ini')->toContain('by hand')
+            // The reason, a notice: its code and its values, for a site to say it in its language
+            ->and($refused->document['reason'])->toMatchArray(['code' => 'setting-file-unwritable', 'params' => ['file' => 'Robust.HG.ini']])
             ->and($store->all())->toBe([])
             ->and(array_keys($fixed))->toBe(['path', 'destinationGuide'])
             ->and($fixed['destinationGuide'])->toMatchArray(['file' => 'Robust.HG.ini', 'text' => "[LoginService]\n    DestinationGuide = https://play.example.org/guide"])
-            ->and($fixed['destinationGuide']['reason'])->toContain('cannot write')
+            ->and($fixed['destinationGuide']['reason'])->toBe($refused->document['reason'])
+            ->and($fixed['destinationGuide']['reason']['detail'])->toContain('cannot write')
+            ->and(OpenSim\I18n\Catalog::notice('fr_FR', $fixed['destinationGuide']['reason']['code'], $fixed['destinationGuide']['reason']['params']))
+            ->toContain('Robust.HG.ini')->not->toBe($fixed['destinationGuide']['reason']['detail'])
             // What the helpers read is not fixed: the application keeps it
             ->and(array_keys($economy))->not->toContain('currencyRate')->toContain('economyUrl');
     })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
@@ -86,7 +91,8 @@ describe('A setting of a grid that has no files here', function () {
         expect([$rate->status, $address->status])->toBe([200, 503])
             ->and($store->all())->toBe(['Helpers' => ['CurrencyRate' => '7']])
             ->and($address->document['detail'])->toContain('no files')
-            ->and($fixed['economyUrl']['reason'] ?? '')->toContain('no files')
+            ->and($address->document['reason']['code'] ?? null)->toBe('setting-no-files')
+            ->and($fixed['economyUrl']['reason']['detail'] ?? '')->toContain('no files')
             ->and(Settings::named('moneyScriptKey')['readers'] ?? null)->toBe('helpers')
             ->and(Settings::named('economyUrl')['readers'] ?? null)->toBe('grid');
     });

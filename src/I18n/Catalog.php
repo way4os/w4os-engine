@@ -800,6 +800,13 @@ final class Catalog
         'notice_registered' => 'The avatar {name} is ready: sign in with its name and its password.',
         'notice_registered_confirm' => 'A mail was sent to {email}: the account is made once the link it holds is followed.',
         'notice_registered_mail_failed' => 'The registration is kept, but the mail to {email} could not be sent: ask for it again later.',
+        'notice_setting_file_unwritable' => 'This server cannot write {file}, where the grid reads it: set it there by hand.',
+        'notice_setting_file_unwritable_unkept' => 'This server cannot write {file}, and the application keeps no settings for the grid: set it there by hand.',
+        'notice_setting_no_files' => 'The grid has no files on this machine: it reads this setting in its files, set it there by hand.',
+        'notice_setting_no_files_unkept' => 'The grid has no files on this machine, and the application keeps no settings for it.',
+        'notice_options_no_files' => 'The grid has no files on this machine: its options are repaired where its config is kept.',
+        'notice_database_unsaid' => 'The config of the grid does not say where this database is.',
+        'notice_database_unreachable' => 'The database cannot be reached.',
     ];
 
     /**

@@ -46,6 +46,14 @@ final class Notice
         'registered' => ['name'],
         'registered-confirm' => ['email'],
         'registered-mail-failed' => ['email'],
+        // Why a grid cannot be changed or read here (ChannelUnavailable::because(), `meta.fixed`)
+        'setting-file-unwritable' => ['file'],
+        'setting-file-unwritable-unkept' => ['file'],
+        'setting-no-files' => [],
+        'setting-no-files-unkept' => [],
+        'options-no-files' => [],
+        'database-unsaid' => [],
+        'database-unreachable' => [],
     ];
 
     /**
