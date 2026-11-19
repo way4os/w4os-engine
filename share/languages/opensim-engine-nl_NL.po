@@ -706,6 +706,102 @@ msgctxt "snippet_example"
 msgid "Example"
 msgstr "Voorbeeld"
 
+msgctxt "tip_models_match"
+msgid "How a model is recognised"
+msgstr "Hoe een model wordt herkend"
+
+msgctxt "tip_models_pattern"
+msgid "Part of the name of the models"
+msgstr "Deel van de naam van de modellen"
+
+msgctxt "tip_models_list"
+msgid "The models chosen one by one"
+msgstr "De modellen één voor één gekozen"
+
+msgctxt "tip_economy_url"
+msgid "Where currency.php and landtool.php are"
+msgstr "Waar currency.php en landtool.php staan"
+
+msgctxt "tip_economy_module"
+msgid "The currency of the grid"
+msgstr "De munteenheid van het grid"
+
+msgctxt "tip_money_database"
+msgid "The database of the money server"
+msgstr "De database van de geldserver"
+
+msgctxt "tip_gloebit_database"
+msgid "Where Gloebit keeps its transactions"
+msgstr "Waar Gloebit zijn transacties bewaart"
+
+msgctxt "tip_gloebit_environment"
+msgid "Sandbox to test, production to sell"
+msgstr "Sandbox om te testen, productie om te verkopen"
+
+msgctxt "tip_gloebit_keys"
+msgid "From your Gloebit merchant account"
+msgstr "Uit uw Gloebit-handelaarsaccount"
+
+msgctxt "tip_currency_rate"
+msgid "US$ for 1000 in-world units"
+msgstr "US$ voor 1000 eenheden in de wereld"
+
+msgctxt "tip_money_script_key"
+msgid "The same in MoneyServer.ini"
+msgstr "Dezelfde in MoneyServer.ini"
+
+msgctxt "tip_podex_message"
+msgid "Shown before the teleport"
+msgstr "Getoond vóór de teleport"
+
+msgctxt "tip_podex_url"
+msgid "Where the Podex terminals are"
+msgstr "Waar de Podex-terminals staan"
+
+msgctxt "tip_search_database"
+msgid "Where the helpers keep the search"
+msgstr "Waar de helpers de zoekfunctie bewaren"
+
+msgctxt "tip_search_url"
+msgid "Used directly by the simulators"
+msgstr "Rechtstreeks gebruikt door de simulators"
+
+msgctxt "tip_search_register"
+msgid "Where the regions are listed for search"
+msgstr "Waar de regio's voor de zoekfunctie staan"
+
+msgctxt "tip_events_url"
+msgid "The calendar of the events"
+msgstr "De kalender van de evenementen"
+
+msgctxt "tip_guide_source"
+msgid "A URL or a file of destinations"
+msgstr "Een URL of een bestand met bestemmingen"
+
+msgctxt "tip_guide_url"
+msgid "The page the viewers show"
+msgstr "De pagina die de viewers tonen"
+
+msgctxt "tip_mail_sender"
+msgid "The sender of the forwarded e-mails"
+msgstr "De afzender van de doorgestuurde e-mails"
+
+msgctxt "tip_offline_database"
+msgid "Where the helpers keep the messages"
+msgstr "Waar de helpers de berichten bewaren"
+
+msgctxt "tip_offline_module"
+msgid "V1 by the helpers, V2 by Robust"
+msgstr "V1 door de helpers, V2 door Robust"
+
+msgctxt "tip_offline_url"
+msgid "Called by the simulators"
+msgstr "Aangeroepen door de simulators"
+
+msgctxt "tip_assets_url"
+msgid "Where the pictures of the world are served"
+msgstr "Waar de afbeeldingen van de wereld worden geleverd"
+
 #, php-format
 msgctxt "motd_welcome"
 msgid "Welcome to %1$s, %2$s!"

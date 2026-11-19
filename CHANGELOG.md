@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (settings): each field has a short tip under its label where the label is not enough (`tip`), the details apart; what a page is about in its help (offline messages, web assets)
 - change (settings): `meta.snippets` is one block for each file of the page (its `file` and its `text`), for the values chosen, the helpers' too, the lines of the module chosen only
 - change (settings): the path of a service never starts with a slash; `meta.service.prefix` is the address it is under, ending with the slash
 - change (texts): `recent_avatars` (was `recent_users`), Recent Avatars; the grid status block shows online avatars: the avatars of the grid are never called users

@@ -53,11 +53,11 @@ describe('The pages of the services, as w4os-wp', function () {
             ->and(english($search['path']['description'])[0])->toBe('URL of the search engine used by the viewer to provide search results (without arguments).')
             ->and(english($search['registerPath']['description']))->toBe(['Data service, used to register regions, objects or land for sale.', 'You can register to several search engines.'])
             ->and(count($guide['guideSource']['description']) + count(GridSettings::form('guide')['description']))->toBe(9)
-            ->and(english($offline['provide']['description']))->toBe(['Honor "Email me IMs when I\'m offline" viewer option.', 'OpenSimulator core offline messages module doesn\'t handle e-mail forwarding option available in the viewer settings.'])
+            ->and(english(GridSettings::form('offline')['description']))->toBe(['Honor "Email me IMs when I\'m offline" viewer option.', 'OpenSimulator core offline messages module doesn\'t handle e-mail forwarding option available in the viewer settings.'])
             ->and(english(GridSettings::form('economy')['description'])[0])->toBe('Economy helpers are additional scripts needed if you implement economy on your grid (with real or fake currency).')
             ->and(count(GridSettings::form('search')['description']))->toBe(4)
             ->and(english(GridSettings::form('guide')['description'])[0])->toBe('Destinations guide is a Viewer 3 feature, providing a window with places suggestions.')
-            ->and(GridSettings::form('offline'))->not->toHaveKey('description');
+            ->and($offline['provide'])->not->toHaveKey('description');
     });
 
     test('with its conditions, its placeholders, what it requires', function () {

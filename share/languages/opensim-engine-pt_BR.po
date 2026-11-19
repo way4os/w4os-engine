@@ -702,6 +702,102 @@ msgctxt "snippet_example"
 msgid "Example"
 msgstr "Exemplo"
 
+msgctxt "tip_models_match"
+msgid "How a model is recognised"
+msgstr "Como um modelo é reconhecido"
+
+msgctxt "tip_models_pattern"
+msgid "Part of the name of the models"
+msgstr "Parte do nome dos modelos"
+
+msgctxt "tip_models_list"
+msgid "The models chosen one by one"
+msgstr "Os modelos escolhidos um a um"
+
+msgctxt "tip_economy_url"
+msgid "Where currency.php and landtool.php are"
+msgstr "Onde ficam currency.php e landtool.php"
+
+msgctxt "tip_economy_module"
+msgid "The currency of the grid"
+msgstr "A moeda do grid"
+
+msgctxt "tip_money_database"
+msgid "The database of the money server"
+msgstr "O banco do servidor de moeda"
+
+msgctxt "tip_gloebit_database"
+msgid "Where Gloebit keeps its transactions"
+msgstr "Onde o Gloebit guarda suas transações"
+
+msgctxt "tip_gloebit_environment"
+msgid "Sandbox to test, production to sell"
+msgstr "Sandbox para testar, produção para vender"
+
+msgctxt "tip_gloebit_keys"
+msgid "From your Gloebit merchant account"
+msgstr "Da sua conta de comerciante Gloebit"
+
+msgctxt "tip_currency_rate"
+msgid "US$ for 1000 in-world units"
+msgstr "US$ por 1000 unidades do mundo"
+
+msgctxt "tip_money_script_key"
+msgid "The same in MoneyServer.ini"
+msgstr "A mesma em MoneyServer.ini"
+
+msgctxt "tip_podex_message"
+msgid "Shown before the teleport"
+msgstr "Mostrado antes do teletransporte"
+
+msgctxt "tip_podex_url"
+msgid "Where the Podex terminals are"
+msgstr "Onde ficam os terminais Podex"
+
+msgctxt "tip_search_database"
+msgid "Where the helpers keep the search"
+msgstr "Onde os helpers guardam a busca"
+
+msgctxt "tip_search_url"
+msgid "Used directly by the simulators"
+msgstr "Usado diretamente pelos simuladores"
+
+msgctxt "tip_search_register"
+msgid "Where the regions are listed for search"
+msgstr "Onde as regiões são listadas para a busca"
+
+msgctxt "tip_events_url"
+msgid "The calendar of the events"
+msgstr "O calendário dos eventos"
+
+msgctxt "tip_guide_source"
+msgid "A URL or a file of destinations"
+msgstr "Uma URL ou um arquivo de destinos"
+
+msgctxt "tip_guide_url"
+msgid "The page the viewers show"
+msgstr "A página que os viewers mostram"
+
+msgctxt "tip_mail_sender"
+msgid "The sender of the forwarded e-mails"
+msgstr "O remetente dos e-mails encaminhados"
+
+msgctxt "tip_offline_database"
+msgid "Where the helpers keep the messages"
+msgstr "Onde os helpers guardam as mensagens"
+
+msgctxt "tip_offline_module"
+msgid "V1 by the helpers, V2 by Robust"
+msgstr "V1 pelos helpers, V2 pelo Robust"
+
+msgctxt "tip_offline_url"
+msgid "Called by the simulators"
+msgstr "Chamado pelos simuladores"
+
+msgctxt "tip_assets_url"
+msgid "Where the pictures of the world are served"
+msgstr "Onde as imagens do mundo são servidas"
+
 #, php-format
 msgctxt "motd_welcome"
 msgid "Welcome to %1$s, %2$s!"

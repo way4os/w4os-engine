@@ -571,6 +571,102 @@ msgctxt "snippet_example"
 msgid "Example"
 msgstr ""
 
+msgctxt "tip_models_match"
+msgid "How a model is recognised"
+msgstr ""
+
+msgctxt "tip_models_pattern"
+msgid "Part of the name of the models"
+msgstr ""
+
+msgctxt "tip_models_list"
+msgid "The models chosen one by one"
+msgstr ""
+
+msgctxt "tip_economy_url"
+msgid "Where currency.php and landtool.php are"
+msgstr ""
+
+msgctxt "tip_economy_module"
+msgid "The currency of the grid"
+msgstr ""
+
+msgctxt "tip_money_database"
+msgid "The database of the money server"
+msgstr ""
+
+msgctxt "tip_gloebit_database"
+msgid "Where Gloebit keeps its transactions"
+msgstr ""
+
+msgctxt "tip_gloebit_environment"
+msgid "Sandbox to test, production to sell"
+msgstr ""
+
+msgctxt "tip_gloebit_keys"
+msgid "From your Gloebit merchant account"
+msgstr ""
+
+msgctxt "tip_currency_rate"
+msgid "US$ for 1000 in-world units"
+msgstr ""
+
+msgctxt "tip_money_script_key"
+msgid "The same in MoneyServer.ini"
+msgstr ""
+
+msgctxt "tip_podex_message"
+msgid "Shown before the teleport"
+msgstr ""
+
+msgctxt "tip_podex_url"
+msgid "Where the Podex terminals are"
+msgstr ""
+
+msgctxt "tip_search_database"
+msgid "Where the helpers keep the search"
+msgstr ""
+
+msgctxt "tip_search_url"
+msgid "Used directly by the simulators"
+msgstr ""
+
+msgctxt "tip_search_register"
+msgid "Where the regions are listed for search"
+msgstr ""
+
+msgctxt "tip_events_url"
+msgid "The calendar of the events"
+msgstr ""
+
+msgctxt "tip_guide_source"
+msgid "A URL or a file of destinations"
+msgstr ""
+
+msgctxt "tip_guide_url"
+msgid "The page the viewers show"
+msgstr ""
+
+msgctxt "tip_mail_sender"
+msgid "The sender of the forwarded e-mails"
+msgstr ""
+
+msgctxt "tip_offline_database"
+msgid "Where the helpers keep the messages"
+msgstr ""
+
+msgctxt "tip_offline_module"
+msgid "V1 by the helpers, V2 by Robust"
+msgstr ""
+
+msgctxt "tip_offline_url"
+msgid "Called by the simulators"
+msgstr ""
+
+msgctxt "tip_assets_url"
+msgid "Where the pictures of the world are served"
+msgstr ""
+
 #, php-format
 msgctxt "motd_welcome"
 msgid "Welcome to %1$s, %2$s!"

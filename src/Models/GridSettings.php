@@ -45,8 +45,8 @@ final class GridSettings
         'economy' => ['title' => 'settings_economy', 'menu' => 'settings_menu_economy', 'description' => ['economy_help_helpers', 'economy_help_scripts', 'economy_help_module', 'economy_help_modules', 'economy_help_binaries']],
         'search' => ['title' => 'settings_search', 'menu' => 'settings_menu_search', 'description' => ['search_help_local', 'search_help_external', 'search_help_module', 'search_help_binary']],
         'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide', 'description' => ['guide_help_feature', 'guide_help_places', 'guide_source_help_file', 'guide_source_help_pipe', 'guide_source_help_categories', 'guide_source_help_comments', 'guide_source_help_board']],
-        'offline' => ['title' => 'settings_offline', 'menu' => 'settings_menu_offline'],
-        'assets' => ['title' => 'settings_assets', 'menu' => 'settings_menu_assets'],
+        'offline' => ['title' => 'settings_offline', 'menu' => 'settings_menu_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core']],
+        'assets' => ['title' => 'settings_assets', 'menu' => 'settings_menu_assets', 'description' => ['provide_assets_help']],
     ];
 
     /**
@@ -58,10 +58,31 @@ final class GridSettings
      */
     private const PROVIDE = [
         'economy' => ['setting' => 'economyUrl', 'service' => 'currency', 'label' => 'provide_economy', 'prefix' => true, 'url' => 'economy_helper_uri', 'help' => ['economy_helper_uri_help']],
-        'search' => ['setting' => 'searchUrl', 'service' => 'query', 'base' => 'helpers', 'external' => 'searchExternalUrl', 'label' => 'provide_search', 'after' => 'searchDatabase', 'url' => 'search_engine_url', 'help' => ['search_url_help_viewer', 'search_url_help_one', 'search_url_help_web']],
+        'search' => ['setting' => 'searchUrl', 'service' => 'query', 'base' => 'helpers', 'external' => 'searchExternalUrl', 'label' => 'provide_search', 'after' => 'searchDatabase', 'url' => 'search_engine_url', 'help' => ['search_url_help_viewer', 'search_url_help_one']],
         'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide', 'after' => 'guideSource', 'url' => 'guide_url'],
-        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'base' => 'helpers', 'label' => 'provide_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core'], 'after' => 'offlineModule', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
-        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'base' => 'helpers', 'label' => 'provide_assets', 'description' => ['provide_assets_help'], 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'placeholder' => 'https://example.org/assets', 'required' => true],
+        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'base' => 'helpers', 'label' => 'provide_offline', 'after' => 'offlineModule', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
+        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'base' => 'helpers', 'label' => 'provide_assets', 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'placeholder' => 'https://example.org/assets', 'required' => true],
+    ];
+
+    /** The tip of a field, under its label where the label is not enough: a few words, the details being its description. */
+    private const TIPS = [
+        'models' => ['match' => 'tip_models_match', 'pattern' => 'tip_models_pattern', 'list' => 'tip_models_list'],
+        'economy' => [
+            'path' => 'tip_economy_url', 'economyUrl' => 'tip_economy_url', 'economyModule' => 'tip_economy_module', 'moneyDatabase' => 'tip_money_database',
+            'gloebitDatabase' => 'tip_gloebit_database', 'gloebitEnvironment' => 'tip_gloebit_environment', 'gloebitKey' => 'tip_gloebit_keys',
+            'gloebitSecret' => 'tip_gloebit_keys', 'currencyRate' => 'tip_currency_rate', 'moneyScriptKey' => 'tip_money_script_key',
+            'podexMessage' => 'tip_podex_message', 'podexUrl' => 'tip_podex_url',
+        ],
+        'search' => [
+            'searchDatabase' => 'tip_search_database', 'path' => 'tip_search_url', 'searchExternalUrl' => 'tip_search_url',
+            'registerPath' => 'tip_search_register', 'registerExternalUrl' => 'tip_search_register', 'eventsUrl' => 'tip_events_url',
+        ],
+        'guide' => ['guideSource' => 'tip_guide_source', 'path' => 'tip_guide_url', 'destinationGuide' => 'tip_guide_url'],
+        'offline' => [
+            'mailSender' => 'tip_mail_sender', 'offlineDatabase' => 'tip_offline_database', 'offlineModule' => 'tip_offline_module',
+            'path' => 'tip_offline_url', 'offlineMessageUrl' => 'tip_offline_url',
+        ],
+        'assets' => ['path' => 'tip_assets_url', 'assetsUrl' => 'tip_assets_url'],
     ];
 
     /** The fields of a page in the order w4os-wp shows them, the address of the service and Provide aside. */
@@ -149,6 +170,8 @@ final class GridSettings
         if (isset(self::PROVIDE[$page])) {
             $fields = self::provided($page, $fields);
         }
+        // The tip under the label, where the label is not enough
+        $fields = array_map(static fn(array $field): array => isset(self::TIPS[$page][$field['name']]) ? ['tip' => self::TIPS[$page][$field['name']]] + $field : $field, $fields);
 
         return ['title' => self::PAGES[$page]['title'], 'menu' => self::PAGES[$page]['menu'], 'fields' => $fields, 'submit' => 'action_save_changes', 'saved' => 'settings_saved']
             + array_intersect_key(self::PAGES[$page], ['description' => 1, 'preview' => 1]);
