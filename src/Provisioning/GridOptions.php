@@ -515,7 +515,7 @@ final class GridOptions
      * grid did not choose (`Initial`: named in the notes, to be given). Nothing said of it has a value: only the names of the
      * settings, a secret never leaves the files. A repair never changes a setting: a value that is there stays, and a simulator that
      * chose another option of a group (the offline messages V1 where V2 is the default) keeps its choice, nothing of the default
-     * laid beside it; changing an option is an operator's (enable()).
+     * laid beside it; changing a setting is its operator's.
      *
      * @return array{simulators:array<string,list<string>>,applied:list<string>,notes:list<string>} the options each simulator
      *         misses (none: nothing to repair), the ones laid again, what is left to do (a setting to give, a restart)
