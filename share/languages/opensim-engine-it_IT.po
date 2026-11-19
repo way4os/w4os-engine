@@ -1564,27 +1564,55 @@ msgstr "Region più visitate nel tuo grid."
 
 msgctxt "block_motd_help"
 msgid "The message of the day the viewers show at login."
-msgstr ""
+msgstr "Il messaggio del giorno che i viewer mostrano all'accesso."
 
 msgctxt "block_destination_guide_help"
-msgid "The destinations of the guide of the grid, as the viewers show them."
-msgstr ""
+msgid ""
+"Places to visit, the same list the viewers show in their destinations guide."
+msgstr "Luoghi da visitare, la stessa lista della guida alle destinazioni dei viewer."
 
 msgctxt "block_directory_info_help"
-msgid "The grids whose regions are in the search of this one."
-msgstr ""
+msgid "The other grids whose places can be found in the search of this grid."
+msgstr "Le altre griglie i cui luoghi si trovano nella ricerca di questa griglia."
 
 msgctxt "block_search_help"
-msgid "The search of the grid: places, events, classifieds, people."
-msgstr ""
+msgid ""
+"A search form for the places, events, classifieds and people of the grid."
+msgstr "Un modulo di ricerca di luoghi, eventi, annunci e persone della griglia."
 
 msgctxt "block_profile_help"
-msgid "The profile of an avatar, as its page shows it."
-msgstr ""
+msgid "The profile of an avatar."
+msgstr "Il profilo di un avatar."
 
 msgctxt "block_new_users_help"
-msgid "The avatars that joined the grid last."
-msgstr ""
+msgid "The last avatars who joined the grid."
+msgstr "Gli ultimi avatar arrivati nella griglia."
+
+msgctxt "shortcode_home_help"
+msgid ""
+"Your text with the popular places, the guide, the grid status and the "
+"message of the day."
+msgstr "Il tuo testo con i luoghi popolari, la guida, lo stato della griglia e il messaggio del giorno."
+
+msgctxt "shortcode_guest_help"
+msgid "Shows its text only to visitors who are not signed in."
+msgstr "Mostra il suo testo solo ai visitatori non connessi."
+
+msgctxt "shortcode_register_help"
+msgid "Shows its text only when the site has a registration page."
+msgstr "Mostra il suo testo solo se il sito ha una pagina di registrazione."
+
+msgctxt "shortcode_text_help"
+msgid "Shows a text of the site in the language of the page."
+msgstr "Mostra un testo del sito nella lingua della pagina."
+
+msgctxt "shortcode_uri_help"
+msgid "The login address of the grid, to copy in a viewer."
+msgstr "L'indirizzo di accesso della griglia, da copiare in un viewer."
+
+msgctxt "shortcode_slogan_help"
+msgid "The slogan of the site."
+msgstr "Lo slogan del sito."
 
 msgctxt "setting_login"
 msgid "Login URI"

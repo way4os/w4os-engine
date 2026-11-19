@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (texts): what each block and shortcode shows, in one plain sentence, the shortcodes of a site too (shortcode_*_help)
 - feature (texts): the texts of the dashboard of a site (simulators_running, recent_users, see_all)
 - feature (economy): the database of the economy, by module: the [MySql] of the money server, the connection of Gloebit; "use default" for Gloebit and the search
 - fix (settings): Provide off shows the whole address of the service alone, its other settings hidden
