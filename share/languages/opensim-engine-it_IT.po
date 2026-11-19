@@ -1119,6 +1119,70 @@ msgctxt "degraded"
 msgid "Degraded"
 msgstr "Degradato"
 
+msgctxt "parcels"
+msgid "Parcels"
+msgstr "Parzelli"
+
+msgctxt "shortcodes_title"
+msgid "Available Shortcodes"
+msgstr "Shortcode disponibili"
+
+msgctxt "shortcodes_help"
+msgid "Shortcodes can be included in any page or articles."
+msgstr "I codici brevi possono essere inclusi in qualsiasi pagina o articolo."
+
+msgctxt "shortcode_options"
+msgid "Options"
+msgstr "Opzioni"
+
+msgctxt "shortcode_option_title"
+msgid "Bloc title"
+msgstr "Titolo del blocco"
+
+msgctxt "shortcode_option_level"
+msgid "Title level (h1 to h6)"
+msgstr "Livello del titolo (h1 a h6)"
+
+msgctxt "shortcode_option_name"
+msgid "The name of the avatar (First.Last)"
+msgstr ""
+
+msgctxt "block_grid_info_help"
+msgid "General information (grid name and login uri)"
+msgstr "Informazioni generali (nome della griglia e URI di accesso)"
+
+msgctxt "block_grid_status_help"
+msgid "Online users, regions, etc."
+msgstr "Utenti online, regioni, ecc."
+
+msgctxt "block_popular_places_help"
+msgid "Most visited regions in your grid."
+msgstr "Region più visitate nel tuo grid."
+
+msgctxt "block_motd_help"
+msgid "The message of the day the viewers show at login."
+msgstr ""
+
+msgctxt "block_destination_guide_help"
+msgid "The destinations of the guide of the grid, as the viewers show them."
+msgstr ""
+
+msgctxt "block_directory_info_help"
+msgid "The grids whose regions are in the search of this one."
+msgstr ""
+
+msgctxt "block_search_help"
+msgid "The search of the grid: places, events, classifieds, people."
+msgstr ""
+
+msgctxt "block_profile_help"
+msgid "The profile of an avatar, as its page shows it."
+msgstr ""
+
+msgctxt "block_new_users_help"
+msgid "The avatars that joined the grid last."
+msgstr ""
+
 msgctxt "setting_login"
 msgid "Login URI"
 msgstr "URI di accesso"
