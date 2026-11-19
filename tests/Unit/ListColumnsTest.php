@@ -21,11 +21,11 @@ describe('The columns of the regions', function () {
         $byName = array_column($columns, null, 'name');
 
         expect(array_column($columns, 'name'))
-            ->toBe(['name', 'ownerName', 'serverName', 'avatars', 'prims', 'scripts', 'internalPort', 'size', 'location', 'lastSeen', 'flagNames', 'status'])
+            ->toBe(['name', 'ownerName', 'serverName', 'usage', 'place', 'lastSeen', 'flagNames', 'status'])
             ->and(array_map(static fn(array $column): string => Catalog::MESSAGES[$column['label']], $columns))
-            ->toBe(['Region Name', 'Owner', 'Simulator', 'Presence', 'Prims', 'Scripts', 'Internal Port', 'Size', 'Location', 'Last Activity', 'Flags', 'Status'])
-            ->and(array_map(static fn(array $column): string => Catalog::messages('fr_FR')[$column['label']], [$byName['name'], $byName['avatars'], $byName['lastSeen']]))
-            ->toBe(['Nom de la région', 'Présence', 'Dernière activité'])
+            ->toBe(['Region Name', 'Owner', 'Simulator', 'Usage', 'Location', 'Last Activity', 'Flags', 'Status'])
+            ->and(array_map(static fn(array $column): string => Catalog::messages('fr_FR')[$column['label']], [$byName['name'], $byName['place'], $byName['lastSeen']]))
+            ->toBe(['Nom de la région', 'Lieu', 'Dernière activité'])
             ->and(array_intersect_key($byName['name'], ['subtitle' => 1, 'subtitleLink' => 1]))
             ->toBe(['subtitle' => ['uri'], 'subtitleLink' => 'teleport'])
             // The control of w4os-wp (enabled, its button) and online, in the one column of the status

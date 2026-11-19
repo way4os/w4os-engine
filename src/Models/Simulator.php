@@ -502,11 +502,10 @@ final class Simulator extends InstalledModel
                 Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri', 'slug']]),
                 Listing::column('grid', 'column_grid', sort: 'grid'),
                 Listing::column('server', 'column_server', sort: 'server'),
-                Listing::column('httpPort', 'column_port', 'number', 'port'),
                 Listing::column('regions', 'column_regions', 'number', 'regions'),
                 Listing::column('area', 'column_area', 'area', 'area'),
-                Listing::column('avatars', 'column_presence', 'number', 'avatars'),
-                Listing::column('prims', 'column_prims', 'number'),
+                // What it holds: the avatars in its regions, their prims
+                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number'], ['prims', 'column_prims', 'number']], 'avatars'),
                 // What its process takes, in percents of the machine, while it runs
                 Listing::column('cpu', 'column_cpu', 'usage', 'cpu', more: ['usage' => Listing::USAGE]),
                 Listing::column('memory', 'column_memory', 'usage', 'memory', more: ['usage' => Listing::USAGE + ['used' => 'memoryUsed', 'total' => 'memoryTotal', 'unit' => 'unit_mb']]),
@@ -548,7 +547,9 @@ final class Simulator extends InstalledModel
                 Listing::action('stop', 'action_stop', 'POST', '/instances/{slug}/stop', when: ['running' => [true]], requires: ['slug'], more: ['ask' => 'ask_stop_instance']),
                 Listing::action('restart', 'action_restart', 'POST', '/instances/{slug}/restart', when: ['running' => [true]], requires: ['slug'], more: ['ask' => 'ask_restart_instance']),
             ],
-            priorities: ['avatars' => 2, 'regions' => 2, 'cpu' => 2, 'memory' => 2, 'grid' => 3, 'server' => 3, 'area' => 3, 'prims' => 4, 'httpPort' => 4],
+            // The port, on the page of a simulator, still sorts the list
+            moreSorts: ['port'],
+            priorities: ['usage' => 2, 'regions' => 2, 'cpu' => 2, 'memory' => 2, 'grid' => 3, 'server' => 3, 'area' => 3],
         );
     }
 

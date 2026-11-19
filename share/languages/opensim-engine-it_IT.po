@@ -1648,6 +1648,10 @@ msgctxt "column_prims"
 msgid "Prims"
 msgstr "Prim"
 
+msgctxt "column_usage"
+msgid "Usage"
+msgstr "Utilizzo"
+
 msgctxt "column_scripts"
 msgid "Scripts"
 msgstr "Script"

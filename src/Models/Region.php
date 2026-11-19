@@ -1342,14 +1342,10 @@ final class Region extends Model
                 Listing::column('name', 'column_region_name', sort: 'name', more: ['picture' => 'mapImage', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile', 'mirrors' => 'owner']),
                 Listing::column('serverName', 'filter_simulator', more: ['mirrors' => 'simulator']),
-                // The avatars in it
-                Listing::column('avatars', 'column_presence', 'number'),
-                Listing::column('prims', 'column_prims', 'number'),
-                Listing::column('scripts', 'column_scripts', 'number'),
-                // The port of the region on its simulator (InternalPort of its file), where its file is
-                Listing::column('internalPort', 'column_internal_port', 'number'),
-                Listing::column('size', 'column_size', 'dimensions', 'size'),
-                Listing::column('location', 'profile_location', sort: 'location'),
+                // What it holds: the avatars in it, its prims and its scripts
+                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number'], ['prims', 'column_prims', 'number'], ['scripts', 'column_scripts', 'number']]),
+                // Where it is on the map and how large
+                Listing::group('place', 'profile_location', [['location', 'profile_location'], ['size', 'column_size', 'dimensions']], 'location'),
                 Listing::column('lastSeen', 'last_activity', 'datetime', 'lastSeen'),
                 // Every flag but RegionOnline, which the column of the status shows
                 Listing::column('flagNames', 'column_flags', 'list', 'flags', ['values' => Listing::values(self::shownFlagKeys())]),
@@ -1377,10 +1373,12 @@ final class Region extends Model
                 Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], $known + ['enabled' => [false]]),
                 Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], $known + ['enabled' => [true]]),
             ],
+            // The size, in the column of the location, still sorts the list
+            moreSorts: ['size'],
             // The views: the status, then the size (the ones the grid has, meta.available.size)
             views: ['status', 'size'],
             texts: ['title' => 'regions_title', 'menu' => 'regions_menu', 'placeholder' => 'regions_search', 'empty' => 'list_empty', 'count' => 'regions_count'],
-            priorities: ['ownerName' => 2, 'avatars' => 2, 'serverName' => 3, 'size' => 3, 'location' => 3, 'lastSeen' => 3, 'prims' => 4, 'scripts' => 4, 'internalPort' => 4, 'flagNames' => 4],
+            priorities: ['ownerName' => 2, 'usage' => 2, 'serverName' => 3, 'place' => 3, 'lastSeen' => 3, 'flagNames' => 4],
         );
     }
 
@@ -1407,7 +1405,9 @@ final class Region extends Model
                 ItemForm::shown('name', 'column_name', 'text', 'region'),
                 ItemForm::shown('uuid', 'profile_key', 'text', 'region'),
                 ItemForm::shown('location', 'profile_location', 'text', 'region'),
-                ItemForm::shown('size', 'column_size', 'size', 'region'),
+                ItemForm::shown('size', 'column_size', 'dimensions', 'region'),
+                // The port of the region on its simulator (InternalPort of its file), where its file is
+                ItemForm::shown('internalPort', 'column_port', 'number', 'region'),
                 // The owner is the one of its estate, changed where its simulator is
                 ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile', 'condition' => ['local' => [false]]]),
                 ItemForm::field('owner', 'column_owner', 'avatar', 'region', more: ['condition' => ['local' => [true]]]),

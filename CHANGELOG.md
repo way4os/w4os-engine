@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (lists): a column can hold several values (`group`, its `parts`): the usage of the regions and the simulators (presence, prims, scripts), the location and the size of a region; the port on the page of a region only, labelled Port
 - change (lists): the `priority` of a column is a number, 1 at every width then 2, 3, 4... hidden in turn as the width shrinks, by what a manager needs first (was primary or secondary)
 - change (regions): the size of a region is a column of its own type, `dimensions`, shown 256 × 256 m (`unit_dimensions`)
 - fix (texts): French typos (monnaie, utiliser, exemple) and the solde of an account

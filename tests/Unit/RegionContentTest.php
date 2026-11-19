@@ -47,8 +47,10 @@ describe('What the regions hold', function () {
         $plaza = Region::all(parcel_config())->array()[0] ?? [];
         $columns = array_column(Region::listing()->columns, null, 'name');
 
+        $usage = array_column($columns['usage']['parts'], 'type', 'name');
+
         expect([$plaza['prims'] ?? null, $plaza['scripts'] ?? null])->toBe([3, 2])
-            ->and([$columns['prims']['type'] ?? null, $columns['scripts']['type'] ?? null])->toBe(['number', 'number'])
+            ->and([$usage['prims'] ?? null, $usage['scripts'] ?? null])->toBe(['number', 'number'])
             ->and(count(iterator_to_array(Parcel::simulatorDatabases(parcel_config()))))->toBe(2);
     });
 });
@@ -57,10 +59,33 @@ describe('The size of a region', function () {
     test('is its dimensions in meters, a type of its own: 256 × 256 m, not the size of a file', function () {
         $columns = array_column(Region::listing()->columns, null, 'name');
 
-        expect($columns['size']['type'])->toBe('dimensions')
+        expect(array_column($columns['place']['parts'], 'type', 'name')['size'])->toBe('dimensions')
             ->and(sprintf(OpenSim\I18n\Catalog::MESSAGES['unit_dimensions'], '256', '256'))->toBe('256 × 256 m')
             ->and(sprintf(OpenSim\I18n\Catalog::messages('fr_FR', false)['unit_dimensions'] ?? '', '256', '256'))->toBe('256 × 256 m')
             // The size of a file is in bytes
             ->and(array_column(OpenSim\Models\Asset::listing()->columns, null, 'name')['size']['type'])->toBe('size');
+    });
+});
+
+describe('The columns of a list that hold several values', function () {
+    test('give each with its label: the usage of a region, its location and size; the port on its page only', function () {
+        $columns = array_column(Region::listing()->document()['columns'], null, 'name');
+        $simulators = array_column(OpenSim\Models\Simulator::listing()->document()['columns'], null, 'name');
+        $csv = array_column(Region::columns(), 'name');
+        $page = array_column(Region::itemForm()->document()['fields'] ?? [], null, 'name');
+
+        expect($columns['usage'])->toMatchArray(['type' => 'group', 'label' => 'column_usage', 'priority' => 2])
+            ->and(array_column($columns['usage']['parts'], 'name'))->toBe(['avatars', 'prims', 'scripts'])
+            ->and(array_column($columns['usage']['parts'], 'label'))->toBe(['column_presence', 'column_prims', 'column_scripts'])
+            ->and($columns['place'])->toMatchArray(['type' => 'group', 'label' => 'profile_location', 'sort' => 'location', 'priority' => 3])
+            ->and(array_column($columns['place']['parts'], 'type', 'name'))->toBe(['location' => 'text', 'size' => 'dimensions'])
+            ->and(array_keys($columns))->not->toContain('internalPort')->not->toContain('avatars')->not->toContain('size')
+            ->and(array_keys($simulators))->not->toContain('httpPort')
+            ->and(array_column($simulators['usage']['parts'], 'name'))->toBe(['avatars', 'prims'])
+            ->and($simulators['usage']['sort'] ?? null)->toBe('avatars')
+            // A list exported in CSV has each value in its own column
+            ->and($csv)->toContain('avatars')->toContain('prims')->toContain('location')->toContain('size')->not->toContain('usage')
+            ->and($page['internalPort'] ?? [])->toMatchArray(['label' => 'column_port'])
+            ->and(OpenSim\I18n\Catalog::MESSAGES['column_port'])->toBe('Port');
     });
 });

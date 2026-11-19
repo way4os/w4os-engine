@@ -498,7 +498,9 @@ describe('The contract', function () {
                     $named = [];
                     foreach ($listing['columns'] as $column) {
                         $indicators = $column['indicators'] ?? [];
-                        $column['type'] === 'indicators' || ($named[] = $column['name']);
+                        // A column of several values shows the attributes of its parts
+                        $column['type'] === 'group' ? array_push($named, ...array_column($column['parts'], 'name')) : ($column['type'] === 'indicators' || ($named[] = $column['name']));
+                        $column['type'] === 'group' && array_push($keys, ...array_column($column['parts'], 'label'));
                         array_push($named, ...array_values(array_intersect_key($column, ['picture' => 1, 'tag' => 1, 'link' => 1])));
                         array_push($named, ...array_map(static fn(array $indicator): string => explode('.', $indicator['name'])[0], $indicators));
                         foreach ($indicators as $indicator) {
@@ -720,7 +722,7 @@ describe('The contract', function () {
             ->and(array_column($region['groups'], 'name'))
             ->toBe(['region'])
             ->and(array_column($region['fields'], 'name'))
-            ->toBe(['mapImage', 'name', 'uuid', 'location', 'size', 'ownerName', 'owner', 'serverName', 'roles', 'flagNames', 'online', 'lastSeen', 'uri', 'enabled'])
+            ->toBe(['mapImage', 'name', 'uuid', 'location', 'size', 'internalPort', 'ownerName', 'owner', 'serverName', 'roles', 'flagNames', 'online', 'lastSeen', 'uri', 'enabled'])
             // Its roles and its owner are changed; its name, its place and its size are its file's
             ->and(array_column(array_filter($region['fields'], static fn(array $f): bool => !($f['readOnly'] ?? false)), 'type', 'name'))
             ->toBe(['owner' => 'avatar', 'roles' => 'checkboxes', 'enabled' => 'boolean'])

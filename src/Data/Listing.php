@@ -57,7 +57,23 @@ final class Listing
         'area',
         'usage',
         'dimensions',
+        'group',
     ];
+
+    /**
+     * A column that holds several values (`group`): its `parts`, each the attribute, the key of its label and its type, shown stacked
+     * or inline by a site, each with its label; its sort, the one of the first.
+     *
+     * @param list<array{0:string,1:string,2?:string}> $parts the attribute, the key of its label, its type (text)
+     * @return array<string,mixed>
+     */
+    public static function group(string $name, string $label, array $parts, ?string $sort = null, array $more = []): array
+    {
+        return self::column($name, $label, 'group', $sort, ['parts' => array_map(
+            static fn(array $part): array => ['name' => $part[0], 'label' => $part[1], 'type' => $part[2] ?? 'text'],
+            $parts,
+        )] + $more);
+    }
 
     /** The thresholds of a usage, in percent: warning from the first, critical from the second. */
     public const USAGE = ['warning' => 70, 'critical' => 90];
@@ -320,14 +336,15 @@ final class Listing
      */
     public function columns(): array
     {
-        return array_map(
-            static fn(array $column): array => [
-                'name' => $column['name'],
-                'label' => self::english($column['label']),
-                'sortable' => isset($column['sort']),
-            ],
-            $this->columns,
-        );
+        $columns = [];
+        foreach ($this->columns as $column) {
+            // A column of several values: each in its own column
+            foreach ($column['type'] === 'group' ? $column['parts'] : [$column] as $i => $part) {
+                $columns[] = ['name' => $part['name'], 'label' => self::english($part['label']), 'sortable' => $i === 0 && isset($column['sort'])];
+            }
+        }
+
+        return $columns;
     }
 
     /**
@@ -394,7 +411,7 @@ final class Listing
         $keys = [...array_column($this->columns, 'label'), ...array_column($this->columns, 'tagLabel')];
         foreach ($this->columns as $column) {
             $values = $column['values'] ?? [];
-            array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'));
+            array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'), ...array_column($column['parts'] ?? [], 'label'));
             foreach ($column['indicators'] ?? [] as $indicator) {
                 array_push($keys, $indicator['label'], ...array_column($indicator['states'], 'label'));
             }

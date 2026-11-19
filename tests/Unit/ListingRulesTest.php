@@ -65,7 +65,7 @@ describe('Every list', function () {
             ->and([$avatars['name']['priority'], $avatars['status']['priority'], $avatars['email']['priority']])
             ->toBe([1, 1, 3])
             ->and(array_column(contract_lists()['/grids/{grid}/regions']['columns'], 'priority', 'name'))
-            ->toBe(['name' => 1, 'ownerName' => 2, 'serverName' => 3, 'avatars' => 2, 'prims' => 4, 'scripts' => 4, 'internalPort' => 4, 'size' => 3, 'location' => 3, 'lastSeen' => 3, 'flagNames' => 4, 'status' => 1]);
+            ->toBe(['name' => 1, 'ownerName' => 2, 'serverName' => 3, 'usage' => 2, 'place' => 3, 'lastSeen' => 3, 'flagNames' => 4, 'status' => 1]);
     });
 
     test('has its status last, under one label', function () {
