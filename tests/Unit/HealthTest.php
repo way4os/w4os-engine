@@ -1159,3 +1159,41 @@ describe('A page of the site that shows a block of the helpers', function () {
             ->toBe('error');
     });
 });
+
+describe('The helpers of a grid', function () {
+    test('are tested only where Robust or the base OpenSim.ini sets them: not set, not tested', function () {
+        $pages = [
+            ['page' => 'helpers', 'url' => 'https://grid.example.org/helpers', 'source' => 'config', 'servedBy' => 'helpers', 'keys' => ['[Helpers] HelpersURL']],
+            ['page' => 'guide', 'url' => 'https://grid.example.org/guide', 'source' => 'config', 'servedBy' => 'site', 'keys' => ['[LoginService] DestinationGuide']],
+            ['page' => 'directory', 'url' => 'https://grid.example.org/helpers/directory', 'source' => 'config', 'servedBy' => 'helpers', 'keys' => ['[Helpers] DirectoryURL']],
+        ];
+        $under = static fn(string $url): bool => str_starts_with($url, 'https://grid.example.org/helpers');
+        $none = array_column(Health::configured($pages, ['https://grid.example.org/guide'], $under), 'source', 'page');
+        $some = array_column(Health::configured($pages, ['https://grid.example.org/guide', 'https://grid.example.org/helpers/query.php'], $under), 'source', 'page');
+
+        expect($none)
+            // HelpersURL alone (the helpers' own file) is not the grid saying it uses them
+            ->toBe(['helpers' => 'default', 'guide' => 'config', 'directory' => 'default'])
+            ->and($some['helpers'])
+            ->toBe('config');
+    });
+
+    test('a grid with none is healthy, nothing of them asked; one set and down is an error', function () {
+        $dir = sys_get_temp_dir() . '/health-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents("$dir/Robust.ini", "[GridInfoService]\n gridname = \"Bare\"\n");
+        $bare = Health::answers([...Health::grid(['config' => GridConfig::fromFolder($dir)]), ['file' => 'pages', 'title' => '', 'rows' => Health::pages([['page' => 'helpers', 'url' => 'https://bare.example.org/helpers', 'source' => 'default', 'servedBy' => 'helpers']])]]);
+        $rows = array_merge(...array_column($bare, 'rows'));
+        file_put_contents("$dir/Robust.ini", "[GridInfoService]\n gridname = \"Down\"\n economy = \"http://127.0.0.1:9/helpers\"\n");
+        $down = array_column(array_column(Health::answers(Health::grid(['config' => GridConfig::fromFolder($dir)])), null, 'title')['[GridInfoService]']['rows'], null, 'label');
+
+        expect(Health::level($bare))
+            ->not->toBe('error')
+            ->and(array_filter($rows, static fn(array $row): bool => isset($row['ms']) && $row['ms'] !== null))
+            ->toBe([])
+            ->and(array_unique(array_column(array_filter($rows, static fn(array $row): bool => ($row['kind'] ?? '') === 'address'), 'level')))
+            ->toBe(['unset'])
+            ->and($down['economy'])
+            ->toMatchArray(['level' => 'error', 'status' => 'cURL error 7']);
+    });
+});

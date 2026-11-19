@@ -102,7 +102,7 @@ final class HealthCheck
                 'servedByHelpers' => static fn(string $url): bool => $grid->servedByHelpers($url),
             ]),
             // The pages for people the grid declares: the helpers' under their base, the site's elsewhere
-            ['file' => 'pages', 'title' => '', 'rows' => Health::pages(SitePages::rows($grid), $register)],
+            ['file' => 'pages', 'title' => '', 'rows' => Health::pages(Health::configured(SitePages::rows($grid), self::urls($config), static fn(string $url): bool => $grid->servedByHelpers($url)), $register)],
         ];
         $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions()];
         $groups[] = [
@@ -141,6 +141,27 @@ final class HealthCheck
         }
 
         return $groups;
+    }
+
+    /**
+     * The addresses Robust and the simulators set: what tells whether the grid uses its helpers.
+     *
+     * @return list<string>
+     */
+    private static function urls(?GridConfig $config): array
+    {
+        $tree = $config?->tree() ?? [];
+        $layers = [$tree['Robust'] ?? [], $tree['OpenSim'] ?? [], ...array_values($tree['simulators'] ?? [])];
+        $urls = [];
+        foreach ($layers as $ini) {
+            foreach ((array) $ini as $keys) {
+                foreach ((array) $keys as $value) {
+                    is_string($value) && Health::isUrl(trim($value, '"')) && ($urls[] = trim($value, '"'));
+                }
+            }
+        }
+
+        return $urls;
     }
 
     /**

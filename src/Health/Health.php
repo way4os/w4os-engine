@@ -822,6 +822,29 @@ class Health
     }
 
     /**
+     * The pages of a grid as Robust and the simulators set them (Robust.ini or Robust.HG.ini, the base OpenSim.ini): a page set
+     * only in the files of the helpers (DirectoryURL of Helpers.ini) is not, nor are the helpers when no setting of Robust or of
+     * the simulators leads to them (HelpersURL alone is their own file): a grid needs no helpers to run; set, they must answer,
+     * not set, they are not asked (`source` default).
+     *
+     * @param list<array<string,mixed>> $pages SitePages::rows()
+     * @param list<string> $urls the addresses Robust and the simulators set
+     * @param callable(string):bool $servedByHelpers whether an address is under the helpers
+     * @return list<array<string,mixed>>
+     */
+    public static function configured($pages, $urls, $servedByHelpers)
+    {
+        $helpers = array_filter($urls, static fn(string $url): bool => $servedByHelpers($url)) !== [];
+        foreach ($pages as $i => $page) {
+            $grid = array_filter((array) ($page['keys'] ?? []), static fn(string $key): bool => !str_starts_with($key, '[Helpers]')) !== [];
+            $set = $page['page'] === 'helpers' ? $helpers : $grid;
+            $set || ($pages[$i]['source'] = 'default');
+        }
+
+        return $pages;
+    }
+
+    /**
      * The pages of a grid for people, as SitePages::rows() gives them: the base of the helpers and each page the grid declares (its
      * config, or the grid itself), asked at the address it declares; one it does not declare (the default of the helpers, a base
      * of the helpers guessed from its web site) is not asked. A page of the site that shows a block of the helpers needs the
