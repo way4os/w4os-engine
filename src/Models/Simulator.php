@@ -499,11 +499,11 @@ final class Simulator extends InstalledModel
                 Listing::column('server', 'column_server', sort: 'server'),
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
                 Listing::column('regions', 'column_regions', 'number', 'regions'),
-                Listing::column('area', 'column_area', 'number', 'area'),
+                Listing::column('area', 'column_area', 'area', 'area'),
                 Listing::column('avatars', 'column_avatars', 'number', 'avatars'),
                 // What its process takes, in percents of the machine, while it runs
-                Listing::column('cpu', 'column_cpu', 'number', 'cpu'),
-                Listing::column('memory', 'column_memory', 'number', 'memory'),
+                Listing::column('cpu', 'column_cpu', 'usage', 'cpu', more: ['usage' => Listing::USAGE]),
+                Listing::column('memory', 'column_memory', 'usage', 'memory', more: ['usage' => Listing::USAGE + ['used' => 'memoryUsed', 'total' => 'memoryTotal', 'unit' => 'unit_mb']]),
                 // Enabled and running, each the button that changes it, then the ways the engine reaches it
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
                     Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),
@@ -595,6 +595,8 @@ final class Simulator extends InstalledModel
                 'visitors' => $this->present()['visitors'] ?? null,
                 'cpu' => null,
                 'memory' => null,
+                'memoryUsed' => null,
+                'memoryTotal' => null,
             ] + array_fill_keys(['consolePort', 'console', 'databaseHost', 'databaseName', 'databaseUser', 'estateDatabaseName', 'estateName', 'estateOwner', 'regionsDirectory', 'core'], null);
         }
 
@@ -623,9 +625,9 @@ final class Simulator extends InstalledModel
             'avatars' => $this->present() === null ? null : array_sum($this->present()),
             'members' => $this->present()['members'] ?? null,
             'visitors' => $this->present()['visitors'] ?? null,
-            // What its process takes while it runs, as opensim status says it (percents of the machine)
-            'cpu' => $this->process()?->cpu,
-            'memory' => $this->process()?->memory,
+            // What its process takes while it runs: the share of all the CPUs of the machine (ps gives it of one), the share of its
+            // memory, and that memory in MB of the total
+            ...$this->load(),
             'consolePort' => $this->consolePort(),
             'console' => $this->remoteConsole() !== null ? 'rest' : 'screen',
             'databaseHost' => $this->databaseHost(),
@@ -751,6 +753,27 @@ final class Simulator extends InstalledModel
         $grid = $this->grid();
 
         return $this->elsewhere !== null || $grid === null ? [] : (new \OpenSim\Provisioning\GridOptions($grid))->missingIn($this->settings());
+    }
+
+    /**
+     * What its process takes while it runs, null when it does not.
+     *
+     * @return array{cpu:?float,memory:?float,memoryUsed:?int,memoryTotal:?int}
+     */
+    private function load(): array
+    {
+        $process = $this->process();
+        if ($process === null) {
+            return ['cpu' => null, 'memory' => null, 'memoryUsed' => null, 'memoryTotal' => null];
+        }
+        $total = $this->environment->processes->memory();
+
+        return [
+            'cpu' => round($process->cpu / max(1, $this->environment->processes->cpus()), 1),
+            'memory' => $process->memory,
+            'memoryUsed' => intdiv($process->rss, 1024),
+            'memoryTotal' => $total > 0 ? intdiv($total, 1024) : null,
+        ];
     }
 
     /** Its process, null when it does not run: in the processes read for the list, else asked of the machine. */

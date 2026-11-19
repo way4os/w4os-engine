@@ -1584,7 +1584,8 @@ msgstr "Y gridiau eraill y mae eu lleoedd i'w cael yn chwiliad y grid hwn."
 msgctxt "block_search_help"
 msgid ""
 "A search form for the places, events, classifieds and people of the grid."
-msgstr "Ffurflen chwilio ar gyfer lleoedd, digwyddiadau, hysbysebion a phobl y grid."
+msgstr ""
+"Ffurflen chwilio ar gyfer lleoedd, digwyddiadau, hysbysebion a phobl y grid."
 
 msgctxt "block_profile_help"
 msgid "The profile of an avatar."
@@ -1598,7 +1599,9 @@ msgctxt "shortcode_home_help"
 msgid ""
 "Your text with the popular places, the guide, the grid status and the "
 "message of the day."
-msgstr "Eich testun gyda'r lleoedd poblogaidd, y canllaw, statws y grid a neges y dydd."
+msgstr ""
+"Eich testun gyda'r lleoedd poblogaidd, y canllaw, statws y grid a neges y "
+"dydd."
 
 msgctxt "shortcode_guest_help"
 msgid "Shows its text only to visitors who are not signed in."
@@ -2638,6 +2641,36 @@ msgstr "Copi wrth gefn"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Arwynebedd"
+
+#, php-format
+msgctxt "unit_m2"
+msgid "%s m²"
+msgstr "%s m²"
+
+#, php-format
+msgctxt "unit_ha"
+msgid "%s ha"
+msgstr "%s ha"
+
+#, php-format
+msgctxt "unit_km2"
+msgid "%s km²"
+msgstr "%s km²"
+
+#, php-format
+msgctxt "unit_mb"
+msgid "%s MB"
+msgstr "%s MB"
+
+#, php-format
+msgctxt "unit_percent"
+msgid "%s %%"
+msgstr "%s %%"
+
+#, php-format
+msgctxt "usage_of"
+msgid "%1$s of %2$s"
+msgstr "%1$s o %2$s"
 
 msgctxt "column_cpu"
 msgid "CPU"

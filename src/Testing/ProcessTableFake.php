@@ -15,6 +15,12 @@ final class ProcessTableFake implements ProcessTableInterface
     /** @var array<int,Process> */
     public array $processes = [];
 
+    /** The CPUs of the machine. */
+    public int $cpus = 1;
+
+    /** The memory of the machine, in kilobytes. */
+    public int $memory = 8 * 1024 * 1024;
+
     /** @var list<string> the signals sent, "TERM 123" */
     public array $signals = [];
 
@@ -67,5 +73,15 @@ final class ProcessTableFake implements ProcessTableInterface
         }
 
         return true;
+    }
+
+    public function cpus(): int
+    {
+        return $this->cpus;
+    }
+
+    public function memory(): int
+    {
+        return $this->memory;
     }
 }

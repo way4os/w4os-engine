@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- feature (lists): an area in the unit that suits it (m², ha, km²), the cpu and the memory of a simulator as usages with their thresholds, the memory in MB of the total
+- fix (simulators): the cpu is the share of all the CPUs of the machine, not of one
 - fix (texts): what each block and shortcode shows, in one plain sentence, the shortcodes of a site too (shortcode_*_help)
 - feature (texts): the texts of the dashboard of a site (simulators_running, recent_users, see_all)
 - feature (economy): the database of the economy, by module: the [MySql] of the money server, the connection of Gloebit; "use default" for Gloebit and the search

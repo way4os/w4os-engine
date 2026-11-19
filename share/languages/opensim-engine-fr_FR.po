@@ -1581,16 +1581,21 @@ msgstr "Le message du jour que les viewers montrent à la connexion."
 msgctxt "block_destination_guide_help"
 msgid ""
 "Places to visit, the same list the viewers show in their destinations guide."
-msgstr "Des lieux à visiter, la même liste que le guide des destinations des viewers."
+msgstr ""
+"Des lieux à visiter, la même liste que le guide des destinations des viewers."
 
 msgctxt "block_directory_info_help"
 msgid "The other grids whose places can be found in the search of this grid."
-msgstr "Les autres grilles dont les lieux se trouvent dans la recherche de cette grille."
+msgstr ""
+"Les autres grilles dont les lieux se trouvent dans la recherche de cette "
+"grille."
 
 msgctxt "block_search_help"
 msgid ""
 "A search form for the places, events, classifieds and people of the grid."
-msgstr "Un formulaire de recherche des lieux, événements, petites annonces et personnes de la grille."
+msgstr ""
+"Un formulaire de recherche des lieux, événements, petites annonces et "
+"personnes de la grille."
 
 msgctxt "block_profile_help"
 msgid "The profile of an avatar."
@@ -1604,7 +1609,9 @@ msgctxt "shortcode_home_help"
 msgid ""
 "Your text with the popular places, the guide, the grid status and the "
 "message of the day."
-msgstr "Votre texte avec les lieux populaires, le guide, l'état de la grille et le message du jour."
+msgstr ""
+"Votre texte avec les lieux populaires, le guide, l'état de la grille et le "
+"message du jour."
 
 msgctxt "shortcode_guest_help"
 msgid "Shows its text only to visitors who are not signed in."
@@ -2655,6 +2662,36 @@ msgstr "Sauvegarde"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Surface"
+
+#, php-format
+msgctxt "unit_m2"
+msgid "%s m²"
+msgstr "%s m²"
+
+#, php-format
+msgctxt "unit_ha"
+msgid "%s ha"
+msgstr "%s ha"
+
+#, php-format
+msgctxt "unit_km2"
+msgid "%s km²"
+msgstr "%s km²"
+
+#, php-format
+msgctxt "unit_mb"
+msgid "%s MB"
+msgstr "%s Mo"
+
+#, php-format
+msgctxt "unit_percent"
+msgid "%s %%"
+msgstr "%s %%"
+
+#, php-format
+msgctxt "usage_of"
+msgid "%1$s of %2$s"
+msgstr "%1$s sur %2$s"
 
 msgctxt "column_cpu"
 msgid "CPU"

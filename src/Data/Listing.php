@@ -54,7 +54,12 @@ final class Listing
         'role',
         'list',
         'indicators',
+        'area',
+        'usage',
     ];
+
+    /** The thresholds of a usage, in percent: warning from the first, critical from the second. */
+    public const USAGE = ['warning' => 70, 'critical' => 90];
 
     /**
      * The icons of the indicators, by what they mean: a site gives each the icon of its own library. `power` enabled or not, `run`

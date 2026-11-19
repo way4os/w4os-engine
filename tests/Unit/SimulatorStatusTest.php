@@ -194,17 +194,24 @@ describe('The size and the load of a simulator', function () {
         $regions = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha/regions';
         file_put_contents("$regions/Big.ini", "[Big]\nRegionUUID = 33333333-1111-4111-8111-111111111111\nSizeX = 512\nSizeY = 512\nInternalPort = 9003\n");
         file_put_contents("$regions/Off.ini.disabled", "[Off]\nRegionUUID = 44444444-1111-4111-8111-111111111111\n");
-        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini', cpu: 12.5, memory: 3.25);
+        // 50 % of one of the 4 CPUs of the machine; 400 MB of its 16 GB
+        $machine->processes->cpus = 4;
+        $machine->processes->memory = 16 * 1024 * 1024;
+        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini', cpu: 50.0, memory: 2.44, rss: 400 * 1024);
         $rows = array_column(array_map(static fn(Simulator $simulator): array => $simulator->detail(), Simulator::all($machine->environment)->items()), null, 'slug');
         $columns = array_column(Simulator::listing()->columns, null, 'name');
 
         // Plaza (256 x 256) and Big (512 x 512); the disabled one is not loaded
-        expect(array_intersect_key($rows['alpha'], array_flip(['regions', 'area', 'cpu', 'memory'])))
-            ->toBe(['regions' => 2, 'area' => 65536 + 262144, 'cpu' => 12.5, 'memory' => 3.25])
-            ->and([$rows['beta']['cpu'], $rows['beta']['memory'], $rows['beta']['regions']])
-            ->toBe([null, null, 1])
+        expect(array_intersect_key($rows['alpha'], array_flip(['regions', 'area', 'cpu', 'memory', 'memoryUsed', 'memoryTotal'])))
+            ->toBe(['regions' => 2, 'area' => 65536 + 262144, 'cpu' => 12.5, 'memory' => 2.44, 'memoryUsed' => 400, 'memoryTotal' => 16384])
+            ->and([$rows['beta']['cpu'], $rows['beta']['memory'], $rows['beta']['memoryUsed'], $rows['beta']['regions']])
+            ->toBe([null, null, null, 1])
             ->and(array_map(static fn(string $name): ?string => $columns[$name]['sort'] ?? null, ['regions', 'area', 'cpu', 'memory']))
-            ->toBe(['regions', 'area', 'cpu', 'memory']);
+            ->toBe(['regions', 'area', 'cpu', 'memory'])
+            // An area with its unit, a usage as a bar with its thresholds; the memory with what it takes of the total
+            ->and($columns['area']['type'])->toBe('area')
+            ->and($columns['cpu'])->toMatchArray(['type' => 'usage', 'usage' => ['warning' => 70, 'critical' => 90]])
+            ->and($columns['memory'])->toMatchArray(['type' => 'usage', 'usage' => ['warning' => 70, 'critical' => 90, 'used' => 'memoryUsed', 'total' => 'memoryTotal', 'unit' => 'unit_mb']]);
     });
 
     test('of another machine are its regions in the table of the grid, by its address', function () {
@@ -297,5 +304,14 @@ describe('The people in a simulator and its regions', function () {
             // The same people the status of the grid counts
             ->and(array_sum(array_column($regions, 'avatars')))
             ->toBe($stats['total_users'] ?? null);
+    });
+});
+
+describe('An area', function () {
+    test('is shown in the unit that says something of it: m² under a hectare, then hectares, then km²', function () {
+        expect(array_map(static fn(int $m2): array => OpenSim\Text\Units::area($m2), [512, 65536, 4 * 65536, 16 * 65536, 400 * 65536]))
+            ->toBe([[512.0, 'unit_m2', 0], [6.5536, 'unit_ha', 2], [26.2144, 'unit_ha', 2], [1.048576, 'unit_km2', 2], [26.2144, 'unit_km2', 2]])
+            ->and(OpenSim\Text\Units::area(2000 * 65536))->toBe([131.072, 'unit_km2', 0])
+            ->and(OpenSim\I18n\Catalog::MESSAGES['unit_ha'])->toBe('%s ha');
     });
 });

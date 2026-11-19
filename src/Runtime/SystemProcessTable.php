@@ -79,6 +79,27 @@ final class SystemProcessTable implements ProcessTableInterface
         return self::parseBound((string) @shell_exec('netstat -an 2>/dev/null'));
     }
 
+    public function cpus(): int
+    {
+        static $cpus = null;
+
+        return $cpus ??= max(1, (int) trim((string) @shell_exec('getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null')));
+    }
+
+    public function memory(): int
+    {
+        static $memory = null;
+        if ($memory !== null) {
+            return $memory;
+        }
+        $info = @file_get_contents('/proc/meminfo');
+        if (is_string($info) && preg_match('/^MemTotal:\s+(\d+)\s*kB/m', $info, $m) === 1) {
+            return $memory = (int) $m[1];
+        }
+
+        return $memory = intdiv((int) trim((string) @shell_exec('sysctl -n hw.memsize 2>/dev/null')), 1024);
+    }
+
     /**
      * The ports a machine has bound, from the output of `netstat -an` (BSD '.port', Linux ':port'): the local port of a TCP socket
      * that listens and of a UDP socket. The connections to other machines (their port is theirs, the local one is temporary)

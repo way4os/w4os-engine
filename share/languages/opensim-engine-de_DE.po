@@ -1583,12 +1583,14 @@ msgstr "Orte zum Besuchen, dieselbe Liste wie im Reiseführer der Viewer."
 
 msgctxt "block_directory_info_help"
 msgid "The other grids whose places can be found in the search of this grid."
-msgstr "Die anderen Grids, deren Orte in der Suche dieses Grids zu finden sind."
+msgstr ""
+"Die anderen Grids, deren Orte in der Suche dieses Grids zu finden sind."
 
 msgctxt "block_search_help"
 msgid ""
 "A search form for the places, events, classifieds and people of the grid."
-msgstr "Ein Suchformular für Orte, Events, Kleinanzeigen und Personen des Grids."
+msgstr ""
+"Ein Suchformular für Orte, Events, Kleinanzeigen und Personen des Grids."
 
 msgctxt "block_profile_help"
 msgid "The profile of an avatar."
@@ -1602,7 +1604,9 @@ msgctxt "shortcode_home_help"
 msgid ""
 "Your text with the popular places, the guide, the grid status and the "
 "message of the day."
-msgstr "Ihr Text mit den beliebten Orten, dem Reiseführer, dem Grid-Status und der Nachricht des Tages."
+msgstr ""
+"Ihr Text mit den beliebten Orten, dem Reiseführer, dem Grid-Status und der "
+"Nachricht des Tages."
 
 msgctxt "shortcode_guest_help"
 msgid "Shows its text only to visitors who are not signed in."
@@ -2643,6 +2647,36 @@ msgstr "Sicherung"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Fläche"
+
+#, php-format
+msgctxt "unit_m2"
+msgid "%s m²"
+msgstr "%s m²"
+
+#, php-format
+msgctxt "unit_ha"
+msgid "%s ha"
+msgstr "%s ha"
+
+#, php-format
+msgctxt "unit_km2"
+msgid "%s km²"
+msgstr "%s km²"
+
+#, php-format
+msgctxt "unit_mb"
+msgid "%s MB"
+msgstr "%s MB"
+
+#, php-format
+msgctxt "unit_percent"
+msgid "%s %%"
+msgstr "%s %%"
+
+#, php-format
+msgctxt "usage_of"
+msgid "%1$s of %2$s"
+msgstr "%1$s von %2$s"
 
 msgctxt "column_cpu"
 msgid "CPU"

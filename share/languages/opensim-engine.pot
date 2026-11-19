@@ -2331,6 +2331,36 @@ msgctxt "column_area"
 msgid "Area"
 msgstr ""
 
+#, php-format
+msgctxt "unit_m2"
+msgid "%s m²"
+msgstr ""
+
+#, php-format
+msgctxt "unit_ha"
+msgid "%s ha"
+msgstr ""
+
+#, php-format
+msgctxt "unit_km2"
+msgid "%s km²"
+msgstr ""
+
+#, php-format
+msgctxt "unit_mb"
+msgid "%s MB"
+msgstr ""
+
+#, php-format
+msgctxt "unit_percent"
+msgid "%s %%"
+msgstr ""
+
+#, php-format
+msgctxt "usage_of"
+msgid "%1$s of %2$s"
+msgstr ""
+
 msgctxt "column_cpu"
 msgid "CPU"
 msgstr ""

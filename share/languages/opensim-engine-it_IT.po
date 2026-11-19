@@ -1569,16 +1569,19 @@ msgstr "Il messaggio del giorno che i viewer mostrano all'accesso."
 msgctxt "block_destination_guide_help"
 msgid ""
 "Places to visit, the same list the viewers show in their destinations guide."
-msgstr "Luoghi da visitare, la stessa lista della guida alle destinazioni dei viewer."
+msgstr ""
+"Luoghi da visitare, la stessa lista della guida alle destinazioni dei viewer."
 
 msgctxt "block_directory_info_help"
 msgid "The other grids whose places can be found in the search of this grid."
-msgstr "Le altre griglie i cui luoghi si trovano nella ricerca di questa griglia."
+msgstr ""
+"Le altre griglie i cui luoghi si trovano nella ricerca di questa griglia."
 
 msgctxt "block_search_help"
 msgid ""
 "A search form for the places, events, classifieds and people of the grid."
-msgstr "Un modulo di ricerca di luoghi, eventi, annunci e persone della griglia."
+msgstr ""
+"Un modulo di ricerca di luoghi, eventi, annunci e persone della griglia."
 
 msgctxt "block_profile_help"
 msgid "The profile of an avatar."
@@ -1592,7 +1595,9 @@ msgctxt "shortcode_home_help"
 msgid ""
 "Your text with the popular places, the guide, the grid status and the "
 "message of the day."
-msgstr "Il tuo testo con i luoghi popolari, la guida, lo stato della griglia e il messaggio del giorno."
+msgstr ""
+"Il tuo testo con i luoghi popolari, la guida, lo stato della griglia e il "
+"messaggio del giorno."
 
 msgctxt "shortcode_guest_help"
 msgid "Shows its text only to visitors who are not signed in."
@@ -2633,6 +2638,36 @@ msgstr "Backup"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Superficie"
+
+#, php-format
+msgctxt "unit_m2"
+msgid "%s m²"
+msgstr "%s m²"
+
+#, php-format
+msgctxt "unit_ha"
+msgid "%s ha"
+msgstr "%s ha"
+
+#, php-format
+msgctxt "unit_km2"
+msgid "%s km²"
+msgstr "%s km²"
+
+#, php-format
+msgctxt "unit_mb"
+msgid "%s MB"
+msgstr "%s MB"
+
+#, php-format
+msgctxt "unit_percent"
+msgid "%s %%"
+msgstr "%s %%"
+
+#, php-format
+msgctxt "usage_of"
+msgid "%1$s of %2$s"
+msgstr "%1$s di %2$s"
 
 msgctxt "column_cpu"
 msgid "CPU"

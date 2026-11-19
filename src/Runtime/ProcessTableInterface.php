@@ -28,4 +28,10 @@ interface ProcessTableInterface
      * @return list<int>
      */
     public function listening(): array;
+
+    /** How many CPUs the machine has. */
+    public function cpus(): int;
+
+    /** The memory of the machine, in kilobytes (0 when it cannot tell). */
+    public function memory(): int;
 }

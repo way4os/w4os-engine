@@ -434,7 +434,7 @@ final class Parcel extends Model
                 // Repeats the filter of a parent: left out when the list is of one region, one owner
                 Listing::column('regionName', 'column_region', more: ['mirrors' => 'region']),
                 Listing::column('ownerName', 'column_owner', more: ['mirrors' => 'owner']),
-                Listing::column('area', 'column_area', 'number', 'area'),
+                Listing::column('area', 'column_area', 'area', 'area'),
                 Listing::column('dwell', 'column_traffic', 'number', 'dwell'),
                 Listing::column('forSale', 'column_for_sale', 'boolean'),
                 Listing::column('shownInSearch', 'column_in_search', 'boolean'),

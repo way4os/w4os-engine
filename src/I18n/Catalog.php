@@ -687,6 +687,13 @@ final class Catalog
         'kind_oar' => 'Region (OAR)',
         'kind_backup' => 'Backup',
         'column_area' => 'Area',
+        // The units an amount is shown in (Text\Units), the number as %s, and a usage: what it takes of its total
+        'unit_m2' => '%s m²',
+        'unit_ha' => '%s ha',
+        'unit_km2' => '%s km²',
+        'unit_mb' => '%s MB',
+        'unit_percent' => '%s %%',
+        'usage_of' => '%1$s of %2$s',
         // What the process of a simulator takes, in percents of the machine
         'column_cpu' => 'CPU',
         // The people in a region or a simulator: members and visitors of other grids, never a NPC
