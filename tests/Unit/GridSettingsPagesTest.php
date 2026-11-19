@@ -42,7 +42,7 @@ describe('The settings pages of the services', function () {
             ->toBe([
                 // In the order of w4os-wp (GridSettingsW4osTest)
                 ['provide', 'path', 'economyUrl', 'economyModule', 'moneyServerWarning', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
-                ['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registerExternalUrl', 'eventsUrl'],
+                ['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registers', 'webSearchUrl', 'eventsUrl'],
                 ['provide', 'guideSource', 'path', 'destinationGuide'],
                 ['provide', 'mailSender', 'offlineDatabase', 'offlineModule', 'path', 'offlineMessageUrl'],
                 ['provide', 'path', 'assetsUrl'],
@@ -100,7 +100,7 @@ describe('The settings pages of the services', function () {
         $search = $get('search')->document['data']['attributes'];
 
         expect($search)
-            ->toMatchArray(['provide' => false, 'searchExternalUrl' => 'https://play.example.org/helpers/query.php', 'registerExternalUrl' => 'https://2do.directory/helpers/register.php', 'eventsUrl' => 'https://2do.directory/events'])
+            ->toMatchArray(['provide' => false, 'searchExternalUrl' => 'https://play.example.org/helpers/query.php', 'registers' => ['https://2do.directory/helpers/register.php'], 'eventsUrl' => 'https://2do.directory/events'])
             ->and($get('economy')->document['data']['attributes']['economyModule'])
             ->toBe('Gloebit')
             // The address of the search is the one of Provide (its page); the module of the economy is chosen here too

@@ -35,7 +35,7 @@ function english(array|string $keys): array
 describe('The pages of the services, as w4os-wp', function () {
     test('have its fields in its order', function () {
         expect(page_fields('economy'))->toBe(['provide', 'path', 'economyUrl', 'economyModule', 'moneyServerWarning', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'])
-            ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registerExternalUrl', 'eventsUrl'])
+            ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registers', 'webSearchUrl', 'eventsUrl'])
             ->and(page_fields('guide'))->toBe(['provide', 'guideSource', 'path', 'destinationGuide'])
             ->and(page_fields('offline'))->toBe(['provide', 'mailSender', 'offlineDatabase', 'offlineModule', 'path', 'offlineMessageUrl'])
             ->and(page_fields('assets'))->toBe(['provide', 'path', 'assetsUrl']);
@@ -51,7 +51,8 @@ describe('The pages of the services, as w4os-wp', function () {
             ->toBe(['Economy Helper URI', 'Money Script Access Key', 'Gloebit Configuration', 'Search Engine URL', 'Search Register URL', 'Destinations Guide URL', 'Offline Messages Helper'])
             ->and(english($economy['path']['description']))->toBe(['The URL must be set in Robust configuration.'])
             ->and(english($search['path']['description'])[0])->toBe('URL of the search engine used by the viewer to provide search results (without arguments).')
-            ->and(english($search['registerPath']['description']))->toBe(['Data service, used to register regions, objects or land for sale.', 'You can register to several search engines.'])
+            ->and(english($search['registerPath']['description']))->toBe(['Data service, used to register regions, objects or land for sale.'])
+            ->and(english($search['registers']['description'])[0])->toBe('You can register to several search engines.')
             ->and(count($guide['guideSource']['description']) + count(GridSettings::form('guide')['description']))->toBe(9)
             ->and(english(GridSettings::form('offline')['description']))->toBe(['Honor "Email me IMs when I\'m offline" viewer option.', 'OpenSimulator core offline messages module doesn\'t handle e-mail forwarding option available in the viewer settings.'])
             ->and(english(GridSettings::form('economy')['description'])[0])->toBe('Economy helpers are additional scripts needed if you implement economy on your grid (with real or fake currency).')

@@ -506,6 +506,30 @@ msgctxt "search_register_url"
 msgid "Search Register URL"
 msgstr ""
 
+msgctxt "search_registers"
+msgid "Other Search Registers"
+msgstr ""
+
+msgctxt "search_register_help_2do"
+msgid "Registering on 2do.directory is recommended: the regions of the grid are then found in the search of the other grids too."
+msgstr ""
+
+msgctxt "web_search_url"
+msgid "Web Search URL"
+msgstr ""
+
+msgctxt "web_search_help"
+msgid "A web page where people search the places, events and people of the grid; the viewers open it from their search window. The Search Engine URL above is another thing: the simulators call it, nobody sees it."
+msgstr ""
+
+msgctxt "tip_search_registers"
+msgid "2do.directory recommended"
+msgstr ""
+
+msgctxt "tip_web_search"
+msgid "User-facing search form"
+msgstr ""
+
 msgctxt "search_register_help_data"
 msgid "Data service, used to register regions, objects or land for sale."
 msgstr ""

@@ -75,7 +75,7 @@ final class GridSettings
         ],
         'search' => [
             'searchDatabase' => 'tip_search_database', 'path' => 'tip_search_url', 'searchExternalUrl' => 'tip_search_url',
-            'registerPath' => 'tip_search_register', 'registerExternalUrl' => 'tip_search_register', 'eventsUrl' => 'tip_events_url',
+            'registerPath' => 'tip_search_register', 'registers' => 'tip_search_registers', 'webSearchUrl' => 'tip_web_search', 'eventsUrl' => 'tip_events_url',
         ],
         'guide' => ['guideSource' => 'tip_guide_source', 'path' => 'tip_guide_url', 'destinationGuide' => 'tip_guide_url'],
         'offline' => [
@@ -88,7 +88,7 @@ final class GridSettings
     /** The fields of a page in the order w4os-wp shows them, the address of the service and Provide aside. */
     private const ORDER = [
         'economy' => ['economyModule', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
-        'search' => ['searchDatabase', 'eventsUrl'],
+        'search' => ['searchDatabase', 'webSearchUrl', 'eventsUrl'],
         'offline' => ['mailSender', 'offlineDatabase', 'offlineModule'],
     ];
 
@@ -108,7 +108,7 @@ final class GridSettings
             'currencySymbol' => ['description' => ['currency_symbol_help']],
         ],
         'search' => [
-            'registerExternalUrl' => ['description' => ['search_register_help_data', 'search_register_help_several']],
+            'webSearchUrl' => ['label' => 'web_search_url', 'description' => ['web_search_help']],
             'eventsUrl' => ['description' => ['events_help_fetch', 'events_help_blank'], 'placeholder' => 'http://2do.directory/events/'],
         ],
         'guide' => [
@@ -251,22 +251,35 @@ final class GridSettings
     }
 
     /**
-     * Where the simulators register for the search: their own register under the helpers (`registerPath`), the register of another
-     * search engine (`registerExternalUrl`: the one kept, else the one of 2do.directory the grid has).
+     * Where the simulators register for the search: their own register under the helpers (`registerPath`), and the registers of
+     * other search engines (`registers`, the other DATA_SRV_ of [DataSnapshot]; 2do.directory's when the grid has none).
      *
-     * @return array{registerPath:string,registerExternalUrl:string}
+     * @return array{registerPath:string,registers:list<string>}
      */
     private function register(GridConfig $config, bool $on): array
     {
         $own = trim((string) $config->find('DataSnapshot', $this->ownRegister()), " \t\"");
         $base = $this->baseOf('search');
-        $kept = $config->find('Helpers', 'ExternalRegisterURL');
-        $other = trim((string) $config->find('DataSnapshot', 'DATA_SRV_2do'), " \t\"");
+        $others = [];
+        foreach ($config->keys('DataSnapshot', '/^DATA_SRV_/i') as $key => $url) {
+            strcasecmp((string) $key, $this->ownRegister()) === 0 || trim((string) $url, " \t\"") === '' || ($others[] = trim((string) $url, " \t\""));
+        }
 
         return [
             'registerPath' => $own !== '' && $base !== null && str_starts_with($own, $base . '/') ? substr($own, strlen($base) + 1) : 'register.php',
-            'registerExternalUrl' => $kept ?? ($other !== '' ? $other : (string) Settings::named('registerExternalUrl')['default']),
+            'registers' => $others !== [] ? array_values(array_unique($others)) : [self::REGISTER_2DO],
         ];
+    }
+
+    /** The register of 2do.directory, the one recommended. */
+    private const REGISTER_2DO = 'http://2do.directory/helpers/register.php';
+
+    /** The key of a register in [DataSnapshot]: DATA_SRV_2do for 2do.directory, else DATA_SRV_ and its host. */
+    private static function registerKey(string $url): string
+    {
+        $host = (string) parse_url($url, PHP_URL_HOST);
+
+        return str_contains($host, '2do.directory') ? 'DATA_SRV_2do' : 'DATA_SRV_' . preg_replace('/[^A-Za-z0-9]/', '', ucwords(str_replace(['.', '-'], ' ', $host)));
     }
 
     /** The path of an address with what follows it (its query), as a site shows it under its own address. */
@@ -295,6 +308,11 @@ final class GridSettings
             $values['currencyProvider'] = $values['economyModule'] === 'Podex' ? 'podex' : '';
             $values['economyModule'] === 'Podex' && ($values['economyModule'] = 'DTLNSLMoneyModule');
             $entries['currencyProvider'] = Settings::named('currencyProvider');
+        }
+        // The web search: given to the viewers at login and by get_grid_info
+        if ($page === 'search' && array_key_exists('webSearchUrl', $values)) {
+            $values['loginSearchUrl'] = $values['webSearchUrl'];
+            $entries['loginSearchUrl'] = Settings::named('loginSearchUrl');
         }
         // Gloebit is a global currency: its symbol is G$
         $page === 'economy' && ($values['economyModule'] ?? $now['economyModule']) === 'Gloebit' && ($values['currencySymbol'] = 'G$');
@@ -479,12 +497,12 @@ final class GridSettings
         $provide = self::PROVIDE[$page];
         $setting = $provide['setting'];
         $external = $provide['external'] ?? null;
-        $register = $page === 'search' ? array_intersect_key($values, ['registerPath' => 1, 'registerExternalUrl' => 1]) : [];
+        $register = $page === 'search' ? array_intersect_key($values, ['registerPath' => 1, 'registers' => 1]) : [];
         $given = array_key_exists('provide', $values) || array_key_exists('path', $values) || ($external !== null && array_key_exists($external, $values)) || $register !== [];
         $now = $given ? $this->read($page) : [];
         $on = array_key_exists('provide', $values) ? filter_var($values['provide'], FILTER_VALIDATE_BOOLEAN) : (bool) ($now['provide'] ?? true);
         $path = $values['path'] ?? null;
-        unset($values['provide'], $values['path'], $values['registerPath']);
+        unset($values['provide'], $values['path'], $values['registerPath'], $values['registers']);
         if (!$given) {
             return $values;
         }
@@ -517,7 +535,14 @@ final class GridSettings
             // The simulators register on the search the grid uses: its own under the helpers, else the other one
             $own = $this->ownRegister();
             $values[$own] = $on ? $this->baseOf('search') . '/' . ltrim((string) ($register['registerPath'] ?? $now['registerPath']), '/') : false;
-            $values['DATA_SRV_2do'] = $on ? false : ($register['registerExternalUrl'] ?? $now['registerExternalUrl']);
+            // The registers of other search engines, the ones not in the list left commented
+            $registers = array_values(array_filter(array_map('trim', (array) ($register['registers'] ?? $now['registers'])), static fn(string $url): bool => $url !== ''));
+            foreach ($this->config()->keys('DataSnapshot', '/^DATA_SRV_/i') as $key => $url) {
+                strcasecmp((string) $key, $own) === 0 || ($values[(string) $key] = false);
+            }
+            foreach ($registers as $url) {
+                $values[self::registerKey($url)] = $url;
+            }
         }
 
         return $values;
@@ -548,13 +573,7 @@ final class GridSettings
             if ($field['name'] === $provide['setting'] && isset($provide['external'])) {
                 continue;
             }
-            if ($field['name'] === 'registerExternalUrl') {
-                $register = [
-                    ['name' => 'registerPath', 'type' => 'path', 'base' => 'helpers', 'label' => 'search_register_url', 'description' => $more['description'] ?? [], 'condition' => $on],
-                    ['condition' => ['provide' => [false]]] + $more + $field,
-                ];
-                continue;
-            }
+
             if ($field['name'] === ($provide['external'] ?? $provide['setting'])) {
                 $address[] = ['condition' => ['provide' => [false]] + ($shownAs[$field['name']]['condition'] ?? []), 'label' => $provide['url'], 'description' => $provide['urlHelp'] ?? $provide['help'] ?? []]
                     + array_intersect_key($provide, ['placeholder' => 1, 'required' => 1]) + $field;
@@ -575,6 +594,11 @@ final class GridSettings
                 ['name' => $name, 'type' => 'note', 'label' => $note['label'], 'description' => $note['description'], 'condition' => $on + $note['condition']],
             ]);
         }
+        // The registers of the search: its own under the helpers, and the ones of other search engines, whatever Provide
+        $page === 'search' && ($register = [
+            ['name' => 'registerPath', 'type' => 'path', 'base' => 'helpers', 'label' => 'search_register_url', 'description' => ['search_register_help_data'], 'condition' => $on],
+            ['name' => 'registers', 'type' => 'url', 'multiple' => true, 'label' => 'search_registers', 'description' => ['search_register_help_several', 'search_register_help_2do'], 'placeholder' => self::REGISTER_2DO],
+        ]);
         // The address where w4os-wp shows it: after Provide, or after the field it follows
         $at = isset($provide['after']) ? array_search($provide['after'], array_column($others, 'name'), true) : false;
         array_splice($others, $at === false ? 0 : $at + 1, 0, [...$address, ...$register]);
@@ -690,9 +714,11 @@ final class GridSettings
     /** The lines of the search: what the simulators call and where they register, the database and the events of the helpers. */
     private function searchLines(\Closure $add, array $values, string $url): void
     {
-        $register = $values['provide']
-            ? [$this->ownRegister() => '"' . $this->baseOf('search') . '/' . ltrim($values['registerPath'], '/') . '"']
-            : ['DATA_SRV_2do' => '"' . $values['registerExternalUrl'] . '"'];
+        $register = $values['provide'] ? [$this->ownRegister() => '"' . $this->baseOf('search') . '/' . ltrim($values['registerPath'], '/') . '"'] : [];
+        foreach ($values['registers'] as $url) {
+            $register[self::registerKey($url)] = '"' . $url . '"';
+        }
+        ($values['webSearchUrl'] ?? '') !== '' && $add(Settings::file('robust', $this->config()), ['LoginService' => ['SearchURL' => (string) $values['webSearchUrl']], 'GridInfoService' => ['search' => (string) $values['webSearchUrl']]]);
         $add('OpenSim.ini', [
             'Search' => ['Module' => 'OpenSimSearch', 'SearchURL' => "\"$url\""],
             'DataSnapshot' => ['index_sims' => 'true', 'gridname' => '"' . $this->grid->name() . '"'] + $register,

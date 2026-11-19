@@ -82,7 +82,7 @@ final class Settings
                 'GridStatus' => ['name' => 'gridStatusPage', 'type' => 'url', 'label' => 'setting_grid_status', 'info' => 'GridStatus', 'service' => 'grid-status', 'health' => 'address'],
                 'GridStatusRSS' => ['name' => 'gridStatusRss', 'type' => 'url', 'label' => 'setting_grid_status_rss', 'info' => 'GridStatusRSS', 'service' => 'grid-status-rss', 'health' => 'address'],
                 'web_profile_url' => ['name' => 'webProfileUrl', 'type' => 'url', 'label' => 'setting_web_profile', 'info' => 'web_profile_url', 'service' => 'web-profile', 'health' => 'address'],
-                'search' => ['name' => 'webSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'info' => 'search', 'service' => 'search', 'health' => 'address'],
+                'search' => ['name' => 'webSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'info' => 'search', 'service' => 'search', 'health' => 'address', 'admin' => 'search'],
             ],
             // Where an old config gave the economy
             'Economy' => [
@@ -163,9 +163,8 @@ final class Settings
                 'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'default' => 'https://2do.directory/destinations/guide', 'placeholder' => 'https://2do.directory/destinations/guide'],
                 'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search', 'fallback' => 'db_use_default'],
                 'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => 'https://2do.directory/events', 'placeholder' => 'https://2do.directory/events'],
-                // The search engine and the register of another server, kept for when the helpers do not provide the search
+                // The search engine of another server, kept for when the helpers do not provide the search
                 'ExternalSearchURL' => ['name' => 'searchExternalUrl', 'type' => 'url', 'label' => 'search_engine_url', 'default' => 'http://2do.directory/helpers/query.php', 'admin' => 'search'],
-                'ExternalRegisterURL' => ['name' => 'registerExternalUrl', 'type' => 'url', 'label' => 'search_register_url', 'default' => 'http://2do.directory/helpers/register.php', 'admin' => 'search'],
                 'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
                 'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'placeholder' => 'no-reply@example.org'],
                 'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'placeholder' => '10', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
