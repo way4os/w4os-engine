@@ -180,7 +180,8 @@ final class GridSettings
         $on = !is_string($url) || $url === '' || ($site !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $site));
         // The module V2 is Robust's: the helpers do not provide it
         $page === 'offline' && stripos((string) $values['offlineModule'], 'V2') !== false && ($on = false);
-        $path = $on && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page);
+        // The path under its base, which ends with the slash: it never starts with one
+        $path = ltrim($on && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page), '/');
         // The address of another server: the one kept, else the one the grid uses when it is elsewhere
         if (isset($provide['external']) && !$on && $config->find('Helpers', Settings::named($provide['external'])['key']) === null) {
             $values[$provide['external']] = $url;
@@ -577,6 +578,8 @@ final class GridSettings
 
         return ($fixed === [] ? [] : ['fixed' => $fixed]) + ['snippets' => $this->snippets($page)] + self::examples($page) + ['service' => [
             'key' => $provide['service'],
+            // What the path is under, read-only, ending with the slash the path never starts with
+            'prefix' => ($prefix = $this->baseOf($page)) === null ? null : rtrim($prefix, '/') . '/',
             'base' => $site,
             'helpers' => $helpers,
             'handledBy' => match (true) {

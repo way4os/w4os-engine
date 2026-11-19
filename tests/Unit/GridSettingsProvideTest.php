@@ -65,7 +65,7 @@ describe('A settings page of a service of the helpers', function () {
 
         expect($assets['data']['attributes'])->toMatchArray(['provide' => true, 'path' => 'assets'])
             ->and($assets['meta']['service'])->toMatchArray(['base' => 'https://play.example.org', 'helpers' => 'https://play.example.org/helpers', 'handledBy' => 'helpers', 'block' => null, 'endpoint' => 'GET /assets/{id}.{format}'])
-            ->and($guide['data']['attributes'])->toMatchArray(['provide' => true, 'path' => '/guide'])
+            ->and($guide['data']['attributes'])->toMatchArray(['provide' => true, 'path' => 'guide'])
             ->and($guide['meta']['service'])->toMatchArray(['handledBy' => 'site', 'block' => 'destination_guide'])
             ->and($economy['data']['attributes'])->toMatchArray(['provide' => false, 'economyUrl' => 'https://shop.example.org/money/'])
             ->and($economy['meta']['service']['handledBy'])->toBe('elsewhere');

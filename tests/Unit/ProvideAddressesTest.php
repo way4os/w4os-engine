@@ -26,7 +26,7 @@ describe('The address of a service', function () {
         expect($bases)->toBe(['site', 'helpers', 'site', 'helpers', 'helpers'])
             ->and($search->document['data']['attributes']['path'])->toBe('search/query.php')
             ->and(file_get_contents($machine->grid . '/OpenSim.ini'))->toContain('SearchURL = "https://play.example.org/helpers/search/query.php"')
-            ->and($economy->document['data']['attributes']['path'])->toBe('/money/')
+            ->and($economy->document['data']['attributes']['path'])->toBe('money/')
             ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('${Const|WebURL}/money/');
     });
 
@@ -59,5 +59,21 @@ describe('The address of a service', function () {
         expect(array_map(static fn(array $one): string => $one['text'], $snippets['path'] ?? []))->toHaveCount(1)
             ->and(substr_count($snippets['path'][0]['text'], 'SearchURL'))->toBe(1)
             ->and(substr_count($snippets['registerPath'][0]['text'] ?? '', 'DATA_SRV_'))->toBe(1);
+    });
+});
+
+describe('The path of a service', function () {
+    test('never starts with a slash: the slash ends its base, the part that is not changed (meta.service.prefix)', function () {
+        [, $router] = provided_grid();
+        $read = static fn(string $page): array => $router->get("/grids/demo/settings/$page")->document;
+
+        $paths = array_map(static fn(string $page): string => (string) $read($page)['data']['attributes']['path'], PROVIDED_PAGES);
+        $prefixes = array_map(static fn(string $page): string => (string) ($read($page)['meta']['service']['prefix'] ?? ''), PROVIDED_PAGES);
+        $saved = address_patch($router, 'guide', ['provide' => true, 'path' => '/places/guide'])->document['data']['attributes']['path'];
+
+        expect(array_filter($paths, static fn(string $path): bool => str_starts_with($path, '/')))->toBe([])
+            ->and($paths[0])->toBe('helpers/')
+            ->and($prefixes)->toBe(['https://play.example.org/', 'https://play.example.org/helpers/', 'https://play.example.org/', 'https://play.example.org/helpers/', 'https://play.example.org/helpers/'])
+            ->and($saved)->toBe('places/guide');
     });
 });
