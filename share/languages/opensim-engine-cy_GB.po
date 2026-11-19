@@ -48,11 +48,15 @@ msgstr "Cyfareddol"
 msgctxt "first_name_help"
 msgid ""
 "First name must start with a letter and contain only letters and numbers"
-msgstr "Rhaid i'r enw cyntaf ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn unig"
+msgstr ""
+"Rhaid i'r enw cyntaf ddechrau gyda llythyren a chynnwys llythrennau a rhifau "
+"yn unig"
 
 msgctxt "last_name_help"
 msgid "Last name must start with a letter and contain only letters and numbers"
-msgstr "Rhaid i'r cyfenw ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn unig"
+msgstr ""
+"Rhaid i'r cyfenw ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn "
+"unig"
 
 msgctxt "email"
 msgid "Email"
@@ -1105,6 +1109,70 @@ msgstr ""
 msgctxt "degraded"
 msgid "Degraded"
 msgstr "Diraddiedig"
+
+msgctxt "parcels"
+msgid "Parcels"
+msgstr "Tirionau"
+
+msgctxt "shortcodes_title"
+msgid "Available Shortcodes"
+msgstr "Codau Byr Sydd Ar Gael"
+
+msgctxt "shortcodes_help"
+msgid "Shortcodes can be included in any page or articles."
+msgstr "Gellir cynnwys codau byr yn unrhyw dudalen neu erthygl."
+
+msgctxt "shortcode_options"
+msgid "Options"
+msgstr "Opsiynau"
+
+msgctxt "shortcode_option_title"
+msgid "Bloc title"
+msgstr "Teitl y Bloc"
+
+msgctxt "shortcode_option_level"
+msgid "Title level (h1 to h6)"
+msgstr "Lefel y Teitl (h1 i h6)"
+
+msgctxt "shortcode_option_name"
+msgid "The name of the avatar (First.Last)"
+msgstr ""
+
+msgctxt "block_grid_info_help"
+msgid "General information (grid name and login uri)"
+msgstr "Gwybodaeth gyffredinol (enw grid a uri mewngofnodi)"
+
+msgctxt "block_grid_status_help"
+msgid "Online users, regions, etc."
+msgstr "Defnyddwyr ar-lein, rhanbarthau, ac ati."
+
+msgctxt "block_popular_places_help"
+msgid "Most visited regions in your grid."
+msgstr "Y rhanbarthau mwyaf poblogaidd yn eich grid."
+
+msgctxt "block_motd_help"
+msgid "The message of the day the viewers show at login."
+msgstr ""
+
+msgctxt "block_destination_guide_help"
+msgid "The destinations of the guide of the grid, as the viewers show them."
+msgstr ""
+
+msgctxt "block_directory_info_help"
+msgid "The grids whose regions are in the search of this one."
+msgstr ""
+
+msgctxt "block_search_help"
+msgid "The search of the grid: places, events, classifieds, people."
+msgstr ""
+
+msgctxt "block_profile_help"
+msgid "The profile of an avatar, as its page shows it."
+msgstr ""
+
+msgctxt "block_new_users_help"
+msgid "The avatars that joined the grid last."
+msgstr ""
 
 msgctxt "setting_login"
 msgid "Login URI"

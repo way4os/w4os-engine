@@ -348,6 +348,25 @@ final class Catalog
         'view_inactive' => 'Inactive',
         // A grid partly broken (GridMonitor::DEGRADED)
         'degraded' => 'Degraded',
+        // The parcels of a region, in the words of w4os-wp (its region page)
+        'parcels' => 'Parcels',
+        // The page of the shortcodes and blocks of a site, in the words of w4os-wp (its admin page Shortcodes): what each block shows,
+        // its options
+        'shortcodes_title' => 'Available Shortcodes',
+        'shortcodes_help' => 'Shortcodes can be included in any page or articles.',
+        'shortcode_options' => 'Options',
+        'shortcode_option_title' => 'Bloc title',
+        'shortcode_option_level' => 'Title level (h1 to h6)',
+        'shortcode_option_name' => 'The name of the avatar (First.Last)',
+        'block_grid_info_help' => 'General information (grid name and login uri)',
+        'block_grid_status_help' => 'Online users, regions, etc.',
+        'block_popular_places_help' => 'Most visited regions in your grid.',
+        'block_motd_help' => 'The message of the day the viewers show at login.',
+        'block_destination_guide_help' => 'The destinations of the guide of the grid, as the viewers show them.',
+        'block_directory_info_help' => 'The grids whose regions are in the search of this one.',
+        'block_search_help' => 'The search of the grid: places, events, classifieds, people.',
+        'block_profile_help' => 'The profile of an avatar, as its page shows it.',
+        'block_new_users_help' => 'The avatars that joined the grid last.',
         // The settings and pages of the health (Health::SETTINGS): setting_ and the name, and what each is for
         'setting_login' => 'Login URI',
         'setting_login_help' => 'The address the viewers log in at, and ask what the grid says of itself (get_grid_info).',
