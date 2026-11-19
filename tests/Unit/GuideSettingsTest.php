@@ -26,8 +26,7 @@ describe('The page of the guide', function () {
             ->and($read['meta']['examples'] ?? [])->toHaveCount(1)
             ->and($read['meta']['examples'][0]['label'])->toBe('guide_example')
             ->and($read['meta']['examples'][0]['text'])->toContain('Display Name|yourgrid.org:8002/Region Name')
-            ->and($read['meta']['snippets'])->not->toHaveKey('guideSource')
-            ->and($read['meta']['snippets']['path'][0])->toMatchArray(['label' => 'snippet_ini', 'file' => 'Robust.HG.ini'])
+            ->and(array_column($read['meta']['snippets'], 'file'))->toBe(['Robust.HG.ini', 'Helpers.ini'])
             ->and(Catalog::MESSAGES['guide_example'])->toBe('Example of a destinations file')
             ->and(Catalog::messages('fr_FR', false)['guide_source_help_name'] ?? '')->not->toBe('');
     });

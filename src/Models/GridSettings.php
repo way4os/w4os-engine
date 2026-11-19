@@ -594,83 +594,91 @@ final class GridSettings
     }
 
     /**
-     * The lines of the files of the grid each field of a page shows, as w4os-wp shows them, for the values of this grid: by field, a
-     * list of `file` (null for a sample) and `text`. Never a secret: a key, a password are named, not given.
+     * The lines of the files of the grid a page needs, for the values chosen now: one block for each file, in the order the page
+     * needs them (`file`, `text`: its sections and their lines). Never a secret: a key, a password are named, not given.
      *
-     * @return array<string,list<array{file:?string,text:string}>>
+     * @return list<array{file:string,text:string}>
      */
     private function snippets(string $page): array
     {
         $config = $this->config();
         $robust = Settings::file('robust', $config);
-        $database = \OpenSim\Data\Database::Robust->connection($config);
-        [$host, $name, $user] = $database === null ? ['localhost', 'robust', 'opensim'] : [$database->source, $database->database, $database->user];
         $url = $this->address($page) ?? '';
-        $line = static fn(?string $file, array $sections): array => ['label' => 'snippet_ini', 'file' => $file, 'text' => self::ini($sections)];
-
-        return match ($page) {
-            'economy' => [
-                'path' => [$line($robust, ['GridInfoService' => ['economy' => $url], 'LoginService' => ['; Currency' => 'YC$ ;; Your Currency symbol, optional']])],
-                'gloebitConfiguration' => [
-                    $line('OpenSim.ini', [
-                        'Economy' => ['economymodule' => 'Gloebit', 'economy' => $url, 'SellEnabled' => 'true', '; PriceUpload' => '0', '; PriceGroupCreate' => '0'],
-                        'Gloebit' => [
-                            'Enabled' => 'true', 'GLBEnvironment' => 'production', 'GLBKey' => '(your Gloebit app key)', 'GLBSecret' => '(your Gloebit app secret)',
-                            'GLBOwnerName' => 'Banker Name', 'GLBOwnerEmail' => 'banker@example.org',
-                            'GLBSpecificConnectionString' => "\"Data Source=$host;Database=$name;User ID=$user;Password=your_password;Old Guids=true;\"",
-                        ],
-                    ]),
-                    $line("$robust (optional, for grid-wide support)", ['GridInfoService' => ['economy' => $url], 'LoginService' => ['Currency' => 'G$']]),
-                ],
-                'moneyScriptKey' => [$line('MoneyServer.ini', [
-                    'MoneyServer' => ['EnableScriptSendMoney' => 'true', 'MoneyScriptAccessKey' => '(your key)'],
-                    'MySql' => ['hostname' => $host, 'database' => $name, 'username' => $user, 'password' => '(your password)'],
-                ])],
-            ],
-            'search' => $this->searchSnippets($url, $robust, $line),
-            'guide' => [
-                'path' => [$line($robust, ['LoginService' => ['DestinationGuide' => $url]])],
-            ],
-            'offline' => ['offlineModule' => [$this->offlineLines($line, $url)], 'path' => [
-                $line('OpenSim.ini', ['Messaging' => ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]),
-                $line($robust, ['GridInfoService' => [
-                    ';; Optional. To allow different grid to communicate their offline messages service' => null,
-                    ';; In previous versions, we recommended the "message" variable to add' => null,
-                    ';; the URL in Robust.HG.ini GridInfoService section, but this value seems' => null,
-                    ';; to be intended for other purposes, although not enforced (yet?).' => null,
-                    'OfflineMessageURL' => $url,
-                ]]),
-            ]],
-            default => [],
+        $values = $this->read($page);
+        $blocks = [];
+        // The sections of a file, the ones given after the first merged in them
+        $add = static function (string $file, array $sections) use (&$blocks): void {
+            foreach ($sections as $section => $keys) {
+                $blocks[$file][$section] = ($blocks[$file][$section] ?? []) + $keys;
+            }
         };
+        match ($page) {
+            'economy' => $this->economyLines($add, $values, $url, $robust),
+            'search' => $this->searchLines($add, $values, $url),
+            'guide' => [
+                $add($robust, ['LoginService' => ['DestinationGuide' => $url]]),
+                $add('Helpers.ini', ['Helpers' => ['GuideSource' => (string) $values['guideSource']]]),
+            ],
+            'offline' => $this->offlineLines($add, $values, $url, $robust),
+            'assets' => $values['provide'] ? null : $add('Helpers.ini', ['Helpers' => ['AssetsURL' => (string) ($values['assetsUrl'] ?? '')]]),
+            default => null,
+        };
+
+        return array_map(static fn(string $file, array $sections): array => ['file' => $file, 'text' => self::ini($sections)], array_keys($blocks), array_values($blocks));
     }
 
-    /**
-     * The lines of the search: what the simulators call, the web search (another setting of a similar name), the registration.
-     *
-     * @param \Closure(?string,array):array{file:?string,text:string} $line
-     * @return array<string,list<array{file:?string,text:string}>>
-     */
-    private function searchSnippets(string $url, string $robust, \Closure $line): array
+    /** The lines of the economy: its address, its module and the settings of the module, the settings of the helpers. */
+    private function economyLines(\Closure $add, array $values, string $url, string $robust): void
     {
-        $values = $this->read('search');
+        $module = (string) $values['economyModule'];
+        $money = in_array($module, ['DTLNSLMoneyModule', 'Podex'], true);
+        $add($robust, ['GridInfoService' => ['economy' => $url]]);
+        $add('OpenSim.ini', ['Economy' => ['economymodule' => $money ? 'DTLNSLMoneyModule' : $module, 'economy' => $url]]);
+        if ($module === 'Gloebit') {
+            $add($robust, ['LoginService' => ['Currency' => 'G$']]);
+            $add('OpenSim.ini', [
+                'Economy' => ['SellEnabled' => 'true'],
+                'Gloebit' => ['Enabled' => 'true'] + self::lines(Settings::named('gloebitEnvironment'), $values['gloebitEnvironment'] ?? 'production')
+                    + ['GLBKey' => '(your Gloebit app key)', 'GLBSecret' => '(your Gloebit app secret)']
+                    + self::lines(Settings::named('gloebitOwnerName'), $values['gloebitOwnerName'] ?? '')
+                    + self::lines(Settings::named('gloebitOwnerEmail'), $values['gloebitOwnerEmail'] ?? '')
+                    + ($values['gloebitDatabase'] === null ? [] : self::lines(Settings::named('gloebitDatabase'), $values['gloebitDatabase'])),
+            ]);
+        }
+        if ($money) {
+            $database = $values['moneyDatabase'] ?? null;
+            $add('MoneyServer.ini', [
+                'MoneyServer' => ['EnableScriptSendMoney' => 'true', 'MoneyScriptAccessKey' => '(your key)'],
+                'MySql' => self::lines(Settings::named('moneyDatabase'), $database ?? ['host' => 'localhost', 'database' => 'money', 'user' => 'opensim']),
+            ]);
+        }
+        $helpers = in_array($module, ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex'], true) ? ['CurrencyRate' => (string) $values['currencyRate']] : [];
+        $module === 'Podex' && ($helpers += ['CurrencyProvider' => 'podex', 'PodexMessage' => '"' . $values['podexMessage'] . '"', 'PodexUrl' => '"' . $values['podexUrl'] . '"']);
+        $helpers === [] || $add('Helpers.ini', ['Helpers' => $helpers]);
+    }
+
+    /** The lines of the search: what the simulators call and where they register, the database and the events of the helpers. */
+    private function searchLines(\Closure $add, array $values, string $url): void
+    {
         $register = $values['provide']
             ? [$this->ownRegister() => '"' . $this->baseOf('search') . '/' . ltrim($values['registerPath'], '/') . '"']
             : ['DATA_SRV_2do' => '"' . $values['registerExternalUrl'] . '"'];
-        $search = [$line('OpenSim.ini', ['Search' => ['Module' => 'OpenSimSearch', 'SearchURL' => "\"$url\""]])];
-        $registers = [$line('OpenSim.ini', ['DataSnapshot' => ['index_sims' => 'true', 'gridname' => '"' . $this->grid->name() . '"'] + $register])];
-
-        return ['path' => $search, 'searchExternalUrl' => $search, 'registerPath' => $registers, 'registerExternalUrl' => $registers];
+        $add('OpenSim.ini', [
+            'Search' => ['Module' => 'OpenSimSearch', 'SearchURL' => "\"$url\""],
+            'DataSnapshot' => ['index_sims' => 'true', 'gridname' => '"' . $this->grid->name() . '"'] + $register,
+        ]);
+        $values['provide'] && $add('Helpers.ini', ['Helpers' => ['HypEventsURL' => (string) $values['eventsUrl']]]);
     }
 
-    /** The lines of the module of the offline messages chosen: V1 and its address, or V2, Robust's. */
-    private function offlineLines(\Closure $line, string $url): array
+    /** The lines of the offline messages: the module chosen, V1 and its address or V2, Robust's; the sender of the mails. */
+    private function offlineLines(\Closure $add, array $values, string $url, string $robust): void
     {
-        $module = (string) $this->read('offline')['offlineModule'];
-
-        return stripos($module, 'V2') !== false
-            ? $line('OpenSim.ini', ['Messaging' => ['OfflineMessageModule' => '"Offline Message Module V2"', 'OfflineMessageURL' => '${Const|PrivateURL}:${Const|PrivatePort}']])
-            : $line('OpenSim.ini', ['Messaging' => ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]);
+        $v2 = stripos((string) $values['offlineModule'], 'V2') !== false;
+        $add('OpenSim.ini', ['Messaging' => $v2
+            ? ['OfflineMessageModule' => '"Offline Message Module V2"', 'OfflineMessageURL' => '${Const|PrivateURL}:${Const|PrivatePort}']
+            : ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]);
+        $v2 || $add($robust, ['GridInfoService' => ['OfflineMessageURL' => $url]]);
+        $values['provide'] && $add('Helpers.ini', ['Helpers' => ['MailSender' => (string) $values['mailSender']]]);
     }
 
     /**

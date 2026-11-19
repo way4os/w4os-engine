@@ -24,10 +24,10 @@ describe('The offline messages', function () {
 
         $v2 = address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'Offline Message Module V2']);
         $v2Ini = $ini();
-        $v2Lines = $router->get('/grids/demo/settings/offline')->document['meta']['snippets']['offlineModule'][0]['text'] ?? '';
+        $v2Lines = (array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file')['OpenSim.ini'] ?? '');
         $helpers = address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'OfflineMessageModule', 'offlineMessageUrl' => 'https://play.example.org/helpers/offline.php']);
         $v1 = address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'OfflineMessageModule', 'offlineMessageUrl' => 'https://im.example.org/offline.php']);
-        $v1Lines = $router->get('/grids/demo/settings/offline')->document['meta']['snippets']['offlineModule'][0]['text'] ?? '';
+        $v1Lines = (array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file')['OpenSim.ini'] ?? '');
         $on = address_patch($router, 'offline', ['provide' => true]);
 
         expect([$v2->status, $helpers->status, $v1->status, $on->status])->toBe([200, 400, 200, 200])

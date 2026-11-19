@@ -56,9 +56,11 @@ describe('The address of a service', function () {
 
         $snippets = $router->get('/grids/demo/settings/search')->document['meta']['snippets'] ?? [];
 
-        expect(array_map(static fn(array $one): string => $one['text'], $snippets['path'] ?? []))->toHaveCount(1)
-            ->and(substr_count($snippets['path'][0]['text'], 'SearchURL'))->toBe(1)
-            ->and(substr_count($snippets['registerPath'][0]['text'] ?? '', 'DATA_SRV_'))->toBe(1);
+        $opensim = array_column($snippets, 'text', 'file')['OpenSim.ini'] ?? '';
+
+        expect(array_count_values(array_column($snippets, 'file'))['OpenSim.ini'] ?? 0)->toBe(1)
+            ->and(substr_count($opensim, 'SearchURL'))->toBe(1)
+            ->and(substr_count($opensim, 'DATA_SRV_'))->toBe(1);
     });
 });
 

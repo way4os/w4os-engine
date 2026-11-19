@@ -77,27 +77,29 @@ describe('The pages of the services, as w4os-wp', function () {
 });
 
 describe('The ini lines of the pages', function () {
-    test('are made for the grid, as w4os-wp shows them, never with a secret', function () {
+    test('are one block for each file at the end of the page, for the values chosen, never with a secret', function () {
         $machine = new Machine();
         $machine->write($machine->grid . '/Robust.HG.ini', file_get_contents($machine->grid . '/Robust.HG.ini') . "\n[Const]\n    WebURL = \"https://play.example.org\"\n[GridInfoService]\n    economy = \"https://play.example.org/helpers/\"\n");
         $machine->write($machine->grid . '/MoneyServer.ini', "[MoneyServer]\n    MoneyScriptAccessKey = \"k3y-s3cret\"\n");
+        $machine->write($machine->grid . '/OpenSim.ini', "[Economy]\n    economymodule = DTLNSLMoneyModule\n");
         $router = new Router(new Api($machine->environment));
-        $snippets = static fn(string $page): array => $router->get("/grids/demo/settings/$page")->document['meta']['snippets'] ?? [];
+        $blocks = static fn(string $page): array => array_column($router->get("/grids/demo/settings/$page")->document['meta']['snippets'] ?? [], 'text', 'file');
 
-        $economy = $snippets('economy');
-        $search = $snippets('search');
-        $text = static fn(array $lines): string => implode("\n", array_column($lines, 'text'));
+        $economy = $blocks('economy');
+        $search = $blocks('search');
 
-        expect(array_keys($economy))->toBe(['path', 'gloebitConfiguration', 'moneyScriptKey'])
-            ->and($economy['path'][0])->toMatchArray(['file' => 'Robust.HG.ini'])
-            ->and($text($economy['path']))->toContain("[GridInfoService]\n    economy = https://play.example.org/helpers/")
-            ->and($text($economy['gloebitConfiguration']))->toContain('economymodule = Gloebit')->toContain('GLBSpecificConnectionString')
-            ->and($text($economy['moneyScriptKey']))->toContain('EnableScriptSendMoney = true')->toContain('MoneyScriptAccessKey = (your key)')
-            ->and(json_encode($snippets('economy')))->not->toContain('k3y-s3cret')
-            ->and($text($search['path']))->toContain("[Search]\n    Module = OpenSimSearch")
-            ->and($text($search['registerPath']))->toContain('index_sims = true')->toContain('DATA_SRV_')
-            ->and($text($snippets('guide')['path']))->toContain('DestinationGuide = ')
+        // One block for each file, the file named once; the lines of the module chosen only
+        expect(array_keys($economy))->toBe(['Robust.HG.ini', 'OpenSim.ini', 'MoneyServer.ini', 'Helpers.ini'])
+            ->and($economy['Robust.HG.ini'])->toContain("[GridInfoService]\n    economy = https://play.example.org/helpers/")
+            ->and($economy['OpenSim.ini'])->toContain('economymodule = DTLNSLMoneyModule')->not->toContain('Gloebit')
+            ->and($economy['MoneyServer.ini'])->toContain('EnableScriptSendMoney = true')->toContain('MoneyScriptAccessKey = (your key)')->toContain('[MySql]')
+            ->and($economy['Helpers.ini'])->toContain('CurrencyRate = ')
+            ->and(json_encode($economy))->not->toContain('k3y-s3cret')
+            ->and(array_keys($search))->toBe(['OpenSim.ini', 'Helpers.ini'])
+            ->and($search['OpenSim.ini'])->toContain("[Search]\n    Module = OpenSimSearch")->toContain('index_sims = true')->toContain('DATA_SRV_')
+            ->and($blocks('guide'))->toHaveKeys(['Robust.HG.ini', 'Helpers.ini'])
+            ->and($blocks('guide')['Robust.HG.ini'])->toContain('DestinationGuide = ')
             ->and($router->get('/grids/demo/settings/guide')->document['meta']['examples'][0]['text'])->toContain('Display Name|yourgrid.org:8002/Region Name')
-            ->and($text($snippets('offline')['path']))->toContain('OfflineMessageModule = OfflineMessageModule');
+            ->and($blocks('offline')['OpenSim.ini'])->toContain('OfflineMessageModule = OfflineMessageModule');
     });
 });
