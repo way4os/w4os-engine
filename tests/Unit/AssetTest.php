@@ -346,13 +346,15 @@ describe('the health of a grid, for its cache of assets', function () {
         $machine = new OpenSim\Testing\Machine();
         $api = new OpenSim\Api\Api($machine->environment, null, static fn(Grid $grid): ?GridConfig => null);
         $row = static function () use ($api): array {
-            $groups = $api->health('demo')->document['data']['attributes']['groups'];
+            // Checked now, not the last check kept
+            $groups = $api->health('demo', refresh: true)->document['data']['attributes']['groups'];
 
             return array_column(array_column($groups, null, 'file')['cache']['rows'] ?? [], null, 'label');
         };
 
         $writable = $row();
-        mkdir($machine->root . '/cache', 0o555, true);
+        // The folder of the caches locked: it may be there already, the last check of the health is kept in it
+        is_dir($machine->root . '/cache') ? chmod($machine->root . '/cache', 0o555) : mkdir($machine->root . '/cache', 0o555, true);
         $locked = $row();
         chmod($machine->root . '/cache', 0o755);
 

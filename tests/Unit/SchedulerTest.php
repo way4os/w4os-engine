@@ -92,7 +92,7 @@ describe('The tasks of several grids', function () {
         OpenSim\Services\SearchTasks::add($scheduler, $machine->environment, $config);
         OpenSim\Data\Connections::using(null);
 
-        expect(array_column($scheduler->status(), 'id'))->toBe(['search-parse.demo', 'events-parse.demo', 'guide-pictures.demo']);
+        expect(array_column($scheduler->status(), 'id'))->toBe(['search-parse.demo', 'events-parse.demo', 'guide-pictures.demo', 'health.demo']);
     });
 });
 

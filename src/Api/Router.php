@@ -252,7 +252,7 @@ final class Router
             $routes = ['GET' => fn() => $this->api->monitor($grid, $query)];
         } elseif ($grid !== null && $tail === ['health']) {
             $template = '/grids/{grid}/health';
-            $routes = ['GET' => fn() => $this->api->health($grid)];
+            $routes = ['GET' => fn() => $this->api->health($grid, \OpenSim\Result::isTrue($query['refresh'] ?? false))];
         } elseif ($grid !== null && $tail === ['motd']) {
             $template = '/grids/{grid}/motd';
             $routes = ['GET' => fn() => $this->api->motd($grid, (string) ($query['username'] ?? ''))];

@@ -8,6 +8,7 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Data\Connections;
 use OpenSim\Data\Database;
 use OpenSim\Data\OSPDO;
+use OpenSim\Health\HealthCheck;
 use OpenSim\Models\Grid;
 use OpenSim\Models\Region;
 use OpenSim\Runtime\Environment;
@@ -18,7 +19,7 @@ use OpenSim\Scheduling\Task;
  * The tasks of the search of a grid: read the snapshots of the registered simulators (`search-parse`, once a minute: a host that is
  * due is read, the others are left alone), read the events of the calendar (`events-parse`, every 55 minutes), and ask the grids
  * of the hypergrid destinations of its guide for their pictures (`guide-pictures`, once an hour: a destination that is due is
- * asked, RemotePictures).
+ * asked, RemotePictures), and check its health (`health`, every 15 minutes, HealthCheck: a page shows the last check at once).
  *
  *     SearchTasks::add($scheduler, $environment, $config);
  */
@@ -152,6 +153,20 @@ final class SearchTasks
                     return "$found picture(s) of hypergrid destinations found";
                 }),
                 'Ask the grids of the destinations of the guide for their pictures',
+                $scope,
+            ),
+        );
+        // The health of the grid, checked in the background: a page shows the last check at once
+        $folder !== '' && is_dir($folder) && $scheduler->add(
+            new Task(
+                'health',
+                HealthCheck::EVERY,
+                static function () use ($environment, $config, $folder, $scheduler): string {
+                    $check = HealthCheck::refresh($environment, Grid::at($environment, $folder), $config, $scheduler->directory());
+
+                    return "health checked: {$check['level']}";
+                },
+                'Check the health of the grid',
                 $scope,
             ),
         );

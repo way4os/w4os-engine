@@ -916,3 +916,37 @@ describe('A wrong or missing address', function () {
             ->not->toHaveKey('ServiceList');
     });
 });
+
+describe('The last check of the health', function () {
+    test('is kept with its time and given again, checked anew on demand or by its task in the background', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $machine->clock->now = 1_800_000_000.0;
+        // The search database of the grid, which keeps its cache
+        $search = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        OpenSim\Data\Connections::using(static fn() => $search);
+        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        $attributes = static fn(array $query = []) => $router->get('/grids/demo/health', $query)->document['data']['attributes'];
+
+        $first = $attributes();
+        $machine->clock->now += 600;
+        $kept = $attributes();
+        $asked = $attributes(['refresh' => '1']);
+        $machine->clock->now += 1000;
+        $scheduler = OpenSim\Scheduling\Scheduler::for($machine->environment);
+        OpenSim\Services\SearchTasks::add($scheduler, $machine->environment, OpenSim\Config\GridConfig::fromFolder($machine->grid));
+        $scheduler->run('health.demo');
+        $background = $attributes();
+        OpenSim\Data\Connections::using(null);
+
+        expect([$first['checked'], $first['cached']])
+            ->toBe([1_800_000_000, false])
+            ->and([$kept['checked'], $kept['cached'], $kept['groups']])
+            ->toBe([1_800_000_000, true, $first['groups']])
+            ->and([$asked['checked'], $asked['cached']])
+            ->toBe([1_800_000_600, false])
+            ->and([$background['checked'], $background['cached']])
+            ->toBe([1_800_001_600, true])
+            ->and(array_column($scheduler->status(), 'id'))
+            ->toContain('health.demo');
+    });
+});

@@ -40,6 +40,7 @@ use OpenSim\Data\Database;
 use OpenSim\Provisioning\Slug;
 use OpenSim\Economy\Currency;
 use OpenSim\Health\Health;
+use OpenSim\Health\HealthCheck;
 use OpenSim\Runtime\GridMonitor;
 use OpenSim\Economy\CurrencySettings;
 use OpenSim\Services\CurrencyServer;
@@ -1340,69 +1341,27 @@ final class Api
 
     /**
      * The health of a grid: every address its config gives and what the grid says of itself, asked (and the ones that are expected
-     * and not given, told), the PHP extensions it needs, the files it reads. `level` is `error` when something does not answer as it
-     * should, `ok` when all that is asked does, `none` when there is nothing to ask. A check is asked at the moment of the request, it
-     * takes the time of the slowest address.
+     * and not given, told), the PHP extensions it needs, the files it reads (HealthCheck). The last check is given again with its time
+     * (`checked`, `cached`), kept by the task of the grid that checks it in the background; `refresh` checks it now.
      */
-    public function health(string $grid): Response
+    public function health(string $grid, bool $refresh = false): Response
     {
         $instance = self::path('health', null, $grid);
         try {
             $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
             $config = ($this->config)($found);
-            $groups = Health::answers([
-                ...Health::grid([
-                    'config' => $config,
-                    'live' => $found->gridInfo(),
-                    'login' => (string) $found->loginUrl(),
-                ]),
-                // The pages for people: the helpers' under their base, the site's elsewhere
-                ['file' => 'pages', 'title' => '', 'rows' => Health::pages(SitePages::rows($found))],
-            ]);
-            $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions()];
-            $groups[] = [
-                'file' => 'cache',
-                'title' => '',
-                'rows' => [
-                    Health::writable('assets', WebAssets::folder($found)),
-                    // The state of the tasks: without it the search index never fills (TasksRoot)
-                    Health::writable('tasks', $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot()),
-                ],
-            ];
-            // The options of the grid each simulator of this machine has in its files (profiles, groups...)
-            $options = new \OpenSim\Provisioning\GridOptions($found);
-            $groups[] = ['file' => 'options', 'title' => '', 'rows' => array_map(
-                static function ($simulator) use ($options): array {
-                    $missing = $options->missingIn($simulator->settings());
-
-                    return [
-                        'label' => $simulator->slug(),
-                        'url' => '',
-                        'text' => $missing === [] ? '' : implode(', ', $missing),
-                        'level' => $missing === [] ? 'ok' : 'error',
-                        'status' => $missing === [] ? _('OK') : _('missing'),
-                        'ms' => null,
-                    ];
-                },
-                $found->simulators(),
-            )];
-            $files = Health::files($config?->files() ?? []);
-            $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
-            // What each row is (a key of the catalog), and a service that needs an application of its own
-            $groups = Health::describe($groups, static fn(string $url): bool => $found->servedByHelpers($url));
-            // What a wrong or missing address should be, and the line of its file to write
-            $groups = Health::expect($groups, $options->expected(), $config?->section('Const') ?? []);
+            $tasks = $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot();
+            $last = $refresh ? null : HealthCheck::last($this->environment, $found, $config);
+            $check = $last === null ? HealthCheck::refresh($this->environment, $found, $config, $tasks) : $last;
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
+
         return Response::document([
             'data' => [
                 'type' => 'health',
                 'id' => $found->nick(),
-                'attributes' => [
-                    'level' => Health::level($groups),
-                    'groups' => $groups,
-                ],
+                'attributes' => $check + ['cached' => $last !== null],
                 'links' => ['self' => $instance],
             ],
         ]);
