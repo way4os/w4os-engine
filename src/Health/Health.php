@@ -70,6 +70,12 @@ class Health
     /** @var array{register?:string,helpers?:?callable} the site of the grid being checked (grid()) */
     private static $site = [];
 
+    /**
+     * The block of the helpers a page of the site shows (`/blocks/<name>` of the helpers), by page: a page that answers while its
+     * block does not shows nothing.
+     */
+    const PAGE_BLOCKS = ['profile' => 'profile', 'guide' => 'destination_guide', 'search' => 'search'];
+
     /** What an address that sends elsewhere answers. */
     const REDIRECTS = [301, 302, 303, 307, 308];
 
@@ -570,6 +576,12 @@ class Health
                 }
             }
         }
+        // What a row needs besides (the block of the helpers a page of the site shows), asked with the rest
+        foreach ($requests as $id => $row) {
+            foreach ($row['needs'] ?? [] as $n => $need) {
+                $requests["$id/needs/$n"] = ['url' => $need['url'], 'method' => 'get'];
+            }
+        }
         // The same request once, its answer given to each row that asks it (an address the grid says and its config says)
         $unique = [];
         $same = [];
@@ -626,6 +638,18 @@ class Health
                     if (($verdict['level'] ?? '') === 'ok' && ($row['leadsTo'] ?? '') !== '' && !self::sameAddress((string) ($verdict['location'] ?? ''), $row['leadsTo'])) {
                         $verdict['level'] = 'error';
                         $verdict['detail'] = sprintf(_('sends to %s, not to %s'), $verdict['location'] ?? '', $row['leadsTo']);
+                    }
+                }
+                // What it needs: each asked, and the row an error when one does not answer, the page answering or not
+                if (isset($row['needs'])) {
+                    foreach ($row['needs'] as $n => $need) {
+                        $got = $results["$g/$r/needs/$n"] ?? null;
+                        $row['needs'][$n] += $got === null ? ['level' => 'none'] : self::verdict($got['code'], $got['error'], $got['ms'], $got['errno']) + ['expectedStatus' => '2xx'];
+                    }
+                    $failed = array_values(array_filter($row['needs'], static fn(array $need): bool => ($need['level'] ?? '') === 'error'));
+                    if ($failed !== [] && in_array($verdict['level'] ?? '', ['ok', 'slow'], true)) {
+                        $verdict['level'] = 'error';
+                        $verdict['detail'] = sprintf(_('the page answers, but %s does not: %s (%s)'), $failed[0]['label'], $failed[0]['url'], $failed[0]['status']);
                     }
                 }
                 $address = ($row['kind'] ?? 'address') === 'address';
@@ -810,6 +834,10 @@ class Health
     public static function pages($pages, $register = null)
     {
         $rows = [];
+        $helpers = '';
+        foreach ($pages as $page) {
+            $page['page'] === 'helpers' && ($helpers = rtrim((string) ($page['url'] ?? ''), '/'));
+        }
         foreach ($pages as $page) {
             $url = (string) ($page['url'] ?? '');
             if ($url === '' || (($page['source'] ?? '') === 'default' && $page['page'] !== 'helpers')) {
@@ -817,8 +845,15 @@ class Health
                 continue;
             }
             $tag = ($page['servedBy'] ?? '') === 'helpers' ? _('helpers') : _('site');
+            // What the page needs of the helpers: a page of the site, its block and the pictures; the helpers, what only they answer
+            $needs = [];
+            if ($helpers !== '' && ($page['page'] === 'helpers' || (($page['servedBy'] ?? '') === 'site' && isset(self::PAGE_BLOCKS[$page['page']])))) {
+                $page['page'] === 'helpers' || ($needs[] = ['label' => _('its block of the helpers'), 'url' => "$helpers/blocks/" . self::PAGE_BLOCKS[$page['page']]]);
+                $needs[] = ['label' => _('the pictures of the helpers'), 'url' => "$helpers/pictures/" . \OpenSim\Assets\WebAssets::PERSON . '.png'];
+            }
+            $needs = $needs === [] ? [] : ['needs' => $needs];
             if (!str_contains($url, '[AGENT_NAME]')) {
-                $rows[] = self::page($page['page'], $url, $tag);
+                $rows[] = self::page($page['page'], $url, $tag) + $needs;
                 continue;
             }
             $bare = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $url), '/');
@@ -830,7 +865,7 @@ class Health
                     'expect' => self::REDIRECTS,
                     'leadsTo' => (string) $register,
                     'display' => $url,
-                ]
+                ] + $needs
                 // The profiles without a name: not a page (a teapot for the helpers), or no such profile
                 : self::page($page['page'], $bare, $tag) + ['expect' => [404, 418], 'display' => $url];
         }

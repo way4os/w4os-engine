@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "765f348",
+        "version": "9aa0752",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8534,6 +8534,10 @@
                                                             "type": "string",
                                                             "description": "Where the address led (its redirections followed), or where it sends to (one that must send elsewhere), when it is not the address asked"
                                                         },
+                                                        "needs": {
+                                                            "type": "array",
+                                                            "description": "What a page needs besides (an address): a page of the site that shows a block of the helpers, the block (`/blocks/<name>` of the helpers) and their pictures; the helpers, what only they answer (their pictures). Each `label`, `url`, `level`, `status`, `expectedStatus`; the page is an error when one of them is, though it answers: it would show nothing"
+                                                        },
                                                         "expected": {
                                                             "type": "string",
                                                             "description": "What a wrong or missing address should be, as the options of the grid write it (its constants read): a site says should be this, is that"
@@ -8789,6 +8793,10 @@
                                                                                 "location": {
                                                                                     "type": "string",
                                                                                     "description": "Where the address led (its redirections followed), or where it sends to (one that must send elsewhere), when it is not the address asked"
+                                                                                },
+                                                                                "needs": {
+                                                                                    "type": "array",
+                                                                                    "description": "What a page needs besides (an address): a page of the site that shows a block of the helpers, the block (`/blocks/<name>` of the helpers) and their pictures; the helpers, what only they answer (their pictures). Each `label`, `url`, `level`, `status`, `expectedStatus`; the page is an error when one of them is, though it answers: it would show nothing"
                                                                                 },
                                                                                 "expected": {
                                                                                     "type": "string",

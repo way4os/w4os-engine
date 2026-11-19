@@ -23,7 +23,7 @@ function code_server(int $workers = 1): array
         if ($path === "busy") { $f = __DIR__ . "/busy"; $h = fopen($f, "c+"); flock($h, LOCK_EX); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h) ?: "0 0") + [0, 0]); $now++; $max = max($max, $now); ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); usleep(300000); flock($h, LOCK_EX); rewind($h); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h)) + [0, 0]); $now--; ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); return; }
         if (preg_match("#^slow/(\\d+)$#", $path, $m)) { usleep((int) $m[1] * 1000); http_response_code(200); return; }
         if ($path === "needs-data") { http_response_code(file_get_contents("php://input") === "" && empty($_SERVER["QUERY_STRING"]) ? 400 : 200); return; }
-        http_response_code(is_numeric($path) ? (int) $path : 200); echo str_repeat("x", 5000);',
+        $first = explode("/", $path)[0]; http_response_code(is_numeric($first) ? (int) $first : 200); echo str_repeat("x", 5000);',
     );
     $socket = stream_socket_server('tcp://127.0.0.1:0');
     $port = (int) substr(strrchr((string) stream_socket_get_name($socket, false), ':'), 1);
@@ -1074,5 +1074,39 @@ describe('The words of the health', function () {
             ->toBe(['Splash', 'Login URI', 'Destinations Guide', 'Search Service', 'This service requires a separate web application.'])
             ->and([$fr['setting_register'], $fr['setting_offline_messages'], $fr['health_third_party']])
             ->toBe(["Page d'enregistrement", 'Messages hors-ligne', 'Ce service requiert une application web distincte.']);
+    });
+});
+
+describe('A page of the site that shows a block of the helpers', function () {
+    test('is an error when its block or its pictures do not answer, though the page does: it would show nothing', function () {
+        [$process, $port] = code_server();
+        $url = fn(string $path) => "http://127.0.0.1:$port/$path";
+        $pages = static fn(string $helpers) => Health::pages([
+            ['page' => 'helpers', 'url' => $url($helpers), 'source' => 'config', 'servedBy' => 'helpers'],
+            ['page' => 'guide', 'url' => $url('200'), 'source' => 'config', 'servedBy' => 'site'],
+            ['page' => 'search', 'url' => $url('200/search'), 'source' => 'config', 'servedBy' => 'helpers'],
+        ]);
+        $up = Health::answers([['file' => 'pages', 'title' => '', 'rows' => $pages('200')]])[0]['rows'];
+        $down = Health::answers([['file' => 'pages', 'title' => '', 'rows' => $pages('404')]])[0]['rows'];
+        proc_terminate($process);
+        $guide = array_column($down, null, 'label')['guide'];
+
+        expect(array_column($up, 'level', 'label'))
+            ->toBe(['helpers' => 'ok', 'guide' => 'ok', 'search' => 'ok'])
+            ->and(array_column(array_column($up, null, 'label')['guide']['needs'], 'url'))
+            ->toBe([$url('200/blocks/destination_guide'), $url('200/pictures/' . OpenSim\Assets\WebAssets::PERSON . '.png')])
+            // The page answers 200, its block of the helpers does not: it shows nothing
+            ->and($guide)
+            ->toMatchArray(['level' => 'error', 'status' => '200'])
+            ->and($guide['detail'] ?? '')
+            ->toContain('blocks/destination_guide')
+            ->and(array_column($guide['needs'], 'level'))
+            ->toBe(['error', 'error'])
+            // A page of the helpers is not a site that calls them: nothing more to ask
+            ->and(array_column($up, null, 'label')['search'])
+            ->not->toHaveKey('needs')
+            // The helpers themselves: what only they answer
+            ->and(array_column($down, 'level', 'label')['helpers'])
+            ->toBe('error');
     });
 });
