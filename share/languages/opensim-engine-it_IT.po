@@ -1211,25 +1211,25 @@ msgctxt "setting_login_help"
 msgid ""
 "The address the viewers log in at, and ask what the grid says of itself "
 "(get_grid_info)."
-msgstr ""
+msgstr "L'indirizzo a cui i viewer effettuano l'accesso e chiedono ciò che la griglia dice di sé (get_grid_info)."
 
 msgctxt "setting_gatekeeper"
 msgid "Gatekeeper"
-msgstr ""
+msgstr "Gatekeeper"
 
 msgctxt "setting_gatekeeper_help"
 msgid "The address other grids reach this one by (hypergrid)."
-msgstr ""
+msgstr "L'indirizzo con cui le altre griglie raggiungono questa (hypergrid)."
 
 msgctxt "setting_uas"
 msgid "User agent service"
-msgstr ""
+msgstr "Servizio user agent"
 
 msgctxt "setting_uas_help"
 msgid ""
 "Where the avatars of this grid are known when they visit other grids "
 "(hypergrid)."
-msgstr ""
+msgstr "Dove gli avatar di questa griglia sono conosciuti quando visitano altre griglie (hypergrid)."
 
 msgctxt "setting_welcome"
 msgid "Splash"
@@ -1299,15 +1299,15 @@ msgstr "Stato della griglia"
 
 msgctxt "setting_grid_status_help"
 msgid "The page of the status of the grid."
-msgstr ""
+msgstr "La pagina dello stato della griglia."
 
 msgctxt "setting_grid_status_rss"
 msgid "Grid status feed"
-msgstr ""
+msgstr "Feed di stato della griglia"
 
 msgctxt "setting_grid_status_rss_help"
 msgid "The feed of the status of the grid the viewers read (RSS)."
-msgstr ""
+msgstr "Il feed di stato della griglia letto dai viewer (RSS)."
 
 msgctxt "setting_web_profile"
 msgid "Avatar profile"
@@ -1347,7 +1347,7 @@ msgstr "Messaggio del giorno"
 
 msgctxt "setting_message_url_help"
 msgid "The message the viewers show at login."
-msgstr ""
+msgstr "Il messaggio che i viewer mostrano all'accesso."
 
 msgctxt "setting_search_service"
 msgid "Search Service"
@@ -1414,7 +1414,7 @@ msgstr "base degli aiutanti"
 
 msgctxt "setting_helpers_help"
 msgid "The base of the pages and services of the helpers."
-msgstr ""
+msgstr "La base delle pagine e dei servizi degli helpers."
 
 msgctxt "setting_directory"
 msgid "Directory"
@@ -1422,7 +1422,7 @@ msgstr "Elenco"
 
 msgctxt "setting_directory_help"
 msgid "The page of the grid in the shared directory of the regions."
-msgstr ""
+msgstr "La pagina della griglia nella directory condivisa delle regioni."
 
 msgctxt "setting_cache_assets"
 msgid "Picture cache"
@@ -1446,27 +1446,27 @@ msgstr ""
 
 msgctxt "setting_base_url"
 msgid "Base URL"
-msgstr ""
+msgstr "URL di base"
 
 msgctxt "setting_base_hostname"
 msgid "Base Hostname"
-msgstr ""
+msgstr "Hostname di base"
 
 msgctxt "setting_public_port"
 msgid "Public Port"
-msgstr ""
+msgstr "Porta pubblica"
 
 msgctxt "setting_private_port"
 msgid "Private Port"
-msgstr ""
+msgstr "Porta privata"
 
 msgctxt "setting_storage_provider"
 msgid "Storage Provider"
-msgstr ""
+msgstr "Provider di archiviazione"
 
 msgctxt "setting_database"
 msgid "Database Connection String"
-msgstr ""
+msgstr "Stringa di connessione al database"
 
 msgctxt "setting_grid_name"
 msgid "Grid Name"
@@ -1474,23 +1474,23 @@ msgstr "Nome della griglia"
 
 msgctxt "setting_grid_nick"
 msgid "Grid Nickname"
-msgstr ""
+msgstr "Nickname della griglia"
 
 msgctxt "setting_welcome_message"
 msgid "Welcome Message"
-msgstr ""
+msgstr "Messaggio di benvenuto"
 
 msgctxt "setting_currency_symbol"
 msgid "Currency Name"
-msgstr ""
+msgstr "Nome della valuta"
 
 msgctxt "setting_search_module"
 msgid "Search Module"
-msgstr ""
+msgstr "Modulo di ricerca"
 
 msgctxt "setting_index_sims"
 msgid "Index Regions"
-msgstr ""
+msgstr "Indicizza le regioni"
 
 msgctxt "setting_economy_module"
 msgid "Economy Module"
@@ -1515,31 +1515,31 @@ msgstr "Podex e altri fornitori di valuta"
 
 msgctxt "setting_sell_enabled"
 msgid "Enable Selling"
-msgstr ""
+msgstr "Abilita la vendita"
 
 msgctxt "setting_price_upload"
 msgid "Price Upload"
-msgstr ""
+msgstr "Prezzo di caricamento"
 
 msgctxt "setting_price_group_create"
 msgid "Price Group Create"
-msgstr ""
+msgstr "Prezzo di creazione gruppo"
 
 msgctxt "setting_gloebit_enabled"
 msgid "Enable Gloebit"
-msgstr ""
+msgstr "Abilita Gloebit"
 
 msgctxt "setting_gloebit_environment"
 msgid "Gloebit Environment"
-msgstr ""
+msgstr "Ambiente Gloebit"
 
 msgctxt "gloebit_sandbox"
 msgid "Sandbox"
-msgstr ""
+msgstr "Sandbox"
 
 msgctxt "gloebit_production"
 msgid "Production"
-msgstr ""
+msgstr "Produzione"
 
 msgctxt "setting_guide_source"
 msgid "Source"
@@ -1559,7 +1559,7 @@ msgstr "URL del server degli eventi"
 
 msgctxt "setting_logo_url"
 msgid "Grid Logo URL"
-msgstr ""
+msgstr "URL del logo della griglia"
 
 msgctxt "setting_mail_sender"
 msgid "Sender e-mail address"
@@ -1585,11 +1585,11 @@ msgstr "Importo da pagare in US$ per 1000 unità di moneta in-world. Usato per s
 
 msgctxt "setting_currency_rate_per"
 msgid "Money Units per Rate"
-msgstr ""
+msgstr "Unità di denaro per tasso"
 
 msgctxt "setting_gloebit_threshold"
 msgid "Gloebit Conversion Threshold"
-msgstr ""
+msgstr "Soglia di conversione Gloebit"
 
 msgctxt "setting_podex_message"
 msgid "Podex Redirect Message"
@@ -1677,128 +1677,128 @@ msgctxt "service_asset_help"
 msgid ""
 "The assets of the grid (textures, sounds, objects...): the simulators read "
 "and store them."
-msgstr ""
+msgstr "Gli asset della griglia (texture, suoni, oggetti...): i simulatori li leggono e li salvano."
 
 msgctxt "service_inventory"
 msgid "Inventory service"
-msgstr ""
+msgstr "Servizio inventario"
 
 msgctxt "service_inventory_help"
 msgid "The inventories of the avatars."
-msgstr ""
+msgstr "Gli inventari degli avatar."
 
 msgctxt "service_grid"
 msgid "Grid service"
-msgstr ""
+msgstr "Servizio griglia"
 
 msgctxt "service_grid_help"
 msgid ""
 "The regions of the grid: where each one is, and which simulator runs it."
-msgstr ""
+msgstr "Le regioni della griglia: dove si trova ciascuna e quale simulatore la esegue."
 
 msgctxt "service_estate"
 msgid "Estate service"
-msgstr ""
+msgstr "Servizio estate"
 
 msgctxt "service_estate_help"
 msgid "The estates of the regions, their owners and their managers."
-msgstr ""
+msgstr "Gli estate delle regioni, i loro proprietari e i loro gestori."
 
 msgctxt "service_authentication"
 msgid "Authentication service"
-msgstr ""
+msgstr "Servizio di autenticazione"
 
 msgctxt "service_authentication_help"
 msgid "The passwords of the accounts, and their sessions."
-msgstr ""
+msgstr "Le password degli account e le loro sessioni."
 
 msgctxt "service_avatar"
 msgid "Avatar service"
-msgstr ""
+msgstr "Servizio avatar"
 
 msgctxt "service_avatar_help"
 msgid "The appearance of the avatars: what they wear."
-msgstr ""
+msgstr "L'aspetto degli avatar: ciò che indossano."
 
 msgctxt "service_agent_preferences"
 msgid "Agent preferences service"
-msgstr ""
+msgstr "Servizio preferenze agente"
 
 msgctxt "service_agent_preferences_help"
 msgid "The preferences of the avatars the grid keeps (language, maturity)."
-msgstr ""
+msgstr "Le preferenze degli avatar conservate dalla griglia (lingua, maturità)."
 
 msgctxt "service_presence"
 msgid "Presence service"
-msgstr ""
+msgstr "Servizio presenza"
 
 msgctxt "service_presence_help"
 msgid "Who is in the world now, and where."
-msgstr ""
+msgstr "Chi è nel mondo in questo momento e dove."
 
 msgctxt "service_user_account"
 msgid "User account service"
-msgstr ""
+msgstr "Servizio account utente"
 
 msgctxt "service_user_account_help"
 msgid "The accounts of the avatars: their names, emails and levels."
-msgstr ""
+msgstr "Gli account degli avatar: i loro nomi, e-mail e livelli."
 
 msgctxt "service_grid_user"
 msgid "Grid user service"
-msgstr ""
+msgstr "Servizio utenti della griglia"
 
 msgctxt "service_grid_user_help"
 msgid "The last position and the home of each avatar."
-msgstr ""
+msgstr "L'ultima posizione e la casa di ogni avatar."
 
 msgctxt "service_friends"
 msgid "Friends service"
-msgstr ""
+msgstr "Servizio amici"
 
 msgctxt "service_friends_help"
 msgid "The friendships of the avatars."
-msgstr ""
+msgstr "Le amicizie degli avatar."
 
 msgctxt "service_map_image"
 msgid "Map tiles service"
-msgstr ""
+msgstr "Servizio tile della mappa"
 
 msgctxt "service_map_image_help"
 msgid "The tiles of the map of the world: the simulators add them."
-msgstr ""
+msgstr "Le tile della mappa del mondo: i simulatori le aggiungono."
 
 msgctxt "service_mute_list"
 msgid "Mute list service"
-msgstr ""
+msgstr "Servizio lista dei bloccati"
 
 msgctxt "service_mute_list_help"
 msgid "What each avatar blocks."
-msgstr ""
+msgstr "Ciò che ogni avatar blocca."
 
 msgctxt "service_bakes"
 msgid "Baked textures service"
-msgstr ""
+msgstr "Servizio texture baked"
 
 msgctxt "service_bakes_help"
 msgid "The baked textures of the avatars, shared between the simulators."
-msgstr ""
+msgstr "Le texture baked degli avatar, condivise tra i simulatori."
 
 msgctxt "service_groups"
 msgid "Groups service"
-msgstr ""
+msgstr "Servizio gruppi"
 
 msgctxt "service_groups_help"
 msgid "The groups of the avatars, their members, roles and notices."
-msgstr ""
+msgstr "I gruppi degli avatar, i loro membri, ruoli e avvisi."
 
 msgctxt "service_profile"
 msgid "Profiles service"
-msgstr ""
+msgstr "Servizio profili"
 
 msgctxt "service_profile_help"
 msgid "The profiles of the avatars, their picks and their classifieds."
-msgstr ""
+msgstr "I profili degli avatar, i loro luoghi preferiti e i loro annunci."
 
 msgctxt "service_get_grid_info"
 msgid "Grid info"
@@ -1851,7 +1851,7 @@ msgstr ""
 
 msgctxt "service_currency"
 msgid "Currency helper"
-msgstr ""
+msgstr "Helper della valuta"
 
 msgctxt "service_currency_help"
 msgid ""
@@ -1861,7 +1861,7 @@ msgstr ""
 
 msgctxt "service_landtool"
 msgid "Land tool helper"
-msgstr ""
+msgstr "Helper dello strumento terreno"
 
 msgctxt "service_landtool_help"
 msgid "The land sales the viewer calls (landtool.php)."

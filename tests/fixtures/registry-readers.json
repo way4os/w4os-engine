@@ -1,0 +1,2341 @@
+{
+    "services": {
+        "asset": {
+            "key": "asset",
+            "url": "http://localhost:8003",
+            "source": "provider",
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "AssetService",
+            "setting": "AssetServerURI",
+            "info": null,
+            "label": "service_asset",
+            "description": "service_asset_help",
+            "exists": true,
+            "pair": [
+                "AssetService",
+                "AssetServerURI"
+            ],
+            "simulator": [
+                "http://localhost:8003",
+                "provider"
+            ]
+        },
+        "inventory": {
+            "key": "inventory",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "InventoryService",
+            "setting": "InventoryServerURI",
+            "info": null,
+            "label": "service_inventory",
+            "description": "service_inventory_help",
+            "exists": false,
+            "pair": [
+                "InventoryService",
+                "InventoryServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "grid": {
+            "key": "grid",
+            "url": "http://localhost:8003",
+            "source": "provider",
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "GridService",
+            "setting": "GridServerURI",
+            "info": null,
+            "label": "service_grid",
+            "description": "service_grid_help",
+            "exists": true,
+            "pair": [
+                "GridService",
+                "GridServerURI"
+            ],
+            "simulator": [
+                "http://localhost:8003",
+                "provider"
+            ]
+        },
+        "estate": {
+            "key": "estate",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "EstateService",
+            "setting": "EstateServerURI",
+            "info": null,
+            "label": "service_estate",
+            "description": "service_estate_help",
+            "exists": false,
+            "pair": [
+                "EstateService",
+                "EstateServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "authentication": {
+            "key": "authentication",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "AuthenticationService",
+            "setting": "AuthenticationServerURI",
+            "info": null,
+            "label": "service_authentication",
+            "description": "service_authentication_help",
+            "exists": false,
+            "pair": [
+                "AuthenticationService",
+                "AuthenticationServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "avatar": {
+            "key": "avatar",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "AvatarService",
+            "setting": "AvatarServerURI",
+            "info": null,
+            "label": "service_avatar",
+            "description": "service_avatar_help",
+            "exists": false,
+            "pair": [
+                "AvatarService",
+                "AvatarServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "agent-preferences": {
+            "key": "agent-preferences",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "AgentPreferencesService",
+            "setting": "AgentPreferencesServerURI",
+            "info": null,
+            "label": "service_agent_preferences",
+            "description": "service_agent_preferences_help",
+            "exists": false,
+            "pair": [
+                "AgentPreferencesService",
+                "AgentPreferencesServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "presence": {
+            "key": "presence",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "PresenceService",
+            "setting": "PresenceServerURI",
+            "info": null,
+            "label": "service_presence",
+            "description": "service_presence_help",
+            "exists": false,
+            "pair": [
+                "PresenceService",
+                "PresenceServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "user-account": {
+            "key": "user-account",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "UserAccountService",
+            "setting": "UserAccountServerURI",
+            "info": null,
+            "label": "service_user_account",
+            "description": "service_user_account_help",
+            "exists": false,
+            "pair": [
+                "UserAccountService",
+                "UserAccountServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "grid-user": {
+            "key": "grid-user",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "GridUserService",
+            "setting": "GridUserServerURI",
+            "info": null,
+            "label": "service_grid_user",
+            "description": "service_grid_user_help",
+            "exists": false,
+            "pair": [
+                "GridUserService",
+                "GridUserServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "friends": {
+            "key": "friends",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "FriendsService",
+            "setting": "FriendsServerURI",
+            "info": null,
+            "label": "service_friends",
+            "description": "service_friends_help",
+            "exists": false,
+            "pair": [
+                "FriendsService",
+                "FriendsServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "map-image": {
+            "key": "map-image",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "MapImageService",
+            "setting": "MapImageServerURI",
+            "info": null,
+            "label": "service_map_image",
+            "description": "service_map_image_help",
+            "exists": false,
+            "pair": [
+                "MapImageService",
+                "MapImageServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "mute-list": {
+            "key": "mute-list",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "MuteListService",
+            "setting": "MuteListServerURI",
+            "info": null,
+            "label": "service_mute_list",
+            "description": "service_mute_list_help",
+            "exists": false,
+            "pair": [
+                "MuteListService",
+                "MuteListServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "bakes": {
+            "key": "bakes",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "XBakes",
+            "setting": "URL",
+            "info": null,
+            "label": "service_bakes",
+            "description": "service_bakes_help",
+            "exists": false,
+            "pair": [
+                "XBakes",
+                "URL"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "groups": {
+            "key": "groups",
+            "url": null,
+            "source": null,
+            "usage": "robust-simulators",
+            "file": "OpenSim.ini",
+            "section": "Groups",
+            "setting": "GroupsServerURI",
+            "info": null,
+            "label": "service_groups",
+            "description": "service_groups_help",
+            "exists": false,
+            "pair": [
+                "Groups",
+                "GroupsServerURI"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "offline": {
+            "key": "offline",
+            "url": "https://play.example.org/helpers/offline.php",
+            "source": "config",
+            "usage": "helper-simulators",
+            "file": "OpenSim.ini",
+            "section": "Messaging",
+            "setting": "OfflineMessageURL",
+            "info": null,
+            "label": "setting_offline_messages",
+            "description": "setting_offline_messages_help",
+            "exists": true,
+            "pair": [
+                "Messaging",
+                "OfflineMessageURL"
+            ],
+            "simulator": [
+                "https://play.example.org/helpers/offline.php",
+                "config"
+            ]
+        },
+        "profile": {
+            "key": "profile",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "OpenSim.ini",
+            "section": "UserProfiles",
+            "setting": "ProfileServiceURL",
+            "info": null,
+            "label": "service_profile",
+            "description": "service_profile_help",
+            "exists": false,
+            "pair": [
+                "UserProfiles",
+                "ProfileServiceURL"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "login": {
+            "key": "login",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "LLLoginServiceInConnector",
+            "info": null,
+            "label": "setting_login",
+            "description": "setting_login_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "get-grid-info": {
+            "key": "get-grid-info",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "GridInfoServerInConnector",
+            "info": null,
+            "label": "service_get_grid_info",
+            "description": "service_get_grid_info_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "gatekeeper": {
+            "key": "gatekeeper",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "GatekeeperServiceInConnector",
+            "info": null,
+            "label": "setting_gatekeeper",
+            "description": "setting_gatekeeper_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "user-agent": {
+            "key": "user-agent",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "UserAgentServerConnector",
+            "info": null,
+            "label": "setting_uas",
+            "description": "setting_uas_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "hg-friends": {
+            "key": "hg-friends",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "HGFriendsServerConnector",
+            "info": null,
+            "label": "service_hg_friends",
+            "description": "service_hg_friends_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "hg-asset": {
+            "key": "hg-asset",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "HGAssetServiceConnector",
+            "info": null,
+            "label": "service_hg_asset",
+            "description": "service_hg_asset_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "hg-inventory": {
+            "key": "hg-inventory",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "HGInventoryServiceConnector",
+            "info": null,
+            "label": "service_hg_inventory",
+            "description": "service_hg_inventory_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "hg-groups": {
+            "key": "hg-groups",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "HGGroupsServiceConnector",
+            "info": null,
+            "label": "service_hg_groups",
+            "description": "service_hg_groups_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "map": {
+            "key": "map",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "MapGetServiceConnector",
+            "info": null,
+            "label": "service_map",
+            "description": "service_map_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "query": {
+            "key": "query",
+            "url": "https://play.example.org/helpers/query.php",
+            "source": "config",
+            "usage": "helper-simulators",
+            "file": "OpenSim.ini",
+            "section": "Search",
+            "setting": "SearchURL",
+            "info": null,
+            "label": "setting_search_service",
+            "description": "setting_search_service_help",
+            "exists": true,
+            "pair": [
+                "Search",
+                "SearchURL"
+            ],
+            "simulator": [
+                "https://play.example.org/helpers/query.php",
+                "config"
+            ]
+        },
+        "search": {
+            "key": "search",
+            "url": "https://play.example.org/search",
+            "source": "config",
+            "usage": "page",
+            "file": "Robust.HG.ini",
+            "section": "GridInfoService",
+            "setting": "search",
+            "info": "search",
+            "label": "setting_web_search",
+            "description": "setting_web_search_help",
+            "exists": true,
+            "pair": [
+                "GridInfoService",
+                "search"
+            ],
+            "simulator": [
+                "https://play.example.org/search",
+                "config"
+            ]
+        },
+        "welcome": {
+            "key": "welcome",
+            "url": null,
+            "source": null,
+            "usage": "page",
+            "file": "Robust.HG.ini",
+            "section": "GridInfoService",
+            "setting": "welcome",
+            "info": "welcome",
+            "label": "setting_welcome",
+            "description": "setting_welcome_help",
+            "exists": false,
+            "pair": [
+                "GridInfoService",
+                "welcome"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "web-profile": {
+            "key": "web-profile",
+            "url": null,
+            "source": null,
+            "usage": "page",
+            "file": "Robust.HG.ini",
+            "section": "GridInfoService",
+            "setting": "web_profile_url",
+            "info": "web_profile_url",
+            "label": "setting_web_profile",
+            "description": "setting_web_profile_help",
+            "exists": false,
+            "pair": [
+                "GridInfoService",
+                "web_profile_url"
+            ],
+            "simulator": [
+                null,
+                null
+            ]
+        },
+        "currency": {
+            "key": "currency",
+            "url": "https://play.example.org/helpers/currency.php",
+            "source": "config",
+            "usage": "helper-viewers",
+            "file": "Robust.HG.ini",
+            "section": "GridInfoService",
+            "setting": "economy",
+            "info": "economy",
+            "label": "service_currency",
+            "description": "service_currency_help",
+            "exists": true,
+            "pair": [
+                "GridInfoService",
+                "economy"
+            ],
+            "simulator": [
+                "https://play.example.org/helpers/currency.php",
+                "config"
+            ]
+        },
+        "landtool": {
+            "key": "landtool",
+            "url": "https://play.example.org/helpers/landtool.php",
+            "source": "config",
+            "usage": "helper-viewers",
+            "file": "Robust.HG.ini",
+            "section": "GridInfoService",
+            "setting": "economy",
+            "info": "economy",
+            "label": "service_landtool",
+            "description": "service_landtool_help",
+            "exists": true,
+            "pair": [
+                "GridInfoService",
+                "economy"
+            ],
+            "simulator": [
+                "https://play.example.org/helpers/landtool.php",
+                "config"
+            ]
+        },
+        "register": {
+            "key": "register",
+            "url": "https://play.example.org/helpers/register.php",
+            "source": "config",
+            "usage": "helper-simulators",
+            "file": "OpenSim.ini",
+            "section": "DataSnapshot",
+            "setting": "DATA_SRV_*",
+            "info": null,
+            "label": "setting_data_service",
+            "description": "setting_data_service_help",
+            "exists": true,
+            "pair": [
+                "DataSnapshot",
+                "DATA_SRV_*"
+            ],
+            "simulator": [
+                "https://play.example.org/helpers/register.php",
+                "config"
+            ]
+        },
+        "motd": {
+            "key": "motd",
+            "url": "https://play.example.org/helpers/motd.php",
+            "source": "config",
+            "usage": "page",
+            "file": "Robust.HG.ini",
+            "section": "LoginService",
+            "setting": "MessageUrl",
+            "info": null,
+            "label": "setting_message_url",
+            "description": "setting_message_url_help",
+            "exists": true,
+            "pair": [
+                "LoginService",
+                "MessageUrl"
+            ],
+            "simulator": [
+                "https://play.example.org/helpers/motd.php",
+                "config"
+            ]
+        },
+        "guide": {
+            "key": "guide",
+            "url": "https://play.example.org/guide",
+            "source": "config",
+            "usage": "page",
+            "file": "Robust.HG.ini",
+            "section": "LoginService",
+            "setting": "DestinationGuide",
+            "info": null,
+            "label": "setting_destination_guide",
+            "description": "setting_destination_guide_help",
+            "exists": true,
+            "pair": [
+                "LoginService",
+                "DestinationGuide"
+            ],
+            "simulator": [
+                "https://play.example.org/guide",
+                "config"
+            ]
+        },
+        "grid-status": {
+            "key": "grid-status",
+            "url": "https://play.example.org/helpers/status-page",
+            "source": "config",
+            "usage": "page",
+            "file": "Robust.HG.ini",
+            "section": "GridInfoService",
+            "setting": "GridStatus",
+            "info": "GridStatus",
+            "label": "setting_grid_status",
+            "description": "setting_grid_status_help",
+            "exists": true,
+            "pair": [
+                "GridInfoService",
+                "GridStatus"
+            ],
+            "simulator": [
+                "https://play.example.org/helpers/status-page",
+                "config"
+            ]
+        },
+        "directory": {
+            "key": "directory",
+            "url": "https://play.example.org/directory",
+            "source": "config",
+            "usage": "page",
+            "file": "Helpers.ini",
+            "section": "Helpers",
+            "setting": "DirectoryURL",
+            "info": null,
+            "label": "setting_directory",
+            "description": "setting_directory_help",
+            "exists": true,
+            "pair": [
+                "Helpers",
+                "DirectoryURL"
+            ],
+            "simulator": [
+                "https://play.example.org/directory",
+                "config"
+            ]
+        },
+        "grid-status-rss": {
+            "key": "grid-status-rss",
+            "url": "https://play.example.org/status.rss",
+            "source": "config",
+            "usage": "page",
+            "file": "Robust.HG.ini",
+            "section": "GridInfoService",
+            "setting": "GridStatusRSS",
+            "info": "GridStatusRSS",
+            "label": "setting_grid_status_rss",
+            "description": "setting_grid_status_rss_help",
+            "exists": true,
+            "pair": [
+                "GridInfoService",
+                "GridStatusRSS"
+            ],
+            "simulator": [
+                "https://play.example.org/status.rss",
+                "config"
+            ]
+        },
+        "parser": {
+            "key": "parser",
+            "url": "https://play.example.org/helpers/parser.php",
+            "source": "helpers",
+            "usage": "task",
+            "file": null,
+            "section": null,
+            "setting": null,
+            "info": null,
+            "label": "service_parser",
+            "description": "service_parser_help",
+            "exists": true,
+            "pair": null,
+            "simulator": [
+                "https://play.example.org/helpers/parser.php",
+                "helpers"
+            ]
+        },
+        "events-parser": {
+            "key": "events-parser",
+            "url": "https://play.example.org/helpers/eventsparser.php",
+            "source": "helpers",
+            "usage": "task",
+            "file": null,
+            "section": null,
+            "setting": null,
+            "info": null,
+            "label": "service_events_parser",
+            "description": "service_events_parser_help",
+            "exists": true,
+            "pair": null,
+            "simulator": [
+                "https://play.example.org/helpers/eventsparser.php",
+                "helpers"
+            ]
+        },
+        "text-images": {
+            "key": "text-images",
+            "url": "https://play.example.org/helpers/textgen.php",
+            "source": "helpers",
+            "usage": "web-tool",
+            "file": null,
+            "section": null,
+            "setting": null,
+            "info": null,
+            "label": "service_text_images",
+            "description": "service_text_images_help",
+            "exists": true,
+            "pair": null,
+            "simulator": [
+                "https://play.example.org/helpers/textgen.php",
+                "helpers"
+            ]
+        },
+        "assets": {
+            "key": "assets",
+            "url": "https://assets.example.org/a",
+            "source": "config",
+            "usage": "web-assets",
+            "file": "Helpers.ini",
+            "section": "Helpers",
+            "setting": "AssetsURL",
+            "info": null,
+            "label": "service_assets",
+            "description": "service_assets_help",
+            "exists": true,
+            "pair": [
+                "Helpers",
+                "AssetsURL"
+            ],
+            "simulator": [
+                "https://assets.example.org/a",
+                "config"
+            ]
+        },
+        "instant-message": {
+            "key": "instant-message",
+            "url": null,
+            "source": null,
+            "usage": "robust-viewers",
+            "file": "Robust.HG.ini",
+            "section": "ServiceList",
+            "setting": "InstantMessageServerConnector",
+            "info": null,
+            "label": "service_instant_message",
+            "description": "service_instant_message_help",
+            "exists": false,
+            "pair": null,
+            "simulator": [
+                null,
+                null
+            ]
+        }
+    },
+    "health": {
+        "full": [
+            {
+                "file": "get_grid_info",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "login",
+                        "kind": "address",
+                        "url": "http://localhost:8002/",
+                        "method": "get",
+                        "probe": "http://localhost:8002/get_grid_info",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "login"
+                        },
+                        "name": "setting_login",
+                        "description": "setting_login_help"
+                    },
+                    {
+                        "label": "economy",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/",
+                        "method": "get",
+                        "expect": [
+                            418
+                        ],
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "economy"
+                        },
+                        "name": "setting_economy",
+                        "description": "setting_economy_help"
+                    },
+                    {
+                        "label": "gridname",
+                        "kind": "value",
+                        "text": "Demo",
+                        "level": "none",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "gridname"
+                        }
+                    },
+                    {
+                        "label": "mood",
+                        "kind": "value",
+                        "text": "free",
+                        "level": "none",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "mood"
+                        }
+                    }
+                ]
+            },
+            {
+                "file": "Robust.HG.ini",
+                "title": "[GridInfoService]",
+                "rows": [
+                    {
+                        "label": "login",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "login"
+                        },
+                        "name": "setting_login",
+                        "description": "setting_login_help"
+                    },
+                    {
+                        "label": "gatekeeper",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "gatekeeper"
+                        },
+                        "name": "setting_gatekeeper",
+                        "description": "setting_gatekeeper_help"
+                    },
+                    {
+                        "label": "welcome",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "welcome"
+                        },
+                        "name": "setting_welcome",
+                        "description": "setting_welcome_help"
+                    },
+                    {
+                        "label": "economy",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/",
+                        "level": "ok",
+                        "status": "matches economy of get_grid_info",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "economy"
+                        },
+                        "name": "setting_economy",
+                        "description": "setting_economy_help"
+                    },
+                    {
+                        "label": "about",
+                        "kind": "address",
+                        "url": "https://play.example.org/about",
+                        "level": "error",
+                        "status": "differs from about of get_grid_info",
+                        "detail": "get_grid_info about: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "about"
+                        },
+                        "name": "setting_about",
+                        "description": "setting_about_help"
+                    },
+                    {
+                        "label": "register",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "register"
+                        },
+                        "name": "setting_register",
+                        "description": "setting_register_help"
+                    },
+                    {
+                        "label": "help",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "help"
+                        },
+                        "name": "setting_help",
+                        "description": "setting_help_help"
+                    },
+                    {
+                        "label": "password",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "password"
+                        },
+                        "name": "setting_password",
+                        "description": "setting_password_help"
+                    },
+                    {
+                        "label": "GridStatus",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "GridStatus"
+                        },
+                        "name": "setting_grid_status",
+                        "description": "setting_grid_status_help"
+                    },
+                    {
+                        "label": "GridStatusRSS",
+                        "kind": "address",
+                        "url": "https://play.example.org/status.rss",
+                        "level": "error",
+                        "status": "differs from GridStatusRSS of get_grid_info",
+                        "detail": "get_grid_info GridStatusRSS: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "GridStatusRSS"
+                        },
+                        "name": "setting_grid_status_rss",
+                        "description": "setting_grid_status_rss_help"
+                    },
+                    {
+                        "label": "web_profile_url",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "web_profile_url"
+                        },
+                        "name": "setting_web_profile",
+                        "description": "setting_web_profile_help"
+                    },
+                    {
+                        "label": "search",
+                        "kind": "address",
+                        "url": "https://play.example.org/search",
+                        "level": "error",
+                        "status": "differs from search of get_grid_info",
+                        "tag": "Web search",
+                        "detail": "get_grid_info search: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "search"
+                        },
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help",
+                        "thirdParty": true
+                    },
+                    {
+                        "label": "gridname",
+                        "kind": "value",
+                        "text": "Demo",
+                        "level": "ok",
+                        "status": "matches gridname of get_grid_info",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "gridname"
+                        }
+                    }
+                ]
+            },
+            {
+                "file": "Robust.HG.ini",
+                "title": "[LoginService]",
+                "rows": [
+                    {
+                        "label": "DestinationGuide",
+                        "kind": "address",
+                        "url": "https://play.example.org/guide",
+                        "method": "get",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "LoginService",
+                            "key": "DestinationGuide"
+                        },
+                        "name": "setting_destination_guide",
+                        "description": "setting_destination_guide_help"
+                    },
+                    {
+                        "label": "MessageUrl",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/motd.php",
+                        "method": "get",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "LoginService",
+                            "key": "MessageUrl"
+                        },
+                        "name": "setting_message_url",
+                        "description": "setting_message_url_help"
+                    },
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/websearch",
+                        "method": "get",
+                        "tag": "Web search",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "LoginService",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[Search]",
+                "rows": [
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/query.php",
+                        "method": "post",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Search",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_search_service",
+                        "description": "setting_search_service_help"
+                    },
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/query.php",
+                        "tag": "with valid XMLRPC request",
+                        "method": "xmlrpc",
+                        "body": "<?xml version=\"1.0\"?><methodCall><methodName>dir_places_query</methodName><params><param><value><struct><member><name>flags</name><value><int>0</int></value></member><member><name>text</name><value><string>health</string></value></member><member><name>query_start</name><value><string>0</string></value></member></struct></value></param></params></methodCall>",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Search",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_search_service",
+                        "description": "setting_search_service_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[DataSnapshot]",
+                "rows": [
+                    {
+                        "label": "DATA_SRV_demo",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/register.php",
+                        "method": "get",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_demo"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    },
+                    {
+                        "label": "DATA_SRV_demo",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/register.php",
+                        "tag": "with valid query",
+                        "method": "get",
+                        "probe": "https://play.example.org/helpers/register.php?service=offline&host=health.invalid&port=1",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_demo"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    },
+                    {
+                        "label": "DATA_SRV_2do",
+                        "kind": "address",
+                        "url": "https://2do.directory/helpers/register.php",
+                        "method": "get",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_2do"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    },
+                    {
+                        "label": "DATA_SRV_2do",
+                        "kind": "address",
+                        "url": "https://2do.directory/helpers/register.php",
+                        "tag": "with valid query",
+                        "method": "get",
+                        "probe": "https://2do.directory/helpers/register.php?service=offline&host=health.invalid&port=1",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_2do"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[Messaging]",
+                "rows": [
+                    {
+                        "label": "OfflineMessageURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/offline.php",
+                        "method": "post",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Messaging",
+                            "key": "OfflineMessageURL"
+                        },
+                        "name": "setting_offline_messages",
+                        "description": "setting_offline_messages_help"
+                    },
+                    {
+                        "label": "OfflineMessageURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/offline.php",
+                        "tag": "with valid post data",
+                        "method": "post",
+                        "body": "<?xml version=\"1.0\"?><UUID xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><Guid>00000000-0000-4000-8000-000000000000</Guid></UUID>",
+                        "probe": "https://play.example.org/helpers/offline.php/RetrieveMessages/",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Messaging",
+                            "key": "OfflineMessageURL"
+                        },
+                        "name": "setting_offline_messages",
+                        "description": "setting_offline_messages_help"
+                    }
+                ]
+            },
+            {
+                "file": "MoneyServer.ini",
+                "title": "[MoneyServer]",
+                "rows": [
+                    {
+                        "label": "MoneyScriptAccessKey",
+                        "kind": "secret",
+                        "set": true,
+                        "level": "ok",
+                        "status": "set",
+                        "context": {
+                            "instance": "moneyserver",
+                            "file": "MoneyServer.ini",
+                            "section": "MoneyServer",
+                            "key": "MoneyScriptAccessKey"
+                        },
+                        "name": "setting_money_script_key",
+                        "description": "setting_money_script_key_help"
+                    }
+                ]
+            },
+            {
+                "file": "pages",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "search",
+                        "level": "error",
+                        "url": "https://other.example.org/search",
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help",
+                        "thirdParty": true
+                    },
+                    {
+                        "label": "helpers",
+                        "level": "ok",
+                        "name": "setting_helpers",
+                        "description": "setting_helpers_help"
+                    }
+                ]
+            },
+            {
+                "file": "cache",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "assets",
+                        "level": "ok",
+                        "name": "setting_cache_assets",
+                        "description": "setting_cache_assets_help"
+                    }
+                ]
+            }
+        ],
+        "not live": [
+            {
+                "file": "get_grid_info",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "login",
+                        "kind": "address",
+                        "url": "http://localhost:8002/",
+                        "method": "get",
+                        "probe": "http://localhost:8002/get_grid_info",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "login"
+                        },
+                        "name": "setting_login",
+                        "description": "setting_login_help"
+                    }
+                ]
+            },
+            {
+                "file": "Robust.HG.ini",
+                "title": "[GridInfoService]",
+                "rows": [
+                    {
+                        "label": "login",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "login"
+                        },
+                        "name": "setting_login",
+                        "description": "setting_login_help"
+                    },
+                    {
+                        "label": "gatekeeper",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "gatekeeper"
+                        },
+                        "name": "setting_gatekeeper",
+                        "description": "setting_gatekeeper_help"
+                    },
+                    {
+                        "label": "welcome",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "welcome"
+                        },
+                        "name": "setting_welcome",
+                        "description": "setting_welcome_help"
+                    },
+                    {
+                        "label": "economy",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/",
+                        "level": "error",
+                        "status": "differs from economy of get_grid_info",
+                        "detail": "get_grid_info economy: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "economy"
+                        },
+                        "name": "setting_economy",
+                        "description": "setting_economy_help"
+                    },
+                    {
+                        "label": "about",
+                        "kind": "address",
+                        "url": "https://play.example.org/about",
+                        "level": "error",
+                        "status": "differs from about of get_grid_info",
+                        "detail": "get_grid_info about: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "about"
+                        },
+                        "name": "setting_about",
+                        "description": "setting_about_help"
+                    },
+                    {
+                        "label": "register",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "register"
+                        },
+                        "name": "setting_register",
+                        "description": "setting_register_help"
+                    },
+                    {
+                        "label": "help",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "help"
+                        },
+                        "name": "setting_help",
+                        "description": "setting_help_help"
+                    },
+                    {
+                        "label": "password",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "password"
+                        },
+                        "name": "setting_password",
+                        "description": "setting_password_help"
+                    },
+                    {
+                        "label": "GridStatus",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "GridStatus"
+                        },
+                        "name": "setting_grid_status",
+                        "description": "setting_grid_status_help"
+                    },
+                    {
+                        "label": "GridStatusRSS",
+                        "kind": "address",
+                        "url": "https://play.example.org/status.rss",
+                        "level": "error",
+                        "status": "differs from GridStatusRSS of get_grid_info",
+                        "detail": "get_grid_info GridStatusRSS: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "GridStatusRSS"
+                        },
+                        "name": "setting_grid_status_rss",
+                        "description": "setting_grid_status_rss_help"
+                    },
+                    {
+                        "label": "web_profile_url",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "web_profile_url"
+                        },
+                        "name": "setting_web_profile",
+                        "description": "setting_web_profile_help"
+                    },
+                    {
+                        "label": "search",
+                        "kind": "address",
+                        "url": "https://play.example.org/search",
+                        "level": "error",
+                        "status": "differs from search of get_grid_info",
+                        "tag": "Web search",
+                        "detail": "get_grid_info search: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "search"
+                        },
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help",
+                        "thirdParty": true
+                    },
+                    {
+                        "label": "gridname",
+                        "kind": "value",
+                        "text": "Demo",
+                        "level": "error",
+                        "status": "differs from gridname of get_grid_info",
+                        "detail": "get_grid_info gridname: ",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "GridInfoService",
+                            "key": "gridname"
+                        }
+                    }
+                ]
+            },
+            {
+                "file": "Robust.HG.ini",
+                "title": "[LoginService]",
+                "rows": [
+                    {
+                        "label": "DestinationGuide",
+                        "kind": "address",
+                        "url": "https://play.example.org/guide",
+                        "method": "get",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "LoginService",
+                            "key": "DestinationGuide"
+                        },
+                        "name": "setting_destination_guide",
+                        "description": "setting_destination_guide_help"
+                    },
+                    {
+                        "label": "MessageUrl",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/motd.php",
+                        "method": "get",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "LoginService",
+                            "key": "MessageUrl"
+                        },
+                        "name": "setting_message_url",
+                        "description": "setting_message_url_help"
+                    },
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/websearch",
+                        "method": "get",
+                        "tag": "Web search",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.HG.ini",
+                            "section": "LoginService",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[Search]",
+                "rows": [
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/query.php",
+                        "method": "post",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Search",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_search_service",
+                        "description": "setting_search_service_help"
+                    },
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/query.php",
+                        "tag": "with valid XMLRPC request",
+                        "method": "xmlrpc",
+                        "body": "<?xml version=\"1.0\"?><methodCall><methodName>dir_places_query</methodName><params><param><value><struct><member><name>flags</name><value><int>0</int></value></member><member><name>text</name><value><string>health</string></value></member><member><name>query_start</name><value><string>0</string></value></member></struct></value></param></params></methodCall>",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Search",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_search_service",
+                        "description": "setting_search_service_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[DataSnapshot]",
+                "rows": [
+                    {
+                        "label": "DATA_SRV_demo",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/register.php",
+                        "method": "get",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_demo"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    },
+                    {
+                        "label": "DATA_SRV_demo",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/register.php",
+                        "tag": "with valid query",
+                        "method": "get",
+                        "probe": "https://play.example.org/helpers/register.php?service=offline&host=health.invalid&port=1",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_demo"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    },
+                    {
+                        "label": "DATA_SRV_2do",
+                        "kind": "address",
+                        "url": "https://2do.directory/helpers/register.php",
+                        "method": "get",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_2do"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    },
+                    {
+                        "label": "DATA_SRV_2do",
+                        "kind": "address",
+                        "url": "https://2do.directory/helpers/register.php",
+                        "tag": "with valid query",
+                        "method": "get",
+                        "probe": "https://2do.directory/helpers/register.php?service=offline&host=health.invalid&port=1",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_2do"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[Messaging]",
+                "rows": [
+                    {
+                        "label": "OfflineMessageURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/offline.php",
+                        "method": "post",
+                        "body": "",
+                        "expect": [
+                            400,
+                            405
+                        ],
+                        "refuse": true,
+                        "tag": "without data",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Messaging",
+                            "key": "OfflineMessageURL"
+                        },
+                        "name": "setting_offline_messages",
+                        "description": "setting_offline_messages_help"
+                    },
+                    {
+                        "label": "OfflineMessageURL",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/offline.php",
+                        "tag": "with valid post data",
+                        "method": "post",
+                        "body": "<?xml version=\"1.0\"?><UUID xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><Guid>00000000-0000-4000-8000-000000000000</Guid></UUID>",
+                        "probe": "https://play.example.org/helpers/offline.php/RetrieveMessages/",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Messaging",
+                            "key": "OfflineMessageURL"
+                        },
+                        "name": "setting_offline_messages",
+                        "description": "setting_offline_messages_help"
+                    }
+                ]
+            },
+            {
+                "file": "MoneyServer.ini",
+                "title": "[MoneyServer]",
+                "rows": [
+                    {
+                        "label": "MoneyScriptAccessKey",
+                        "kind": "secret",
+                        "set": true,
+                        "level": "ok",
+                        "status": "set",
+                        "context": {
+                            "instance": "moneyserver",
+                            "file": "MoneyServer.ini",
+                            "section": "MoneyServer",
+                            "key": "MoneyScriptAccessKey"
+                        },
+                        "name": "setting_money_script_key",
+                        "description": "setting_money_script_key_help"
+                    }
+                ]
+            },
+            {
+                "file": "pages",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "search",
+                        "level": "error",
+                        "url": "https://other.example.org/search",
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help",
+                        "thirdParty": true
+                    },
+                    {
+                        "label": "helpers",
+                        "level": "ok",
+                        "name": "setting_helpers",
+                        "description": "setting_helpers_help"
+                    }
+                ]
+            },
+            {
+                "file": "cache",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "assets",
+                        "level": "ok",
+                        "name": "setting_cache_assets",
+                        "description": "setting_cache_assets_help"
+                    }
+                ]
+            }
+        ],
+        "no config": [
+            {
+                "file": "get_grid_info",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "login",
+                        "kind": "address",
+                        "url": "http://localhost:8002/",
+                        "method": "get",
+                        "probe": "http://localhost:8002/get_grid_info",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "login"
+                        },
+                        "name": "setting_login",
+                        "description": "setting_login_help"
+                    },
+                    {
+                        "label": "economy",
+                        "kind": "address",
+                        "url": "https://play.example.org/helpers/",
+                        "method": "get",
+                        "expect": [
+                            418
+                        ],
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "economy"
+                        },
+                        "name": "setting_economy",
+                        "description": "setting_economy_help"
+                    },
+                    {
+                        "label": "gridname",
+                        "kind": "value",
+                        "text": "Demo",
+                        "level": "none",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "gridname"
+                        }
+                    },
+                    {
+                        "label": "mood",
+                        "kind": "value",
+                        "text": "free",
+                        "level": "none",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "mood"
+                        }
+                    }
+                ]
+            },
+            {
+                "file": "pages",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "search",
+                        "level": "error",
+                        "url": "https://other.example.org/search",
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help",
+                        "thirdParty": true
+                    },
+                    {
+                        "label": "helpers",
+                        "level": "ok",
+                        "name": "setting_helpers",
+                        "description": "setting_helpers_help"
+                    }
+                ]
+            },
+            {
+                "file": "cache",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "assets",
+                        "level": "ok",
+                        "name": "setting_cache_assets",
+                        "description": "setting_cache_assets_help"
+                    }
+                ]
+            }
+        ],
+        "V2, no money server": [
+            {
+                "file": "get_grid_info",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "login",
+                        "kind": "address",
+                        "url": "http://localhost:8002/",
+                        "method": "get",
+                        "probe": "http://localhost:8002/get_grid_info",
+                        "context": {
+                            "instance": "grid_info",
+                            "file": "get_grid_info",
+                            "key": "login"
+                        },
+                        "name": "setting_login",
+                        "description": "setting_login_help"
+                    }
+                ]
+            },
+            {
+                "file": "Robust.ini",
+                "title": "[GridInfoService]",
+                "rows": [
+                    {
+                        "label": "login",
+                        "kind": "address",
+                        "url": "http://localhost:8002/",
+                        "level": "ok",
+                        "status": "matches login of get_grid_info",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "login"
+                        },
+                        "name": "setting_login",
+                        "description": "setting_login_help"
+                    },
+                    {
+                        "label": "gatekeeper",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "gatekeeper"
+                        },
+                        "name": "setting_gatekeeper",
+                        "description": "setting_gatekeeper_help"
+                    },
+                    {
+                        "label": "welcome",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "welcome"
+                        },
+                        "name": "setting_welcome",
+                        "description": "setting_welcome_help"
+                    },
+                    {
+                        "label": "economy",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "economy"
+                        },
+                        "name": "setting_economy",
+                        "description": "setting_economy_help"
+                    },
+                    {
+                        "label": "about",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "about"
+                        },
+                        "name": "setting_about",
+                        "description": "setting_about_help"
+                    },
+                    {
+                        "label": "register",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "register"
+                        },
+                        "name": "setting_register",
+                        "description": "setting_register_help"
+                    },
+                    {
+                        "label": "help",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "help"
+                        },
+                        "name": "setting_help",
+                        "description": "setting_help_help"
+                    },
+                    {
+                        "label": "password",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "password"
+                        },
+                        "name": "setting_password",
+                        "description": "setting_password_help"
+                    },
+                    {
+                        "label": "GridStatus",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "GridStatus"
+                        },
+                        "name": "setting_grid_status",
+                        "description": "setting_grid_status_help"
+                    },
+                    {
+                        "label": "GridStatusRSS",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "GridStatusRSS"
+                        },
+                        "name": "setting_grid_status_rss",
+                        "description": "setting_grid_status_rss_help"
+                    },
+                    {
+                        "label": "web_profile_url",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "web_profile_url"
+                        },
+                        "name": "setting_web_profile",
+                        "description": "setting_web_profile_help"
+                    },
+                    {
+                        "label": "search",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "tag": "Web search",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "GridInfoService",
+                            "key": "search"
+                        },
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help"
+                    }
+                ]
+            },
+            {
+                "file": "Robust.ini",
+                "title": "[LoginService]",
+                "rows": [
+                    {
+                        "label": "DestinationGuide",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "LoginService",
+                            "key": "DestinationGuide"
+                        },
+                        "name": "setting_destination_guide",
+                        "description": "setting_destination_guide_help"
+                    },
+                    {
+                        "label": "MessageUrl",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "LoginService",
+                            "key": "MessageUrl"
+                        },
+                        "name": "setting_message_url",
+                        "description": "setting_message_url_help"
+                    },
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "tag": "Web search",
+                        "context": {
+                            "instance": "robust",
+                            "file": "Robust.ini",
+                            "section": "LoginService",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[Search]",
+                "rows": [
+                    {
+                        "label": "SearchURL",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Search",
+                            "key": "SearchURL"
+                        },
+                        "name": "setting_search_service",
+                        "description": "setting_search_service_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[DataSnapshot]",
+                "rows": [
+                    {
+                        "label": "DATA_SRV_*",
+                        "kind": "address",
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "DataSnapshot",
+                            "key": "DATA_SRV_*"
+                        },
+                        "name": "setting_data_service",
+                        "description": "setting_data_service_help"
+                    }
+                ]
+            },
+            {
+                "file": "OpenSim.ini",
+                "title": "[Messaging]",
+                "rows": [
+                    {
+                        "label": "OfflineMessageModule",
+                        "kind": "value",
+                        "text": "served by Robust (module V2)",
+                        "level": "none",
+                        "context": {
+                            "instance": "opensim",
+                            "file": "OpenSim.ini",
+                            "section": "Messaging",
+                            "key": "OfflineMessageModule"
+                        },
+                        "name": "setting_offline_module",
+                        "description": "setting_offline_module_help"
+                    }
+                ]
+            },
+            {
+                "file": "MoneyServer.ini",
+                "title": "[MoneyServer]",
+                "rows": [
+                    {
+                        "label": "MoneyScriptAccessKey",
+                        "kind": "secret",
+                        "set": false,
+                        "level": "unset",
+                        "reason": "health_unset",
+                        "context": {
+                            "instance": "moneyserver",
+                            "file": "MoneyServer.ini",
+                            "section": "MoneyServer",
+                            "key": "MoneyScriptAccessKey"
+                        },
+                        "name": "setting_money_script_key",
+                        "description": "setting_money_script_key_help"
+                    }
+                ]
+            },
+            {
+                "file": "pages",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "search",
+                        "level": "error",
+                        "url": "https://other.example.org/search",
+                        "name": "setting_web_search",
+                        "description": "setting_web_search_help",
+                        "thirdParty": true
+                    },
+                    {
+                        "label": "helpers",
+                        "level": "ok",
+                        "name": "setting_helpers",
+                        "description": "setting_helpers_help"
+                    }
+                ]
+            },
+            {
+                "file": "cache",
+                "title": "",
+                "rows": [
+                    {
+                        "label": "assets",
+                        "level": "ok",
+                        "name": "setting_cache_assets",
+                        "description": "setting_cache_assets_help"
+                    }
+                ]
+            }
+        ]
+    },
+    "names": {
+        "robust": "Robust.HG.ini",
+        "opensim": "OpenSim.ini",
+        "money": "MoneyServer.ini"
+    }
+}

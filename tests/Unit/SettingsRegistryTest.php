@@ -50,40 +50,32 @@ describe('The registry of the settings', function () {
             ->toBeNull();
     });
 
-    test('has the setting of every address the engine shows, where the services say it', function () {
-        $catalog = (new ReflectionClass(Service::class))->getConstant('CATALOG');
+    test('has the setting of every address the engine shows, but the connectors of Robust', function () {
         $grid = Grid::find((new Machine())->environment, 'demo');
         $missing = [];
-        foreach ($catalog as $key => $service) {
-            if (($service['setting'] ?? null) === null) {
-                continue;
-            }
-            $entry = Settings::forService($key);
-            [$section, $setting] = $service['setting'];
+        foreach (Service::keys() as $key) {
             $address = (new Service($grid->environment(), $grid, $key))->address();
-            if ($entry === null || strcasecmp($entry['section'], $address['section']) !== 0 || strcasecmp($entry['key'], rtrim($setting, '*')) !== 0) {
+            if (!in_array($address['section'], [null, 'ServiceList'], true) && Settings::forService($key) === null) {
                 $missing[] = $key;
             }
         }
 
-        expect($missing)->toBe([]);
+        expect($missing)->toBe([])
+            ->and(array_column(Settings::ofService('search'), 'key'))
+            ->toBe(['search', 'SearchURL'])
+            ->and(Settings::serviceLabel('landtool'))
+            ->toBe('service_landtool')
+            ->and(Settings::serviceLabel('login'))
+            ->toBe('setting_login');
     });
 
-    test('has the settings the health shows', function () {
-        $missing = [];
-        foreach (array_keys(OpenSim\Health\Health::SETTINGS) as $path) {
-            [$section, $key] = explode('/', $path, 2);
-            if (in_array($section, ['pages', 'cache'], true)) {
-                continue;
-            }
-            $found = false;
-            foreach (array_keys(Settings::INSTANCES) as $instance) {
-                $found = $found || Settings::entry($instance, $section, rtrim($key, '*')) !== null;
-            }
-            $found || ($missing[] = $path);
-        }
+    test('says how the health asks each setting it shows', function () {
+        $asked = array_filter(Settings::entries(), static fn(array $entry): bool => isset($entry['health']));
 
-        expect($missing)->toBe([]);
+        expect(array_diff(array_unique(array_column($asked, 'health')), ['address', 'login-search', 'xmlrpc', 'register', 'offline', 'secret']))
+            ->toBe([])
+            ->and(array_column(array_filter($asked, static fn(array $entry): bool => $entry['section'] !== 'GridInfoService'), 'key'))
+            ->toBe(['DestinationGuide', 'MessageUrl', 'SearchURL', 'SearchURL', 'DATA_SRV_', 'OfflineMessageURL', 'MoneyScriptAccessKey']);
     });
 
     test('says the file of a setting for a grid: its Robust.HG.ini when it has one', function () {

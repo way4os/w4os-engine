@@ -376,7 +376,7 @@ final class Catalog
         'block_search_help' => 'The search of the grid: places, events, classifieds, people.',
         'block_profile_help' => 'The profile of an avatar, as its page shows it.',
         'block_new_users_help' => 'The avatars that joined the grid last.',
-        // The settings and pages of the health (Health::SETTINGS): setting_ and the name, and what each is for
+        // The settings (the registry, Settings) and the pages of the health (Health::ROWS): setting_ and the name, and what each is for
         'setting_login' => 'Login URI',
         'setting_login_help' => 'The address the viewers log in at, and ask what the grid says of itself (get_grid_info).',
         'setting_gatekeeper' => 'Gatekeeper',

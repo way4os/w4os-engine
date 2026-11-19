@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- change (addresses): `Service::address()` and getAddresses read the registry of the settings, no list of their own
+- change (health): the health reads its settings from the registry (`health` of an entry), no list of its own
+- update (texts): the labels of the registry of the settings, in the six languages
 - feature (settings): `OpenSim\Config\Settings`, the registry of the settings: the OpenSimulator name and the engine name of each
 - feature (settings): a connection string reads as its parts, its password masked (`ConnectionStringType`)
 - feature (settings): the settings pages of w4os-wp: economy, search, guide, offline messages, web assets server

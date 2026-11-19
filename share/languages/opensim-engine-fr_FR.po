@@ -1462,27 +1462,27 @@ msgstr ""
 
 msgctxt "setting_base_url"
 msgid "Base URL"
-msgstr ""
+msgstr "URL de base"
 
 msgctxt "setting_base_hostname"
 msgid "Base Hostname"
-msgstr ""
+msgstr "Nom d'hôte de base"
 
 msgctxt "setting_public_port"
 msgid "Public Port"
-msgstr ""
+msgstr "Port public"
 
 msgctxt "setting_private_port"
 msgid "Private Port"
-msgstr ""
+msgstr "Port privé"
 
 msgctxt "setting_storage_provider"
 msgid "Storage Provider"
-msgstr ""
+msgstr "Fournisseur de stockage"
 
 msgctxt "setting_database"
 msgid "Database Connection String"
-msgstr ""
+msgstr "Chaîne de connexion à la base de données"
 
 msgctxt "setting_grid_name"
 msgid "Grid Name"
@@ -1490,23 +1490,23 @@ msgstr "Nom de la grille"
 
 msgctxt "setting_grid_nick"
 msgid "Grid Nickname"
-msgstr ""
+msgstr "Surnom de la grille"
 
 msgctxt "setting_welcome_message"
 msgid "Welcome Message"
-msgstr ""
+msgstr "Message de bienvenue"
 
 msgctxt "setting_currency_symbol"
 msgid "Currency Name"
-msgstr ""
+msgstr "Nom de la monnaie"
 
 msgctxt "setting_search_module"
 msgid "Search Module"
-msgstr ""
+msgstr "Module de recherche"
 
 msgctxt "setting_index_sims"
 msgid "Index Regions"
-msgstr ""
+msgstr "Indexer les régions"
 
 msgctxt "setting_economy_module"
 msgid "Economy Module"
@@ -1531,31 +1531,31 @@ msgstr "Podex et autres fournisseurs de devises"
 
 msgctxt "setting_sell_enabled"
 msgid "Enable Selling"
-msgstr ""
+msgstr "Activer la vente"
 
 msgctxt "setting_price_upload"
 msgid "Price Upload"
-msgstr ""
+msgstr "Prix de téléversement"
 
 msgctxt "setting_price_group_create"
 msgid "Price Group Create"
-msgstr ""
+msgstr "Prix de création de groupe"
 
 msgctxt "setting_gloebit_enabled"
 msgid "Enable Gloebit"
-msgstr ""
+msgstr "Activer Gloebit"
 
 msgctxt "setting_gloebit_environment"
 msgid "Gloebit Environment"
-msgstr ""
+msgstr "Environnement Gloebit"
 
 msgctxt "gloebit_sandbox"
 msgid "Sandbox"
-msgstr ""
+msgstr "Bac à sable"
 
 msgctxt "gloebit_production"
 msgid "Production"
-msgstr ""
+msgstr "Production"
 
 msgctxt "setting_guide_source"
 msgid "Source"
@@ -1575,7 +1575,7 @@ msgstr "URL du serveur d'événements"
 
 msgctxt "setting_logo_url"
 msgid "Grid Logo URL"
-msgstr ""
+msgstr "URL du logo de la grille"
 
 msgctxt "setting_mail_sender"
 msgid "Sender e-mail address"
@@ -1601,11 +1601,11 @@ msgstr "Montant à payer en US$ pour 1000 unités de monnaie du monde virtuel. S
 
 msgctxt "setting_currency_rate_per"
 msgid "Money Units per Rate"
-msgstr ""
+msgstr "Unités monétaires par taux"
 
 msgctxt "setting_gloebit_threshold"
 msgid "Gloebit Conversion Threshold"
-msgstr ""
+msgstr "Seuil de conversion Gloebit"
 
 msgctxt "setting_podex_message"
 msgid "Podex Redirect Message"

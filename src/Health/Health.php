@@ -2,6 +2,7 @@
 
 namespace OpenSim\Health;
 
+use OpenSim\Config\Settings;
 use OpenSim\Models\Avatar;
 use OpenSim\Config\GridConfig;
 
@@ -39,26 +40,6 @@ class Health
     const TIMED_OUT = 28;
 
     /**
-     * The settings of [GridInfoService] that are addresses, shown first, in this order (the one of Robust.HG.ini.example, and
-     * `search`, the web page of the search the viewers read in get_grid_info), even when the grid gives none. It is not what the
-     * simulators call for the search ([Search] SearchURL of OpenSim.ini).
-     */
-    const GRID_INFO = [
-        'login',
-        'gatekeeper',
-        'welcome',
-        'economy',
-        'about',
-        'register',
-        'help',
-        'password',
-        'GridStatus',
-        'GridStatusRSS',
-        'web_profile_url',
-        'search',
-    ];
-
-    /**
      * The addresses of the grid itself, which answer at /get_grid_info: the home of a grid (host:publicport) has no page of its own,
      * asked alone it is a 404. What is at the same address as the login is the same.
      */
@@ -77,32 +58,10 @@ class Health
     const TEAPOT = [418];
 
     /**
-     * The settings and pages a row can be, by `section/key` (the section of the group, GridInfoService for what the grid says,
-     * `pages` and `cache` for those groups; `*` ends a key that is a prefix): the name of each in the catalog, `setting_<name>` and
-     * `setting_<name>_help` its description.
+     * The pages and the caches a row can be, by `group/label`: the name of each in the catalog, `setting_<name>` and
+     * `setting_<name>_help` its description. The settings are the registry's (OpenSim\Config\Settings).
      */
-    const SETTINGS = [
-        'GridInfoService/login' => 'login',
-        'GridInfoService/gatekeeper' => 'gatekeeper',
-        'GridInfoService/uas' => 'uas',
-        'GridInfoService/welcome' => 'welcome',
-        'GridInfoService/economy' => 'economy',
-        'GridInfoService/about' => 'about',
-        'GridInfoService/register' => 'register',
-        'GridInfoService/help' => 'help',
-        'GridInfoService/password' => 'password',
-        'GridInfoService/GridStatus' => 'grid_status',
-        'GridInfoService/GridStatusRSS' => 'grid_status_rss',
-        'GridInfoService/web_profile_url' => 'web_profile',
-        'GridInfoService/search' => 'web_search',
-        'LoginService/DestinationGuide' => 'destination_guide',
-        'LoginService/MessageUrl' => 'message_url',
-        'LoginService/SearchURL' => 'web_search',
-        'Search/SearchURL' => 'search_service',
-        'DataSnapshot/DATA_SRV_*' => 'data_service',
-        'Messaging/OfflineMessageURL' => 'offline_messages',
-        'Messaging/OfflineMessageModule*' => 'offline_module',
-        'MoneyServer/MoneyScriptAccessKey' => 'money_script_key',
+    const ROWS = [
         'pages/helpers' => 'helpers',
         'pages/search' => 'web_search',
         'pages/profile' => 'web_profile',
@@ -144,12 +103,10 @@ class Health
      */
     public static function names($config)
     {
-        $robust = $config ? $config->file('Robust') : null;
-
         return [
-            'robust' => $robust ? basename($robust) : 'Robust.ini',
+            'robust' => Settings::file('robust', $config ?: null),
             'opensim' => 'OpenSim.ini',
-            'money' => 'MoneyServer.ini',
+            'money' => Settings::file('moneyserver'),
         ];
     }
 
@@ -183,7 +140,7 @@ class Health
         }
         $home = self::origin($login);
         $keys = array_values(
-            array_unique(array_merge(array_intersect(self::GRID_INFO, array_keys($live)), array_keys($live))),
+            array_unique(array_merge(array_intersect(self::gridInfoKeys(), array_keys($live)), array_keys($live))),
         );
         $rows = [];
         foreach ($keys as $key) {
@@ -202,7 +159,7 @@ class Health
         if ($config->has('Robust')) {
             $given = array_filter($config->section('GridInfoService'), fn($value) => $value !== '');
             $rows = [];
-            foreach (array_values(array_unique(array_merge(self::GRID_INFO, array_keys($given)))) as $key) {
+            foreach (array_values(array_unique(array_merge(self::gridInfoKeys(), array_keys($given)))) as $key) {
                 $value = (string) ($given[$key] ?? '');
                 if ($value === '' || !$live) {
                     // Nothing to compare with when the grid does not answer: the addresses are asked from here, the profile
@@ -233,77 +190,89 @@ class Health
                     ($same ? [] : ['detail' => "get_grid_info $key: " . ($live[$key] ?? '')]);
             }
             $groups[] = ['file' => $file['robust'], 'title' => '[GridInfoService]', 'rows' => $rows];
-            $groups[] = [
-                'file' => $file['robust'],
-                'title' => '[LoginService]',
-                'rows' => [
-                    ...self::address(
-                        'DestinationGuide',
-                        (string) $config->find('LoginService', 'DestinationGuide'),
-                        $owner,
-                    ),
-                    ...self::address('MessageUrl', (string) $config->find('LoginService', 'MessageUrl'), $owner),
-                    self::loginSearch((string) $config->find('LoginService', 'SearchURL'), $given['search'] ?? ''),
-                ],
-            ];
         }
 
-        // What the simulators call (OpenSim.ini): the search, the registration on a directory, the offline messages
-        $search = (string) $config->find('Search', 'SearchURL');
-        $groups[] = [
-            'file' => $file['opensim'],
-            'title' => '[Search]',
-            'rows' =>
-                $search === ''
-                    ? [self::emptyRow('SearchURL')]
-                    : self::xmlrpc('SearchURL', $search, 'dir_places_query', [
-                        'flags' => 0,
-                        'text' => 'health',
-                        'query_start' => '0',
-                    ]),
-        ];
-        $rows = [];
-        foreach ($config->keys('DataSnapshot', '/^DATA_SRV_/') as $key => $url) {
-            array_push($rows, ...self::query($key, $url, 'service=offline&host=health.invalid&port=1'));
+        // The other settings the health asks, by file and section, in the order of the registry: the addresses of the login, what
+        // the simulators call (the search, the registration on a directory, the offline messages), the key of the currency
+        $given = array_filter($config->section('GridInfoService'), fn($value) => $value !== '');
+        $sections = [];
+        foreach (Settings::entries() as $entry) {
+            if (!isset($entry['health']) || $entry['section'] === 'GridInfoService' || ($entry['instance'] === 'robust' && !$config->has('Robust'))) {
+                continue;
+            }
+            $id = $entry['instance'] . '/' . $entry['section'];
+            $sections[$id] ??= ['file' => Settings::file($entry['instance'], $config), 'title' => '[' . $entry['section'] . ']', 'rows' => []];
+            array_push($sections[$id]['rows'], ...self::settingRows($entry, $config, $owner, $given));
         }
-        $groups[] = [
-            'file' => $file['opensim'],
-            'title' => '[DataSnapshot]',
-            'rows' => $rows ?: [self::emptyRow('DATA_SRV_*')],
-        ];
-        $offline = (string) $config->find('Messaging', 'OfflineMessageURL');
-        // The module V2 talks to Robust, which is not the helpers: nothing here to ask
-        $robust = stripos((string) $config->find('Messaging', 'OfflineMessageModule'), 'V2') !== false;
-        $groups[] = [
-            'file' => $file['opensim'],
-            'title' => '[Messaging]',
-            'rows' => $robust
-                ? [self::valueRow('OfflineMessageModule', _('served by Robust (module V2)'))]
-                : ($offline === ''
-                    ? [self::emptyRow('OfflineMessageURL')]
-                    : self::post('OfflineMessageURL', $offline, self::retrieveMessages(), 'RetrieveMessages/')),
-        ];
 
-        // The key of the currency, where the MoneyServer has it: never shown, only whether the grid has one. Without it the
-        // currency is not served, an error for a grid that has a currency
-        $module = strtolower((string) $config->find('Economy', 'economymodule'));
-        $needed = $module !== '' && $module !== 'betagridlikemoneymodule';
-        $has = trim((string) $config->find('MoneyServer', 'MoneyScriptAccessKey')) !== '';
-        $groups[] = [
-            'file' => $file['money'],
-            'title' => '[MoneyServer]',
-            'rows' => [
-                // A secret: never shown, only whether it is set
-                [
-                    'label' => 'MoneyScriptAccessKey',
-                    'kind' => 'secret',
-                    'set' => $has,
-                    'level' => $has ? 'ok' : ($needed ? 'error' : 'unset'),
-                ] + ($has ? ['status' => _('set')] : ($needed ? ['status' => _('missing')] : ['reason' => 'health_unset'])),
-            ],
-        ];
+        return [...$groups, ...array_values($sections)];
+    }
 
-        return $groups;
+    /**
+     * The rows of a setting of the registry, as its `health` says it is asked.
+     *
+     * @param array<string,mixed> $entry
+     * @param array<string,string> $given what the Robust config says in [GridInfoService]
+     * @return list<array<string,mixed>>
+     */
+    private static function settingRows($entry, $config, $owner, $given)
+    {
+        $value = (string) $config->find($entry['section'], $entry['key']);
+        switch ($entry['health']) {
+            case 'login-search':
+                return [self::loginSearch($value, $given['search'] ?? '')];
+            case 'xmlrpc':
+                // What the simulators call for the search
+                return $value === ''
+                    ? [self::emptyRow($entry['key'])]
+                    : self::xmlrpc($entry['key'], $value, 'dir_places_query', ['flags' => 0, 'text' => 'health', 'query_start' => '0']);
+            case 'register':
+                // The registration on a directory, each DATA_SRV_
+                $rows = [];
+                foreach ($config->keys($entry['section'], '/^' . preg_quote($entry['key'], '/') . '/') as $key => $url) {
+                    array_push($rows, ...self::query($key, $url, 'service=offline&host=health.invalid&port=1'));
+                }
+
+                return $rows ?: [self::emptyRow($entry['key'] . '*')];
+            case 'offline':
+                // The module V2 talks to Robust, which is not the helpers: nothing here to ask
+                $robust = stripos((string) $config->find($entry['section'], 'OfflineMessageModule'), 'V2') !== false;
+
+                return $robust
+                    ? [self::valueRow('OfflineMessageModule', _('served by Robust (module V2)'))]
+                    : ($value === '' ? [self::emptyRow($entry['key'])] : self::post($entry['key'], $value, self::retrieveMessages(), 'RetrieveMessages/'));
+            case 'secret':
+                // The key of the currency, where the MoneyServer has it: never shown, only whether the grid has one. Without it the
+                // currency is not served, an error for a grid that has a currency
+                $module = strtolower((string) $config->find('Economy', 'economymodule'));
+                $needed = $module !== '' && $module !== 'betagridlikemoneymodule';
+                $has = trim($value) !== '';
+
+                return [
+                    [
+                        'label' => $entry['key'],
+                        'kind' => 'secret',
+                        'set' => $has,
+                        'level' => $has ? 'ok' : ($needed ? 'error' : 'unset'),
+                    ] + ($has ? ['status' => _('set')] : ($needed ? ['status' => _('missing')] : ['reason' => 'health_unset'])),
+                ];
+            default:
+                return self::address($entry['key'], $value, $owner);
+        }
+    }
+
+    /**
+     * The settings of [GridInfoService] that are addresses, shown first, in this order (the one of Robust.HG.ini.example, and
+     * `search`, the web page of the search the viewers read in get_grid_info), even when the grid gives none.
+     *
+     * @return list<string>
+     */
+    private static function gridInfoKeys()
+    {
+        return array_values(array_map(
+            static fn(array $entry): string => $entry['key'],
+            array_filter(Settings::entries(), static fn(array $entry): bool => $entry['section'] === 'GridInfoService' && isset($entry['health'])),
+        ));
     }
 
     /**
@@ -1083,20 +1052,23 @@ class Health
         return $groups;
     }
 
-    /** The name of a setting in the catalog (SETTINGS), null for one it does not name. */
+    /**
+     * The name of a row in the catalog, null for one it does not name: the label of its setting in the registry when the catalog
+     * describes it, else the one of a page or a cache (ROWS).
+     */
     private static function settingName($section, $key)
     {
-        foreach (self::SETTINGS as $setting => $name) {
-            [$s, $k] = explode('/', $setting, 2);
-            if (strcasecmp($s, $section) !== 0) {
+        foreach (Settings::entries() as $entry) {
+            if (!isset($entry['description']) || strcasecmp($entry['section'], (string) $section) !== 0) {
                 continue;
             }
-            if (str_ends_with($k, '*') ? stripos($key, substr($k, 0, -1)) === 0 : strcasecmp($k, $key) === 0) {
-                return $name;
+            $same = ($entry['prefix'] ?? false) ? stripos((string) $key, $entry['key']) === 0 : strcasecmp($entry['key'], rtrim((string) $key, '*')) === 0;
+            if ($same && str_starts_with($entry['label'], 'setting_')) {
+                return substr($entry['label'], 8);
             }
         }
 
-        return null;
+        return self::ROWS["$section/$key"] ?? null;
     }
 
     /**

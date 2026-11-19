@@ -1218,25 +1218,25 @@ msgctxt "setting_login_help"
 msgid ""
 "The address the viewers log in at, and ask what the grid says of itself "
 "(get_grid_info)."
-msgstr ""
+msgstr "Y cyfeiriad y mae'r gwylwyr yn mewngofnodi iddo ac yn gofyn iddo beth mae'r grid yn ei ddweud amdano'i hun (get_grid_info)."
 
 msgctxt "setting_gatekeeper"
 msgid "Gatekeeper"
-msgstr ""
+msgstr "Gatekeeper"
 
 msgctxt "setting_gatekeeper_help"
 msgid "The address other grids reach this one by (hypergrid)."
-msgstr ""
+msgstr "Y cyfeiriad y mae gridiau eraill yn cyrraedd yr un hwn drwyddo (hypergrid)."
 
 msgctxt "setting_uas"
 msgid "User agent service"
-msgstr ""
+msgstr "Gwasanaeth asiant defnyddiwr"
 
 msgctxt "setting_uas_help"
 msgid ""
 "Where the avatars of this grid are known when they visit other grids "
 "(hypergrid)."
-msgstr ""
+msgstr "Ble mae avatarau'r grid hwn yn hysbys pan fyddant yn ymweld â gridiau eraill (hypergrid)."
 
 msgctxt "setting_welcome"
 msgid "Splash"
@@ -1306,15 +1306,15 @@ msgstr "Statws grid"
 
 msgctxt "setting_grid_status_help"
 msgid "The page of the status of the grid."
-msgstr ""
+msgstr "Tudalen statws y grid."
 
 msgctxt "setting_grid_status_rss"
 msgid "Grid status feed"
-msgstr ""
+msgstr "Ffrwd statws y grid"
 
 msgctxt "setting_grid_status_rss_help"
 msgid "The feed of the status of the grid the viewers read (RSS)."
-msgstr ""
+msgstr "Ffrwd statws y grid y mae'r gwylwyr yn ei darllen (RSS)."
 
 msgctxt "setting_web_profile"
 msgid "Avatar profile"
@@ -1354,7 +1354,7 @@ msgstr "Neges y dydd"
 
 msgctxt "setting_message_url_help"
 msgid "The message the viewers show at login."
-msgstr ""
+msgstr "Y neges y mae'r gwylwyr yn ei dangos wrth fewngofnodi."
 
 msgctxt "setting_search_service"
 msgid "Search Service"
@@ -1420,7 +1420,7 @@ msgstr "sylfaenyddion sail"
 
 msgctxt "setting_helpers_help"
 msgid "The base of the pages and services of the helpers."
-msgstr ""
+msgstr "Sail tudalennau a gwasanaethau'r helpers."
 
 msgctxt "setting_directory"
 msgid "Directory"
@@ -1428,7 +1428,7 @@ msgstr "Cyfeiriadur"
 
 msgctxt "setting_directory_help"
 msgid "The page of the grid in the shared directory of the regions."
-msgstr ""
+msgstr "Tudalen y grid yng nghyfeiriadur a rennir y rhanbarthau."
 
 msgctxt "setting_cache_assets"
 msgid "Picture cache"
@@ -1452,27 +1452,27 @@ msgstr ""
 
 msgctxt "setting_base_url"
 msgid "Base URL"
-msgstr ""
+msgstr "URL sylfaenol"
 
 msgctxt "setting_base_hostname"
 msgid "Base Hostname"
-msgstr ""
+msgstr "Enw gwesteiwr sylfaenol"
 
 msgctxt "setting_public_port"
 msgid "Public Port"
-msgstr ""
+msgstr "Porth cyhoeddus"
 
 msgctxt "setting_private_port"
 msgid "Private Port"
-msgstr ""
+msgstr "Porth preifat"
 
 msgctxt "setting_storage_provider"
 msgid "Storage Provider"
-msgstr ""
+msgstr "Darparwr storio"
 
 msgctxt "setting_database"
 msgid "Database Connection String"
-msgstr ""
+msgstr "Llinyn cysylltu'r gronfa ddata"
 
 msgctxt "setting_grid_name"
 msgid "Grid Name"
@@ -1480,23 +1480,23 @@ msgstr "Enw'r Grid"
 
 msgctxt "setting_grid_nick"
 msgid "Grid Nickname"
-msgstr ""
+msgstr "Llysenw y grid"
 
 msgctxt "setting_welcome_message"
 msgid "Welcome Message"
-msgstr ""
+msgstr "Neges croeso"
 
 msgctxt "setting_currency_symbol"
 msgid "Currency Name"
-msgstr ""
+msgstr "Enw'r arian cyfred"
 
 msgctxt "setting_search_module"
 msgid "Search Module"
-msgstr ""
+msgstr "Modiwl chwilio"
 
 msgctxt "setting_index_sims"
 msgid "Index Regions"
-msgstr ""
+msgstr "Mynegeio rhanbarthau"
 
 msgctxt "setting_economy_module"
 msgid "Economy Module"
@@ -1521,31 +1521,31 @@ msgstr "Podex a darparwyr arian eraill"
 
 msgctxt "setting_sell_enabled"
 msgid "Enable Selling"
-msgstr ""
+msgstr "Galluogi gwerthu"
 
 msgctxt "setting_price_upload"
 msgid "Price Upload"
-msgstr ""
+msgstr "Pris uwchlwytho"
 
 msgctxt "setting_price_group_create"
 msgid "Price Group Create"
-msgstr ""
+msgstr "Pris creu grŵp"
 
 msgctxt "setting_gloebit_enabled"
 msgid "Enable Gloebit"
-msgstr ""
+msgstr "Galluogi Gloebit"
 
 msgctxt "setting_gloebit_environment"
 msgid "Gloebit Environment"
-msgstr ""
+msgstr "Amgylchedd Gloebit"
 
 msgctxt "gloebit_sandbox"
 msgid "Sandbox"
-msgstr ""
+msgstr "Blwch tywod"
 
 msgctxt "gloebit_production"
 msgid "Production"
-msgstr ""
+msgstr "Cynhyrchu"
 
 msgctxt "setting_guide_source"
 msgid "Source"
@@ -1565,7 +1565,7 @@ msgstr "Events Server URL"
 
 msgctxt "setting_logo_url"
 msgid "Grid Logo URL"
-msgstr ""
+msgstr "URL logo'r grid"
 
 msgctxt "setting_mail_sender"
 msgid "Sender e-mail address"
@@ -1590,11 +1590,11 @@ msgstr "Y swm i'w dalu mewn US$ am 1000 o unedau arian yn y byd. Fe'i defnyddir 
 
 msgctxt "setting_currency_rate_per"
 msgid "Money Units per Rate"
-msgstr ""
+msgstr "Unedau arian fesul cyfradd"
 
 msgctxt "setting_gloebit_threshold"
 msgid "Gloebit Conversion Threshold"
-msgstr ""
+msgstr "Trothwy trosi Gloebit"
 
 msgctxt "setting_podex_message"
 msgid "Podex Redirect Message"
@@ -1682,128 +1682,128 @@ msgctxt "service_asset_help"
 msgid ""
 "The assets of the grid (textures, sounds, objects...): the simulators read "
 "and store them."
-msgstr ""
+msgstr "Asedau'r grid (gweadau, synau, gwrthrychau...): mae'r efelychwyr yn eu darllen a'u storio."
 
 msgctxt "service_inventory"
 msgid "Inventory service"
-msgstr ""
+msgstr "Gwasanaeth rhestr eiddo"
 
 msgctxt "service_inventory_help"
 msgid "The inventories of the avatars."
-msgstr ""
+msgstr "Rhestrau eiddo'r avatarau."
 
 msgctxt "service_grid"
 msgid "Grid service"
-msgstr ""
+msgstr "Gwasanaeth grid"
 
 msgctxt "service_grid_help"
 msgid ""
 "The regions of the grid: where each one is, and which simulator runs it."
-msgstr ""
+msgstr "Rhanbarthau'r grid: ble mae pob un, a pha efelychydd sy'n ei redeg."
 
 msgctxt "service_estate"
 msgid "Estate service"
-msgstr ""
+msgstr "Gwasanaeth ystadau"
 
 msgctxt "service_estate_help"
 msgid "The estates of the regions, their owners and their managers."
-msgstr ""
+msgstr "Ystadau'r rhanbarthau, eu perchnogion a'u rheolwyr."
 
 msgctxt "service_authentication"
 msgid "Authentication service"
-msgstr ""
+msgstr "Gwasanaeth dilysu"
 
 msgctxt "service_authentication_help"
 msgid "The passwords of the accounts, and their sessions."
-msgstr ""
+msgstr "Cyfrineiriau'r cyfrifon, a'u sesiynau."
 
 msgctxt "service_avatar"
 msgid "Avatar service"
-msgstr ""
+msgstr "Gwasanaeth avatarau"
 
 msgctxt "service_avatar_help"
 msgid "The appearance of the avatars: what they wear."
-msgstr ""
+msgstr "Ymddangosiad yr avatarau: yr hyn y maent yn ei wisgo."
 
 msgctxt "service_agent_preferences"
 msgid "Agent preferences service"
-msgstr ""
+msgstr "Gwasanaeth dewisiadau asiant"
 
 msgctxt "service_agent_preferences_help"
 msgid "The preferences of the avatars the grid keeps (language, maturity)."
-msgstr ""
+msgstr "Dewisiadau'r avatarau y mae'r grid yn eu cadw (iaith, aeddfedrwydd)."
 
 msgctxt "service_presence"
 msgid "Presence service"
-msgstr ""
+msgstr "Gwasanaeth presenoldeb"
 
 msgctxt "service_presence_help"
 msgid "Who is in the world now, and where."
-msgstr ""
+msgstr "Pwy sydd yn y byd nawr, a ble."
 
 msgctxt "service_user_account"
 msgid "User account service"
-msgstr ""
+msgstr "Gwasanaeth cyfrifon defnyddwyr"
 
 msgctxt "service_user_account_help"
 msgid "The accounts of the avatars: their names, emails and levels."
-msgstr ""
+msgstr "Cyfrifon'r avatarau: eu henwau, eu e-byst a'u lefelau."
 
 msgctxt "service_grid_user"
 msgid "Grid user service"
-msgstr ""
+msgstr "Gwasanaeth defnyddwyr y grid"
 
 msgctxt "service_grid_user_help"
 msgid "The last position and the home of each avatar."
-msgstr ""
+msgstr "Safle olaf a chartref pob avatar."
 
 msgctxt "service_friends"
 msgid "Friends service"
-msgstr ""
+msgstr "Gwasanaeth ffrindiau"
 
 msgctxt "service_friends_help"
 msgid "The friendships of the avatars."
-msgstr ""
+msgstr "Cyfeillgarwch yr avatarau."
 
 msgctxt "service_map_image"
 msgid "Map tiles service"
-msgstr ""
+msgstr "Gwasanaeth teils map"
 
 msgctxt "service_map_image_help"
 msgid "The tiles of the map of the world: the simulators add them."
-msgstr ""
+msgstr "Teils map y byd: mae'r efelychwyr yn eu hychwanegu."
 
 msgctxt "service_mute_list"
 msgid "Mute list service"
-msgstr ""
+msgstr "Gwasanaeth rhestr mudo"
 
 msgctxt "service_mute_list_help"
 msgid "What each avatar blocks."
-msgstr ""
+msgstr "Yr hyn y mae pob avatar yn ei flocio."
 
 msgctxt "service_bakes"
 msgid "Baked textures service"
-msgstr ""
+msgstr "Gwasanaeth gweadau wedi'u pobi"
 
 msgctxt "service_bakes_help"
 msgid "The baked textures of the avatars, shared between the simulators."
-msgstr ""
+msgstr "Gweadau wedi'u pobi'r avatarau, wedi'u rhannu rhwng yr efelychwyr."
 
 msgctxt "service_groups"
 msgid "Groups service"
-msgstr ""
+msgstr "Gwasanaeth grwpiau"
 
 msgctxt "service_groups_help"
 msgid "The groups of the avatars, their members, roles and notices."
-msgstr ""
+msgstr "Grwpiau'r avatarau, eu haelodau, rolau a hysbysiadau."
 
 msgctxt "service_profile"
 msgid "Profiles service"
-msgstr ""
+msgstr "Gwasanaeth proffiliau"
 
 msgctxt "service_profile_help"
 msgid "The profiles of the avatars, their picks and their classifieds."
-msgstr ""
+msgstr "Proffiliau'r avatarau, eu dewisiadau a'u hysbysebion."
 
 msgctxt "service_get_grid_info"
 msgid "Grid info"
@@ -1856,7 +1856,7 @@ msgstr ""
 
 msgctxt "service_currency"
 msgid "Currency helper"
-msgstr ""
+msgstr "Cynorthwyydd arian cyfred"
 
 msgctxt "service_currency_help"
 msgid ""
@@ -1866,7 +1866,7 @@ msgstr ""
 
 msgctxt "service_landtool"
 msgid "Land tool helper"
-msgstr ""
+msgstr "Cynorthwyydd offeryn tir"
 
 msgctxt "service_landtool_help"
 msgid "The land sales the viewer calls (landtool.php)."

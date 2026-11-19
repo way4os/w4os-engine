@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSim\Models;
 
+use OpenSim\Config\Settings;
 use OpenSim\Data\Listing;
 use OpenSim\Config\GridConfig;
 use OpenSim\Controllers\AbstractController;
@@ -48,104 +49,88 @@ final class Service extends InstalledModel
     public const PAGE = 'page';
 
     /**
-     * The services OpenSimulator has, by key: the connectors of `[ServiceList]` that serve it, the port they are on, and the setting a
-     * simulator is given its address in (section, key), when it has one.
+     * The services OpenSimulator has, by key: the connectors of `[ServiceList]` that serve it, the port they are on, what serves it.
+     * The settings that give its address, their labels, the key of get_grid_info that tells it are the registry's (Settings).
      */
     private const CATALOG = [
         'asset' => [
             'connectors' => ['AssetServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['AssetService', 'AssetServerURI'],
             'database' => Database::Assets,
         ],
         'inventory' => [
             'connectors' => ['InventoryInConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['InventoryService', 'InventoryServerURI'],
             'database' => Database::Robust,
         ],
         'grid' => [
             'connectors' => ['GridServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['GridService', 'GridServerURI'],
             'database' => Database::Robust,
         ],
         'estate' => [
             'connectors' => ['EstateDataService'],
             'port' => self::PRIVATE,
-            'setting' => ['EstateService', 'EstateServerURI'],
             'database' => Database::Estate,
         ],
         'authentication' => [
             'connectors' => ['AuthenticationServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['AuthenticationService', 'AuthenticationServerURI'],
             'database' => Database::Robust,
         ],
         'avatar' => [
             'connectors' => ['AvatarServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['AvatarService', 'AvatarServerURI'],
             'database' => Database::Robust,
         ],
         'agent-preferences' => [
             'connectors' => ['AgentPreferencesServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['AgentPreferencesService', 'AgentPreferencesServerURI'],
             'database' => Database::Robust,
         ],
         'presence' => [
             'connectors' => ['PresenceServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['PresenceService', 'PresenceServerURI'],
             'database' => Database::Robust,
         ],
         'user-account' => [
             'connectors' => ['UserAccountServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['UserAccountService', 'UserAccountServerURI'],
             'database' => Database::Robust,
         ],
         'grid-user' => [
             'connectors' => ['GridUserServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['GridUserService', 'GridUserServerURI'],
             'database' => Database::Robust,
         ],
         'friends' => [
             'connectors' => ['FriendsServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['FriendsService', 'FriendsServerURI'],
             'database' => Database::Robust,
         ],
         'map-image' => [
             'connectors' => ['MapAddServiceConnector', 'MapGetServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['MapImageService', 'MapImageServerURI'],
             'database' => null,
         ],
         'mute-list' => [
             'connectors' => ['MuteListConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['MuteListService', 'MuteListServerURI'],
             'database' => Database::Robust,
         ],
         'bakes' => [
             'connectors' => ['BakedTextureService'],
             'port' => self::PRIVATE,
-            'setting' => ['XBakes', 'URL'],
             'database' => Database::Robust,
         ],
         'groups' => [
             'connectors' => ['GroupsServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['Groups', 'GroupsServerURI'],
             'database' => Database::Robust,
         ],
         'offline' => [
             'connectors' => ['OfflineIMServiceConnector'],
             'port' => self::PRIVATE,
-            'setting' => ['Messaging', 'OfflineMessageURL'],
             'database' => Database::Offline,
             'kind' => self::FIXED,
             'legacy' => 'offline',
@@ -154,69 +139,58 @@ final class Service extends InstalledModel
         'profile' => [
             'connectors' => ['UserProfilesServiceConnector'],
             'port' => self::PUBLIC,
-            'setting' => ['UserProfiles', 'ProfileServiceURL'],
             'database' => Database::Profiles,
         ],
         'login' => [
             'connectors' => ['LLLoginServiceInConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         // The /get_grid_info of OpenSimulator (Robust answers it): the engine reads it, it is no endpoint of the API
         'get-grid-info' => [
             'connectors' => ['GridInfoServerInConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         'gatekeeper' => [
             'connectors' => ['GatekeeperServiceInConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         'user-agent' => [
             'connectors' => ['UserAgentServerConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         'hg-friends' => [
             'connectors' => ['HGFriendsServerConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         'hg-asset' => [
             'connectors' => ['HGAssetServiceConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         'hg-inventory' => [
             'connectors' => ['HGInventoryServiceConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         'hg-groups' => [
             'connectors' => ['HGGroupsServiceConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
         'map' => [
             'connectors' => ['MapGetServiceConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
             'kind' => self::FIXED,
         ],
         'query' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['Search', 'SearchURL'],
             'database' => Database::Search,
             'default' => 'query',
             'kind' => self::FIXED,
@@ -226,10 +200,6 @@ final class Service extends InstalledModel
         'search' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['GridInfoService', 'search'],
-            'role' => 'Robust',
-            'also' => [['Robust', 'LoginService', 'SearchURL']],
-            'info' => 'search',
             'default' => 'search',
             'database' => null,
             'kind' => self::PAGE,
@@ -237,9 +207,6 @@ final class Service extends InstalledModel
         'welcome' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['GridInfoService', 'welcome'],
-            'role' => 'Robust',
-            'info' => 'welcome',
             'default' => 'welcome',
             'database' => null,
             'kind' => self::PAGE,
@@ -247,19 +214,12 @@ final class Service extends InstalledModel
         'web-profile' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['GridInfoService', 'web_profile_url'],
-            'role' => 'Robust',
-            'info' => 'web_profile_url',
             'database' => null,
             'kind' => self::PAGE,
         ],
         'currency' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['GridInfoService', 'economy'],
-            'role' => 'Robust',
-            'also' => [['Robust', 'Economy', 'economy']],
-            'info' => 'economy',
             'append' => 'currency.php',
             'default' => 'currency',
             'database' => Database::Economy,
@@ -270,10 +230,6 @@ final class Service extends InstalledModel
         'landtool' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['GridInfoService', 'economy'],
-            'role' => 'Robust',
-            'also' => [['Robust', 'Economy', 'economy']],
-            'info' => 'economy',
             'append' => 'landtool.php',
             'default' => 'landtool',
             'database' => null,
@@ -284,7 +240,6 @@ final class Service extends InstalledModel
         'register' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['DataSnapshot', 'DATA_SRV_*'],
             'default' => 'register',
             'database' => Database::Search,
             'kind' => self::FIXED,
@@ -294,8 +249,6 @@ final class Service extends InstalledModel
         'motd' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['LoginService', 'MessageUrl'],
-            'role' => 'Robust',
             'default' => 'motd',
             'database' => null,
             'kind' => self::STANDARD,
@@ -305,8 +258,6 @@ final class Service extends InstalledModel
         'guide' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['LoginService', 'DestinationGuide'],
-            'role' => 'Robust',
             'default' => 'guide',
             'database' => null,
             'kind' => self::STANDARD,
@@ -316,10 +267,6 @@ final class Service extends InstalledModel
         'grid-status' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['GridInfoService', 'GridStatus'],
-            'role' => 'Robust',
-            'also' => [['Helpers', 'Helpers', 'GridStatusURL']],
-            'info' => 'GridStatus',
             'default' => 'grid_status',
             'database' => null,
             'kind' => self::PAGE,
@@ -327,8 +274,6 @@ final class Service extends InstalledModel
         'directory' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['Helpers', 'DirectoryURL'],
-            'role' => 'Helpers',
             'default' => 'directory',
             'database' => null,
             'kind' => self::PAGE,
@@ -336,16 +281,12 @@ final class Service extends InstalledModel
         'grid-status-rss' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['GridInfoService', 'GridStatusRSS'],
-            'role' => 'Robust',
-            'info' => 'GridStatusRSS',
             'database' => null,
             'kind' => self::FIXED,
         ],
         'parser' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => null,
             'default' => 'parser',
             'database' => null,
             'kind' => self::STANDARD,
@@ -355,7 +296,6 @@ final class Service extends InstalledModel
         'events-parser' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => null,
             'default' => 'eventsparser',
             'database' => null,
             'kind' => self::STANDARD,
@@ -365,7 +305,6 @@ final class Service extends InstalledModel
         'text-images' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => null,
             'default' => 'textgen',
             'database' => null,
             'kind' => self::STANDARD,
@@ -375,8 +314,6 @@ final class Service extends InstalledModel
         'assets' => [
             'connectors' => [],
             'port' => self::WEB,
-            'setting' => ['Helpers', 'AssetsURL'],
-            'role' => 'Helpers',
             'default' => 'assets',
             'database' => Database::Assets,
             'kind' => self::STANDARD,
@@ -385,7 +322,6 @@ final class Service extends InstalledModel
         'instant-message' => [
             'connectors' => ['InstantMessageServerConnector'],
             'port' => self::PUBLIC,
-            'setting' => null,
             'database' => null,
         ],
     ];
@@ -414,23 +350,6 @@ final class Service extends InstalledModel
         'assets' => 'web-assets',
     ];
 
-    /** The name of a service in the catalog when it is a setting the health names too (Health::SETTINGS): `setting_<name>`. */
-    private const SETTING_NAMES = [
-        'login' => 'login',
-        'gatekeeper' => 'gatekeeper',
-        'user-agent' => 'uas',
-        'query' => 'search_service',
-        'search' => 'web_search',
-        'welcome' => 'welcome',
-        'web-profile' => 'web_profile',
-        'offline' => 'offline_messages',
-        'register' => 'data_service',
-        'motd' => 'message_url',
-        'guide' => 'destination_guide',
-        'grid-status' => 'grid_status',
-        'grid-status-rss' => 'grid_status_rss',
-        'directory' => 'directory',
-    ];
 
     /** What a standalone serves by itself: the services of the grid, the ones of the hypergrid when it is one. */
     private const STANDALONE = [
@@ -728,7 +647,15 @@ final class Service extends InstalledModel
      */
     public function setting(): ?array
     {
-        return self::CATALOG[$this->key]['setting'];
+        $entry = Settings::forService($this->key);
+
+        return $entry === null ? null : [$entry['section'], self::keyOf($entry)];
+    }
+
+    /** The key of a setting as a section has it; a family of keys (DATA_SRV_*) ends with `*`. */
+    private static function keyOf(array $entry): string
+    {
+        return $entry['key'] . (($entry['prefix'] ?? false) ? '*' : '');
     }
 
     /**
@@ -773,7 +700,7 @@ final class Service extends InstalledModel
         return $this->isServed() ||
             $this->declared() !== null ||
             $this->live() !== null ||
-            (self::CATALOG[$this->key]['setting'] === null && $this->helperAddress() !== null);
+            ($this->setting() === null && $this->helperAddress() !== null);
     }
 
     /**
@@ -839,7 +766,7 @@ final class Service extends InstalledModel
         }
         // What the grid does not say it has not: the address the helpers would answer by default is no address of the grid. A tool
         // of the helpers no setting gives (the parser, textgen: a script in-world calls it) is where the helpers the grid has are
-        if (self::CATALOG[$this->key]['setting'] === null && ($tool = $this->helperAddress()) !== null) {
+        if ($this->setting() === null && ($tool = $this->helperAddress()) !== null) {
             return $this->resolved = [$tool, 'helpers'];
         }
 
@@ -849,7 +776,7 @@ final class Service extends InstalledModel
     /** What the running grid says for it at get_grid_info, null when it does not say, or does not answer. */
     private function live(): ?string
     {
-        $info = self::CATALOG[$this->key]['info'] ?? null;
+        $info = Settings::forService($this->key)['info'] ?? null;
         if ($info === null || !$this->grid->gridInfoIsLive()) {
             return null;
         }
@@ -935,17 +862,18 @@ final class Service extends InstalledModel
         $entry = self::CATALOG[$this->key];
         $robust = $this->grid->robustIni();
         $robustFile = $robust !== null ? basename($robust) : 'Robust.ini';
-        [$section, $key] = $entry['setting'] ?? [null, null];
+        // Where the registry of the settings says it is set, else the connector of Robust that serves it
+        $setting = Settings::forService($this->key);
+        [$section, $key] = $setting !== null ? [$setting['section'], self::keyOf($setting)] : [null, null];
         $file = match (true) {
-            $section === null => ($entry['connectors'] ?? []) === [] ? null : $robustFile,
-            ($entry['role'] ?? null) === 'Robust' => $robustFile,
-            ($entry['role'] ?? null) === 'Helpers' => 'Helpers.ini',
-            default => 'OpenSim.ini',
+            $setting === null => ($entry['connectors'] ?? []) === [] ? null : $robustFile,
+            $setting['instance'] === 'robust' => $robustFile,
+            default => Settings::INSTANCES[$setting['instance']]['file'],
         };
         if ($section === null && $file !== null) {
             [$section, $key] = ['ServiceList', $entry['connectors'][0]];
         }
-        $name = isset(self::SETTING_NAMES[$this->key]) ? 'setting_' . self::SETTING_NAMES[$this->key] : 'service_' . str_replace('-', '_', $this->key);
+        $name = Settings::serviceLabel($this->key) ?? 'service_' . str_replace('-', '_', $this->key);
 
         return [
             'key' => $this->key,
@@ -955,7 +883,7 @@ final class Service extends InstalledModel
             'file' => $file,
             'section' => $section,
             'setting' => $key,
-            'info' => $entry['info'] ?? null,
+            'info' => $setting['info'] ?? null,
             'label' => $name,
             'description' => $name . '_help',
         ];
@@ -976,12 +904,10 @@ final class Service extends InstalledModel
      */
     private function settings(): array
     {
-        $entry = self::CATALOG[$this->key];
-        $settings = isset($entry['setting'])
-            ? [[$entry['role'] ?? 'OpenSim', $entry['setting'][0], $entry['setting'][1]]]
-            : [];
-
-        return [...$settings, ...$entry['also'] ?? []];
+        return array_map(
+            static fn(array $entry): array => [Settings::INSTANCES[$entry['instance']]['role'], $entry['section'], self::keyOf($entry)],
+            Settings::ofService($this->key),
+        );
     }
 
     /** The address the config of the simulators of the grid gives for it, null when it gives none. */
@@ -1035,7 +961,7 @@ final class Service extends InstalledModel
     {
         $setting = $this->setting();
         // What Robust tells is not in the config of a simulator
-        if ($setting === null || (self::CATALOG[$this->key]['role'] ?? 'OpenSim') !== 'OpenSim') {
+        if ($setting === null || Settings::forService($this->key)['instance'] !== 'opensim') {
             return null;
         }
 

@@ -18,10 +18,14 @@ use OpenSim\I18n\Catalog;
  *
  * An entry: `name` its clean name; `type` (TYPES); `label` the key of its text in the catalog (`<label>_help` its description, when
  * the catalog has one); `default` what it is when the files say nothing; `options` value => key of the text of a choice; `service`
- * the key of the service whose address it gives (Service); `info` the key of get_grid_info that tells it; `hypergrid` only in
+ * the keys of the services whose address it gives (Service), the first setting of a service the one it is set in, the others read
+ * after it; `labels` the label of the address of a service when it is not the label of the setting; `names` the services it names
+ * without giving their address (the login: Robust serves it); `info` the key of get_grid_info that tells it; `hypergrid` only in
  * Robust.HG.ini; `secret` never shown, masked; `multiple` several values; `prefix` a family of keys that begin with the key (`*`);
  * `admin` the settings page a site edits it on (GridSettings), `readOnly` shown there, changed elsewhere (an option of the grid);
- * `placeholder`, `condition` (clean names => the values it is shown for), `widget` as in the standard field format.
+ * `placeholder`, `condition` (clean names => the values it is shown for), `widget` as in the standard field format; `health` how
+ * the health of the grid asks it (`address` a page, `login-search` the web search of the login, `xmlrpc` the search of the
+ * simulators, `register` the data services, `offline` the offline messages, `secret` set or not).
  *
  * What belongs to a site (its pages, its users, its theme) is the site's, never here.
  */
@@ -58,26 +62,30 @@ final class Settings
                 'ConnectionString' => ['name' => 'database', 'type' => 'connection-string', 'label' => 'setting_database', 'secret' => true],
             ],
             'GridInfoService' => [
-                'login' => ['name' => 'loginUri', 'type' => 'url', 'label' => 'setting_login', 'info' => 'login'],
-                'gatekeeper' => ['name' => 'gatekeeper', 'type' => 'url', 'label' => 'setting_gatekeeper', 'info' => 'gatekeeper', 'hypergrid' => true],
-                'uas' => ['name' => 'userAgentService', 'type' => 'url', 'label' => 'setting_uas', 'info' => 'uas', 'hypergrid' => true],
+                'login' => ['name' => 'loginUri', 'type' => 'url', 'label' => 'setting_login', 'info' => 'login', 'names' => ['login'], 'health' => 'address'],
+                'gatekeeper' => ['name' => 'gatekeeper', 'type' => 'url', 'label' => 'setting_gatekeeper', 'info' => 'gatekeeper', 'hypergrid' => true, 'names' => ['gatekeeper'], 'health' => 'address'],
+                'uas' => ['name' => 'userAgentService', 'type' => 'url', 'label' => 'setting_uas', 'info' => 'uas', 'hypergrid' => true, 'names' => ['user-agent']],
                 'gridname' => ['name' => 'gridName', 'type' => 'text', 'label' => 'setting_grid_name', 'info' => 'gridname'],
                 'gridnick' => ['name' => 'gridNick', 'type' => 'text', 'label' => 'setting_grid_nick', 'info' => 'gridnick'],
-                'welcome' => ['name' => 'welcomePage', 'type' => 'url', 'label' => 'setting_welcome', 'info' => 'welcome', 'service' => 'welcome'],
-                'economy' => ['name' => 'economyUrl', 'type' => 'url', 'label' => 'setting_economy', 'info' => 'economy', 'service' => ['currency', 'landtool'], 'admin' => 'economy'],
-                'about' => ['name' => 'aboutPage', 'type' => 'url', 'label' => 'setting_about', 'info' => 'about'],
-                'register' => ['name' => 'registerPage', 'type' => 'url', 'label' => 'setting_register', 'info' => 'register'],
-                'help' => ['name' => 'helpPage', 'type' => 'url', 'label' => 'setting_help', 'info' => 'help'],
-                'password' => ['name' => 'passwordPage', 'type' => 'url', 'label' => 'setting_password', 'info' => 'password'],
-                'GridStatus' => ['name' => 'gridStatusPage', 'type' => 'url', 'label' => 'setting_grid_status', 'info' => 'GridStatus', 'service' => 'grid-status'],
-                'GridStatusRSS' => ['name' => 'gridStatusRss', 'type' => 'url', 'label' => 'setting_grid_status_rss', 'info' => 'GridStatusRSS', 'service' => 'grid-status-rss'],
-                'web_profile_url' => ['name' => 'webProfileUrl', 'type' => 'url', 'label' => 'setting_web_profile', 'info' => 'web_profile_url', 'service' => 'web-profile'],
-                'search' => ['name' => 'webSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'info' => 'search', 'service' => 'search'],
+                'welcome' => ['name' => 'welcomePage', 'type' => 'url', 'label' => 'setting_welcome', 'info' => 'welcome', 'service' => 'welcome', 'health' => 'address'],
+                'economy' => ['name' => 'economyUrl', 'type' => 'url', 'label' => 'setting_economy', 'info' => 'economy', 'service' => ['currency', 'landtool'], 'labels' => ['currency' => 'service_currency', 'landtool' => 'service_landtool'], 'admin' => 'economy', 'health' => 'address'],
+                'about' => ['name' => 'aboutPage', 'type' => 'url', 'label' => 'setting_about', 'info' => 'about', 'health' => 'address'],
+                'register' => ['name' => 'registerPage', 'type' => 'url', 'label' => 'setting_register', 'info' => 'register', 'health' => 'address'],
+                'help' => ['name' => 'helpPage', 'type' => 'url', 'label' => 'setting_help', 'info' => 'help', 'health' => 'address'],
+                'password' => ['name' => 'passwordPage', 'type' => 'url', 'label' => 'setting_password', 'info' => 'password', 'health' => 'address'],
+                'GridStatus' => ['name' => 'gridStatusPage', 'type' => 'url', 'label' => 'setting_grid_status', 'info' => 'GridStatus', 'service' => 'grid-status', 'health' => 'address'],
+                'GridStatusRSS' => ['name' => 'gridStatusRss', 'type' => 'url', 'label' => 'setting_grid_status_rss', 'info' => 'GridStatusRSS', 'service' => 'grid-status-rss', 'health' => 'address'],
+                'web_profile_url' => ['name' => 'webProfileUrl', 'type' => 'url', 'label' => 'setting_web_profile', 'info' => 'web_profile_url', 'service' => 'web-profile', 'health' => 'address'],
+                'search' => ['name' => 'webSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'info' => 'search', 'service' => 'search', 'health' => 'address'],
+            ],
+            // Where an old config gave the economy
+            'Economy' => [
+                'economy' => ['name' => 'robustEconomyUrl', 'type' => 'url', 'label' => 'setting_economy', 'service' => ['currency', 'landtool'], 'labels' => ['currency' => 'service_currency', 'landtool' => 'service_landtool']],
             ],
             'LoginService' => [
-                'SearchURL' => ['name' => 'loginSearchUrl', 'type' => 'url', 'label' => 'setting_web_search'],
-                'DestinationGuide' => ['name' => 'destinationGuide', 'type' => 'url', 'label' => 'setting_destination_guide', 'service' => 'guide', 'admin' => 'guide'],
-                'MessageUrl' => ['name' => 'messageUrl', 'type' => 'url', 'label' => 'setting_message_url', 'service' => 'motd'],
+                'DestinationGuide' => ['name' => 'destinationGuide', 'type' => 'url', 'label' => 'setting_destination_guide', 'service' => 'guide', 'admin' => 'guide', 'health' => 'address'],
+                'MessageUrl' => ['name' => 'messageUrl', 'type' => 'url', 'label' => 'setting_message_url', 'service' => 'motd', 'health' => 'address'],
+                'SearchURL' => ['name' => 'loginSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'service' => 'search', 'health' => 'login-search'],
                 'WelcomeMessage' => ['name' => 'welcomeMessage', 'type' => 'text', 'label' => 'setting_welcome_message'],
                 'Currency' => ['name' => 'currencySymbol', 'type' => 'text', 'label' => 'setting_currency_symbol'],
             ],
@@ -102,16 +110,16 @@ final class Settings
             'UserProfiles' => ['ProfileServiceURL' => ['name' => 'profileServiceUrl', 'type' => 'url', 'label' => 'service_profile', 'service' => 'profile']],
             'Search' => [
                 'Module' => ['name' => 'searchModule', 'type' => 'text', 'label' => 'setting_search_module', 'default' => 'OpenSimSearch'],
-                'SearchURL' => ['name' => 'searchUrl', 'type' => 'url', 'label' => 'setting_search_service', 'service' => 'query', 'admin' => 'search', 'readOnly' => true],
+                'SearchURL' => ['name' => 'searchUrl', 'type' => 'url', 'label' => 'setting_search_service', 'service' => 'query', 'admin' => 'search', 'readOnly' => true, 'health' => 'xmlrpc'],
             ],
             'DataSnapshot' => [
                 'index_sims' => ['name' => 'indexSims', 'type' => 'bool', 'label' => 'setting_index_sims'],
                 'gridname' => ['name' => 'snapshotGridName', 'type' => 'text', 'label' => 'setting_grid_name'],
-                'DATA_SRV_' => ['name' => 'dataServices', 'type' => 'url', 'label' => 'setting_data_service', 'service' => 'register', 'prefix' => true, 'multiple' => true, 'admin' => 'search', 'readOnly' => true],
+                'DATA_SRV_' => ['name' => 'dataServices', 'type' => 'url', 'label' => 'setting_data_service', 'service' => 'register', 'prefix' => true, 'multiple' => true, 'admin' => 'search', 'readOnly' => true, 'health' => 'register'],
             ],
             'Messaging' => [
                 'OfflineMessageModule' => ['name' => 'offlineModule', 'type' => 'select', 'label' => 'setting_offline_module', 'options' => ['OfflineMessageModule' => 'offline_module_v1', 'Offline Message Module V2' => 'offline_module_v2'], 'admin' => 'offline', 'readOnly' => true],
-                'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'readOnly' => true],
+                'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'readOnly' => true, 'health' => 'offline'],
             ],
             'Economy' => [
                 'economymodule' => ['name' => 'economyModule', 'type' => 'select', 'label' => 'setting_economy_module', 'options' => ['BetaGridLikeMoneyModule' => 'economy_module_free', 'Gloebit' => 'economy_module_gloebit', 'DTLNSLMoneyModule' => 'economy_module_moneyserver'], 'admin' => 'economy', 'readOnly' => true],
@@ -126,15 +134,15 @@ final class Settings
         ],
         'moneyserver' => [
             'MoneyServer' => [
-                'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+                'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']], 'health' => 'secret'],
             ],
         ],
         'helpers' => [
             'Helpers' => [
                 'HelpersURL' => ['name' => 'helpersUrl', 'type' => 'url', 'label' => 'setting_helpers'],
-                'AssetsURL' => ['name' => 'assetsUrl', 'type' => 'url', 'label' => 'setting_assets_url', 'service' => 'assets', 'admin' => 'assets', 'placeholder' => 'https://example.org/assets'],
+                'AssetsURL' => ['name' => 'assetsUrl', 'type' => 'url', 'label' => 'setting_assets_url', 'service' => 'assets', 'labels' => ['assets' => 'service_assets'], 'admin' => 'assets', 'placeholder' => 'https://example.org/assets'],
                 'DirectoryURL' => ['name' => 'directoryUrl', 'type' => 'url', 'label' => 'setting_directory', 'service' => 'directory'],
-                'GridStatusURL' => ['name' => 'gridStatusUrl', 'type' => 'url', 'label' => 'setting_grid_status'],
+                'GridStatusURL' => ['name' => 'gridStatusUrl', 'type' => 'url', 'label' => 'setting_grid_status', 'service' => 'grid-status'],
                 'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'placeholder' => 'destinations.txt'],
                 'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search'],
                 'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => 'https://2do.directory/events', 'placeholder' => 'https://2do.directory/events'],
@@ -214,9 +222,29 @@ final class Settings
     /** The setting that gives the address of a service (a key of Service), null when no setting does. */
     public static function forService(string $service): ?array
     {
+        return self::ofService($service)[0] ?? null;
+    }
+
+    /**
+     * The settings that give the address of a service, in the order they are read: the one it is set in, then the others.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function ofService(string $service): array
+    {
+        return array_values(array_filter(self::entries(), static fn(array $entry): bool => in_array($service, (array) ($entry['service'] ?? []), true)));
+    }
+
+    /** The label of the address of a service: the one of its setting, or of the setting that names it; null for none. */
+    public static function serviceLabel(string $service): ?string
+    {
+        $entry = self::forService($service);
+        if ($entry !== null) {
+            return $entry['labels'][$service] ?? $entry['label'];
+        }
         foreach (self::entries() as $entry) {
-            if (in_array($service, (array) ($entry['service'] ?? []), true)) {
-                return $entry;
+            if (in_array($service, $entry['names'] ?? [], true)) {
+                return $entry['label'];
             }
         }
 
