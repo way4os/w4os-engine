@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "22f8c61",
+        "version": "c61c626",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -3659,6 +3659,33 @@
                         "in": "path",
                         "required": true,
                         "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[match]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "first",
+                                "any",
+                                "last",
+                                "uuid"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filter[pattern]",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter[list]",
+                        "in": "query",
                         "schema": {
                             "type": "string"
                         }

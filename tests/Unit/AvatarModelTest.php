@@ -117,6 +117,15 @@ describe('avatar models', function () {
             ->toThrow(OpenSim\Exceptions\InvalidValue::class);
     });
 
+    test('have the filters of the preview in the contract, a list that has no pages', function () {
+        $parameters = array_column(OpenSim\Api\Contract::document()['paths']['/grids/{grid}/avatar-models']['get']['parameters'], null, 'name');
+
+        expect(array_keys($parameters))
+            ->toBe(['grid', 'filter[match]', 'filter[pattern]', 'filter[list]'])
+            ->and($parameters['filter[match]']['schema']['enum'] ?? null)
+            ->toBe(['first', 'any', 'last', 'uuid']);
+    });
+
     test('show their name without the pattern, their profile picture, a placeholder when they have none', function () {
         avatars_in(model_database());
         $ruth = AvatarModel::find(avatar_grid(), RUTH)->detail();

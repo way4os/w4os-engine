@@ -659,7 +659,8 @@ final class Contract
                     'tags' => [$tag],
                     'summary' => "List $type",
                     'description' => $resource['summary'] . '.',
-                    'parameters' => $parameters,
+                    // A list that has no pages takes its filters only
+                    'parameters' => [...$parameters, ...self::filterParameters($resource['filters'] ?? [])],
                     'responses' => [
                         '200' => self::documentResponse("The $type", $schema, true),
                         '404' => self::problem('The application has none, or the grid is not known here'),
@@ -1193,6 +1194,18 @@ final class Contract
             ['name' => 'page[number]', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 1]],
             ['name' => 'page[size]', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 0]],
         ];
+        return [...$parameters, ...self::filterParameters($filters, $listing)];
+    }
+
+    /**
+     * The parameters of the filters of a list.
+     *
+     * @param array<string,list<string>> $filters
+     * @return list<array<string,mixed>>
+     */
+    private static function filterParameters(array $filters, ?Listing $listing = null): array
+    {
+        $parameters = [];
         foreach ($filters as $name => $values) {
             // A filter that takes several values: they are separated by commas
             $multiple = $listing?->multiple($name) ?? false;
