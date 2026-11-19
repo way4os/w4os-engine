@@ -290,3 +290,19 @@ describe('The addresses of a grid, each what it is', function () {
             ->toBe($sorted);
     });
 });
+
+describe('The monitor of a grid a site describes', function () {
+    test('counts its regions and its people in the databases of the config it was given, as the grid of its folder', function () {
+        $machine = monitor_machine();
+        $db = monitor_database();
+        Connections::using(static fn() => $db);
+        $described = Grid::described($machine->environment, ['nick' => 'demo', 'name' => 'Demo', 'remote' => true], region_config());
+
+        $monitor = GridMonitor::of($described);
+        $folder = GridMonitor::of(Grid::find($machine->environment, 'demo'), region_config());
+
+        expect($monitor['regions'])->toBe($folder['regions'])->toBe(['total' => 3, 'online' => 2])
+            ->and($monitor['users'])->toBe($folder['users'])->not->toBeNull()
+            ->and($monitor['level'])->toBe('ok');
+    });
+});

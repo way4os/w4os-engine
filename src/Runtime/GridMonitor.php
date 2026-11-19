@@ -43,10 +43,8 @@ final class GridMonitor
     public static function of(Grid $grid, ?GridConfig $config = null, ?Status $status = null): array
     {
         $status ??= OpenSim::status($grid->environment());
-        $config ??=
-            $grid->directory() !== '' && is_dir($grid->directory())
-                ? GridConfig::fromFolder($grid->directory(), ['Helpers' => 'Helpers.ini'])
-                : null;
+        // The config of the grid, its folder's or the one an application gives (a grid a site describes)
+        $config ??= $grid->config();
 
         // The instances of the grid on this machine, with what they use
         $mine = array_map(static fn($controller): string => $controller->name(), $grid->instances(true));
