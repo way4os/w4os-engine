@@ -2459,6 +2459,30 @@ msgstr ""
 "L'inscription est gardée, mais le message à {email} n'a pas pu être envoyé : "
 "redemandez-le plus tard."
 
+#~ msgctxt "column_region_name"
+#~ msgid "Region Name"
+#~ msgstr "Nom de la région"
+
+#~ msgctxt "column_region_uri"
+#~ msgid "Region URI"
+#~ msgstr "URI de la région"
+
+#~ msgctxt "column_control"
+#~ msgid "Control"
+#~ msgstr "Contrôle"
+
+#~ msgctxt "column_presence"
+#~ msgid "Presence"
+#~ msgstr "Présence"
+
+#~ msgctxt "column_internal_port"
+#~ msgid "Internal Port"
+#~ msgstr "Port Interne"
+
+#~ msgctxt "last_activity"
+#~ msgid "Last Activity"
+#~ msgstr "Dernière activité"
+
 #~ msgctxt "error_not_found"
 #~ msgid "There is no such avatar."
 #~ msgstr "Cet avatar n’existe pas."

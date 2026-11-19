@@ -1329,8 +1329,8 @@ final class Region extends Model
                 Listing::column('name', 'column_region', sort: 'name', more: ['picture' => 'mapImage', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('size', 'column_size', 'size', 'size'),
-                Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile']),
-                Listing::column('serverName', 'filter_simulator'),
+                Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile', 'mirrors' => 'owner']),
+                Listing::column('serverName', 'filter_simulator', more: ['mirrors' => 'simulator']),
                 // The port of the region on its simulator (InternalPort of its file), where its file is
                 Listing::column('internalPort', 'column_port', 'number'),
                 // Every flag but RegionOnline, which the column of the status shows

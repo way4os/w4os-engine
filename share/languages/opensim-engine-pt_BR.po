@@ -2412,6 +2412,30 @@ msgstr ""
 "O cadastro foi mantido, mas a mensagem para {email} não pôde ser enviada: "
 "peça de novo mais tarde."
 
+#~ msgctxt "column_region_name"
+#~ msgid "Region Name"
+#~ msgstr "Nome da Região"
+
+#~ msgctxt "column_region_uri"
+#~ msgid "Region URI"
+#~ msgstr "URI da região"
+
+#~ msgctxt "column_control"
+#~ msgid "Control"
+#~ msgstr "Controle"
+
+#~ msgctxt "column_presence"
+#~ msgid "Presence"
+#~ msgstr "Presença"
+
+#~ msgctxt "column_internal_port"
+#~ msgid "Internal Port"
+#~ msgstr "Porta Interna"
+
+#~ msgctxt "last_activity"
+#~ msgid "Last Activity"
+#~ msgstr "Última Atividade"
+
 #~ msgctxt "error_not_found"
 #~ msgid "There is no such avatar."
 #~ msgstr "Este avatar não existe."

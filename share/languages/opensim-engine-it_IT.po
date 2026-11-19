@@ -2428,6 +2428,30 @@ msgstr ""
 "La registrazione è conservata, ma la mail a {email} non è stata inviata: "
 "richiedila più tardi."
 
+#~ msgctxt "column_region_name"
+#~ msgid "Region Name"
+#~ msgstr "Nome Regione"
+
+#~ msgctxt "column_region_uri"
+#~ msgid "Region URI"
+#~ msgstr "URI della regione"
+
+#~ msgctxt "column_control"
+#~ msgid "Control"
+#~ msgstr "Control"
+
+#~ msgctxt "column_presence"
+#~ msgid "Presence"
+#~ msgstr "Presenza"
+
+#~ msgctxt "column_internal_port"
+#~ msgid "Internal Port"
+#~ msgstr "Porta interna"
+
+#~ msgctxt "last_activity"
+#~ msgid "Last Activity"
+#~ msgstr "Ultima attività"
+
 #~ msgctxt "error_not_found"
 #~ msgid "There is no such avatar."
 #~ msgstr "Questo avatar non esiste."

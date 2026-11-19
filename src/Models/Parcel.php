@@ -431,8 +431,9 @@ final class Parcel extends Model
             [
                 // Its URI under its name, linked to the teleport there, beside its picture
                 Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri'], 'subtitleLink' => 'teleport', 'picture' => 'snapshot', 'default' => 'place']),
-                Listing::column('regionName', 'column_region'),
-                Listing::column('ownerName', 'column_owner'),
+                // Repeats the filter of a parent: left out when the list is of one region, one owner
+                Listing::column('regionName', 'column_region', more: ['mirrors' => 'region']),
+                Listing::column('ownerName', 'column_owner', more: ['mirrors' => 'owner']),
                 Listing::column('area', 'column_area', 'number', 'area'),
                 Listing::column('dwell', 'column_traffic', 'number', 'dwell'),
                 Listing::column('forSale', 'column_for_sale', 'boolean'),

@@ -107,6 +107,11 @@ final class Listing
             in_array($view, array_column($filters, 'name'), true) ||
                 throw new \InvalidArgumentException("'$view' is not a filter of the list");
         }
+        // A column that repeats a filter (mirrors) names one of the list
+        foreach (array_filter(array_column($columns, 'mirrors')) as $mirrored) {
+            in_array($mirrored, array_column($filters, 'name'), true) ||
+                throw new \InvalidArgumentException("'$mirrored' is not a filter of the list");
+        }
     }
 
     /**
