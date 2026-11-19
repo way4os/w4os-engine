@@ -1132,7 +1132,7 @@ final class Contract
             'name' => $field('string', 'What the setting or the page is, a key of the catalog (`setting_<name>`): a site shows it, with the key of the row in small'),
             'description' => $field('string', 'What it is for, a key of the catalog (`setting_<name>_help`)'),
             'thirdParty' => $field('boolean', 'A service that does not answer and that an application of its own serves (the helpers of the engine, or another one), not the helpers of the grid: `health_third_party` says it'),
-            'checked' => $field('integer', 'When this line was checked alone (`getHealthCheck`, Unix time); the others were checked with all of them (`checked` of the health)'),
+            'checkedAt' => $field('integer', 'When this line was checked (Unix time): with all of them (`checkedAt` of the health), or alone later (`getHealthCheck`, which always checks it now)'),
             'cert' => $field('boolean', 'The certificate of the address is one this server does not trust (expired, self-signed, another name): told apart, it does not change the level, what counts is what the address answers'),
         ];
     }

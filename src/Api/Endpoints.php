@@ -521,7 +521,7 @@ final class Endpoints
             'operationId' => 'getHealthCheck',
             'tags' => ['Health'],
             'summary' => 'One line of the health, checked now',
-            'description' => 'One line of the health of the grid (its `id` in `getHealth`), checked now: the address asked, what it must answer and what it answered, as a row of `getHealth`, with when it was checked (`checked`). The last check keeps it. A site shows the lines of `getHealth` at once, then checks them one by one, a few at a time: the pages of a site call back the engine, so never all at once.',
+            'description' => 'One line of the health of the grid (its `id` in `getHealth`), checked now: the address asked, what it must answer and what it answered, as a row of `getHealth`, with when it was checked (`checkedAt`), always now, never the last check kept. The last check keeps it. A site shows the lines of `getHealth` at once, then checks them one by one, a few at a time: the pages of a site call back the engine, so never all at once.',
             'parameters' => [
                 Contract::gridParameter(),
                 ['name' => 'check', 'in' => 'path', 'required' => true, 'description' => 'The id of the line', 'schema' => ['type' => 'string']],
@@ -539,7 +539,7 @@ final class Endpoints
                                         'properties' => [
                                             'type' => ['const' => 'health-checks'],
                                             'id' => ['type' => 'string'],
-                                            'attributes' => ['type' => 'object', 'properties' => Contract::healthRow() + ['checked' => ['type' => 'integer', 'description' => 'When it was checked (Unix time)']]],
+                                            'attributes' => ['type' => 'object', 'properties' => Contract::healthRow()],
                                         ],
                                     ],
                                 ],
@@ -555,10 +555,10 @@ final class Endpoints
             'tags' => ['Health'],
             'summary' => 'Health of the grid',
             'description' =>
-                'The addresses the config of the grid gives (the services of Robust, the web services, the pages), what the grid says of itself at `get_grid_info`, and the ones that are expected and not given, asked now: a service that must refuse a call without data refuses it, and answers one that makes sense. The pages for people (each answers, the base of the helpers answers, the helpers claim no page of the site), the PHP extensions the engine needs, the folders it writes (`cache`: `assets`, the pictures; `tasks`, the state of the tasks, `TasksRoot`: without it no task runs and the search index never fills) and the files it reads come with them. `level` is `error` when something does not answer as it should, `ok` when all that is asked does, `none` when there is nothing to ask. The groups are the sections of the files of the grid; each row has the address, the status (the HTTP code, or the error), the time in milliseconds and its own level. A check takes the time of the slowest address: the last one is given again with its time (`checked`, `cached` true), kept by the task of the grid that checks it every 15 minutes (`health`); `refresh` checks it now. Each line has its `id`: a site shows them at once, then checks them one by one (`getHealthCheck`), a few at a time.',
+                'The addresses the config of the grid gives (the services of Robust, the web services, the pages), what the grid says of itself at `get_grid_info`, and the ones that are expected and not given, asked now: a service that must refuse a call without data refuses it, and answers one that makes sense. The pages for people (each answers, the base of the helpers answers, the helpers claim no page of the site), the PHP extensions the engine needs, the folders it writes (`cache`: `assets`, the pictures; `tasks`, the state of the tasks, `TasksRoot`: without it no task runs and the search index never fills) and the files it reads come with them. `level` is `error` when something does not answer as it should, `ok` when all that is asked does, `none` when there is nothing to ask. The groups are the sections of the files of the grid; each row has the address, the status (the HTTP code, or the error), the time in milliseconds and its own level. A check takes the time of the slowest address: the last one is given again with its time (`checkedAt`, `cached` true), kept by the task of the grid that checks it every 15 minutes (`health`); `refresh` checks it now. Each line has its `id`: a site shows them at once, then checks them one by one (`getHealthCheck`), a few at a time.',
             'parameters' => [
                 Contract::gridParameter(),
-                ['name' => 'refresh', 'in' => 'query', 'required' => false, 'description' => 'Check now (1, true), not the last check kept', 'schema' => ['type' => 'string']],
+                ['name' => 'refresh', 'in' => 'query', 'required' => false, 'description' => 'Check everything now (1, true), never the last check kept: every address asked again, two at a time, which takes the time of the slowest; `cached` false and `checkedAt` now say it was. Without it, the last check kept is given at once (`cached` true)', 'schema' => ['type' => 'string']],
             ],
             'responses' => [
                 '200' => [
@@ -576,7 +576,7 @@ final class Endpoints
                                             'attributes' => [
                                                 'type' => 'object',
                                                 'properties' => [
-                                                    'checked' => ['type' => 'integer', 'description' => 'When it was checked (Unix time)'],
+                                                    'checkedAt' => ['type' => 'integer', 'description' => 'When it was checked, all of it (Unix time); each line has its own (`checkedAt` of a line), a line checked alone later'],
                                                     'cached' => ['type' => 'boolean', 'description' => 'The last check kept, not one made for this request'],
                                                     'level' => [
                                                         'type' => 'string',

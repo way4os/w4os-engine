@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (health): every line of the health says when it was checked (`checkedAt`), and the health as a whole (`checkedAt`, was `checked`): `refresh` checks everything now, never the last check kept (`cached` false), a line asked alone is always checked now
 - update (health): a page of the site that shows a block of the helpers (the profile, the guide, the search) is asked with what it needs, the block (`/blocks/<name>` of the helpers) and their pictures (`needs`): it is an error when one of them does not answer, though the page does, for it shows nothing; the helpers themselves are asked what only they answer (their pictures), not only their base, which a site may answer in their place
 - feature (lists): a list says the filters a site shows as views, the row of links above it in w4os-wp, in its order and words (`views` of `x-list`, the names of its filters; `all`, All): the avatars by type (Default Model, Service Account, User Avatar), active or not (Active, Inactive), in the world or not, the counts of these two the user avatars' only as w4os-wp counts them; the regions by status and size. The types of the avatars are named as w4os-wp names them, in its translations
 - fix (api): the filters of a list that has no pages are in the contract: `match`, `pattern` and `list` of the avatar models (the preview of their settings)

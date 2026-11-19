@@ -1002,13 +1002,19 @@ describe('The last check of the health', function () {
         $background = $attributes();
         OpenSim\Data\Connections::using(null);
 
-        expect([$first['checked'], $first['cached']])
+        $lineTimes = static fn(array $check): array => array_values(array_unique(array_column(array_merge(...array_column($check['groups'], 'rows')), 'checkedAt')));
+
+        expect([$first['checkedAt'], $first['cached']])
             ->toBe([1_800_000_000, false])
-            ->and([$kept['checked'], $kept['cached'], $kept['groups']])
+            // Every line says when it was checked: all at once here
+            ->and($lineTimes($first))
+            ->toBe([1_800_000_000])
+            ->and([$kept['checkedAt'], $kept['cached'], $kept['groups']])
             ->toBe([1_800_000_000, true, $first['groups']])
-            ->and([$asked['checked'], $asked['cached']])
-            ->toBe([1_800_000_600, false])
-            ->and([$background['checked'], $background['cached']])
+            // Asked anew (refresh): checked now, not the last check kept
+            ->and([$asked['checkedAt'], $asked['cached'], $lineTimes($asked)])
+            ->toBe([1_800_000_600, false, [1_800_000_600]])
+            ->and([$background['checkedAt'], $background['cached']])
             ->toBe([1_800_001_600, true])
             ->and(array_column($scheduler->status(), 'id'))
             ->toContain('health.demo');
@@ -1055,8 +1061,8 @@ describe('The health, line by line', function () {
             ->and($one->document['data'])
             ->toMatchArray(['type' => 'health-checks', 'id' => $asked['id']])
             ->and($one->document['data']['attributes'])
-            ->toMatchArray(['label' => $asked['label'], 'url' => $asked['url'], 'checked' => 1_800_000_060])
-            ->and($kept['checked'] ?? null)
+            ->toMatchArray(['label' => $asked['label'], 'url' => $asked['url'], 'checkedAt' => 1_800_000_060])
+            ->and($kept['checkedAt'] ?? null)
             ->toBe(1_800_000_060)
             ->and($unknown->status)
             ->toBe(404)

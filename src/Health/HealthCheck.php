@@ -38,8 +38,15 @@ final class HealthCheck
     public static function run(Environment $environment, Grid $grid, ?GridConfig $config, string $tasks): array
     {
         $groups = self::finish(Health::answers(self::lines($grid, $config, $tasks)), $grid, $config);
+        $now = (int) $environment->clock->time();
+        // Each line says when it was checked: all of them now
+        foreach ($groups as $g => $group) {
+            foreach ($group['rows'] as $r => $row) {
+                $groups[$g]['rows'][$r]['checkedAt'] = $now;
+            }
+        }
 
-        return ['level' => Health::level($groups), 'groups' => $groups, 'checked' => (int) $environment->clock->time()];
+        return ['level' => Health::level($groups), 'groups' => $groups, 'checkedAt' => $now];
     }
 
     /**
@@ -55,7 +62,7 @@ final class HealthCheck
                     continue;
                 }
                 $line = self::finish(Health::answers([['rows' => [$row]] + $group]), $grid, $config)[0]['rows'][0];
-                $line['checked'] = (int) $environment->clock->time();
+                $line['checkedAt'] = (int) $environment->clock->time();
                 // The last check keeps it, the level of all of it again
                 $last = self::last($environment, $grid, $config);
                 if ($last !== null) {
@@ -159,7 +166,7 @@ final class HealthCheck
     {
         $last = Cache::for($environment, $config)->get(self::KEY . $grid->nick());
 
-        return is_array($last) && isset($last['groups'], $last['checked']) ? $last : null;
+        return is_array($last) && isset($last['groups'], $last['checkedAt']) ? $last : null;
     }
 
     /**
