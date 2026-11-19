@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (guide): a grid that has saved no source has no guide; its page saves the guide of 2do.directory when the source is left empty or the guide is switched on, the field no longer required
 - change (search): the Web Search URL (the page people search in, at login and in get_grid_info), apart from the Search Engine URL the simulators call; the registers of other search engines as a list (`registers`), 2do.directory recommended, the grid's own as a path
 - feature (economy): the symbol of the currency (G$ with Gloebit), the banker of the money server and of Podex (`BankerAvatar`), Banker Name and Banker Email for Gloebit, each with what the banker can do; a security warning with the money server and Podex
 - change (settings): each field has a short tip under its label where the label is not enough (`tip`), the details apart; what a page is about in its help (offline messages, web assets)

@@ -112,7 +112,7 @@ final class GridSettings
             'eventsUrl' => ['description' => ['events_help_fetch', 'events_help_blank'], 'placeholder' => 'http://2do.directory/events/'],
         ],
         'guide' => [
-            'guideSource' => ['required' => true, 'description' => ['guide_source_help_where', 'guide_source_help_name']],
+            'guideSource' => ['description' => ['guide_source_help_where', 'guide_source_help_name']],
         ],
         'offline' => [
             'mailSender' => ['required' => true],
@@ -301,6 +301,8 @@ final class GridSettings
     public function write(string $page, array $values): array
     {
         $entries = array_column(self::entries($page), null, 'name');
+        // Provide switched on, before it becomes the address
+        $switchedOn = filter_var($values['provide'] ?? false, FILTER_VALIDATE_BOOLEAN);
         isset(self::PROVIDE[$page]) && ($values = $this->addressOf($page, $values));
         $now = $this->read($page);
         // Podex is written as the generic money server, and the provider the helpers serve
@@ -313,6 +315,11 @@ final class GridSettings
         if ($page === 'search' && array_key_exists('webSearchUrl', $values)) {
             $values['loginSearchUrl'] = $values['webSearchUrl'];
             $entries['loginSearchUrl'] = Settings::named('loginSearchUrl');
+        }
+        // The guide saved without a source, or switched on without one, has the one of 2do.directory
+        if ($page === 'guide' && ((array_key_exists('guideSource', $values) && trim((string) $values['guideSource']) === '')
+            || ($switchedOn && ($this->config()->find('Helpers', 'GuideSource') ?? '') === '' && !isset($values['guideSource'])))) {
+            $values['guideSource'] = (string) Settings::named('guideSource')['default'];
         }
         // Gloebit is a global currency: its symbol is G$
         $page === 'economy' && ($values['economyModule'] ?? $now['economyModule']) === 'Gloebit' && ($values['currencySymbol'] = 'G$');

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 3344f3b
+  version: 4e603f6
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -74,7 +74,7 @@ tags:
     description: 'What the grid keeps in its asset service: textures, sounds, notecards, scripts, objects... A record never carries its data: an image of any type (texture, TGA, JPEG) is asked as a picture (`/grids/{grid}/assets/{id}.{format}`, the grid keeps textures as JPEG 2000 and the engine converts them and keeps the result for a day), the other types as they are.'
   -
     name: Destinations
-    description: 'The places the guide of the grid shows, by category, in the order of its source (`GuideSource` of `[Helpers]`: a file or a URL of "Name|Region URL" lines; the guide of 2do.directory when the grid sets none). The same list feeds the page of the guide and the boards of the scripts.'
+    description: 'The places the guide of the grid shows, by category, in the order of its source (`GuideSource` of `[Helpers]`: a file or a URL of "Name|Region URL" lines; none when the grid sets none). The same list feeds the page of the guide and the boards of the scripts.'
   -
     name: Tasks
     description: 'Cron and pseudo cron: each task has a name and an interval, runs when due, never twice at once, and a failure waits for its next turn. Asked to run, a task runs now. The search registers two: `search-parse` (once a minute: reads the snapshots of the registered simulators that are due) and `events-parse` (every 55 minutes: reads the calendar of events), for each grid: the id of a task is its name and the grid after a dot (`search-parse.demo`), each with its own state, so an install that serves several grids reads each on its own schedule. A task is asked by its id, or by its name when one grid only has it.'
@@ -4639,7 +4639,7 @@ paths:
       tags:
         - Destinations
       summary: 'List destinations'
-      description: 'The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of "Name|Region URL" lines, a name alone starting a category) is the list, the guide of 2do.directory (`https://2do.directory/destinations/guide`) for a grid that gives none; when the list cannot be read, the places its search knows, ten popular places and ten places shown in search, in two sections: the places of this grid only, no land for sale among the popular places, nothing that is not shown in search. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them: the place in the region in its own column (`x,y,z`), their layout hints kept (`-` a new column, `|` an empty row). A source is read when it is text, 1 MB at most, in UTF-8 (the Gudz Teleport Board reads 2048 bytes of it). The lines are read as the board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th and the landing point in the 5th; an address listed already is left out, `http://` taken off.'
+      description: 'The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of "Name|Region URL" lines, a name alone starting a category) is the list, none for a grid that gives none (its settings page saves the guide of 2do.directory, `https://2do.directory/destinations/guide`, when it is left empty); when the list cannot be read, the places its search knows, ten popular places and ten places shown in search, in two sections: the places of this grid only, no land for sale among the popular places, nothing that is not shown in search. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them: the place in the region in its own column (`x,y,z`), their layout hints kept (`-` a new column, `|` an empty row). A source is read when it is text, 1 MB at most, in UTF-8 (the Gudz Teleport Board reads 2048 bytes of it). The lines are read as the board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th and the landing point in the 5th; an address listed already is left out, `http://` taken off.'
       parameters:
         -
           name: grid
@@ -6057,7 +6057,6 @@ paths:
             condition:
               provide:
                 - true
-            required: true
             description:
               - guide_source_help_where
               - guide_source_help_name

@@ -33,13 +33,26 @@ describe('The page of the guide', function () {
 });
 
 describe('The guide of a grid that sets no source', function () {
-    test('is the guide of 2do.directory, as if it were set', function () {
+    test('has no destination: no source, no guide', function () {
         $machine = new OpenSim\Testing\Machine();
         $machine->http['https://2do.directory/destinations/guide'] = "Hypergrid\nPlace|hg.example.org:8002/Place\n";
 
-        $destinations = OpenSim\Models\Grid::find($machine->environment, 'demo')->destinations();
+        expect(OpenSim\Models\Grid::find($machine->environment, 'demo')->destinations())->toBe([]);
+    });
 
-        expect(array_keys($destinations))->toBe(['Hypergrid'])
-            ->and($destinations['Hypergrid'][0]['name'] ?? null)->toBe('Place');
+    test('gets the guide of 2do.directory when it is saved empty or switched on', function () {
+        [$machine, $router] = provided_grid();
+        $patch = static fn(array $attributes) => $router->patch('/grids/demo/settings/guide', ['data' => ['type' => 'settings', 'id' => 'guide', 'attributes' => $attributes]]);
+
+        $on = $patch(['provide' => true]);
+        $onIni = file_get_contents($machine->grid . '/Helpers.ini');
+        $patch(['guideSource' => 'https://guide.example.org/list.txt']);
+        $empty = $patch(['guideSource' => '']);
+
+        expect(provided_fields('guide')['guideSource'])->not->toHaveKey('required')
+            ->and($on->status)->toBe(200)
+            ->and($onIni)->toContain('GuideSource = "https://2do.directory/destinations/guide"')
+            ->and($empty->document['data']['attributes']['guideSource'])->toBe('https://2do.directory/destinations/guide')
+            ->and(file_get_contents($machine->grid . '/Helpers.ini'))->toContain('GuideSource = "https://2do.directory/destinations/guide"');
     });
 });

@@ -515,9 +515,10 @@ describe('The API handler, for the search', function () {
 })->skip(fn() => test_pdo() === null, 'TEST_DATABASE is not set in tests/.env');
 
 describe('The API handler, for the default guide', function () {
-    test('gives the places the search knows as resources, or as the lines the boards read', function () {
+    test('gives the places the search knows as resources, or as the lines the boards read, when the list of the grid cannot be read', function () {
         $db = guide_database();
         $machine = new Machine();
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    GuideSource = missing.txt\n");
         $gatekeeper = OpenSim\Hypergrid\Destination::loginUrl(
             (string) Grid::find($machine->environment, 'demo')->uri(),
         );
