@@ -106,24 +106,58 @@ describe('The settings of an old grid', function () {
         expect(ConfigReader::parse($master)['Const']['WebURL'] ?? null)->toBe('https://web.example.org');
     })->depends('are planned without their secrets, and laid in the files of the grid without replacing what is there, once');
 
-    test('are then laid in the simulators of the grid by the repair of the options, once: Gloebit by the include of its file', function (Machine $machine) {
+    test('are then the one source of the simulators: the repair writes none of them in a simulator, the offline messages the V1 of the helpers', function () {
+        $machine = new Machine();
         $options = static fn() => new GridOptions(Grid::find($machine->environment, 'demo'));
+        $alphaPath = GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        // A grid of v3 as the setup made it: its master, its options recorded (the offline messages of Robust, the default)
+        $master = new OpenSim\Provisioning\SimulatorMaster($machine->environment);
+        $master->ensure($machine->grid, $machine->core . '/bin');
+        $conf = $machine->grid . '/demo.conf';
+        file_put_contents($conf, (string) file_get_contents($conf) . "Options = \"profiles, offline-robust\"\n");
+        $before = (string) file_get_contents($alphaPath);
 
-        $options()->repair(true);
-        $alpha = ConfigReader::load(GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini', expand: false);
+        GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo')->apply();
+        $repair = $options()->repair(true);
+        $made = ConfigReader::parse($master->render($machine->grid, $machine->core . '/bin'));
 
-        expect($alpha['Search']['SearchURL'] ?? null)
+        expect($repair['simulators'])
+            ->toBe([])
+            // Nothing of the grid copied in a simulator: the master holds the OpenSim.ini of the grid for all of them
+            ->and((string) file_get_contents($alphaPath))
+            ->toBe($before)
+            ->and($made['Search']['SearchURL'] ?? null)
             ->toBe('${Const|WebURL}/helpers/query.php?gk=${Const|BaseURL}:${Const|PublicPort}')
-            ->and($alpha['DataSnapshot']['DATA_SRV_2do'] ?? null)
+            ->and($made['DataSnapshot']['DATA_SRV_2do'] ?? null)
             ->toBe('https://2do.directory/helpers/register.php')
-            ->and($alpha['Gloebit']['Include-Gloebit'] ?? null)
+            ->and($made['Gloebit']['Include-Gloebit'] ?? null)
             ->toBe('${Const|EtcDirectory}/Gloebit.ini')
-            // One source: the simulator has no copy of the settings of Gloebit
-            ->and($alpha['Gloebit'] ?? [])
-            ->not->toHaveKey('GLBEnvironment')
+            // The offline messages as the grid says them, V1 and the helpers, whatever was recorded
+            ->and($made['Messaging']['OfflineMessageModule'] ?? null)
+            ->toBe('OfflineMessageModule')
+            ->and($options()->enabled())
+            ->toContain('offline-helpers')
+            ->not->toContain('offline-robust')
             ->and($options()->repair(false)['simulators'])
             ->toBe([]);
-    })->depends('are planned without their secrets, and laid in the files of the grid without replacing what is there, once');
+    });
+
+    test('are laid in a simulator only where nothing of the grid gives them: a grid without a master', function () {
+        $machine = new Machine();
+        GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo')->apply();
+        (new GridOptions(Grid::find($machine->environment, 'demo')))->repair(true);
+        $alpha = ConfigReader::load(GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini', expand: false);
+
+        // Without a master, the file of the simulator is its whole config: the options of the grid are there, Gloebit by its include
+        expect($alpha['Search']['SearchURL'] ?? null)
+            ->toBe('${Const|WebURL}/helpers/query.php?gk=${Const|BaseURL}:${Const|PublicPort}')
+            ->and($alpha['Gloebit']['Include-Gloebit'] ?? null)
+            ->toBe('${Const|EtcDirectory}/Gloebit.ini')
+            ->and($alpha['Gloebit'] ?? [])
+            ->not->toHaveKey('GLBEnvironment')
+            ->and($alpha['Messaging']['OfflineMessageModule'] ?? null)
+            ->toBe('OfflineMessageModule');
+    });
 
     test('are imported through the API, planned first, the secrets masked', function () {
         $machine = new Machine();

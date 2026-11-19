@@ -18,8 +18,9 @@ use OpenSim\Runtime\Environment;
  * OpenSimulator reads the old config: with the files it includes, the last of them saying the last word (a key whatever its case),
  * its constants replaced (by the old install's, else the grid's of this machine: never left to resolve), a quoted value without
  * what follows its closing quote. Left out: what is a simulator's own (a folder, a cache), what is not used any more (the money
- * of DTL/NSL), and what the grid of this machine already says, which is never replaced. The repair of the options then lays them in
- * the simulators of the grid, nobody editing a file.
+ * of DTL/NSL), and what the grid of this machine already says, which is never replaced. The simulators take them from there (the
+ * master of the grid holds its OpenSim.ini), the one source: the repair of the options copies none of them in a simulator, and the
+ * option of a group they tell is the one the grid has (the offline messages V1 of the helpers).
  *
  *     $import = GridSettingsImport::prepare($environment, '/opt/opensim/etc/grids/Old/OpenSim.ini', 'speculoos');
  *     $import->document();   // the plan, the secrets masked

@@ -30,6 +30,9 @@ final class GridOptions
     /** @var array<string,OptionTemplate>|null */
     private ?array $templates = null;
 
+    /** Whether the options the files of the grid tell are being read (told()): the options of the grid are then the ones it has said. */
+    private bool $telling = false;
+
     /**
      * @param ?bool $layered whether the OpenSim.ini of the grid holds the settings of its simulators (it has a master, see
      *                       SimulatorMaster); null: it does when the master is there
@@ -118,6 +121,42 @@ final class GridOptions
      * @return list<string>
      */
     public function enabled(): array
+    {
+        return $this->toldInGroups($this->said());
+    }
+
+    /**
+     * The option of a group the files of the grid tell, in place of the one recorded or by default: the OpenSim.ini of the grid is
+     * what its simulators run with (the offline messages of the helpers, V1, that an import brought).
+     *
+     * @param list<string> $names
+     * @return list<string>
+     */
+    private function toldInGroups(array $names): array
+    {
+        if ($this->telling) {
+            return $names;
+        }
+        foreach ($this->told() as $name) {
+            $group = $this->template($name)?->group() ?? '';
+            if ($group === '' || in_array($name, $names, true)) {
+                continue;
+            }
+            $others = array_filter($names, fn(string $n): bool => $this->template($n)?->group() === $group);
+            if ($others !== []) {
+                $names = [...array_values(array_diff($names, $others)), $name];
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * The options the grid says it has: the ones recorded, else the ones that are on by default and that it can have.
+     *
+     * @return list<string>
+     */
+    private function said(): array
     {
         $recorded = $this->grid->options();
         if ($recorded !== null) {
@@ -360,6 +399,40 @@ final class GridOptions
      */
     public function inUse(): array
     {
+        $enabled = $this->enabled();
+        $groups = array_filter(array_map(fn(string $name): string => $this->template($name)?->group() ?? '', $enabled));
+        $used = [];
+        foreach ($this->told() as $name) {
+            $group = $this->template($name)?->group() ?? '';
+            if (in_array($name, $enabled, true) || ($group !== '' && in_array($group, $groups, true))) {
+                continue;
+            }
+            $used[] = $name;
+            $group === '' || ($groups[] = $group);
+        }
+
+        return $used;
+    }
+
+    /**
+     * The options the OpenSim.ini of the grid tells, whatever it records: the ones of which it has a setting as the option writes it
+     * (see inUse()), that it can have or whose files give what it takes from the grid.
+     *
+     * @return list<string>
+     */
+    private function told(): array
+    {
+        $this->telling = true;
+        try {
+            return $this->tell();
+        } finally {
+            $this->telling = false;
+        }
+    }
+
+    /** @return list<string> told() */
+    private function tell(): array
+    {
         $said = [];
         foreach ($this->gridFiles() as $file) {
             foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($file, $this->gridConstants(), expand: false)) as $section => $keys) {
@@ -369,11 +442,9 @@ final class GridOptions
         if ($said === []) {
             return [];
         }
-        $enabled = $this->enabled();
-        $groups = array_filter(array_map(fn(string $name): string => $this->template($name)?->group() ?? '', $enabled));
         $used = [];
         foreach ($this->templates() as $name => $option) {
-            if (in_array($name, $enabled, true) || in_array('OpenSim.ini', $option->files(), true) === false || ($option->group() !== '' && in_array($option->group(), $groups, true))) {
+            if (in_array('OpenSim.ini', $option->files(), true) === false) {
                 continue;
             }
             // An option the grid cannot have here (the search without helpers on this machine) is in use when its files give what the
@@ -397,18 +468,16 @@ final class GridOptions
             foreach ($telling as [$section, $key, $value]) {
                 $told = $told || ($said[strtolower($section)][strtolower($key)] ?? null) === strtolower(trim($value, " \""));
             }
-            if ($told) {
-                $used[] = $name;
-                $option->group() === '' || ($groups[] = $option->group());
-            }
+            $told && ($used[] = $name);
         }
 
         return $used;
     }
 
     /**
-     * The options of the grid its simulators of this machine miss in their files (a simulator made before an option became a
-     * preset, by an older engine, or by hand): planned, then laid again in the files of the simulators that miss them with
+     * The options of the grid its simulators of this machine miss (a simulator made before an option became a preset, by an older
+     * engine, or by hand), in what they run with at their next start (effective(): for a grid with a master, what the master holds
+     * of the options and of the OpenSim.ini of the grid, never copied in a simulator): planned, then laid again in the files of the simulators that miss them with
      * `$apply`, with the values of the grid: what the option says (its module, its addresses), else what the grid has (its
      * OpenSim.ini, else the file of a simulator of the grid that has the option: its keys too, Gloebit's), never a default the
      * grid did not choose (`Initial`: named in the notes, to be given). Nothing said of it has a value: only the names of the
@@ -422,7 +491,7 @@ final class GridOptions
         $missing = [];
         $merged = [];
         foreach ($this->grid->simulators() as $simulator) {
-            $settings = $simulator->settings();
+            $settings = $this->effective($simulator->settings());
             $lacks = $this->missingIn($settings);
             $lacks === [] || ($missing[$simulator->slug()] = $lacks) && ($merged[$simulator->slug()] = $settings);
         }
@@ -464,6 +533,30 @@ final class GridOptions
         }
 
         return ['simulators' => $missing, 'applied' => $applied, 'notes' => array_values(array_unique($notes))];
+    }
+
+    /**
+     * The settings a simulator runs with at its next start: the ones it reads now (the master and its file) and, for a grid with a
+     * master, what the master made again holds: the options of the grid (layer()), then its OpenSim.ini (SimulatorMaster). A setting
+     * the grid gives there is not missing: it is never copied in the file of a simulator.
+     *
+     * @param array<string,array<string,mixed>> $settings as the simulator reads them
+     * @return array<string,array<string,mixed>>
+     */
+    private function effective(array $settings): array
+    {
+        if (!$this->layered()) {
+            return $settings;
+        }
+        foreach ([\OpenSim\Config\ConfigReader::parse($this->layer()), \OpenSim\Config\ConfigReader::load($this->gridFiles(), $this->gridConstants(), expand: false)] as $layer) {
+            $names = array_change_key_case(array_combine(array_keys($settings), array_keys($settings)));
+            foreach ($layer as $section => $keys) {
+                $name = $names[strtolower((string) $section)] ?? $section;
+                is_array($keys) && ($settings[$name] = (is_array($settings[$name] ?? null) ? $settings[$name] : []) + $keys);
+            }
+        }
+
+        return $settings;
     }
 
     /**
