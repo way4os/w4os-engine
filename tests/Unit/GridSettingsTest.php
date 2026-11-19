@@ -79,27 +79,50 @@ describe('The rule of the avatar models', function () {
             ->toBe([400, 400, 404]);
     });
 
-    test('has its form in the contract: the choices, the fields shown for each, the levels, the texts of the catalog', function () {
+    test('has its form in the contract, in the words of w4os-wp and their translations: Match as radios, the help in five points, the preview', function () {
         $contract = OpenSim\Api\Contract::document();
         $operations = $contract['paths']['/grids/{grid}/settings/models'];
         $form = $operations['get']['x-form'];
         $fields = array_column($form['fields'], null, 'name');
-        $labels = [...array_column($form['fields'], 'label'), ...array_filter(array_column($form['fields'], 'description')), $form['title'], $form['submit']];
-        foreach ($fields['match']['options'] as $label) {
-            $labels[] = $label;
-        }
+        $en = Catalog::MESSAGES;
+        $fr = Catalog::messages('fr_FR');
+        $text = static fn(array $texts, string ...$keys): array => array_map(static fn(string $key): ?string => $texts[$key] ?? null, $keys);
 
         expect(array_keys($fields))
             ->toBe(['match', 'pattern', 'list'])
+            ->and($fields['match'])
+            ->toMatchArray(['type' => 'select', 'widget' => 'radio'])
             ->and(array_keys($fields['match']['options']))
-            ->toBe(['first', 'last', 'any', 'uuid'])
+            ->toBe(['first', 'any', 'last', 'uuid'])
+            ->and($text($en, $form['title'], $fields['match']['label'], ...array_values($fields['match']['options'])))
+            ->toBe(['Avatar Models', 'Match', 'First Name', 'Any', 'Last Name', 'Custom list'])
+            ->and($text($en, $fields['pattern']['label'], $fields['list']['label'], $fields['list']['placeholder'], $form['submit']))
+            ->toBe(['Name', 'Select Models', 'Select one or more existing avatars', 'Save Changes'])
+            ->and($text($fr, $fields['match']['label'], $fields['match']['options']['uuid'], $fields['list']['label'], $form['submit']))
+            ->toBe(['Correspondance', 'Liste personnalisée', 'Sélectionner les modèles', 'Enregistrer les modifications'])
             ->and($fields['pattern']['condition'])
-            ->toBe(['match' => ['first', 'last', 'any']])
+            ->toBe(['match' => ['first', 'any', 'last']])
             ->and($fields['list'])
             ->toMatchArray(['type' => 'avatar', 'multiple' => true, 'condition' => ['match' => ['uuid']]])
+            ->and($fields)
+            ->each->not->toHaveKey('description')
+            // The help of w4os-wp, its five points
+            ->and($text($en, ...$form['description']))
+            ->toBe([
+                'If avatar models are defined, new users will be presented with a choice on the avatar creation form, which will determine the initial outfit of the created avatar.',
+                'The grid administrator needs to create each model from the ROBUST console, log in with the viewer, customize the outfit, and add a profile picture.',
+                'The avatars used for the models should never be real user accounts.',
+                'The new avatar will wear the same outfit as the model at the time of registration.',
+                'If the model assignment rule is based on the name, each newly created avatar matching that rule will be automatically added to the list.',
+            ])
+            ->and($fr[$form['description'][2]] ?? null)
+            ->toBe("Les avatars utilisés pour les modèles ne doivent jamais être de véritables comptes d'utilisateur.")
+            // The models the rule of the form picks, asked as it is changed
+            ->and($form['preview'])
+            ->toBe(['label' => 'models_preview', 'empty' => 'models_none', 'path' => '/grids/{grid}/avatar-models', 'filters' => ['match', 'pattern', 'list']])
+            ->and($text($en, 'models_preview', 'models_none'))
+            ->toBe(['Models Preview', 'No models found.'])
             ->and([$operations['get']['x-access']['level'], $operations['patch']['x-access']['level']])
-            ->toBe([100, 200])
-            ->and(array_diff($labels, array_keys(Catalog::MESSAGES)))
-            ->toBe([]);
+            ->toBe([100, 200]);
     });
 });

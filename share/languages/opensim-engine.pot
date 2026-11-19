@@ -335,47 +335,71 @@ msgid "Save"
 msgstr ""
 
 msgctxt "settings_models"
-msgid "Avatar models"
+msgid "Avatar Models"
 msgstr ""
 
 msgctxt "models_match"
-msgid "The models are the avatars whose"
+msgid "Match"
 msgstr ""
 
 msgctxt "models_match_first"
-msgid "First name is the name below"
-msgstr ""
-
-msgctxt "models_match_last"
-msgid "Last name is the name below"
+msgid "First Name"
 msgstr ""
 
 msgctxt "models_match_any"
-msgid "First or last name is the name below"
+msgid "Any"
+msgstr ""
+
+msgctxt "models_match_last"
+msgid "Last Name"
 msgstr ""
 
 msgctxt "models_match_uuid"
-msgid "UUID is in the list below"
-msgstr ""
-
-msgctxt "models_match_help"
-msgid "An avatar model is an avatar of the grid, dressed in a viewer and given a profile picture: a new avatar gets its outfit and its appearance."
+msgid "Custom list"
 msgstr ""
 
 msgctxt "models_pattern"
 msgid "Name"
 msgstr ""
 
-msgctxt "models_pattern_help"
-msgid "The first or the last name of the models, as written (Default: Default Ruth, Default Kitty...)."
-msgstr ""
-
 msgctxt "models_list"
-msgid "Models"
+msgid "Select Models"
 msgstr ""
 
-msgctxt "models_list_help"
-msgid "The avatars that are models, chosen one by one."
+msgctxt "models_list_placeholder"
+msgid "Select one or more existing avatars"
+msgstr ""
+
+msgctxt "action_save_changes"
+msgid "Save Changes"
+msgstr ""
+
+msgctxt "models_preview"
+msgid "Models Preview"
+msgstr ""
+
+msgctxt "models_none"
+msgid "No models found."
+msgstr ""
+
+msgctxt "models_help_choice"
+msgid "If avatar models are defined, new users will be presented with a choice on the avatar creation form, which will determine the initial outfit of the created avatar."
+msgstr ""
+
+msgctxt "models_help_create"
+msgid "The grid administrator needs to create each model from the ROBUST console, log in with the viewer, customize the outfit, and add a profile picture."
+msgstr ""
+
+msgctxt "models_help_not_users"
+msgid "The avatars used for the models should never be real user accounts."
+msgstr ""
+
+msgctxt "models_help_outfit"
+msgid "The new avatar will wear the same outfit as the model at the time of registration."
+msgstr ""
+
+msgctxt "models_help_rule"
+msgid "If the model assignment rule is based on the name, each newly created avatar matching that rule will be automatically added to the list."
 msgstr ""
 
 msgctxt "action_post"

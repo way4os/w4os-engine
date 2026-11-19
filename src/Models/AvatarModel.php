@@ -151,7 +151,9 @@ final class AvatarModel extends Model
      */
     public static function all(GridConfig $config, array $options = []): Collection
     {
-        $models = self::read($config, null);
+        // A rule asked in the filters (match, pattern, list), not the grid's: the models it would pick, as the rule is changed
+        $asked = array_intersect_key((array) ($options['filters'] ?? []), ['match' => 1, 'pattern' => 1, 'list' => 1]);
+        $models = self::read($config, null, $asked);
 
         return new Collection($models, ['total' => count($models), 'sort' => 'name asc']);
     }
@@ -175,20 +177,25 @@ final class AvatarModel extends Model
     }
 
     /**
-     * The rule of the models of a grid.
+     * The rule of the models of a grid, or one asked in its place (`match`, `pattern`, `list`: what is not asked is the grid's).
      *
+     * @param array<string,string> $asked
      * @return array{0:string,1:string,2:list<string>} the match, the pattern, the list of UUIDs
+     * @throws \OpenSim\Exceptions\InvalidValue for a match asked that is not one
      */
-    public static function rule(GridConfig $config): array
+    public static function rule(GridConfig $config, array $asked = []): array
     {
-        $match = strtolower(trim((string) ($config->find('Models', 'Match') ?? 'any')));
+        if (isset($asked['match']) && !in_array(strtolower(trim($asked['match'])), self::MATCHES, true)) {
+            throw \OpenSim\Exceptions\InvalidValue::because('filter-value-unknown', "'{$asked['match']}' is not a match of the models (" . implode(', ', self::MATCHES) . ')');
+        }
+        $match = strtolower(trim((string) ($asked['match'] ?? ($config->find('Models', 'Match') ?? 'any'))));
         in_array($match, self::MATCHES, true) || ($match = 'any');
-        $pattern = trim((string) ($config->find('Models', 'MatchPattern') ?? 'Default'));
+        $pattern = trim((string) ($asked['pattern'] ?? ($config->find('Models', 'MatchPattern') ?? 'Default')), " \t\"");
         $list = array_values(
             array_filter(
                 array_map(
                     'strtolower',
-                    preg_split('/[\s,;]+/', (string) ($config->find('Models', 'List') ?? ''), -1, PREG_SPLIT_NO_EMPTY) ?:
+                    preg_split('/[\s,;"]+/', (string) ($asked['list'] ?? ($config->find('Models', 'List') ?? '')), -1, PREG_SPLIT_NO_EMPTY) ?:
                     [],
                 ),
                 [Uuid::class, 'isValid'],
@@ -222,11 +229,12 @@ final class AvatarModel extends Model
      * are not (Avatar, `filter[model]`).
      *
      * @param string $prefix the alias of UserAccounts in the query (`u.`)
+     * @param array<string,string> $asked a rule asked in place of the grid's (rule())
      * @return array{0:string,1:array<string,string>} the condition and its parameters
      */
-    public static function condition(GridConfig $config, string $prefix = ''): array
+    public static function condition(GridConfig $config, string $prefix = '', array $asked = []): array
     {
-        [$match, $pattern, $list] = self::rule($config);
+        [$match, $pattern, $list] = self::rule($config, $asked);
         $params = [];
         $condition = match ($match) {
             'uuid' => $list === []
@@ -249,10 +257,10 @@ final class AvatarModel extends Model
         return ["{$prefix}active = 1 AND $condition", $params];
     }
 
-    private static function read(GridConfig $config, ?array $only): array
+    private static function read(GridConfig $config, ?array $only, array $asked = []): array
     {
         $accounts = self::connect($config, 'UserAccountService', null, 'read the avatar models');
-        [$condition, $params] = self::condition($config);
+        [$condition, $params] = self::condition($config, '', $asked);
         if ($only !== null) {
             $condition .= ' AND ' . $only[0];
             $params += $only[1];

@@ -102,6 +102,21 @@ describe('avatar models', function () {
             ->toBe([]);
     });
 
+    test('are previewed with a rule asked, not the one of the grid: the filters match, pattern and list', function () {
+        avatars_in(model_database());
+        $names = static fn(array $filters): array => array_column(AvatarModel::all(avatar_grid(), ['filters' => $filters])->array(), 'name');
+
+        expect($names(['match' => 'last', 'pattern' => 'Default']))
+            ->toBe(['Jane Default'])
+            ->and($names(['match' => 'uuid', 'list' => JANE . ',' . RUTH]))
+            ->toBe(['Default Ruth', 'Jane Default'])
+            // What is not asked is the rule of the grid
+            ->and($names(['pattern' => 'Jane']))
+            ->toBe(['Jane Default'])
+            ->and(fn() => $names(['match' => 'middle']))
+            ->toThrow(OpenSim\Exceptions\InvalidValue::class);
+    });
+
     test('show their name without the pattern, their profile picture, a placeholder when they have none', function () {
         avatars_in(model_database());
         $ruth = AvatarModel::find(avatar_grid(), RUTH)->detail();

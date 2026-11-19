@@ -26,20 +26,25 @@ use OpenSim\Text\Uuid;
 final class GridSettings
 {
     /**
-     * The groups, their title and their fields: `name`, `label`, `type`, `options` (value => label), `condition` (the values of
-     * other fields it is shown for), `multiple` (several values, kept as a list), `description`; `section` and `key` where the
-     * grid keeps it, `default` what it is when the grid says nothing.
+     * The groups, their title, their help (`description`: the keys of its points, in order), the list a form shows of what its
+     * settings pick (`preview`: its title, what it says when empty, the list, the fields given as its filters) and their fields:
+     * `name`, `label`, `type`, `options` (value => label), `widget` (how a site shows it: `radio` for a short choice that stays
+     * short), `placeholder`, `condition` (the values of other fields it is shown for), `multiple` (several values, kept as a list),
+     * `description`; `section` and `key` where the grid keeps it, `default` what it is when the grid says nothing. The words are
+     * those of w4os-wp, with its translations.
      */
     private const GROUPS = [
         'models' => [
             'title' => 'settings_models',
+            'description' => ['models_help_choice', 'models_help_create', 'models_help_not_users', 'models_help_outfit', 'models_help_rule'],
+            'preview' => ['label' => 'models_preview', 'empty' => 'models_none', 'path' => '/grids/{grid}/avatar-models', 'filters' => ['match', 'pattern', 'list']],
             'fields' => [
                 [
                     'name' => 'match',
                     'label' => 'models_match',
                     'type' => 'select',
-                    'options' => ['first' => 'models_match_first', 'last' => 'models_match_last', 'any' => 'models_match_any', 'uuid' => 'models_match_uuid'],
-                    'description' => 'models_match_help',
+                    'widget' => 'radio',
+                    'options' => ['first' => 'models_match_first', 'any' => 'models_match_any', 'last' => 'models_match_last', 'uuid' => 'models_match_uuid'],
                     'section' => 'Models',
                     'key' => 'Match',
                     'default' => 'any',
@@ -48,8 +53,7 @@ final class GridSettings
                     'name' => 'pattern',
                     'label' => 'models_pattern',
                     'type' => 'string',
-                    'condition' => ['match' => ['first', 'last', 'any']],
-                    'description' => 'models_pattern_help',
+                    'condition' => ['match' => ['first', 'any', 'last']],
                     'section' => 'Models',
                     'key' => 'MatchPattern',
                     'default' => 'Default',
@@ -59,8 +63,8 @@ final class GridSettings
                     'label' => 'models_list',
                     'type' => 'avatar',
                     'multiple' => true,
+                    'placeholder' => 'models_list_placeholder',
                     'condition' => ['match' => ['uuid']],
-                    'description' => 'models_list_help',
                     'section' => 'Models',
                     'key' => 'List',
                     'default' => [],
@@ -92,7 +96,7 @@ final class GridSettings
     /**
      * The form of a group, as the contract gives it (`x-form`): its title, its fields without where they are kept, its submit.
      *
-     * @return array{title:string,fields:list<array<string,mixed>>,submit:string}
+     * @return array{title:string,fields:list<array<string,mixed>>,submit:string,description?:list<string>,preview?:array<string,mixed>}
      */
     public static function form(string $group): array
     {
@@ -101,7 +105,8 @@ final class GridSettings
             self::fields($group),
         );
 
-        return ['title' => self::GROUPS[$group]['title'], 'fields' => $fields, 'submit' => 'action_save'];
+        return ['title' => self::GROUPS[$group]['title'], 'fields' => $fields, 'submit' => 'action_save_changes']
+            + array_intersect_key(self::GROUPS[$group], ['description' => 1, 'preview' => 1]);
     }
 
     /**
