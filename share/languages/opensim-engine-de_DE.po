@@ -695,6 +695,19 @@ msgstr ""
 "Die Quelle kann eine URL oder der vollständige Pfad zu einer lokalen Datei "
 "sein, auf die Ihr Webserver zugreifen kann."
 
+msgctxt "guide_source_help_name"
+msgid "A file name alone is read in the config folder of the grid."
+msgstr "Ein Dateiname allein wird im Konfigurationsordner des Grids gelesen."
+
+msgctxt "guide_example"
+msgid "Example of a destinations file"
+msgstr "Beispiel einer Zieldatei"
+
+#, php-format
+msgctxt "snippet_ini"
+msgid "Lines to add to %s"
+msgstr "Zeilen, die zu %s hinzuzufügen sind"
+
 msgctxt "guide_source_help_pipe"
 msgid ""
 "Destination name and teleport URL are separated by a pipe (|) character."

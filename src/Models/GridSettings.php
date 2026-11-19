@@ -44,7 +44,7 @@ final class GridSettings
         ],
         'economy' => ['title' => 'settings_economy', 'menu' => 'settings_menu_economy', 'description' => ['economy_help_helpers', 'economy_help_scripts', 'economy_help_module', 'economy_help_modules', 'economy_help_binaries']],
         'search' => ['title' => 'settings_search', 'menu' => 'settings_menu_search', 'description' => ['search_help_local', 'search_help_external', 'search_help_module', 'search_help_binary']],
-        'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide', 'description' => ['guide_help_feature', 'guide_help_places']],
+        'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide', 'description' => ['guide_help_feature', 'guide_help_places', 'guide_source_help_file', 'guide_source_help_pipe', 'guide_source_help_categories', 'guide_source_help_comments', 'guide_source_help_board']],
         'offline' => ['title' => 'settings_offline', 'menu' => 'settings_menu_offline'],
         'assets' => ['title' => 'settings_assets', 'menu' => 'settings_menu_assets'],
     ];
@@ -86,7 +86,7 @@ final class GridSettings
             'eventsUrl' => ['description' => ['events_help_fetch', 'events_help_blank'], 'placeholder' => 'http://2do.directory/events/'],
         ],
         'guide' => [
-            'guideSource' => ['required' => true, 'description' => ['guide_source_help_file', 'guide_source_help_where', 'guide_source_help_pipe', 'guide_source_help_categories', 'guide_source_help_comments', 'guide_source_help_board']],
+            'guideSource' => ['required' => true, 'description' => ['guide_source_help_where', 'guide_source_help_name']],
         ],
         'offline' => [
             'mailSender' => ['required' => true],
@@ -569,7 +569,7 @@ final class GridSettings
         $under = static fn(?string $base): bool => $url !== null && $base !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $base);
         $service = new Service($this->grid->environment(), $this->grid, $provide['service']);
 
-        return ($byHand === [] ? [] : ['byHand' => $byHand]) + ['snippets' => $this->snippets($page), 'service' => [
+        return ($byHand === [] ? [] : ['byHand' => $byHand]) + ['snippets' => $this->snippets($page)] + self::examples($page) + ['service' => [
             'key' => $provide['service'],
             'base' => $site,
             'helpers' => $helpers,
@@ -597,7 +597,7 @@ final class GridSettings
         $database = \OpenSim\Data\Database::Robust->connection($config);
         [$host, $name, $user] = $database === null ? ['localhost', 'robust', 'opensim'] : [$database->source, $database->database, $database->user];
         $url = $this->address($page) ?? '';
-        $line = static fn(?string $file, array $sections): array => ['file' => $file, 'text' => self::ini($sections)];
+        $line = static fn(?string $file, array $sections): array => ['label' => 'snippet_ini', 'file' => $file, 'text' => self::ini($sections)];
 
         return match ($page) {
             'economy' => [
@@ -620,10 +620,6 @@ final class GridSettings
             ],
             'search' => $this->searchSnippets($url, $robust, $line),
             'guide' => [
-                'guideSource' => [['file' => null, 'text' => implode("\n", [
-                    'Section 1', 'Display Name|yourgrid.org:8002/Region Name', 'Display Name|yourgrid.org:8002/Region Name/128/128/22',
-                    'Section 2', 'Display Name|othergrid.org:8002', 'Display Name|othergrid.org:8002/Region Name/128/128/22',
-                ])]],
                 'path' => [$line($robust, ['LoginService' => ['DestinationGuide' => $url]])],
             ],
             'offline' => ['path' => [
@@ -656,6 +652,19 @@ final class GridSettings
         $registers = [$line('OpenSim.ini', ['DataSnapshot' => ['index_sims' => 'true', 'gridname' => '"' . $this->grid->name() . '"'] + $register])];
 
         return ['path' => $search, 'searchExternalUrl' => $search, 'registerPath' => $registers, 'registerExternalUrl' => $registers];
+    }
+
+    /**
+     * The examples a page shows at its bottom, apart from its settings: an example of a list of destinations for the guide.
+     *
+     * @return array{examples?:list<array{label:string,text:string}>}
+     */
+    private static function examples(string $page): array
+    {
+        return $page !== 'guide' ? [] : ['examples' => [['label' => 'guide_example', 'text' => implode("\n", [
+            'Section 1', 'Display Name|yourgrid.org:8002/Region Name', 'Display Name|yourgrid.org:8002/Region Name/128/128/22',
+            'Section 2', 'Display Name|othergrid.org:8002', 'Display Name|othergrid.org:8002/Region Name/128/128/22',
+        ])]]];
     }
 
     /** @param array<string,array<string,?string>> $sections section => key => value, a key with no value a line of its own */

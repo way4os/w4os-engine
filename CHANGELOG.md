@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (guide): its source is the guide of 2do.directory by default, its help about what the field takes, the format in the help of the page; the example of a list apart (`meta.examples`), the lines of a file labelled as such (`snippet_ini`)
 - change (settings): with Provide, the path of what the viewers and the simulators call is under the helpers (`base` helpers); the search keeps the addresses of another search apart (searchExternalUrl, registerExternalUrl, 2do.directory by default), its register is a path too; its ini lines only what is chosen
 - change (economy): the module is chosen on its page: free, the generic money server, Gloebit (its environment, keys and owner), or Podex (the generic money server, `CurrencyProvider = podex` for the helpers)
 - change (settings): every field of a page is kept by the application and written in the file of the grid when it can be; `meta.byHand` (was `meta.fixed`) the lines to apply by hand, the health warning until they are

@@ -52,7 +52,7 @@ describe('The pages of the services, as w4os-wp', function () {
             ->and(english($economy['path']['description']))->toBe(['The URL must be set in Robust configuration.'])
             ->and(english($search['path']['description'])[0])->toBe('URL of the search engine used by the viewer to provide search results (without arguments).')
             ->and(english($search['registerPath']['description']))->toBe(['Data service, used to register regions, objects or land for sale.', 'You can register to several search engines.'])
-            ->and(count($guide['guideSource']['description']))->toBe(6)
+            ->and(count($guide['guideSource']['description']) + count(GridSettings::form('guide')['description']))->toBe(9)
             ->and(english($offline['provide']['description']))->toBe(['Honor "Email me IMs when I\'m offline" viewer option.', 'OpenSimulator core offline messages module doesn\'t handle e-mail forwarding option available in the viewer settings.'])
             ->and(english(GridSettings::form('economy')['description'])[0])->toBe('Economy helpers are additional scripts needed if you implement economy on your grid (with real or fake currency).')
             ->and(count(GridSettings::form('search')['description']))->toBe(4)
@@ -97,7 +97,7 @@ describe('The ini lines of the pages', function () {
             ->and($text($search['path']))->toContain("[Search]\n    Module = OpenSimSearch")
             ->and($text($search['registerPath']))->toContain('index_sims = true')->toContain('DATA_SRV_')
             ->and($text($snippets('guide')['path']))->toContain('DestinationGuide = ')
-            ->and($text($snippets('guide')['guideSource']))->toContain('Display Name|yourgrid.org:8002/Region Name')
+            ->and($router->get('/grids/demo/settings/guide')->document['meta']['examples'][0]['text'])->toContain('Display Name|yourgrid.org:8002/Region Name')
             ->and($text($snippets('offline')['path']))->toContain('OfflineMessageModule = OfflineMessageModule');
     });
 });

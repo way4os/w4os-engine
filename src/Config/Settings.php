@@ -154,7 +154,7 @@ final class Settings
                 'AssetsURL' => ['name' => 'assetsUrl', 'type' => 'url', 'label' => 'setting_assets_url', 'service' => 'assets', 'labels' => ['assets' => 'service_assets'], 'admin' => 'assets', 'placeholder' => 'https://example.org/assets'],
                 'DirectoryURL' => ['name' => 'directoryUrl', 'type' => 'url', 'label' => 'setting_directory', 'service' => 'directory'],
                 'GridStatusURL' => ['name' => 'gridStatusUrl', 'type' => 'url', 'label' => 'setting_grid_status', 'service' => 'grid-status'],
-                'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'placeholder' => 'destinations.txt'],
+                'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'default' => 'https://2do.directory/destinations/guide', 'placeholder' => 'https://2do.directory/destinations/guide'],
                 'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search', 'fallback' => 'db_use_default'],
                 'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => 'https://2do.directory/events', 'placeholder' => 'https://2do.directory/events'],
                 // The search engine and the register of another server, kept for when the helpers do not provide the search
