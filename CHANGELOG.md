@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (guide): the popular places leave out the other grids and the land for sale by default, as w4os-wp 2.x
 - feature (guide): the popular places leave out, when asked, the other grids and the land for sale (`Grid::popularPlaces()`)
 - change (addresses): `Service::address()` and getAddresses read the registry of the settings, no list of their own
 - change (health): the health reads its settings from the registry (`health` of an entry), no list of its own

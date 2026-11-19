@@ -74,7 +74,7 @@ final class DefaultDestinations
      *
      * @return list<array{name:string,url:string,picture:?string,dwell:int}>
      */
-    public function popular(int $limit = self::LIMIT, bool $landSales = true): array
+    public function popular(int $limit = self::LIMIT, bool $landSales = false): array
     {
         if (!$this->search->tables_exist(['popularplaces', 'parcels', $this->regions])) {
             return [];

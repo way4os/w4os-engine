@@ -704,12 +704,12 @@ final class Grid extends InstalledModel
      * their address (`url`), their picture (an asset UUID, null without one), their visits (`dwell`) and what their card shows
      * (card(): `title`, `label`, `gridName`).
      *
-     * The options of w4os-wp 2.x: `$hypergrid` false keeps the places of this grid only, `$landSales` false leaves out the land for
-     * sale.
+     * The options of w4os-wp 2.x and its defaults: the places of this grid only, unless `$hypergrid`; the land for sale left out,
+     * unless `$landSales`.
      *
      * @return list<array{name:string,url:string,picture:?string,dwell:int,title:string,label:string,gridName:?string}> empty without a search
      */
-    public function popularPlaces(int $count = \OpenSim\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null, bool $hypergrid = true, bool $landSales = true): array
+    public function popularPlaces(int $count = \OpenSim\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null, bool $hypergrid = false, bool $landSales = false): array
     {
         $config ??= $this->config();
         $search = self::searchDatabase($config, 'read the popular places');

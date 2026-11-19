@@ -840,25 +840,25 @@ describe('The guide of a grid that has no list', function () {
         ]);
     });
 
-    test('leave out, when asked, the places of the other grids and the land for sale, as the options of w4os-wp 2.x', function () {
+    test('leave out the places of the other grids and the land for sale unless asked, as w4os-wp 2.x does by default', function () {
         $db = guide_database();
         // The market is for sale
         $db->exec("INSERT INTO parcelsales VALUES ('r1', 'Market', 'p3', 512, 100, '10/10/30', 'info', 10, 1, 'PG', 'http://grid.example.org:8002')");
-        $names = static fn(OpenSim\Services\DefaultDestinations $guide, bool $sales = true): array => array_column($guide->popular(10, $sales), 'name');
+        $names = static fn(OpenSim\Services\DefaultDestinations $guide, ?bool $sales = null): array => array_column($sales === null ? $guide->popular(10) : $guide->popular(10, $sales), 'name');
 
         expect($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002')))
-            ->toBe(['Elsewhere', 'Rose garden', 'Market'])
-            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'), false))
             ->toBe(['Elsewhere', 'Rose garden'])
-            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002', 'http://grid.example.org:8002/'), false))
+            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'), true))
+            ->toBe(['Elsewhere', 'Rose garden', 'Market'])
+            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002', 'http://grid.example.org:8002/')))
             ->toBe(['Rose garden']);
 
         $machine = new OpenSim\Testing\Machine();
         OpenSim\Data\Connections::using(static fn() => $db);
         $machine->write($machine->grid . '/Robust.HG.ini', (string) file_get_contents($machine->grid . '/Robust.HG.ini') . "\n[GridInfoService]\n    login = \"http://grid.example.org:8002/\"\n");
         $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
-        $ours = array_column($grid->popularPlaces(10, hypergrid: false, landSales: false), 'name');
-        $all = array_column($grid->popularPlaces(10), 'name');
+        $ours = array_column($grid->popularPlaces(10), 'name');
+        $all = array_column($grid->popularPlaces(10, hypergrid: true, landSales: true), 'name');
         OpenSim\Data\Connections::using(null);
 
         expect([$ours, $all])->toBe([['Rose garden'], ['Elsewhere', 'Rose garden', 'Market']]);
@@ -870,7 +870,7 @@ describe('The guide of a grid that has no list', function () {
         OpenSim\Data\Connections::using(static fn() => $db);
         $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
 
-        $popular = $grid->popularPlaces(3);
+        $popular = $grid->popularPlaces(3, hypergrid: true);
         OpenSim\Data\Connections::using(null);
 
         // The grid of the search is another one than demo: its places are hypergrid, titled by their region
