@@ -56,6 +56,7 @@ final class Listing
         'indicators',
         'area',
         'usage',
+        'dimensions',
     ];
 
     /** The thresholds of a usage, in percent: warning from the first, critical from the second. */

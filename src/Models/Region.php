@@ -1348,7 +1348,7 @@ final class Region extends Model
                 Listing::column('scripts', 'column_scripts', 'number'),
                 // The port of the region on its simulator (InternalPort of its file), where its file is
                 Listing::column('internalPort', 'column_internal_port', 'number'),
-                Listing::column('size', 'column_size', 'size', 'size'),
+                Listing::column('size', 'column_size', 'dimensions', 'size'),
                 Listing::column('location', 'profile_location', sort: 'location'),
                 Listing::column('lastSeen', 'last_activity', 'datetime', 'lastSeen'),
                 // Every flag but RegionOnline, which the column of the status shows

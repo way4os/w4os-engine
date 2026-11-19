@@ -790,6 +790,7 @@ final class Catalog
         'column_area' => 'Area',
         // The units an amount is shown in (Text\Units), the number as %s, and a usage: what it takes of its total
         'unit_km2' => '%s km²',
+        'unit_dimensions' => '%1$s × %2$s m',
         'unit_mb' => '%s MB',
         'unit_percent' => '%s %%',
         'usage_of' => '%1$s of %2$s',

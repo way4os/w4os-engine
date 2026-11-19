@@ -52,3 +52,15 @@ describe('What the regions hold', function () {
             ->and(count(iterator_to_array(Parcel::simulatorDatabases(parcel_config()))))->toBe(2);
     });
 });
+
+describe('The size of a region', function () {
+    test('is its dimensions in meters, a type of its own: 256 × 256 m, not the size of a file', function () {
+        $columns = array_column(Region::listing()->columns, null, 'name');
+
+        expect($columns['size']['type'])->toBe('dimensions')
+            ->and(sprintf(OpenSim\I18n\Catalog::MESSAGES['unit_dimensions'], '256', '256'))->toBe('256 × 256 m')
+            ->and(sprintf(OpenSim\I18n\Catalog::messages('fr_FR', false)['unit_dimensions'] ?? '', '256', '256'))->toBe('256 × 256 m')
+            // The size of a file is in bytes
+            ->and(array_column(OpenSim\Models\Asset::listing()->columns, null, 'name')['size']['type'])->toBe('size');
+    });
+});

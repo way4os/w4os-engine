@@ -2733,6 +2733,11 @@ msgid "%s km²"
 msgstr ""
 
 #, php-format
+msgctxt "unit_dimensions"
+msgid "%1$s × %2$s m"
+msgstr ""
+
+#, php-format
 msgctxt "unit_mb"
 msgid "%s MB"
 msgstr ""

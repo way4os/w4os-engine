@@ -323,7 +323,7 @@ describe('Regions', function () {
                 'prims' => 'number',
                 'scripts' => 'number',
                 'internalPort' => 'number',
-                'size' => 'size',
+                'size' => 'dimensions',
                 'location' => 'text',
                 'lastSeen' => 'datetime',
                 'flagNames' => 'list',

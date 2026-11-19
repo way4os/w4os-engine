@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- change (regions): the size of a region is a column of its own type, `dimensions`, shown 256 × 256 m (`unit_dimensions`)
+- fix (texts): French typos (monnaie, utiliser, exemple) and the solde of an account
 - feature (economy): the database of the money server takes Use default, the main database of the grid, written in its own keys of [MySql]
 - fix (config): a connection string reads its port given apart (`Port=3307`)
 - change (texts): the people of the world are avatars in every text, never users (Resident for the avatar of a person); the titles of the cards of a dashboard (`dashboard_grid_info`, `dashboard_grid_status`, `total`)
