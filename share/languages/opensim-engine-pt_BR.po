@@ -698,6 +698,10 @@ msgctxt "snippet_ini"
 msgid "Lines to add to %s"
 msgstr "Linhas a adicionar a %s"
 
+msgctxt "snippet_example"
+msgid "Example"
+msgstr "Exemplo"
+
 msgctxt "guide_source_help_pipe"
 msgid ""
 "Destination name and teleport URL are separated by a pipe (|) character."
@@ -1591,7 +1595,7 @@ msgctxt "block_profile_help"
 msgid "The profile of an avatar."
 msgstr "O perfil de um avatar."
 
-msgctxt "block_new_users_help"
+msgctxt "block_new_avatars_help"
 msgid "The last avatars who joined the grid."
 msgstr "Os últimos avatares que entraram no grid."
 

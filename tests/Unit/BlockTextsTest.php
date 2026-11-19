@@ -11,7 +11,7 @@ use OpenSim\I18n\Catalog;
 
 const BLOCK_TEXTS = [
     'block_grid_info_help', 'block_grid_status_help', 'block_popular_places_help', 'block_motd_help', 'block_destination_guide_help',
-    'block_directory_info_help', 'block_search_help', 'block_profile_help', 'block_new_users_help',
+    'block_directory_info_help', 'block_search_help', 'block_profile_help', 'block_new_avatars_help',
     'shortcode_home_help', 'shortcode_guest_help', 'shortcode_register_help', 'shortcode_text_help', 'shortcode_uri_help', 'shortcode_slogan_help',
 ];
 

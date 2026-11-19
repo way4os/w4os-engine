@@ -214,6 +214,7 @@ final class Catalog
         'guide_source_help_name' => 'A file name alone is read in the config folder of the grid.',
         'guide_example' => 'Example of a destinations file',
         'snippet_ini' => 'Lines to add to %s',
+        'snippet_example' => 'Example',
         'guide_source_help_pipe' => 'Destination name and teleport URL are separated by a pipe (|) character.',
         'guide_source_help_categories' => 'Lines containing only text are interpreted as categories.',
         'guide_source_help_comments' => 'Lines beginning with "#" or "//" are ignored.',
@@ -445,7 +446,7 @@ final class Catalog
         'block_directory_info_help' => 'The other grids whose places can be found in the search of this grid.',
         'block_search_help' => 'A search form for the places, events, classifieds and people of the grid.',
         'block_profile_help' => 'The profile of an avatar.',
-        'block_new_users_help' => 'The last avatars who joined the grid.',
+        'block_new_avatars_help' => 'The last avatars who joined the grid.',
         // The shortcodes of a site that are not blocks
         'shortcode_home_help' => 'Your text with the popular places, the guide, the grid status and the message of the day.',
         'shortcode_guest_help' => 'Shows its text only to visitors who are not signed in.',

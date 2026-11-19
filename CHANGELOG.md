@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (texts): `block_new_avatars_help` (was `block_new_users_help`), for the shortcode new-avatars; `snippet_example`, Example
 - feature (api): `GET /grids/{grid}/site-description`, what a site needs of a grid for its helpers (its addresses, the names of its databases, its destinations, the settings of its helpers), never a secret; `SiteDescription::grid()` makes the grid of the engine a site bundles of it
 - fix (grids): a grid an application describes without a folder never reads a file of the machine
 - fix (settings): an address written under a constant of the file's instance (WebURL, BaseURL...) keeps the `${Const|Name}` form, the one the line used first
