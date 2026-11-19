@@ -70,7 +70,8 @@ describe('The pages of the services, as w4os-wp', function () {
         expect($economy['currencyRate']['condition'])->toBe(['provide' => [true], 'economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex']])
             ->and($economy['currencyRate']['placeholder'])->toBe('10')
             ->and($economy['gloebitConfiguration'])->toMatchArray(['type' => 'note', 'condition' => ['provide' => [true], 'economyModule' => ['Gloebit']]])
-            ->and($guide['guideSource']['required'] ?? false)->toBeTrue()
+            // Left empty, it is the guide of 2do.directory: not required
+            ->and($guide['guideSource'])->not->toHaveKey('required')
             ->and($offline['mailSender'])->toMatchArray(['type' => 'email', 'required' => true, 'placeholder' => 'no-reply@example.org'])
             ->and($search['eventsUrl']['placeholder'])->toBe('http://2do.directory/events/')
             ->and(page_field('assets')['assetsUrl'])->toMatchArray(['required' => true, 'condition' => ['provide' => [false]]]);

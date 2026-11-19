@@ -70,6 +70,8 @@ describe('A database that does not answer', function () {
 
     test('is an error for the places of the guide, not a guide without places', function () {
         $machine = new OpenSim\Testing\Machine();
+        // A list the guide cannot read: the places its search knows instead
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    GuideSource = missing.txt\n");
         databases_down(Database::Search);
         $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
         // A grid that sets no database of its search has a guide of none (the test machine); one that sets it, an error
