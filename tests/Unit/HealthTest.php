@@ -46,6 +46,9 @@ function code_server(int $workers = 1): array
         fclose($connection);
     }
 
+    // Its workers too, whatever stops the server: proc_terminate() stops only the first one
+    register_shutdown_function(static fn() => exec('pkill -f ' . escapeshellarg("$dir/router.php") . ' 2>/dev/null'));
+
     return [$process, $port, $dir];
 }
 
