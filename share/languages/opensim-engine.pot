@@ -1528,7 +1528,7 @@ msgid "Currency Conversion Rate"
 msgstr ""
 
 msgctxt "setting_currency_rate_help"
-msgid "Amount to pay in US$ for 1000 in-world money units. Used for cost estimation."
+msgid "Amount to pay in US$ for 1000 in-world money units. Used for cost estimation. If not set, the rate will be 10/1000 (1 cent per money unit)."
 msgstr ""
 
 msgctxt "setting_currency_rate_per"

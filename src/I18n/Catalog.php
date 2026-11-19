@@ -476,7 +476,7 @@ final class Catalog
         'setting_mail_sender' => 'Sender e-mail address',
         'setting_mail_sender_help' => 'A no-reply e-mail address used to forward messages for users enabling "Email me IMs when I\'m offline" option.',
         'setting_currency_rate' => 'Currency Conversion Rate',
-        'setting_currency_rate_help' => 'Amount to pay in US$ for 1000 in-world money units. Used for cost estimation.',
+        'setting_currency_rate_help' => 'Amount to pay in US$ for 1000 in-world money units. Used for cost estimation. If not set, the rate will be 10/1000 (1 cent per money unit).',
         'setting_currency_rate_per' => 'Money Units per Rate',
         'setting_gloebit_threshold' => 'Gloebit Conversion Threshold',
         'setting_podex_message' => 'Podex Redirect Message',

@@ -128,7 +128,8 @@ describe('The settings of the currency', function () {
             ->and([$settings->rate, $settings->ratePer, $settings->helperUrl])
             ->toBe([5.0, 500.0, 'https://web/currency.php'])
             ->and([$beta->provider, $beta->useMoneyServer, $beta->hasKey(), $beta->rate, $beta->ratePer])
-            ->toBe(['', false, false, 4.0, 1000.0]);
+            // The rate of w4os-wp when none is set: 10 for 1000 (1 cent a unit)
+            ->toBe(['', false, false, 10.0, 1000.0]);
     });
 })->skip(fn() => test_pdo() === null, 'TEST_DATABASE is not set in tests/.env');
 
@@ -139,10 +140,11 @@ describe('The currency', function () {
         $rate = money_currency($db, $calls);
         $gloebit = money_currency($db, $calls, ['provider' => 'gloebit']);
 
+        // At the rate of w4os-wp: 10 for 1000
         expect($rate->virtualToReal(1000))
-            ->toBe(400)
+            ->toBe(1000)
             ->and($rate->quote(250))
-            ->toBe(['estimatedCost' => 100, 'currencyBuy' => 250])
+            ->toBe(['estimatedCost' => 250, 'currencyBuy' => 250])
             ->and($gloebit->quote(300))
             ->toBe(['estimatedCost' => 199, 'currencyBuy' => 400])
             ->and($gloebit->quote(401))
@@ -325,7 +327,7 @@ describe('The calls to the currency', function () {
         expect($quote)
             ->toBe([
                 'success' => true,
-                'currency' => ['estimatedCost' => 100, 'currencyBuy' => '250'],
+                'currency' => ['estimatedCost' => 250, 'currencyBuy' => '250'],
                 'confirm' => md5('secret-key_10.0.0.9'),
             ])
             ->and($forged)
@@ -483,7 +485,7 @@ describe('The calls to the currency', function () {
         expect($prepared['success'])
             ->toBeTrue()
             ->and($prepared['currency'])
-            ->toBe(['estimatedCost' => 200])
+            ->toBe(['estimatedCost' => 500])
             ->and($prepared['membership']['levels']['levels']['description'])
             ->toBe('some level')
             ->and($prepared['confirm'])
