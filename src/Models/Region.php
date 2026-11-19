@@ -339,7 +339,8 @@ final class Region extends Model
             'name' => $this->name(),
             'slug' => $this->slug(),
             'uri' => $this->uri(),
-            'location' => $this->x() . ',' . $this->y(),
+            // A space after the comma, where a narrow column breaks the line
+            'location' => $this->x() . ', ' . $this->y(),
             'x' => $this->x(),
             'y' => $this->y(),
             'size' => $this->width() . 'x' . $this->height(),
@@ -1407,7 +1408,7 @@ final class Region extends Model
                 ItemForm::shown('location', 'profile_location', 'text', 'region'),
                 ItemForm::shown('size', 'column_size', 'dimensions', 'region'),
                 // The port of the region on its simulator (InternalPort of its file), where its file is
-                ItemForm::shown('internalPort', 'column_port', 'number', 'region'),
+                ItemForm::shown('internalPort', 'column_internal_port', 'number', 'region', ['description' => 'internal_port_help']),
                 // The owner is the one of its estate, changed where its simulator is
                 ItemForm::shown('ownerName', 'column_owner', 'link', 'region', ['link' => 'ownerProfile', 'condition' => ['local' => [false]]]),
                 ItemForm::field('owner', 'column_owner', 'avatar', 'region', more: ['condition' => ['local' => [true]]]),

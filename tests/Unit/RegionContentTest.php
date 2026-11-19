@@ -50,18 +50,20 @@ describe('What the regions hold', function () {
         $usage = array_column($columns['usage']['parts'], 'type', 'name');
 
         expect([$plaza['prims'] ?? null, $plaza['scripts'] ?? null])->toBe([3, 2])
+            // Its location with a space after the comma, where a narrow column breaks the line
+            ->and($plaza['location'] ?? null)->toBe('3, 3')
             ->and([$usage['prims'] ?? null, $usage['scripts'] ?? null])->toBe(['number', 'number'])
             ->and(count(iterator_to_array(Parcel::simulatorDatabases(parcel_config()))))->toBe(2);
     });
 });
 
 describe('The size of a region', function () {
-    test('is its dimensions in meters, a type of its own: 256 × 256 m, not the size of a file', function () {
+    test('is its dimensions in meters, a type of its own: 256 x 256, spaces where a narrow column breaks the line, not the size of a file', function () {
         $columns = array_column(Region::listing()->columns, null, 'name');
 
         expect(array_column($columns['place']['parts'], 'type', 'name')['size'])->toBe('dimensions')
-            ->and(sprintf(OpenSim\I18n\Catalog::MESSAGES['unit_dimensions'], '256', '256'))->toBe('256 × 256 m')
-            ->and(sprintf(OpenSim\I18n\Catalog::messages('fr_FR', false)['unit_dimensions'] ?? '', '256', '256'))->toBe('256 × 256 m')
+            ->and(sprintf(OpenSim\I18n\Catalog::MESSAGES['unit_dimensions'], '256', '256'))->toBe('256 x 256')
+            ->and(sprintf(OpenSim\I18n\Catalog::messages('fr_FR', false)['unit_dimensions'] ?? '', '256', '256'))->toBe('256 x 256')
             // The size of a file is in bytes
             ->and(array_column(OpenSim\Models\Asset::listing()->columns, null, 'name')['size']['type'])->toBe('size');
     });
@@ -85,7 +87,9 @@ describe('The columns of a list that hold several values', function () {
             ->and($simulators['usage']['sort'] ?? null)->toBe('avatars')
             // A list exported in CSV has each value in its own column
             ->and($csv)->toContain('avatars')->toContain('prims')->toContain('location')->toContain('size')->not->toContain('usage')
-            ->and($page['internalPort'] ?? [])->toMatchArray(['label' => 'column_port'])
-            ->and(OpenSim\I18n\Catalog::MESSAGES['column_port'])->toBe('Port');
+            // On the page, its name and why: a port that needs only to be unique on its machine, not a public one
+            ->and($page['internalPort'] ?? [])->toMatchArray(['label' => 'column_internal_port', 'description' => 'internal_port_help'])
+            ->and(OpenSim\I18n\Catalog::MESSAGES['column_internal_port'])->toBe('Internal Port')
+            ->and(OpenSim\I18n\Catalog::messages('fr_FR', false)['internal_port_help'] ?? '')->not->toBe('');
     });
 });

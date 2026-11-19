@@ -456,6 +456,7 @@ final class Catalog
         'column_usage' => 'Usage',
         'column_scripts' => 'Scripts',
         'column_internal_port' => 'Internal Port',
+        'internal_port_help' => 'Not a public port: it only needs to be unique on the machine of its simulator.',
         'last_activity' => 'Last Activity',
         'column_size' => 'Size',
         'column_owner' => 'Owner',
@@ -791,7 +792,7 @@ final class Catalog
         'column_area' => 'Area',
         // The units an amount is shown in (Text\Units), the number as %s, and a usage: what it takes of its total
         'unit_km2' => '%s km²',
-        'unit_dimensions' => '%1$s × %2$s m',
+        'unit_dimensions' => '%1$s x %2$s',
         'unit_mb' => '%s MB',
         'unit_percent' => '%s %%',
         'usage_of' => '%1$s of %2$s',

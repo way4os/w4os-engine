@@ -144,7 +144,7 @@ describe('Regions', function () {
             ->and([$welcome['x'], $welcome['y']])
             ->toBe([1000, 1000])
             ->and($welcome['location'])
-            ->toBe('1000,1000')
+            ->toBe('1000, 1000')
             ->and($welcome['size'])
             ->toBe('256x256')
             ->and([$welcome['width'], $welcome['height']])

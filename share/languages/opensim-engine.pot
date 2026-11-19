@@ -1454,6 +1454,10 @@ msgctxt "column_internal_port"
 msgid "Internal Port"
 msgstr ""
 
+msgctxt "internal_port_help"
+msgid "Not a public port: it only needs to be unique on the machine of its simulator."
+msgstr ""
+
 msgctxt "last_activity"
 msgid "Last Activity"
 msgstr ""
@@ -2738,7 +2742,7 @@ msgstr ""
 
 #, php-format
 msgctxt "unit_dimensions"
-msgid "%1$s × %2$s m"
+msgid "%1$s x %2$s"
 msgstr ""
 
 #, php-format

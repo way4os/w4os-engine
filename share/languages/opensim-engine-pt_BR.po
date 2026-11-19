@@ -1650,6 +1650,12 @@ msgctxt "column_internal_port"
 msgid "Internal Port"
 msgstr "Porta Interna"
 
+msgctxt "internal_port_help"
+msgid ""
+"Not a public port: it only needs to be unique on the machine of its "
+"simulator."
+msgstr "Não é uma porta pública: ela só precisa ser única na máquina do seu simulador."
+
 msgctxt "last_activity"
 msgid "Last Activity"
 msgstr "Última Atividade"
@@ -3071,8 +3077,8 @@ msgstr "%s km²"
 
 #, php-format
 msgctxt "unit_dimensions"
-msgid "%1$s × %2$s m"
-msgstr "%1$s × %2$s m"
+msgid "%1$s x %2$s"
+msgstr "%1$s x %2$s"
 
 #, php-format
 msgctxt "unit_mb"
