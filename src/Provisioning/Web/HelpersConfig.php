@@ -89,10 +89,12 @@ final class HelpersConfig
             return '';
         }
         $gridDir = $grid;
-
-        return preg_match('/^\s*' . preg_quote($key, '/') . '\s*=\s*"?([^"\r\n]*?)"?\s*$/m', self::robust($gridDir), $m)
+        $value = preg_match('/^\s*' . preg_quote($key, '/') . '\s*=\s*"?([^"\r\n]*?)"?\s*$/m', self::robust($gridDir), $m)
             ? trim($m[1])
             : '';
+
+        // A constant of the files (${Const|BaseURL}:8830): the value the executables read
+        return str_contains($value, '${Const|') ? self::robustValue(GridConfig::fromFolder($gridDir), $key) : $value;
     }
 
     /** The address of the web site of the grid: the `WebURL` of its Robust config. */

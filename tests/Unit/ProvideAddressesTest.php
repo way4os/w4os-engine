@@ -27,7 +27,7 @@ describe('The address of a service', function () {
             ->and($search->document['data']['attributes']['path'])->toBe('search/query.php')
             ->and(file_get_contents($machine->grid . '/OpenSim.ini'))->toContain('SearchURL = "https://play.example.org/helpers/search/query.php"')
             ->and($economy->document['data']['attributes']['path'])->toBe('/money/')
-            ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('https://play.example.org/money/');
+            ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('${Const|WebURL}/money/');
     });
 
     test('of another search engine is kept apart, 2do.directory by default, and not lost when Provide is switched', function () {

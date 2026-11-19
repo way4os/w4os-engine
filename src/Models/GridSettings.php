@@ -323,7 +323,8 @@ final class GridSettings
                     $ini->set($entry['section'], $key, $text);
                 }
             } else {
-                $ini->set($entry['section'], $entry['key'], self::checked($entry, $value, $ini->get($entry['section'], $entry['key'])));
+                $current = $ini->get($entry['section'], $entry['key']);
+                $ini->set($entry['section'], $entry['key'], $this->withConstants($entry, self::checked($entry, $value, $current), $current));
             }
             $ini->save($file);
         }
@@ -360,6 +361,37 @@ final class GridSettings
         }
 
         return ['file' => null, 'reason' => Notice::of(($entry['readers'] ?? 'grid') === 'grid' ? 'setting-no-files' : 'setting-no-files-unkept')];
+    }
+
+    /**
+     * An address as a file of Robust or the simulators keeps it: under a constant of the grid (WebURL, BaseURL...), `${Const|Name}`
+     * and the rest, the constant the line already used first; any other value as it is.
+     *
+     * @param array<string,mixed> $entry
+     * @param ?string $current what the line says now, as it is written
+     */
+    private function withConstants(array $entry, string $text, ?string $current): string
+    {
+        $value = trim($text, '"');
+        if ($entry['type'] !== 'url' || !in_array($entry['instance'], ['robust', 'opensim'], true) || $value === '') {
+            return $text;
+        }
+        $constants = array_filter(
+            // The constants of the instance that reads the file: Robust's for Robust, the simulators' for OpenSim.ini
+            array_map(static fn($constant): string => trim((string) $constant, " \t\""), $this->config()->tree()[Settings::INSTANCES[$entry['instance']]['role']]['Const'] ?? []),
+            static fn(string $constant): bool => preg_match('#^https?://#i', $constant) === 1,
+        );
+        // The constant the line uses, then the longest one the address is under
+        $used = preg_match('/^"?\$\{Const\|([^}]+)\}/', (string) $current, $m) === 1 ? $m[1] : null;
+        uksort($constants, static fn(string $one, string $two): int => [$two === $used, strlen($constants[$two] ?? '')] <=> [$one === $used, strlen($constants[$one] ?? '')]);
+        foreach ($constants as $name => $constant) {
+            $rest = substr($value, strlen(rtrim($constant, '/')));
+            if (str_starts_with($value, rtrim($constant, '/')) && ($rest === '' || in_array($rest[0], ['/', ':', '?'], true))) {
+                return '"${Const|' . $name . '}' . $rest . '"';
+            }
+        }
+
+        return $text;
     }
 
     /** Whether this process can write a file: the file itself, or the folder it would be made in. Checked, never assumed. */

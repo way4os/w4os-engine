@@ -80,11 +80,11 @@ describe('A settings page of a service of the helpers', function () {
         $off = $patch('economy', ['provide' => false, 'economyUrl' => 'https://shop.example.org/money/']);
 
         expect([$on->status, $off->status])->toBe([200, 200])
-            ->and($robust()['LoginService']['DestinationGuide'] ?? null)->toBe('https://play.example.org/destinations')
+            ->and($robust()['LoginService']['DestinationGuide'] ?? null)->toBe('${Const|WebURL}/destinations')
             ->and($on->document['meta']['service']['handledBy'])->toBe('site')
             ->and($robust()['GridInfoService']['economy'] ?? null)->toBe('https://shop.example.org/money/')
             ->and($patch('economy', ['provide' => true, 'path' => '/helpers/'])->document['meta']['service']['handledBy'])->toBe('helpers')
-            ->and($robust()['GridInfoService']['economy'] ?? null)->toBe('https://play.example.org/helpers/')
+            ->and($robust()['GridInfoService']['economy'] ?? null)->toBe('${Const|WebURL}/helpers/')
             // Off, the address is needed
             ->and($patch('assets', ['provide' => false, 'assetsUrl' => ''])->status)->toBe(400);
     });

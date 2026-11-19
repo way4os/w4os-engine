@@ -65,6 +65,6 @@ describe('Provide', function () {
             ->and(provided_fields('guide')['path'])->not->toHaveKey('readOnly')
             ->and($done->document['data']['attributes']['path'])->toBe('/places/guide')
             ->and($done->document['meta']['service']['base'])->toBe('https://play.example.org')
-            ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('https://play.example.org/places/guide');
+            ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('${Const|WebURL}/places/guide');
     });
 });
