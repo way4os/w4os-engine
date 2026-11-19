@@ -1674,7 +1674,51 @@ final class Avatar extends Model
         // The views of w4os-wp, in its order: the type, active or not, in the world or not (with the visits)
         $views = ['type', 'active', ...($joined ? ['online'] : [])];
 
-        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : [], $views);
+        // The button above the list that opens the form of a new one (creationForm())
+        $create = ['label' => 'action_new_avatar', 'method' => 'POST', 'path' => '/grids/{grid}/avatars', 'operation' => 'createAvatar'];
+
+        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : [], $views, $create);
+    }
+
+    /**
+     * What a site shows to make an avatar (`x-form` of createAvatar), the fields of the creation of w4os-wp (v1/profile.php, the
+     * form Create Avatar) in its words: the first and the last name (a letter, then letters and numbers, 32 at most), the email
+     * (not needed), the password, and the model, chosen among the avatar models side by side with their picture, none for the
+     * default outfit.
+     *
+     * @return array<string,mixed>
+     */
+    public static function creationForm(): array
+    {
+        $name = static fn(string $field, string $label): array => [
+            'name' => $field,
+            'label' => $label,
+            'type' => 'string',
+            'required' => true,
+            'pattern' => '[A-Za-z][A-Za-z0-9]*',
+            'maxLength' => 32,
+            'description' => "{$label}_help",
+        ];
+
+        return [
+            'title' => 'action_new_avatar',
+            'description' => ['register_text'],
+            'fields' => [
+                $name('firstName', 'first_name'),
+                $name('lastName', 'last_name'),
+                ['name' => 'email', 'label' => 'email', 'type' => 'email'],
+                ['name' => 'password', 'label' => 'password', 'type' => 'secret', 'required' => true, 'description' => 'password_help'],
+                [
+                    'name' => 'model',
+                    'label' => 'model',
+                    'type' => 'select',
+                    'widget' => 'radio',
+                    'description' => 'model_help',
+                    'source' => ['path' => '/grids/{grid}/avatar-models', 'value' => 'uuid', 'label' => 'label', 'picture' => 'picture', 'empty' => 'models_none'],
+                ],
+            ],
+            'submit' => 'action_create_avatar',
+        ];
     }
 
     /**

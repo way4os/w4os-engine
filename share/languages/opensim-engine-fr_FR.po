@@ -46,6 +46,15 @@ msgctxt "last_name"
 msgid "Last name"
 msgstr "Nom de famille"
 
+msgctxt "first_name_help"
+msgid ""
+"First name must start with a letter and contain only letters and numbers"
+msgstr "Le prénom doit commencer par une lettre et ne contenir que des lettres et des chiffres"
+
+msgctxt "last_name_help"
+msgid "Last name must start with a letter and contain only letters and numbers"
+msgstr "Le nom doit commencer par une lettre et ne contenir que des lettres et des chiffres"
+
 msgctxt "email"
 msgid "Email"
 msgstr "E-mail"
@@ -460,6 +469,14 @@ msgstr ""
 msgctxt "action_post"
 msgid "Post"
 msgstr "Publier"
+
+msgctxt "action_new_avatar"
+msgid "New Avatar"
+msgstr "Nouvel avatar"
+
+msgctxt "action_create_avatar"
+msgid "Create Avatar"
+msgstr "Créer un avatar"
 
 msgctxt "action_delete_post"
 msgid "Delete"

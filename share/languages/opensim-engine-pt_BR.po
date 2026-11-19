@@ -45,6 +45,15 @@ msgctxt "last_name"
 msgid "Last name"
 msgstr "Sobrenome"
 
+msgctxt "first_name_help"
+msgid ""
+"First name must start with a letter and contain only letters and numbers"
+msgstr "O nome deve começar com uma letra e conter apenas letras e números"
+
+msgctxt "last_name_help"
+msgid "Last name must start with a letter and contain only letters and numbers"
+msgstr "O sobrenome deve começar com uma letra e conter apenas letras e números"
+
 msgctxt "email"
 msgid "Email"
 msgstr "Email"
@@ -454,6 +463,14 @@ msgstr ""
 msgctxt "action_post"
 msgid "Post"
 msgstr ""
+
+msgctxt "action_new_avatar"
+msgid "New Avatar"
+msgstr "Novo Avatar"
+
+msgctxt "action_create_avatar"
+msgid "Create Avatar"
+msgstr "Criar Avatar"
 
 msgctxt "action_delete_post"
 msgid "Delete"
@@ -1214,7 +1231,7 @@ msgstr ""
 
 msgctxt "setting_message_url"
 msgid "Message of the day"
-msgstr ""
+msgstr "Mensagem do dia"
 
 msgctxt "setting_message_url_help"
 msgid "The message the viewers show at login."
@@ -1288,7 +1305,7 @@ msgstr ""
 
 msgctxt "setting_directory"
 msgid "Directory"
-msgstr ""
+msgstr "Diretório"
 
 msgctxt "setting_directory_help"
 msgid "The page of the grid in the shared directory of the regions."
@@ -1348,7 +1365,7 @@ msgstr ""
 
 msgctxt "service_asset"
 msgid "Assets service"
-msgstr ""
+msgstr "Serviço de Ativos"
 
 msgctxt "service_asset_help"
 msgid ""

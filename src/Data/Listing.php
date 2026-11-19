@@ -88,6 +88,9 @@ final class Listing
      * @param list<array<string,mixed>> $actions made by action()
      * @param string $sort the sort of a list that asks for none, `-` before it for the descending order
      * @param list<string> $moreSorts the sorts it takes that no column shows
+     * @param list<string> $views the filters a site shows as the row of links above the list, in their order
+     * @param array<string,string> $create the action of the list itself that makes an item (`label`, `method`, `path`, `operation`
+     *        the operation whose `x-form` is its form), not one of a row
      */
     public function __construct(
         public readonly array $columns,
@@ -97,6 +100,7 @@ final class Listing
         public readonly string $sort = 'name',
         public readonly array $moreSorts = [],
         public readonly array $views = [],
+        public readonly array $create = [],
     ) {
         // The views: filters of the list, the row of links a site shows above it, in their order
         foreach ($views as $view) {
@@ -343,7 +347,7 @@ final class Listing
             'search' => $this->search,
             'filters' => $this->filters,
             'actions' => $this->actions,
-        ] + ($this->views === [] ? [] : ['views' => $this->views]);
+        ] + ($this->views === [] ? [] : ['views' => $this->views]) + ($this->create === [] ? [] : ['create' => $this->create]);
     }
 
     /**

@@ -45,6 +45,15 @@ msgctxt "last_name"
 msgid "Last name"
 msgstr "Cyfareddol"
 
+msgctxt "first_name_help"
+msgid ""
+"First name must start with a letter and contain only letters and numbers"
+msgstr "Rhaid i'r enw cyntaf ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn unig"
+
+msgctxt "last_name_help"
+msgid "Last name must start with a letter and contain only letters and numbers"
+msgstr "Rhaid i'r cyfenw ddechrau gyda llythyren a chynnwys llythrennau a rhifau yn unig"
+
 msgctxt "email"
 msgid "Email"
 msgstr "Ebost"
@@ -457,6 +466,14 @@ msgstr ""
 msgctxt "action_post"
 msgid "Post"
 msgstr ""
+
+msgctxt "action_new_avatar"
+msgid "New Avatar"
+msgstr "Avatar Newydd"
+
+msgctxt "action_create_avatar"
+msgid "Create Avatar"
+msgstr "Creu Avatar"
 
 msgctxt "action_delete_post"
 msgid "Delete"
@@ -1229,7 +1246,7 @@ msgstr ""
 
 msgctxt "setting_message_url"
 msgid "Message of the day"
-msgstr ""
+msgstr "Neges y dydd"
 
 msgctxt "setting_message_url_help"
 msgid "The message the viewers show at login."
@@ -1303,7 +1320,7 @@ msgstr ""
 
 msgctxt "setting_directory"
 msgid "Directory"
-msgstr ""
+msgstr "Cyfeiriadur"
 
 msgctxt "setting_directory_help"
 msgid "The page of the grid in the shared directory of the regions."
@@ -1363,7 +1380,7 @@ msgstr ""
 
 msgctxt "service_asset"
 msgid "Assets service"
-msgstr ""
+msgstr "Gwasanaeth Asedau"
 
 msgctxt "service_asset_help"
 msgid ""
