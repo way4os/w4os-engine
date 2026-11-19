@@ -339,7 +339,7 @@ final class GridSettings
 
     /**
      * The fields of a page of a service of the helpers: Provide first (on by default), the path under the site when on, the whole
-     * address when off, then the others, asked when the helpers provide it (but what the options set, always shown).
+     * address when off, then the others, shown when the helpers provide it (what the options set too).
      *
      * @param list<array<string,mixed>> $fields
      * @return list<array<string,mixed>>
@@ -363,7 +363,7 @@ final class GridSettings
                 $address[1]['description'] === [] && ($address[1] = array_diff_key($address[1], ['description' => 1]));
                 continue;
             }
-            $others[] = ($field['readOnly'] ?? false) ? $more + $field : ['condition' => $on + $condition] + $more + $field;
+            $others[] = ['condition' => $on + $condition] + $more + $field;
         }
         $order = array_flip(self::ORDER[$page] ?? []);
         usort($others, static fn(array $one, array $two): int => ($order[$one['name']] ?? PHP_INT_MAX) <=> ($order[$two['name']] ?? PHP_INT_MAX));

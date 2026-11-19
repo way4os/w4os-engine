@@ -50,9 +50,9 @@ describe('A settings page of a service of the helpers', function () {
         expect(array_map(static fn(string $page): string => Catalog::MESSAGES[$first($page)[0]['label']], $pages))
             ->toBe(['Provide Economy Helper', 'Provide Search', 'Provide Destinations Guide Service', 'Provide Offline Messages Service', 'Provide Web Assets Server'])
             ->and(Catalog::messages('fr_FR')[$first('economy')[0]['label']])->toBe("Fournir l'assistant d'économie")
-            // What the helpers need is asked only when they provide it, as w4os-wp shows it
+            // What the helpers need is asked only when they provide it, the rest hidden when they do not
             ->and($economy['currencyRate']['condition'])->toMatchArray(['provide' => [true]])
-            ->and($economy['economyModule'])->not->toHaveKey('condition');
+            ->and($economy['economyModule']['condition'])->toBe(['provide' => [true]]);
     });
 
     test('says who handles the requests: the helpers under their base, the site elsewhere on it, nobody here when off', function () {

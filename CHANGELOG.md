@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (settings): Provide off shows the whole address of the service alone, its other settings hidden
 - fix (economy): an unset economymodule reads as the free economy (BetaGridLikeMoneyModule), the default of OpenSimulator
 - fix (texts): the reasons a grid cannot be changed or read (`meta.fixed`, 503 problems) are notices of the catalog, in six languages
 - fix (settings): a setting goes to its file when this process can write it, else to the application for what only the helpers read; the others are fixed (`meta.fixed`, the lines to add by hand)
