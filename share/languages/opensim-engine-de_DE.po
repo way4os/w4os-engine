@@ -386,6 +386,26 @@ msgctxt "settings_models"
 msgid "Avatar Models"
 msgstr "Avatar-Modelle"
 
+msgctxt "settings_economy"
+msgid "Economy Settings"
+msgstr "Wirtschaftseinstellungen"
+
+msgctxt "settings_search"
+msgid "Search Engine Settings"
+msgstr "Suchmaschineneinstellungen"
+
+msgctxt "settings_guide"
+msgid "Destinations Guide Settings"
+msgstr "Einstellungen für den Reiseführer der Ziele"
+
+msgctxt "settings_offline"
+msgid "Offline Messages Settings"
+msgstr "Einstellungen für Offline-Nachrichten"
+
+msgctxt "settings_assets"
+msgid "Web Assets Server"
+msgstr "Web Assets Server"
+
 msgctxt "models_match"
 msgid "Match"
 msgstr "Passen"
@@ -1349,13 +1369,13 @@ msgstr ""
 
 msgctxt "setting_data_service"
 msgid "Data service"
-msgstr ""
+msgstr "Datendienst"
 
 msgctxt "setting_data_service_help"
 msgid ""
 "Where the simulators register their regions, so that the search finds them. "
 "Not a page."
-msgstr ""
+msgstr "Wo die Simulatoren ihre Regionen anmelden, damit die Suche sie findet. Keine Seite."
 
 msgctxt "setting_offline_messages"
 msgid "Offline messages"
@@ -1373,23 +1393,23 @@ msgstr ""
 
 msgctxt "setting_offline_module"
 msgid "Offline messages module"
-msgstr ""
+msgstr "Modul der Offline-Nachrichten"
 
 msgctxt "setting_offline_module_help"
 msgid ""
 "The module of the simulators that keeps the messages of the avatars who are "
 "away: V2 by Robust, V1 by the helpers."
-msgstr ""
+msgstr "Das Modul der Simulatoren, das die Nachrichten abwesender Avatare aufbewahrt: V2 durch Robust, V1 durch die Helpers."
 
 msgctxt "setting_money_script_key"
 msgid "Money script key"
-msgstr ""
+msgstr "Schlüssel der Geldskripte"
 
 msgctxt "setting_money_script_key_help"
 msgid ""
 "The key the currency services and the money server share: never shown, only "
 "whether it is set."
-msgstr ""
+msgstr "Der Schlüssel, den die Währungsdienste und der Geldserver teilen: nie angezeigt, nur ob er gesetzt ist."
 
 msgctxt "setting_helpers"
 msgid "Helpers base"
@@ -1426,6 +1446,199 @@ msgid ""
 "The folder of the state of the tasks: without it, no task runs and the "
 "search index never fills."
 msgstr ""
+
+msgctxt "setting_base_url"
+msgid "Base URL"
+msgstr ""
+
+msgctxt "setting_base_hostname"
+msgid "Base Hostname"
+msgstr ""
+
+msgctxt "setting_public_port"
+msgid "Public Port"
+msgstr ""
+
+msgctxt "setting_private_port"
+msgid "Private Port"
+msgstr ""
+
+msgctxt "setting_storage_provider"
+msgid "Storage Provider"
+msgstr ""
+
+msgctxt "setting_database"
+msgid "Database Connection String"
+msgstr ""
+
+msgctxt "setting_grid_name"
+msgid "Grid Name"
+msgstr "Grid Name"
+
+msgctxt "setting_grid_nick"
+msgid "Grid Nickname"
+msgstr ""
+
+msgctxt "setting_welcome_message"
+msgid "Welcome Message"
+msgstr ""
+
+msgctxt "setting_currency_symbol"
+msgid "Currency Name"
+msgstr ""
+
+msgctxt "setting_search_module"
+msgid "Search Module"
+msgstr ""
+
+msgctxt "setting_index_sims"
+msgid "Index Regions"
+msgstr ""
+
+msgctxt "setting_economy_module"
+msgid "Economy Module"
+msgstr "Wirtschaftsmodul"
+
+msgctxt "setting_economy_module_help"
+msgid ""
+"Changed with the options of the grid, which set the module and what it needs."
+msgstr "Wird mit den Optionen des Grids geändert, die das Modul und alles, was es braucht, einstellen."
+
+msgctxt "economy_module_free"
+msgid "Free transactions only"
+msgstr "Nur kostenlose Transaktionen"
+
+msgctxt "economy_module_gloebit"
+msgid "Gloebit"
+msgstr "Gloebit"
+
+msgctxt "economy_module_moneyserver"
+msgid "Podex and other currency providers"
+msgstr "Podex und andere Währungsanbieter"
+
+msgctxt "setting_sell_enabled"
+msgid "Enable Selling"
+msgstr ""
+
+msgctxt "setting_price_upload"
+msgid "Price Upload"
+msgstr ""
+
+msgctxt "setting_price_group_create"
+msgid "Price Group Create"
+msgstr ""
+
+msgctxt "setting_gloebit_enabled"
+msgid "Enable Gloebit"
+msgstr ""
+
+msgctxt "setting_gloebit_environment"
+msgid "Gloebit Environment"
+msgstr ""
+
+msgctxt "gloebit_sandbox"
+msgid "Sandbox"
+msgstr ""
+
+msgctxt "gloebit_production"
+msgid "Production"
+msgstr ""
+
+msgctxt "setting_guide_source"
+msgid "Source"
+msgstr "Quelle"
+
+msgctxt "setting_guide_source_help"
+msgid "A text file with a formatted list of destinations."
+msgstr "Eine Textdatei mit einer formatierten Liste von Zielen."
+
+msgctxt "setting_search_database"
+msgid "OS Search Database"
+msgstr "Datenbank für OS-Suche"
+
+msgctxt "setting_events_url"
+msgid "Events Server URL"
+msgstr "Ereignis-Server-URL"
+
+msgctxt "setting_logo_url"
+msgid "Grid Logo URL"
+msgstr ""
+
+msgctxt "setting_mail_sender"
+msgid "Sender e-mail address"
+msgstr "E-Mail Adresse des Absenders"
+
+msgctxt "setting_mail_sender_help"
+msgid ""
+"A no-reply e-mail address used to forward messages for users enabling "
+"\"Email me IMs when I'm offline\" option."
+msgstr ""
+"Eine E-Mail-Adresse ohne Antwort, die zur Weiterleitung von Nachrichten für "
+"Benutzer verwendet wird, die die Option \"E-Mail an IMs senden, wenn ich "
+"offline bin\" aktivieren."
+
+msgctxt "setting_currency_rate"
+msgid "Currency Conversion Rate"
+msgstr "Währungsumrechnungskurs"
+
+msgctxt "setting_currency_rate_help"
+msgid ""
+"Amount to pay in US$ for 1000 in-world money units. Used for cost estimation."
+msgstr "Betrag in US$ für 1000 In-World-Geldeinheiten. Wird zur Kostenschätzung verwendet."
+
+msgctxt "setting_currency_rate_per"
+msgid "Money Units per Rate"
+msgstr ""
+
+msgctxt "setting_gloebit_threshold"
+msgid "Gloebit Conversion Threshold"
+msgstr ""
+
+msgctxt "setting_podex_message"
+msgid "Podex Redirect Message"
+msgstr "Podex-Weiterleitungsnachricht"
+
+msgctxt "setting_podex_url"
+msgid "Exchange Teleport URL"
+msgstr "Austausch der Teleport-URL"
+
+msgctxt "setting_assets_url"
+msgid "Web Assets Server URL"
+msgstr "Web Assets Server URL"
+
+msgctxt "setting_assets_url_help"
+msgid ""
+"The web assets server of the grid when it is not the one of the helpers: it "
+"converts the pictures of the world (JPEG 2000) for the web."
+msgstr "Der Web-Asset-Server des Grids, wenn es nicht der der Helpers ist: er wandelt die Bilder der Welt (JPEG 2000) für das Web um."
+
+msgctxt "offline_module_v1"
+msgid "By the helpers (V1)"
+msgstr "Durch die Helpers (V1)"
+
+msgctxt "offline_module_v2"
+msgid "By Robust (V2)"
+msgstr "Durch Robust (V2)"
+
+msgctxt "db_host"
+msgid "Hostname"
+msgstr "Hostname"
+
+msgctxt "db_port"
+msgid "Port"
+msgstr "Hafen"
+
+msgctxt "db_name"
+msgid "Database name"
+msgstr "Datenbankname"
+
+msgctxt "db_user"
+msgid "User"
+msgstr "Benutzer"
+
+msgctxt "db_password"
+msgid "Password"
+msgstr "Passwort"
 
 msgctxt "usage_robust_simulators"
 msgid "Robust service, used by the simulators"

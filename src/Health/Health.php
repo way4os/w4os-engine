@@ -888,11 +888,13 @@ class Health
      * is required by the web assets service, unless the grid sets an external one.
      *
      * @param ?string $external the external web assets service of the grid (WebAssets::external), null when it runs here
-     * @param array{file:string,section:string,key:string} $setting where the grid sets it
+     * @param ?array{file:string,section:string,key:string} $setting where the grid sets it (Settings::where('assetsUrl'))
      * @return list<array<string,mixed>>
      */
-    public static function extensions($external = null, $setting = self::ASSETS_SETTING)
+    public static function extensions($external = null, $setting = null)
     {
+        $setting ??= \OpenSim\Config\Settings::where('assetsUrl');
+
         return [
             self::requirement('xmlrpc', function_exists('xmlrpc_encode'), 'extension or polyfill'),
             self::requirement('imagick', class_exists('Imagick'), 'text to image, web assets'),
@@ -900,9 +902,6 @@ class Health
             self::requirement('gettext', function_exists('gettext'), 'translations'),
         ];
     }
-
-    /** Where a grid sets its web assets service, when the engine knows no other. */
-    public const ASSETS_SETTING = ['file' => 'Helpers.ini', 'section' => 'Helpers', 'key' => 'AssetsURL'];
 
     /**
      * Whether imagick reads JPEG 2000, the format of the pictures of the world (textures, profile pictures, map tiles), required by
@@ -914,8 +913,9 @@ class Health
      * @param array{file:string,section:string,key:string} $setting where the grid sets it
      * @return array<string,mixed>
      */
-    public static function jpeg2000($reads, $external, $setting = self::ASSETS_SETTING)
+    public static function jpeg2000($reads, $external, $setting = null)
     {
+        $setting ??= \OpenSim\Config\Settings::where('assetsUrl');
         $where = $setting['file'] . ' · [' . $setting['section'] . '] · ' . $setting['key'];
         $row = ['label' => 'imagick JPEG 2000', 'kind' => 'requirement', 'installed' => $reads, 'version' => null, 'setting' => $setting];
         if ($reads) {

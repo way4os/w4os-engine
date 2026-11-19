@@ -105,11 +105,7 @@ final class HealthCheck
             ['file' => 'pages', 'title' => '', 'rows' => Health::pages(Health::configured(SitePages::rows($grid), self::urls($config), static fn(string $url): bool => $grid->servedByHelpers($url)), $register)],
         ];
         // The web assets service needs JPEG 2000 here, unless the grid sets an external one
-        $assets = (new \OpenSim\Models\Service($grid->environment(), $grid, 'assets'))->address();
-        $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions(
-            WebAssets::external($grid),
-            ['file' => (string) $assets['file'], 'section' => (string) $assets['section'], 'key' => (string) $assets['setting']],
-        )];
+        $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions(WebAssets::external($grid), \OpenSim\Config\Settings::where('assetsUrl', $config))];
         $groups[] = [
             'file' => 'cache',
             'title' => '',

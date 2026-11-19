@@ -383,6 +383,26 @@ msgctxt "settings_models"
 msgid "Avatar Models"
 msgstr "Modelau Afatar"
 
+msgctxt "settings_economy"
+msgid "Economy Settings"
+msgstr "Gosodiadau"
+
+msgctxt "settings_search"
+msgid "Search Engine Settings"
+msgstr "Gosodiadau'r peiriant chwilio"
+
+msgctxt "settings_guide"
+msgid "Destinations Guide Settings"
+msgstr "Gosodiadau'r Ganllawiau o Destyniadau"
+
+msgctxt "settings_offline"
+msgid "Offline Messages Settings"
+msgstr "Gosodiadau Negeseuon All-lein"
+
+msgctxt "settings_assets"
+msgid "Web Assets Server"
+msgstr "Gweinydd Asedau Gwe"
+
 msgctxt "models_match"
 msgid "Match"
 msgstr "Cyfateb"
@@ -1352,13 +1372,13 @@ msgstr ""
 
 msgctxt "setting_data_service"
 msgid "Data service"
-msgstr ""
+msgstr "Gwasanaeth data"
 
 msgctxt "setting_data_service_help"
 msgid ""
 "Where the simulators register their regions, so that the search finds them. "
 "Not a page."
-msgstr ""
+msgstr "Lle mae'r efelychwyr yn cofrestru eu rhanbarthau, fel bod y chwilio yn dod o hyd iddynt. Nid tudalen mohono."
 
 msgctxt "setting_offline_messages"
 msgid "Offline messages"
@@ -1376,23 +1396,23 @@ msgstr ""
 
 msgctxt "setting_offline_module"
 msgid "Offline messages module"
-msgstr ""
+msgstr "Modiwl negeseuon all-lein"
 
 msgctxt "setting_offline_module_help"
 msgid ""
 "The module of the simulators that keeps the messages of the avatars who are "
 "away: V2 by Robust, V1 by the helpers."
-msgstr ""
+msgstr "Modiwl yr efelychwyr sy'n cadw negeseuon yr afatarau sydd i ffwrdd: V2 gan Robust, V1 gan yr helpers."
 
 msgctxt "setting_money_script_key"
 msgid "Money script key"
-msgstr ""
+msgstr "Allwedd sgriptiau arian"
 
 msgctxt "setting_money_script_key_help"
 msgid ""
 "The key the currency services and the money server share: never shown, only "
 "whether it is set."
-msgstr ""
+msgstr "Yr allwedd y mae'r gwasanaethau arian a'r gweinydd arian yn ei rhannu: ni chaiff ei dangos byth, dim ond a yw wedi'i gosod."
 
 msgctxt "setting_helpers"
 msgid "Helpers base"
@@ -1429,6 +1449,198 @@ msgid ""
 "The folder of the state of the tasks: without it, no task runs and the "
 "search index never fills."
 msgstr ""
+
+msgctxt "setting_base_url"
+msgid "Base URL"
+msgstr ""
+
+msgctxt "setting_base_hostname"
+msgid "Base Hostname"
+msgstr ""
+
+msgctxt "setting_public_port"
+msgid "Public Port"
+msgstr ""
+
+msgctxt "setting_private_port"
+msgid "Private Port"
+msgstr ""
+
+msgctxt "setting_storage_provider"
+msgid "Storage Provider"
+msgstr ""
+
+msgctxt "setting_database"
+msgid "Database Connection String"
+msgstr ""
+
+msgctxt "setting_grid_name"
+msgid "Grid Name"
+msgstr "Enw'r Grid"
+
+msgctxt "setting_grid_nick"
+msgid "Grid Nickname"
+msgstr ""
+
+msgctxt "setting_welcome_message"
+msgid "Welcome Message"
+msgstr ""
+
+msgctxt "setting_currency_symbol"
+msgid "Currency Name"
+msgstr ""
+
+msgctxt "setting_search_module"
+msgid "Search Module"
+msgstr ""
+
+msgctxt "setting_index_sims"
+msgid "Index Regions"
+msgstr ""
+
+msgctxt "setting_economy_module"
+msgid "Economy Module"
+msgstr "Modiwl economi"
+
+msgctxt "setting_economy_module_help"
+msgid ""
+"Changed with the options of the grid, which set the module and what it needs."
+msgstr "Yn cael ei newid gydag opsiynau'r grid, sy'n gosod y modiwl a'r hyn sydd ei angen arno."
+
+msgctxt "economy_module_free"
+msgid "Free transactions only"
+msgstr "Trafodion am ddim yn unig"
+
+msgctxt "economy_module_gloebit"
+msgid "Gloebit"
+msgstr "Gloebit"
+
+msgctxt "economy_module_moneyserver"
+msgid "Podex and other currency providers"
+msgstr "Podex a darparwyr arian eraill"
+
+msgctxt "setting_sell_enabled"
+msgid "Enable Selling"
+msgstr ""
+
+msgctxt "setting_price_upload"
+msgid "Price Upload"
+msgstr ""
+
+msgctxt "setting_price_group_create"
+msgid "Price Group Create"
+msgstr ""
+
+msgctxt "setting_gloebit_enabled"
+msgid "Enable Gloebit"
+msgstr ""
+
+msgctxt "setting_gloebit_environment"
+msgid "Gloebit Environment"
+msgstr ""
+
+msgctxt "gloebit_sandbox"
+msgid "Sandbox"
+msgstr ""
+
+msgctxt "gloebit_production"
+msgid "Production"
+msgstr ""
+
+msgctxt "setting_guide_source"
+msgid "Source"
+msgstr "Ffynhonnell"
+
+msgctxt "setting_guide_source_help"
+msgid "A text file with a formatted list of destinations."
+msgstr "Ffeil destyniadau wedi'u rhestru'n fformatio."
+
+msgctxt "setting_search_database"
+msgid "OS Search Database"
+msgstr "Cronfa ddata'r peiriant chwilio"
+
+msgctxt "setting_events_url"
+msgid "Events Server URL"
+msgstr "Events Server URL"
+
+msgctxt "setting_logo_url"
+msgid "Grid Logo URL"
+msgstr ""
+
+msgctxt "setting_mail_sender"
+msgid "Sender e-mail address"
+msgstr "Cyfeiriad e-bost yr anfonwr"
+
+msgctxt "setting_mail_sender_help"
+msgid ""
+"A no-reply e-mail address used to forward messages for users enabling "
+"\"Email me IMs when I'm offline\" option."
+msgstr ""
+"Cyfeiriad e-bost dim ateb a ddefnyddir i anfon negeseuon ymlaen ar gyfer "
+"defnyddwyr sy'n galluogi opsiwn \"E-bostiwch IMs ataf pan fyddaf all-lein\"."
+
+msgctxt "setting_currency_rate"
+msgid "Currency Conversion Rate"
+msgstr "Conversion Rate for Currency"
+
+msgctxt "setting_currency_rate_help"
+msgid ""
+"Amount to pay in US$ for 1000 in-world money units. Used for cost estimation."
+msgstr "Y swm i'w dalu mewn US$ am 1000 o unedau arian yn y byd. Fe'i defnyddir i amcangyfrif costau."
+
+msgctxt "setting_currency_rate_per"
+msgid "Money Units per Rate"
+msgstr ""
+
+msgctxt "setting_gloebit_threshold"
+msgid "Gloebit Conversion Threshold"
+msgstr ""
+
+msgctxt "setting_podex_message"
+msgid "Podex Redirect Message"
+msgstr "Neges ailgyfeirio Podex"
+
+msgctxt "setting_podex_url"
+msgid "Exchange Teleport URL"
+msgstr "交换传送URL"
+
+msgctxt "setting_assets_url"
+msgid "Web Assets Server URL"
+msgstr "Web Assets Server URL"
+
+msgctxt "setting_assets_url_help"
+msgid ""
+"The web assets server of the grid when it is not the one of the helpers: it "
+"converts the pictures of the world (JPEG 2000) for the web."
+msgstr "Gweinydd asedau gwe'r grid pan nad yw'n un yr helpers: mae'n trosi lluniau'r byd (JPEG 2000) ar gyfer y we."
+
+msgctxt "offline_module_v1"
+msgid "By the helpers (V1)"
+msgstr "Gan yr helpers (V1)"
+
+msgctxt "offline_module_v2"
+msgid "By Robust (V2)"
+msgstr "Gan Robust (V2)"
+
+msgctxt "db_host"
+msgid "Hostname"
+msgstr "Enw gwesteiwr"
+
+msgctxt "db_port"
+msgid "Port"
+msgstr "港口"
+
+msgctxt "db_name"
+msgid "Database name"
+msgstr "Enw'r gronfa ddata"
+
+msgctxt "db_user"
+msgid "User"
+msgstr "Defnyddiwr"
+
+msgctxt "db_password"
+msgid "Password"
+msgstr "Cyfrinair"
 
 msgctxt "usage_robust_simulators"
 msgid "Robust service, used by the simulators"

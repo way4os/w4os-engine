@@ -109,9 +109,15 @@ final class Endpoints
             $form = \OpenSim\Models\GridSettings::form($group);
             $properties = [];
             foreach ($form['fields'] as $field) {
-                $properties[$field['name']] = ($field['multiple'] ?? false)
-                    ? ['type' => 'array', 'items' => ['type' => 'string']]
-                    : ['type' => 'string'] + (isset($field['options']) ? ['enum' => array_keys($field['options'])] : []);
+                $properties[$field['name']] = match (true) {
+                    $field['multiple'] ?? false => ['type' => 'array', 'items' => ['type' => 'string']],
+                    $field['type'] === 'connection-string' => ['type' => 'object', 'properties' => array_combine(
+                        array_column($field['fields'], 'name'),
+                        array_map(static fn(array $part): array => ['type' => $part['type'] === 'integer' ? 'integer' : 'string'], $field['fields']),
+                    )],
+                    in_array($field['type'], ['integer', 'number', 'boolean'], true) => ['type' => $field['type']],
+                    default => ['type' => 'string'] + (isset($field['options']) ? ['enum' => array_keys($field['options'])] : []),
+                } + (($field['readOnly'] ?? false) ? ['readOnly' => true] : []);
             }
             $body = ['type' => 'object', 'properties' => ['data' => ['type' => 'object', 'properties' => ['type' => ['const' => 'settings'], 'id' => ['const' => $group], 'attributes' => ['type' => 'object', 'properties' => $properties]]]]];
             $name = ucfirst($group);
@@ -132,7 +138,7 @@ final class Endpoints
                     'operationId' => "update{$name}Settings",
                     'tags' => ['Settings'],
                     'summary' => "Change the settings of the grid: $group",
-                    'description' => 'The settings given, checked against the choices of their field (`invalid-request`): each is written in the file of the grid that says it already (Robust, OpenSim.ini, Helpers.ini), else in its Helpers.ini. The answer is the settings now.',
+                    'description' => 'The settings given, checked against their field (`invalid-request`): each is written in the file of the grid that says it already (Robust, OpenSim.ini, Helpers.ini, MoneyServer.ini), else in the file of its instance (the registry of the settings, `OpenSim\\Config\\Settings`). A value null is no change; a field `readOnly` is set by the options of the grid, refused here unless it is the value it has; a secret is given back as `********` when it is set, and `********` sent back keeps it. The answer is the settings now.',
                     'parameters' => [Contract::gridParameter()],
                     'requestBody' => ['required' => true, 'content' => [Response::JSON_API => ['schema' => $body]]],
                     'responses' => [

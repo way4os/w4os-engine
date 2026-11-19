@@ -1,0 +1,264 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OpenSim\Config;
+
+use OpenSim\I18n\Catalog;
+
+/**
+ * The registry of the settings of a grid: a table of conversion between a setting as the files of OpenSimulator say it (instance >
+ * section > key, in the words of the developer of each module) and its clean name in the engine and the API (`name`, camelCase), with
+ * what it is. The values stay in their own files (Robust.ini or Robust.HG.ini, OpenSim.ini, MoneyServer.ini, Helpers.ini): the
+ * registry says where each is.
+ *
+ *     Settings::entry('opensim', 'Search', 'SearchURL');   // ['name' => 'searchUrl', 'type' => 'url', 'service' => 'query', ...]
+ *     Settings::named('searchUrl');                         // the same
+ *     Settings::where('assetsUrl', $config);                // ['file' => 'Helpers.ini', 'section' => 'Helpers', 'key' => 'AssetsURL']
+ *
+ * An entry: `name` its clean name; `type` (TYPES); `label` the key of its text in the catalog (`<label>_help` its description, when
+ * the catalog has one); `default` what it is when the files say nothing; `options` value => key of the text of a choice; `service`
+ * the key of the service whose address it gives (Service); `info` the key of get_grid_info that tells it; `hypergrid` only in
+ * Robust.HG.ini; `secret` never shown, masked; `multiple` several values; `prefix` a family of keys that begin with the key (`*`);
+ * `admin` the settings page a site edits it on (GridSettings), `readOnly` shown there, changed elsewhere (an option of the grid);
+ * `placeholder`, `condition` (clean names => the values it is shown for), `widget` as in the standard field format.
+ *
+ * What belongs to a site (its pages, its users, its theme) is the site's, never here.
+ */
+final class Settings
+{
+    /** What replaces a secret that is set, when it is shown; given back, it keeps the secret as it is. */
+    public const MASK = '********';
+
+    /** The types of the settings. */
+    public const TYPES = ['text', 'url', 'hostname', 'integer', 'float', 'bool', 'select', 'email', 'password', 'avatar', 'connection-string'];
+
+    /** The instances, the role of their file in the config of a grid (GridConfig) and its name when the grid has none. */
+    public const INSTANCES = [
+        'robust' => ['role' => 'Robust', 'file' => 'Robust.ini'],
+        'opensim' => ['role' => 'OpenSim', 'file' => 'OpenSim.ini'],
+        'moneyserver' => ['role' => 'MoneyServer', 'file' => 'MoneyServer.ini'],
+        'helpers' => ['role' => 'Helpers', 'file' => 'Helpers.ini'],
+    ];
+
+    /** The storage providers of OpenSimulator. */
+    private const PROVIDERS = ['OpenSim.Data.MySQL.dll' => 'MySQL', 'OpenSim.Data.PGSQL.dll' => 'PostgreSQL'];
+
+    /** @var array<string,array<string,array<string,array<string,mixed>>>> instance > section > key > entry */
+    public const REGISTRY = [
+        'robust' => [
+            'Const' => [
+                'BaseURL' => ['name' => 'baseUrl', 'type' => 'url', 'label' => 'setting_base_url'],
+                'BaseHostname' => ['name' => 'baseHostname', 'type' => 'hostname', 'label' => 'setting_base_hostname'],
+                'PublicPort' => ['name' => 'publicPort', 'type' => 'integer', 'label' => 'setting_public_port', 'default' => 8002],
+                'PrivatePort' => ['name' => 'privatePort', 'type' => 'integer', 'label' => 'setting_private_port', 'default' => 8003],
+            ],
+            'DatabaseService' => [
+                'StorageProvider' => ['name' => 'storageProvider', 'type' => 'select', 'label' => 'setting_storage_provider', 'options' => self::PROVIDERS, 'default' => 'OpenSim.Data.MySQL.dll'],
+                'ConnectionString' => ['name' => 'database', 'type' => 'connection-string', 'label' => 'setting_database', 'secret' => true],
+            ],
+            'GridInfoService' => [
+                'login' => ['name' => 'loginUri', 'type' => 'url', 'label' => 'setting_login', 'info' => 'login'],
+                'gatekeeper' => ['name' => 'gatekeeper', 'type' => 'url', 'label' => 'setting_gatekeeper', 'info' => 'gatekeeper', 'hypergrid' => true],
+                'uas' => ['name' => 'userAgentService', 'type' => 'url', 'label' => 'setting_uas', 'info' => 'uas', 'hypergrid' => true],
+                'gridname' => ['name' => 'gridName', 'type' => 'text', 'label' => 'setting_grid_name', 'info' => 'gridname'],
+                'gridnick' => ['name' => 'gridNick', 'type' => 'text', 'label' => 'setting_grid_nick', 'info' => 'gridnick'],
+                'welcome' => ['name' => 'welcomePage', 'type' => 'url', 'label' => 'setting_welcome', 'info' => 'welcome', 'service' => 'welcome'],
+                'economy' => ['name' => 'economyUrl', 'type' => 'url', 'label' => 'setting_economy', 'info' => 'economy', 'service' => ['currency', 'landtool'], 'admin' => 'economy'],
+                'about' => ['name' => 'aboutPage', 'type' => 'url', 'label' => 'setting_about', 'info' => 'about'],
+                'register' => ['name' => 'registerPage', 'type' => 'url', 'label' => 'setting_register', 'info' => 'register'],
+                'help' => ['name' => 'helpPage', 'type' => 'url', 'label' => 'setting_help', 'info' => 'help'],
+                'password' => ['name' => 'passwordPage', 'type' => 'url', 'label' => 'setting_password', 'info' => 'password'],
+                'GridStatus' => ['name' => 'gridStatusPage', 'type' => 'url', 'label' => 'setting_grid_status', 'info' => 'GridStatus', 'service' => 'grid-status'],
+                'GridStatusRSS' => ['name' => 'gridStatusRss', 'type' => 'url', 'label' => 'setting_grid_status_rss', 'info' => 'GridStatusRSS', 'service' => 'grid-status-rss'],
+                'web_profile_url' => ['name' => 'webProfileUrl', 'type' => 'url', 'label' => 'setting_web_profile', 'info' => 'web_profile_url', 'service' => 'web-profile'],
+                'search' => ['name' => 'webSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'info' => 'search', 'service' => 'search'],
+            ],
+            'LoginService' => [
+                'SearchURL' => ['name' => 'loginSearchUrl', 'type' => 'url', 'label' => 'setting_web_search'],
+                'DestinationGuide' => ['name' => 'destinationGuide', 'type' => 'url', 'label' => 'setting_destination_guide', 'service' => 'guide', 'admin' => 'guide'],
+                'MessageUrl' => ['name' => 'messageUrl', 'type' => 'url', 'label' => 'setting_message_url', 'service' => 'motd'],
+                'WelcomeMessage' => ['name' => 'welcomeMessage', 'type' => 'text', 'label' => 'setting_welcome_message'],
+                'Currency' => ['name' => 'currencySymbol', 'type' => 'text', 'label' => 'setting_currency_symbol'],
+            ],
+        ],
+        'opensim' => [
+            // The services of Robust the simulators call
+            'AssetService' => ['AssetServerURI' => ['name' => 'assetServerUri', 'type' => 'url', 'label' => 'service_asset', 'service' => 'asset']],
+            'InventoryService' => ['InventoryServerURI' => ['name' => 'inventoryServerUri', 'type' => 'url', 'label' => 'service_inventory', 'service' => 'inventory']],
+            'GridService' => ['GridServerURI' => ['name' => 'gridServerUri', 'type' => 'url', 'label' => 'service_grid', 'service' => 'grid']],
+            'EstateService' => ['EstateServerURI' => ['name' => 'estateServerUri', 'type' => 'url', 'label' => 'service_estate', 'service' => 'estate']],
+            'AuthenticationService' => ['AuthenticationServerURI' => ['name' => 'authenticationServerUri', 'type' => 'url', 'label' => 'service_authentication', 'service' => 'authentication']],
+            'AvatarService' => ['AvatarServerURI' => ['name' => 'avatarServerUri', 'type' => 'url', 'label' => 'service_avatar', 'service' => 'avatar']],
+            'AgentPreferencesService' => ['AgentPreferencesServerURI' => ['name' => 'agentPreferencesServerUri', 'type' => 'url', 'label' => 'service_agent_preferences', 'service' => 'agent-preferences']],
+            'PresenceService' => ['PresenceServerURI' => ['name' => 'presenceServerUri', 'type' => 'url', 'label' => 'service_presence', 'service' => 'presence']],
+            'UserAccountService' => ['UserAccountServerURI' => ['name' => 'userAccountServerUri', 'type' => 'url', 'label' => 'service_user_account', 'service' => 'user-account']],
+            'GridUserService' => ['GridUserServerURI' => ['name' => 'gridUserServerUri', 'type' => 'url', 'label' => 'service_grid_user', 'service' => 'grid-user']],
+            'FriendsService' => ['FriendsServerURI' => ['name' => 'friendsServerUri', 'type' => 'url', 'label' => 'service_friends', 'service' => 'friends']],
+            'MapImageService' => ['MapImageServerURI' => ['name' => 'mapImageServerUri', 'type' => 'url', 'label' => 'service_map_image', 'service' => 'map-image']],
+            'MuteListService' => ['MuteListServerURI' => ['name' => 'muteListServerUri', 'type' => 'url', 'label' => 'service_mute_list', 'service' => 'mute-list']],
+            'XBakes' => ['URL' => ['name' => 'bakesUrl', 'type' => 'url', 'label' => 'service_bakes', 'service' => 'bakes']],
+            'Groups' => ['GroupsServerURI' => ['name' => 'groupsServerUri', 'type' => 'url', 'label' => 'service_groups', 'service' => 'groups']],
+            'UserProfiles' => ['ProfileServiceURL' => ['name' => 'profileServiceUrl', 'type' => 'url', 'label' => 'service_profile', 'service' => 'profile']],
+            'Search' => [
+                'Module' => ['name' => 'searchModule', 'type' => 'text', 'label' => 'setting_search_module', 'default' => 'OpenSimSearch'],
+                'SearchURL' => ['name' => 'searchUrl', 'type' => 'url', 'label' => 'setting_search_service', 'service' => 'query', 'admin' => 'search', 'readOnly' => true],
+            ],
+            'DataSnapshot' => [
+                'index_sims' => ['name' => 'indexSims', 'type' => 'bool', 'label' => 'setting_index_sims'],
+                'gridname' => ['name' => 'snapshotGridName', 'type' => 'text', 'label' => 'setting_grid_name'],
+                'DATA_SRV_' => ['name' => 'dataServices', 'type' => 'url', 'label' => 'setting_data_service', 'service' => 'register', 'prefix' => true, 'multiple' => true, 'admin' => 'search', 'readOnly' => true],
+            ],
+            'Messaging' => [
+                'OfflineMessageModule' => ['name' => 'offlineModule', 'type' => 'select', 'label' => 'setting_offline_module', 'options' => ['OfflineMessageModule' => 'offline_module_v1', 'Offline Message Module V2' => 'offline_module_v2'], 'admin' => 'offline', 'readOnly' => true],
+                'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'readOnly' => true],
+            ],
+            'Economy' => [
+                'economymodule' => ['name' => 'economyModule', 'type' => 'select', 'label' => 'setting_economy_module', 'options' => ['BetaGridLikeMoneyModule' => 'economy_module_free', 'Gloebit' => 'economy_module_gloebit', 'DTLNSLMoneyModule' => 'economy_module_moneyserver'], 'admin' => 'economy', 'readOnly' => true],
+                'SellEnabled' => ['name' => 'sellEnabled', 'type' => 'bool', 'label' => 'setting_sell_enabled', 'default' => true],
+                'PriceUpload' => ['name' => 'priceUpload', 'type' => 'integer', 'label' => 'setting_price_upload', 'default' => 0],
+                'PriceGroupCreate' => ['name' => 'priceGroupCreate', 'type' => 'integer', 'label' => 'setting_price_group_create', 'default' => 0],
+            ],
+            'Gloebit' => [
+                'Enabled' => ['name' => 'gloebitEnabled', 'type' => 'bool', 'label' => 'setting_gloebit_enabled', 'default' => false],
+                'GLBEnvironment' => ['name' => 'gloebitEnvironment', 'type' => 'select', 'label' => 'setting_gloebit_environment', 'options' => ['sandbox' => 'gloebit_sandbox', 'production' => 'gloebit_production']],
+            ],
+        ],
+        'moneyserver' => [
+            'MoneyServer' => [
+                'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+            ],
+        ],
+        'helpers' => [
+            'Helpers' => [
+                'HelpersURL' => ['name' => 'helpersUrl', 'type' => 'url', 'label' => 'setting_helpers'],
+                'AssetsURL' => ['name' => 'assetsUrl', 'type' => 'url', 'label' => 'setting_assets_url', 'service' => 'assets', 'admin' => 'assets', 'placeholder' => 'https://example.org/assets'],
+                'DirectoryURL' => ['name' => 'directoryUrl', 'type' => 'url', 'label' => 'setting_directory', 'service' => 'directory'],
+                'GridStatusURL' => ['name' => 'gridStatusUrl', 'type' => 'url', 'label' => 'setting_grid_status'],
+                'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'placeholder' => 'destinations.txt'],
+                'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search'],
+                'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => 'https://2do.directory/events', 'placeholder' => 'https://2do.directory/events'],
+                'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
+                'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'placeholder' => 'no-reply@example.org'],
+                'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 4.0, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
+                'CurrencyRatePer' => ['name' => 'currencyRatePer', 'type' => 'float', 'label' => 'setting_currency_rate_per', 'default' => 1000.0],
+                'GloebitConversionThreshold' => ['name' => 'gloebitThreshold', 'type' => 'float', 'label' => 'setting_gloebit_threshold', 'default' => 1.2],
+                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+                'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+            ],
+            'Models' => [
+                'Match' => ['name' => 'match', 'type' => 'select', 'label' => 'models_match', 'widget' => 'radio', 'options' => ['first' => 'models_match_first', 'any' => 'models_match_any', 'last' => 'models_match_last', 'uuid' => 'models_match_uuid'], 'default' => 'any', 'admin' => 'models'],
+                'MatchPattern' => ['name' => 'pattern', 'type' => 'text', 'label' => 'models_pattern', 'default' => 'Default', 'condition' => ['match' => ['first', 'any', 'last']], 'admin' => 'models'],
+                'List' => ['name' => 'list', 'type' => 'avatar', 'label' => 'models_list', 'multiple' => true, 'placeholder' => 'models_list_placeholder', 'default' => [], 'condition' => ['match' => ['uuid']], 'admin' => 'models'],
+            ],
+        ],
+    ];
+
+    /** @var ?list<array<string,mixed>> */
+    private static ?array $entries = null;
+
+    /**
+     * Every setting, in the order of the registry: its entry with its `instance`, `section`, `key` and `description`.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function entries(): array
+    {
+        if (self::$entries !== null) {
+            return self::$entries;
+        }
+        $entries = [];
+        foreach (self::REGISTRY as $instance => $sections) {
+            foreach ($sections as $section => $keys) {
+                foreach ($keys as $key => $entry) {
+                    $description = $entry['label'] . '_help';
+                    $entries[] = ['instance' => $instance, 'section' => $section, 'key' => $key] + $entry
+                        + (isset(Catalog::MESSAGES[$description]) ? ['description' => $description] : []);
+                }
+            }
+        }
+
+        return self::$entries = $entries;
+    }
+
+    /** The setting a file says at that section and key, whatever their case (a key of a family by its prefix), null for none. */
+    public static function entry(string $instance, string $section, string $key): ?array
+    {
+        foreach (self::entries() as $entry) {
+            if ($entry['instance'] !== $instance || strcasecmp($entry['section'], $section) !== 0) {
+                continue;
+            }
+            $same = ($entry['prefix'] ?? false)
+                ? strncasecmp($key, $entry['key'], strlen($entry['key'])) === 0
+                : strcasecmp($entry['key'], $key) === 0;
+            if ($same) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
+    /** The setting of a clean name, null for none. */
+    public static function named(string $name): ?array
+    {
+        foreach (self::entries() as $entry) {
+            if ($entry['name'] === $name) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
+    /** The setting that gives the address of a service (a key of Service), null when no setting does. */
+    public static function forService(string $service): ?array
+    {
+        foreach (self::entries() as $entry) {
+            if (in_array($service, (array) ($entry['service'] ?? []), true)) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The settings a settings page edits, in their order.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function page(string $page): array
+    {
+        return array_values(array_filter(self::entries(), static fn(array $entry): bool => ($entry['admin'] ?? null) === $page));
+    }
+
+    /** The name of the file of an instance for a grid: the one its config has (Robust.HG.ini), else the usual one. */
+    public static function file(string $instance, ?GridConfig $config = null): string
+    {
+        $file = $config?->file(self::INSTANCES[$instance]['role']);
+
+        return $file !== null && $file !== '' ? basename($file) : self::INSTANCES[$instance]['file'];
+    }
+
+    /**
+     * Where a setting is, for a grid: its file, its section, its key.
+     *
+     * @return ?array{file:string,section:string,key:string}
+     */
+    public static function where(string $name, ?GridConfig $config = null): ?array
+    {
+        $entry = self::named($name);
+
+        return $entry === null ? null : ['file' => self::file($entry['instance'], $config), 'section' => $entry['section'], 'key' => $entry['key']];
+    }
+
+    /** The codec of a type that is more than a text, null for the others. */
+    public static function type(string $type): ?SettingType
+    {
+        return match ($type) {
+            'connection-string' => new ConnectionStringType(),
+            default => null,
+        };
+    }
+}

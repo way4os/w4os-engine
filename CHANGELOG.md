@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- feature (settings): `OpenSim\Config\Settings`, the registry of the settings: the OpenSimulator name and the engine name of each
+- feature (settings): a connection string reads as its parts, its password masked (`ConnectionStringType`)
+- feature (settings): the settings pages of w4os-wp: economy, search, guide, offline messages, web assets server
 - change (health): imagick JPEG 2000 is required by the web assets service, unless the grid sets an external one (`AssetsURL`)
 - feature (assets): without JPEG 2000 here, a picture redirects to the grid's external web assets service (`WebAssets::external()`)
 - change (regions): the regions list has the columns, order and words of w4os-wp
