@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (economy): the currency and the land tool are served without a money key, with the default key of w4os-wp's helpers
 - fix (texts): Welsh texts in Chinese or left in English, copied from w4os-wp, translated; the catalog checks it
 - fix (search): the events ask the gatekeepers all at once, each place once a run, a host that does not answer once
 - feature (lists): an x-list gives its texts as catalog keys (`title`, `menu`, `placeholder`, `empty`, `count`), in w4os-wp's words

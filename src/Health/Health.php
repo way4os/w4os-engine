@@ -246,7 +246,8 @@ class Health
                     : ($value === '' ? [self::emptyRow($entry['key'])] : self::post($entry['key'], $value, self::retrieveMessages(), 'RetrieveMessages/'));
             case 'secret':
                 // The key of the currency, where the MoneyServer has it: never shown, only whether the grid has one. Without it the
-                // currency is not served, an error for a grid that has a currency
+                // helpers tie the quotes with their default key, which a money server of the grid does not share: an error for a grid
+                // that has a currency
                 $module = strtolower((string) $config->find('Economy', 'economymodule'));
                 $needed = $module !== '' && $module !== 'betagridlikemoneymodule';
                 $has = trim($value) !== '';

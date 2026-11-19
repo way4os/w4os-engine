@@ -328,7 +328,7 @@ final class Currency
     /** What ties a quote of currency to its purchase: the key of the grid and the address of whoever asked. */
     public function confirmValue(string $ipAddress): string
     {
-        return md5($this->settings->scriptKey . '_' . $ipAddress);
+        return md5(($this->settings->scriptKey !== '' ? $this->settings->scriptKey : CurrencySettings::DEFAULT_KEY) . '_' . $ipAddress);
     }
 
     /**

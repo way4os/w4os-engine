@@ -242,7 +242,7 @@ apache:
             if (MoneyServerConfig::original() === null) {
                 $this->ui->warn(
                     _(
-                        'The original MoneyServer.ini is not in this install: the grid has none, and the currency is not served without its key.',
+                        'The original MoneyServer.ini is not in this install: the grid has none, and the helpers tie the quotes with their default key.',
                     ),
                 );
             } elseif (($money = MoneyServerConfig::write($plan->gridDir)) !== null) {

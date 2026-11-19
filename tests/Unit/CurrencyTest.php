@@ -500,12 +500,19 @@ describe('The calls to the currency', function () {
             ->toBeFalse();
     });
 
-    test('are not served without the key of the grid', function () {
+    test('are served without a key of the grid, as the helpers of w4os-wp: their default key ties the quote (a grid without a money server)', function () {
         $calls = [];
         $db = money_database();
-        $rpc = static fn() => new CurrencyServer(money_currency($db, $calls, ['scriptKey' => '']), '10.0.0.9');
+        [$rpc, $land] = money_rpc($db, $calls, ['scriptKey' => '']);
 
-        expect(fn() => $rpc()->currencyMethods())->toThrow(OpenSim\Services\Failure::class, 'MoneyScriptAccessKey');
+        $quote = money_call($rpc, 'getCurrencyQuote', ['agentId' => MONEY_AGENT, 'secureSessionId' => MONEY_SECURE, 'currencyBuy' => '250'])['data'];
+        $prepared = money_call($land, 'preflightBuyLandPrep', [
+            'agentId' => MONEY_AGENT, 'secureSessionId' => MONEY_SECURE, 'currencyBuy' => '500', 'estimatedCost' => '0', 'billableArea' => '256',
+        ])['data'];
+
+        expect([$quote['success'] ?? null, $quote['confirm'] ?? null, $prepared['success'] ?? null])
+            ->toBe([true, md5(OpenSim\Economy\CurrencySettings::DEFAULT_KEY . '_10.0.0.9'), true])
+            ->and(OpenSim\Economy\CurrencySettings::DEFAULT_KEY)->toBe('1234567883789');
     });
 
     test('are served by the handler at the addresses the viewers fix, for the address of who calls', function () {
@@ -549,8 +556,9 @@ describe('The calls to the currency', function () {
             ->toContain(md5('secret-key_10.0.0.9'))
             ->and((string) $land->getBody())
             ->toContain('<name>membership</name>')
+            // Without a key, the default of w4os-wp's helpers: served
             ->and($keyless->getStatusCode())
-            ->toBe(503)
+            ->toBe(200)
             ->and($handler->handle($factory->createServerRequest('GET', '/api/currency.php'))->getHeaderLine('Allow'))
             ->toBe('POST');
     });

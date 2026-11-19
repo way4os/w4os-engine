@@ -26,8 +26,6 @@ final class CurrencyServer
     /** The calls the money is served for, by the name of the method. */
     public function currencyMethods(): array
     {
-        $this->requireKey();
-
         return [
             'getCurrencyQuote' => $this->quote(...),
             'buyCurrency' => $this->buy(...),
@@ -40,19 +38,7 @@ final class CurrencyServer
     /** The calls of the land tools, by the name of the method. */
     public function landMethods(): array
     {
-        $this->requireKey();
-
         return ['preflightBuyLandPrep' => $this->prepareLand(...), 'buyLandPrep' => $this->buyLand(...)];
-    }
-
-    /** Money is not served without the key: a bad configuration, said to whoever asks. */
-    private function requireKey(): void
-    {
-        $this->currency->settings->hasKey() ||
-            throw new Failure(
-                'Bad configuration: the currency is not served without its key (MoneyScriptAccessKey, [MoneyServer] of MoneyServer.ini)',
-                503,
-            );
     }
 
     /**

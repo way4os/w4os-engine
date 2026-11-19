@@ -14,13 +14,16 @@ use OpenSim\Config\GridConfig;
  */
 final class CurrencySettings
 {
+    /** The key w4os-wp's helpers tie a quote with when the grid has none (a grid without a money server: its economy is free). */
+    public const DEFAULT_KEY = '1234567883789';
+
     /** The packs of Gloebit and what they cost, in cents: the currency estimates the cost of what a viewer asks with them. */
     public const GLOEBIT_PACKS = [400 => 199, 1050 => 499, 2150 => 999, 4500 => 1999, 11500 => 4999];
 
     /**
      * @param string $provider the module the engine knows by name (`gloebit`, `podex`), empty for any other
      * @param bool $useMoneyServer a module that is not the beta one keeps the balances and relays the transfers
-     * @param string $scriptKey the script key of the MoneyServer (`MoneyScriptAccessKey`); no default, a key everybody knows protects nothing
+     * @param string $scriptKey the script key of the MoneyServer (`MoneyScriptAccessKey`); none, DEFAULT_KEY ties the quotes, as w4os-wp's helpers
      * @param string $helperUrl the page of the helpers the viewer shows when it needs help (`currency.php` of the economy)
      * @param float $rate real currency (US cents / 100 as the viewer reads it) for `$ratePer` of the virtual one
      * @param array<int,int> $gloebitPacks
