@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (health): a setting names its full context (`context`: its instance, its file, its section, its key), and a comparison says plainly what it was compared with (matches web_profile_url of get_grid_info, differs from economy of get_grid_info, matches [GridInfoService] search), never "as the grid says" nor "the same as search"
 - fix (health): the helpers are asked only where Robust (Robust.ini or Robust.HG.ini) or the base OpenSim.ini sets them: a grid needs no helpers to run, set they must answer, not set they are not asked (HelpersURL alone is their own file, a page set only in Helpers.ini neither); a grid without them is healthy
 - fix (health): the helpers asked are the ones the grid declares (HelpersURL, its economy), wherever they are, never a base guessed from its web site: a grid that declares none has them unset, and the pages of its site are not asked for their blocks
 - change (health): every line of the health says when it was checked (`checkedAt`), and the health as a whole (`checkedAt`, was `checked`): `refresh` checks everything now, never the last check kept (`cached` false), a line asked alone is always checked now

@@ -232,11 +232,11 @@ class Health
                             : $value,
                         // Compared with what the grid says, not asked: the same, or not
                         'level' => $same ? 'ok' : 'error',
-                        'status' => $same ? _('as the grid says') : _('differs from what the grid says'),
+                        'status' => sprintf($same ? _('matches %s of get_grid_info') : _('differs from %s of get_grid_info'), $key),
                     ] +
                     ($profile ? ['display' => $value] : []) +
                     ($key === 'search' ? ['tag' => _('Web search')] : []) +
-                    ($same ? [] : ['detail' => 'get_grid_info: ' . ($live[$key] ?? '')]);
+                    ($same ? [] : ['detail' => "get_grid_info $key: " . ($live[$key] ?? '')]);
             }
             $groups[] = ['file' => $file['robust'], 'title' => '[GridInfoService]', 'rows' => $rows];
             $groups[] = [
@@ -419,7 +419,7 @@ class Health
                 'url' => $value,
                 'tag' => _('Web search'),
                 'level' => 'ok',
-                'status' => _('the same as search'),
+                'status' => _('matches [GridInfoService] search'),
             ];
         }
 
@@ -1004,6 +1004,18 @@ class Health
                 default => trim((string) ($group['title'] ?? ''), '[] '),
             };
             foreach ($group['rows'] as $r => $row) {
+                // The full context of a setting: its instance, its file, its section, its key; what the grid says, its key
+                $instance = match (true) {
+                    $file === 'get_grid_info' => 'grid_info',
+                    preg_match('/^Robust/i', $file) === 1 => 'robust',
+                    strcasecmp($file, 'OpenSim.ini') === 0 => 'opensim',
+                    strcasecmp($file, 'MoneyServer.ini') === 0 => 'moneyserver',
+                    default => null,
+                };
+                if ($instance !== null && isset($row['label'])) {
+                    $row['context'] = ['instance' => $instance, 'file' => $file] + ($instance === 'grid_info' ? [] : ['section' => $section]) + ['key' => (string) $row['label']];
+                    $groups[$g]['rows'][$r] = $row;
+                }
                 $name = self::settingName($section, (string) ($row['label'] ?? ''));
                 if ($name === null) {
                     continue;

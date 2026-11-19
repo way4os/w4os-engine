@@ -511,19 +511,19 @@ describe('sections of a grid', function () {
             expect($differs[0])
                 ->toMatchArray([
                     'level' => 'error',
-                    'status' => 'differs from what the grid says',
+                    'status' => 'differs from web_profile_url of get_grid_info',
                     'display' => 'https://other.example.org/profile/[AGENT_NAME]',
                     'url' => 'https://other.example.org/profile/Jane.Doe',
                 ])
                 ->and($differs[0]['detail'])
-                ->toBe('get_grid_info: https://play.example.org/profile/[AGENT_NAME]');
+                ->toBe('get_grid_info web_profile_url: https://play.example.org/profile/[AGENT_NAME]');
 
             // No account to read: the address as it is, not asked
             $none = $profile(Health::grid($in($info, ['live' => $live])));
 
             expect($none[0])->toMatchArray([
                 'level' => 'ok',
-                'status' => 'as the grid says',
+                'status' => 'matches web_profile_url of get_grid_info',
                 'url' => 'https://play.example.org/profile/[AGENT_NAME]',
             ]);
         },
@@ -649,20 +649,20 @@ describe('sections of a grid', function () {
             );
 
             expect($rows['login'])
-                ->toMatchArray(['level' => 'ok', 'status' => 'as the grid says', 'url' => 'http://play.example.org:8002'])
+                ->toMatchArray(['level' => 'ok', 'status' => 'matches login of get_grid_info', 'url' => 'http://play.example.org:8002'])
                 ->and($rows['gridname'])
-                ->toMatchArray(['level' => 'ok', 'status' => 'as the grid says', 'text' => 'Alpha World'])
+                ->toMatchArray(['level' => 'ok', 'status' => 'matches gridname of get_grid_info', 'text' => 'Alpha World'])
                 // The config says one thing and the grid another: a restart not done, or a config that does not reach it
                 ->and($rows['economy'])
                 ->toMatchArray([
                     'level' => 'error',
-                    'status' => 'differs from what the grid says',
+                    'status' => 'differs from economy of get_grid_info',
                     'url' => 'https://other.example.org/helpers',
-                    'detail' => 'get_grid_info: https://play.example.org/helpers',
+                    'detail' => 'get_grid_info economy: https://play.example.org/helpers',
                 ])
                 // The config says it and the grid does not
                 ->and($rows['about'])
-                ->toMatchArray(['level' => 'error', 'status' => 'differs from what the grid says', 'detail' => 'get_grid_info: '])
+                ->toMatchArray(['level' => 'error', 'status' => 'differs from about of get_grid_info', 'detail' => 'get_grid_info about: '])
                 // Nothing in the config: nothing to compare
                 ->and($rows['help'])
                 ->toMatchArray(['level' => 'unset', 'reason' => 'health_unset']);
@@ -808,7 +808,7 @@ describe('sections of a grid', function () {
                     ['search' => 'https://play.example.org/search/'],
                 ),
             )
-                ->toMatchArray(['level' => 'ok', 'status' => 'the same as search'])
+                ->toMatchArray(['level' => 'ok', 'status' => 'matches [GridInfoService] search'])
                 ->not->toHaveKey('method')
                 // Two addresses are allowed (the operator's), each is tested for what it is, and `search` is the one the grid says
                 ->and($row(['SearchURL' => 'https://a.example.org/'], ['search' => 'https://b.example.org/']))
@@ -1068,6 +1068,27 @@ describe('The health, line by line', function () {
             ->toBe(404)
             ->and([$operation['operationId'] ?? null, $operation['x-access']['level'] ?? null])
             ->toBe(['getHealthCheck', 100]);
+    });
+});
+
+describe('A setting of the health', function () {
+    test('names its full context: its instance, its file, its section, its key', function () {
+        $groups = Health::describe([
+            ['file' => 'Robust.HG.ini', 'title' => '[LoginService]', 'rows' => [['label' => 'SearchURL', 'level' => 'ok']]],
+            ['file' => 'OpenSim.ini', 'title' => '[Search]', 'rows' => [['label' => 'SearchURL', 'level' => 'ok']]],
+            ['file' => 'get_grid_info', 'title' => '', 'rows' => [['label' => 'search', 'level' => 'ok']]],
+            ['file' => 'PHP', 'title' => '', 'rows' => [['label' => 'gettext', 'level' => 'ok']]],
+        ]);
+
+        expect(array_column(array_merge(...array_column($groups, 'rows')), 'context'))
+            ->toBe([
+                ['instance' => 'robust', 'file' => 'Robust.HG.ini', 'section' => 'LoginService', 'key' => 'SearchURL'],
+                ['instance' => 'opensim', 'file' => 'OpenSim.ini', 'section' => 'Search', 'key' => 'SearchURL'],
+                ['instance' => 'grid_info', 'file' => 'get_grid_info', 'key' => 'search'],
+            ])
+            // The same key, two things: the web search of the viewers, the search the simulators ask
+            ->and(array_column(array_merge(...array_column($groups, 'rows')), 'name'))
+            ->toBe(['setting_web_search', 'setting_search_service', 'setting_web_search']);
     });
 });
 
