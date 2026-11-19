@@ -400,25 +400,6 @@ class Health
     }
 
     /** The row of a setting that is not an address: its value, shown, nothing to ask. */
-    /**
-     * The settings chosen on the site that the grid does not read yet (GridSettings::pending()): each a warning, until its line is in
-     * its file.
-     *
-     * @param list<array{key:string,section:string,file:string,value:string,text:string}> $pending
-     * @return list<array<string,mixed>>
-     */
-    public static function byHand($pending)
-    {
-        return array_map(static fn(array $one): array => [
-            'label' => $one['key'],
-            'kind' => 'value',
-            'text' => $one['value'],
-            'level' => 'warning',
-            'status' => sprintf(_('chosen on the site, not yet in %s'), $one['file']),
-            'detail' => $one['text'],
-        ], $pending);
-    }
-
     public static function valueRow($label, $value)
     {
         return ['label' => $label, 'kind' => 'value', 'text' => (string) $value, 'level' => 'none'];

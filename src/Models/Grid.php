@@ -123,8 +123,8 @@ final class Grid extends InstalledModel
     public function config(): ?GridConfig
     {
         $config = $this->given ?? ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null);
-        // The settings the application keeps, read first; what the grid reads (Robust, the simulators) it reads in its files
-        $kept = \OpenSim\Config\Settings::notReadByGrid($this->environment->settings?->all() ?? []);
+        // The settings the application keeps, read first
+        $kept = $this->environment->settings?->all() ?? [];
         $kept !== [] && ($config = ($config ?? new GridConfig())->withSettings($kept));
         // The access to the databases the application gives: its server and its credentials, for every database of the grid
         $access = $this->environment->databases;

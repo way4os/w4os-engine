@@ -3,10 +3,9 @@
 declare(strict_types=1);
 
 /**
- * Where a setting a page changes goes, at the best of what this process can do: the settings the application keeps, and the file of
- * the grid when it can write it (checked, not assumed). What Robust or the simulators read in a file this process cannot write is
- * kept by the application, the page showing it, and its lines are given to apply by hand (`meta.byHand`); the health tells the
- * difference. Without settings kept by the application, such a change is unavailable, with its reason.
+ * Where a setting a page changes goes, at the best of what this process can do: the file of the grid when it can write it (checked,
+ * not assumed), else the settings the application keeps, but only for what the helpers and the site read (`readers` helpers); what
+ * Robust or the simulators read stays in their files: read-only here, with its reason and the lines to add by hand (`meta.fixed`).
  */
 
 use OpenSim\Api\Api;
@@ -53,48 +52,33 @@ describe('A setting of a grid whose files this process cannot write', function (
             ->and(file_get_contents($machine->grid . '/Helpers.ini'))->toBe($before);
     })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
 
-    test('read by Robust or the simulators, is kept by the application too, the lines to apply by hand given, the grid unchanged', function () {
+    test('read by Robust or the simulators, is read-only here: why, and the lines to add by hand', function () {
         [$router, $store, $machine] = readonly_grid();
-        $grid = OpenSim\Models\Grid::find($machine->environment->withSettings($store), 'demo');
-
-        $done = patch_page($router, 'demo', 'guide', ['provide' => false, 'destinationGuide' => 'https://elsewhere.example.org/guide']);
-        $byHand = $router->get('/grids/demo/settings/guide')->document['meta']['byHand'] ?? [];
-        $economy = $router->get('/grids/demo/settings/economy')->document['meta']['byHand'] ?? [];
-        $health = OpenSim\Health\Health::byHand((new OpenSim\Models\GridSettings($grid))->pending());
-        chmod($machine->grid, 0o755);
-
-        expect($done->status)->toBe(200)
-            // The page shows what was chosen; the grid still reads its file
-            ->and($done->document['data']['attributes']['destinationGuide'])->toBe('https://elsewhere.example.org/guide')
-            ->and($store->all())->toBe(['LoginService' => ['DestinationGuide' => 'https://elsewhere.example.org/guide']])
-            ->and($grid->config()->find('LoginService', 'DestinationGuide'))->toBe('https://play.example.org/guide')
-            ->and(array_keys($byHand))->toBe(['path', 'destinationGuide'])
-            ->and($byHand['destinationGuide'])->toMatchArray(['file' => 'Robust.HG.ini', 'text' => "[LoginService]\n    DestinationGuide = https://elsewhere.example.org/guide"])
-            ->and($byHand['destinationGuide']['reason'])->toMatchArray(['code' => 'setting-file-unwritable', 'params' => ['file' => 'Robust.HG.ini']])
-            ->and(OpenSim\I18n\Catalog::notice('fr_FR', $byHand['destinationGuide']['reason']['code'], $byHand['destinationGuide']['reason']['params']))
-            ->toContain('Robust.HG.ini')->not->toBe($byHand['destinationGuide']['reason']['detail'])
-            // Nothing to apply where the files say what was chosen, nor for what the helpers read in the settings of the application
-            ->and($economy)->toBe([])
-            // The health tells the difference
-            ->and(array_column($health, 'label'))->toBe(['DestinationGuide'])
-            ->and($health[0])->toMatchArray(['level' => 'warning', 'text' => 'https://elsewhere.example.org/guide']);
-    })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
-
-    test('without settings kept by the application, is unavailable, with its reason', function () {
-        $machine = readonly_grid()[2];
-        $router = new Router(new Api($machine->environment));
 
         $refused = patch_page($router, 'demo', 'guide', ['provide' => false, 'destinationGuide' => 'https://elsewhere.example.org/guide']);
         $same = patch_page($router, 'demo', 'guide', ['provide' => false, 'destinationGuide' => 'https://play.example.org/guide']);
+        $fixed = $router->get('/grids/demo/settings/guide')->document['meta']['fixed'] ?? [];
+        $economy = $router->get('/grids/demo/settings/economy')->document['meta']['fixed'] ?? [];
         chmod($machine->grid, 0o755);
 
         expect([$refused->status, $refused->document['code'] ?? null, $same->status])->toBe([503, 'channel-unavailable', 200])
-            ->and($refused->document['reason']['code'] ?? null)->toBe('setting-file-unwritable-unkept');
+            ->and($refused->document['detail'])->toContain('Robust.HG.ini')->toContain('by hand')
+            // The reason, a notice: its code and its values, for a site to say it in its language
+            ->and($refused->document['reason'])->toMatchArray(['code' => 'setting-file-unwritable', 'params' => ['file' => 'Robust.HG.ini']])
+            ->and($store->all())->toBe([])
+            ->and(array_keys($fixed))->toBe(['path', 'destinationGuide'])
+            ->and($fixed['destinationGuide'])->toMatchArray(['file' => 'Robust.HG.ini', 'text' => "[LoginService]\n    DestinationGuide = https://play.example.org/guide"])
+            ->and($fixed['destinationGuide']['reason'])->toBe($refused->document['reason'])
+            ->and($fixed['destinationGuide']['reason']['detail'])->toContain('cannot write')
+            ->and(OpenSim\I18n\Catalog::notice('fr_FR', $fixed['destinationGuide']['reason']['code'], $fixed['destinationGuide']['reason']['params']))
+            ->toContain('Robust.HG.ini')->not->toBe($fixed['destinationGuide']['reason']['detail'])
+            // What the helpers read is not fixed: the application keeps it
+            ->and(array_keys($economy))->not->toContain('currencyRate')->toContain('economyUrl');
     })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
 });
 
 describe('A setting of a grid that has no files here', function () {
-    test('is kept by the application, the lines to apply by hand given for what the grid reads', function () {
+    test('read by the helpers only, is kept by the application; read by the grid, read-only', function () {
         $store = new ArraySettings();
         $environment = (new Machine())->environment->withSettings($store);
         $far = Grid::described($environment, ['nick' => 'far', 'name' => 'Far', 'remote' => true]);
@@ -102,12 +86,13 @@ describe('A setting of a grid that has no files here', function () {
 
         $rate = patch_page($router, 'far', 'economy', ['currencyRate' => '7']);
         $address = patch_page($router, 'far', 'economy', ['provide' => false, 'economyUrl' => 'https://shop.example.org/']);
-        $fixed = $router->get('/grids/far/settings/economy')->document['meta']['byHand'] ?? [];
+        $fixed = $router->get('/grids/far/settings/economy')->document['meta']['fixed'] ?? [];
 
-        expect([$rate->status, $address->status])->toBe([200, 200])
-            ->and($store->all())->toBe(['Helpers' => ['CurrencyRate' => '7'], 'GridInfoService' => ['economy' => 'https://shop.example.org/']])
-            ->and($fixed['economyUrl']['reason']['code'] ?? null)->toBe('setting-no-files')
-            ->and($fixed['economyUrl']['file'] ?? null)->toBe('Robust.ini')
+        expect([$rate->status, $address->status])->toBe([200, 503])
+            ->and($store->all())->toBe(['Helpers' => ['CurrencyRate' => '7']])
+            ->and($address->document['detail'])->toContain('no files')
+            ->and($address->document['reason']['code'] ?? null)->toBe('setting-no-files')
+            ->and($fixed['economyUrl']['reason']['detail'] ?? '')->toContain('no files')
             ->and(Settings::named('moneyScriptKey')['readers'] ?? null)->toBe('helpers')
             ->and(Settings::named('economyUrl')['readers'] ?? null)->toBe('grid');
     });

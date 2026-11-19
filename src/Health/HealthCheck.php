@@ -104,9 +104,6 @@ final class HealthCheck
             // The pages for people the grid declares: the helpers' under their base, the site's elsewhere
             ['file' => 'pages', 'title' => '', 'rows' => Health::pages(Health::configured(SitePages::rows($grid), self::urls($config), static fn(string $url): bool => $grid->servedByHelpers($url)), $register)],
         ];
-        // What was chosen on the site and is still to apply by hand in the files of the grid
-        $pending = Health::byHand((new \OpenSim\Models\GridSettings($grid))->pending());
-        $pending === [] || ($groups[] = ['file' => 'site', 'title' => '', 'rows' => $pending]);
         // The web assets service needs JPEG 2000 here, unless the grid sets an external one
         $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions(WebAssets::external($grid), \OpenSim\Config\Settings::where('assetsUrl', $config))];
         $groups[] = [
