@@ -1851,6 +1851,18 @@ msgctxt "column_in_search"
 msgid "In search"
 msgstr "In het zoeken"
 
+msgctxt "parcel_scripts"
+msgid "Scripts"
+msgstr "Scripts"
+
+msgctxt "parcel_build"
+msgid "Build"
+msgstr "Bouw"
+
+msgctxt "parcel_public"
+msgid "Public access"
+msgstr "Openbare toegang"
+
 msgctxt "column_regions"
 msgid "Regions"
 msgstr "Regio's"

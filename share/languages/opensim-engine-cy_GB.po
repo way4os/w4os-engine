@@ -1863,6 +1863,18 @@ msgctxt "column_in_search"
 msgid "In search"
 msgstr "Yn y chwiliad"
 
+msgctxt "parcel_scripts"
+msgid "Scripts"
+msgstr "Sgriptiau"
+
+msgctxt "parcel_build"
+msgid "Build"
+msgstr "Adeiladu"
+
+msgctxt "parcel_public"
+msgid "Public access"
+msgstr "Mynediad cyhoeddus"
+
 msgctxt "column_regions"
 msgid "Regions"
 msgstr "Rhanbarthau"

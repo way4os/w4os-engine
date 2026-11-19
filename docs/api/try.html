@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "84449c8",
+        "version": "19ad70b",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -5051,6 +5051,8 @@
                                 "uri"
                             ],
                             "subtitleLink": "teleport",
+                            "picture": "snapshot",
+                            "default": "place",
                             "bare": false,
                             "priority": "primary"
                         },
@@ -5299,6 +5301,27 @@
                             "readOnly": true
                         },
                         {
+                            "name": "scripts",
+                            "label": "parcel_scripts",
+                            "type": "boolean",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "build",
+                            "label": "parcel_build",
+                            "type": "boolean",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "public",
+                            "label": "parcel_public",
+                            "type": "boolean",
+                            "group": "parcel",
+                            "readOnly": true
+                        },
+                        {
                             "name": "uri",
                             "label": "column_uri",
                             "type": "link",
@@ -5314,6 +5337,8 @@
                             "uri"
                         ],
                         "subtitleLink": "teleport",
+                        "picture": "snapshot",
+                        "default": "place",
                         "indicators": []
                     }
                 },
@@ -13144,6 +13169,18 @@
                             },
                             "shownInSearch": {
                                 "type": "boolean"
+                            },
+                            "scripts": {
+                                "type": "boolean",
+                                "description": "The scripts of others run on it (ALLOW_SCRIPTS), as the DataSnapshot of OpenSimulator says it"
+                            },
+                            "build": {
+                                "type": "boolean",
+                                "description": "Anybody may build on it (ALLOW_CREATE_OBJECTS)"
+                            },
+                            "public": {
+                                "type": "boolean",
+                                "description": "Anybody may enter it: it has no access list (USE_ACCESS_LIST)"
                             },
                             "dwell": {
                                 "type": [

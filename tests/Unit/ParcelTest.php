@@ -409,3 +409,46 @@ describe('The land for sale of the search', function () {
             ->toBe('00e80300-00e8-0300-8000-000080000000');
     });
 });
+
+describe('The parcels of a region page', function () {
+    test('give what w4os-wp shows of each: its picture, its name, its owner, its area, its landing point, and what it allows', function () {
+        [$alpha, $beta] = parcel_databases();
+        $alpha->exec(
+            "UPDATE land SET SnapshotUUID = '44444444-4444-4444-4444-444444444444', LandFlags = " .
+                (Parcel::SHOW_DIRECTORY | Parcel::ALLOW_SCRIPTS | Parcel::ALLOW_CREATE_OBJECTS | Parcel::USE_ACCESS_LIST) . " WHERE UUID = 'p1'",
+        );
+        parcels_in([$alpha, $beta]);
+        $welcome = Parcel::all(parcel_config(), ['filters' => ['region' => 'aaaaaaaa-0000-0000-0000-000000000001']]);
+        $details = array_column(array_map(static fn(Parcel $parcel): array => $parcel->detail(), $welcome->items()), null, 'name');
+
+        expect(array_keys($details))
+            ->toBe(['Kiosk', 'The Garden'])
+            ->and($details['The Garden'])
+            ->toMatchArray([
+                'snapshot' => '44444444-4444-4444-4444-444444444444',
+                'ownerName' => 'Ada Love',
+                'area' => 48,
+                'uri' => 'play.example.org:8002/Welcome/128/128/22',
+                // As the DataSnapshot of OpenSimulator says them: scripts of others, building, no access list
+                'scripts' => true,
+                'build' => true,
+                'public' => false,
+            ])
+            ->and($details['Kiosk'])
+            ->toMatchArray(['scripts' => false, 'build' => false, 'public' => true, 'forSale' => true, 'price' => 500]);
+    });
+
+    test('show their picture in the list, and what they allow on their page, in the words of the catalog', function () {
+        $name = Parcel::listing()->document()['columns'][0];
+        $fields = array_column(Parcel::itemForm()->fields, null, 'name');
+
+        expect($name)
+            ->toMatchArray(['name' => 'name', 'picture' => 'snapshot', 'default' => 'place'])
+            ->and(array_map(static fn(string $field): ?string => $fields[$field]['type'] ?? null, ['scripts', 'build', 'public']))
+            ->toBe(['boolean', 'boolean', 'boolean'])
+            ->and(array_diff(array_column($fields, 'label'), array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->toBe([])
+            ->and(array_keys(OpenSim\Api\Contract::document()['components']['schemas']['Parcels']['properties']['attributes']['properties'] ?? []))
+            ->toContain('scripts', 'build', 'public');
+    });
+});

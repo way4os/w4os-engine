@@ -293,6 +293,10 @@ final class Parcel extends Model
             'forSale' => $this->isForSale(),
             'flags' => $this->flags(),
             'shownInSearch' => $this->isShownInSearch(),
+            // What it allows, as the DataSnapshot of OpenSimulator says it: the scripts of others, building, anybody in
+            'scripts' => $this->has(self::ALLOW_SCRIPTS),
+            'build' => $this->has(self::ALLOW_CREATE_OBJECTS),
+            'public' => !$this->has(self::USE_ACCESS_LIST),
             'dwell' => $this->dwell(),
             'landing' => [
                 (float) ($row['UserLocationX'] ?? 0),
@@ -425,8 +429,8 @@ final class Parcel extends Model
     {
         return new Listing(
             [
-                // Its URI under its name, linked to the teleport there
-                Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
+                // Its URI under its name, linked to the teleport there, beside its picture
+                Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri'], 'subtitleLink' => 'teleport', 'picture' => 'snapshot', 'default' => 'place']),
                 Listing::column('regionName', 'column_region'),
                 Listing::column('ownerName', 'column_owner'),
                 Listing::column('area', 'column_area', 'number', 'area'),
@@ -459,6 +463,9 @@ final class Parcel extends Model
                 ItemForm::shown('dwell', 'column_traffic', 'number', 'parcel'),
                 ItemForm::shown('forSale', 'column_for_sale', 'boolean', 'parcel'),
                 ItemForm::shown('shownInSearch', 'column_in_search', 'boolean', 'parcel'),
+                ItemForm::shown('scripts', 'parcel_scripts', 'boolean', 'parcel'),
+                ItemForm::shown('build', 'parcel_build', 'boolean', 'parcel'),
+                ItemForm::shown('public', 'parcel_public', 'boolean', 'parcel'),
                 ItemForm::shown('uri', 'column_uri', 'link', 'parcel', ['link' => 'teleport']),
             ],
             [ItemForm::group('parcel', 'parcel')],
