@@ -32,6 +32,9 @@ class Health
     /** How long an address that took too long has, asked again (a page made after a deploy, a cache to fill): slow when it answers. */
     const RETRY_TIMEOUT = 10;
 
+    /** How many addresses are asked at once: the pages of a site call back the engine, and a small pool of workers serves both. */
+    const CONCURRENCY = 2;
+
     /** The curl error of an address that took too long. */
     const TIMED_OUT = 28;
 
@@ -63,6 +66,12 @@ class Health
 
     /** What a service answers to a call with nothing in it, or with the wrong method. */
     const BARE = [400, 405];
+
+    /** @var array{register?:string,helpers?:?callable} the site of the grid being checked (grid()) */
+    private static $site = [];
+
+    /** What an address that sends elsewhere answers. */
+    const REDIRECTS = [301, 302, 303, 307, 308];
 
     /** What an address that is not a page answers: not served, and not an error (a teapot). */
     const TEAPOT = [418];
@@ -153,6 +162,8 @@ class Health
      *   - live:   what the grid says at /get_grid_info, key => value
      *   - login:  the login address
      *   - owner:  the name (Firstname.Lastname) of an avatar of the grid, to ask a profile for
+     *   - register:        the registration page of the grid, where a site sends a profile asked signed out
+     *   - servedByHelpers: callable(string):bool, whether an address is under the helpers of the grid
      * @return list<array{file:string,title:string,rows:list<array<string,mixed>>}>
      */
     public static function grid($in)
@@ -161,6 +172,7 @@ class Health
         $live = array_filter($in['live'] ?? [], 'is_string');
         $login = (string) ($in['login'] ?? '');
         $owner = $in['owner'] ?? null;
+        self::$site = ['register' => (string) ($in['register'] ?? ($live['register'] ?? ($config?->find('GridInfoService', 'register') ?? ''))), 'helpers' => $in['servedByHelpers'] ?? null];
         $file = self::names($config);
         $groups = [];
 
@@ -347,6 +359,12 @@ class Health
             }
             $row['url'] = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $value), '/');
             $row['expect'] = self::TEAPOT;
+            // A site answers the profile of whoever asks: signed out, as the check is, its registration
+            $helpers = self::$site['helpers'] ?? null;
+            if ($helpers !== null && !$helpers($value)) {
+                $row = ['expect' => self::REDIRECTS, 'stay' => true, 'refuse' => true, 'leadsTo' => (string) (self::$site['register'] ?? ''), 'tag' => _('signed out')] + $row;
+                $row['display'] = $value;
+            }
 
             return [$row];
         }
@@ -553,7 +571,17 @@ class Health
                 }
             }
         }
-        $results = self::ask($requests, $timeout);
+        // The same request once, its answer given to each row that asks it (an address the grid says and its config says)
+        $unique = [];
+        $same = [];
+        foreach ($requests as $id => $row) {
+            $key = json_encode([$row['probe'] ?? $row['url'], $row['method'] ?? 'get', $row['body'] ?? null, !empty($row['stay'])]);
+            $same[$id] = $unique[$key] ??= $id;
+        }
+        $results = self::ask(array_intersect_key($requests, array_flip($unique)), $timeout);
+        foreach ($same as $id => $first) {
+            isset($results[$first]) && ($results[$id] = $results[$first]);
+        }
         // The ones that took too long, asked again with more time: slow, not broken, when they answer then
         $late = array_intersect_key($requests, array_filter($results, static fn(array $result): bool => $result['errno'] === self::TIMED_OUT));
         $again = self::ask($late, $retry);
@@ -589,6 +617,18 @@ class Health
                         $verdict['cert'] = true;
                     }
                 }
+                // What it must answer, and where it must send to; where it led, or sends to
+                if ($result !== null && !isset($row['level']) && !isset($row['skip'])) {
+                    $verdict += self::expectation($row);
+                    $location = !empty($row['stay']) ? $result['redirect'] : $result['effective'];
+                    $asked = (string) ($row['probe'] ?? $row['url']);
+                    $location !== '' && rtrim($location, '/') !== rtrim($asked, '/') && ($verdict['location'] = $location);
+                    // A redirection that does not lead where it must is wrong
+                    if (($verdict['level'] ?? '') === 'ok' && ($row['leadsTo'] ?? '') !== '' && !self::sameAddress((string) ($verdict['location'] ?? ''), $row['leadsTo'])) {
+                        $verdict['level'] = 'error';
+                        $verdict['detail'] = sprintf(_('sends to %s, not to %s'), $verdict['location'] ?? '', $row['leadsTo']);
+                    }
+                }
                 $groups[$g]['rows'][$r] = array_diff_key($row, [
                     'method' => 0,
                     'probe' => 0,
@@ -597,6 +637,7 @@ class Health
                     'refuse' => 0,
                     'body' => 0,
                     'stay' => 0,
+                    'leadsTo' => 0,
                 ]) +
                     $verdict + ['ms' => null];
             }
@@ -606,7 +647,7 @@ class Health
     }
 
     /**
-     * Ask a set of addresses at once.
+     * Ask a set of addresses, a few at a time (CONCURRENCY).
      *
      * @param  array<string,array<string,mixed>> $requests id => row (url, probe, method: get, post or xmlrpc, body)
      * @param  float $timeout how long each has, in seconds
@@ -618,63 +659,77 @@ class Health
             return [];
         }
         $multi = curl_multi_init();
-        $handles = [];
-        foreach ($requests as $id => $row) {
-            $handle = curl_init($row['probe'] ?? $row['url']);
-            curl_setopt_array($handle, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT_MS => (int) round($timeout * 1000),
-                CURLOPT_CONNECTTIMEOUT_MS => (int) round(min(2, $timeout) * 1000),
-                CURLOPT_USERAGENT => 'OpenSimHealth',
-                // What counts is where the address leads, not the redirection it has on the way (unless the row asks for the
-                // answer of the address itself: a redirection away from it)
-                CURLOPT_FOLLOWLOCATION => empty($row['stay']),
-                CURLOPT_MAXREDIRS => 5,
-                // Only the answer matters, not what follows it
-                CURLOPT_WRITEFUNCTION => static fn($handle, $chunk) => strlen($chunk),
-                // The certificate is not what is asked: an address with one this server does not trust is asked all the same,
-                // and the result says so
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => 0,
-            ]);
-            if (($row['method'] ?? 'get') !== 'get') {
-                curl_setopt_array($handle, [
-                    CURLOPT_POST => true,
-                    CURLOPT_POSTFIELDS => $row['body'] ?? '',
-                    CURLOPT_HTTPHEADER => ['Content-Type: text/xml'],
-                ]);
-            }
-            curl_multi_add_handle($multi, $handle);
-            $handles[$id] = $handle;
-        }
-        do {
-            $status = curl_multi_exec($multi, $running);
-            if ($running) {
-                curl_multi_select($multi, 0.2);
-            }
-        } while ($running && $status === CURLM_OK);
-
-        // The code of the error of each address is told by the set, not by the handle
-        $errors = [];
-        while (($done = curl_multi_info_read($multi)) !== false) {
-            $errors[spl_object_id($done['handle'])] = (int) $done['result'];
-        }
+        $waiting = $requests;
+        $running = [];
         $results = [];
-        foreach ($handles as $id => $handle) {
-            $errno = $errors[spl_object_id($handle)] ?? 0;
-            $results[$id] = [
-                'code' => (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE),
-                'errno' => $errno,
-                'error' => curl_error($handle) ?: ($errno ? curl_strerror($errno) : ''),
-                'ms' => (int) round(curl_getinfo($handle, CURLINFO_TOTAL_TIME) * 1000),
-                // How the certificate checks out, 0 when it is valid (or there is none)
-                'certificate' => (int) curl_getinfo($handle, CURLINFO_SSL_VERIFYRESULT),
-            ];
-            curl_multi_remove_handle($multi, $handle);
-        }
+        do {
+            // A few at a time: the pages of a site call back the engine, a small pool of workers serves both
+            while (count($running) < self::CONCURRENCY && $waiting !== []) {
+                $id = (string) array_key_first($waiting);
+                $handle = self::handle(array_shift($waiting), $timeout);
+                curl_multi_add_handle($multi, $handle);
+                $running[spl_object_id($handle)] = [$id, $handle];
+            }
+            curl_multi_exec($multi, $active);
+            $active && curl_multi_select($multi, 0.2);
+            // The code of the error of each address is told by the set, not by the handle
+            while (($done = curl_multi_info_read($multi)) !== false) {
+                [$id, $handle] = $running[spl_object_id($done['handle'])];
+                unset($running[spl_object_id($done['handle'])]);
+                $errno = (int) $done['result'];
+                $results[$id] = [
+                    'code' => (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE),
+                    'errno' => $errno,
+                    'error' => curl_error($handle) ?: ($errno ? curl_strerror($errno) : ''),
+                    'ms' => (int) round(curl_getinfo($handle, CURLINFO_TOTAL_TIME) * 1000),
+                    // How the certificate checks out, 0 when it is valid (or there is none)
+                    'certificate' => (int) curl_getinfo($handle, CURLINFO_SSL_VERIFYRESULT),
+                    // Where it led (redirections followed), and where it sends to (a redirection not followed)
+                    'effective' => (string) curl_getinfo($handle, CURLINFO_EFFECTIVE_URL),
+                    'redirect' => (string) (curl_getinfo($handle, CURLINFO_REDIRECT_URL) ?: ''),
+                ];
+                curl_multi_remove_handle($multi, $handle);
+            }
+        } while ($running !== [] || $waiting !== []);
         curl_multi_close($multi);
 
         return $results;
+    }
+
+    /**
+     * The request of a row, ready to be asked.
+     *
+     * @param array<string,mixed> $row
+     * @return \CurlHandle
+     */
+    private static function handle($row, $timeout)
+    {
+        $handle = curl_init($row['probe'] ?? $row['url']);
+        curl_setopt_array($handle, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT_MS => (int) round($timeout * 1000),
+            CURLOPT_CONNECTTIMEOUT_MS => (int) round(min(2, $timeout) * 1000),
+            CURLOPT_USERAGENT => 'OpenSimHealth',
+            // What counts is where the address leads, not the redirection it has on the way (unless the row asks for the
+            // answer of the address itself: a redirection away from it)
+            CURLOPT_FOLLOWLOCATION => empty($row['stay']),
+            CURLOPT_MAXREDIRS => 5,
+            // Only the answer matters, not what follows it
+            CURLOPT_WRITEFUNCTION => static fn($handle, $chunk) => strlen($chunk),
+            // The certificate is not what is asked: an address with one this server does not trust is asked all the same,
+            // and the result says so
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+        ]);
+        if (($row['method'] ?? 'get') !== 'get') {
+            curl_setopt_array($handle, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $row['body'] ?? '',
+                CURLOPT_HTTPHEADER => ['Content-Type: text/xml'],
+            ]);
+        }
+
+        return $handle;
     }
 
     /**
@@ -730,39 +785,41 @@ class Health
     }
 
     /**
-     * The pages of a grid for people, as SitePages::rows() gives them: each answers (the helpers' or the site's), the base of the
-     * helpers answers, and a page of the site is not one the helpers claim: asked at its default address under the base, they send
-     * it away (a redirection, not followed) or do not have it (404).
+     * The pages of a grid for people, as SitePages::rows() gives them: the base of the helpers, and each page the grid declares (its
+     * config, or the grid itself), asked at the address it declares; one it does not declare (the default of the helpers) is not
+     * asked. The profile without a name is not a page: the helpers answer it as a teapot (or a 404), a site sends whoever is signed
+     * out, as the check is, to its registration (`register`).
      *
-     * @param  list<array{page:string,url:?string,servedBy:?string,helpersDefault?:?string}> $pages
+     * @param  list<array{page:string,url:?string,source?:?string,servedBy:?string,helpersDefault?:?string}> $pages
+     * @param  ?string $register the registration page of the grid (register of [GridInfoService])
      * @return list<array<string,mixed>>
      */
-    public static function pages($pages)
+    public static function pages($pages, $register = null)
     {
         $rows = [];
         foreach ($pages as $page) {
             $url = (string) ($page['url'] ?? '');
-            if ($url === '') {
+            if ($url === '' || (($page['source'] ?? '') === 'default' && $page['page'] !== 'helpers')) {
                 $rows[] = self::emptyRow($page['page']);
                 continue;
             }
             $tag = ($page['servedBy'] ?? '') === 'helpers' ? _('helpers') : _('site');
-            if (str_contains($url, '[AGENT_NAME]')) {
-                // The profiles without a name: not a page (a teapot for the helpers), or no such profile
-                $rows[] =
-                    self::page($page['page'], rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $url), '/'), $tag) +
-                    ['expect' => [404, 418], 'display' => $url];
-            } else {
+            if (!str_contains($url, '[AGENT_NAME]')) {
                 $rows[] = self::page($page['page'], $url, $tag);
+                continue;
             }
-            $claim = (string) ($page['helpersDefault'] ?? '');
-            if (($page['servedBy'] ?? '') === 'site' && $claim !== '' && $claim !== $url) {
-                $rows[] = self::page($page['page'] . ' (helpers)', $claim, _('not served by the helpers')) + [
+            $bare = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $url), '/');
+            $rows[] = ($page['servedBy'] ?? '') === 'site'
+                // The profile of whoever asks, signed out: the registration of the site
+                ? self::page($page['page'], $bare, $tag . ', ' . _('signed out')) + [
                     'stay' => true,
                     'refuse' => true,
-                    'expect' => [301, 302, 303, 307, 308, 404, 410],
-                ];
-            }
+                    'expect' => self::REDIRECTS,
+                    'leadsTo' => (string) $register,
+                    'display' => $url,
+                ]
+                // The profiles without a name: not a page (a teapot for the helpers), or no such profile
+                : self::page($page['page'], $bare, $tag) + ['expect' => [404, 418], 'display' => $url];
         }
 
         return $rows;
@@ -937,6 +994,29 @@ class Health
         }
 
         return null;
+    }
+
+    /**
+     * What a row must answer: its codes (`2xx` for a page, the ones expected of it), and where a redirection must send to.
+     *
+     * @param array<string,mixed> $row
+     * @return array{expectedStatus:string,expectedLocation?:string}
+     */
+    private static function expectation($row)
+    {
+        $codes = array_map('strval', $row['expect'] ?? []);
+        $codes = !empty($row['refuse']) ? $codes : ['2xx', ...$codes];
+        $codes === array_map('strval', self::REDIRECTS) && ($codes = ['3xx']);
+
+        return ['expectedStatus' => implode(', ', $codes)] + (($row['leadsTo'] ?? '') !== '' ? ['expectedLocation' => $row['leadsTo']] : []);
+    }
+
+    /** Whether two addresses are the same page: scheme, host, port and path, whatever follows (?return=...). */
+    private static function sameAddress($a, $b)
+    {
+        $page = static fn(string $url): string => strtolower(self::origin($url)) . rtrim((string) parse_url($url, PHP_URL_PATH), '/');
+
+        return $a !== '' && $page($a) === $page($b);
     }
 
     /** Seconds as they are said: 3, 1.5. */

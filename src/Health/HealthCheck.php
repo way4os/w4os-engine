@@ -37,14 +37,19 @@ final class HealthCheck
      */
     public static function run(Environment $environment, Grid $grid, ?GridConfig $config, string $tasks): array
     {
+        $live = $grid->gridInfo();
+        // Where a site sends a profile asked signed out, as the check is
+        $register = (string) ($live['register'] ?? ($config?->find('GridInfoService', 'register') ?? ''));
         $groups = Health::answers([
             ...Health::grid([
                 'config' => $config,
-                'live' => $grid->gridInfo(),
+                'live' => $live,
                 'login' => (string) $grid->loginUrl(),
+                'register' => $register,
+                'servedByHelpers' => static fn(string $url): bool => $grid->servedByHelpers($url),
             ]),
-            // The pages for people: the helpers' under their base, the site's elsewhere
-            ['file' => 'pages', 'title' => '', 'rows' => Health::pages(SitePages::rows($grid))],
+            // The pages for people the grid declares: the helpers' under their base, the site's elsewhere
+            ['file' => 'pages', 'title' => '', 'rows' => Health::pages(SitePages::rows($grid), $register)],
         ]);
         $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions()];
         $groups[] = [

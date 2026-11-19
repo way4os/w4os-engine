@@ -8,7 +8,7 @@ use OpenSim\Config\GridConfig;
 use OpenSim\Health\Health;
 
 /** A web server that answers the code its path says: /200, /404, /500, /redirect (to /200), /redirect404 (to /404); /needs-data refuses (400) what has no data. */
-function code_server(): array
+function code_server(int $workers = 1): array
 {
     $dir = sys_get_temp_dir() . '/code-server-' . bin2hex(random_bytes(4));
     mkdir($dir);
@@ -16,8 +16,11 @@ function code_server(): array
         "$dir/router.php",
         '<?php $path = trim(parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH), "/");
         if ($path === "redirect") { header("Location: /200", true, 308); return; }
+        if ($path === "to-register") { header("Location: http://" . $_SERVER["HTTP_HOST"] . "/register?return=profile", true, 302); return; }
+        if ($path === "elsewhere") { header("Location: /200", true, 302); return; }
         if ($path === "redirect404") { header("Location: /404", true, 308); return; }
         if ($path === "get_grid_info") { header("Content-Type: text/xml"); echo "<gridinfo><gridname>Alpha</gridname><login>http://play.example.org:8002/</login></gridinfo>"; return; }
+        if ($path === "busy") { $f = __DIR__ . "/busy"; $h = fopen($f, "c+"); flock($h, LOCK_EX); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h) ?: "0 0") + [0, 0]); $now++; $max = max($max, $now); ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); usleep(300000); flock($h, LOCK_EX); rewind($h); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h)) + [0, 0]); $now--; ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); return; }
         if (preg_match("#^slow/(\\d+)$#", $path, $m)) { usleep((int) $m[1] * 1000); http_response_code(200); return; }
         if ($path === "needs-data") { http_response_code(file_get_contents("php://input") === "" && empty($_SERVER["QUERY_STRING"]) ? 400 : 200); return; }
         http_response_code(is_numeric($path) ? (int) $path : 200); echo str_repeat("x", 5000);',
@@ -29,6 +32,9 @@ function code_server(): array
         [PHP_BINARY, '-S', "127.0.0.1:$port", "$dir/router.php"],
         [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']],
         $pipes,
+        null,
+        // Several requests at once when asked (a pool of workers, as a site has)
+        $workers > 1 ? ['PHP_CLI_SERVER_WORKERS' => (string) $workers] + getenv() : null,
     );
     // Until it listens (a refused connection is expected meanwhile)
     set_error_handler(static fn() => true);
@@ -40,7 +46,7 @@ function code_server(): array
         fclose($connection);
     }
 
-    return [$process, $port];
+    return [$process, $port, $dir];
 }
 
 describe('An address', function () {
@@ -125,6 +131,22 @@ describe('An address', function () {
             ->not->toBe('')
             ->and($by['fine'])
             ->not->toHaveKeys(['method', 'probe', 'skip', 'expect', 'body']);
+    });
+
+    test('are asked a few at a time, never all at once: a site whose pool of workers is small answers them all', function () {
+        [$process, $port, $dir] = code_server(6);
+        $rows = array_map(static fn(int $i): array => ['label' => "page$i", 'url' => "http://127.0.0.1:$port/busy?$i", 'method' => 'get'], range(1, 6));
+
+        $answered = Health::answers([['title' => 'One', 'rows' => $rows]]);
+        $max = (int) explode(' ', (string) file_get_contents("$dir/busy"))[1];
+        proc_terminate($process);
+
+        expect(array_unique(array_column($answered[0]['rows'], 'level')))
+            ->toBe(['ok'])
+            ->and($max)
+            ->toBe(Health::CONCURRENCY)
+            ->and(Health::CONCURRENCY)
+            ->toBeLessThanOrEqual(2);
     });
 
     test('is asked again, longer, when it took too long: slow when it answers then, an error when it never does', function () {
@@ -242,31 +264,55 @@ describe('An address', function () {
 });
 
 describe('The pages of a grid', function () {
-    test('each answers, the base of the helpers answers, and the helpers claim no page of the site', function () {
+    test('are the ones the grid declares, each with what it must answer and what it answered: the profile of a site sends to its registration', function () {
         [$process, $port] = code_server();
         $url = fn(string $path) => "http://127.0.0.1:$port/$path";
         $rows = Health::pages([
-            ['page' => 'helpers', 'url' => $url('200'), 'servedBy' => 'helpers'],
-            ['page' => 'search', 'url' => $url('200'), 'servedBy' => 'site', 'helpersDefault' => $url('redirect')],
-            ['page' => 'guide', 'url' => $url('200'), 'servedBy' => 'site', 'helpersDefault' => $url('201')],
-            ['page' => 'welcome', 'url' => $url('404'), 'servedBy' => 'helpers', 'helpersDefault' => $url('404')],
-            ['page' => 'profile', 'url' => $url('418/[AGENT_NAME]'), 'servedBy' => 'helpers', 'helpersDefault' => $url('418')],
+            ['page' => 'helpers', 'url' => $url('200'), 'source' => 'config', 'servedBy' => 'helpers'],
+            ['page' => 'search', 'url' => $url('200'), 'source' => 'config', 'servedBy' => 'site', 'helpersDefault' => $url('404')],
+            // Not declared: the default of the helpers is not what the grid tells, nothing to ask
+            ['page' => 'guide', 'url' => $url('404'), 'source' => 'default', 'servedBy' => 'helpers', 'helpersDefault' => $url('404')],
+            ['page' => 'welcome', 'url' => $url('404'), 'source' => 'config', 'servedBy' => 'helpers'],
+            ['page' => 'profile', 'url' => $url('to-register/[AGENT_NAME]'), 'source' => 'config', 'servedBy' => 'site'],
             ['page' => 'directory', 'url' => null, 'servedBy' => null],
-        ]);
-        $groups = Health::answers([['file' => 'pages', 'title' => '', 'rows' => $rows]]);
+        ], $url('register'));
+        $wrong = Health::pages([['page' => 'profile', 'url' => $url('elsewhere/[AGENT_NAME]'), 'source' => 'config', 'servedBy' => 'site']], $url('register'));
+        $groups = Health::answers([['file' => 'pages', 'title' => '', 'rows' => $rows], ['file' => 'pages', 'title' => '', 'rows' => $wrong]]);
         proc_terminate($process);
-        $by = array_map(static fn(array $row): string => $row['level'], array_column($groups[0]['rows'], null, 'label'));
+        $by = array_column($groups[0]['rows'], null, 'label');
 
-        expect($by)->toBe([
-            'helpers' => 'ok',
-            'search' => 'ok',
-            'search (helpers)' => 'ok',
-            'guide' => 'ok',
-            'guide (helpers)' => 'error',
-            'welcome' => 'error',
-            'profile' => 'ok',
-            'directory' => 'none',
-        ]);
+        expect(array_map(static fn(array $row): string => $row['level'], $by))
+            ->toBe(['helpers' => 'ok', 'search' => 'ok', 'guide' => 'none', 'welcome' => 'error', 'profile' => 'ok', 'directory' => 'none'])
+            // What it must answer, what it answered
+            ->and(array_intersect_key($by['search'], ['expectedStatus' => 1, 'status' => 1]))
+            ->toBe(['status' => '200', 'expectedStatus' => '2xx'])
+            ->and(array_intersect_key($by['profile'], ['expectedStatus' => 1, 'expectedLocation' => 1, 'status' => 1, 'location' => 1]))
+            ->toBe(['status' => '302', 'expectedStatus' => '3xx', 'expectedLocation' => $url('register'), 'location' => $url('register?return=profile')])
+            ->and($by['profile']['tag'] ?? '')
+            ->toContain('signed out')
+            // A profile that sends elsewhere than the registration is wrong
+            ->and($groups[1]['rows'][0])
+            ->toMatchArray(['level' => 'error', 'location' => $url('200')]);
+    });
+});
+
+describe('The profile the grid tells', function () {
+    test('is not a page without a name: a teapot for the helpers, the registration of a site for whoever is signed out', function () {
+        [$process, $port] = code_server();
+        $url = fn(string $path) => "http://127.0.0.1:$port/$path";
+        $ask = static fn(string $profile, bool $helpers) => array_column(Health::answers(Health::grid([
+            'live' => ['web_profile_url' => $profile],
+            'register' => $url('register'),
+            'servedByHelpers' => static fn(string $address): bool => $helpers,
+        ])), null, 'file')['get_grid_info']['rows'];
+        $site = array_column($ask($url('to-register/[AGENT_NAME]'), false), null, 'label')['web_profile_url'];
+        $helpers = array_column($ask($url('418/[AGENT_NAME]'), true), null, 'label')['web_profile_url'];
+        proc_terminate($process);
+
+        expect($site)
+            ->toMatchArray(['level' => 'ok', 'status' => '302', 'expectedStatus' => '3xx', 'expectedLocation' => $url('register')])
+            ->and($helpers)
+            ->toMatchArray(['level' => 'ok', 'status' => '418']);
     });
 });
 
@@ -948,5 +994,20 @@ describe('The last check of the health', function () {
             ->toBe([1_800_001_600, true])
             ->and(array_column($scheduler->status(), 'id'))
             ->toContain('health.demo');
+    });
+});
+
+describe('The same address', function () {
+    test('is asked once, its answer given to every row that asks it', function () {
+        [$process, $port, $dir] = code_server(4);
+        $row = ['label' => 'page', 'url' => "http://127.0.0.1:$port/busy?same", 'method' => 'get'];
+        $answered = Health::answers([['title' => 'One', 'rows' => [$row, $row]], ['title' => 'Two', 'rows' => [$row]]]);
+        $max = (int) explode(' ', (string) file_get_contents("$dir/busy"))[1];
+        proc_terminate($process);
+
+        expect([$answered[0]['rows'][0]['level'], $answered[0]['rows'][1]['level'], $answered[1]['rows'][0]['level']])
+            ->toBe(['ok', 'ok', 'ok'])
+            ->and($max)
+            ->toBe(1);
     });
 });
