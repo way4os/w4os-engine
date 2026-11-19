@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "7ef0a54",
+        "version": "11b2972",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -7947,6 +7947,37 @@
                             "description": "setting_economy_module_help"
                         },
                         {
+                            "name": "moneyServerWarning",
+                            "type": "note",
+                            "label": "money_server_warning_title",
+                            "description": [
+                                "money_server_warning"
+                            ],
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "economyModule": [
+                                    "DTLNSLMoneyModule",
+                                    "Podex"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": {
+                                "provide": [
+                                    true
+                                ]
+                            },
+                            "description": [
+                                "currency_symbol_help"
+                            ],
+                            "name": "currencySymbol",
+                            "type": "string",
+                            "label": "setting_currency_symbol",
+                            "placeholder": "YC$"
+                        },
+                        {
                             "tip": "tip_money_database",
                             "condition": {
                                 "provide": [
@@ -7988,6 +8019,25 @@
                                     "type": "secret"
                                 }
                             ]
+                        },
+                        {
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "economyModule": [
+                                    "DTLNSLMoneyModule",
+                                    "Podex"
+                                ]
+                            },
+                            "description": [
+                                "money_banker_help",
+                                "money_banker_podex_help"
+                            ],
+                            "name": "moneyBanker",
+                            "type": "string",
+                            "label": "setting_money_banker",
+                            "placeholder": "00000000-0000-0000-0000-000000000000"
                         },
                         {
                             "tip": "tip_gloebit_environment",
@@ -8044,6 +8094,9 @@
                                     "Gloebit"
                                 ]
                             },
+                            "description": [
+                                "gloebit_banker_help"
+                            ],
                             "name": "gloebitOwnerName",
                             "type": "string",
                             "label": "setting_gloebit_owner_name",
@@ -8279,6 +8332,12 @@
                                                             "Podex"
                                                         ]
                                                     },
+                                                    "moneyServerWarning": {
+                                                        "type": "string"
+                                                    },
+                                                    "currencySymbol": {
+                                                        "type": "string"
+                                                    },
                                                     "moneyDatabase": {
                                                         "type": "object",
                                                         "properties": {
@@ -8299,6 +8358,9 @@
                                                             }
                                                         },
                                                         "nullable": true
+                                                    },
+                                                    "moneyBanker": {
+                                                        "type": "string"
                                                     },
                                                     "gloebitEnvironment": {
                                                         "type": "string",

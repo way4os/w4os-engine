@@ -93,7 +93,7 @@ final class Settings
                 'MessageUrl' => ['name' => 'messageUrl', 'type' => 'url', 'label' => 'setting_message_url', 'service' => 'motd', 'health' => 'address'],
                 'SearchURL' => ['name' => 'loginSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'service' => 'search', 'health' => 'login-search'],
                 'WelcomeMessage' => ['name' => 'welcomeMessage', 'type' => 'text', 'label' => 'setting_welcome_message'],
-                'Currency' => ['name' => 'currencySymbol', 'type' => 'text', 'label' => 'setting_currency_symbol'],
+                'Currency' => ['name' => 'currencySymbol', 'type' => 'text', 'label' => 'setting_currency_symbol', 'placeholder' => 'YC$', 'admin' => 'economy'],
             ],
         ],
         'opensim' => [
@@ -149,6 +149,8 @@ final class Settings
                 'database' => ['name' => 'moneyDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'parts' => ['host' => 'hostname', 'port' => 'port', 'database' => 'database', 'user' => 'username', 'password' => 'password'], 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
             ],
             'MoneyServer' => [
+                // The avatar that can create money: it buys it from the system at no cost (zeros: every avatar, empty: nobody)
+                'BankerAvatar' => ['name' => 'moneyBanker', 'type' => 'text', 'label' => 'setting_money_banker', 'placeholder' => '00000000-0000-0000-0000-000000000000', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
                 'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'readers' => 'helpers', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']], 'health' => 'secret'],
             ],
         ],

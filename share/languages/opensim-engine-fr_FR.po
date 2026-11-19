@@ -2065,8 +2065,8 @@ msgid "Welcome Message"
 msgstr "Message de bienvenue"
 
 msgctxt "setting_currency_symbol"
-msgid "Currency Name"
-msgstr "Nom de la monnaie"
+msgid "Currency Symbol"
+msgstr "Symbole de la monnaie"
 
 msgctxt "setting_search_module"
 msgid "Search Module"
@@ -2134,12 +2134,50 @@ msgid "Gloebit App Secret"
 msgstr "Secret d'application Gloebit"
 
 msgctxt "setting_gloebit_owner_name"
-msgid "Owner Name"
-msgstr "Nom du propriétaire"
+msgid "Banker Name"
+msgstr "Nom du banquier"
 
 msgctxt "setting_gloebit_owner_email"
-msgid "Owner Email"
-msgstr "E-mail du propriétaire"
+msgid "Banker Email"
+msgstr "E-mail du banquier"
+
+msgctxt "gloebit_banker_help"
+msgid ""
+"With Gloebit, the banker is the person of reference for Gloebit: Gloebit "
+"itself holds and manages all the transactions."
+msgstr "Avec Gloebit, le banquier est la personne de référence pour Gloebit : Gloebit tient et gère lui-même toutes les transactions."
+
+msgctxt "setting_money_banker"
+msgid "Banker Avatar"
+msgstr "Avatar banquier"
+
+msgctxt "money_banker_help"
+msgid ""
+"With the money server, the banker really owns the printing press: this "
+"avatar can create money, buying it from the system at no cost. Zeros: every "
+"avatar can; empty: nobody."
+msgstr "Avec le serveur de monnaie, le banquier possède vraiment la planche à billets : cet avatar peut créer de l'argent, en l'achetant au système sans le payer. Des zéros : tous les avatars le peuvent ; vide : personne."
+
+msgctxt "money_banker_podex_help"
+msgid ""
+"With Podex, the banker is the avatar agreed with Podex, the one of its "
+"office and its ATMs."
+msgstr "Avec Podex, le banquier est l'avatar convenu avec Podex, celui de son bureau et de ses distributeurs."
+
+msgctxt "money_server_warning_title"
+msgid "Security"
+msgstr "Sécurité"
+
+msgctxt "money_server_warning"
+msgid ""
+"The money server and Podex are offered as a convenience, not as a "
+"recommendation: the money server can create money, it needs a security audit "
+"before it handles real money."
+msgstr "Le serveur de monnaie et Podex sont proposés par commodité, pas comme une recommandation : le serveur de monnaie peut créer de l'argent, il demande un audit de sécurité avant de gérer de l'argent réel."
+
+msgctxt "currency_symbol_help"
+msgid "G$ with Gloebit, a global currency; any symbol with the other modules."
+msgstr "G$ avec Gloebit, une monnaie globale ; n'importe quel symbole avec les autres modules."
 
 msgctxt "setting_currency_provider"
 msgid "Currency Provider"
@@ -3682,6 +3720,18 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#~ msgctxt "setting_currency_symbol"
+#~ msgid "Currency Name"
+#~ msgstr "Nom de la monnaie"
+
+#~ msgctxt "setting_gloebit_owner_name"
+#~ msgid "Owner Name"
+#~ msgstr "Nom du propriétaire"
+
+#~ msgctxt "setting_gloebit_owner_email"
+#~ msgid "Owner Email"
+#~ msgstr "E-mail du propriétaire"
 
 #~ msgctxt "recent_avatars"
 #~ msgid "Recent users"

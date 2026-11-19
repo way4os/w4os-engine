@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (economy): the symbol of the currency (G$ with Gloebit), the banker of the money server and of Podex (`BankerAvatar`), Banker Name and Banker Email for Gloebit, each with what the banker can do; a security warning with the money server and Podex
 - change (settings): each field has a short tip under its label where the label is not enough (`tip`), the details apart; what a page is about in its help (offline messages, web assets)
 - change (settings): `meta.snippets` is one block for each file of the page (its `file` and its `text`), for the values chosen, the helpers' too, the lines of the module chosen only
 - change (settings): the path of a service never starts with a slash; `meta.service.prefix` is the address it is under, ending with the slash

@@ -63,3 +63,26 @@ describe('The module of the economy', function () {
             ->and($opensim)->toContain('economymodule = Gloebit')->toContain('GLBKey = app-key')->toContain('GLBOwnerEmail = "banker@example.org"');
     });
 });
+
+describe('The economy page', function () {
+    test('has the symbol of the currency, G$ with Gloebit, its banker for each module, and a warning for the money server', function () {
+        [$machine, $router] = provided_grid();
+        $fields = provided_fields('economy');
+
+        $free = economy_patch($router, ['economyModule' => 'DTLNSLMoneyModule', 'currencySymbol' => 'F$', 'moneyBanker' => '11111111-1111-1111-1111-111111111111']);
+        $gloebit = economy_patch($router, ['economyModule' => 'Gloebit', 'currencySymbol' => 'X$']);
+
+        expect($fields['currencySymbol'])->toMatchArray(['type' => 'string', 'label' => 'setting_currency_symbol'])
+            ->and($fields['moneyBanker'])->toMatchArray(['condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule', 'Podex']]])
+            ->and($fields['moneyBanker']['description'])->toBe(['money_banker_help', 'money_banker_podex_help'])
+            ->and(OpenSim\I18n\Catalog::MESSAGES[$fields['gloebitOwnerName']['label']])->toBe('Banker Name')
+            ->and(OpenSim\I18n\Catalog::MESSAGES[$fields['gloebitOwnerEmail']['label']])->toBe('Banker Email')
+            ->and($fields['gloebitOwnerName']['description'] ?? [])->toBe(['gloebit_banker_help'])
+            ->and($fields['moneyServerWarning'])->toMatchArray(['type' => 'note', 'condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule', 'Podex']]])
+            ->and($free->document['data']['attributes'])->toMatchArray(['currencySymbol' => 'F$', 'moneyBanker' => '11111111-1111-1111-1111-111111111111'])
+            ->and(file_get_contents($machine->grid . '/MoneyServer.ini'))->toContain('BankerAvatar = 11111111-1111-1111-1111-111111111111')
+            // Gloebit is a global currency: its symbol is G$
+            ->and($gloebit->document['data']['attributes']['currencySymbol'])->toBe('G$')
+            ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('Currency = "G$"');
+    });
+});

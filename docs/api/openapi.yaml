@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 7ef0a54
+  version: 11b2972
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -5545,6 +5545,28 @@ paths:
               Podex: economy_module_podex
             description: setting_economy_module_help
           -
+            name: moneyServerWarning
+            type: note
+            label: money_server_warning_title
+            description:
+              - money_server_warning
+            condition:
+              provide:
+                - true
+              economyModule:
+                - DTLNSLMoneyModule
+                - Podex
+          -
+            condition:
+              provide:
+                - true
+            description:
+              - currency_symbol_help
+            name: currencySymbol
+            type: string
+            label: setting_currency_symbol
+            placeholder: YC$
+          -
             tip: tip_money_database
             condition:
               provide:
@@ -5577,6 +5599,20 @@ paths:
                 name: password
                 label: db_password
                 type: secret
+          -
+            condition:
+              provide:
+                - true
+              economyModule:
+                - DTLNSLMoneyModule
+                - Podex
+            description:
+              - money_banker_help
+              - money_banker_podex_help
+            name: moneyBanker
+            type: string
+            label: setting_money_banker
+            placeholder: 00000000-0000-0000-0000-000000000000
           -
             tip: tip_gloebit_environment
             condition:
@@ -5616,6 +5652,8 @@ paths:
                 - true
               economyModule:
                 - Gloebit
+            description:
+              - gloebit_banker_help
             name: gloebitOwnerName
             type: string
             label: setting_gloebit_owner_name
@@ -5778,7 +5816,7 @@ paths:
                       const: economy
                     attributes:
                       type: object
-                      properties: { provide: { type: boolean }, path: { type: string }, economyUrl: { type: string }, economyModule: { type: string, enum: [BetaGridLikeMoneyModule, DTLNSLMoneyModule, Gloebit, Podex] }, moneyDatabase: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string } }, nullable: true }, gloebitEnvironment: { type: string, enum: [sandbox, production] }, gloebitKey: { type: string }, gloebitSecret: { type: string }, gloebitOwnerName: { type: string }, gloebitOwnerEmail: { type: string }, gloebitDatabase: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string }, useDefault: { type: boolean, description: 'true: the database the grid uses by default, the setting removed' } }, nullable: true }, currencyRate: { type: number }, gloebitConfiguration: { type: string }, moneyScriptKey: { type: string }, podexMessage: { type: string }, podexUrl: { type: string } }
+                      properties: { provide: { type: boolean }, path: { type: string }, economyUrl: { type: string }, economyModule: { type: string, enum: [BetaGridLikeMoneyModule, DTLNSLMoneyModule, Gloebit, Podex] }, moneyServerWarning: { type: string }, currencySymbol: { type: string }, moneyDatabase: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string } }, nullable: true }, moneyBanker: { type: string }, gloebitEnvironment: { type: string, enum: [sandbox, production] }, gloebitKey: { type: string }, gloebitSecret: { type: string }, gloebitOwnerName: { type: string }, gloebitOwnerEmail: { type: string }, gloebitDatabase: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string }, useDefault: { type: boolean, description: 'true: the database the grid uses by default, the setting removed' } }, nullable: true }, currencyRate: { type: number }, gloebitConfiguration: { type: string }, moneyScriptKey: { type: string }, podexMessage: { type: string }, podexUrl: { type: string } }
       responses:
         200:
           description: 'The settings now'

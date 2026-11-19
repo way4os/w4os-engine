@@ -87,7 +87,7 @@ final class GridSettings
 
     /** The fields of a page in the order w4os-wp shows them, the address of the service and Provide aside. */
     private const ORDER = [
-        'economy' => ['economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
+        'economy' => ['economyModule', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'eventsUrl'],
         'offline' => ['mailSender', 'offlineDatabase', 'offlineModule'],
     ];
@@ -101,6 +101,11 @@ final class GridSettings
             'currencyRate' => ['condition' => ['economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex']]],
             'gloebitConfiguration' => ['note' => true, 'after' => 'currencyRate', 'label' => 'gloebit_configuration', 'description' => ['gloebit_help_crash', 'gloebit_help_linux', 'gloebit_help_register', 'gloebit_help_config', 'gloebit_help_dll'], 'condition' => ['economyModule' => ['Gloebit']]],
             'moneyScriptKey' => ['label' => 'money_script_access_key', 'description' => ['money_script_access_key_help']],
+            // A money server can create money: offered as a convenience, not as a recommendation
+            'moneyServerWarning' => ['note' => true, 'after' => 'economyModule', 'label' => 'money_server_warning_title', 'description' => ['money_server_warning'], 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
+            'moneyBanker' => ['description' => ['money_banker_help', 'money_banker_podex_help']],
+            'gloebitOwnerName' => ['description' => ['gloebit_banker_help']],
+            'currencySymbol' => ['description' => ['currency_symbol_help']],
         ],
         'search' => [
             'registerExternalUrl' => ['description' => ['search_register_help_data', 'search_register_help_several']],
@@ -291,6 +296,8 @@ final class GridSettings
             $values['economyModule'] === 'Podex' && ($values['economyModule'] = 'DTLNSLMoneyModule');
             $entries['currencyProvider'] = Settings::named('currencyProvider');
         }
+        // Gloebit is a global currency: its symbol is G$
+        $page === 'economy' && ($values['economyModule'] ?? $now['economyModule']) === 'Gloebit' && ($values['currencySymbol'] = 'G$');
         // The registers of the search, a key of the family DATA_SRV_ each
         foreach (array_filter(array_keys($values), static fn(string $name): bool => str_starts_with($name, 'DATA_SRV_')) as $key) {
             $entries[$key] = ['instance' => 'opensim', 'section' => 'DataSnapshot', 'key' => $key, 'name' => $key, 'type' => 'url', 'readers' => 'grid'];
@@ -656,9 +663,9 @@ final class GridSettings
         $module = (string) $values['economyModule'];
         $money = in_array($module, ['DTLNSLMoneyModule', 'Podex'], true);
         $add($robust, ['GridInfoService' => ['economy' => $url]]);
+        ($values['currencySymbol'] ?? '') !== '' && $add($robust, ['LoginService' => ['Currency' => (string) $values['currencySymbol']]]);
         $add('OpenSim.ini', ['Economy' => ['economymodule' => $money ? 'DTLNSLMoneyModule' : $module, 'economy' => $url]]);
         if ($module === 'Gloebit') {
-            $add($robust, ['LoginService' => ['Currency' => 'G$']]);
             $add('OpenSim.ini', [
                 'Economy' => ['SellEnabled' => 'true'],
                 'Gloebit' => ['Enabled' => 'true'] + self::lines(Settings::named('gloebitEnvironment'), $values['gloebitEnvironment'] ?? 'production')
@@ -671,7 +678,7 @@ final class GridSettings
         if ($money) {
             $database = $values['moneyDatabase'] ?? null;
             $add('MoneyServer.ini', [
-                'MoneyServer' => ['EnableScriptSendMoney' => 'true', 'MoneyScriptAccessKey' => '(your key)'],
+                'MoneyServer' => ['EnableScriptSendMoney' => 'true', 'MoneyScriptAccessKey' => '(your key)'] + (($values['moneyBanker'] ?? '') !== '' ? ['BankerAvatar' => (string) $values['moneyBanker']] : []),
                 'MySql' => self::lines(Settings::named('moneyDatabase'), $database ?? ['host' => 'localhost', 'database' => 'money', 'user' => 'opensim']),
             ]);
         }
