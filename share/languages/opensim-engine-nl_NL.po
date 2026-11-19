@@ -1648,13 +1648,21 @@ msgctxt "column_prims"
 msgid "Prims"
 msgstr "Prims"
 
-msgctxt "column_usage"
-msgid "Usage"
-msgstr "Gebruik"
-
 msgctxt "column_scripts"
 msgid "Scripts"
 msgstr "Scripts"
+
+msgctxt "column_presence_short"
+msgid "av."
+msgstr "av."
+
+msgctxt "column_prims_short"
+msgid "pr."
+msgstr "pr."
+
+msgctxt "column_scripts_short"
+msgid "scr."
+msgstr "scr."
 
 #, php-format
 msgctxt "count_avatars_short"
@@ -3784,6 +3792,10 @@ msgstr "De configuratie van het grid zegt niet waar deze database is."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "De database is niet bereikbaar."
+
+#~ msgctxt "column_usage"
+#~ msgid "Usage"
+#~ msgstr "Gebruik"
 
 #~ msgctxt "guide_help_places"
 #~ msgid ""

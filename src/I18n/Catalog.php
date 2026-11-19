@@ -456,8 +456,11 @@ final class Catalog
         'column_region_name' => 'Region Name',
         'column_presence' => 'Presence',
         'column_prims' => 'Prims',
-        'column_usage' => 'Usage',
         'column_scripts' => 'Scripts',
+        // Short titles of narrow columns: avatars, prims, scripts
+        'column_presence_short' => 'av.',
+        'column_prims_short' => 'pr.',
+        'column_scripts_short' => 'scr.',
         // A number of avatars in a narrow column: av. for avatars
         'count_avatars_short' => '%d av.',
         'count_prims' => '%d prims',

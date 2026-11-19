@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (regions): the presence, the prims and the scripts back in their own columns, av., pr., scr., sorted on, on the widest screens; the type of a region (RegionType of its file) in place of them; sorts on the type, the owner, the simulator; filters on the owner and the type (the simulators: av. and pr. too)
 - change (lists): no label where the value says it all (`bare` on the parts of a column too): the location, the size, the flags, an area; the usage reads 0 av., 3 prims, 2 scripts (`count`)
 - change (regions): the size reads 256 x 256 (meters always, no unit), the location 8015, 8012, spaces where a narrow column breaks the line; the page says Internal Port, with why
 - change (lists): a column can hold several values (`group`, its `parts`): the usage of the regions and the simulators (presence, prims, scripts), the location and the size of a region; the port on the page of a region only, labelled Port

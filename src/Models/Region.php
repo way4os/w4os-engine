@@ -129,6 +129,16 @@ final class Region extends Model
         'flags' => ['r.flags'],
     ];
 
+    /** The sorts on what the table of the regions does not hold, by their name: the attribute of the detail they sort by. */
+    private const SORTS_OF_DETAIL = [
+        'type' => 'type',
+        'owner' => 'ownerName',
+        'simulator' => 'serverName',
+        'avatars' => 'avatars',
+        'prims' => 'prims',
+        'scripts' => 'scripts',
+    ];
+
     /** Its UUID, else the simulator and the name for a region that has none yet. */
     public function id(): string
     {
@@ -222,6 +232,14 @@ final class Region extends Model
     public function internalPort(): ?int
     {
         return isset($this->local['InternalPort']) ? (int) $this->local['InternalPort'] : null;
+    }
+
+    /** Its type as its file says it (RegionType: Mainland, Residences...), null where the engine has no file of it, or none says it. */
+    public function type(): ?string
+    {
+        $type = trim((string) ($this->local['RegionType'] ?? ''));
+
+        return $type === '' ? null : $type;
     }
 
     public function slug(): string
@@ -383,6 +401,7 @@ final class Region extends Model
             'simulator' => $this->simulator() ?: null,
             'file' => $this->file() ?: null,
             'internalPort' => $this->internalPort(),
+            'type' => $this->type(),
             'local' => $this->in(self::CONFIG),
             'enabled' => $this->in(self::CONFIG) ? $this->isEnabled() : null,
         ];
@@ -857,6 +876,7 @@ final class Region extends Model
                 'status' => $asked !== 'online',
                 // What only the grid knows of a region: the address of its simulator
                 'simulator' => $asked === '',
+                'type' => $asked === '' || strcasecmp((string) $this->type(), $asked) === 0,
                 default => $asked !== 'yes',
             };
             if (!$kept) {
@@ -966,7 +986,7 @@ final class Region extends Model
             2,
             'asc',
         );
-        if (!isset(self::SORTS[$sortName])) {
+        if (!isset(self::SORTS[$sortName]) && !isset(self::SORTS_OF_DETAIL[$sortName])) {
             [$sortName, $direction] = ['name', 'asc'];
         }
         $direction = strtolower((string) $direction) === 'desc' ? 'desc' : 'asc';
@@ -1023,6 +1043,20 @@ final class Region extends Model
             $params['owner'] = $owner;
             $applied['owner'] = $owner;
         }
+        // Its type, as the files of the regions here say it
+        $types = [];
+        foreach (static::configured($config) as $local) {
+            $local->type() === null || $local->uuid() === null || ($types[strtolower($local->uuid())] = $local->type());
+        }
+        $type = trim((string) ($asked['type'] ?? ''));
+        if ($type !== '') {
+            $typed = array_keys(array_filter($types, static fn(string $of): bool => strcasecmp($of, $type) === 0));
+            foreach ($typed as $i => $uuid) {
+                $params["t$i"] = $uuid;
+            }
+            $where[] = $typed === [] ? '0 = 1' : 'LOWER(r.uuid) IN (' . implode(', ', array_map(static fn(int $i): string => ":t$i", array_keys($typed))) . ')';
+            $applied['type'] = $type;
+        }
         // The simulators asked, by the address the grid has of them (host:port of serverURI): the regions of any of them
         $servers = self::servers($config, $pdo);
         $simulators = self::listing()->asked('simulator', $asked['simulator'] ?? '');
@@ -1047,20 +1081,27 @@ final class Region extends Model
         uksort($sizes, static fn(string $a, string $b): int => [$sizes[$a], $a] <=> [$sizes[$b], $b]);
         $counted['size'] = array_combine(array_keys($sizes), array_map(self::sizeCondition(...), array_keys($sizes)));
         $counts = self::counts($pdo, $where, $filtered, $counted, $params);
+        // A sort on what the table does not hold orders all of them before a page is taken
+        $ofDetail = self::SORTS_OF_DETAIL[$sortName] ?? null;
         $order =
             implode(
                 ', ',
-                array_map(static fn(string $e): string => $e . ' ' . strtoupper($direction), self::SORTS[$sortName]),
+                array_map(static fn(string $e): string => $e . ' ' . strtoupper($direction), self::SORTS[$ofDetail === null ? $sortName : 'name']),
             ) . ', r.uuid';
         $sql = 'SELECT ' . self::COLUMNS . " FROM regions r$clause ORDER BY $order";
         $perPage = max(0, (int) ($options['perPage'] ?? 0));
         $page = max(1, (int) ($options['page'] ?? 1));
-        if ($perPage > 0) {
+        if ($perPage > 0 && $ofDetail === null) {
             $sql .= ' LIMIT ' . $perPage . ' OFFSET ' . ($page - 1) * $perPage;
         }
         $rows = self::withServerNames(self::withOwnerNames($config, $pdo->get_results($sql, $params, \PDO::FETCH_ASSOC)), $servers);
+        $regions = self::withFiles($config, array_map(static fn(array $row): self => new self($config, $row), $rows));
+        if ($ofDetail !== null) {
+            $regions = self::sortedBy($regions, $ofDetail, $direction);
+            $perPage > 0 && ($regions = array_slice($regions, ($page - 1) * $perPage, $perPage));
+        }
 
-        return new Collection(self::withFiles($config, array_map(static fn(array $row): self => new self($config, $row), $rows)), [
+        return new Collection($regions, [
             'total' => $total,
             'page' => $page,
             'perPage' => $perPage,
@@ -1071,6 +1112,8 @@ final class Region extends Model
             'counts' => $counts,
             // The flags the regions of the grid have now: the values of the filter that give something
             'available' => [
+                'type' => array_map(static fn(string $type): array => ['value' => $type, 'label' => $type], self::distinct($types)),
+                'owner' => self::owners($config, $pdo),
                 'size' => array_map(static fn(string $size): array => ['value' => $size, 'label' => $size], array_keys($sizes)),
                 'simulator' => array_values(
                     array_map(static fn(array $server): array => ['value' => $server['id'], 'label' => $server['label']], $servers),
@@ -1093,6 +1136,61 @@ final class Region extends Model
             ],
             'applied' => $applied,
         ]);
+    }
+
+    /**
+     * The regions in the order of an attribute of their detail, the ones without it last whatever the direction, then by name.
+     *
+     * @param list<self> $regions
+     * @return list<self>
+     */
+    private static function sortedBy(array $regions, string $attribute, string $direction): array
+    {
+        $rows = array_map(static fn(self $region): array => [$region, $region->detail()[$attribute] ?? null, $region->name()], $regions);
+        usort($rows, static function (array $a, array $b) use ($direction): int {
+            if (($a[1] === null || $a[1] === '') !== ($b[1] === null || $b[1] === '')) {
+                return $a[1] === null || $a[1] === '' ? 1 : -1;
+            }
+            $order = is_string($a[1]) ? strnatcasecmp((string) $a[1], (string) $b[1]) : $a[1] <=> $b[1];
+
+            return ($direction === 'desc' ? -$order : $order) ?: strnatcasecmp($a[2], $b[2]);
+        });
+
+        return array_column($rows, 0);
+    }
+
+    /**
+     * The values of a list once each, however written, in their natural order.
+     *
+     * @param array<string> $values
+     * @return list<string>
+     */
+    private static function distinct(array $values): array
+    {
+        $once = [];
+        foreach ($values as $value) {
+            $once[strtolower($value)] ??= $value;
+        }
+        usort($once, strnatcasecmp(...));
+
+        return $once;
+    }
+
+    /**
+     * The owners of the regions of the grid, the values of the owner filter that give something: by their name, else their UUID.
+     *
+     * @return list<array{value:string,label:string}>
+     */
+    private static function owners(GridConfig $config, OSPDO $pdo): array
+    {
+        $rows = array_map(
+            static fn(mixed $id): array => ['owner_uuid' => strtolower((string) $id)],
+            $pdo->get_results('SELECT DISTINCT owner_uuid FROM regions r WHERE (r.flags & ' . self::HYPERLINK . ') = 0 AND owner_uuid IS NOT NULL AND owner_uuid NOT IN (\'\', :zero)', ['zero' => Uuid::NULL_KEYS[0]], \PDO::FETCH_COLUMN),
+        );
+        $owners = array_map(static fn(array $row): array => ['value' => $row['owner_uuid'], 'label' => $row['ownerName'] ?? $row['owner_uuid']], self::withOwnerNames($config, $rows));
+        usort($owners, static fn(array $a, array $b): int => strnatcasecmp($a['label'], $b['label']));
+
+        return array_values(array_unique($owners, SORT_REGULAR));
     }
 
     /** @return array{online:string,offline:string} the condition of each status: the flag RegionOnline */
@@ -1341,10 +1439,14 @@ final class Region extends Model
                 // w4os-wp in it); the location after the size, the flags before the status
                 // Its address (host:port/name) under its name, linked to the teleport there
                 Listing::column('name', 'column_region_name', sort: 'name', more: ['picture' => 'mapImage', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
-                Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile', 'mirrors' => 'owner']),
-                Listing::column('serverName', 'filter_simulator', more: ['mirrors' => 'simulator']),
-                // What it holds: the avatars in it, its prims and its scripts
-                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number', ['count' => 'count_avatars_short']], ['prims', 'column_prims', 'number', ['count' => 'count_prims']], ['scripts', 'column_scripts', 'number', ['count' => 'count_scripts']]]),
+                Listing::column('ownerName', 'column_owner', 'link', 'owner', ['link' => 'ownerProfile', 'mirrors' => 'owner']),
+                // Its type, as its file says it (RegionType)
+                Listing::column('type', 'column_type', sort: 'type', more: ['mirrors' => 'type']),
+                Listing::column('serverName', 'filter_simulator', sort: 'simulator', more: ['mirrors' => 'simulator']),
+                // What it holds, each sorted on: the avatars in it, its prims and its scripts; folded, 0 av., 3 prims
+                Listing::column('avatars', 'column_presence_short', 'number', 'avatars', ['count' => 'count_avatars_short']),
+                Listing::column('prims', 'column_prims_short', 'number', 'prims', ['count' => 'count_prims']),
+                Listing::column('scripts', 'column_scripts_short', 'number', 'scripts', ['count' => 'count_scripts']),
                 // Where it is on the map and how large
                 Listing::group('place', 'profile_location', [['location', 'profile_location', 'text', ['bare' => true]], ['size', 'column_size', 'dimensions']], 'location'),
                 Listing::column('lastSeen', 'last_activity', 'datetime', 'lastSeen'),
@@ -1364,7 +1466,10 @@ final class Region extends Model
                     self::shownFlagKeys(),
                     more: ['multiple' => true, 'dynamic' => true],
                 ),
-                Listing::filter('owner', 'column_owner', [], 'uuid'),
+                // The owners of its regions: meta.available.owner, by their name
+                Listing::filter('owner', 'column_owner', [], 'uuid', ['dynamic' => true]),
+                // The types the files of its regions say: meta.available.type
+                Listing::filter('type', 'column_type', [], 'string', ['dynamic' => true]),
                 Listing::filter('simulator', 'filter_simulator', [], 'simulator', ['multiple' => true, 'dynamic' => true]),
                 // Its size, width x height in meters (256x256): the sizes of the regions of the grid are the values that give something
                 Listing::filter('size', 'column_size', [], 'size', ['dynamic' => true]),
@@ -1379,7 +1484,8 @@ final class Region extends Model
             // The views: the status, then the size (the ones the grid has, meta.available.size)
             views: ['status', 'size'],
             texts: ['title' => 'regions_title', 'menu' => 'regions_menu', 'placeholder' => 'regions_search', 'empty' => 'list_empty', 'count' => 'regions_count'],
-            priorities: ['ownerName' => 2, 'usage' => 2, 'serverName' => 3, 'place' => 3, 'lastSeen' => 3, 'flagNames' => 4],
+            // The presence, the prims and the scripts on the widest screens only, the type in place of them on the others
+            priorities: ['ownerName' => 2, 'type' => 2, 'serverName' => 3, 'avatars' => 4, 'prims' => 4, 'scripts' => 4, 'place' => 3, 'lastSeen' => 3, 'flagNames' => 4],
         );
     }
 

@@ -1648,13 +1648,21 @@ msgctxt "column_prims"
 msgid "Prims"
 msgstr "Prim"
 
-msgctxt "column_usage"
-msgid "Usage"
-msgstr "Utilizzo"
-
 msgctxt "column_scripts"
 msgid "Scripts"
 msgstr "Script"
+
+msgctxt "column_presence_short"
+msgid "av."
+msgstr "av."
+
+msgctxt "column_prims_short"
+msgid "pr."
+msgstr "pr."
+
+msgctxt "column_scripts_short"
+msgid "scr."
+msgstr "scr."
 
 #, php-format
 msgctxt "count_avatars_short"
@@ -3784,6 +3792,10 @@ msgstr ""
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Il database non è raggiungibile."
+
+#~ msgctxt "column_usage"
+#~ msgid "Usage"
+#~ msgstr "Utilizzo"
 
 #~ msgctxt "guide_help_places"
 #~ msgid ""

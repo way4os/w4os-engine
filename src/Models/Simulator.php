@@ -436,6 +436,7 @@ final class Simulator extends InstalledModel
                 'regions' => static fn(self $simulator): int => $simulator->regionsAndArea()[0],
                 'area' => static fn(self $simulator): int => $simulator->regionsAndArea()[1],
                 'avatars' => static fn(self $simulator): int => array_sum($simulator->present() ?? []),
+                'prims' => static fn(self $simulator): int => (int) $simulator->prims(),
                 'cpu' => static fn(self $simulator): float => (float) $simulator->process()?->cpu,
                 'memory' => static fn(self $simulator): float => (float) $simulator->process()?->memory,
                 'grid' => static fn(self $simulator): string => (string) $simulator->grid()?->nick(),
@@ -504,8 +505,9 @@ final class Simulator extends InstalledModel
                 Listing::column('server', 'column_server', sort: 'server'),
                 Listing::column('regions', 'column_regions', 'number', 'regions'),
                 Listing::column('area', 'column_area', 'area', 'area'),
-                // What it holds: the avatars in its regions, their prims
-                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number', ['count' => 'count_avatars_short']], ['prims', 'column_prims', 'number', ['count' => 'count_prims']]], 'avatars'),
+                // What it holds, each sorted on: the avatars in its regions, their prims; folded, 0 av., 3 prims
+                Listing::column('avatars', 'column_presence_short', 'number', 'avatars', ['count' => 'count_avatars_short']),
+                Listing::column('prims', 'column_prims_short', 'number', 'prims', ['count' => 'count_prims']),
                 // What its process takes, in percents of the machine, while it runs
                 Listing::column('cpu', 'column_cpu', 'usage', 'cpu', more: ['usage' => Listing::USAGE]),
                 Listing::column('memory', 'column_memory', 'usage', 'memory', more: ['usage' => Listing::USAGE + ['used' => 'memoryUsed', 'total' => 'memoryTotal', 'unit' => 'unit_mb']]),
@@ -549,7 +551,7 @@ final class Simulator extends InstalledModel
             ],
             // The port, on the page of a simulator, still sorts the list
             moreSorts: ['port'],
-            priorities: ['usage' => 2, 'regions' => 2, 'cpu' => 2, 'memory' => 2, 'grid' => 3, 'server' => 3, 'area' => 3],
+            priorities: ['avatars' => 3, 'prims' => 3, 'regions' => 2, 'cpu' => 2, 'memory' => 2, 'grid' => 3, 'server' => 3, 'area' => 3],
         );
     }
 

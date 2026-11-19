@@ -21,9 +21,9 @@ describe('The columns of the regions', function () {
         $byName = array_column($columns, null, 'name');
 
         expect(array_column($columns, 'name'))
-            ->toBe(['name', 'ownerName', 'serverName', 'usage', 'place', 'lastSeen', 'flagNames', 'status'])
+            ->toBe(['name', 'ownerName', 'type', 'serverName', 'avatars', 'prims', 'scripts', 'place', 'lastSeen', 'flagNames', 'status'])
             ->and(array_map(static fn(array $column): string => Catalog::MESSAGES[$column['label']], $columns))
-            ->toBe(['Region Name', 'Owner', 'Simulator', 'Usage', 'Location', 'Last Activity', 'Flags', 'Status'])
+            ->toBe(['Region Name', 'Owner', 'Type', 'Simulator', 'av.', 'pr.', 'scr.', 'Location', 'Last Activity', 'Flags', 'Status'])
             ->and(array_map(static fn(array $column): string => Catalog::messages('fr_FR')[$column['label']], [$byName['name'], $byName['place'], $byName['lastSeen']]))
             ->toBe(['Nom de la région', 'Lieu', 'Dernière activité'])
             ->and(array_intersect_key($byName['name'], ['subtitle' => 1, 'subtitleLink' => 1]))
@@ -41,7 +41,7 @@ describe('A column that repeats a filter', function () {
         expect($mirrors(Parcel::listing()->document()['columns']))
             ->toBe(['regionName' => 'region', 'ownerName' => 'owner'])
             ->and($mirrors(Region::listing()->document()['columns']))
-            ->toBe(['ownerName' => 'owner', 'serverName' => 'simulator'])
+            ->toBe(['ownerName' => 'owner', 'type' => 'type', 'serverName' => 'simulator'])
             ->and($mirrors(Avatar::listing()->document()['columns']))
             ->toBe([])
             // Each names a filter of its list

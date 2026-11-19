@@ -47,7 +47,7 @@ describe('What the regions hold', function () {
         $plaza = Region::all(parcel_config())->array()[0] ?? [];
         $columns = array_column(Region::listing()->columns, null, 'name');
 
-        $usage = array_column($columns['usage']['parts'], 'type', 'name');
+        $usage = array_column(array_intersect_key($columns, ['prims' => 1, 'scripts' => 1]), 'type', 'name');
 
         expect([$plaza['prims'] ?? null, $plaza['scripts'] ?? null])->toBe([3, 2])
             // Its location with a space after the comma, where a narrow column breaks the line
@@ -76,34 +76,32 @@ describe('The columns of a list that hold several values', function () {
         $csv = array_column(Region::columns(), 'name');
         $page = array_column(Region::itemForm()->document()['fields'] ?? [], null, 'name');
 
-        expect($columns['usage'])->toMatchArray(['type' => 'group', 'label' => 'column_usage', 'priority' => 2])
-            ->and(array_column($columns['usage']['parts'], 'name'))->toBe(['avatars', 'prims', 'scripts'])
-            ->and(array_column($columns['usage']['parts'], 'label'))->toBe(['column_presence', 'column_prims', 'column_scripts'])
-            ->and($columns['place'])->toMatchArray(['type' => 'group', 'label' => 'profile_location', 'sort' => 'location', 'priority' => 3])
+        expect($columns['place'])->toMatchArray(['type' => 'group', 'label' => 'profile_location', 'sort' => 'location', 'priority' => 3])
             ->and(array_column($columns['place']['parts'], 'type', 'name'))->toBe(['location' => 'text', 'size' => 'dimensions'])
-            ->and(array_keys($columns))->not->toContain('internalPort')->not->toContain('avatars')->not->toContain('size')
-            ->and(array_keys($simulators))->not->toContain('httpPort')
-            ->and(array_column($simulators['usage']['parts'], 'name'))->toBe(['avatars', 'prims'])
-            ->and($simulators['usage']['sort'] ?? null)->toBe('avatars')
+            ->and(array_keys($columns))->not->toContain('internalPort')->not->toContain('usage')->not->toContain('size')
+            // The simulators: the presence and the prims each in its own column, sorted on
+            ->and(array_keys($simulators))->not->toContain('httpPort')->not->toContain('usage')
+            ->and([$simulators['avatars']['sort'] ?? null, $simulators['prims']['sort'] ?? null, $simulators['prims']['priority']])->toBe(['avatars', 'prims', 3])
             // A list exported in CSV has each value in its own column
-            ->and($csv)->toContain('avatars')->toContain('prims')->toContain('location')->toContain('size')->not->toContain('usage')
+            ->and($csv)->toContain('avatars')->toContain('prims')->toContain('location')->toContain('size')
             // On the page, its name and why: a port that needs only to be unique on its machine, not a public one
             ->and($page['internalPort'] ?? [])->toMatchArray(['label' => 'column_internal_port', 'description' => 'internal_port_help'])
             ->and(OpenSim\I18n\Catalog::MESSAGES['column_internal_port'])->toBe('Internal Port')
             ->and(OpenSim\I18n\Catalog::messages('fr_FR', false)['internal_port_help'] ?? '')->not->toBe('');
     });
 
-    test('read without their labels: the location and the size as they are, the usage as counted texts, 0 av., 3 prims', function () {
+    test('read without their labels: the location and the size as they are, the usage folded as counted texts, 0 av., 3 prims', function () {
         $columns = array_column(Region::listing()->document()['columns'], null, 'name');
         $simulators = array_column(OpenSim\Models\Simulator::listing()->document()['columns'], null, 'name');
         $count = static fn(string $key, int $n, string $locale = 'en'): string => sprintf(OpenSim\I18n\Catalog::plural($locale, $key, $n), $n);
+        $usage = array_intersect_key($columns, ['avatars' => 1, 'prims' => 1, 'scripts' => 1]);
 
         expect(array_column($columns['place']['parts'], 'bare', 'name'))->toBe(['location' => true, 'size' => true])
-            ->and(array_column($columns['usage']['parts'], 'bare', 'name'))->toBe(['avatars' => true, 'prims' => true, 'scripts' => true])
-            ->and(array_column($columns['usage']['parts'], 'count', 'name'))->toBe(['avatars' => 'count_avatars_short', 'prims' => 'count_prims', 'scripts' => 'count_scripts'])
-            ->and(array_column($simulators['usage']['parts'], 'count', 'name'))->toBe(['avatars' => 'count_avatars_short', 'prims' => 'count_prims'])
+            ->and(array_column($usage, 'bare', 'name'))->toBe(['avatars' => true, 'prims' => true, 'scripts' => true])
+            ->and(array_column($usage, 'count', 'name'))->toBe(['avatars' => 'count_avatars_short', 'prims' => 'count_prims', 'scripts' => 'count_scripts'])
+            ->and([$simulators['avatars']['count'], $simulators['prims']['count']])->toBe(['count_avatars_short', 'count_prims'])
             // A column whose parts all read alone reads alone
-            ->and([$columns['usage']['bare'], $columns['place']['bare'], $columns['flagNames']['bare']])->toBe([true, true, true])
+            ->and([$columns['place']['bare'], $columns['flagNames']['bare']])->toBe([true, true])
             ->and([$count('count_avatars_short', 0), $count('count_prims', 1), $count('count_prims', 3), $count('count_scripts', 2)])->toBe(['0 av.', '1 prim', '3 prims', '2 scripts'])
             ->and([$count('count_avatars_short', 2, 'fr_FR'), $count('count_scripts', 2, 'de_DE')])->toBe(['2 av.', '2 Skripte'])
             // An area reads alone too: 12 km²

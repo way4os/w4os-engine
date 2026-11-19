@@ -1442,12 +1442,20 @@ msgctxt "column_prims"
 msgid "Prims"
 msgstr ""
 
-msgctxt "column_usage"
-msgid "Usage"
-msgstr ""
-
 msgctxt "column_scripts"
 msgid "Scripts"
+msgstr ""
+
+msgctxt "column_presence_short"
+msgid "av."
+msgstr ""
+
+msgctxt "column_prims_short"
+msgid "pr."
+msgstr ""
+
+msgctxt "column_scripts_short"
+msgid "scr."
 msgstr ""
 
 #, php-format

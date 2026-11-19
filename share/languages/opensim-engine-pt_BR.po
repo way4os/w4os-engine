@@ -1638,13 +1638,21 @@ msgctxt "column_prims"
 msgid "Prims"
 msgstr "Prims"
 
-msgctxt "column_usage"
-msgid "Usage"
-msgstr "Uso"
-
 msgctxt "column_scripts"
 msgid "Scripts"
 msgstr "Scripts"
+
+msgctxt "column_presence_short"
+msgid "av."
+msgstr "av."
+
+msgctxt "column_prims_short"
+msgid "pr."
+msgstr "pr."
+
+msgctxt "column_scripts_short"
+msgid "scr."
+msgstr "scr."
 
 #, php-format
 msgctxt "count_avatars_short"
@@ -3761,6 +3769,10 @@ msgstr "A configuração do grid não diz onde está este banco de dados."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "O banco de dados não pode ser acessado."
+
+#~ msgctxt "column_usage"
+#~ msgid "Usage"
+#~ msgstr "Uso"
 
 #~ msgctxt "guide_help_places"
 #~ msgid ""

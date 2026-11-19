@@ -411,7 +411,7 @@ final class Listing
     private function shown(array $column, int $position): array
     {
         return $column + [
-            'bare' => self::bare($column),
+            'bare' => self::bare($column) || isset($column['count']),
             'priority' => $position === 0 || $column['type'] === 'indicators' ? 1 : ($this->priorities[$column['name']] ?? 2),
         ];
     }
@@ -426,7 +426,7 @@ final class Listing
         $keys = [...array_column($this->columns, 'label'), ...array_column($this->columns, 'tagLabel')];
         foreach ($this->columns as $column) {
             $values = $column['values'] ?? [];
-            array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'), ...array_column($column['parts'] ?? [], 'label'), ...array_column($column['parts'] ?? [], 'count'));
+            array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'), ...array_column($column['parts'] ?? [], 'label'), ...array_column($column['parts'] ?? [], 'count'), ...(isset($column['count']) ? [$column['count']] : []));
             foreach ($column['indicators'] ?? [] as $indicator) {
                 array_push($keys, $indicator['label'], ...array_column($indicator['states'], 'label'));
             }

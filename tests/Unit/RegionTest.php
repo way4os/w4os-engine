@@ -318,20 +318,24 @@ describe('Regions', function () {
             ->toBe([
                 'name' => 'text',
                 'ownerName' => 'link',
+                'type' => 'text',
                 'serverName' => 'text',
-                'usage' => 'group',
+                'avatars' => 'number',
+                'prims' => 'number',
+                'scripts' => 'number',
                 'place' => 'group',
                 'lastSeen' => 'datetime',
                 'flagNames' => 'list',
                 'status' => 'indicators',
             ])
             ->and($listing->sorts())
-            ->toBe(['name', 'location', 'lastSeen', 'flags', 'size'])
+            ->toBe(['name', 'owner', 'type', 'simulator', 'avatars', 'prims', 'scripts', 'location', 'lastSeen', 'flags', 'size'])
             ->and($listing->filterValues())
             ->toBe([
                 'status' => ['online', 'offline'],
                 'flags' => array_values(array_diff(Region::NAMES, ['RegionOnline'])),
                 'owner' => [],
+                'type' => [],
                 'simulator' => [],
                 'size' => [],
             ])
@@ -355,28 +359,28 @@ describe('Regions', function () {
             ->and(array_intersect_key($listing->filters[1], ['multiple' => 1, 'dynamic' => 1]))
             ->toBe(['multiple' => true, 'dynamic' => true])
             // The column of the flags has every flag but the status, with the texts of the filter
-            ->and($listing->columns[6]['values'])
+            ->and($listing->columns[9]['values'])
             ->toBe($listing->filters[1]['values'])
-            ->and(array_column($listing->columns[6]['values'], 'value'))
+            ->and(array_column($listing->columns[9]['values'], 'value'))
             ->toBe(array_values(array_diff(Region::NAMES, ['RegionOnline'])))
             // The map tile of the region beside its name, as the picture of an avatar
             ->and(array_intersect_key($listing->columns[0], ['picture' => 1, 'default' => 1]))
             ->toBe(['picture' => 'mapImage', 'default' => 'place'])
             ->and($listing->filters[2])
-            ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid'])
+            ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid', 'dynamic' => true])
             ->and(array_column($listing->actions, 'body', 'name'))
             ->toBe(['enable' => ['enabled' => true], 'disable' => ['enabled' => false]])
             // Enabled, the button that changes it where its file is, then online, in one column
             ->and(array_map(
                 static fn(array $indicator): array => [$indicator['name'], $indicator['icon'], array_column($indicator['states'], 'tone', 'label'), $indicator['actions'] ?? []],
-                $listing->columns[7]['indicators'],
+                $listing->columns[10]['indicators'],
             ))
             ->toBe([
                 ['enabled', 'power', ['state_enabled' => 'ok', 'state_disabled' => 'off'], ['enable', 'disable']],
                 ['online', 'online', ['online' => 'ok', 'offline' => 'off'], []],
             ])
             // In the world or not: a globe, a crossed one, never the color alone
-            ->and(array_column($listing->columns[7]['indicators'][1]['states'], 'icon', 'label'))
+            ->and(array_column($listing->columns[10]['indicators'][1]['states'], 'icon', 'label'))
             ->toBe(['online' => 'online', 'offline' => 'offline'])
             ->and(array_column($listing->columns, 'name'))
             ->not->toContain('online')
