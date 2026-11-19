@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (texts): the texts of the dashboard of a site (simulators_running, recent_users, see_all)
 - feature (economy): the database of the economy, by module: the [MySql] of the money server, the connection of Gloebit; "use default" for Gloebit and the search
 - fix (settings): Provide off shows the whole address of the service alone, its other settings hidden
 - fix (economy): an unset economymodule reads as the free economy (BetaGridLikeMoneyModule), the default of OpenSimulator

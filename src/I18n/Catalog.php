@@ -293,6 +293,10 @@ final class Catalog
         'search_simulators' => 'Simulator name',
         'simulators_count' => '%d simulators',
         'no_simulators' => 'No simulator',
+        'simulators_running' => '%1$s running of %2$s',
+        // The dashboard of a site: its cards, the link to a whole list
+        'recent_users' => 'Recent users',
+        'see_all' => 'See all',
         // Its status, each state saying it all on its own: enabled, running, and the ways the engine reaches it, named as they are
         // (a file, a program: the same in every language) while they are there, with what is wrong when they are not
         // The toolbar of a list: its filters, how many are on (filters_active changes with the number), a label before its value

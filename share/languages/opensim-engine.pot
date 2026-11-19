@@ -855,6 +855,19 @@ msgctxt "no_simulators"
 msgid "No simulator"
 msgstr ""
 
+#, php-format
+msgctxt "simulators_running"
+msgid "%1$s running of %2$s"
+msgstr ""
+
+msgctxt "recent_users"
+msgid "Recent users"
+msgstr ""
+
+msgctxt "see_all"
+msgid "See all"
+msgstr ""
+
 msgctxt "filters"
 msgid "Filters"
 msgstr ""

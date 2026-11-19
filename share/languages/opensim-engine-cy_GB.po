@@ -1045,6 +1045,19 @@ msgctxt "no_simulators"
 msgid "No simulator"
 msgstr "Dim efelychydd"
 
+#, php-format
+msgctxt "simulators_running"
+msgid "%1$s running of %2$s"
+msgstr "%1$s yn rhedeg o %2$s"
+
+msgctxt "recent_users"
+msgid "Recent users"
+msgstr "Defnyddwyr diweddar"
+
+msgctxt "see_all"
+msgid "See all"
+msgstr "Gweld y cyfan"
+
 msgctxt "filters"
 msgid "Filters"
 msgstr "Hidlyddion"
