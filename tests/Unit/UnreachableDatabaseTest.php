@@ -84,7 +84,9 @@ describe('A database that does not answer', function () {
     test('is a 503 through the API, not a 404', function () {
         $machine = new OpenSim\Testing\Machine();
         Connections::using(static fn() => null);
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        // A grid that sets its database
+        $config = avatar_grid();
+        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment, config: static fn(): GridConfig => $config));
 
         expect([
             $router->get('/grids/demo/avatars/' . ADA)->status,
@@ -95,11 +97,14 @@ describe('A database that does not answer', function () {
 });
 
 describe('A database the grid does not set', function () {
-    test('leaves the assets to the asset service: none found here', function () {
+    test('has none of its items here, as before: an asset is then for the asset service', function () {
         $dir = test_tmp() . '/nodb-' . bin2hex(random_bytes(4));
         mkdir($dir, 0o755, true);
         file_put_contents("$dir/Robust.HG.ini", "[Const]\n BaseURL = \"http://play.example.org\"\n");
 
-        expect(Asset::find(GridConfig::fromFolder($dir), ADA))->toBeNull();
+        $config = GridConfig::fromFolder($dir);
+
+        expect([Asset::find($config, ADA), Avatar::find($config, ADA), Region::find($config, 'Welcome'), AvatarModel::find($config, 'Default Ruth')])
+            ->toBe([null, null, null, null]);
     });
 });
