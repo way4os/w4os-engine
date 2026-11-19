@@ -189,3 +189,21 @@ describe('a gettext file', function () {
         }
     })->skip(fn() => trim((string) shell_exec('command -v msgfmt')) === '', 'msgfmt is not installed (gettext)');
 });
+
+describe('The translations of the catalog', function () {
+    test('are in their language: no line in another script, none left in English where the English is a sentence', function () {
+        $foreign = '/[\x{0400}-\x{04FF}\x{0590}-\x{06FF}\x{3040}-\x{30FF}\x{3400}-\x{9FFF}\x{AC00}-\x{D7AF}]/u';
+        $wrong = [];
+        foreach (OpenSim\I18n\Catalog::LOCALES as $locale) {
+            foreach (OpenSim\I18n\Catalog::messages($locale) as $key => $text) {
+                $english = OpenSim\I18n\Catalog::MESSAGES[$key] ?? '';
+                preg_match($foreign, $text) === 1 && ($wrong[] = "$locale $key: another script");
+                str_contains($text, "\n") && !str_contains($english, "\n") && ($wrong[] = "$locale $key: a line more");
+                $text === $english && str_word_count($english) > 6 && !preg_match('/OpenSim|Gloebit|Podex|DTL|github|\.com/', $english)
+                    && ($wrong[] = "$locale $key: in English");
+            }
+        }
+
+        expect($wrong)->toBe([]);
+    });
+});
