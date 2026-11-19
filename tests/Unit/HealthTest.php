@@ -1084,6 +1084,29 @@ describe('The words of the health', function () {
 });
 
 describe('A page of the site that shows a block of the helpers', function () {
+    test('asks the helpers the grid declares, where they are, never a base it guesses', function () {
+        $elsewhere = Health::pages([
+            ['page' => 'helpers', 'url' => 'https://tools.example.net/os', 'source' => 'economy', 'servedBy' => 'helpers'],
+            ['page' => 'guide', 'url' => 'https://grid.example.org/guide', 'source' => 'config', 'servedBy' => 'site'],
+        ]);
+        $guessed = Health::pages([
+            ['page' => 'helpers', 'url' => 'https://grid.example.org/helpers', 'source' => 'default', 'servedBy' => 'helpers'],
+            ['page' => 'guide', 'url' => 'https://grid.example.org/guide', 'source' => 'config', 'servedBy' => 'site'],
+        ]);
+        $by = static fn(array $rows): array => array_column($rows, null, 'label');
+
+        expect(array_column($by($elsewhere)['guide']['needs'], 'url'))
+            ->toBe(['https://tools.example.net/os/blocks/destination_guide', 'https://tools.example.net/os/pictures/' . OpenSim\Assets\WebAssets::PERSON . '.png'])
+            ->and($by($elsewhere)['helpers']['url'])
+            ->toBe('https://tools.example.net/os')
+            // The grid says nothing of its helpers: nothing of them asked, nothing guessed
+            ->and($by($guessed)['helpers'])
+            ->toMatchArray(['level' => 'unset', 'reason' => 'health_unset'])
+            ->and($by($guessed)['guide'])
+            ->not->toHaveKey('needs');
+    });
+
+
     test('is an error when the helpers answer nothing at all, as the helpers themselves are', function () {
         [$process, $port] = code_server();
         $rows = Health::answers([['file' => 'pages', 'title' => '', 'rows' => Health::pages([

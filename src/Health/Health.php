@@ -822,9 +822,10 @@ class Health
     }
 
     /**
-     * The pages of a grid for people, as SitePages::rows() gives them: the base of the helpers, and each page the grid declares (its
-     * config, or the grid itself), asked at the address it declares; one it does not declare (the default of the helpers) is not
-     * asked. The profile without a name is not a page: the helpers answer it as a teapot (or a 404), a site sends whoever is signed
+     * The pages of a grid for people, as SitePages::rows() gives them: the base of the helpers and each page the grid declares (its
+     * config, or the grid itself), asked at the address it declares; one it does not declare (the default of the helpers, a base
+     * of the helpers guessed from its web site) is not asked. A page of the site that shows a block of the helpers needs the
+     * helpers the grid declares. The profile without a name is not a page: the helpers answer it as a teapot (or a 404), a site sends whoever is signed
      * out, as the check is, to its registration (`register`).
      *
      * @param  list<array{page:string,url:?string,source?:?string,servedBy:?string,helpersDefault?:?string}> $pages
@@ -835,12 +836,13 @@ class Health
     {
         $rows = [];
         $helpers = '';
+        // The helpers the grid declares (HelpersURL, its economy), never the base guessed from its web site
         foreach ($pages as $page) {
-            $page['page'] === 'helpers' && ($helpers = rtrim((string) ($page['url'] ?? ''), '/'));
+            $page['page'] === 'helpers' && ($page['source'] ?? '') !== 'default' && ($helpers = rtrim((string) ($page['url'] ?? ''), '/'));
         }
         foreach ($pages as $page) {
             $url = (string) ($page['url'] ?? '');
-            if ($url === '' || (($page['source'] ?? '') === 'default' && $page['page'] !== 'helpers')) {
+            if ($url === '' || ($page['source'] ?? '') === 'default') {
                 $rows[] = self::emptyRow($page['page']);
                 continue;
             }
