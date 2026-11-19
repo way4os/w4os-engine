@@ -56,6 +56,9 @@ final class Catalog
         'posts_count' => '%d post',
         'simulators_count' => '%d simulator',
         'filters_active' => '%d active filter',
+        'count_avatars_short' => '%d av.',
+        'count_prims' => '%d prim',
+        'count_scripts' => '%d script',
     ];
 
     /** The texts, by key, in English. Placeholders are the ones of printf (%s, %1$s, %d). */
@@ -455,6 +458,10 @@ final class Catalog
         'column_prims' => 'Prims',
         'column_usage' => 'Usage',
         'column_scripts' => 'Scripts',
+        // A number of avatars in a narrow column: av. for avatars
+        'count_avatars_short' => '%d av.',
+        'count_prims' => '%d prims',
+        'count_scripts' => '%d scripts',
         'column_internal_port' => 'Internal Port',
         'internal_port_help' => 'Not a public port: it only needs to be unique on the machine of its simulator.',
         'last_activity' => 'Last Activity',

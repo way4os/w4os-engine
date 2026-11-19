@@ -1450,6 +1450,27 @@ msgctxt "column_scripts"
 msgid "Scripts"
 msgstr ""
 
+#, php-format
+msgctxt "count_avatars_short"
+msgid "%d av."
+msgid_plural "%d av."
+msgstr[0] ""
+msgstr[1] ""
+
+#, php-format
+msgctxt "count_prims"
+msgid "%d prim"
+msgid_plural "%d prims"
+msgstr[0] ""
+msgstr[1] ""
+
+#, php-format
+msgctxt "count_scripts"
+msgid "%d script"
+msgid_plural "%d scripts"
+msgstr[0] ""
+msgstr[1] ""
+
 msgctxt "column_internal_port"
 msgid "Internal Port"
 msgstr ""

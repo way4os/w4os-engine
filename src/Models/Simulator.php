@@ -505,7 +505,7 @@ final class Simulator extends InstalledModel
                 Listing::column('regions', 'column_regions', 'number', 'regions'),
                 Listing::column('area', 'column_area', 'area', 'area'),
                 // What it holds: the avatars in its regions, their prims
-                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number'], ['prims', 'column_prims', 'number']], 'avatars'),
+                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number', ['count' => 'count_avatars_short']], ['prims', 'column_prims', 'number', ['count' => 'count_prims']]], 'avatars'),
                 // What its process takes, in percents of the machine, while it runs
                 Listing::column('cpu', 'column_cpu', 'usage', 'cpu', more: ['usage' => Listing::USAGE]),
                 Listing::column('memory', 'column_memory', 'usage', 'memory', more: ['usage' => Listing::USAGE + ['used' => 'memoryUsed', 'total' => 'memoryTotal', 'unit' => 'unit_mb']]),

@@ -1344,12 +1344,12 @@ final class Region extends Model
                 Listing::column('ownerName', 'column_owner', 'link', more: ['link' => 'ownerProfile', 'mirrors' => 'owner']),
                 Listing::column('serverName', 'filter_simulator', more: ['mirrors' => 'simulator']),
                 // What it holds: the avatars in it, its prims and its scripts
-                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number'], ['prims', 'column_prims', 'number'], ['scripts', 'column_scripts', 'number']]),
+                Listing::group('usage', 'column_usage', [['avatars', 'column_presence', 'number', ['count' => 'count_avatars_short']], ['prims', 'column_prims', 'number', ['count' => 'count_prims']], ['scripts', 'column_scripts', 'number', ['count' => 'count_scripts']]]),
                 // Where it is on the map and how large
-                Listing::group('place', 'profile_location', [['location', 'profile_location'], ['size', 'column_size', 'dimensions']], 'location'),
+                Listing::group('place', 'profile_location', [['location', 'profile_location', 'text', ['bare' => true]], ['size', 'column_size', 'dimensions']], 'location'),
                 Listing::column('lastSeen', 'last_activity', 'datetime', 'lastSeen'),
                 // Every flag but RegionOnline, which the column of the status shows
-                Listing::column('flagNames', 'column_flags', 'list', 'flags', ['values' => Listing::values(self::shownFlagKeys())]),
+                Listing::column('flagNames', 'column_flags', 'list', 'flags', ['values' => Listing::values(self::shownFlagKeys()), 'bare' => true]),
                 // Enabled, the button that changes it where its file is (the control of w4os-wp), then online
                 Listing::column('status', 'column_status', 'indicators', more: ['indicators' => [
                     Listing::indicator('enabled', 'power', 'column_enabled', [[true, 'state_enabled', 'ok'], [false, 'state_disabled', 'off']], ['enable', 'disable']),

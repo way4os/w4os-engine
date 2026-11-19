@@ -1646,6 +1646,27 @@ msgctxt "column_scripts"
 msgid "Scripts"
 msgstr "Scripts"
 
+#, php-format
+msgctxt "count_avatars_short"
+msgid "%d av."
+msgid_plural "%d av."
+msgstr[0] "%d av."
+msgstr[1] "%d av."
+
+#, php-format
+msgctxt "count_prims"
+msgid "%d prim"
+msgid_plural "%d prims"
+msgstr[0] "%d prim"
+msgstr[1] "%d prims"
+
+#, php-format
+msgctxt "count_scripts"
+msgid "%d script"
+msgid_plural "%d scripts"
+msgstr[0] "%d script"
+msgstr[1] "%d scripts"
+
 msgctxt "column_internal_port"
 msgid "Internal Port"
 msgstr "Porta Interna"
@@ -1654,7 +1675,9 @@ msgctxt "internal_port_help"
 msgid ""
 "Not a public port: it only needs to be unique on the machine of its "
 "simulator."
-msgstr "Não é uma porta pública: ela só precisa ser única na máquina do seu simulador."
+msgstr ""
+"Não é uma porta pública: ela só precisa ser única na máquina do seu "
+"simulador."
 
 msgctxt "last_activity"
 msgid "Last Activity"

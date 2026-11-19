@@ -92,4 +92,21 @@ describe('The columns of a list that hold several values', function () {
             ->and(OpenSim\I18n\Catalog::MESSAGES['column_internal_port'])->toBe('Internal Port')
             ->and(OpenSim\I18n\Catalog::messages('fr_FR', false)['internal_port_help'] ?? '')->not->toBe('');
     });
+
+    test('read without their labels: the location and the size as they are, the usage as counted texts, 0 av., 3 prims', function () {
+        $columns = array_column(Region::listing()->document()['columns'], null, 'name');
+        $simulators = array_column(OpenSim\Models\Simulator::listing()->document()['columns'], null, 'name');
+        $count = static fn(string $key, int $n, string $locale = 'en'): string => sprintf(OpenSim\I18n\Catalog::plural($locale, $key, $n), $n);
+
+        expect(array_column($columns['place']['parts'], 'bare', 'name'))->toBe(['location' => true, 'size' => true])
+            ->and(array_column($columns['usage']['parts'], 'bare', 'name'))->toBe(['avatars' => true, 'prims' => true, 'scripts' => true])
+            ->and(array_column($columns['usage']['parts'], 'count', 'name'))->toBe(['avatars' => 'count_avatars_short', 'prims' => 'count_prims', 'scripts' => 'count_scripts'])
+            ->and(array_column($simulators['usage']['parts'], 'count', 'name'))->toBe(['avatars' => 'count_avatars_short', 'prims' => 'count_prims'])
+            // A column whose parts all read alone reads alone
+            ->and([$columns['usage']['bare'], $columns['place']['bare'], $columns['flagNames']['bare']])->toBe([true, true, true])
+            ->and([$count('count_avatars_short', 0), $count('count_prims', 1), $count('count_prims', 3), $count('count_scripts', 2)])->toBe(['0 av.', '1 prim', '3 prims', '2 scripts'])
+            ->and([$count('count_avatars_short', 2, 'fr_FR'), $count('count_scripts', 2, 'de_DE')])->toBe(['2 av.', '2 Skripte'])
+            // An area reads alone too: 12 km²
+            ->and($simulators['area']['bare'])->toBeTrue();
+    });
 });

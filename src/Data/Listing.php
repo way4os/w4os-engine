@@ -62,17 +62,31 @@ final class Listing
 
     /**
      * A column that holds several values (`group`): its `parts`, each the attribute, the key of its label and its type, shown stacked
-     * or inline by a site, each with its label; its sort, the one of the first.
+     * or inline by a site; `bare` whether it reads without its label, `count` the key of a text that changes with its number and
+     * reads alone (`count_prims`: 3 prims); its sort, the one of the first. The column reads alone when all its parts do.
      *
-     * @param list<array{0:string,1:string,2?:string}> $parts the attribute, the key of its label, its type (text)
+     * @param list<array{0:string,1:string,2?:string,3?:array<string,mixed>}> $parts the attribute, the key of its label, its type
+     *        (text), more (`bare`, `count`)
      * @return array<string,mixed>
      */
     public static function group(string $name, string $label, array $parts, ?string $sort = null, array $more = []): array
     {
-        return self::column($name, $label, 'group', $sort, ['parts' => array_map(
-            static fn(array $part): array => ['name' => $part[0], 'label' => $part[1], 'type' => $part[2] ?? 'text'],
+        $parts = array_map(
+            static function (array $part): array {
+                $shown = ['name' => $part[0], 'label' => $part[1], 'type' => $part[2] ?? 'text'] + ($part[3] ?? []);
+
+                return $shown + ['bare' => isset($shown['count']) || self::bare($shown)];
+            },
             $parts,
-        )] + $more);
+        );
+
+        return self::column($name, $label, 'group', $sort, ['parts' => $parts, 'bare' => !in_array(false, array_column($parts, 'bare'), true)] + $more);
+    }
+
+    /** Whether the value of a column reads without its label, by its type (BARE), or a link to a teleport. */
+    private static function bare(array $column): bool
+    {
+        return in_array($column['type'], self::BARE, true) || ($column['type'] === 'link' && ($column['link'] ?? '') === 'teleport');
     }
 
     /** The thresholds of a usage, in percent: warning from the first, critical from the second. */
@@ -95,10 +109,11 @@ final class Listing
     public const TONES = ['ok', 'off', 'warning', 'failed'];
 
     /**
-     * The types of a column whose value reads without its label (an email, a role, a picture...): the label of the others comes
-     * before their value where a list folds them under the name (label_value). A link to a teleport reads alone too.
+     * The types of a column whose value reads without its label (an email, a role, a picture, 12 km², 256 x 256...): the label of
+     * the others comes before their value where a list folds them under the name (label_value). A link to a teleport reads alone
+     * too, and a column may say its own `bare` (the flags of a region).
      */
-    public const BARE = ['email', 'role', 'status', 'size', 'picture', 'map', 'boolean', 'hop', 'indicators'];
+    public const BARE = ['email', 'role', 'status', 'size', 'picture', 'map', 'boolean', 'hop', 'indicators', 'area', 'dimensions'];
 
     /** The texts of a list, keys of the catalog: its title, its label in a menu, the placeholder of its search, when it is empty, its count. */
     public const TEXTS = ['title', 'menu', 'placeholder', 'empty', 'count'];
@@ -396,7 +411,7 @@ final class Listing
     private function shown(array $column, int $position): array
     {
         return $column + [
-            'bare' => in_array($column['type'], self::BARE, true) || ($column['type'] === 'link' && ($column['link'] ?? '') === 'teleport'),
+            'bare' => self::bare($column),
             'priority' => $position === 0 || $column['type'] === 'indicators' ? 1 : ($this->priorities[$column['name']] ?? 2),
         ];
     }
@@ -411,7 +426,7 @@ final class Listing
         $keys = [...array_column($this->columns, 'label'), ...array_column($this->columns, 'tagLabel')];
         foreach ($this->columns as $column) {
             $values = $column['values'] ?? [];
-            array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'), ...array_column($column['parts'] ?? [], 'label'));
+            array_push($keys, ...array_column($values, 'label'), ...array_column($values, 'description'), ...array_column($column['parts'] ?? [], 'label'), ...array_column($column['parts'] ?? [], 'count'));
             foreach ($column['indicators'] ?? [] as $indicator) {
                 array_push($keys, $indicator['label'], ...array_column($indicator['states'], 'label'));
             }

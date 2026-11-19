@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (lists): no label where the value says it all (`bare` on the parts of a column too): the location, the size, the flags, an area; the usage reads 0 av., 3 prims, 2 scripts (`count`)
 - change (regions): the size reads 256 x 256 (meters always, no unit), the location 8015, 8012, spaces where a narrow column breaks the line; the page says Internal Port, with why
 - change (lists): a column can hold several values (`group`, its `parts`): the usage of the regions and the simulators (presence, prims, scripts), the location and the size of a region; the port on the page of a region only, labelled Port
 - change (lists): the `priority` of a column is a number, 1 at every width then 2, 3, 4... hidden in turn as the width shrinks, by what a manager needs first (was primary or secondary)
