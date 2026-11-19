@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (texts): `recent_avatars` (was `recent_users`), Recent Avatars; the grid status block shows online avatars: the avatars of the grid are never called users
 - feature (avatars): the role column shows a model and the account of the services as roles of their own (`shownRole`); each avatar of a list says how many estates, regions and parcels it owns
 - feature (lists): the prims and the scripts of the regions, the prims of the simulators, from the databases of the simulators; the people of a simulator under Presence, as for the regions
 - change (lists): an area is shown in km², two decimals under 10, none above (no m², no ha)

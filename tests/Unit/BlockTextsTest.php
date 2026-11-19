@@ -27,7 +27,7 @@ describe('What a block or a shortcode shows', function () {
 
         expect($long)->toBe([])
             ->and($untranslated)->toBe([])
-            // The words of w4os-wp where it has them
-            ->and(Catalog::MESSAGES['block_grid_status_help'])->toBe('Online users, regions, etc.');
+            // The words of w4os-wp, avatars where it says users
+            ->and(Catalog::MESSAGES['block_grid_status_help'])->toBe('Online avatars, regions, etc.');
     });
 });

@@ -1076,9 +1076,9 @@ msgctxt "simulators_running"
 msgid "%1$s running of %2$s"
 msgstr "%1$s yn rhedeg o %2$s"
 
-msgctxt "recent_users"
-msgid "Recent users"
-msgstr "Defnyddwyr diweddar"
+msgctxt "recent_avatars"
+msgid "Recent Avatars"
+msgstr "Afatarau diweddar"
 
 msgctxt "see_all"
 msgid "See all"
@@ -1603,8 +1603,8 @@ msgid "General information (grid name and login uri)"
 msgstr "Gwybodaeth gyffredinol (enw grid a uri mewngofnodi)"
 
 msgctxt "block_grid_status_help"
-msgid "Online users, regions, etc."
-msgstr "Defnyddwyr ar-lein, rhanbarthau, ac ati."
+msgid "Online avatars, regions, etc."
+msgstr "Afatarau ar-lein, rhanbarthau, ac ati."
 
 msgctxt "block_popular_places_help"
 msgid "Most visited regions in your grid."
@@ -3564,6 +3564,14 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#~ msgctxt "recent_avatars"
+#~ msgid "Recent users"
+#~ msgstr "Defnyddwyr diweddar"
+
+#~ msgctxt "block_grid_status_help"
+#~ msgid "Online users, regions, etc."
+#~ msgstr "Defnyddwyr ar-lein, rhanbarthau, ac ati."
 
 #, php-format
 #~ msgctxt "unit_m2"

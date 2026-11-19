@@ -886,8 +886,8 @@ msgctxt "simulators_running"
 msgid "%1$s running of %2$s"
 msgstr ""
 
-msgctxt "recent_users"
-msgid "Recent users"
+msgctxt "recent_avatars"
+msgid "Recent Avatars"
 msgstr ""
 
 msgctxt "see_all"
@@ -1403,7 +1403,7 @@ msgid "General information (grid name and login uri)"
 msgstr ""
 
 msgctxt "block_grid_status_help"
-msgid "Online users, regions, etc."
+msgid "Online avatars, regions, etc."
 msgstr ""
 
 msgctxt "block_popular_places_help"

@@ -302,7 +302,7 @@ final class Catalog
         'no_simulators' => 'No simulator',
         'simulators_running' => '%1$s running of %2$s',
         // The dashboard of a site: its cards, the link to a whole list
-        'recent_users' => 'Recent users',
+        'recent_avatars' => 'Recent Avatars',
         'see_all' => 'See all',
         // Its status, each state saying it all on its own: enabled, running, and the ways the engine reaches it, named as they are
         // (a file, a program: the same in every language) while they are there, with what is wrong when they are not
@@ -447,7 +447,7 @@ final class Catalog
         'shortcode_option_include_hypergrid' => 'Include Hypergrid',
         'shortcode_option_include_landsales' => 'Include Land for Sale',
         'block_grid_info_help' => 'General information (grid name and login uri)',
-        'block_grid_status_help' => 'Online users, regions, etc.',
+        'block_grid_status_help' => 'Online avatars, regions, etc.',
         'block_popular_places_help' => 'Most visited regions in your grid.',
         'block_motd_help' => 'The message of the day the viewers show at login.',
         'block_destination_guide_help' => 'Places to visit, the same list the viewers show in their destinations guide.',

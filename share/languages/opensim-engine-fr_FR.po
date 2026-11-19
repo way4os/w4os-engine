@@ -1086,9 +1086,9 @@ msgctxt "simulators_running"
 msgid "%1$s running of %2$s"
 msgstr "%1$s en marche sur %2$s"
 
-msgctxt "recent_users"
-msgid "Recent users"
-msgstr "Utilisateurs récents"
+msgctxt "recent_avatars"
+msgid "Recent Avatars"
+msgstr "Avatars récents"
 
 msgctxt "see_all"
 msgid "See all"
@@ -1610,8 +1610,8 @@ msgid "General information (grid name and login uri)"
 msgstr "Informations générales (nom de la grille et URI de connexion)"
 
 msgctxt "block_grid_status_help"
-msgid "Online users, regions, etc."
-msgstr "Utilisateurs en ligne, régions, etc."
+msgid "Online avatars, regions, etc."
+msgstr "Avatars en ligne, régions, etc."
 
 msgctxt "block_popular_places_help"
 msgid "Most visited regions in your grid."
@@ -3586,6 +3586,14 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#~ msgctxt "recent_avatars"
+#~ msgid "Recent users"
+#~ msgstr "Utilisateurs récents"
+
+#~ msgctxt "block_grid_status_help"
+#~ msgid "Online users, regions, etc."
+#~ msgstr "Utilisateurs en ligne, régions, etc."
 
 #, php-format
 #~ msgctxt "unit_m2"
