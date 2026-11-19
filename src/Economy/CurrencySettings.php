@@ -59,7 +59,9 @@ final class CurrencySettings
             : $default;
 
         return new self(
-            provider: in_array($module, ['gloebit', 'podex'], true) ? $module : '',
+            // Podex: the generic money server, the helpers told it is Podex
+            provider: in_array($module, ['gloebit', 'podex'], true) ? $module
+                : ($module === 'dtlnslmoneymodule' && strtolower(trim((string) $config->find('Helpers', 'CurrencyProvider'))) === 'podex' ? 'podex' : ''),
             useMoneyServer: $module !== '' && $module !== 'betagridlikemoneymodule',
             scriptKey: $key,
             helperUrl: $helperUrl,

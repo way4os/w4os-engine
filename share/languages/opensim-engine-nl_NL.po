@@ -1940,8 +1940,12 @@ msgid "Gloebit"
 msgstr "Gloebit"
 
 msgctxt "economy_module_moneyserver"
-msgid "Podex and other currency providers"
-msgstr "Podex en andere valutaproviders"
+msgid "Generic MoneyServer, for fake money or alternate providers."
+msgstr "Generieke MoneyServer, voor nepgeld of alternatieve aanbieders."
+
+msgctxt "economy_module_podex"
+msgid "Podex"
+msgstr "Podex"
 
 msgctxt "setting_sell_enabled"
 msgid "Enable Selling"
@@ -1962,6 +1966,26 @@ msgstr "Gloebit inschakelen"
 msgctxt "setting_gloebit_environment"
 msgid "Gloebit Environment"
 msgstr "Gloebit-omgeving"
+
+msgctxt "setting_gloebit_key"
+msgid "Gloebit App Key"
+msgstr "Gloebit-appsleutel"
+
+msgctxt "setting_gloebit_secret"
+msgid "Gloebit App Secret"
+msgstr "Gloebit-appgeheim"
+
+msgctxt "setting_gloebit_owner_name"
+msgid "Owner Name"
+msgstr "Naam van de eigenaar"
+
+msgctxt "setting_gloebit_owner_email"
+msgid "Owner Email"
+msgstr "E-mail van de eigenaar"
+
+msgctxt "setting_currency_provider"
+msgid "Currency Provider"
+msgstr "Valuta Aanbieder"
 
 msgctxt "gloebit_sandbox"
 msgid "Sandbox"
@@ -3314,6 +3338,10 @@ msgstr "De configuratie van het grid zegt niet waar deze database is."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "De database is niet bereikbaar."
+
+#~ msgctxt "economy_module_moneyserver"
+#~ msgid "Podex and other currency providers"
+#~ msgstr "Podex en andere valutaproviders"
 
 #~ msgctxt "setting_currency_rate_help"
 #~ msgid ""

@@ -1673,7 +1673,11 @@ msgid "Gloebit"
 msgstr ""
 
 msgctxt "economy_module_moneyserver"
-msgid "Podex and other currency providers"
+msgid "Generic MoneyServer, for fake money or alternate providers."
+msgstr ""
+
+msgctxt "economy_module_podex"
+msgid "Podex"
 msgstr ""
 
 msgctxt "setting_sell_enabled"
@@ -1694,6 +1698,26 @@ msgstr ""
 
 msgctxt "setting_gloebit_environment"
 msgid "Gloebit Environment"
+msgstr ""
+
+msgctxt "setting_gloebit_key"
+msgid "Gloebit App Key"
+msgstr ""
+
+msgctxt "setting_gloebit_secret"
+msgid "Gloebit App Secret"
+msgstr ""
+
+msgctxt "setting_gloebit_owner_name"
+msgid "Owner Name"
+msgstr ""
+
+msgctxt "setting_gloebit_owner_email"
+msgid "Owner Email"
+msgstr ""
+
+msgctxt "setting_currency_provider"
+msgid "Currency Provider"
 msgstr ""
 
 msgctxt "gloebit_sandbox"

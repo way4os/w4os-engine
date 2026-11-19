@@ -1942,8 +1942,12 @@ msgid "Gloebit"
 msgstr "Gloebit"
 
 msgctxt "economy_module_moneyserver"
-msgid "Podex and other currency providers"
-msgstr "Podex a darparwyr arian eraill"
+msgid "Generic MoneyServer, for fake money or alternate providers."
+msgstr "MoneyServer cyffredinol, ar gyfer arian ffug neu ddarparwyr amgen."
+
+msgctxt "economy_module_podex"
+msgid "Podex"
+msgstr "Podex"
 
 msgctxt "setting_sell_enabled"
 msgid "Enable Selling"
@@ -1964,6 +1968,26 @@ msgstr "Galluogi Gloebit"
 msgctxt "setting_gloebit_environment"
 msgid "Gloebit Environment"
 msgstr "Amgylchedd Gloebit"
+
+msgctxt "setting_gloebit_key"
+msgid "Gloebit App Key"
+msgstr "Allwedd ap Gloebit"
+
+msgctxt "setting_gloebit_secret"
+msgid "Gloebit App Secret"
+msgstr "Cyfrinach ap Gloebit"
+
+msgctxt "setting_gloebit_owner_name"
+msgid "Owner Name"
+msgstr "Enw'r perchennog"
+
+msgctxt "setting_gloebit_owner_email"
+msgid "Owner Email"
+msgstr "E-bost y perchennog"
+
+msgctxt "setting_currency_provider"
+msgid "Currency Provider"
+msgstr "Darparwr Arian Parod"
 
 msgctxt "gloebit_sandbox"
 msgid "Sandbox"
@@ -3326,6 +3350,10 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#~ msgctxt "economy_module_moneyserver"
+#~ msgid "Podex and other currency providers"
+#~ msgstr "Podex a darparwyr arian eraill"
 
 #~ msgctxt "setting_currency_rate_help"
 #~ msgid ""

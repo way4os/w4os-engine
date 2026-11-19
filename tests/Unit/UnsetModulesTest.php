@@ -29,7 +29,7 @@ describe('A module the grid does not name', function () {
         expect($economy['economyModule'])->toBe('BetaGridLikeMoneyModule')
             ->and($fields['currencyRate']['condition']['economyModule'])->toContain($economy['economyModule'])
             // The key of the money server is a setting of the money server only
-            ->and($fields['moneyScriptKey']['condition']['economyModule'])->toBe(['DTLNSLMoneyModule'])
+            ->and($fields['moneyScriptKey']['condition']['economyModule'])->toBe(['DTLNSLMoneyModule', 'Podex'])
             ->and(OpenSim\Config\Settings::named('searchModule')['default'])->toBe('OpenSimSearch');
     });
 });

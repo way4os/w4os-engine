@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (economy): the module is chosen on its page: free, the generic money server, Gloebit (its environment, keys and owner), or Podex (the generic money server, `CurrencyProvider = podex` for the helpers)
 - change (settings): every field of a page is kept by the application and written in the file of the grid when it can be; `meta.byHand` (was `meta.fixed`) the lines to apply by hand, the health warning until they are
 - feature (lists): an area in the unit that suits it (m², ha, km²), the cpu and the memory of a simulator as usages with their thresholds, the memory in MB of the total
 - fix (simulators): the cpu is the share of all the CPUs of the machine, not of one

@@ -64,7 +64,7 @@ final class GridSettings
 
     /** The fields of a page in the order w4os-wp shows them, the address of the service and Provide aside. */
     private const ORDER = [
-        'economy' => ['economyModule', 'moneyDatabase', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
+        'economy' => ['economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'dataServices', 'eventsUrl'],
         'offline' => ['mailSender', 'offlineModule'],
     ];
@@ -75,7 +75,7 @@ final class GridSettings
      */
     private const SHOWN_AS = [
         'economy' => [
-            'currencyRate' => ['condition' => ['economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule']]],
+            'currencyRate' => ['condition' => ['economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex']]],
             'gloebitConfiguration' => ['note' => true, 'after' => 'currencyRate', 'label' => 'gloebit_configuration', 'description' => ['gloebit_help_crash', 'gloebit_help_linux', 'gloebit_help_register', 'gloebit_help_config', 'gloebit_help_dll'], 'condition' => ['economyModule' => ['Gloebit']]],
             'moneyScriptKey' => ['label' => 'money_script_access_key', 'description' => ['money_script_access_key_help']],
         ],
@@ -112,7 +112,7 @@ final class GridSettings
     {
         return match ($page) {
             'models' => 'The rule the avatar models are picked by (`[Models]`, the keys of w4os): `match` first (the first name is the pattern), last (the last name), any (either), uuid (the list); `pattern`, the name; `list`, the UUIDs of the models for uuid. The models it picks are the list of `/grids/{grid}/avatar-models`.',
-            'economy' => 'The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module (set by the options of the grid), the key of the money server, the rate and the settings of Podex the helpers use.',
+            'economy' => 'The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module chosen as w4os-wp chooses its provider (the free economy, the generic money server, Gloebit and its settings, or Podex: the generic money server, `[Helpers] CurrencyProvider = podex`), its database, the key of the money server, the rate and the settings of Podex the helpers use.',
             'search' => 'The search of the grid, as w4os-wp has it: what the simulators call and where they register (set by the options of the grid), the database of the search, the calendar of the events.',
             'guide' => 'The destinations guide of the grid, as w4os-wp has it: its address (`DestinationGuide` of `[LoginService]`) and its source (`GuideSource` of `[Helpers]`).',
             'offline' => 'The offline messages of the grid, as w4os-wp has them: the module and its address (set by the options of the grid), the sender of the messages forwarded by mail.',
@@ -161,6 +161,10 @@ final class GridSettings
         foreach (self::entries($page) as $entry) {
             $values[$entry['name']] = self::value($entry, $config);
         }
+        // Podex: the generic money server, the helpers told it is Podex
+        if (($values['economyModule'] ?? null) === 'DTLNSLMoneyModule' && strtolower(trim((string) $config->find('Helpers', 'CurrencyProvider'))) === 'podex') {
+            $values['economyModule'] = 'Podex';
+        }
         if (!$provide || !isset(self::PROVIDE[$page])) {
             return $values;
         }
@@ -194,6 +198,12 @@ final class GridSettings
         $entries = array_column(self::entries($page), null, 'name');
         isset(self::PROVIDE[$page]) && ($values = $this->addressOf($page, $values));
         $now = $this->read($page);
+        // Podex is written as the generic money server, and the provider the helpers serve
+        if ($page === 'economy' && isset($values['economyModule']) && $values['economyModule'] !== $now['economyModule']) {
+            $values['currencyProvider'] = $values['economyModule'] === 'Podex' ? 'podex' : '';
+            $values['economyModule'] === 'Podex' && ($values['economyModule'] = 'DTLNSLMoneyModule');
+            $entries['currencyProvider'] = Settings::named('currencyProvider');
+        }
         $writes = [];
         foreach ($values as $name => $value) {
             $entry = $entries[$name] ?? throw InvalidValue::because('invalid-request', "'$name' is not a setting of $page (" . implode(', ', array_keys($entries)) . ')');
@@ -300,10 +310,13 @@ final class GridSettings
             if (!isset($where['reason']) || self::raw($entry, $chosen) === self::raw($entry, $config) || self::raw($entry, $chosen) === '') {
                 continue;
             }
+            $value = $values[$entry['name']] ?? null;
+            // Podex is the generic money server in the files of the grid
+            $value === 'Podex' && $entry['name'] === 'economyModule' && ($value = 'DTLNSLMoneyModule');
             $line = [
                 'reason' => $where['reason'],
                 'file' => $where['file'] !== null ? basename($where['file']) : Settings::file($entry['instance'], $config),
-                'text' => self::ini([$entry['section'] => self::lines($entry, $values[$entry['name']] ?? null)]),
+                'text' => self::ini([$entry['section'] => self::lines($entry, $value)]),
             ];
             // The address of a service: its path as well as the whole address
             ($entry['name'] === (self::PROVIDE[$page]['setting'] ?? null)) && ($byHand['path'] = $line);

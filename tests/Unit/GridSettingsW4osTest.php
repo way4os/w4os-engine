@@ -34,7 +34,7 @@ function english(array|string $keys): array
 
 describe('The pages of the services, as w4os-wp', function () {
     test('have its fields in its order', function () {
-        expect(page_fields('economy'))->toBe(['provide', 'path', 'economyUrl', 'economyModule', 'moneyDatabase', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'])
+        expect(page_fields('economy'))->toBe(['provide', 'path', 'economyUrl', 'economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'])
             ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchUrl', 'dataServices', 'eventsUrl'])
             ->and(page_fields('guide'))->toBe(['provide', 'guideSource', 'path', 'destinationGuide'])
             ->and(page_fields('offline'))->toBe(['provide', 'mailSender', 'path', 'offlineMessageUrl', 'offlineModule'])
@@ -66,7 +66,7 @@ describe('The pages of the services, as w4os-wp', function () {
         $offline = page_field('offline');
         $search = page_field('search');
 
-        expect($economy['currencyRate']['condition'])->toBe(['provide' => [true], 'economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule']])
+        expect($economy['currencyRate']['condition'])->toBe(['provide' => [true], 'economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex']])
             ->and($economy['currencyRate']['placeholder'])->toBe('10')
             ->and($economy['gloebitConfiguration'])->toMatchArray(['type' => 'note', 'condition' => ['provide' => [true], 'economyModule' => ['Gloebit']]])
             ->and($guide['guideSource']['required'] ?? false)->toBeTrue()

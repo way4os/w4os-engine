@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "555ded2",
+        "version": "e93d7c5",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -7817,7 +7817,7 @@
                     "Settings"
                 ],
                 "summary": "The settings of the grid: economy",
-                "description": "The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module (set by the options of the grid), the key of the money server, the rate and the settings of Podex the helpers use.",
+                "description": "The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module chosen as w4os-wp chooses its provider (the free economy, the generic money server, Gloebit and its settings, or Podex: the generic money server, `[Helpers] CurrencyProvider = podex`), its database, the key of the money server, the rate and the settings of Podex the helpers use.",
                 "parameters": [
                     {
                         "name": "grid",
@@ -7877,10 +7877,10 @@
                             "label": "setting_economy_module",
                             "options": {
                                 "BetaGridLikeMoneyModule": "economy_module_free",
+                                "DTLNSLMoneyModule": "economy_module_moneyserver",
                                 "Gloebit": "economy_module_gloebit",
-                                "DTLNSLMoneyModule": "economy_module_moneyserver"
+                                "Podex": "economy_module_podex"
                             },
-                            "readOnly": true,
                             "description": "setting_economy_module_help"
                         },
                         {
@@ -7889,7 +7889,8 @@
                                     true
                                 ],
                                 "economyModule": [
-                                    "DTLNSLMoneyModule"
+                                    "DTLNSLMoneyModule",
+                                    "Podex"
                                 ]
                             },
                             "name": "moneyDatabase",
@@ -7923,6 +7924,77 @@
                                     "type": "secret"
                                 }
                             ]
+                        },
+                        {
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "economyModule": [
+                                    "Gloebit"
+                                ]
+                            },
+                            "name": "gloebitEnvironment",
+                            "type": "select",
+                            "label": "setting_gloebit_environment",
+                            "options": {
+                                "sandbox": "gloebit_sandbox",
+                                "production": "gloebit_production"
+                            }
+                        },
+                        {
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "economyModule": [
+                                    "Gloebit"
+                                ]
+                            },
+                            "name": "gloebitKey",
+                            "type": "secret",
+                            "label": "setting_gloebit_key"
+                        },
+                        {
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "economyModule": [
+                                    "Gloebit"
+                                ]
+                            },
+                            "name": "gloebitSecret",
+                            "type": "secret",
+                            "label": "setting_gloebit_secret"
+                        },
+                        {
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "economyModule": [
+                                    "Gloebit"
+                                ]
+                            },
+                            "name": "gloebitOwnerName",
+                            "type": "string",
+                            "label": "setting_gloebit_owner_name",
+                            "placeholder": "Banker Name"
+                        },
+                        {
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "economyModule": [
+                                    "Gloebit"
+                                ]
+                            },
+                            "name": "gloebitOwnerEmail",
+                            "type": "email",
+                            "label": "setting_gloebit_owner_email",
+                            "placeholder": "banker@example.org"
                         },
                         {
                             "condition": {
@@ -7973,7 +8045,8 @@
                                 ],
                                 "economyModule": [
                                     "BetaGridLikeMoneyModule",
-                                    "DTLNSLMoneyModule"
+                                    "DTLNSLMoneyModule",
+                                    "Podex"
                                 ]
                             },
                             "name": "currencyRate",
@@ -8008,7 +8081,8 @@
                                     true
                                 ],
                                 "economyModule": [
-                                    "DTLNSLMoneyModule"
+                                    "DTLNSLMoneyModule",
+                                    "Podex"
                                 ]
                             },
                             "label": "money_script_access_key",
@@ -8024,7 +8098,7 @@
                                     true
                                 ],
                                 "economyModule": [
-                                    "DTLNSLMoneyModule"
+                                    "Podex"
                                 ]
                             },
                             "name": "podexMessage",
@@ -8038,7 +8112,7 @@
                                     true
                                 ],
                                 "economyModule": [
-                                    "DTLNSLMoneyModule"
+                                    "Podex"
                                 ]
                             },
                             "name": "podexUrl",
@@ -8128,10 +8202,10 @@
                                                         "type": "string",
                                                         "enum": [
                                                             "BetaGridLikeMoneyModule",
+                                                            "DTLNSLMoneyModule",
                                                             "Gloebit",
-                                                            "DTLNSLMoneyModule"
-                                                        ],
-                                                        "readOnly": true
+                                                            "Podex"
+                                                        ]
                                                     },
                                                     "moneyDatabase": {
                                                         "type": "object",
@@ -8153,6 +8227,25 @@
                                                             }
                                                         },
                                                         "nullable": true
+                                                    },
+                                                    "gloebitEnvironment": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "sandbox",
+                                                            "production"
+                                                        ]
+                                                    },
+                                                    "gloebitKey": {
+                                                        "type": "string"
+                                                    },
+                                                    "gloebitSecret": {
+                                                        "type": "string"
+                                                    },
+                                                    "gloebitOwnerName": {
+                                                        "type": "string"
+                                                    },
+                                                    "gloebitOwnerEmail": {
+                                                        "type": "string"
                                                     },
                                                     "gloebitDatabase": {
                                                         "type": "object",

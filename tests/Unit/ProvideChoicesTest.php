@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 /**
  * The pages of the services of the helpers as Olivier chose them where w4os-wp differs: Provide on by default for every service;
- * off, the whole address of the service and nothing else; on, the site read-only and the path under it; the provider of the money
- * is the module of the grid (Podex with the generic money server); the database of the economy is the one of its module.
+ * off, the whole address of the service and nothing else; on, the site read-only and the path under it.
  */
 
 use OpenSim\Api\Api;
@@ -66,16 +65,5 @@ describe('Provide', function () {
             ->and($done->document['data']['attributes']['path'])->toBe('/places/guide')
             ->and($done->document['meta']['service']['base'])->toBe('https://play.example.org')
             ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('https://play.example.org/places/guide');
-    });
-});
-
-describe('The money of a grid', function () {
-    test('is told by its module, read-only; Podex goes with the generic money server, no provider of its own', function () {
-        $fields = provided_fields('economy');
-
-        expect($fields['economyModule'])->toMatchArray(['type' => 'select', 'readOnly' => true])
-            ->and(array_keys($fields))->not->toContain('currencyProvider')
-            ->and([$fields['podexMessage']['condition']['economyModule'], $fields['podexUrl']['condition']['economyModule']])
-            ->toBe([['DTLNSLMoneyModule'], ['DTLNSLMoneyModule']]);
     });
 });

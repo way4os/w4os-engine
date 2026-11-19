@@ -27,7 +27,7 @@ describe('The money of a grid', function () {
         ]]]);
         $ini = file_get_contents($machine->grid . '/MoneyServer.ini');
 
-        expect($fields['moneyDatabase'])->toMatchArray(['type' => 'connection-string', 'label' => 'economy_database', 'condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule']]])
+        expect($fields['moneyDatabase'])->toMatchArray(['type' => 'connection-string', 'label' => 'economy_database', 'condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule', 'Podex']]])
             ->and($fields['moneyDatabase'])->not->toHaveKey('fallback')
             ->and($fields['gloebitDatabase'])->toMatchArray(['type' => 'connection-string', 'label' => 'economy_database', 'fallback' => 'db_use_simulator', 'condition' => ['provide' => [true], 'economyModule' => ['Gloebit']]])
             // The search uses the database of Robust by default

@@ -1957,8 +1957,14 @@ msgid "Gloebit"
 msgstr "Gloebit"
 
 msgctxt "economy_module_moneyserver"
-msgid "Podex and other currency providers"
-msgstr "Podex et autres fournisseurs de devises"
+msgid "Generic MoneyServer, for fake money or alternate providers."
+msgstr ""
+"MoneyServer générique, pour utilier une monnaie factice ou un fournisseur "
+"alternatif."
+
+msgctxt "economy_module_podex"
+msgid "Podex"
+msgstr "Podex"
 
 msgctxt "setting_sell_enabled"
 msgid "Enable Selling"
@@ -1979,6 +1985,26 @@ msgstr "Activer Gloebit"
 msgctxt "setting_gloebit_environment"
 msgid "Gloebit Environment"
 msgstr "Environnement Gloebit"
+
+msgctxt "setting_gloebit_key"
+msgid "Gloebit App Key"
+msgstr "Clé d'application Gloebit"
+
+msgctxt "setting_gloebit_secret"
+msgid "Gloebit App Secret"
+msgstr "Secret d'application Gloebit"
+
+msgctxt "setting_gloebit_owner_name"
+msgid "Owner Name"
+msgstr "Nom du propriétaire"
+
+msgctxt "setting_gloebit_owner_email"
+msgid "Owner Email"
+msgstr "E-mail du propriétaire"
+
+msgctxt "setting_currency_provider"
+msgid "Currency Provider"
+msgstr "Fournisseur de devises"
 
 msgctxt "gloebit_sandbox"
 msgid "Sandbox"
@@ -3342,6 +3368,10 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#~ msgctxt "economy_module_moneyserver"
+#~ msgid "Podex and other currency providers"
+#~ msgstr "Podex et autres fournisseurs de devises"
 
 #~ msgctxt "setting_currency_rate_help"
 #~ msgid ""

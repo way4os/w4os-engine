@@ -124,7 +124,7 @@ final class Settings
                 'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'health' => 'offline'],
             ],
             'Economy' => [
-                'economymodule' => ['name' => 'economyModule', 'type' => 'select', 'label' => 'setting_economy_module', 'options' => ['BetaGridLikeMoneyModule' => 'economy_module_free', 'Gloebit' => 'economy_module_gloebit', 'DTLNSLMoneyModule' => 'economy_module_moneyserver'], 'default' => 'BetaGridLikeMoneyModule', 'admin' => 'economy', 'readOnly' => true],
+                'economymodule' => ['name' => 'economyModule', 'type' => 'select', 'label' => 'setting_economy_module', 'options' => ['BetaGridLikeMoneyModule' => 'economy_module_free', 'DTLNSLMoneyModule' => 'economy_module_moneyserver', 'Gloebit' => 'economy_module_gloebit', 'Podex' => 'economy_module_podex'], 'default' => 'BetaGridLikeMoneyModule', 'admin' => 'economy'],
                 'SellEnabled' => ['name' => 'sellEnabled', 'type' => 'bool', 'label' => 'setting_sell_enabled', 'default' => true],
                 'PriceUpload' => ['name' => 'priceUpload', 'type' => 'integer', 'label' => 'setting_price_upload', 'default' => 0],
                 'PriceGroupCreate' => ['name' => 'priceGroupCreate', 'type' => 'integer', 'label' => 'setting_price_group_create', 'default' => 0],
@@ -132,16 +132,20 @@ final class Settings
             'Gloebit' => [
                 'Enabled' => ['name' => 'gloebitEnabled', 'type' => 'bool', 'label' => 'setting_gloebit_enabled', 'default' => false],
                 'GLBSpecificConnectionString' => ['name' => 'gloebitDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'fallback' => 'db_use_simulator', 'condition' => ['economyModule' => ['Gloebit']]],
-                'GLBEnvironment' => ['name' => 'gloebitEnvironment', 'type' => 'select', 'label' => 'setting_gloebit_environment', 'options' => ['sandbox' => 'gloebit_sandbox', 'production' => 'gloebit_production']],
+                'GLBEnvironment' => ['name' => 'gloebitEnvironment', 'type' => 'select', 'label' => 'setting_gloebit_environment', 'options' => ['sandbox' => 'gloebit_sandbox', 'production' => 'gloebit_production'], 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
+                'GLBKey' => ['name' => 'gloebitKey', 'type' => 'password', 'label' => 'setting_gloebit_key', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
+                'GLBSecret' => ['name' => 'gloebitSecret', 'type' => 'password', 'label' => 'setting_gloebit_secret', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
+                'GLBOwnerName' => ['name' => 'gloebitOwnerName', 'type' => 'text', 'label' => 'setting_gloebit_owner_name', 'placeholder' => 'Banker Name', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
+                'GLBOwnerEmail' => ['name' => 'gloebitOwnerEmail', 'type' => 'email', 'label' => 'setting_gloebit_owner_email', 'placeholder' => 'banker@example.org', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
             ],
         ],
         'moneyserver' => [
             // Its database in parts of their own, the keys of [MySql] by part
             'MySql' => [
-                'database' => ['name' => 'moneyDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'parts' => ['host' => 'hostname', 'port' => 'port', 'database' => 'database', 'user' => 'username', 'password' => 'password'], 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+                'database' => ['name' => 'moneyDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'parts' => ['host' => 'hostname', 'port' => 'port', 'database' => 'database', 'user' => 'username', 'password' => 'password'], 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
             ],
             'MoneyServer' => [
-                'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'readers' => 'helpers', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']], 'health' => 'secret'],
+                'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'readers' => 'helpers', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']], 'health' => 'secret'],
             ],
         ],
         'helpers' => [
@@ -156,10 +160,12 @@ final class Settings
                 'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
                 'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'placeholder' => 'no-reply@example.org'],
                 'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'placeholder' => '10', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
+                // The currency provider the helpers serve with the generic money server: podex, else none
+                'CurrencyProvider' => ['name' => 'currencyProvider', 'type' => 'text', 'label' => 'setting_currency_provider'],
                 'CurrencyRatePer' => ['name' => 'currencyRatePer', 'type' => 'float', 'label' => 'setting_currency_rate_per', 'default' => 1000.0],
                 'GloebitConversionThreshold' => ['name' => 'gloebitThreshold', 'type' => 'float', 'label' => 'setting_gloebit_threshold', 'default' => 1.2],
-                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'placeholder' => 'podex_message_placeholder', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
-                'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'placeholder' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'placeholder' => 'podex_message_placeholder', 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
+                'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'placeholder' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
             ],
             'Models' => [
                 'Match' => ['name' => 'match', 'type' => 'select', 'label' => 'models_match', 'widget' => 'radio', 'options' => ['first' => 'models_match_first', 'any' => 'models_match_any', 'last' => 'models_match_last', 'uuid' => 'models_match_uuid'], 'default' => 'any', 'admin' => 'models'],
