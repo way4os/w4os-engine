@@ -44,7 +44,7 @@ describe('A settings page of a service of the helpers', function () {
         foreach ($pages as $page) {
             [$provide, $path, $url] = $first($page);
             expect($provide)->toMatchArray(['name' => 'provide', 'type' => 'boolean', 'widget' => 'switch'])
-                ->and($path)->toMatchArray(['name' => 'path', 'type' => 'path', 'base' => 'site', 'condition' => ['provide' => [true]]])
+                ->and($path)->toMatchArray(['name' => 'path', 'type' => 'path', 'base' => in_array($page, ['economy', 'guide'], true) ? 'site' : 'helpers', 'condition' => ['provide' => [true]]])
                 ->and($url)->toMatchArray(['type' => 'url', 'condition' => ['provide' => [false]]]);
         }
         expect(array_map(static fn(string $page): string => Catalog::MESSAGES[$first($page)[0]['label']], $pages))
@@ -63,7 +63,7 @@ describe('A settings page of a service of the helpers', function () {
         $guide = $read('guide');
         $economy = $read('economy');
 
-        expect($assets['data']['attributes'])->toMatchArray(['provide' => true, 'path' => '/helpers/assets'])
+        expect($assets['data']['attributes'])->toMatchArray(['provide' => true, 'path' => 'assets'])
             ->and($assets['meta']['service'])->toMatchArray(['base' => 'https://play.example.org', 'helpers' => 'https://play.example.org/helpers', 'handledBy' => 'helpers', 'block' => null, 'endpoint' => 'GET /assets/{id}.{format}'])
             ->and($guide['data']['attributes'])->toMatchArray(['provide' => true, 'path' => '/guide'])
             ->and($guide['meta']['service'])->toMatchArray(['handledBy' => 'site', 'block' => 'destination_guide'])

@@ -52,20 +52,22 @@ final class GridSettings
     /**
      * The pages of the services of the helpers, as w4os-wp has them: what Provide is the address of (the setting, the service of the
      * helpers it is), its label and help, the block a page of the site shows when the site handles it, and whether the address is
-     * the base of the helpers (the economy: currency.php and landtool.php under it).
+     * a prefix (`prefix`: the economy, currency.php and landtool.php fixed under it), what the path is under (`base`: the site, or
+     * the helpers for what the viewers and the simulators call) and the setting that keeps the address of another server
+     * (`external`), so that it is not lost when Provide is switched.
      */
     private const PROVIDE = [
-        'economy' => ['setting' => 'economyUrl', 'service' => 'currency', 'label' => 'provide_economy', 'base' => true, 'url' => 'economy_helper_uri', 'help' => ['economy_helper_uri_help']],
-        'search' => ['setting' => 'searchUrl', 'service' => 'query', 'label' => 'provide_search', 'after' => 'searchDatabase', 'url' => 'search_engine_url', 'help' => ['search_url_help_viewer', 'search_url_help_one', 'search_url_help_web']],
+        'economy' => ['setting' => 'economyUrl', 'service' => 'currency', 'label' => 'provide_economy', 'prefix' => true, 'url' => 'economy_helper_uri', 'help' => ['economy_helper_uri_help']],
+        'search' => ['setting' => 'searchUrl', 'service' => 'query', 'base' => 'helpers', 'external' => 'searchExternalUrl', 'label' => 'provide_search', 'after' => 'searchDatabase', 'url' => 'search_engine_url', 'help' => ['search_url_help_viewer', 'search_url_help_one', 'search_url_help_web']],
         'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide', 'after' => 'guideSource', 'url' => 'guide_url'],
-        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'label' => 'provide_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core'], 'after' => 'mailSender', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
-        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'label' => 'provide_assets', 'description' => ['provide_assets_help'], 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'placeholder' => 'https://example.org/assets', 'required' => true],
+        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'base' => 'helpers', 'label' => 'provide_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core'], 'after' => 'mailSender', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
+        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'base' => 'helpers', 'label' => 'provide_assets', 'description' => ['provide_assets_help'], 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'placeholder' => 'https://example.org/assets', 'required' => true],
     ];
 
     /** The fields of a page in the order w4os-wp shows them, the address of the service and Provide aside. */
     private const ORDER = [
         'economy' => ['economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
-        'search' => ['searchDatabase', 'dataServices', 'eventsUrl'],
+        'search' => ['searchDatabase', 'eventsUrl'],
         'offline' => ['mailSender', 'offlineModule'],
     ];
 
@@ -80,7 +82,7 @@ final class GridSettings
             'moneyScriptKey' => ['label' => 'money_script_access_key', 'description' => ['money_script_access_key_help']],
         ],
         'search' => [
-            'dataServices' => ['label' => 'search_register_url', 'description' => ['search_register_help_data', 'search_register_help_several', 'search_register_help_prefix']],
+            'registerExternalUrl' => ['description' => ['search_register_help_data', 'search_register_help_several']],
             'eventsUrl' => ['description' => ['events_help_fetch', 'events_help_blank'], 'placeholder' => 'http://2do.directory/events/'],
         ],
         'guide' => [
@@ -169,12 +171,68 @@ final class GridSettings
             return $values;
         }
         // Provided: no address of its own, or one on the site of the grid
-        $url = $values[self::PROVIDE[$page]['setting']];
+        $provide = self::PROVIDE[$page];
+        $url = $values[$provide['setting']];
         $site = $this->grid->site();
         $on = !is_string($url) || $url === '' || ($site !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $site));
-        $path = $on && is_string($url) && $url !== '' ? self::pathAndQuery($url) : $this->defaultPath($page);
+        $path = $on && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page);
+        // The address of another server: the one kept, else the one the grid uses when it is elsewhere
+        if (isset($provide['external']) && !$on && $config->find('Helpers', Settings::named($provide['external'])['key']) === null) {
+            $values[$provide['external']] = $url;
+        }
+        $page === 'search' && ($values = $this->register($config, $on) + $values);
+        unset($values[$provide['setting']]);
+        isset($provide['external']) || ($values[$provide['setting']] = $url);
 
         return ['provide' => $on, 'path' => $path] + $values;
+    }
+
+    /** The address the path of a page is under: the helpers for what the viewers and the simulators call, else the site. */
+    private function baseOf(string $page): ?string
+    {
+        if ((self::PROVIDE[$page]['base'] ?? 'site') === 'helpers') {
+            $helpers = $this->grid->helpersUrl() ?? ($this->grid->site() === null ? null : $this->grid->site() . '/helpers');
+
+            return $helpers === null ? null : rtrim($helpers, '/');
+        }
+
+        return $this->grid->site();
+    }
+
+    /** The path of an address under the base of its page (with its query), as the page shows it. */
+    private function pathOf(string $page, string $url): string
+    {
+        $base = $this->baseOf($page);
+        if ((self::PROVIDE[$page]['base'] ?? 'site') === 'helpers' && $base !== null && str_starts_with($url, $base . '/')) {
+            return substr($url, strlen($base) + 1);
+        }
+
+        return self::pathAndQuery($url);
+    }
+
+    /** The key the grid registers on its own search with (`DATA_SRV_` and its name). */
+    private function ownRegister(): string
+    {
+        return 'DATA_SRV_' . preg_replace('/[^A-Za-z0-9]/', '', ucwords($this->grid->name() ?: 'Your Grid'));
+    }
+
+    /**
+     * Where the simulators register for the search: their own register under the helpers (`registerPath`), the register of another
+     * search engine (`registerExternalUrl`: the one kept, else the one of 2do.directory the grid has).
+     *
+     * @return array{registerPath:string,registerExternalUrl:string}
+     */
+    private function register(GridConfig $config, bool $on): array
+    {
+        $own = trim((string) $config->find('DataSnapshot', $this->ownRegister()), " \t\"");
+        $base = $this->baseOf('search');
+        $kept = $config->find('Helpers', 'ExternalRegisterURL');
+        $other = trim((string) $config->find('DataSnapshot', 'DATA_SRV_2do'), " \t\"");
+
+        return [
+            'registerPath' => $own !== '' && $base !== null && str_starts_with($own, $base . '/') ? substr($own, strlen($base) + 1) : 'register.php',
+            'registerExternalUrl' => $kept ?? ($other !== '' ? $other : (string) Settings::named('registerExternalUrl')['default']),
+        ];
     }
 
     /** The path of an address with what follows it (its query), as a site shows it under its own address. */
@@ -204,6 +262,10 @@ final class GridSettings
             $values['economyModule'] === 'Podex' && ($values['economyModule'] = 'DTLNSLMoneyModule');
             $entries['currencyProvider'] = Settings::named('currencyProvider');
         }
+        // The registers of the search, a key of the family DATA_SRV_ each
+        foreach (array_filter(array_keys($values), static fn(string $name): bool => str_starts_with($name, 'DATA_SRV_')) as $key) {
+            $entries[$key] = ['instance' => 'opensim', 'section' => 'DataSnapshot', 'key' => $key, 'name' => $key, 'type' => 'url', 'readers' => 'grid'];
+        }
         $writes = [];
         foreach ($values as $name => $value) {
             $entry = $entries[$name] ?? throw InvalidValue::because('invalid-request', "'$name' is not a setting of $page (" . implode(', ', array_keys($entries)) . ')');
@@ -227,6 +289,15 @@ final class GridSettings
         foreach ($writes as [$entry, $value, $where]) {
             // Its default: what the grid uses when the setting says nothing (the database of Robust for the search)
             $default = isset($entry['fallback']) && is_array($value) && filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            // false: the key commented out, as w4os-wp leaves the register the grid does not use
+            if ($value === false) {
+                $where['store'] && $this->grid->environment()->settings->set($entry['section'], $entry['key'], '');
+                if (isset($where['writable']) && is_file($where['writable'])) {
+                    $ini = IniEditor::load($where['writable']);
+                    $ini->comment($entry['section'], $entry['key']) && $ini->save($where['writable']);
+                }
+                continue;
+            }
             if ($where['store'] ?? false) {
                 $store = $this->grid->environment()->settings;
                 $now = $store->all()[$entry['section']] ?? [];
@@ -379,28 +450,38 @@ final class GridSettings
      */
     private function addressOf(string $page, array $values): array
     {
-        $setting = self::PROVIDE[$page]['setting'];
-        $given = array_key_exists('provide', $values) || array_key_exists('path', $values);
-        $on = !array_key_exists('provide', $values) || filter_var($values['provide'], FILTER_VALIDATE_BOOLEAN);
-        unset($values['provide']);
+        $provide = self::PROVIDE[$page];
+        $setting = $provide['setting'];
+        $external = $provide['external'] ?? null;
+        $register = $page === 'search' ? array_intersect_key($values, ['registerPath' => 1, 'registerExternalUrl' => 1]) : [];
+        $given = array_key_exists('provide', $values) || array_key_exists('path', $values) || ($external !== null && array_key_exists($external, $values)) || $register !== [];
+        $now = $given ? $this->read($page) : [];
+        $on = array_key_exists('provide', $values) ? filter_var($values['provide'], FILTER_VALIDATE_BOOLEAN) : (bool) ($now['provide'] ?? true);
         $path = $values['path'] ?? null;
-        unset($values['path']);
+        unset($values['provide'], $values['path'], $values['registerPath']);
         if (!$given) {
             return $values;
         }
         if ($on) {
-            $site = $this->grid->site() ?? throw InvalidValue::because(
+            $base = $this->baseOf($page) ?? throw InvalidValue::because(
                 'invalid-request',
                 "the grid has no web site (WebURL of [Const]) to provide $page on: give the whole address of the service, Provide off",
             );
-            $path = trim((string) ($path ?? $this->read($page)['path']));
-
-            return [$setting => $site . '/' . ltrim($path, '/')] + $values;
+            $values = [$setting => $base . '/' . ltrim(trim((string) ($path ?? $now['path'])), '/')] + $values;
+        } else {
+            $address = $external !== null ? ($values[$external] ?? $now[$external]) : ($values[$setting] ?? null);
+            trim((string) $address) !== '' || throw InvalidValue::because(
+                'invalid-request',
+                'Provide off needs the whole address of the service (' . ($external ?? $setting) . ')',
+            );
+            $values = [$setting => $address] + $values;
         }
-        trim((string) ($values[$setting] ?? '')) !== '' || throw InvalidValue::because(
-            'invalid-request',
-            "Provide off needs the whole address of the service ($setting)",
-        );
+        if ($page === 'search') {
+            // The simulators register on the search the grid uses: its own under the helpers, else the other one
+            $own = $this->ownRegister();
+            $values[$own] = $on ? $this->baseOf('search') . '/' . ltrim((string) ($register['registerPath'] ?? $now['registerPath']), '/') : false;
+            $values['DATA_SRV_2do'] = $on ? false : ($register['registerExternalUrl'] ?? $now['registerExternalUrl']);
+        }
 
         return $values;
     }
@@ -419,13 +500,25 @@ final class GridSettings
         $shownAs = self::SHOWN_AS[$page] ?? [];
         $words = ['label' => $provide['url']] + (isset($provide['help']) ? ['description' => $provide['help']] : []);
         $address = [
-            ['name' => 'path', 'type' => 'path', 'base' => 'site'] + $words + ['condition' => $on],
+            ['name' => 'path', 'type' => 'path', 'base' => $provide['base'] ?? 'site'] + $words + ['condition' => $on],
         ];
         $others = [];
+        $register = [];
         foreach ($fields as $field) {
             $more = array_diff_key($shownAs[$field['name']] ?? [], ['condition' => 1]);
             $condition = ($shownAs[$field['name']]['condition'] ?? []) + ($field['condition'] ?? []);
-            if ($field['name'] === $provide['setting']) {
+            // The address of the grid is kept apart from the one of another server: only the latter is a field
+            if ($field['name'] === $provide['setting'] && isset($provide['external'])) {
+                continue;
+            }
+            if ($field['name'] === 'registerExternalUrl') {
+                $register = [
+                    ['name' => 'registerPath', 'type' => 'path', 'base' => 'helpers', 'label' => 'search_register_url', 'description' => $more['description'] ?? [], 'condition' => $on],
+                    ['condition' => ['provide' => [false]]] + $more + $field,
+                ];
+                continue;
+            }
+            if ($field['name'] === ($provide['external'] ?? $provide['setting'])) {
                 $address[] = ['condition' => ['provide' => [false]], 'label' => $provide['url'], 'description' => $provide['urlHelp'] ?? $provide['help'] ?? []]
                     + array_intersect_key($provide, ['placeholder' => 1, 'required' => 1]) + $field;
                 $address[1]['description'] === [] && ($address[1] = array_diff_key($address[1], ['description' => 1]));
@@ -447,7 +540,7 @@ final class GridSettings
         }
         // The address where w4os-wp shows it: after Provide, or after the field it follows
         $at = isset($provide['after']) ? array_search($provide['after'], array_column($others, 'name'), true) : false;
-        array_splice($others, $at === false ? 0 : $at + 1, 0, $address);
+        array_splice($others, $at === false ? 0 : $at + 1, 0, [...$address, ...$register]);
 
         return [
             ['name' => 'provide', 'label' => $provide['label'], 'type' => 'boolean', 'widget' => 'switch']
@@ -555,24 +648,14 @@ final class GridSettings
      */
     private function searchSnippets(string $url, string $robust, \Closure $line): array
     {
-        $web = $this->grid->searchUrl() ?? 'https://example.org/search/';
-        $provided = (bool) $this->read('search')['provide'];
-        $register = $this->grid->helperUrl('register') ?: 'http://yourgrid.org/helpers/register.php';
-        $own = 'DATA_SRV_' . preg_replace('/[^A-Za-z0-9]/', '', ucwords($this->grid->name() ?: 'Your Grid'));
+        $values = $this->read('search');
+        $register = $values['provide']
+            ? [$this->ownRegister() => '"' . $this->baseOf('search') . '/' . ltrim($values['registerPath'], '/') . '"']
+            : ['DATA_SRV_2do' => '"' . $values['registerExternalUrl'] . '"'];
+        $search = [$line('OpenSim.ini', ['Search' => ['Module' => 'OpenSimSearch', 'SearchURL' => "\"$url\""]])];
+        $registers = [$line('OpenSim.ini', ['DataSnapshot' => ['index_sims' => 'true', 'gridname' => '"' . $this->grid->name() . '"'] + $register])];
 
-        return [
-            'path' => [
-                $line('OpenSim.ini', ['Search' => [';; Save your settings before copying the values below' => null, 'Module' => 'OpenSimSearch', 'SearchURL' => "\"$url\""]]),
-                $line($robust, ['LoginService' => ['SearchURL' => $web], 'GridInfoService' => ['search' => $web]]),
-            ],
-            'dataServices' => [$line('OpenSim.ini', ['DataSnapshot' => [
-                'index_sims' => 'true',
-                'gridname' => '"' . $this->grid->name() . '"',
-                ($provided ? '' : '; ') . $own => "\"$register\"",
-                ($provided ? '; ' : '') . 'DATA_SRV_2do' => '"http://2do.directory/helpers/register.php"',
-                '; DATA_SRV_OtherEngine' => '"http://example.org/register.php"',
-            ]])],
-        ];
+        return ['path' => $search, 'searchExternalUrl' => $search, 'registerPath' => $registers, 'registerExternalUrl' => $registers];
     }
 
     /** @param array<string,array<string,?string>> $sections section => key => value, a key with no value a line of its own */
@@ -596,20 +679,23 @@ final class GridSettings
         if (is_string($said) && $said !== '') {
             return $said;
         }
-        $site = $this->grid->site();
+        $base = $this->baseOf($page);
 
-        return $site === null ? null : $site . $this->defaultPath($page);
+        return $base === null ? null : rtrim($base, '/') . '/' . ltrim($this->defaultPath($page), '/');
     }
 
     /** Where the helpers answer the service of a page, under the site: their base, and the page of the service. */
     private function defaultPath(string $page): string
     {
         $base = rtrim(\OpenSim\Provisioning\Web\Services::pathOf((string) ($this->grid->helpersUrl() ?? '/helpers')), '/');
-        if (self::PROVIDE[$page]['base'] ?? false) {
+        if (self::PROVIDE[$page]['prefix'] ?? false) {
             return "$base/";
         }
         $default = (string) (Service::defaultPage(self::PROVIDE[$page]['service']) ?? self::PROVIDE[$page]['service']);
         $url = $this->grid->helperUrl($default);
+        if ((self::PROVIDE[$page]['base'] ?? 'site') === 'helpers') {
+            return $url !== '' ? $this->pathOf($page, $url) : $default;
+        }
 
         return $url !== '' ? \OpenSim\Provisioning\Web\Services::pathOf($url) : "$base/$default";
     }

@@ -46,10 +46,11 @@ describe('Provide', function () {
         foreach (PROVIDED_PAGES as $page) {
             $fields = provided_fields($page);
             $setting = array_values(array_filter($fields, static fn(array $field): bool => ($field['condition'] ?? null) === ['provide' => [false]]));
-            $others = array_diff_key($fields, ['provide' => 1, $setting[0]['name'] => 1]);
+            $others = array_diff_key($fields, ['provide' => 1], array_column($setting, null, 'name'));
 
-            expect($setting)->toHaveCount(1)
-                ->and($setting[0]['type'])->toBe('url')
+            // The search has two: the search engine and the register of another server
+            expect($setting)->toHaveCount($page === 'search' ? 2 : 1)
+                ->and(array_unique(array_column($setting, 'type')))->toBe(['url'])
                 // Read-only ones too: the module of the economy, of the offline messages, where the search registers
                 ->and(array_filter($others, static fn(array $field): bool => ($field['condition']['provide'] ?? null) !== [true]))->toBe([]);
         }

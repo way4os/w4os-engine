@@ -117,7 +117,7 @@ final class Settings
             'DataSnapshot' => [
                 'index_sims' => ['name' => 'indexSims', 'type' => 'bool', 'label' => 'setting_index_sims'],
                 'gridname' => ['name' => 'snapshotGridName', 'type' => 'text', 'label' => 'setting_grid_name'],
-                'DATA_SRV_' => ['name' => 'dataServices', 'type' => 'url', 'label' => 'setting_data_service', 'service' => 'register', 'prefix' => true, 'multiple' => true, 'admin' => 'search', 'readOnly' => true, 'health' => 'register'],
+                'DATA_SRV_' => ['name' => 'dataServices', 'type' => 'url', 'label' => 'setting_data_service', 'service' => 'register', 'prefix' => true, 'multiple' => true, 'readOnly' => true, 'health' => 'register'],
             ],
             'Messaging' => [
                 'OfflineMessageModule' => ['name' => 'offlineModule', 'type' => 'select', 'label' => 'setting_offline_module', 'options' => ['OfflineMessageModule' => 'offline_module_v1', 'Offline Message Module V2' => 'offline_module_v2'], 'admin' => 'offline', 'readOnly' => true],
@@ -157,6 +157,9 @@ final class Settings
                 'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'placeholder' => 'destinations.txt'],
                 'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search', 'fallback' => 'db_use_default'],
                 'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => 'https://2do.directory/events', 'placeholder' => 'https://2do.directory/events'],
+                // The search engine and the register of another server, kept for when the helpers do not provide the search
+                'ExternalSearchURL' => ['name' => 'searchExternalUrl', 'type' => 'url', 'label' => 'search_engine_url', 'default' => 'http://2do.directory/helpers/query.php', 'admin' => 'search'],
+                'ExternalRegisterURL' => ['name' => 'registerExternalUrl', 'type' => 'url', 'label' => 'search_register_url', 'default' => 'http://2do.directory/helpers/register.php', 'admin' => 'search'],
                 'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
                 'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'placeholder' => 'no-reply@example.org'],
                 'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'placeholder' => '10', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],

@@ -35,7 +35,7 @@ function english(array|string $keys): array
 describe('The pages of the services, as w4os-wp', function () {
     test('have its fields in its order', function () {
         expect(page_fields('economy'))->toBe(['provide', 'path', 'economyUrl', 'economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'])
-            ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchUrl', 'dataServices', 'eventsUrl'])
+            ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registerExternalUrl', 'eventsUrl'])
             ->and(page_fields('guide'))->toBe(['provide', 'guideSource', 'path', 'destinationGuide'])
             ->and(page_fields('offline'))->toBe(['provide', 'mailSender', 'path', 'offlineMessageUrl', 'offlineModule'])
             ->and(page_fields('assets'))->toBe(['provide', 'path', 'assetsUrl']);
@@ -47,11 +47,11 @@ describe('The pages of the services, as w4os-wp', function () {
         $guide = page_field('guide');
         $offline = page_field('offline');
 
-        expect(english([$economy['path']['label'], $economy['moneyScriptKey']['label'], $economy['gloebitConfiguration']['label'], $search['path']['label'], $search['dataServices']['label'], $guide['path']['label'], $offline['path']['label']]))
+        expect(english([$economy['path']['label'], $economy['moneyScriptKey']['label'], $economy['gloebitConfiguration']['label'], $search['path']['label'], $search['registerPath']['label'], $guide['path']['label'], $offline['path']['label']]))
             ->toBe(['Economy Helper URI', 'Money Script Access Key', 'Gloebit Configuration', 'Search Engine URL', 'Search Register URL', 'Destinations Guide URL', 'Offline Messages Helper'])
             ->and(english($economy['path']['description']))->toBe(['The URL must be set in Robust configuration.'])
             ->and(english($search['path']['description'])[0])->toBe('URL of the search engine used by the viewer to provide search results (without arguments).')
-            ->and(english($search['dataServices']['description']))->toBe(['Data service, used to register regions, objects or land for sale.', 'You can register to several search engines.', 'Each line must have a unique identifier beginning with "DATA_SRV_"'])
+            ->and(english($search['registerPath']['description']))->toBe(['Data service, used to register regions, objects or land for sale.', 'You can register to several search engines.'])
             ->and(count($guide['guideSource']['description']))->toBe(6)
             ->and(english($offline['provide']['description']))->toBe(['Honor "Email me IMs when I\'m offline" viewer option.', 'OpenSimulator core offline messages module doesn\'t handle e-mail forwarding option available in the viewer settings.'])
             ->and(english(GridSettings::form('economy')['description'])[0])->toBe('Economy helpers are additional scripts needed if you implement economy on your grid (with real or fake currency).')
@@ -94,8 +94,8 @@ describe('The ini lines of the pages', function () {
             ->and($text($economy['gloebitConfiguration']))->toContain('economymodule = Gloebit')->toContain('GLBSpecificConnectionString')
             ->and($text($economy['moneyScriptKey']))->toContain('EnableScriptSendMoney = true')->toContain('MoneyScriptAccessKey = (your key)')
             ->and(json_encode($snippets('economy')))->not->toContain('k3y-s3cret')
-            ->and($text($search['path']))->toContain("[Search]\n    ;; Save your settings before copying the values below\n    Module = OpenSimSearch")
-            ->and($text($search['dataServices']))->toContain('index_sims = true')->toContain('DATA_SRV_')
+            ->and($text($search['path']))->toContain("[Search]\n    Module = OpenSimSearch")
+            ->and($text($search['registerPath']))->toContain('index_sims = true')->toContain('DATA_SRV_')
             ->and($text($snippets('guide')['path']))->toContain('DestinationGuide = ')
             ->and($text($snippets('guide')['guideSource']))->toContain('Display Name|yourgrid.org:8002/Region Name')
             ->and($text($snippets('offline')['path']))->toContain('OfflineMessageModule = OfflineMessageModule');

@@ -42,7 +42,7 @@ describe('The settings pages of the services', function () {
             ->toBe([
                 // In the order of w4os-wp (GridSettingsW4osTest)
                 ['provide', 'path', 'economyUrl', 'economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
-                ['provide', 'searchDatabase', 'path', 'searchUrl', 'dataServices', 'eventsUrl'],
+                ['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registerExternalUrl', 'eventsUrl'],
                 ['provide', 'guideSource', 'path', 'destinationGuide'],
                 ['provide', 'mailSender', 'path', 'offlineMessageUrl', 'offlineModule'],
                 ['provide', 'path', 'assetsUrl'],
@@ -100,11 +100,11 @@ describe('The settings pages of the services', function () {
         $search = $get('search')->document['data']['attributes'];
 
         expect($search)
-            ->toMatchArray(['searchUrl' => 'https://play.example.org/helpers/query.php', 'dataServices' => ['https://play.example.org/helpers/register.php', 'https://2do.directory/helpers/register.php'], 'eventsUrl' => 'https://2do.directory/events'])
+            ->toMatchArray(['provide' => false, 'searchExternalUrl' => 'https://play.example.org/helpers/query.php', 'registerExternalUrl' => 'https://2do.directory/helpers/register.php', 'eventsUrl' => 'https://2do.directory/events'])
             ->and($get('economy')->document['data']['attributes']['economyModule'])
             ->toBe('Gloebit')
             // The address of the search is the one of Provide (its page); the module of the economy is chosen here too
-            ->and([$patch('economy', ['economyModule' => 'DTLNSLMoneyModule'])->status, $patch('search', ['searchUrl' => 'https://x.example.org/q.php'])->status])
+            ->and([$patch('economy', ['economyModule' => 'DTLNSLMoneyModule'])->status, $patch('search', ['provide' => false, 'searchExternalUrl' => 'https://x.example.org/q.php'])->status])
             ->toBe([200, 200])
             // A form sends back what it shows
             ->and($patch('search', $search + ['eventsUrl' => 'https://events.example.org'])->status)
