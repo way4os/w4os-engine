@@ -30,4 +30,19 @@ describe('The completion of the grids at an upgrade', function () {
             ->and((string) file_get_contents(GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini'))
             ->toContain('[UserProfiles]');
     });
+
+    test('repairs, never changes a setting: a valid choice of a grid that is not the default stays, with nothing of the default beside it', function () {
+        $machine = new Machine();
+        $alpha = GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        // The offline messages V1, kept by another site: not the default (V2), a choice
+        file_put_contents($alpha, (string) file_get_contents($alpha) . "\n[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"https://elsewhere.example.org/offline.php\"\n");
+
+        GridCompletion::run($machine->environment, $machine->etc);
+        $messaging = OpenSim\Config\ConfigReader::load($alpha, expand: false)['Messaging'] ?? [];
+
+        expect($messaging)
+            ->toBe(['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => 'https://elsewhere.example.org/offline.php'])
+            ->and((new GridOptions(Grid::find($machine->environment, 'demo')))->repair(false)['simulators']['alpha'] ?? [])
+            ->not->toContain('offline-robust');
+    });
 });

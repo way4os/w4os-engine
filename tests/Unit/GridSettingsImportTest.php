@@ -142,6 +142,39 @@ describe('The settings of an old grid', function () {
             ->toBe([]);
     });
 
+    test('change only by the choice of an operator: the offline messages of Robust (V2) enabled on the grid, in place of V1', function () {
+        $machine = new Machine();
+        (new OpenSim\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
+        GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo')->apply();
+        $options = static fn() => new GridOptions(Grid::find($machine->environment, 'demo'));
+        $kept = $options()->repair(true);
+        $v1 = $options()->enabled();
+
+        $changed = $options()->enable('offline-robust');
+        $general = ConfigReader::load($machine->grid . '/OpenSim.ini', expand: false)['Messaging'] ?? [];
+        $made = ConfigReader::parse((new OpenSim\Provisioning\SimulatorMaster($machine->environment))->render($machine->grid, $machine->core . '/bin'));
+
+        expect($kept['applied'])
+            ->not->toContain('offline-robust')
+            ->and($v1)
+            ->toContain('offline-helpers')
+            ->and($changed['error'])
+            ->toBeNull()
+            ->and($changed['grid'])
+            ->toBeTrue()
+            ->and($general['OfflineMessageModule'] ?? null)
+            ->toBe('Offline Message Module V2')
+            ->and($general['OfflineMessageURL'] ?? '')
+            ->not->toContain('offline.php')
+            ->and($made['Messaging']['OfflineMessageModule'] ?? null)
+            ->toBe('Offline Message Module V2')
+            ->and($options()->enabled())
+            ->toContain('offline-robust')
+            ->not->toContain('offline-helpers')
+            ->and($options()->repair(false)['simulators'])
+            ->toBe([]);
+    });
+
     test('are laid in a simulator only where nothing of the grid gives them: a grid without a master', function () {
         $machine = new Machine();
         GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo')->apply();

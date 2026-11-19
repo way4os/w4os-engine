@@ -370,11 +370,13 @@ final class GridOptions
     public function missingIn(array $settings): array
     {
         $sections = array_map(static fn($keys): array => is_array($keys) ? array_change_key_case($keys) : [], array_change_key_case($settings));
+        $said = array_map(static fn(array $keys): array => array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys), $sections);
         $variables = $this->variables();
         $missing = [];
         foreach (array_values(array_unique([...$this->enabled(), ...$this->inUse()])) as $name) {
             $option = $this->template($name);
-            if ($option === null || !in_array('OpenSim.ini', $option->files(), true)) {
+            // A config that chose another option of its group keeps its choice: a repair never changes a setting
+            if ($option === null || !in_array('OpenSim.ini', $option->files(), true) || $this->choseOther($option, $said)) {
                 continue;
             }
             foreach ($option->settings('OpenSim.ini', $variables, true, fn(string $word): bool => $this->fact($word, '')) as [$section, $key, $value]) {
@@ -452,26 +454,56 @@ final class GridOptions
             if ($this->unmet($option) !== null && !$this->givenByGrid($option, $said)) {
                 continue;
             }
-            // Its own settings, without the values of the grid: the lines that need a variable are left out; those of the files of the
-            // simulators (OpenSim.ini, and a file of the grid they include: the Gloebit.ini of Gloebit), not of Robust
-            $own = [];
-            foreach ($option->files() as $file) {
-                preg_match('/\.ini$/i', $file) === 1 && preg_match('/^Robust/i', basename($file)) !== 1 && array_push($own, ...$option->settings($file, [], true));
-            }
-            $telling = array_filter(
-                $own,
-                static fn(array $s): bool => !in_array(strtolower(trim($s[2], " \"")), ['', 'true', 'false'], true)
-                    && stripos($s[1], 'Include-') !== 0
-                    && !$option->lists('Existing', $s[0], $s[1]) && !$option->lists('Initial', $s[0], $s[1]),
-            );
-            $told = false;
-            foreach ($telling as [$section, $key, $value]) {
-                $told = $told || ($said[strtolower($section)][strtolower($key)] ?? null) === strtolower(trim($value, " \""));
-            }
-            $told && ($used[] = $name);
+            self::says($option, $said) && ($used[] = $name);
         }
 
         return $used;
+    }
+
+    /**
+     * Whether settings say an option, as it writes them: one of its own settings that tells it (not a value of the grid, nor
+     * `Initial` or `Existing`, nor a mere true or false: `[Messaging] OfflineMessageModule = OfflineMessageModule`), in the files of
+     * the simulators (OpenSim.ini, and a file of the grid they include: the Gloebit.ini of Gloebit), not of Robust.
+     *
+     * @param array<string,array<string,string>> $said by section then key, in lower case, the values in lower case without quotes
+     */
+    private static function says(OptionTemplate $option, array $said): bool
+    {
+        $own = [];
+        foreach ($option->files() as $file) {
+            preg_match('/\.ini$/i', $file) === 1 && preg_match('/^Robust/i', basename($file)) !== 1 && array_push($own, ...$option->settings($file, [], true));
+        }
+        foreach ($own as [$section, $key, $value]) {
+            $value = strtolower(trim($value, " \""));
+            if (in_array($value, ['', 'true', 'false'], true) || stripos($key, 'Include-') === 0 || $option->lists('Existing', $section, $key) || $option->lists('Initial', $section, $key)) {
+                continue;
+            }
+            if (($said[strtolower($section)][strtolower($key)] ?? null) === $value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether a config has chosen another option of the group of an option (the offline messages V1 where V2 is the default): its
+     * choice, the option is not missing there.
+     *
+     * @param array<string,array<string,string>> $said see says()
+     */
+    private function choseOther(OptionTemplate $option, array $said): bool
+    {
+        if ($option->group() === '') {
+            return false;
+        }
+        foreach ($this->templates() as $name => $other) {
+            if ($name !== $option->name() && $other->group() === $option->group() && self::says($other, $said)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -481,7 +513,9 @@ final class GridOptions
      * `$apply`, with the values of the grid: what the option says (its module, its addresses), else what the grid has (its
      * OpenSim.ini, else the file of a simulator of the grid that has the option: its keys too, Gloebit's), never a default the
      * grid did not choose (`Initial`: named in the notes, to be given). Nothing said of it has a value: only the names of the
-     * settings, a secret never leaves the files.
+     * settings, a secret never leaves the files. A repair never changes a setting: a value that is there stays, and a simulator that
+     * chose another option of a group (the offline messages V1 where V2 is the default) keeps its choice, nothing of the default
+     * laid beside it; changing an option is an operator's (enable()).
      *
      * @return array{simulators:array<string,list<string>>,applied:list<string>,notes:list<string>} the options each simulator
      *         misses (none: nothing to repair), the ones laid again, what is left to do (a setting to give, a restart)
