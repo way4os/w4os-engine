@@ -535,7 +535,11 @@ final class Endpoints
                                             'attributes' => [
                                                 'type' => 'object',
                                                 'properties' => [
-                                                    'level' => ['type' => 'string', 'enum' => ['ok', 'error', 'none']],
+                                                    'level' => [
+                                                        'type' => 'string',
+                                                        'enum' => ['ok', 'slow', 'error', 'none'],
+                                                        'description' => 'error when a row is, else slow when one is, else ok when one is, else none (nothing to ask)',
+                                                    ],
                                                     'groups' => [
                                                         'type' => 'array',
                                                         'items' => [
@@ -551,7 +555,7 @@ final class Endpoints
                                                                 ],
                                                                 'rows' => [
                                                                     'type' => 'array',
-                                                                    'items' => ['type' => 'object'],
+                                                                    'items' => ['type' => 'object', 'properties' => Contract::healthRow()],
                                                                 ],
                                                             ],
                                                         ],

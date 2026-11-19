@@ -18,6 +18,7 @@ function code_server(): array
         if ($path === "redirect") { header("Location: /200", true, 308); return; }
         if ($path === "redirect404") { header("Location: /404", true, 308); return; }
         if ($path === "get_grid_info") { header("Content-Type: text/xml"); echo "<gridinfo><gridname>Alpha</gridname><login>http://play.example.org:8002/</login></gridinfo>"; return; }
+        if (preg_match("#^slow/(\\d+)$#", $path, $m)) { usleep((int) $m[1] * 1000); http_response_code(200); return; }
         if ($path === "needs-data") { http_response_code(file_get_contents("php://input") === "" && empty($_SERVER["QUERY_STRING"]) ? 400 : 200); return; }
         http_response_code(is_numeric($path) ? (int) $path : 200); echo str_repeat("x", 5000);',
     );
@@ -124,6 +125,34 @@ describe('An address', function () {
             ->not->toBe('')
             ->and($by['fine'])
             ->not->toHaveKeys(['method', 'probe', 'skip', 'expect', 'body']);
+    });
+
+    test('is asked again, longer, when it took too long: slow when it answers then, an error when it never does', function () {
+        [$process, $port] = code_server();
+        $ask = static fn(int $ms, float $timeout, float $retry) => Health::answers(
+            [['title' => 'One', 'rows' => [['label' => 'page', 'url' => "http://127.0.0.1:$port/slow/$ms", 'method' => 'get']]]],
+            $timeout,
+            $retry,
+        )[0]['rows'][0];
+
+        // One at a time: the server of the test answers one request after the other
+        $fast = $ask(10, 1, 4);
+        $slow = $ask(1500, 1, 4);
+        $never = $ask(2500, 1, 1);
+        proc_terminate($process);
+
+        expect($slow)
+            ->toMatchArray(['level' => 'slow', 'status' => '200'])
+            ->and($slow['detail'] ?? '')
+            ->toContain('1 s')
+            ->and($never)
+            ->toMatchArray(['level' => 'error', 'status' => 'cURL error 28'])
+            ->and($fast)
+            ->toMatchArray(['level' => 'ok', 'status' => '200'])
+            ->and(Health::TIMEOUT)
+            ->toBe(3)
+            ->and(Health::RETRY_TIMEOUT)
+            ->toBeGreaterThan(Health::TIMEOUT);
     });
 
     test(
@@ -787,4 +816,24 @@ describe('What an install needs', function () {
                 ->toBe('ok');
         },
     );
+});
+
+describe('The health in the contract', function () {
+    test('says each field of a row, the certificate too, and the level of all: an error first, then slow, then fine', function () {
+        $schema = OpenSim\Api\Contract::document()['paths']['/grids/{grid}/health']['get']['responses']['200']['content'][OpenSim\Api\Response::JSON_API]['schema'];
+        $attributes = $schema['properties']['data']['properties']['attributes']['properties'];
+        $row = $attributes['groups']['items']['properties']['rows']['items']['properties'];
+        $groups = static fn(string ...$levels): array => [['rows' => array_map(static fn(string $level): array => ['level' => $level], $levels)]];
+
+        expect($attributes['level']['enum'])
+            ->toBe(['ok', 'slow', 'error', 'none'])
+            ->and(array_keys($row))
+            ->toContain('label', 'url', 'text', 'display', 'tag', 'level', 'status', 'ms', 'detail', 'cert')
+            ->and($row['cert']['description'] ?? '')
+            ->toContain('certificate')
+            ->and($row['level']['enum'])
+            ->toBe(['ok', 'slow', 'error', 'none'])
+            ->and([Health::level($groups('ok', 'slow', 'error')), Health::level($groups('ok', 'slow')), Health::level($groups('ok', 'none')), Health::level($groups('none'))])
+            ->toBe(['error', 'slow', 'ok', 'none']);
+    });
 });

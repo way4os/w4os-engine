@@ -1391,18 +1391,12 @@ final class Api
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
-        $levels = array_column(array_merge(...array_column($groups, 'rows') ?: [[]]), 'level');
-
         return Response::document([
             'data' => [
                 'type' => 'health',
                 'id' => $found->nick(),
                 'attributes' => [
-                    'level' => in_array('error', $levels, true)
-                        ? 'error'
-                        : (in_array('ok', $levels, true)
-                            ? 'ok'
-                            : 'none'),
+                    'level' => Health::level($groups),
                     'groups' => $groups,
                 ],
                 'links' => ['self' => $instance],

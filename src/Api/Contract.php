@@ -1090,6 +1090,29 @@ final class Contract
             + ['indicators' => $status['indicators'] ?? []]];
     }
 
+    /**
+     * What a row of the health says (Health): a setting, a page or what an install needs, asked or shown.
+     *
+     * @return array<string,array<string,mixed>>
+     */
+    public static function healthRow(): array
+    {
+        $field = static fn(string|array $type, string $description, array $more = []): array => ['type' => $type, 'description' => $description] + $more;
+
+        return [
+            'label' => $field('string', 'The setting as the ini file writes it (its key), the page, or what an install needs'),
+            'url' => $field('string', 'The address asked, empty for a row that is not one'),
+            'text' => $field('string', 'A value that is not an address, shown as it is'),
+            'display' => $field('string', 'The address as the config writes it, when the one asked differs (a profile with [AGENT_NAME], asked with the name of an avatar)'),
+            'tag' => $field('string', 'How it was asked or what it is, translated (without data, with valid post data, Web search)'),
+            'level' => $field('string', 'ok: it answers as it should; slow: it took longer than the timeout (3 s) and answered as it should when asked again, longer (10 s), a page made after a deploy; error: it does not; none: nothing to ask (not set, or not an address)', ['enum' => ['ok', 'slow', 'error', 'none']]),
+            'status' => $field('string', 'The HTTP code, OK, the error of curl, or what is wrong (missing, differs), translated'),
+            'ms' => $field(['integer', 'null'], 'How long it took to answer, in milliseconds'),
+            'detail' => $field('string', 'More on it: the error of curl, what get_grid_info says when it differs, the file or folder a row is about'),
+            'cert' => $field('boolean', 'The certificate of the address is one this server does not trust (expired, self-signed, another name): told apart, it does not change the level, what counts is what the address answers'),
+        ];
+    }
+
     /** The `x-form` of an item of a resource: its form, the levels of its fields, the head of its page. */
     public static function formDocument(string $type, ItemForm $form): array
     {

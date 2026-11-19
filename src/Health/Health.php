@@ -29,6 +29,12 @@ class Health
     /** How long an address has to answer, in seconds. */
     const TIMEOUT = 3;
 
+    /** How long an address that took too long has, asked again (a page made after a deploy, a cache to fill): slow when it answers. */
+    const RETRY_TIMEOUT = 10;
+
+    /** The curl error of an address that took too long. */
+    const TIMED_OUT = 28;
+
     /**
      * The settings of [GridInfoService] that are addresses, shown first, in this order (the one of Robust.HG.ini.example, and
      * `search`, the web page of the search the viewers read in get_grid_info), even when the grid gives none. It is not what the
@@ -485,12 +491,15 @@ class Health
      * Ask every address, all at once. A row that has a `probe` is asked there, one that has a `skip` is not asked. An address is
      * asked where its redirections lead, whatever its certificate: `cert` says it is one this server does not trust, which is not
      * what counts. What it answers is `level` (ok for a 2xx or a code expected of it, error for anything else, none when it is not
-     * defined), `status` (the HTTP code, OK, or the error of curl) and `ms`.
+     * defined; slow for one that took longer than the timeout and answered as it should when asked again, longer), `status` (the
+     * HTTP code, OK, or the error of curl) and `ms`.
      *
      * @param  list<array{title:string,rows:list<array<string,mixed>>}> $groups
+     * @param  float $timeout how long an address has, in seconds
+     * @param  float $retry   how long one that took too long has, asked again
      * @return list<array{title:string,rows:list<array<string,mixed>>}>
      */
-    public static function answers($groups)
+    public static function answers($groups, $timeout = self::TIMEOUT, $retry = self::RETRY_TIMEOUT)
     {
         $requests = [];
         foreach ($groups as $g => $group) {
@@ -500,7 +509,10 @@ class Health
                 }
             }
         }
-        $results = self::ask($requests);
+        $results = self::ask($requests, $timeout);
+        // The ones that took too long, asked again with more time: slow, not broken, when they answer then
+        $late = array_intersect_key($requests, array_filter($results, static fn(array $result): bool => $result['errno'] === self::TIMED_OUT));
+        $again = self::ask($late, $retry);
 
         foreach ($groups as $g => $group) {
             foreach ($group['rows'] as $r => $row) {
@@ -520,6 +532,14 @@ class Health
                         $row['expect'] ?? [],
                         !empty($row['refuse']),
                     );
+                    $second = $again["$g/$r"] ?? null;
+                    if ($second !== null && $second['errno'] !== self::TIMED_OUT) {
+                        $later = self::verdict($second['code'], $second['error'], $second['ms'], $second['errno'], $row['expect'] ?? [], !empty($row['refuse']));
+                        $verdict = $later['level'] === 'ok'
+                            ? ['level' => 'slow', 'status' => $later['status'], 'ms' => $later['ms'], 'detail' => sprintf(_('answered in %d ms, after more than %s s the first time'), $later['ms'], self::seconds($timeout))]
+                            : $later;
+                        $result = $second;
+                    }
                     // A certificate this server does not trust is told, it does not change what the address answers
                     if ($result['certificate'] !== 0) {
                         $verdict['cert'] = true;
@@ -545,9 +565,10 @@ class Health
      * Ask a set of addresses at once.
      *
      * @param  array<string,array<string,mixed>> $requests id => row (url, probe, method: get, post or xmlrpc, body)
+     * @param  float $timeout how long each has, in seconds
      * @return array<string,array{code:int,errno:int,error:string,ms:int,certificate:int}>
      */
-    private static function ask($requests)
+    private static function ask($requests, $timeout = self::TIMEOUT)
     {
         if (!$requests) {
             return [];
@@ -558,8 +579,8 @@ class Health
             $handle = curl_init($row['probe'] ?? $row['url']);
             curl_setopt_array($handle, [
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => self::TIMEOUT,
-                CURLOPT_CONNECTTIMEOUT => 2,
+                CURLOPT_TIMEOUT_MS => (int) round($timeout * 1000),
+                CURLOPT_CONNECTTIMEOUT_MS => (int) round(min(2, $timeout) * 1000),
                 CURLOPT_USERAGENT => 'OpenSimHealth',
                 // What counts is where the address leads, not the redirection it has on the way (unless the row asks for the
                 // answer of the address itself: a redirection away from it)
@@ -752,6 +773,29 @@ class Health
         }
 
         return $rows;
+    }
+
+    /**
+     * The level of a check, from the levels of its rows: error when one is, else slow, else ok, else none (nothing to ask).
+     *
+     * @param list<array{rows:list<array<string,mixed>>}> $groups
+     */
+    public static function level($groups)
+    {
+        $levels = array_column(array_merge(...array_column($groups, 'rows') ?: [[]]), 'level');
+        foreach (['error', 'slow', 'ok'] as $level) {
+            if (in_array($level, $levels, true)) {
+                return $level;
+            }
+        }
+
+        return 'none';
+    }
+
+    /** Seconds as they are said: 3, 1.5. */
+    private static function seconds($seconds)
+    {
+        return rtrim(rtrim(number_format((float) $seconds, 1, '.', ''), '0'), '.');
     }
 
     /** Whether a value is an address. */
