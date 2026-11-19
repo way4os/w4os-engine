@@ -759,15 +759,15 @@ msgid "Banned"
 msgstr ""
 
 msgctxt "avatar_type_user"
-msgid "User"
+msgid "User Avatar"
 msgstr ""
 
 msgctxt "avatar_type_model"
-msgid "Model"
+msgid "Default Model"
 msgstr ""
 
 msgctxt "avatar_type_service"
-msgid "Service"
+msgid "Service Account"
 msgstr ""
 
 msgctxt "state_grid_banned"
@@ -996,6 +996,18 @@ msgstr ""
 
 msgctxt "offline"
 msgid "Offline"
+msgstr ""
+
+msgctxt "view_all"
+msgid "All"
+msgstr ""
+
+msgctxt "view_active"
+msgid "Active"
+msgstr ""
+
+msgctxt "view_inactive"
+msgid "Inactive"
 msgstr ""
 
 msgctxt "degraded"

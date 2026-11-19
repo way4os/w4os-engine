@@ -1667,7 +1667,14 @@ final class Avatar extends Model
             );
         }
 
-        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : []);
+        // The views of w4os-wp, in its order: the type, active or not, in the world or not (with the visits)
+        $views = [
+            Listing::view('type', ['model' => 'avatar_type_model', 'service' => 'avatar_type_service', 'user' => 'avatar_type_user']),
+            Listing::view('active', ['yes' => 'view_active', 'no' => 'view_inactive']),
+            ...($joined ? [Listing::view('online', ['offline' => 'offline', 'online' => 'online'])] : []),
+        ];
+
+        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : [], $views);
     }
 
     /**

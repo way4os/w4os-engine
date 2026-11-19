@@ -275,9 +275,9 @@ final class Catalog
         'status_pending' => 'Pending',
         'status_banned' => 'Banned',
         // What an avatar is: a person's, a model of the grid, the account of its services
-        'avatar_type_user' => 'User',
-        'avatar_type_model' => 'Model',
-        'avatar_type_service' => 'Service',
+        'avatar_type_user' => 'User Avatar',
+        'avatar_type_model' => 'Default Model',
+        'avatar_type_service' => 'Service Account',
         // A ban of some estates, not of the grid; the bans, a god's
         'state_grid_banned' => 'Banned from the grid',
         'state_estate_banned' => 'Banned from estates',
@@ -338,6 +338,10 @@ final class Catalog
         'column_flags' => 'Flags',
         // Online or offline: a region that runs (its status), an avatar in the world (its presence)
         'offline' => 'Offline',
+        // The views of a list (Listing::view()), the row of links above it, in the words of w4os-wp
+        'view_all' => 'All',
+        'view_active' => 'Active',
+        'view_inactive' => 'Inactive',
         // A grid partly broken (GridMonitor::DEGRADED)
         'degraded' => 'Degraded',
         // The settings and pages of the health (Health::SETTINGS): setting_ and the name, and what each is for

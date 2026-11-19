@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (lists): a list says the filters a site shows as views, the row of links above it in w4os-wp, in its order and words (`views` of `x-list`, `Listing::view()`): All, then the avatars by type (Default Model, Service Account, User Avatar), active or not, in the world or not; the regions by size and status; each counted in `meta.counts`. The types of the avatars are named as w4os-wp names them, in its translations
 - fix (api): the filters of a list that has no pages are in the contract: `match`, `pattern` and `list` of the avatar models (the preview of their settings)
 - feature (addresses): each service of a grid says what it is and where its address is set (`services` of `getAddresses`, `Service::address()`), sorted file by file then section by section: its use (a service of Robust used by the simulators or by the viewers, a helper the simulators or the viewer call, a page, a web tool used with a script in-world, a task, the web assets of the sites), its file (Robust, OpenSim.ini, Helpers.ini), its section and its exact key, the key of get_grid_info that tells it, its name and description in the catalog (in French too, the words of w4os-wp where it has them)
 - change (health): the names and the descriptions of the settings w4os-wp has are its words and its translations (Splash, Login URI, Destinations Guide, Search Service, Web Search, Offline messages, This service requires a separate web application...)
