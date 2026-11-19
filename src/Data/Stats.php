@@ -133,4 +133,34 @@ final class Stats
             'area' => ($area = $one($grid, 'SELECT SUM(sizeX * sizeY) FROM regions')) ? (int) $area / 1000000 : 0,
         ];
     }
+
+    /**
+     * What the regions hold, in the databases of their simulators: their prims (the rows of `prims`) and their scripts (the items of
+     * `primitems` of the type LSL, 10), by region. A database without these tables tells nothing.
+     *
+     * @param iterable<OSPDO> $databases the databases of the simulators, each once
+     * @return array<string,array{prims:int,scripts:int}> by the UUID of the region, in lower case
+     */
+    public static function content(iterable $databases): array
+    {
+        $content = [];
+        foreach ($databases as $db) {
+            if (empty($db->connected) || !$db->table_exists('prims')) {
+                continue;
+            }
+            $prims = $db->prepareAndExecute('SELECT RegionUUID, COUNT(*) FROM prims GROUP BY RegionUUID', []);
+            foreach ($prims ? $prims->fetchAll(\PDO::FETCH_NUM) : [] as [$region, $count]) {
+                $content[strtolower((string) $region)] = ['prims' => (int) $count, 'scripts' => 0];
+            }
+            if (!$db->table_exists('primitems')) {
+                continue;
+            }
+            $scripts = $db->prepareAndExecute('SELECT p.RegionUUID, COUNT(*) FROM primitems i JOIN prims p ON p.UUID = i.primID WHERE i.invType = 10 GROUP BY p.RegionUUID', []);
+            foreach ($scripts ? $scripts->fetchAll(\PDO::FETCH_NUM) : [] as [$region, $count]) {
+                isset($content[strtolower((string) $region)]) && ($content[strtolower((string) $region)]['scripts'] = (int) $count);
+            }
+        }
+
+        return $content;
+    }
 }

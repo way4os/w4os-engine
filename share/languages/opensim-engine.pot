@@ -1298,6 +1298,14 @@ msgctxt "column_presence"
 msgid "Presence"
 msgstr ""
 
+msgctxt "column_prims"
+msgid "Prims"
+msgstr ""
+
+msgctxt "column_scripts"
+msgid "Scripts"
+msgstr ""
+
 msgctxt "column_internal_port"
 msgid "Internal Port"
 msgstr ""

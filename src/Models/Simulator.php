@@ -50,6 +50,9 @@ final class Simulator extends InstalledModel
     /** @var ?array<string,array{members:int,visitors:int}> who is in each region of its grid (Stats::presence()), read once for a list */
     private ?array $present = null;
 
+    /** @var ?array<string,array{prims:int,scripts:int}> what the regions of the grid hold (Stats::content()), read once for a list */
+    private ?array $content = null;
+
     /** @var ?array{key:string,label:string} the machine it runs on, once resolved (server()) */
     private ?array $server = null;
 
@@ -404,8 +407,10 @@ final class Simulator extends InstalledModel
             $directory = $grid->directory();
             $config = $directory !== '' && is_dir($directory) ? \OpenSim\Config\GridConfig::fromFolder($directory, ['Helpers' => 'Helpers.ini']) : null;
             $present = $config === null ? null : \OpenSim\Data\Stats::presence(static fn(string $service): ?\OpenSim\Data\OSPDO => \OpenSim\Data\Connections::pdo($config, $service));
+            $content = $config === null ? null : \OpenSim\Data\Stats::content(Parcel::simulatorDatabases($config));
             foreach ($all as $simulator) {
                 $simulator->present = $present;
+                $simulator->content = $content;
             }
             array_push($simulators, ...$all);
         }
@@ -500,7 +505,8 @@ final class Simulator extends InstalledModel
                 Listing::column('httpPort', 'column_port', 'number', 'port'),
                 Listing::column('regions', 'column_regions', 'number', 'regions'),
                 Listing::column('area', 'column_area', 'area', 'area'),
-                Listing::column('avatars', 'column_avatars', 'number', 'avatars'),
+                Listing::column('avatars', 'column_presence', 'number', 'avatars'),
+                Listing::column('prims', 'column_prims', 'number'),
                 // What its process takes, in percents of the machine, while it runs
                 Listing::column('cpu', 'column_cpu', 'usage', 'cpu', more: ['usage' => Listing::USAGE]),
                 Listing::column('memory', 'column_memory', 'usage', 'memory', more: ['usage' => Listing::USAGE + ['used' => 'memoryUsed', 'total' => 'memoryTotal', 'unit' => 'unit_mb']]),
@@ -591,6 +597,7 @@ final class Simulator extends InstalledModel
                 'server' => $this->server()['label'],
                 'serverKey' => $this->server()['key'],
                 'avatars' => $this->present() === null ? null : array_sum($this->present()),
+                'prims' => $this->prims(),
                 'members' => $this->present()['members'] ?? null,
                 'visitors' => $this->present()['visitors'] ?? null,
                 'cpu' => null,
@@ -623,6 +630,7 @@ final class Simulator extends InstalledModel
             'serverKey' => $this->server()['key'],
             // The people in its regions, members and visitors of other grids, never a NPC
             'avatars' => $this->present() === null ? null : array_sum($this->present()),
+            'prims' => $this->prims(),
             'members' => $this->present()['members'] ?? null,
             'visitors' => $this->present()['visitors'] ?? null,
             // What its process takes while it runs: the share of all the CPUs of the machine (ps gives it of one), the share of its
@@ -792,6 +800,25 @@ final class Simulator extends InstalledModel
         return null;
     }
 
+    /** The prims of its regions, in the databases of the simulators; null when it is not known. */
+    public function prims(): ?int
+    {
+        if ($this->content === null || $this->content === []) {
+            return null;
+        }
+
+        return array_sum(array_map(fn(string $uuid): int => $this->content[$uuid]['prims'] ?? 0, $this->regionUuids()));
+    }
+
+    /** @return list<string> the UUIDs of its regions, in lower case */
+    private function regionUuids(): array
+    {
+        return $this->elsewhere !== null ? $this->elsewhere['uuids'] : array_values(array_map(
+            static fn(Region $region): string => strtolower((string) $region->uuid()),
+            array_filter($this->regionsDirectory() !== '' ? Region::inDirectory($this->regionsDirectory()) : [], static fn(Region $region): bool => $region->isEnabled()),
+        ));
+    }
+
     /**
      * The people in its regions: the members of the grid and the visitors of other grids, never a NPC; null when it is not known.
      *
@@ -802,10 +829,7 @@ final class Simulator extends InstalledModel
         if ($this->present === null) {
             return null;
         }
-        $uuids = $this->elsewhere !== null ? $this->elsewhere['uuids'] : array_map(
-            static fn(Region $region): string => strtolower((string) $region->uuid()),
-            array_filter($this->regionsDirectory() !== '' ? Region::inDirectory($this->regionsDirectory()) : [], static fn(Region $region): bool => $region->isEnabled()),
-        );
+        $uuids = $this->regionUuids();
         $sum = ['members' => 0, 'visitors' => 0];
         foreach ($uuids as $uuid) {
             $sum['members'] += $this->present[$uuid]['members'] ?? 0;

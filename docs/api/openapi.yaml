@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: a089541
+  version: ca3f01b
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -633,9 +633,15 @@ paths:
             priority: secondary
           -
             name: avatars
-            label: column_avatars
+            label: column_presence
             type: number
             sort: avatars
+            bare: false
+            priority: secondary
+          -
+            name: prims
+            label: column_prims
+            type: number
             bare: false
             priority: secondary
           -
@@ -2875,6 +2881,18 @@ paths:
           -
             name: avatars
             label: column_presence
+            type: number
+            bare: false
+            priority: secondary
+          -
+            name: prims
+            label: column_prims
+            type: number
+            bare: false
+            priority: secondary
+          -
+            name: scripts
+            label: column_scripts
             type: number
             bare: false
             priority: secondary
@@ -9809,6 +9827,11 @@ components:
                 - integer
                 - 'null'
               description: 'The people in it: the members of the grid and the visitors of other grids, never a NPC (they do not reach Presence); null when it is not known'
+            prims:
+              type:
+                - integer
+                - 'null'
+              description: 'The prims of its regions, in the databases of the simulators; null when they cannot be read'
             members:
               type:
                 - integer
@@ -10443,6 +10466,16 @@ components:
                 - integer
                 - 'null'
               description: 'The people in it: the members of the grid and the visitors of other grids, never a NPC (they do not reach Presence); null when it is not known'
+            prims:
+              type:
+                - integer
+                - 'null'
+              description: 'Its prims, in the database of its simulator; null when it cannot be read'
+            scripts:
+              type:
+                - integer
+                - 'null'
+              description: 'Its scripts (the items of type LSL of its prims), in the database of its simulator; null when it cannot be read'
             members:
               type:
                 - integer

@@ -106,6 +106,9 @@ final class Region extends Model
     /** @var ?array{members:int,visitors:int} who is in it (Stats::presence()), null when it is not known */
     private ?array $present = null;
 
+    /** @var ?array{prims:int,scripts:int} what it holds (Stats::content()), null when it is not known */
+    private ?array $content = null;
+
     /** The roles that make a region a place of the grid: Robust keeps them in its config (Region_<Name>), read when it starts. */
     private const GRID_ROLES = self::DEFAULT_REGION | self::DEFAULT_HGREGION | self::FALLBACK_REGION;
 
@@ -371,6 +374,9 @@ final class Region extends Model
             'avatars' => $this->present === null ? null : $this->present['members'] + $this->present['visitors'],
             'members' => $this->present['members'] ?? null,
             'visitors' => $this->present['visitors'] ?? null,
+            // What it holds, in the database of its simulator (null when it is not known)
+            'prims' => $this->content['prims'] ?? null,
+            'scripts' => $this->content['scripts'] ?? null,
             'teleport' => $this->teleport(),
             'sources' => $this->sources(),
             'simulator' => $this->simulator() ?: null,
@@ -1159,6 +1165,11 @@ final class Region extends Model
         foreach ($here === null ? [] : $regions as $region) {
             $region->present = $here[strtolower((string) $region->uuid())] ?? ['members' => 0, 'visitors' => 0];
         }
+        // What each holds, read once for them in the databases of the simulators
+        $content = \OpenSim\Data\Stats::content(Parcel::simulatorDatabases($config));
+        foreach ($content === [] ? [] : $regions as $region) {
+            $region->content = $content[strtolower((string) $region->uuid())] ?? ['prims' => 0, 'scripts' => 0];
+        }
 
         return $regions;
     }
@@ -1333,6 +1344,8 @@ final class Region extends Model
                 Listing::column('serverName', 'filter_simulator', more: ['mirrors' => 'simulator']),
                 // The avatars in it
                 Listing::column('avatars', 'column_presence', 'number'),
+                Listing::column('prims', 'column_prims', 'number'),
+                Listing::column('scripts', 'column_scripts', 'number'),
                 // The port of the region on its simulator (InternalPort of its file), where its file is
                 Listing::column('internalPort', 'column_internal_port', 'number'),
                 Listing::column('size', 'column_size', 'size', 'size'),

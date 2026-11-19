@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (lists): the prims and the scripts of the regions, the prims of the simulators, from the databases of the simulators; the people of a simulator under Presence, as for the regions
 - change (lists): an area is shown in km², two decimals under 10, none above (no m², no ha)
 - fix (monitor): the state of a grid a site describes counts its regions and its people in the config it was given (the grid status block)
 - fix (grids): the get_grid_info a grid not verified yet says is Robust's: platform, the keys of [GridInfoService] (the password page too), home and gatekeeper from HomeURI and GatekeeperURI

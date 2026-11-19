@@ -333,7 +333,7 @@ final class Parcel extends Model
 
         $rows = [];
         $reached = 0;
-        foreach (self::databases($config) as $pdo) {
+        foreach (self::simulatorDatabases($config) as $pdo) {
             $reached++;
             foreach (
                 $pdo->get_results('SELECT ' . self::COLUMNS . ", Bitmap FROM land$where", $params, \PDO::FETCH_ASSOC)
@@ -380,7 +380,7 @@ final class Parcel extends Model
     /** A parcel by its UUID, with its bitmap. */
     public static function find(GridConfig $config, string $id): ?static
     {
-        foreach (self::databases($config) as $pdo) {
+        foreach (self::simulatorDatabases($config) as $pdo) {
             $rows = $pdo->get_results(
                 'SELECT ' . self::COLUMNS . ', Bitmap FROM land WHERE UUID = :id',
                 ['id' => strtolower($id)],
@@ -403,7 +403,7 @@ final class Parcel extends Model
     public static function at(GridConfig $config, string $region, int|float $x, int|float $y): ?static
     {
         $width = null;
-        foreach (self::databases($config) as $pdo) {
+        foreach (self::simulatorDatabases($config) as $pdo) {
             $rows = $pdo->get_results(
                 'SELECT ' . self::COLUMNS . ', Bitmap FROM land WHERE RegionUUID = :region',
                 ['region' => strtolower($region)],
@@ -531,7 +531,7 @@ final class Parcel extends Model
      *
      * @return \Generator<int,OSPDO>
      */
-    private static function databases(GridConfig $config): \Generator
+    public static function simulatorDatabases(GridConfig $config): \Generator
     {
         $seen = [];
         foreach (array_keys($config->tree()['simulators'] ?? []) as $simulator) {
@@ -540,6 +540,11 @@ final class Parcel extends Model
                 continue;
             }
             $seen[$key] = true;
+            // A SQLite file is read, never made by opening it
+            $connection = Database::Simulator->connection($config, (string) $simulator);
+            if ($connection?->driver === 'sqlite' && !is_file($connection->source)) {
+                continue;
+            }
             $pdo = Connections::pdo($config, Database::Simulator, (string) $simulator);
             if ($pdo !== null) {
                 yield $pdo;

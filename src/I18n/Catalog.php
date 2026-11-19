@@ -414,6 +414,8 @@ final class Catalog
         'column_region' => 'Region',
         'column_region_name' => 'Region Name',
         'column_presence' => 'Presence',
+        'column_prims' => 'Prims',
+        'column_scripts' => 'Scripts',
         'column_internal_port' => 'Internal Port',
         'last_activity' => 'Last Activity',
         'column_size' => 'Size',

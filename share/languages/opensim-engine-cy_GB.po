@@ -1498,6 +1498,14 @@ msgctxt "column_presence"
 msgid "Presence"
 msgstr "Presenoldeb"
 
+msgctxt "column_prims"
+msgid "Prims"
+msgstr "Prims"
+
+msgctxt "column_scripts"
+msgid "Scripts"
+msgstr "Sgriptiau"
+
 msgctxt "column_internal_port"
 msgid "Internal Port"
 msgstr "Porth Mewnol"
