@@ -30,21 +30,22 @@ use OpenSim\Text\Uuid;
 final class GridSettings
 {
     /**
-     * The pages, their title, their help (`description`: the keys of its points, in order) and the list a form shows of what its
+     * The pages, their title, their short label in a menu (`menu`), their help (`description`: the keys of its points, in order) and the list a form shows of what its
      * settings pick (`preview`: its title, what it says when empty, the list, the fields given as its filters). The words are those
      * of w4os-wp, with its translations.
      */
     private const PAGES = [
         'models' => [
             'title' => 'settings_models',
+            'menu' => 'settings_models',
             'description' => ['models_help_choice', 'models_help_create', 'models_help_not_users', 'models_help_outfit', 'models_help_rule'],
             'preview' => ['label' => 'models_preview', 'empty' => 'models_none', 'path' => '/grids/{grid}/avatar-models', 'filters' => ['match', 'pattern', 'list']],
         ],
-        'economy' => ['title' => 'settings_economy'],
-        'search' => ['title' => 'settings_search'],
-        'guide' => ['title' => 'settings_guide'],
-        'offline' => ['title' => 'settings_offline'],
-        'assets' => ['title' => 'settings_assets'],
+        'economy' => ['title' => 'settings_economy', 'menu' => 'settings_menu_economy'],
+        'search' => ['title' => 'settings_search', 'menu' => 'settings_menu_search'],
+        'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide'],
+        'offline' => ['title' => 'settings_offline', 'menu' => 'settings_menu_offline'],
+        'assets' => ['title' => 'settings_assets', 'menu' => 'settings_menu_assets'],
     ];
 
     /** The type of a field of the standard format, by type of setting. */
@@ -85,7 +86,8 @@ final class GridSettings
     }
 
     /**
-     * The form of a page, as the contract gives it (`x-form`): its title, its fields without where they are kept, its submit.
+     * The form of a page, as the contract gives it (`x-form`): its title, its label in a menu, its fields without where they are kept,
+     * its submit, the message once it is saved.
      *
      * @return array{title:string,fields:list<array<string,mixed>>,submit:string,description?:list<string>,preview?:array<string,mixed>}
      */
@@ -98,7 +100,7 @@ final class GridSettings
             self::entries($page),
         );
 
-        return ['title' => self::PAGES[$page]['title'], 'fields' => $fields, 'submit' => 'action_save_changes']
+        return ['title' => self::PAGES[$page]['title'], 'menu' => self::PAGES[$page]['menu'], 'fields' => $fields, 'submit' => 'action_save_changes', 'saved' => 'settings_saved']
             + array_intersect_key(self::PAGES[$page], ['description' => 1, 'preview' => 1]);
     }
 

@@ -53,6 +53,22 @@ describe('The settings pages of the services', function () {
             ->toBe(["Réglages de l'économie", 'Taux de conversion des devises', 'Base de données du moteur de recherche', "URL du serveur d'événements", "Adresse e-mail de l'expéditeur", 'URL du serveur de ressources web']);
     });
 
+    test('give their short label for a menu and the message once saved, in the words of w4os-wp and WordPress', function () {
+        $en = Catalog::MESSAGES;
+        $fr = Catalog::messages('fr_FR');
+        $forms = array_map(static fn(string $page): array => GridSettings::form($page), GridSettings::groups());
+
+        expect(array_map(static fn(array $form): string => $en[$form['menu']], $forms))
+            ->toBe(['Avatar Models', 'Economy', 'Search Engine', 'Destinations Guide', 'Offline Messages', 'Assets Server'])
+            ->and(array_unique(array_column($forms, 'saved')))
+            ->toBe(['settings_saved'])
+            ->and([$en['settings_saved'], $fr['settings_saved'], $fr[$forms[2]['menu']]])
+            ->toBe(['Settings saved.', 'Réglages enregistrés.', 'Moteur de recherche']);
+        foreach (Catalog::LOCALES as $language) {
+            expect(Catalog::messages($language))->toHaveKeys(['settings_saved', ...array_column($forms, 'menu')]);
+        }
+    });
+
     test('describe their fields in the standard format: a database by its parts, a secret, a choice shown only for the module that needs it', function () {
         $economy = array_column(GridSettings::form('economy')['fields'], null, 'name');
         $search = array_column(GridSettings::form('search')['fields'], null, 'name');

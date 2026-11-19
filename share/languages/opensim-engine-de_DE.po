@@ -406,6 +406,30 @@ msgctxt "settings_assets"
 msgid "Web Assets Server"
 msgstr "Web Assets Server"
 
+msgctxt "settings_menu_economy"
+msgid "Economy"
+msgstr "Wirtschaft"
+
+msgctxt "settings_menu_search"
+msgid "Search Engine"
+msgstr "Suchmaschine"
+
+msgctxt "settings_menu_guide"
+msgid "Destinations Guide"
+msgstr "Reiseführer für Ziele"
+
+msgctxt "settings_menu_offline"
+msgid "Offline Messages"
+msgstr "Offline-Meldungen"
+
+msgctxt "settings_menu_assets"
+msgid "Assets Server"
+msgstr "Assets Server"
+
+msgctxt "settings_saved"
+msgid "Settings saved."
+msgstr "Einstellungen gespeichert."
+
 msgctxt "models_match"
 msgid "Match"
 msgstr "Passen"

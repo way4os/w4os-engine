@@ -403,6 +403,30 @@ msgctxt "settings_assets"
 msgid "Web Assets Server"
 msgstr "Gweinydd Asedau Gwe"
 
+msgctxt "settings_menu_economy"
+msgid "Economy"
+msgstr "Economi"
+
+msgctxt "settings_menu_search"
+msgid "Search Engine"
+msgstr "Peiriant chwilio"
+
+msgctxt "settings_menu_guide"
+msgid "Destinations Guide"
+msgstr "Teithlyddau Cyfeiriadau"
+
+msgctxt "settings_menu_offline"
+msgid "Offline Messages"
+msgstr "Negeseuon All-lein"
+
+msgctxt "settings_menu_assets"
+msgid "Assets Server"
+msgstr "Gweinydd Asedau"
+
+msgctxt "settings_saved"
+msgid "Settings saved."
+msgstr "Gosodiadau wedi’u cadw."
+
 msgctxt "models_match"
 msgid "Match"
 msgstr "Cyfateb"
