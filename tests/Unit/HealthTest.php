@@ -871,6 +871,16 @@ describe('What an install needs', function () {
             ->each->not->toHaveKeys(['url', 'ms']);
     });
 
+    test('says whether the pictures of the world can be shown: imagick that reads JPEG 2000', function () {
+        $row = array_column(Health::extensions(), null, 'label')['imagick JPEG 2000'] ?? null;
+        $reads = class_exists('Imagick') && Imagick::queryFormats('JP2') !== [];
+
+        expect($row)
+            ->toMatchArray(['kind' => 'requirement', 'installed' => $reads, 'level' => $reads ? 'ok' : 'error'])
+            ->and($row['detail'] ?? '')
+            ->toContain('pictures of the world');
+    });
+
     test('says a setting that is not given apart: not set, so neither served nor tested, which is not a wrong one', function () {
         $unset = Health::emptyRow('DirectoryURL');
         $groups = static fn(string ...$levels): array => [['rows' => array_map(static fn(string $level): array => ['level' => $level], $levels)]];

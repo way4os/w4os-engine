@@ -893,7 +893,27 @@ class Health
         return [
             self::requirement('xmlrpc', function_exists('xmlrpc_encode'), 'extension or polyfill'),
             self::requirement('imagick', class_exists('Imagick'), 'text to image, web assets'),
+            self::jpeg2000(),
             self::requirement('gettext', function_exists('gettext'), 'translations'),
+        ];
+    }
+
+    /**
+     * Whether imagick reads JPEG 2000, the format of the pictures of the world (textures, profile pictures, map tiles): without it
+     * (an imagick built without OpenJPEG), a site cannot show them.
+     */
+    private static function jpeg2000()
+    {
+        $reads = class_exists('Imagick') && \Imagick::queryFormats('JP2') !== [];
+
+        return [
+            'label' => 'imagick JPEG 2000',
+            'kind' => 'requirement',
+            'installed' => $reads,
+            'version' => null,
+            'level' => $reads ? 'ok' : 'error',
+            'status' => $reads ? _('reads JPEG 2000') : _('cannot read JPEG 2000'),
+            'detail' => 'the pictures of the world (JPEG 2000): without it, a site cannot show them (imagick built with OpenJPEG)',
         ];
     }
 
