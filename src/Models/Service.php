@@ -390,6 +390,48 @@ final class Service extends InstalledModel
         ],
     ];
 
+    /**
+     * What a web service is used for, by key (a service of Robust is used by the simulators on its private port, by the viewers and
+     * the other grids on its public one): a helper the simulators or the viewer call, a page, a web tool used with a script
+     * in-world, a task of the grid, the web assets of the sites.
+     */
+    private const USAGES = [
+        'query' => 'helper-simulators',
+        'register' => 'helper-simulators',
+        'currency' => 'helper-viewers',
+        'landtool' => 'helper-viewers',
+        'search' => 'page',
+        'welcome' => 'page',
+        'web-profile' => 'page',
+        'motd' => 'page',
+        'guide' => 'page',
+        'grid-status' => 'page',
+        'grid-status-rss' => 'page',
+        'directory' => 'page',
+        'text-images' => 'web-tool',
+        'parser' => 'task',
+        'events-parser' => 'task',
+        'assets' => 'web-assets',
+    ];
+
+    /** The name of a service in the catalog when it is a setting the health names too (Health::SETTINGS): `setting_<name>`. */
+    private const SETTING_NAMES = [
+        'login' => 'login',
+        'gatekeeper' => 'gatekeeper',
+        'user-agent' => 'uas',
+        'query' => 'search_service',
+        'search' => 'web_search',
+        'welcome' => 'welcome',
+        'web-profile' => 'web_profile',
+        'offline' => 'offline_messages',
+        'register' => 'data_service',
+        'motd' => 'message_url',
+        'guide' => 'destination_guide',
+        'grid-status' => 'grid_status',
+        'grid-status-rss' => 'grid_status_rss',
+        'directory' => 'directory',
+    ];
+
     /** What a standalone serves by itself: the services of the grid, the ones of the hypergrid when it is one. */
     private const STANDALONE = [
         'asset',
@@ -859,6 +901,58 @@ final class Service extends InstalledModel
             'standard' => $this->standard(),
             'endpoint' => $this->endpoint(),
             'source' => $this->source(),
+        ];
+    }
+
+    /**
+     * What the service is used for: `robust-simulators`, `robust-viewers` (a service of Robust), `helper-simulators`,
+     * `helper-viewers`, `page`, `web-tool`, `task`, `web-assets` (USAGES). The offline messages are a service of Robust (V2) or a
+     * helper of the simulators (V1), by where their address leads.
+     */
+    public function usage(): string
+    {
+        if ($this->key === 'offline') {
+            return $this->isServed() ? 'robust-simulators' : 'helper-simulators';
+        }
+
+        return self::USAGES[$this->key] ?? ($this->port() === self::PUBLIC ? 'robust-viewers' : 'robust-simulators');
+    }
+
+    /**
+     * Where its address is set, to show it with its file and its section: the file (`Robust.HG.ini`, `OpenSim.ini` for what the
+     * simulators are given, `Helpers.ini`), the section and the key; the connector of `[ServiceList]` of Robust for a service the
+     * simulators are not given; the key of get_grid_info that tells it (`info`); its name and description in the catalog.
+     *
+     * @return array{key:string,url:?string,source:?string,usage:string,file:?string,section:?string,setting:?string,info:?string,label:string,description:string}
+     */
+    public function address(): array
+    {
+        $entry = self::CATALOG[$this->key];
+        $robust = $this->grid->robustIni();
+        $robustFile = $robust !== null ? basename($robust) : 'Robust.ini';
+        [$section, $key] = $entry['setting'] ?? [null, null];
+        $file = match (true) {
+            $section === null => ($entry['connectors'] ?? []) === [] ? null : $robustFile,
+            ($entry['role'] ?? null) === 'Robust' => $robustFile,
+            ($entry['role'] ?? null) === 'Helpers' => 'Helpers.ini',
+            default => 'OpenSim.ini',
+        };
+        if ($section === null && $file !== null) {
+            [$section, $key] = ['ServiceList', $entry['connectors'][0]];
+        }
+        $name = isset(self::SETTING_NAMES[$this->key]) ? 'setting_' . self::SETTING_NAMES[$this->key] : 'service_' . str_replace('-', '_', $this->key);
+
+        return [
+            'key' => $this->key,
+            'url' => $this->url(),
+            'source' => $this->source(),
+            'usage' => $this->usage(),
+            'file' => $file,
+            'section' => $section,
+            'setting' => $key,
+            'info' => $entry['info'] ?? null,
+            'label' => $name,
+            'description' => $name . '_help',
         ];
     }
 

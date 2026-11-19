@@ -1227,6 +1227,9 @@ final class Api
         try {
             $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
             $addresses = $found->addresses();
+            // Each service, what it is, where it is set: file by file, then section by section
+            $services = array_map(static fn(Service $service): array => $service->address(), Service::of($found)->items());
+            usort($services, static fn(array $a, array $b): int => [(string) $a['file'], (string) $a['section'], $a['key']] <=> [(string) $b['file'], (string) $b['section'], $b['key']]);
             $sources = [];
             foreach (array_keys($addresses) as $key) {
                 $sources[$key] = $found->service($key)?->source();
@@ -1256,6 +1259,7 @@ final class Api
                     'register' => $found->registerUrl(),
                     'offline' => $found->offlineUrl(),
                     'addresses' => $addresses,
+                    'services' => $services,
                     'sources' => $sources,
                     'servedBy' => $servedBy,
                 ],

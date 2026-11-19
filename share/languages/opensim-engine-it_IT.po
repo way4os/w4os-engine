@@ -1109,7 +1109,10 @@ msgid ""
 "The welcome page displayed in the viewer with the login form. A short, no-"
 "scroll page, with only essential info. It is required, or at least highly "
 "recommended."
-msgstr "La pagina di benvenuto visualizzata nel viewer con il modulo di accesso. Una pagina breve, senza scorrimento, con solo le informazioni essenziali. È richiesta, o almeno altamente consigliata."
+msgstr ""
+"La pagina di benvenuto visualizzata nel viewer con il modulo di accesso. Una "
+"pagina breve, senza scorrimento, con solo le informazioni essenziali. È "
+"richiesta, o almeno altamente consigliata."
 
 msgctxt "setting_economy"
 msgid "Economy"
@@ -1119,7 +1122,9 @@ msgctxt "setting_economy_help"
 msgid ""
 "Currencies and some other services queried by the viewer. They are not "
 "accessed directly by the user."
-msgstr "Valute e alcuni altri servizi richiesti dal viewer. Non sono accessibili direttamente dall'utente."
+msgstr ""
+"Valute e alcuni altri servizi richiesti dal viewer. Non sono accessibili "
+"direttamente dall'utente."
 
 msgctxt "setting_about"
 msgid "About this grid"
@@ -1129,7 +1134,9 @@ msgctxt "setting_about_help"
 msgid ""
 "Detailed info page on your website, via a link displayed on the viewer login "
 "page."
-msgstr "Pagina dettagliata sul tuo sito web, tramite un link visualizzato sulla pagina di accesso del viewer."
+msgstr ""
+"Pagina dettagliata sul tuo sito web, tramite un link visualizzato sulla "
+"pagina di accesso del viewer."
 
 msgctxt "setting_register"
 msgid "Registration page"
@@ -1187,7 +1194,9 @@ msgctxt "setting_web_search_help"
 msgid ""
 "Web tab of viewer search windows. Relevant if you have a search page "
 "providing content from the grid."
-msgstr "Scheda web della finestra di ricerca del viewer. Rilevante se hai una pagina di ricerca che fornisce contenuti dalla griglia."
+msgstr ""
+"Scheda web della finestra di ricerca del viewer. Rilevante se hai una pagina "
+"di ricerca che fornisce contenuti dalla griglia."
 
 msgctxt "setting_destination_guide"
 msgid "Destinations Guide"
@@ -1197,7 +1206,9 @@ msgctxt "setting_destination_guide_help"
 msgid ""
 "Destinations guide is a Viewer 3 feature, providing a window with places "
 "suggestions."
-msgstr "La guida delle destinazioni è una funzionalità del Viewer 3, che fornisce una finestra con suggerimenti di luoghi."
+msgstr ""
+"La guida delle destinazioni è una funzionalità del Viewer 3, che fornisce "
+"una finestra con suggerimenti di luoghi."
 
 msgctxt "setting_message_url"
 msgid "Message of the day"
@@ -1216,7 +1227,11 @@ msgid ""
 "Search service used by the viewer. Search can be provided by the simulator "
 "core (limited), or by an external service for additional functionalities "
 "(like events). Requires OpenSimSearch.Modules.dll."
-msgstr "Servizio di ricerca utilizzato dal viewer. La ricerca può essere fornita dal core del simulatore (limitata), oppure da un servizio esterno per funzionalità aggiuntive (come gli eventi). Richiede OpenSimSearch.Modules.dll."
+msgstr ""
+"Servizio di ricerca utilizzato dal viewer. La ricerca può essere fornita dal "
+"core del simulatore (limitata), oppure da un servizio esterno per "
+"funzionalità aggiuntive (come gli eventi). Richiede "
+"OpenSimSearch.Modules.dll."
 
 msgctxt "setting_data_service"
 msgid "Data service"
@@ -1237,7 +1252,10 @@ msgid ""
 "Needed by viewers to keep messages while user is offline and deliver them "
 "when they come back online. Internal service, not accessed directly by the "
 "user."
-msgstr "Necessario per i viewer per conservare i messaggi mentre l'utente è offline e consegnarli quando torna online. Servizio interno, non accessibile direttamente dall'utente."
+msgstr ""
+"Necessario per i viewer per conservare i messaggi mentre l'utente è offline "
+"e consegnarli quando torna online. Servizio interno, non accessibile "
+"direttamente dall'utente."
 
 msgctxt "setting_offline_module"
 msgid "Offline messages module"
@@ -1293,6 +1311,278 @@ msgctxt "setting_cache_tasks_help"
 msgid ""
 "The folder of the state of the tasks: without it, no task runs and the "
 "search index never fills."
+msgstr ""
+
+msgctxt "usage_robust_simulators"
+msgid "Robust service, used by the simulators"
+msgstr ""
+
+msgctxt "usage_robust_viewers"
+msgid "Robust service, used by the viewers and the other grids"
+msgstr ""
+
+msgctxt "usage_helper_simulators"
+msgid "Helper called by the simulators"
+msgstr ""
+
+msgctxt "usage_helper_viewers"
+msgid "Helper called by the viewer"
+msgstr ""
+
+msgctxt "usage_page"
+msgid "Web page, shown by the viewer or the web site"
+msgstr ""
+
+msgctxt "usage_web_tool"
+msgid "Web tool, used with a script in-world"
+msgstr ""
+
+msgctxt "usage_task"
+msgid "Task of the grid, run in the background"
+msgstr ""
+
+msgctxt "usage_web_assets"
+msgid "Web assets, for the web sites"
+msgstr ""
+
+msgctxt "service_asset"
+msgid "Assets service"
+msgstr ""
+
+msgctxt "service_asset_help"
+msgid ""
+"The assets of the grid (textures, sounds, objects...): the simulators read "
+"and store them."
+msgstr ""
+
+msgctxt "service_inventory"
+msgid "Inventory service"
+msgstr ""
+
+msgctxt "service_inventory_help"
+msgid "The inventories of the avatars."
+msgstr ""
+
+msgctxt "service_grid"
+msgid "Grid service"
+msgstr ""
+
+msgctxt "service_grid_help"
+msgid ""
+"The regions of the grid: where each one is, and which simulator runs it."
+msgstr ""
+
+msgctxt "service_estate"
+msgid "Estate service"
+msgstr ""
+
+msgctxt "service_estate_help"
+msgid "The estates of the regions, their owners and their managers."
+msgstr ""
+
+msgctxt "service_authentication"
+msgid "Authentication service"
+msgstr ""
+
+msgctxt "service_authentication_help"
+msgid "The passwords of the accounts, and their sessions."
+msgstr ""
+
+msgctxt "service_avatar"
+msgid "Avatar service"
+msgstr ""
+
+msgctxt "service_avatar_help"
+msgid "The appearance of the avatars: what they wear."
+msgstr ""
+
+msgctxt "service_agent_preferences"
+msgid "Agent preferences service"
+msgstr ""
+
+msgctxt "service_agent_preferences_help"
+msgid "The preferences of the avatars the grid keeps (language, maturity)."
+msgstr ""
+
+msgctxt "service_presence"
+msgid "Presence service"
+msgstr ""
+
+msgctxt "service_presence_help"
+msgid "Who is in the world now, and where."
+msgstr ""
+
+msgctxt "service_user_account"
+msgid "User account service"
+msgstr ""
+
+msgctxt "service_user_account_help"
+msgid "The accounts of the avatars: their names, emails and levels."
+msgstr ""
+
+msgctxt "service_grid_user"
+msgid "Grid user service"
+msgstr ""
+
+msgctxt "service_grid_user_help"
+msgid "The last position and the home of each avatar."
+msgstr ""
+
+msgctxt "service_friends"
+msgid "Friends service"
+msgstr ""
+
+msgctxt "service_friends_help"
+msgid "The friendships of the avatars."
+msgstr ""
+
+msgctxt "service_map_image"
+msgid "Map tiles service"
+msgstr ""
+
+msgctxt "service_map_image_help"
+msgid "The tiles of the map of the world: the simulators add them."
+msgstr ""
+
+msgctxt "service_mute_list"
+msgid "Mute list service"
+msgstr ""
+
+msgctxt "service_mute_list_help"
+msgid "What each avatar blocks."
+msgstr ""
+
+msgctxt "service_bakes"
+msgid "Baked textures service"
+msgstr ""
+
+msgctxt "service_bakes_help"
+msgid "The baked textures of the avatars, shared between the simulators."
+msgstr ""
+
+msgctxt "service_groups"
+msgid "Groups service"
+msgstr ""
+
+msgctxt "service_groups_help"
+msgid "The groups of the avatars, their members, roles and notices."
+msgstr ""
+
+msgctxt "service_profile"
+msgid "Profiles service"
+msgstr ""
+
+msgctxt "service_profile_help"
+msgid "The profiles of the avatars, their picks and their classifieds."
+msgstr ""
+
+msgctxt "service_get_grid_info"
+msgid "Grid info"
+msgstr "Informazioni sulla griglia"
+
+msgctxt "service_get_grid_info_help"
+msgid "What the grid says of itself to the viewers (get_grid_info)."
+msgstr ""
+
+msgctxt "service_hg_friends"
+msgid "Hypergrid friends service"
+msgstr ""
+
+msgctxt "service_hg_friends_help"
+msgid "The friendships with the avatars of other grids (hypergrid)."
+msgstr ""
+
+msgctxt "service_hg_asset"
+msgid "Hypergrid assets service"
+msgstr ""
+
+msgctxt "service_hg_asset_help"
+msgid "The assets the other grids ask for (hypergrid)."
+msgstr ""
+
+msgctxt "service_hg_inventory"
+msgid "Hypergrid inventory service"
+msgstr ""
+
+msgctxt "service_hg_inventory_help"
+msgid ""
+"The inventories the avatars of this grid reach from other grids (hypergrid)."
+msgstr ""
+
+msgctxt "service_hg_groups"
+msgid "Hypergrid groups service"
+msgstr ""
+
+msgctxt "service_hg_groups_help"
+msgid "The groups the avatars of other grids reach (hypergrid)."
+msgstr ""
+
+msgctxt "service_map"
+msgid "Map service"
+msgstr ""
+
+msgctxt "service_map_help"
+msgid "The tiles of the map the viewers and the other grids read."
+msgstr ""
+
+msgctxt "service_currency"
+msgid "Currency helper"
+msgstr ""
+
+msgctxt "service_currency_help"
+msgid ""
+"The currency of the grid, called by the viewer (currency.php): the balance, "
+"the cost of currency."
+msgstr ""
+
+msgctxt "service_landtool"
+msgid "Land tool helper"
+msgstr ""
+
+msgctxt "service_landtool_help"
+msgid "The land sales the viewer calls (landtool.php)."
+msgstr ""
+
+msgctxt "service_parser"
+msgid "Search parser"
+msgstr ""
+
+msgctxt "service_parser_help"
+msgid "Reads the regions registered with the search: a task of the grid."
+msgstr ""
+
+msgctxt "service_events_parser"
+msgid "Events parser"
+msgstr ""
+
+msgctxt "service_events_parser_help"
+msgid "Reads the events of the calendar: a task of the grid."
+msgstr ""
+
+msgctxt "service_text_images"
+msgid "Text to image"
+msgstr ""
+
+msgctxt "service_text_images_help"
+msgid "Makes an image of a text, for a script in-world (textgen.php)."
+msgstr ""
+
+msgctxt "service_assets"
+msgid "Web Assets Server"
+msgstr "Server delle risorse web"
+
+msgctxt "service_assets_help"
+msgid ""
+"A web assets server is required to display in-world assets (from the grid) "
+"on the website (e.g. profile pictures)."
+msgstr "È necessario un server di risorse web per visualizzare le risorse in-world (dalla griglia) sul sito web (ad esempio, le immagini del profilo)."
+
+msgctxt "service_instant_message"
+msgid "Instant messages service"
+msgstr ""
+
+msgctxt "service_instant_message_help"
+msgid "The messages between the avatars of different grids (hypergrid)."
 msgstr ""
 
 msgctxt "health_unset"

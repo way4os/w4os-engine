@@ -207,6 +207,11 @@ final class Endpoints
                             'description' => 'Every address, by the key of its service',
                             'additionalProperties' => ['type' => 'string'],
                         ],
+                        'services' => [
+                            'type' => 'array',
+                            'description' => 'Each service the grid has, what it is and where its address is set, sorted file by file, then section by section: `key`, `url`, `source` (as above), `usage` (`robust-simulators` and `robust-viewers`: a service of Robust, used by the simulators or by the viewers and the other grids; `helper-simulators` and `helper-viewers`: a helper the simulators or the viewer call, query.php, currency.php; `page`: a web page the viewer or the site shows; `web-tool`: a web tool used with a script in-world, textgen.php; `task`: a task of the grid; `web-assets`: the web assets of the sites; `usage_<usage>` its name in the catalog), `file` (`Robust.HG.ini` or `Robust.ini`, `OpenSim.ini` for what the simulators are given, `Helpers.ini`), `section` and `setting` (its exact key: `[AssetService] AssetServerURI`; the connector of `[ServiceList]` for a service the simulators are not given), `info` (the key of get_grid_info that tells it), `label` and `description` (keys of the catalog)',
+                            'items' => ['type' => 'object'],
+                        ],
                         'servedBy' => [
                             'type' => 'object',
                             'description' => 'Who serves each page for people (search, profile, guide, welcome, status, directory): `helpers` when its address is under the base of the helpers, else `site`; null for a page without an address',

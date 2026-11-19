@@ -247,3 +247,46 @@ describe('The monitor, the addresses and the info of a grid, in the API', functi
         },
     );
 });
+
+describe('The addresses of a grid, each what it is', function () {
+    test('say their use, the file, the section and the key they are set in, and their name and description in the catalog, file by file', function () {
+        $machine = new Machine();
+        $router = new OpenSim\Api\Router(new Api($machine->environment));
+        $services = $router->get('/grids/demo/addresses')->document['data']['attributes']['services'];
+        // Each service as the grid would have it, whether it has it or not
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $by = [];
+        foreach (OpenSim\Models\Service::keys() as $key) {
+            $by[$key] = (new OpenSim\Models\Service($machine->environment, $grid, $key))->address();
+        }
+        $texts = OpenSim\I18n\Catalog::MESSAGES;
+        $order = array_map(static fn(array $s): string => "{$s['file']} {$s['section']}", $services);
+        $sorted = $order;
+        usort($sorted, static fn(string $a, string $b): int => strcmp($a, $b));
+
+        expect($by['asset'])
+            ->toMatchArray(['usage' => 'robust-simulators', 'file' => 'OpenSim.ini', 'section' => 'AssetService', 'setting' => 'AssetServerURI', 'label' => 'service_asset'])
+            ->and($by['gatekeeper'])
+            ->toMatchArray(['usage' => 'robust-viewers', 'file' => 'Robust.HG.ini', 'section' => 'ServiceList', 'setting' => 'GatekeeperServiceInConnector'])
+            ->and($by['currency'])
+            ->toMatchArray(['usage' => 'helper-viewers', 'file' => 'Robust.HG.ini', 'section' => 'GridInfoService', 'setting' => 'economy', 'info' => 'economy'])
+            ->and($by['query'])
+            ->toMatchArray(['usage' => 'helper-simulators', 'file' => 'OpenSim.ini', 'section' => 'Search', 'setting' => 'SearchURL', 'label' => 'setting_search_service'])
+            ->and($by['text-images'])
+            ->toMatchArray(['usage' => 'web-tool', 'label' => 'service_text_images'])
+            ->and($by['assets'])
+            ->toMatchArray(['usage' => 'web-assets', 'file' => 'Helpers.ini', 'section' => 'Helpers', 'setting' => 'AssetsURL'])
+            ->and($by['welcome']['usage'])
+            ->toBe('page')
+            // Every name, description and use in the catalog
+            ->and(array_column($services, 'key'))
+            ->toBe(['asset', 'grid'])
+            ->and(array_diff([...array_column($by, 'label'), ...array_column($by, 'description'), ...array_map(static fn(string $u): string => 'usage_' . str_replace('-', '_', $u), array_unique(array_column($by, 'usage')))], array_keys($texts)))
+            ->toBe([])
+            ->and($texts['service_asset'])
+            ->toBe('Assets service')
+            // Sorted file by file, then section by section
+            ->and($order)
+            ->toBe($sorted);
+    });
+});
