@@ -413,7 +413,7 @@ msgid "Search Engine"
 msgstr "Moteur de recherche"
 
 msgctxt "settings_menu_guide"
-msgid "Destinations Guide"
+msgid "Destination Guide"
 msgstr "Guide des destinations"
 
 msgctxt "settings_menu_offline"
@@ -421,8 +421,8 @@ msgid "Offline Messages"
 msgstr "Messages hors-ligne"
 
 msgctxt "settings_menu_assets"
-msgid "Assets Server"
-msgstr "Serveur de ressources"
+msgid "Web Assets"
+msgstr "Ressources web"
 
 msgctxt "settings_saved"
 msgid "Settings saved."
@@ -2807,6 +2807,14 @@ msgid ""
 msgstr ""
 "L'inscription est gardée, mais le message à {email} n'a pas pu être envoyé : "
 "redemandez-le plus tard."
+
+#~ msgctxt "settings_menu_guide"
+#~ msgid "Destinations Guide"
+#~ msgstr "Guide des destinations"
+
+#~ msgctxt "settings_menu_assets"
+#~ msgid "Assets Server"
+#~ msgstr "Serveur de ressources"
 
 #~ msgctxt "column_region_uri"
 #~ msgid "Region URI"

@@ -59,7 +59,7 @@ describe('The settings pages of the services', function () {
         $forms = array_map(static fn(string $page): array => GridSettings::form($page), GridSettings::groups());
 
         expect(array_map(static fn(array $form): string => $en[$form['menu']], $forms))
-            ->toBe(['Avatar Models', 'Economy', 'Search Engine', 'Destinations Guide', 'Offline Messages', 'Assets Server'])
+            ->toBe(['Avatar Models', 'Economy', 'Search Engine', 'Destination Guide', 'Offline Messages', 'Web Assets'])
             ->and(array_unique(array_column($forms, 'saved')))
             ->toBe(['settings_saved'])
             ->and([$en['settings_saved'], $fr['settings_saved'], $fr[$forms[2]['menu']]])

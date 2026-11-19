@@ -412,7 +412,7 @@ msgid "Search Engine"
 msgstr "Motore di ricerca"
 
 msgctxt "settings_menu_guide"
-msgid "Destinations Guide"
+msgid "Destination Guide"
 msgstr "Guida delle destinazioni"
 
 msgctxt "settings_menu_offline"
@@ -420,8 +420,8 @@ msgid "Offline Messages"
 msgstr "Messaggi offline"
 
 msgctxt "settings_menu_assets"
-msgid "Assets Server"
-msgstr "Server delle risorse"
+msgid "Web Assets"
+msgstr "Risorse web"
 
 msgctxt "settings_saved"
 msgid "Settings saved."
@@ -2790,6 +2790,14 @@ msgid ""
 msgstr ""
 "La registrazione è conservata, ma la mail a {email} non è stata inviata: "
 "richiedila più tardi."
+
+#~ msgctxt "settings_menu_guide"
+#~ msgid "Destinations Guide"
+#~ msgstr "Guida delle destinazioni"
+
+#~ msgctxt "settings_menu_assets"
+#~ msgid "Assets Server"
+#~ msgstr "Server delle risorse"
 
 #~ msgctxt "column_region_uri"
 #~ msgid "Region URI"

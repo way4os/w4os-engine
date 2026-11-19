@@ -415,16 +415,16 @@ msgid "Search Engine"
 msgstr "Suchmaschine"
 
 msgctxt "settings_menu_guide"
-msgid "Destinations Guide"
-msgstr "Reiseführer für Ziele"
+msgid "Destination Guide"
+msgstr "Zielführer"
 
 msgctxt "settings_menu_offline"
 msgid "Offline Messages"
 msgstr "Offline-Meldungen"
 
 msgctxt "settings_menu_assets"
-msgid "Assets Server"
-msgstr "Assets Server"
+msgid "Web Assets"
+msgstr "Web-Assets"
 
 msgctxt "settings_saved"
 msgid "Settings saved."
@@ -2807,6 +2807,14 @@ msgid ""
 msgstr ""
 "Die Registrierung bleibt bestehen, aber die Mail an {email} konnte nicht "
 "gesendet werden: fordere sie später erneut an."
+
+#~ msgctxt "settings_menu_guide"
+#~ msgid "Destinations Guide"
+#~ msgstr "Reiseführer für Ziele"
+
+#~ msgctxt "settings_menu_assets"
+#~ msgid "Assets Server"
+#~ msgstr "Assets Server"
 
 #~ msgctxt "column_region_uri"
 #~ msgid "Region URI"

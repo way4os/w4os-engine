@@ -412,16 +412,16 @@ msgid "Search Engine"
 msgstr "Zoekmachine"
 
 msgctxt "settings_menu_guide"
-msgid "Destinations Guide"
-msgstr "Gids voor bestemmingen"
+msgid "Destination Guide"
+msgstr "Bestemmingengids"
 
 msgctxt "settings_menu_offline"
 msgid "Offline Messages"
 msgstr "Offline berichten"
 
 msgctxt "settings_menu_assets"
-msgid "Assets Server"
-msgstr "Assets Server"
+msgid "Web Assets"
+msgstr "Webassets"
 
 msgctxt "settings_saved"
 msgid "Settings saved."
@@ -2786,6 +2786,14 @@ msgid ""
 msgstr ""
 "De registratie blijft bewaard, maar de mail naar {email} kon niet worden "
 "verzonden: vraag hem later opnieuw aan."
+
+#~ msgctxt "settings_menu_guide"
+#~ msgid "Destinations Guide"
+#~ msgstr "Gids voor bestemmingen"
+
+#~ msgctxt "settings_menu_assets"
+#~ msgid "Assets Server"
+#~ msgstr "Assets Server"
 
 #~ msgctxt "column_region_uri"
 #~ msgid "Region URI"

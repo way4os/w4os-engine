@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (settings): the menu labels Destination Guide and Web Assets, as Olivier set them
 - feature (grids): a grid says what the engine reaches of it (`access`: files, databases, http); `GET /grids/{grid}` serves a given grid
 - feature (api): `needs` of `x-access` says what of a grid an operation needs, unavailable (503) for a grid that has not
 - fix (settings): a grid without files reads its settings from the config given, and refuses a change (503) instead of writing elsewhere

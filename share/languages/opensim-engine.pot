@@ -375,7 +375,7 @@ msgid "Search Engine"
 msgstr ""
 
 msgctxt "settings_menu_guide"
-msgid "Destinations Guide"
+msgid "Destination Guide"
 msgstr ""
 
 msgctxt "settings_menu_offline"
@@ -383,7 +383,7 @@ msgid "Offline Messages"
 msgstr ""
 
 msgctxt "settings_menu_assets"
-msgid "Assets Server"
+msgid "Web Assets"
 msgstr ""
 
 msgctxt "settings_saved"
