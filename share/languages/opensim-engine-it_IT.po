@@ -2556,7 +2556,8 @@ msgstr "legge JPEG 2000"
 msgctxt "health_jp2_reads_detail"
 msgid ""
 "required by the web assets service: the pictures of the world (JPEG 2000)"
-msgstr "richiesto dal servizio di risorse web: le immagini del mondo (JPEG 2000)"
+msgstr ""
+"richiesto dal servizio di risorse web: le immagini del mondo (JPEG 2000)"
 
 msgctxt "health_jp2_external"
 msgid "external web assets service"
@@ -2567,7 +2568,9 @@ msgctxt "health_jp2_external_detail"
 msgid ""
 "the pictures of the world are converted by the web assets service of the "
 "grid (%s)"
-msgstr "le immagini del mondo sono convertite dal servizio di risorse web della griglia (%s)"
+msgstr ""
+"le immagini del mondo sono convertite dal servizio di risorse web della "
+"griglia (%s)"
 
 msgctxt "health_jp2_missing"
 msgid "cannot read JPEG 2000"
@@ -2578,7 +2581,10 @@ msgctxt "health_jp2_missing_detail"
 msgid ""
 "required by the web assets service, for the pictures of the world (imagick "
 "built with OpenJPEG): without it, set an external web assets service (%s)"
-msgstr "richiesto dal servizio di risorse web per le immagini del mondo (imagick compilato con OpenJPEG): senza, imposta un servizio di risorse web esterno (%s)"
+msgstr ""
+"richiesto dal servizio di risorse web per le immagini del mondo (imagick "
+"compilato con OpenJPEG): senza, imposta un servizio di risorse web esterno "
+"(%s)"
 
 #, php-format
 msgctxt "health_installed"
@@ -2865,16 +2871,6 @@ msgstr "Backup"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Superficie"
-
-#, php-format
-msgctxt "unit_m2"
-msgid "%s m²"
-msgstr "%s m²"
-
-#, php-format
-msgctxt "unit_ha"
-msgid "%s ha"
-msgstr "%s ha"
 
 #, php-format
 msgctxt "unit_km2"
@@ -3540,6 +3536,16 @@ msgstr ""
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Il database non è raggiungibile."
+
+#, php-format
+#~ msgctxt "unit_m2"
+#~ msgid "%s m²"
+#~ msgstr "%s m²"
+
+#, php-format
+#~ msgctxt "unit_ha"
+#~ msgid "%s ha"
+#~ msgstr "%s ha"
 
 #~ msgctxt "economy_module_moneyserver"
 #~ msgid "Podex and other currency providers"

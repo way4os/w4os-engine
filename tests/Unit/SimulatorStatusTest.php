@@ -308,10 +308,9 @@ describe('The people in a simulator and its regions', function () {
 });
 
 describe('An area', function () {
-    test('is shown in the unit that says something of it: m² under a hectare, then hectares, then km²', function () {
-        expect(array_map(static fn(int $m2): array => OpenSim\Text\Units::area($m2), [512, 65536, 4 * 65536, 16 * 65536, 400 * 65536]))
-            ->toBe([[512.0, 'unit_m2', 0], [6.5536, 'unit_ha', 2], [26.2144, 'unit_ha', 2], [1.048576, 'unit_km2', 2], [26.2144, 'unit_km2', 2]])
-            ->and(OpenSim\Text\Units::area(2000 * 65536))->toBe([131.072, 'unit_km2', 0])
-            ->and(OpenSim\I18n\Catalog::MESSAGES['unit_ha'])->toBe('%s ha');
+    test('is shown in km², two decimals under 10, none above, as the grid status of w4os-wp', function () {
+        expect(array_map(static fn(int $m2): array => OpenSim\Text\Units::area($m2), [512, 65536, 16 * 65536, 152 * 65536, 400 * 65536]))
+            ->toBe([[0.000512, 'unit_km2', 2], [0.065536, 'unit_km2', 2], [1.048576, 'unit_km2', 2], [9.961472, 'unit_km2', 2], [26.2144, 'unit_km2', 0]])
+            ->and(OpenSim\I18n\Catalog::MESSAGES)->not->toHaveKey('unit_ha')->not->toHaveKey('unit_m2');
     });
 });

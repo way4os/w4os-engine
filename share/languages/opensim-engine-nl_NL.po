@@ -2555,7 +2555,8 @@ msgstr "leest JPEG 2000"
 msgctxt "health_jp2_reads_detail"
 msgid ""
 "required by the web assets service: the pictures of the world (JPEG 2000)"
-msgstr "vereist door de webassets-dienst: de afbeeldingen van de wereld (JPEG 2000)"
+msgstr ""
+"vereist door de webassets-dienst: de afbeeldingen van de wereld (JPEG 2000)"
 
 msgctxt "health_jp2_external"
 msgid "external web assets service"
@@ -2566,7 +2567,9 @@ msgctxt "health_jp2_external_detail"
 msgid ""
 "the pictures of the world are converted by the web assets service of the "
 "grid (%s)"
-msgstr "de afbeeldingen van de wereld worden omgezet door de webassets-dienst van het grid (%s)"
+msgstr ""
+"de afbeeldingen van de wereld worden omgezet door de webassets-dienst van "
+"het grid (%s)"
 
 msgctxt "health_jp2_missing"
 msgid "cannot read JPEG 2000"
@@ -2577,7 +2580,9 @@ msgctxt "health_jp2_missing_detail"
 msgid ""
 "required by the web assets service, for the pictures of the world (imagick "
 "built with OpenJPEG): without it, set an external web assets service (%s)"
-msgstr "vereist door de webassets-dienst voor de afbeeldingen van de wereld (imagick gebouwd met OpenJPEG): stel zonder dit een externe webassets-dienst in (%s)"
+msgstr ""
+"vereist door de webassets-dienst voor de afbeeldingen van de wereld (imagick "
+"gebouwd met OpenJPEG): stel zonder dit een externe webassets-dienst in (%s)"
 
 #, php-format
 msgctxt "health_installed"
@@ -2863,16 +2868,6 @@ msgstr "Back-up"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Oppervlakte"
-
-#, php-format
-msgctxt "unit_m2"
-msgid "%s m²"
-msgstr "%s m²"
-
-#, php-format
-msgctxt "unit_ha"
-msgid "%s ha"
-msgstr "%s ha"
 
 #, php-format
 msgctxt "unit_km2"
@@ -3540,6 +3535,16 @@ msgstr "De configuratie van het grid zegt niet waar deze database is."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "De database is niet bereikbaar."
+
+#, php-format
+#~ msgctxt "unit_m2"
+#~ msgid "%s m²"
+#~ msgstr "%s m²"
+
+#, php-format
+#~ msgctxt "unit_ha"
+#~ msgid "%s ha"
+#~ msgstr "%s ha"
 
 #~ msgctxt "economy_module_moneyserver"
 #~ msgid "Podex and other currency providers"

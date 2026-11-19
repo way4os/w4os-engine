@@ -2575,7 +2575,8 @@ msgctxt "health_jp2_external_detail"
 msgid ""
 "the pictures of the world are converted by the web assets service of the "
 "grid (%s)"
-msgstr "die Bilder der Welt werden vom Web-Assets-Dienst des Grids umgewandelt (%s)"
+msgstr ""
+"die Bilder der Welt werden vom Web-Assets-Dienst des Grids umgewandelt (%s)"
 
 msgctxt "health_jp2_missing"
 msgid "cannot read JPEG 2000"
@@ -2586,7 +2587,9 @@ msgctxt "health_jp2_missing_detail"
 msgid ""
 "required by the web assets service, for the pictures of the world (imagick "
 "built with OpenJPEG): without it, set an external web assets service (%s)"
-msgstr "vom Web-Assets-Dienst für die Bilder der Welt benötigt (imagick mit OpenJPEG gebaut): ohne ihn einen externen Web-Assets-Dienst festlegen (%s)"
+msgstr ""
+"vom Web-Assets-Dienst für die Bilder der Welt benötigt (imagick mit OpenJPEG "
+"gebaut): ohne ihn einen externen Web-Assets-Dienst festlegen (%s)"
 
 #, php-format
 msgctxt "health_installed"
@@ -2872,16 +2875,6 @@ msgstr "Sicherung"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Fläche"
-
-#, php-format
-msgctxt "unit_m2"
-msgid "%s m²"
-msgstr "%s m²"
-
-#, php-format
-msgctxt "unit_ha"
-msgid "%s ha"
-msgstr "%s ha"
 
 #, php-format
 msgctxt "unit_km2"
@@ -3560,6 +3553,16 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#, php-format
+#~ msgctxt "unit_m2"
+#~ msgid "%s m²"
+#~ msgstr "%s m²"
+
+#, php-format
+#~ msgctxt "unit_ha"
+#~ msgid "%s ha"
+#~ msgstr "%s ha"
 
 #~ msgctxt "economy_module_moneyserver"
 #~ msgid "Podex and other currency providers"

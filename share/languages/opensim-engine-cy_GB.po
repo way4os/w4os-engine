@@ -2576,7 +2576,10 @@ msgctxt "health_jp2_missing_detail"
 msgid ""
 "required by the web assets service, for the pictures of the world (imagick "
 "built with OpenJPEG): without it, set an external web assets service (%s)"
-msgstr "yn ofynnol gan y gwasanaeth asedau gwe ar gyfer lluniau'r byd (imagick wedi'i adeiladu gydag OpenJPEG): hebddo, gosodwch wasanaeth asedau gwe allanol (%s)"
+msgstr ""
+"yn ofynnol gan y gwasanaeth asedau gwe ar gyfer lluniau'r byd (imagick "
+"wedi'i adeiladu gydag OpenJPEG): hebddo, gosodwch wasanaeth asedau gwe "
+"allanol (%s)"
 
 #, php-format
 msgctxt "health_installed"
@@ -2866,16 +2869,6 @@ msgstr "Copi wrth gefn"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Arwynebedd"
-
-#, php-format
-msgctxt "unit_m2"
-msgid "%s m²"
-msgstr "%s m²"
-
-#, php-format
-msgctxt "unit_ha"
-msgid "%s ha"
-msgstr "%s ha"
 
 #, php-format
 msgctxt "unit_km2"
@@ -3551,6 +3544,16 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#, php-format
+#~ msgctxt "unit_m2"
+#~ msgid "%s m²"
+#~ msgstr "%s m²"
+
+#, php-format
+#~ msgctxt "unit_ha"
+#~ msgid "%s ha"
+#~ msgstr "%s ha"
 
 #~ msgctxt "economy_module_moneyserver"
 #~ msgid "Podex and other currency providers"

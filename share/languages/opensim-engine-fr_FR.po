@@ -2581,7 +2581,8 @@ msgstr "lit le JPEG 2000"
 msgctxt "health_jp2_reads_detail"
 msgid ""
 "required by the web assets service: the pictures of the world (JPEG 2000)"
-msgstr "requis par le service de ressources web : les images du monde (JPEG 2000)"
+msgstr ""
+"requis par le service de ressources web : les images du monde (JPEG 2000)"
 
 msgctxt "health_jp2_external"
 msgid "external web assets service"
@@ -2592,7 +2593,9 @@ msgctxt "health_jp2_external_detail"
 msgid ""
 "the pictures of the world are converted by the web assets service of the "
 "grid (%s)"
-msgstr "les images du monde sont converties par le service de ressources web de la grille (%s)"
+msgstr ""
+"les images du monde sont converties par le service de ressources web de la "
+"grille (%s)"
 
 msgctxt "health_jp2_missing"
 msgid "cannot read JPEG 2000"
@@ -2603,7 +2606,10 @@ msgctxt "health_jp2_missing_detail"
 msgid ""
 "required by the web assets service, for the pictures of the world (imagick "
 "built with OpenJPEG): without it, set an external web assets service (%s)"
-msgstr "requis par le service de ressources web, pour les images du monde (imagick compilé avec OpenJPEG) : sans lui, définissez un service de ressources web externe (%s)"
+msgstr ""
+"requis par le service de ressources web, pour les images du monde (imagick "
+"compilé avec OpenJPEG) : sans lui, définissez un service de ressources web "
+"externe (%s)"
 
 #, php-format
 msgctxt "health_installed"
@@ -2890,16 +2896,6 @@ msgstr "Sauvegarde"
 msgctxt "column_area"
 msgid "Area"
 msgstr "Surface"
-
-#, php-format
-msgctxt "unit_m2"
-msgid "%s m²"
-msgstr "%s m²"
-
-#, php-format
-msgctxt "unit_ha"
-msgid "%s ha"
-msgstr "%s ha"
 
 #, php-format
 msgctxt "unit_km2"
@@ -3570,6 +3566,16 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#, php-format
+#~ msgctxt "unit_m2"
+#~ msgid "%s m²"
+#~ msgstr "%s m²"
+
+#, php-format
+#~ msgctxt "unit_ha"
+#~ msgid "%s ha"
+#~ msgstr "%s ha"
 
 #~ msgctxt "economy_module_moneyserver"
 #~ msgid "Podex and other currency providers"

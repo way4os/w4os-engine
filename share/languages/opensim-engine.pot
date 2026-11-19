@@ -2552,16 +2552,6 @@ msgid "Area"
 msgstr ""
 
 #, php-format
-msgctxt "unit_m2"
-msgid "%s m²"
-msgstr ""
-
-#, php-format
-msgctxt "unit_ha"
-msgid "%s ha"
-msgstr ""
-
-#, php-format
 msgctxt "unit_km2"
 msgid "%s km²"
 msgstr ""
