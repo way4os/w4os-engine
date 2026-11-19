@@ -959,13 +959,41 @@ final class Grid extends InstalledModel
         }
         $controller = $this->isStandalone() ? ($this->simulators()[0] ?? null)?->controller() : $this->robust();
         // A grid without its instance here (described by an application): the config it was given
-        $section = $controller?->settings()['GridInfoService'] ?? $this->config()?->section('GridInfoService') ?? [];
-        $configured = [];
-        foreach ($section as $key => $value) {
-            is_string($value) && ($configured[$key] = $value);
-        }
+        $ini = $controller?->settings() ?? ($this->config()?->tree()[$this->isStandalone() ? 'OpenSim' : 'Robust'] ?? []);
 
-        return $this->info = [$configured, false];
+        return $this->info = [self::infoOf($ini), false];
+    }
+
+    /**
+     * What Robust says at get_grid_info for a config (GridInfoHandlers of OpenSimulator): `platform` OpenSim, the keys of
+     * [GridInfoService], then `home` and `gatekeeper` from HomeURI and GatekeeperURI of [Startup] then [Hypergrid] (else
+     * SRV_HomeURI of [LoginService] for the home), and their aliases.
+     *
+     * @param array<string,mixed> $ini section => key => value
+     * @return array<string,string>
+     */
+    private static function infoOf(array $ini): array
+    {
+        $info = ['platform' => 'OpenSim'];
+        foreach ((array) ($ini['GridInfoService'] ?? []) as $key => $value) {
+            is_string($value) && ($info[$key] = $value);
+        }
+        // The latter section says it over the former, as Util.GetConfigVarFromSections()
+        $from = static function (string $key, ?string $value) use ($ini): ?string {
+            foreach (['Startup', 'Hypergrid'] as $section) {
+                isset($ini[$section][$key]) && is_string($ini[$section][$key]) && ($value = $ini[$section][$key]);
+            }
+
+            return $value;
+        };
+        $home = $from('HomeURI', $info['home'] ?? null);
+        ($home ?? '') === '' && ($home = is_string($ini['LoginService']['SRV_HomeURI'] ?? null) ? $ini['LoginService']['SRV_HomeURI'] : $home);
+        ($home ?? '') !== '' && ($info['home'] = $home);
+        ($alias = $from('HomeURIAlias', '')) !== '' && ($info['homealias'] = $alias);
+        ($gatekeeper = $from('GatekeeperURI', $info['gatekeeper'] ?? null)) !== null && $gatekeeper !== '' && ($info['gatekeeper'] = $gatekeeper);
+        ($alias = $from('GatekeeperURIAlias', '')) !== '' && ($info['gatekeeperalias'] = $alias);
+
+        return $info;
     }
 
     /**

@@ -84,3 +84,22 @@ describe('The grid a site makes of a description', function () {
             ->toBe(array_map(static fn(string $method): mixed => $folder->$method(), ADDRESSES));
     });
 });
+
+describe('The get_grid_info of a grid a site makes of a description', function () {
+    test('is the one of Robust, element by element: platform and home added as Robust adds them, the password page kept', function () {
+        $machine = new Machine();
+        $machine->write($machine->grid . '/Robust.HG.ini', file_get_contents($machine->grid . '/Robust.HG.ini') . "\n" . file_get_contents(dirname(__DIR__) . '/fixtures/grid-info/Robust.ini.part'));
+        $robust = [];
+        foreach (simplexml_load_file(dirname(__DIR__) . '/fixtures/grid-info/answer.xml')->children() as $element) {
+            $robust[$element->getName()] = (string) $element;
+        }
+        $site = test_tmp() . '/site-description-robust-' . bin2hex(random_bytes(4));
+        mkdir($site);
+        $environment = Environment::system(new Layout(['EtcRoot' => "$site/etc", 'CacheRoot' => "$site/cache", 'StateRoot' => "$site/state"]));
+
+        $described = SiteDescription::grid($environment, SiteDescription::of(OpenSim\Models\Grid::find($machine->environment, 'demo')));
+
+        expect($described->gridInfo())->toBe($robust)
+            ->and(OpenSim\Models\Grid::find($machine->environment, 'demo')->gridInfo())->toBe($robust);
+    });
+});

@@ -268,6 +268,7 @@ describe('what a grid says of itself', function () {
             ->toBeFalse()
             ->and($grid->gridInfo())
             ->toBe([
+                'platform' => 'OpenSim',
                 'gridname' => 'Demo',
                 'login' => 'http://localhost:8002/',
                 'economy' => 'https://play.example.org/helpers/',
@@ -332,7 +333,9 @@ describe('the elements of get_grid_info', function () {
                 "\n[GridInfoService]\n    gridname = \"Demo\"\n    mood = \"sunny\"\n    welcome = \"\"\n",
         );
 
+        // As Robust says them: platform first
         expect(Grid::find($machine->environment, 'demo')->gridInfo())->toBe([
+            'platform' => 'OpenSim',
             'gridname' => 'Demo',
             'mood' => 'sunny',
             'welcome' => '',

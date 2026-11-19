@@ -16,14 +16,14 @@ use OpenSim\Text\DestinationList;
  */
 final class SiteDescription
 {
-    /** The sections the helpers read, by file of the grid. */
+    /** The sections the helpers read, by file of the grid; of [Startup], what Robust says of the grid at get_grid_info. */
     private const SECTIONS = [
         'Const', 'GridInfoService', 'LoginService', 'DatabaseService', 'Hypergrid', 'Search', 'DataSnapshot', 'Messaging', 'Economy',
-        'Gloebit', 'MoneyServer', 'MySql', 'Helpers', 'UserProfiles', 'Groups', 'Models',
+        'Gloebit', 'MoneyServer', 'MySql', 'Helpers', 'UserProfiles', 'Groups', 'Models', 'Startup',
     ];
 
-    /** The keys never given: what opens a database, a console, an account, a service. */
-    private const SECRET = '/(pass(word)?|secret|key)$/i';
+    /** The keys of [Startup] given: the home and the gatekeeper of the grid. */
+    private const STARTUP = ['homeuri', 'homeurialias', 'gatekeeperuri', 'gatekeeperurialias'];
 
     /**
      * The description of a grid.
@@ -37,7 +37,8 @@ final class SiteDescription
         foreach (['Robust', 'OpenSim', 'Helpers', 'MoneyServer'] as $role) {
             foreach (array_intersect_key((array) ($tree[$role] ?? []), array_flip(self::SECTIONS)) as $section => $keys) {
                 foreach ((array) $keys as $key => $value) {
-                    if (!is_string($value) || preg_match(self::SECRET, (string) $key) === 1) {
+                    // A secret by the registry ([GridInfoService] is public: Robust gives it to anyone)
+                    if (!is_string($value) || self::secret((string) $section, (string) $key) || ($section === 'Startup' && !in_array(strtolower((string) $key), self::STARTUP, true))) {
                         continue;
                     }
                     // A database by its name only: the site reaches it with its own access
@@ -75,6 +76,18 @@ final class SiteDescription
             ['remote' => true] + (array) ($description['grid'] ?? []) + (isset($description['destinations']) ? ['destinationsText' => (string) $description['destinations']] : []),
             new GridConfig((array) ($description['config'] ?? [])),
         );
+    }
+
+    /** Whether a setting is a secret: the registry says it (Settings `secret`), a key, a password, a connection. */
+    private static function secret(string $section, string $key): bool
+    {
+        static $secrets = null;
+        $secrets ??= array_fill_keys(array_map(
+            static fn(array $entry): string => strtolower($entry['section'] . '.' . $entry['key']),
+            array_filter(\OpenSim\Config\Settings::entries(), static fn(array $entry): bool => ($entry['secret'] ?? false) && !isset($entry['parts']) && preg_match('/ConnectionString$/i', $entry['key']) !== 1),
+        ), true);
+
+        return isset($secrets[strtolower("$section.$key")]);
     }
 
     /** A connection string with its database only, its server empty for the access of the site to fill. */

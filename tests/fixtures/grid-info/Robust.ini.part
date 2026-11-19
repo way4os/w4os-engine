@@ -1,0 +1,13 @@
+[Hypergrid]
+    HomeURI = "http://localhost:8002"
+    GatekeeperURI = "http://localhost:8002"
+[GridInfoService]
+    login = "http://localhost:8002/"
+    gridname = "Friendly Fowl"
+    gridnick = "demo"
+    welcome = "https://play.example.org/welcome"
+    economy = "https://play.example.org/helpers/"
+    about = "https://play.example.org/about"
+    register = "https://play.example.org/register"
+    password = "https://play.example.org/password"
+    web_profile_url = "https://play.example.org/profile/[AGENT_NAME]"

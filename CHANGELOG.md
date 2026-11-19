@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (grids): the get_grid_info a grid not verified yet says is Robust's: platform, the keys of [GridInfoService] (the password page too), home and gatekeeper from HomeURI and GatekeeperURI
+- fix (api): the site description keeps [GridInfoService] whole; its secrets are the registry's
 - fix (grids): a grid without its Robust here (described by a site) says of itself what the config it was given says (get_grid_info)
 - change (guide): a grid that sets no GuideSource has the guide of 2do.directory, as if it were set; its own places when it cannot be read
 - fix (health): what the health says is sentences of the catalog in six languages, each line giving their key and values (`texts`); `Health::translate()` says them in a language
