@@ -1084,6 +1084,26 @@ describe('The words of the health', function () {
 });
 
 describe('A page of the site that shows a block of the helpers', function () {
+    test('is an error when the helpers answer nothing at all, as the helpers themselves are', function () {
+        [$process, $port] = code_server();
+        $rows = Health::answers([['file' => 'pages', 'title' => '', 'rows' => Health::pages([
+            ['page' => 'helpers', 'url' => 'http://127.0.0.1:9/helpers', 'source' => 'config', 'servedBy' => 'helpers'],
+            ['page' => 'profile', 'url' => "http://127.0.0.1:$port/200/[AGENT_NAME]", 'source' => 'config', 'servedBy' => 'site'],
+        ], "http://127.0.0.1:$port/register")]])[0]['rows'];
+        proc_terminate($process);
+        $by = array_column($rows, null, 'label');
+
+        expect($by['helpers'])
+            ->toMatchArray(['level' => 'error', 'status' => 'cURL error 7'])
+            ->and($by['profile']['level'])
+            ->toBe('error')
+            ->and(array_column($by['profile']['needs'], 'status'))
+            ->toBe(['cURL error 7', 'cURL error 7'])
+            ->and(Health::level([['rows' => $rows]]))
+            ->toBe('error');
+    });
+
+
     test('is an error when its block or its pictures do not answer, though the page does: it would show nothing', function () {
         [$process, $port] = code_server();
         $url = fn(string $path) => "http://127.0.0.1:$port/$path";
