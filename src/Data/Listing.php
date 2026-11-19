@@ -78,6 +78,9 @@ final class Listing
      */
     public const BARE = ['email', 'role', 'status', 'size', 'picture', 'map', 'boolean', 'hop', 'indicators'];
 
+    /** The texts of a list, keys of the catalog: its title, its label in a menu, the placeholder of its search, when it is empty, its count. */
+    public const TEXTS = ['title', 'menu', 'placeholder', 'empty', 'count'];
+
     /** The values of a yes or no filter, with the keys of their texts. */
     public const YES_NO = ['yes' => 'yes', 'no' => 'no'];
 
@@ -91,6 +94,7 @@ final class Listing
      * @param list<string> $views the filters a site shows as the row of links above the list, in their order
      * @param array<string,string> $create the action of the list itself that makes an item (`label`, `method`, `path`, `operation`
      *        the operation whose `x-form` is its form), not one of a row
+     * @param array<string,string> $texts its texts, keys of the catalog (TEXTS)
      */
     public function __construct(
         public readonly array $columns,
@@ -101,6 +105,7 @@ final class Listing
         public readonly array $moreSorts = [],
         public readonly array $views = [],
         public readonly array $create = [],
+        public readonly array $texts = [],
     ) {
         // The views: filters of the list, the row of links a site shows above it, in their order
         foreach ($views as $view) {
@@ -352,7 +357,8 @@ final class Listing
             'search' => $this->search,
             'filters' => $this->filters,
             'actions' => $this->actions,
-        ] + ($this->views === [] ? [] : ['views' => $this->views]) + ($this->create === [] ? [] : ['create' => $this->create]);
+        ] + ($this->views === [] ? [] : ['views' => $this->views]) + ($this->create === [] ? [] : ['create' => $this->create])
+            + array_intersect_key($this->texts, array_flip(self::TEXTS));
     }
 
     /**

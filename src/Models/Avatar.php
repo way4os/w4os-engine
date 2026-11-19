@@ -1678,7 +1678,9 @@ final class Avatar extends Model
         // The button above the list that opens the form of a new one (creationForm())
         $create = ['label' => 'action_new_avatar', 'method' => 'POST', 'path' => '/grids/{grid}/avatars', 'operation' => 'createAvatar'];
 
-        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : [], $views, $create);
+        return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : [], $views, $create, [
+            'title' => 'avatars_title', 'menu' => 'avatars_menu', 'placeholder' => 'avatars_search', 'empty' => 'list_empty', 'count' => 'avatars_count',
+        ]);
     }
 
     /**

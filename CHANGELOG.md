@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (lists): an x-list gives its texts as catalog keys (`title`, `menu`, `placeholder`, `empty`, `count`), in w4os-wp's words
 - feature (settings): the service pages ported from w4os-wp v2: its order, words, conditions, notes, sidebars, ini lines (`meta.snippets`)
 - change (economy): the Podex message and teleport of w4os-wp, its placeholders on the economy page
 - change (economy): the rate of the currency is 10 for 1000 when none is set, as w4os-wp

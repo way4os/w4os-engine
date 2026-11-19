@@ -1366,6 +1366,7 @@ final class Region extends Model
             ],
             // The views: the status, then the size (the ones the grid has, meta.available.size)
             views: ['status', 'size'],
+            texts: ['title' => 'regions_title', 'menu' => 'regions_menu', 'placeholder' => 'regions_search', 'empty' => 'list_empty', 'count' => 'regions_count'],
         );
     }
 

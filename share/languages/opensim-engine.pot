@@ -2215,6 +2215,53 @@ msgctxt "column_author"
 msgid "Author"
 msgstr ""
 
+msgctxt "avatars_title"
+msgid "Avatars"
+msgstr ""
+
+msgctxt "avatars_menu"
+msgid "Avatars"
+msgstr ""
+
+msgctxt "avatars_search"
+msgid "Search Avatars"
+msgstr ""
+
+msgctxt "regions_menu"
+msgid "Regions"
+msgstr ""
+
+msgctxt "regions_search"
+msgid "Search Regions"
+msgstr ""
+
+msgctxt "flux_title"
+msgid "Flux Posts"
+msgstr ""
+
+msgctxt "flux_menu"
+msgid "Flux"
+msgstr ""
+
+msgctxt "flux_search"
+msgid "Search Flux Posts"
+msgstr ""
+
+msgctxt "flux_empty"
+msgid "No Flux Posts found"
+msgstr ""
+
+msgctxt "list_empty"
+msgid "No items found."
+msgstr ""
+
+#, php-format
+msgctxt "posts_count"
+msgid "%d post"
+msgid_plural "%d posts"
+msgstr[0] ""
+msgstr[1] ""
+
 msgctxt "flux_post"
 msgid "Flux Post"
 msgstr ""
