@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "8d2db23",
+        "version": "65ae45b",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8405,6 +8405,14 @@
                                                                                 "detail": {
                                                                                     "type": "string",
                                                                                     "description": "More on it: the error of curl, what get_grid_info says when it differs, the file or folder a row is about"
+                                                                                },
+                                                                                "expected": {
+                                                                                    "type": "string",
+                                                                                    "description": "What a wrong or missing address should be, as the options of the grid write it (its constants read): a site says should be this, is that"
+                                                                                },
+                                                                                "snippet": {
+                                                                                    "type": "string",
+                                                                                    "description": "The line to write in the file of the group (`file`) for it, its section first, as the options of the grid write it (its constants as references)"
                                                                                 },
                                                                                 "name": {
                                                                                     "type": "string",

@@ -1109,6 +1109,8 @@ final class Contract
             'status' => $field('string', 'The HTTP code, OK, the error of curl, or what is wrong (missing, differs), translated'),
             'ms' => $field(['integer', 'null'], 'How long it took to answer, in milliseconds'),
             'detail' => $field('string', 'More on it: the error of curl, what get_grid_info says when it differs, the file or folder a row is about'),
+            'expected' => $field('string', 'What a wrong or missing address should be, as the options of the grid write it (its constants read): a site says should be this, is that'),
+            'snippet' => $field('string', 'The line to write in the file of the group (`file`) for it, its section first, as the options of the grid write it (its constants as references)'),
             'name' => $field('string', 'What the setting or the page is, a key of the catalog (`setting_<name>`): a site shows it, with the key of the row in small'),
             'description' => $field('string', 'What it is for, a key of the catalog (`setting_<name>_help`)'),
             'thirdParty' => $field('boolean', 'A service that does not answer and that an application of its own serves (the helpers of the engine, or another one), not the helpers of the grid: `health_third_party` says it'),

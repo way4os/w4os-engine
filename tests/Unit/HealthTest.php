@@ -869,3 +869,50 @@ describe('A row of the health', function () {
             ->not->toBe('');
     });
 });
+
+describe('A wrong or missing address', function () {
+    test('says what it should be and the line of its file to write, as the options of the grid write it', function () {
+        $expected = [
+            'Robust' => ['GridInfoService' => ['welcome' => '"${Const|WebURL}/helpers/welcome"', 'economy' => '"${Const|WebURL}/helpers"']],
+            'OpenSim' => ['Search' => ['SearchURL' => '"https://grid.example.org/helpers/query.php"'], 'DataSnapshot' => ['DATA_SRV_demo' => '"https://grid.example.org/helpers/register.php"']],
+        ];
+        $groups = Health::expect([
+            ['file' => 'Robust.HG.ini', 'title' => '[GridInfoService]', 'rows' => [
+                ['label' => 'welcome', 'url' => 'https://grid.example.org/old/welcome', 'level' => 'error'],
+                ['label' => 'economy', 'url' => 'https://grid.example.org/helpers', 'level' => 'error'],
+            ]],
+            ['file' => 'OpenSim.ini', 'title' => '[Search]', 'rows' => [['label' => 'SearchURL', 'url' => '', 'level' => 'none']]],
+            ['file' => 'OpenSim.ini', 'title' => '[DataSnapshot]', 'rows' => [['label' => 'DATA_SRV_*', 'url' => '', 'level' => 'none']]],
+            ['file' => 'get_grid_info', 'title' => '', 'rows' => [['label' => 'welcome', 'url' => 'https://grid.example.org/old/welcome', 'level' => 'error']]],
+        ], $expected, ['WebURL' => 'https://grid.example.org']);
+        $rows = array_merge(...array_column($groups, 'rows'));
+
+        expect($rows[0])
+            ->toMatchArray([
+                'expected' => 'https://grid.example.org/helpers/welcome',
+                'snippet' => "[GridInfoService]\n    welcome = \"\${Const|WebURL}/helpers/welcome\"",
+            ])
+            // What answers wrong at the right address is not a setting to change
+            ->and($rows[1])
+            ->not->toHaveKey('expected')
+            ->and($rows[2])
+            ->toMatchArray(['expected' => 'https://grid.example.org/helpers/query.php', 'snippet' => "[Search]\n    SearchURL = \"https://grid.example.org/helpers/query.php\""])
+            ->and($rows[3]['snippet'] ?? null)
+            ->toBe("[DataSnapshot]\n    DATA_SRV_demo = \"https://grid.example.org/helpers/register.php\"")
+            // What the grid says is not a file: its config is
+            ->and($rows[4])
+            ->not->toHaveKey('expected');
+    });
+
+    test('is the one the options of the grid give: what they write in Robust and in OpenSim.ini', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $expected = (new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo')))->expected();
+
+        expect($expected['Robust']['LoginService']['DestinationGuide'] ?? null)
+            ->toBe('"${Const|WebURL}/guide"')
+            ->and($expected['OpenSim']['Messaging']['OfflineMessageModule'] ?? null)
+            ->toBe('"Offline Message Module V2"')
+            ->and($expected['Robust'])
+            ->not->toHaveKey('ServiceList');
+    });
+});

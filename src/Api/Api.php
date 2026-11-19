@@ -1390,6 +1390,8 @@ final class Api
             $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
             // What each row is (a key of the catalog), and a service that needs an application of its own
             $groups = Health::describe($groups, static fn(string $url): bool => $found->servedByHelpers($url));
+            // What a wrong or missing address should be, and the line of its file to write
+            $groups = Health::expect($groups, $options->expected(), $config?->section('Const') ?? []);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }

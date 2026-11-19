@@ -871,6 +871,58 @@ class Health
         return $groups;
     }
 
+    /**
+     * What a wrong or missing address should be, and the line of its file to write (`expected`, `snippet`), from what the options of
+     * the grid write (GridOptions::expected()): for a row of a section of a file of the grid that does not answer (error) or is not
+     * set, whose value is not the one expected (an address that is right and answers wrong is not a setting to change).
+     *
+     * @param list<array{file?:string,title?:string,rows:list<array<string,mixed>>}> $groups
+     * @param array<string,array<string,array<string,string>>> $expected by file (Robust, OpenSim), section and key, as written
+     * @param array<string,string> $constants the constants the values are read with (WebURL...)
+     * @return list<array{file?:string,title?:string,rows:list<array<string,mixed>>}>
+     */
+    public static function expect($groups, $expected, $constants = [])
+    {
+        foreach ($groups as $g => $group) {
+            $file = (string) ($group['file'] ?? '');
+            $role = match (true) {
+                preg_match('/^Robust/i', $file) === 1 => 'Robust',
+                strcasecmp($file, 'OpenSim.ini') === 0 => 'OpenSim',
+                default => null,
+            };
+            $section = trim((string) ($group['title'] ?? ''), '[] ');
+            $settings = $role === null ? [] : array_change_key_case($expected[$role] ?? [])[strtolower($section)] ?? [];
+            if ($settings === []) {
+                continue;
+            }
+            foreach ($group['rows'] as $r => $row) {
+                $label = (string) ($row['label'] ?? '');
+                $value = (string) ($row['display'] ?? ($row['url'] ?? ($row['text'] ?? '')));
+                if (!in_array($row['level'] ?? '', ['error', 'none'], true)) {
+                    continue;
+                }
+                // The key itself, or the one of the grid for a key that is a prefix (DATA_SRV_*)
+                $key = null;
+                foreach (array_keys($settings) as $candidate) {
+                    if (strcasecmp($candidate, $label) === 0 || (str_ends_with($label, '*') && stripos($candidate, substr($label, 0, -1)) === 0)) {
+                        $key = $candidate;
+                        break;
+                    }
+                }
+                if ($key === null) {
+                    continue;
+                }
+                $should = \OpenSim\Config\ConfigReader::replaceConstants(trim($settings[$key], " \""), $constants);
+                if ($value !== '' && rtrim($value, '/') === rtrim($should, '/')) {
+                    continue;
+                }
+                $groups[$g]['rows'][$r] += ['expected' => $should, 'snippet' => "[$section]\n    $key = " . $settings[$key]];
+            }
+        }
+
+        return $groups;
+    }
+
     /** The name of a setting in the catalog (SETTINGS), null for one it does not name. */
     private static function settingName($section, $key)
     {

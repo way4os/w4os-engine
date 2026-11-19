@@ -360,6 +360,37 @@ final class GridOptions
     }
 
     /**
+     * What the options of the grid write in its files, as they write it (its constants as references): the setting each should have,
+     * for the health to say what is wrong and the line to write. By file (`Robust`, `OpenSim`), section and key; the last option
+     * that writes a setting gives it; what the grid chooses (`Initial`, `Existing`), an empty value and the connectors of Robust
+     * (`[ServiceList]`) left out.
+     *
+     * @return array<string,array<string,array<string,string>>>
+     */
+    public function expected(): array
+    {
+        $variables = $this->variables();
+        $fact = fn(string $word): bool => $this->fact($word, '');
+        $expected = [];
+        foreach ($this->enabled() as $name) {
+            $option = $this->template($name);
+            foreach (['Robust.ini' => 'Robust', 'OpenSim.ini' => 'OpenSim'] as $file => $role) {
+                if ($option === null || !in_array($file, $option->files(), true)) {
+                    continue;
+                }
+                foreach ($option->settings($file, $variables, true, $fact) as [$section, $key, $value]) {
+                    if (trim($value, " \"") === '' || strcasecmp($section, 'ServiceList') === 0 || $option->lists('Initial', $section, $key) || $option->lists('Existing', $section, $key)) {
+                        continue;
+                    }
+                    $expected[$role][$section][$key] = $value;
+                }
+            }
+        }
+
+        return $expected;
+    }
+
+    /**
      * The options of the grid a config does not have: the ones of OpenSim.ini of which a setting is not in it (a section that is
      * there without it too: a [Gloebit] without its environment), its settings as read (the master of the grid and the file of
      * the simulator). The settings written only where they already are (`Existing`) are not asked.

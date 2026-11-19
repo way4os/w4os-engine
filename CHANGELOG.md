@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (health): a wrong or missing address says what it should be and the line to write in its file (`expected`, `snippet`), as the options of the grid write it (`GridOptions::expected()`, its constants as references); an address that is right and answers wrong has none, the page is what to fix
 - update (health): each row says what its setting or page is, `name` and `description`, keys of the catalog (`setting_<name>`, `Health::SETTINGS`: the splash page, the search service, the data service, the offline messages...), translated in French; a service that does not answer and is not served by the helpers of the grid says it needs an application of its own (`thirdParty`, `health_third_party`)
 - update (health): an address that took longer than 3 s is asked again with 10 s, `slow` when it answers then as it should (a page made after a deploy), an error only when it never does; the level of the health is error, else slow, else ok (`Health::level()`); every field of a row described in the contract, the certificate one does not trust (`cert`) too
 - fix (options): a repair never changes a setting: a simulator that chose another option of a group than the default (the offline messages V1) keeps its choice, with nothing of the default laid beside it (the V2 forwarding of group messages was added to a simulator in V1); a setting changes only by its operator, never by a repair
