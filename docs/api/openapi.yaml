@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 851086f
+  version: f7a9ba4
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -63,6 +63,9 @@ tags:
   -
     name: Parcels
     description: 'The land of every simulator of the grid, read in the database of each.'
+  -
+    name: Posts
+    description: "What every avatar posted on its profile (Flux), for the admin list of the posts of w4os-wp's Flux: the post, its Author, its date, the newest first. An avatar writes and deletes its own under its profile (`/grids/{grid}/avatars/{id}/posts`); the customer service and above delete any here."
   -
     name: Estates
     description: 'The estates of the grid when its Robust serves them, else the ones of each simulator. A new estate is made by the console of its simulator when it runs (`estate create`), else in its database with the settings OpenSimulator gives a new one; a region goes to another estate by its `estate` (PATCH of the region).'
@@ -145,6 +148,7 @@ x-tagGroups:
       - 'Avatar models'
       - Regions
       - Parcels
+      - Posts
       - Estates
       - Assets
       - Destinations
@@ -3753,6 +3757,218 @@ paths:
           picture: snapshot
           default: place
           indicators: []
+      x-access:
+        level: 100
+        self: false
+  '/grids/{grid}/posts':
+    get:
+      operationId: listPosts
+      tags:
+        - Posts
+      summary: 'List posts'
+      description: 'The posts of the streams of the avatars of a grid, searched, filtered, sorted and paged.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+          description: 'Looks in content, name'
+        -
+          name: sort
+          in: query
+          description: 'A column, `-` before it for the descending order'
+          schema:
+            type: string
+            enum:
+              - name
+              - created
+              - '-name'
+              - '-created'
+        -
+          name: 'page[number]'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        -
+          name: 'page[size]'
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        -
+          name: 'filter[author]'
+          in: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'A page of the posts'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Posts'
+                  meta:
+                    type: object
+        400:
+          description: 'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What the list is read from is not available'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: content
+            label: flux_post
+            type: text
+            bare: false
+            priority: primary
+          -
+            name: name
+            label: column_author
+            type: link
+            sort: name
+            link: authorProfile
+            mirrors: author
+            bare: false
+            priority: secondary
+          -
+            name: created
+            label: column_date
+            type: datetime
+            sort: created
+            bare: false
+            priority: secondary
+        sort:
+          default: '-created'
+          values:
+            - name
+            - created
+          descending: '-'
+        search:
+          - content
+          - name
+        filters:
+          -
+            name: author
+            label: column_author
+            format: uuid
+        actions:
+          -
+            name: delete
+            label: action_delete_post
+            method: DELETE
+            path: '/grids/{grid}/posts/{id}'
+            ask: ask_delete_post
+      x-access:
+        level: 100
+        self: false
+  '/grids/{grid}/posts/{id}':
+    get:
+      operationId: getPost
+      tags:
+        - Posts
+      summary: 'Get post'
+      description: 'One of the posts by its id.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The resource'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Posts'
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-access:
+        level: 100
+        self: false
+    delete:
+      operationId: deletePost
+      tags:
+        - Posts
+      summary: 'Delete post'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Deleted
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'No channel can delete it now'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
       x-access:
         level: 100
         self: false
@@ -9895,6 +10111,46 @@ components:
               type:
                 - string
                 - 'null'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    Posts:
+      type: object
+      description: 'The posts of the streams of the avatars of a grid'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          const: posts
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            author:
+              type: string
+              description: 'The UUID of the avatar that wrote it'
+            name:
+              type: string
+              description: 'The name of its author when it was written'
+            authorProfile:
+              type:
+                - string
+                - 'null'
+              description: 'The web profile of its author, where the grid has one'
+            content:
+              type: string
+              description: 'Plain text, 1000 characters at most'
+            created:
+              type: integer
+              description: 'Unix time'
+            source:
+              type: string
+              description: 'Where it was brought from (`w4os-wp:<ID>`), empty for a post written here'
         links:
           type: object
           properties:

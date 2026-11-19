@@ -1028,6 +1028,11 @@ msgid "%s is no longer banned."
 msgstr "%s n'est plus banni."
 
 #, php-format
+msgctxt "manage_delete"
+msgid "%s is deleted."
+msgstr "%s est supprimé."
+
+#, php-format
 msgctxt "manage_estate_ban"
 msgid "%s is banned from the estates."
 msgstr "%s est banni des domaines."
@@ -2153,6 +2158,14 @@ msgctxt "column_date"
 msgid "Date"
 msgstr "Date"
 
+msgctxt "column_author"
+msgid "Author"
+msgstr "Auteur"
+
+msgctxt "flux_post"
+msgid "Flux Post"
+msgstr "Flux Post"
+
 msgctxt "kind_iar"
 msgid "Inventory (IAR)"
 msgstr "Inventaire (IAR)"
@@ -3028,11 +3041,6 @@ msgstr ""
 #~ msgctxt "delete_confirm"
 #~ msgid "Delete %s for good, with its inventory?"
 #~ msgstr "Supprimer %s pour de bon, avec son inventaire ?"
-
-#, php-format
-#~ msgctxt "manage_delete"
-#~ msgid "%s is deleted."
-#~ msgstr "%s est supprimé."
 
 #~ msgctxt "action_reset"
 #~ msgid "Password link"

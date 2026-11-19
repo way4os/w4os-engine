@@ -23,6 +23,7 @@ use OpenSim\Models\Avatar;
 use OpenSim\Models\AvatarModel;
 use OpenSim\Models\Estate;
 use OpenSim\Models\Grid;
+use OpenSim\Models\Post;
 use OpenSim\Provisioning\QuickSetup;
 use OpenSim\Provisioning\SetupApply;
 use OpenSim\Provisioning\SetupFile;
@@ -93,6 +94,7 @@ final class Api
         'parcels' => Parcel::class,
         'estates' => Estate::class,
         'assets' => Asset::class,
+        'posts' => Post::class,
     ];
 
     /** Seconds a simulator that registers is given to load its regions before its snapshot is read. */

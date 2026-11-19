@@ -955,6 +955,11 @@ msgid "%s is no longer banned."
 msgstr ""
 
 #, php-format
+msgctxt "manage_delete"
+msgid "%s is deleted."
+msgstr ""
+
+#, php-format
 msgctxt "manage_estate_ban"
 msgid "%s is banned from the estates."
 msgstr ""
@@ -1968,6 +1973,14 @@ msgstr ""
 
 msgctxt "column_date"
 msgid "Date"
+msgstr ""
+
+msgctxt "column_author"
+msgid "Author"
+msgstr ""
+
+msgctxt "flux_post"
+msgid "Flux Post"
 msgstr ""
 
 msgctxt "kind_iar"

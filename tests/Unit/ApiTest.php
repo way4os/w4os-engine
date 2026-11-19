@@ -448,6 +448,7 @@ describe('The contract', function () {
                     'AvatarModels',
                     'Regions',
                     'Parcels',
+                    'Posts',
                     'Estates',
                     'Assets',
                     'Destinations',
@@ -628,6 +629,7 @@ describe('The contract', function () {
                 '/grids/{grid}/avatars',
                 '/grids/{grid}/regions',
                 '/grids/{grid}/parcels',
+                '/grids/{grid}/posts',
                 '/grids/{grid}/estates',
                 '/grids/{grid}/assets',
             ])
@@ -768,6 +770,10 @@ describe('The contract', function () {
         parcels_in(parcel_databases());
         $details['parcels'] = first_attributes(machine_api(parcel_config())->list('parcels', [], grid: 'demo'));
         $details['estates'] = first_attributes(machine_api(estate_world())->list('estates', [], grid: 'demo'));
+        $profiles = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        Connections::using(static fn() => $profiles);
+        OpenSim\Flux\Posts::for(avatar_grid())->add('11111111-1111-4111-8111-111111111111', 'Ada Love', 'Hello');
+        $details['posts'] = first_attributes(machine_api(avatar_grid())->list('posts', [], grid: 'demo'));
         Connections::using(static fn() => asset_database());
         $details['assets'] = first_attributes(machine_api(asset_config())->list('assets', [], grid: 'demo'));
         $scheduler = new Scheduler(test_tmp() . '/api-cron-' . bin2hex(random_bytes(4)), new ClockFake());

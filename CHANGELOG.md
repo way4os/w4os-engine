@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (posts): the posts of every avatar of a grid, listed and deleted (`/grids/{grid}/posts`), for the Flux admin list
 - change (guide): the popular places leave out the other grids and the land for sale by default, as w4os-wp 2.x
 - feature (guide): the popular places leave out, when asked, the other grids and the land for sale (`Grid::popularPlaces()`)
 - change (addresses): `Service::address()` and getAddresses read the registry of the settings, no list of their own

@@ -83,6 +83,41 @@ final class Posts
         return array_map(self::row(...), $rows);
     }
 
+    /**
+     * The posts of every avatar, the newest first by default: their words or the name of their author (`search`), of one author
+     * (`author`), sorted by `created` or `name` (`$descending`), a page of them.
+     *
+     * @return array{0:list<array{id:string,avatar:string,name:string,content:string,created:int,source:string}>,1:int} the page, the total
+     */
+    public function all(string $search = '', ?string $author = null, string $sort = 'created', bool $descending = true, int $page = 1, int $perPage = 0): array
+    {
+        $this->ready();
+        $where = [];
+        $values = [];
+        if (trim($search) !== '') {
+            $where[] = '(content LIKE :words OR name LIKE :words)';
+            $values['words'] = '%' . trim($search) . '%';
+        }
+        if ($author !== null && $author !== '') {
+            $where[] = 'avatar = :author';
+            $values['author'] = strtolower($author);
+        }
+        $where = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
+        // By the name of their author, each one's newest first
+        $order = $sort === 'name'
+            ? 'name' . ($descending ? ' DESC' : ' ASC') . ', created DESC, id DESC'
+            : 'created' . ($descending ? ' DESC' : ' ASC') . ', id' . ($descending ? ' DESC' : ' ASC');
+        $limit = $perPage > 0 ? ' LIMIT ' . $perPage . ' OFFSET ' . (max(1, $page) - 1) * $perPage : '';
+        $rows = $this->pdo->get_results(
+            'SELECT id, avatar, name, content, created, source FROM ' . self::TABLE . "$where ORDER BY $order$limit",
+            $values,
+            \PDO::FETCH_ASSOC,
+        );
+        $total = (int) $this->pdo->get_var('SELECT COUNT(*) FROM ' . self::TABLE . $where, $values);
+
+        return [array_map(self::row(...), $rows), $total];
+    }
+
     /** How many posts an avatar has. */
     public function count(string $avatar): int
     {

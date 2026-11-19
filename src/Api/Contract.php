@@ -460,6 +460,21 @@ final class Contract
             ],
             'writable' => [],
         ],
+        'posts' => [
+            'scope' => 'grid',
+            'summary' => 'The posts of the streams of the avatars of a grid',
+            'description' => 'What every avatar posted on its profile (Flux), for the admin list of the posts of w4os-wp\'s Flux: the post, its Author, its date, the newest first. An avatar writes and deletes its own under its profile (`/grids/{grid}/avatars/{id}/posts`); the customer service and above delete any here.',
+            'attributes' => [
+                'author' => ['string', 'The UUID of the avatar that wrote it'],
+                'name' => ['string', 'The name of its author when it was written'],
+                'authorProfile' => ['string?', 'The web profile of its author, where the grid has one'],
+                'content' => ['string', 'Plain text, ' . \OpenSim\Flux\Posts::MAX . ' characters at most'],
+                'created' => ['integer', 'Unix time'],
+                'source' => ['string', 'Where it was brought from (`w4os-wp:<ID>`), empty for a post written here'],
+            ],
+            'writable' => [],
+            'deletable' => true,
+        ],
         'estates' => [
             'scope' => 'grid',
             'summary' => 'The estates of a grid',

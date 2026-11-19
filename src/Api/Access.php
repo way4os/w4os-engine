@@ -42,7 +42,7 @@ final class Access
     ];
 
     /** The care of the accounts, a change that is not a read: the customer service, as reading is. */
-    private const CUSTOMER_SERVICE = ['createAvatar', 'updateAvatar', 'createAvatarPost', 'deleteAvatarPost'];
+    private const CUSTOMER_SERVICE = ['createAvatar', 'updateAvatar', 'createAvatarPost', 'deleteAvatarPost', 'deletePost'];
 
     /** The fields of a page that need more than the change of the page: a role, a level, as a god sets them (LLLoginService). */
     private const FIELDS = ['avatars' => [
