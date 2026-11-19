@@ -1125,7 +1125,7 @@ msgstr "Parcelles"
 
 msgctxt "shortcodes_title"
 msgid "Available Shortcodes"
-msgstr "Code courts (shortcodes) disponibles"
+msgstr "Codes courts (shortcodes) disponibles"
 
 msgctxt "shortcodes_help"
 msgid "Shortcodes can be included in any page or articles."
@@ -1158,7 +1158,7 @@ msgstr "Utilisateurs en ligne, régions, etc."
 
 msgctxt "block_popular_places_help"
 msgid "Most visited regions in your grid."
-msgstr "Régions les plus visitées dan votre grille."
+msgstr "Régions les plus visitées dans votre grille."
 
 msgctxt "block_motd_help"
 msgid "The message of the day the viewers show at login."
@@ -1346,7 +1346,7 @@ msgid ""
 "(like events). Requires OpenSimSearch.Modules.dll."
 msgstr ""
 "Service de recherche utilisé par le visualiseur. La recherche peut être "
-"fournie par le coeur du simulateur (limité) ou par un service externe pour "
+"fournie par le cœur du simulateur (limité) ou par un service externe pour "
 "des fonctionnalités supplémentaires (comme les événements). Nécessite "
 "OpenSimSearch.Modules.dll."
 
