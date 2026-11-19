@@ -2,6 +2,7 @@
 
 namespace OpenSim\Provisioning\Web;
 
+use OpenSim\Config\GridConfig;
 use OpenSim\Config\GridFileService;
 use OpenSim\Config\IniEditor;
 
@@ -74,49 +75,64 @@ final class HelpersConfig
         return $text;
     }
 
-    /** The setting of the Robust config of a grid (`WebURL`, `economy`...), empty when it has not. */
-    private static function robustValue(string $gridDir, string $key): string
+    /** The setting of the Robust config of a grid (`WebURL`, `economy`...), empty when it has not; of the config given for one. */
+    private static function robustValue(string|GridConfig $grid, string $key): string
     {
+        if ($grid instanceof GridConfig) {
+            foreach (['Const', 'GridInfoService'] as $section) {
+                $value = trim((string) ($grid->get("Robust.$section.$key") ?? $grid->find($section, $key) ?? ''), " \t\"");
+                if ($value !== '') {
+                    return $value;
+                }
+            }
+
+            return '';
+        }
+        $gridDir = $grid;
+
         return preg_match('/^\s*' . preg_quote($key, '/') . '\s*=\s*"?([^"\r\n]*?)"?\s*$/m', self::robust($gridDir), $m)
             ? trim($m[1])
             : '';
     }
 
     /** The address of the web site of the grid: the `WebURL` of its Robust config. */
-    public static function webUrl(string $gridDir): string
+    public static function webUrl(string|GridConfig $grid): string
     {
-        return self::robustValue($gridDir, 'WebURL');
+        return self::robustValue($grid, 'WebURL');
     }
 
-    /** A setting of [Helpers] in Helpers.ini, empty when it has none. */
-    public static function value(string $gridDir, string $key): string
+    /** A setting of [Helpers] in Helpers.ini (of the config given for a grid), empty when it has none. */
+    public static function value(string|GridConfig $grid, string $key): string
     {
-        $file = self::path($gridDir);
+        if ($grid instanceof GridConfig) {
+            return trim((string) ($grid->get("Helpers.Helpers.$key") ?? ''), " \t\"");
+        }
+        $file = self::path($grid);
 
         return is_file($file) ? trim((string) IniEditor::load($file)->get('Helpers', $key)) : '';
     }
 
     /** The address of the helpers Helpers.ini gives (`HelpersURL`), without its last slash; empty when it gives none. */
-    public static function configuredUrl(string $gridDir): string
+    public static function configuredUrl(string|GridConfig $grid): string
     {
-        return rtrim(self::value($gridDir, self::URL_KEY), '/');
+        return rtrim(self::value($grid, self::URL_KEY), '/');
     }
 
     /** Where the helpers are: the path of `HelpersURL` of Helpers.ini, else of the economy the grid gives to its viewers. */
-    public static function basePath(string $gridDir): string
+    public static function basePath(string|GridConfig $grid): string
     {
-        $configured = self::value($gridDir, self::URL_KEY);
+        $configured = self::value($grid, self::URL_KEY);
         if ($configured !== '') {
             return Services::pathOf($configured);
         }
-        $economy = self::robustValue($gridDir, 'economy');
+        $economy = self::robustValue($grid, 'economy');
 
         return $economy === '' ? self::DEFAULT_PATH : Services::pathOf($economy);
     }
 
     /** The services as the grid has them. */
-    public static function services(string $gridDir): Services
+    public static function services(string|GridConfig $grid): Services
     {
-        return new Services(self::basePath($gridDir));
+        return new Services(self::basePath($grid));
     }
 }

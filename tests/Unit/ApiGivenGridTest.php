@@ -38,3 +38,30 @@ describe('The API of a site', function () {
             ->toBeFalse();
     });
 });
+
+describe('A grid described by a site', function () {
+    test('reads its settings in the config the site gives, as a grid on the machine reads its files', function () {
+        $site = sys_get_temp_dir() . '/site-' . bin2hex(random_bytes(4));
+        $environment = Environment::system(new Layout(['EtcRoot' => "$site/etc", 'CacheRoot' => "$site/cache"]));
+        $config = new GridConfig([
+            'Robust' => [
+                'Const' => ['WebURL' => 'https://far.example.org'],
+                'GridInfoService' => ['economy' => 'https://far.example.org/tools', 'search' => 'https://far.example.org/search'],
+            ],
+            'OpenSim' => ['UserProfiles' => ['AllowUserProfileWebURLs' => 'false']],
+            'Helpers' => ['Helpers' => ['LogoURL' => 'https://far.example.org/logo.png']],
+        ]);
+        $far = Grid::described($environment, ['nick' => 'far', 'name' => 'Far', 'remote' => true], $config);
+        $bare = Grid::described($environment, ['nick' => 'bare', 'name' => 'Bare', 'remote' => true]);
+
+        expect([$far->logoUrl(), $far->helpersUrl(), $far->helpersUrlSource(), $far->searchUrl(), $far->economy(), $far->allowUserProfileWebUrls()])
+            ->toBe(['https://far.example.org/logo.png', 'https://far.example.org/tools', 'economy', 'https://far.example.org/search', 'https://far.example.org/tools', false])
+            ->and($far->config())
+            ->toBe($config)
+            // A grid given no config has none: nothing read from the machine
+            ->and([$bare->config(), $bare->logoUrl(), $bare->helpersUrl(), $bare->allowUserProfileWebUrls()])
+            ->toBe([null, null, null, true])
+            ->and(is_dir("$site/etc"))
+            ->toBeFalse();
+    });
+});

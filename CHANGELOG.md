@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (grids): a grid reads every setting in one place, `Grid::config()`: the config an application gives it (`Grid::described($environment, $values, $config)`, a site that has the engine in its own folder), else the files of its folder on this machine; its logo, its helpers, its addresses, its guide, its databases, AllowUserProfileWebURLs come from there, the services and the helpers' settings too (`HelpersConfig` reads a given config). A grid given no config reads nothing of the machine
 - feature (api): the API serves the grids an application gives it (`grids` of `Api`, nick => grid), the ones of this machine by default: a site that has the engine in its own folder serves a grid described by its settings and its databases over the network, nothing read from the machine
 - change (health): the health asks each page Robust sets with the code it must answer, and no more: the blocks and the pictures of the helpers a page of the site shows (`needs`) and the base of the helpers, which no setting of Robust gives, are no longer asked
 - change (addresses): an address the grid does not set is not one of the grid: no service, page nor base of the helpers is given by default where the helpers would answer it (/helpers/currency.php, /helpers/search, the web site and /helpers); the helpers are where the grid sets them (HelpersURL, else its economy), and a grid that sets none has none. Only the tools of the helpers no setting gives (the parser, textgen) are where the helpers the grid has are (source `helpers`)

@@ -999,10 +999,7 @@ final class Service extends InstalledModel
         if ($this->declaration === null) {
             // What the grid says: the OpenSim.ini of its folder for the simulators, the Robust config for what Robust tells, the
             // Helpers.ini for what has no official place
-            $tree =
-                $this->grid->directory() !== '' && is_dir($this->grid->directory())
-                    ? GridConfig::fromFolder($this->grid->directory(), ['Helpers' => 'Helpers.ini'])->tree()
-                    : [];
+            $tree = $this->grid->config()?->tree() ?? [];
             $value = null;
             foreach ($this->settings() as [$role, $section, $key]) {
                 $in = $tree[$role][$section] ?? [];

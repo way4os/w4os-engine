@@ -104,6 +104,9 @@ final class Grid extends InstalledModel
      *        from its folder when asked
      * @param list<string> $sources
      */
+    /** The config an application gives the grid (a site that has the engine in its own folder), in place of its files */
+    private ?GridConfig $given = null;
+
     private function __construct(
         Environment $environment,
         private readonly string $directory,
@@ -111,6 +114,21 @@ final class Grid extends InstalledModel
         private readonly array $sources = [self::FOLDER],
     ) {
         parent::__construct($environment);
+    }
+
+    /**
+     * Its config: the one an application gives it (Grid::described()), else the files of its folder on this machine (Robust,
+     * OpenSim.ini, its simulators, Helpers.ini); null when it has neither. Every setting of a grid is read here.
+     */
+    public function config(): ?GridConfig
+    {
+        return $this->given ?? ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null);
+    }
+
+    /** Where the settings of its helpers are read: the config given, else its folder. */
+    private function helpersSource(): string|GridConfig
+    {
+        return $this->given ?? $this->directory;
     }
 
     /**
@@ -686,7 +704,7 @@ final class Grid extends InstalledModel
      */
     public function popularPlaces(int $count = \OpenSim\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null): array
     {
-        $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
+        $config ??= $this->config();
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
         if ($search === null || !$search->connected) {
             return [];
@@ -778,9 +796,12 @@ final class Grid extends InstalledModel
      * @param array<string,mixed> $values by the names of the properties (nick, name, slug, directory, baseHostname, publicPort,
      *        privatePort, hypergrid, preset, remote...); what is not given is what a grid is by the book
      */
-    public static function described(Environment $environment, array $values): self
+    public static function described(Environment $environment, array $values, ?GridConfig $config = null): self
     {
-        return new self($environment, rtrim((string) ($values['directory'] ?? ''), '/'), $values, [self::DESCRIBED]);
+        $grid = new self($environment, rtrim((string) ($values['directory'] ?? ''), '/'), $values, [self::DESCRIBED]);
+        $grid->given = $config;
+
+        return $grid;
     }
 
     /**
@@ -827,7 +848,10 @@ final class Grid extends InstalledModel
      */
     public function with(array $values): self
     {
-        return new self($this->environment, $this->directory, $values + $this->values(), $this->sources);
+        $grid = new self($this->environment, $this->directory, $values + $this->values(), $this->sources);
+        $grid->given = $this->given;
+
+        return $grid;
     }
 
     /** @return list<string> the sources that know it: folder, plan, described, announced */
@@ -947,10 +971,7 @@ final class Grid extends InstalledModel
             return $listed;
         }
         // No list of its own: the places the search knows
-        $config ??=
-            $this->directory !== '' && is_dir($this->directory)
-                ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini'])
-                : null;
+        $config ??= $this->config();
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
         if ($search === null || !$search->connected) {
             return [];
@@ -973,7 +994,7 @@ final class Grid extends InstalledModel
      */
     public function guide(?GridConfig $config = null): array
     {
-        $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
+        $config ??= $this->config();
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
 
         $cache = \OpenSim\Data\Cache::for($this->environment, $config);
@@ -996,7 +1017,7 @@ final class Grid extends InstalledModel
      */
     public function refreshGuidePictures(?GridConfig $config = null): int
     {
-        $config ??= $this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null;
+        $config ??= $this->config();
         $pictures = new \OpenSim\Services\RemotePictures(
             \OpenSim\Data\Cache::for($this->environment, $config),
             $this->environment->http ?? \OpenSim\Network\GridInfoReader::get(...),
@@ -1015,7 +1036,9 @@ final class Grid extends InstalledModel
      */
     public function allowUserProfileWebUrls(): bool
     {
-        return $this->directory === '' || !is_dir($this->directory) || Avatar::profileWebUrls(GridConfig::fromFolder($this->directory));
+        $config = $this->config();
+
+        return $config === null || Avatar::profileWebUrls($config);
     }
 
     /** The address of the logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini). */
@@ -1029,9 +1052,7 @@ final class Grid extends InstalledModel
     /** A setting of the files of the grid (Robust, OpenSim.ini, Helpers.ini), the first that says it. */
     private function setting(string $section, string $key): ?string
     {
-        return $this->directory !== '' && is_dir($this->directory)
-            ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini'])->find($section, $key)
-            : null;
+        return $this->config()?->find($section, $key);
     }
 
     /** Whether the grid is there: a Robust config, or the description of a remote grid. */
@@ -1340,15 +1361,15 @@ final class Grid extends InstalledModel
                 : '';
         }
         // The site of the helpers: the one of their base when Helpers.ini gives it, else the web site of the grid
-        $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->directory);
+        $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->helpersSource());
         $webUrl = $configured !== ''
             ? \OpenSim\Provisioning\Web\Services::originOf($configured)
-            : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->directory);
+            : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource());
         if ($webUrl === '') {
             return '';
         }
 
-        return \OpenSim\Provisioning\Web\HelpersConfig::services($this->directory)->url($webUrl, $service);
+        return \OpenSim\Provisioning\Web\HelpersConfig::services($this->helpersSource())->url($webUrl, $service);
     }
 
     /**
@@ -1471,8 +1492,8 @@ final class Grid extends InstalledModel
      */
     public function connection(Database|string $which = Database::Robust, ?string $simulator = null): ?ConnectionString
     {
-        if ($this->in(self::FOLDER) && $this->directory !== '') {
-            $config = GridConfig::fromFolder($this->directory);
+        if ($this->given !== null || ($this->in(self::FOLDER) && $this->directory !== '')) {
+            $config = $this->config() ?? new GridConfig();
 
             return $which instanceof Database
                 ? $which->connection($config, $simulator)
@@ -1504,7 +1525,7 @@ final class Grid extends InstalledModel
         $add = static function (?ConnectionString $connection) use (&$found): void {
             $connection !== null && $connection->database !== '' && ($found[$connection->key()] ??= $connection);
         };
-        $config = GridConfig::fromFolder($this->directory);
+        $config = $this->config() ?? new GridConfig();
         foreach ([Database::Robust, Database::Assets, Database::Profiles, Database::Offline, Database::Economy] as $database) {
             $add($database->connection($config));
         }
@@ -1530,7 +1551,7 @@ final class Grid extends InstalledModel
         $add = static function (?ConnectionString $connection) use (&$found): void {
             $connection !== null && $connection->database !== '' && ($found[$connection->key()] ??= $connection);
         };
-        $config = GridConfig::fromFolder($this->directory);
+        $config = $this->config() ?? new GridConfig();
         if ($simulator === null) {
             array_map($add, $this->ownConnections());
         }
@@ -1551,7 +1572,7 @@ final class Grid extends InstalledModel
      */
     public function estates(array $options = []): \OpenSim\Data\Collection
     {
-        return Estate::all(GridConfig::fromFolder($this->directory), $options);
+        return Estate::all($this->config() ?? new GridConfig(), $options);
     }
 
     /**
@@ -1737,12 +1758,12 @@ final class Grid extends InstalledModel
     private function helpersBase(): array
     {
         if (!$this->isPlanned()) {
-            $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->directory);
+            $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->helpersSource());
             if ($configured !== '') {
                 return [$configured, 'config'];
             }
         }
-        $web = $this->isPlanned() ? $this->webUrl() : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->directory);
+        $web = $this->isPlanned() ? $this->webUrl() : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource());
         if ($web === '') {
             return [null, null];
         }
