@@ -535,6 +535,9 @@ final class Catalog
         'db_name' => 'Database name',
         'db_user' => 'User',
         'db_password' => 'Password',
+        'db_use_default' => 'Use default (same as main database)',
+        'db_use_simulator' => 'Use default (the database of the simulator)',
+        'economy_database' => 'Economy Database',
         // What an address of the grid is used for (Service::usage())
         'usage_robust_simulators' => 'Robust service, used by the simulators',
         'usage_robust_viewers' => 'Robust service, used by the viewers and the other grids',

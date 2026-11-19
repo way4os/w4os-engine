@@ -114,7 +114,7 @@ final class Endpoints
                     $field['type'] === 'connection-string' => ['type' => 'object', 'properties' => array_combine(
                         array_column($field['fields'], 'name'),
                         array_map(static fn(array $part): array => ['type' => $part['type'] === 'integer' ? 'integer' : 'string'], $field['fields']),
-                    )],
+                    ) + (isset($field['fallback']) ? ['useDefault' => ['type' => 'boolean', 'description' => 'true: the database the grid uses by default, the setting removed']] : []), 'nullable' => true],
                     in_array($field['type'], ['integer', 'number', 'boolean'], true) => ['type' => $field['type']],
                     default => ['type' => 'string'] + (isset($field['options']) ? ['enum' => array_keys($field['options'])] : []),
                 } + (($field['readOnly'] ?? false) ? ['readOnly' => true] : []);

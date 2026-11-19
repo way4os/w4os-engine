@@ -22,7 +22,7 @@ function provided_grid(string $opensim = '', string $money = ''): array
     $machine = new Machine();
     $machine->write($machine->grid . '/Robust.HG.ini', file_get_contents($machine->grid . '/Robust.HG.ini') . "\n[Const]\n    WebURL = \"https://play.example.org\"\n");
     $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    HelpersURL = \"https://play.example.org/helpers\"\n");
-    $opensim === '' || $machine->write($machine->grid . '/OpenSim.ini', file_get_contents($machine->grid . '/OpenSim.ini') . "\n$opensim");
+    $opensim === '' || $machine->write($machine->grid . '/OpenSim.ini', (is_file($machine->grid . '/OpenSim.ini') ? file_get_contents($machine->grid . '/OpenSim.ini') : '') . "\n$opensim");
     $money === '' || $machine->write($machine->grid . '/MoneyServer.ini', $money);
 
     return [$machine, new Router(new Api($machine->environment))];

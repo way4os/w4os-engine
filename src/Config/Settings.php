@@ -131,10 +131,15 @@ final class Settings
             ],
             'Gloebit' => [
                 'Enabled' => ['name' => 'gloebitEnabled', 'type' => 'bool', 'label' => 'setting_gloebit_enabled', 'default' => false],
+                'GLBSpecificConnectionString' => ['name' => 'gloebitDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'fallback' => 'db_use_simulator', 'condition' => ['economyModule' => ['Gloebit']]],
                 'GLBEnvironment' => ['name' => 'gloebitEnvironment', 'type' => 'select', 'label' => 'setting_gloebit_environment', 'options' => ['sandbox' => 'gloebit_sandbox', 'production' => 'gloebit_production']],
             ],
         ],
         'moneyserver' => [
+            // Its database in parts of their own, the keys of [MySql] by part
+            'MySql' => [
+                'database' => ['name' => 'moneyDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'parts' => ['host' => 'hostname', 'port' => 'port', 'database' => 'database', 'user' => 'username', 'password' => 'password'], 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]],
+            ],
             'MoneyServer' => [
                 'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'readers' => 'helpers', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']], 'health' => 'secret'],
             ],
@@ -146,7 +151,7 @@ final class Settings
                 'DirectoryURL' => ['name' => 'directoryUrl', 'type' => 'url', 'label' => 'setting_directory', 'service' => 'directory'],
                 'GridStatusURL' => ['name' => 'gridStatusUrl', 'type' => 'url', 'label' => 'setting_grid_status', 'service' => 'grid-status'],
                 'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'placeholder' => 'destinations.txt'],
-                'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search'],
+                'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search', 'fallback' => 'db_use_default'],
                 'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => 'https://2do.directory/events', 'placeholder' => 'https://2do.directory/events'],
                 'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
                 'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'placeholder' => 'no-reply@example.org'],

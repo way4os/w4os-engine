@@ -1759,6 +1759,18 @@ msgctxt "db_password"
 msgid "Password"
 msgstr ""
 
+msgctxt "db_use_default"
+msgid "Use default (same as main database)"
+msgstr ""
+
+msgctxt "db_use_simulator"
+msgid "Use default (the database of the simulator)"
+msgstr ""
+
+msgctxt "economy_database"
+msgid "Economy Database"
+msgstr ""
+
 msgctxt "usage_robust_simulators"
 msgid "Robust service, used by the simulators"
 msgstr ""

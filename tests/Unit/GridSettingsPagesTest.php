@@ -41,14 +41,14 @@ describe('The settings pages of the services', function () {
             ->and(array_map($fields, $pages))
             ->toBe([
                 // In the order of w4os-wp (GridSettingsW4osTest)
-                ['provide', 'path', 'economyUrl', 'economyModule', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
+                ['provide', 'path', 'economyUrl', 'economyModule', 'moneyDatabase', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
                 ['provide', 'searchDatabase', 'path', 'searchUrl', 'dataServices', 'eventsUrl'],
                 ['provide', 'guideSource', 'path', 'destinationGuide'],
                 ['provide', 'mailSender', 'path', 'offlineMessageUrl', 'offlineModule'],
                 ['provide', 'path', 'assetsUrl'],
             ])
             ->and(array_map(static fn(array $field): ?string => $en($field['label']), GridSettings::form('economy')['fields']))
-            ->toBe(['Provide Economy Helper', 'Economy Helper URI', 'Economy Helper URI', 'Economy Module', 'Currency Conversion Rate', 'Gloebit Configuration', 'Money Script Access Key', 'Podex Redirect Message', 'Exchange Teleport URL'])
+            ->toBe(['Provide Economy Helper', 'Economy Helper URI', 'Economy Helper URI', 'Economy Module', 'Economy Database', 'Economy Database', 'Currency Conversion Rate', 'Gloebit Configuration', 'Money Script Access Key', 'Podex Redirect Message', 'Exchange Teleport URL'])
             // The translations of w4os-wp
             ->and([$fr['settings_economy'], $fr['setting_currency_rate'], $fr['setting_search_database'], $fr['setting_events_url'], $fr['setting_mail_sender'], $fr['setting_assets_url']])
             ->toBe(["Réglages de l'économie", 'Taux de conversion des devises', 'Base de données du moteur de recherche', "URL du serveur d'événements", "Adresse e-mail de l'expéditeur", 'URL du serveur de ressources web']);

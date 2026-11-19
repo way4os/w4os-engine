@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (economy): the database of the economy, by module: the [MySql] of the money server, the connection of Gloebit; "use default" for Gloebit and the search
 - fix (settings): Provide off shows the whole address of the service alone, its other settings hidden
 - fix (economy): an unset economymodule reads as the free economy (BetaGridLikeMoneyModule), the default of OpenSimulator
 - fix (texts): the reasons a grid cannot be changed or read (`meta.fixed`, 503 problems) are notices of the catalog, in six languages

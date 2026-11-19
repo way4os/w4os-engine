@@ -64,7 +64,7 @@ final class GridSettings
 
     /** The fields of a page in the order w4os-wp shows them, the address of the service and Provide aside. */
     private const ORDER = [
-        'economy' => ['economyModule', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
+        'economy' => ['economyModule', 'moneyDatabase', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'dataServices', 'eventsUrl'],
         'offline' => ['mailSender', 'offlineModule'],
     ];
@@ -100,7 +100,7 @@ final class GridSettings
     ];
 
     /** What a field says of its setting, beside its name and its type. */
-    private const SHOWN = ['label', 'options', 'widget', 'placeholder', 'condition', 'multiple', 'description', 'readOnly', 'required'];
+    private const SHOWN = ['label', 'options', 'widget', 'placeholder', 'condition', 'multiple', 'description', 'readOnly', 'required', 'fallback'];
 
     /** The roles of the files of the grid, in the order it reads a setting from them (GridConfig::find()). */
     private const FILES = ['Robust', 'OpenSim', 'Helpers', 'MoneyServer'];
@@ -215,15 +215,30 @@ final class GridSettings
             $writes[] = [$entry, $value, $where];
         }
         foreach ($writes as [$entry, $value, $where]) {
+            // Its default: what the grid uses when the setting says nothing (the database of Robust for the search)
+            $default = isset($entry['fallback']) && is_array($value) && filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN);
             if ($where['store'] ?? false) {
                 $store = $this->grid->environment()->settings;
-                $current = $store->all()[$entry['section']][$entry['key']] ?? null;
-                $store->set($entry['section'], $entry['key'], trim(self::checked($entry, $value, $current), '"'));
+                $now = $store->all()[$entry['section']] ?? [];
+                $keys = $default ? [$entry['key'] => ''] : (isset($entry['parts'])
+                    ? self::partsOf($entry, self::partsValue($entry, $value), static fn(string $key): ?string => $now[$key] ?? null)
+                    : [$entry['key'] => self::checked($entry, $value, $now[$entry['key']] ?? null)]);
+                foreach ($keys as $key => $text) {
+                    $store->set($entry['section'], $key, trim($text, '"'));
+                }
                 continue;
             }
             $file = $where['file'];
             $ini = is_file($file) ? IniEditor::load($file) : new IniEditor('');
-            $ini->set($entry['section'], $entry['key'], self::checked($entry, $value, $ini->get($entry['section'], $entry['key'])));
+            if ($default) {
+                $ini->remove($entry['section'], $entry['key']);
+            } elseif (isset($entry['parts'])) {
+                foreach (self::partsOf($entry, self::partsValue($entry, $value), static fn(string $key): ?string => $ini->get($entry['section'], $key)) as $key => $text) {
+                    $ini->set($entry['section'], $key, $text);
+                }
+            } else {
+                $ini->set($entry['section'], $entry['key'], self::checked($entry, $value, $ini->get($entry['section'], $entry['key'])));
+            }
             $ini->save($file);
         }
 
@@ -286,12 +301,10 @@ final class GridSettings
             if (!isset($where['reason'])) {
                 continue;
             }
-            $value = $values[$entry['name']] ?? null;
-            $value = ($entry['secret'] ?? false) ? '(your key)' : (is_array($value) ? implode(', ', array_map('strval', $value)) : (string) ($value ?? ''));
             $line = [
                 'reason' => $where['reason'],
                 'file' => $where['file'] !== null ? basename($where['file']) : Settings::file($entry['instance'], $config),
-                'text' => self::ini([$entry['section'] => [$entry['key'] => $value]]),
+                'text' => self::ini([$entry['section'] => self::lines($entry, $values[$entry['name']] ?? null)]),
             ];
             // The address of a service: its path as well as the whole address
             ($entry['name'] === (self::PROVIDE[$page]['setting'] ?? null)) && ($fixed['path'] = $line);
@@ -575,6 +588,9 @@ final class GridSettings
         if ($entry['prefix'] ?? false) {
             return array_values($config->keys($entry['section'], '/^' . preg_quote($entry['key'], '/') . '/i'));
         }
+        if (isset($entry['parts'])) {
+            return self::parts($entry, $config);
+        }
         $said = $config->find($entry['section'], $entry['key']);
         $said = $said === null || trim($said) === '' ? null : trim($said, " \t\"");
         if (($codec = Settings::type($entry['type'])) !== null) {
@@ -642,6 +658,94 @@ final class GridSettings
         );
 
         return self::quoted($value);
+    }
+
+    /**
+     * A database a section says in keys of their own (`parts`: the [MySql] of the money server), null when it names none; the
+     * password masked.
+     *
+     * @param array<string,mixed> $entry
+     * @return ?array<string,mixed>
+     */
+    private static function parts(array $entry, GridConfig $config): ?array
+    {
+        $said = [];
+        foreach ($entry['parts'] as $part => $key) {
+            $said[$part] = trim((string) $config->find($entry['section'], $key), " \t\"");
+        }
+        if ($said['database'] === '') {
+            return null;
+        }
+
+        return [
+            'host' => $said['host'] ?: 'localhost',
+            'port' => ctype_digit($said['port']) ? (int) $said['port'] : null,
+            'database' => $said['database'],
+            'user' => $said['user'],
+            'password' => $said['password'] !== '' ? Settings::MASK : '',
+            'options' => [],
+        ];
+    }
+
+    /**
+     * The lines of a setting to write by hand, by key: its value as the file keeps it, a key or a password named, never given.
+     *
+     * @param array<string,mixed> $entry
+     * @return array<string,string>
+     */
+    private static function lines(array $entry, mixed $value): array
+    {
+        $database = is_array($value) ? ['password' => 'your_password'] + $value : ['host' => 'localhost', 'database' => '', 'user' => '', 'password' => 'your_password'];
+        if (isset($entry['parts'])) {
+            return array_combine(array_values($entry['parts']), array_map(
+                static fn(string $part): string => $part === 'password' ? '(your password)' : (string) ($database[$part] ?? ''),
+                array_keys($entry['parts']),
+            ));
+        }
+        if (($codec = Settings::type($entry['type'])) !== null) {
+            return [$entry['key'] => '"' . $codec->encode(['password' => 'your_password'] + $database) . '"'];
+        }
+        if ($entry['secret'] ?? false) {
+            return [$entry['key'] => '(your key)'];
+        }
+
+        return [$entry['key'] => is_array($value) ? implode(', ', array_map('strval', $value)) : (string) ($value ?? '')];
+    }
+
+    /**
+     * A value of parts as a page sends it, checked.
+     *
+     * @param array<string,mixed> $entry
+     * @return array<string,mixed>
+     */
+    private static function partsValue(array $entry, mixed $value): array
+    {
+        is_array($value) || throw InvalidValue::because('invalid-request', "a value of parts is expected ({$entry['name']})");
+        isset($value['port']) && $value['port'] !== '' && !ctype_digit((string) $value['port'])
+            && throw InvalidValue::because('invalid-request', "'{$value['port']}' is not a port ({$entry['name']})");
+
+        return $value;
+    }
+
+    /**
+     * The keys a database in parts is written in, from a value of parts: a part not given, or the mask of the password, as it is now.
+     *
+     * @param array<string,mixed> $entry
+     * @param array<string,mixed> $value
+     * @param \Closure(string):?string $current what a key says now
+     * @return array<string,string> by key
+     */
+    private static function partsOf(array $entry, array $value, \Closure $current): array
+    {
+        $keys = [];
+        foreach ($entry['parts'] as $part => $key) {
+            $given = $value[$part] ?? null;
+            $keep = $given === null || ($part === 'password' && $given === Settings::MASK);
+            $text = $keep ? trim((string) $current($key), " \t\"") : trim((string) $given);
+            ($text !== '' || $part === 'password') && ($keys[$key] = self::quoted($text));
+        }
+
+        return $keys;
     }
 
     /** A value as an ini file keeps it: as it is when it is a word, else between quotes. */
