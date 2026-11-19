@@ -135,7 +135,8 @@ final class Grid extends InstalledModel
     /** Where the settings of its helpers are read: the config given, else its folder. */
     private function helpersSource(): string|GridConfig
     {
-        return $this->given ?? $this->directory;
+        // No folder: never a file of the root of the machine
+        return $this->given ?? ($this->directory !== '' ? $this->directory : new GridConfig());
     }
 
     /**

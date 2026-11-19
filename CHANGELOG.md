@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (grids): a grid an application describes without a folder never reads a file of the machine
 - fix (settings): an address written under a constant of the file's instance (WebURL, BaseURL...) keeps the `${Const|Name}` form, the one the line used first
 - fix (helpers): the WebURL of a grid folder written with a constant is read expanded
 - change (offline): not provided, the module is chosen, V1 with the address of another service (never the helpers'), V2 without one, the lines of the choice; provided, the helpers serve V1 with the database of the messages (`offlineDatabase`, Robust's by default)
