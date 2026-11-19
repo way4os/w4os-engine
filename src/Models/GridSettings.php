@@ -60,7 +60,7 @@ final class GridSettings
         'economy' => ['setting' => 'economyUrl', 'service' => 'currency', 'label' => 'provide_economy', 'prefix' => true, 'url' => 'economy_helper_uri', 'help' => ['economy_helper_uri_help']],
         'search' => ['setting' => 'searchUrl', 'service' => 'query', 'base' => 'helpers', 'external' => 'searchExternalUrl', 'label' => 'provide_search', 'after' => 'searchDatabase', 'url' => 'search_engine_url', 'help' => ['search_url_help_viewer', 'search_url_help_one', 'search_url_help_web']],
         'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide', 'after' => 'guideSource', 'url' => 'guide_url'],
-        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'base' => 'helpers', 'label' => 'provide_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core'], 'after' => 'mailSender', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
+        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'base' => 'helpers', 'label' => 'provide_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core'], 'after' => 'offlineModule', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
         'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'base' => 'helpers', 'label' => 'provide_assets', 'description' => ['provide_assets_help'], 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'placeholder' => 'https://example.org/assets', 'required' => true],
     ];
 
@@ -68,7 +68,7 @@ final class GridSettings
     private const ORDER = [
         'economy' => ['economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'eventsUrl'],
-        'offline' => ['mailSender', 'offlineModule'],
+        'offline' => ['mailSender', 'offlineDatabase', 'offlineModule'],
     ];
 
     /**
@@ -90,6 +90,9 @@ final class GridSettings
         ],
         'offline' => [
             'mailSender' => ['required' => true],
+            // Not provided, the module is chosen: V1 with the address of another service, V2 Robust's
+            'offlineModule' => ['condition' => ['provide' => [false]]],
+            'offlineMessageUrl' => ['condition' => ['offlineModule' => ['OfflineMessageModule']]],
         ],
     ];
     /** The type of a field of the standard format, by type of setting. */
@@ -117,7 +120,7 @@ final class GridSettings
             'economy' => 'The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module chosen as w4os-wp chooses its provider (the free economy, the generic money server, Gloebit and its settings, or Podex: the generic money server, `[Helpers] CurrencyProvider = podex`), its database, the key of the money server, the rate and the settings of Podex the helpers use.',
             'search' => 'The search of the grid, as w4os-wp has it: what the simulators call and where they register (set by the options of the grid), the database of the search, the calendar of the events.',
             'guide' => 'The destinations guide of the grid, as w4os-wp has it: its address (`DestinationGuide` of `[LoginService]`) and its source (`GuideSource` of `[Helpers]`).',
-            'offline' => 'The offline messages of the grid, as w4os-wp has them: the module and its address (set by the options of the grid), the sender of the messages forwarded by mail.',
+            'offline' => 'The offline messages of the grid, as w4os-wp has them: provided, the helpers serve the module V1 and keep the messages in their database; not provided, the module V1 with the address of another service, or V2, Robust\'s, without one; the sender of the messages forwarded by mail.',
             'assets' => 'The web assets server of the grid (`AssetsURL` of `[Helpers]`): set when it is not the one of the helpers, as when this machine does not read JPEG 2000.',
             default => '',
         };
@@ -175,6 +178,8 @@ final class GridSettings
         $url = $values[$provide['setting']];
         $site = $this->grid->site();
         $on = !is_string($url) || $url === '' || ($site !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $site));
+        // The module V2 is Robust's: the helpers do not provide it
+        $page === 'offline' && stripos((string) $values['offlineModule'], 'V2') !== false && ($on = false);
         $path = $on && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page);
         // The address of another server: the one kept, else the one the grid uses when it is elsewhere
         if (isset($provide['external']) && !$on && $config->find('Helpers', Settings::named($provide['external'])['key']) === null) {
@@ -468,14 +473,25 @@ final class GridSettings
                 "the grid has no web site (WebURL of [Const]) to provide $page on: give the whole address of the service, Provide off",
             );
             $values = [$setting => $base . '/' . ltrim(trim((string) ($path ?? $now['path'])), '/')] + $values;
+        } elseif ($page === 'offline' && stripos((string) ($values['offlineModule'] ?? $now['offlineModule']), 'V2') !== false) {
+            // V2: Robust serves them, no address of the helpers
+            unset($values[$setting]);
         } else {
             $address = $external !== null ? ($values[$external] ?? $now[$external]) : ($values[$setting] ?? null);
+            // Not provided: another service, never the helpers
+            $helpers = $this->baseOf($page);
+            $page === 'offline' && $helpers !== null && is_string($address) && str_starts_with($address, $helpers . '/') && throw InvalidValue::because(
+                'invalid-request',
+                "with Provide off, the offline messages are another service's: $address is the helpers' (Provide on)",
+            );
             trim((string) $address) !== '' || throw InvalidValue::because(
                 'invalid-request',
                 'Provide off needs the whole address of the service (' . ($external ?? $setting) . ')',
             );
             $values = [$setting => $address] + $values;
         }
+        // Provided, the helpers serve the module V1
+        $page === 'offline' && $on && ($values['offlineModule'] = 'OfflineMessageModule');
         if ($page === 'search') {
             // The simulators register on the search the grid uses: its own under the helpers, else the other one
             $own = $this->ownRegister();
@@ -519,12 +535,12 @@ final class GridSettings
                 continue;
             }
             if ($field['name'] === ($provide['external'] ?? $provide['setting'])) {
-                $address[] = ['condition' => ['provide' => [false]], 'label' => $provide['url'], 'description' => $provide['urlHelp'] ?? $provide['help'] ?? []]
+                $address[] = ['condition' => ['provide' => [false]] + ($shownAs[$field['name']]['condition'] ?? []), 'label' => $provide['url'], 'description' => $provide['urlHelp'] ?? $provide['help'] ?? []]
                     + array_intersect_key($provide, ['placeholder' => 1, 'required' => 1]) + $field;
                 $address[1]['description'] === [] && ($address[1] = array_diff_key($address[1], ['description' => 1]));
                 continue;
             }
-            $others[] = ['condition' => $on + $condition] + $more + $field;
+            $others[] = ['condition' => isset($condition['provide']) ? $condition : $on + $condition] + $more + $field;
         }
         $order = array_flip(self::ORDER[$page] ?? []);
         usort($others, static fn(array $one, array $two): int => ($order[$one['name']] ?? PHP_INT_MAX) <=> ($order[$two['name']] ?? PHP_INT_MAX));
@@ -622,7 +638,7 @@ final class GridSettings
             'guide' => [
                 'path' => [$line($robust, ['LoginService' => ['DestinationGuide' => $url]])],
             ],
-            'offline' => ['path' => [
+            'offline' => ['offlineModule' => [$this->offlineLines($line, $url)], 'path' => [
                 $line('OpenSim.ini', ['Messaging' => ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]),
                 $line($robust, ['GridInfoService' => [
                     ';; Optional. To allow different grid to communicate their offline messages service' => null,
@@ -652,6 +668,16 @@ final class GridSettings
         $registers = [$line('OpenSim.ini', ['DataSnapshot' => ['index_sims' => 'true', 'gridname' => '"' . $this->grid->name() . '"'] + $register])];
 
         return ['path' => $search, 'searchExternalUrl' => $search, 'registerPath' => $registers, 'registerExternalUrl' => $registers];
+    }
+
+    /** The lines of the module of the offline messages chosen: V1 and its address, or V2, Robust's. */
+    private function offlineLines(\Closure $line, string $url): array
+    {
+        $module = (string) $this->read('offline')['offlineModule'];
+
+        return stripos($module, 'V2') !== false
+            ? $line('OpenSim.ini', ['Messaging' => ['OfflineMessageModule' => '"Offline Message Module V2"', 'OfflineMessageURL' => '${Const|PrivateURL}:${Const|PrivatePort}']])
+            : $line('OpenSim.ini', ['Messaging' => ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]);
     }
 
     /**

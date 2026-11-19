@@ -687,7 +687,9 @@ msgstr ""
 
 msgctxt "guide_source_help_name"
 msgid "A file name alone is read in the config folder of the grid."
-msgstr "Un nome di file da solo viene letto nella cartella di configurazione della griglia."
+msgstr ""
+"Un nome di file da solo viene letto nella cartella di configurazione della "
+"griglia."
 
 msgctxt "guide_example"
 msgid "Example of a destinations file"
@@ -2095,6 +2097,10 @@ msgstr "Dagli helpers (V1)"
 msgctxt "offline_module_v2"
 msgid "By Robust (V2)"
 msgstr "Da Robust (V2)"
+
+msgctxt "offline_database"
+msgid "Offline Messages Database"
+msgstr "Database dei messaggi offline"
 
 msgctxt "db_host"
 msgid "Hostname"

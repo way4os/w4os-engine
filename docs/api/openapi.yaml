@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 9d3aaba
+  version: a100221
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -6057,7 +6057,7 @@ paths:
       tags:
         - Settings
       summary: 'The settings of the grid: offline'
-      description: 'The offline messages of the grid, as w4os-wp has them: the module and its address (set by the options of the grid), the sender of the messages forwarded by mail.'
+      description: "The offline messages of the grid, as w4os-wp has them: provided, the helpers serve the module V1 and keep the messages in their database; not provided, the module V1 with the address of another service, or V2, Robust's, without one; the sender of the messages forwarded by mail."
       parameters:
         -
           name: grid
@@ -6089,6 +6089,47 @@ paths:
             placeholder: no-reply@example.org
             description: setting_mail_sender_help
           -
+            condition:
+              provide:
+                - true
+            name: offlineDatabase
+            type: connection-string
+            label: offline_database
+            fallback: db_use_default
+            fields:
+              -
+                name: host
+                label: db_host
+                type: string
+              -
+                name: port
+                label: db_port
+                type: integer
+                placeholder: '3306'
+              -
+                name: database
+                label: db_name
+                type: string
+              -
+                name: user
+                label: db_user
+                type: string
+              -
+                name: password
+                label: db_password
+                type: secret
+          -
+            condition:
+              provide:
+                - false
+            name: offlineModule
+            type: select
+            label: setting_offline_module
+            options:
+              OfflineMessageModule: offline_module_v1
+              'Offline Message Module V2': offline_module_v2
+            description: setting_offline_module_help
+          -
             name: path
             type: path
             base: helpers
@@ -6102,23 +6143,13 @@ paths:
             condition:
               provide:
                 - false
+              offlineModule:
+                - OfflineMessageModule
             label: offline_helper
             description:
               - offline_helper_help
             name: offlineMessageUrl
             type: url
-          -
-            condition:
-              provide:
-                - true
-            name: offlineModule
-            type: select
-            label: setting_offline_module
-            options:
-              OfflineMessageModule: offline_module_v1
-              'Offline Message Module V2': offline_module_v2
-            readOnly: true
-            description: setting_offline_module_help
         submit: action_save_changes
         saved: settings_saved
       responses:
@@ -6163,7 +6194,7 @@ paths:
                       const: offline
                     attributes:
                       type: object
-                      properties: { provide: { type: boolean }, mailSender: { type: string }, path: { type: string }, offlineMessageUrl: { type: string }, offlineModule: { type: string, enum: [OfflineMessageModule, 'Offline Message Module V2'], readOnly: true } }
+                      properties: { provide: { type: boolean }, mailSender: { type: string }, offlineDatabase: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string }, useDefault: { type: boolean, description: 'true: the database the grid uses by default, the setting removed' } }, nullable: true }, offlineModule: { type: string, enum: [OfflineMessageModule, 'Offline Message Module V2'] }, path: { type: string }, offlineMessageUrl: { type: string } }
       responses:
         200:
           description: 'The settings now'

@@ -44,7 +44,7 @@ describe('The settings pages of the services', function () {
                 ['provide', 'path', 'economyUrl', 'economyModule', 'moneyDatabase', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
                 ['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registerExternalUrl', 'eventsUrl'],
                 ['provide', 'guideSource', 'path', 'destinationGuide'],
-                ['provide', 'mailSender', 'path', 'offlineMessageUrl', 'offlineModule'],
+                ['provide', 'mailSender', 'offlineDatabase', 'offlineModule', 'path', 'offlineMessageUrl'],
                 ['provide', 'path', 'assetsUrl'],
             ])
             ->and(array_map(static fn(array $field): ?string => $en($field['label']), GridSettings::form('economy')['fields']))

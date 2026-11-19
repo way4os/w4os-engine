@@ -550,6 +550,7 @@ final class Catalog
         'setting_assets_url_help' => 'The web assets server of the grid when it is not the one of the helpers: it converts the pictures of the world (JPEG 2000) for the web.',
         'offline_module_v1' => 'By the helpers (V1)',
         'offline_module_v2' => 'By Robust (V2)',
+        'offline_database' => 'Offline Messages Database',
         'db_host' => 'Hostname',
         'db_port' => 'Port',
         'db_name' => 'Database name',

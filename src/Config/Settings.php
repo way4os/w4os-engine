@@ -59,6 +59,10 @@ final class Settings
                 'PublicPort' => ['name' => 'publicPort', 'type' => 'integer', 'label' => 'setting_public_port', 'default' => 8002],
                 'PrivatePort' => ['name' => 'privatePort', 'type' => 'integer', 'label' => 'setting_private_port', 'default' => 8003],
             ],
+            // The offline messages the helpers keep, in the database of Robust by default
+            'Messaging' => [
+                'ConnectionString' => ['name' => 'offlineDatabase', 'type' => 'connection-string', 'label' => 'offline_database', 'secret' => true, 'readers' => 'helpers', 'admin' => 'offline', 'fallback' => 'db_use_default'],
+            ],
             'DatabaseService' => [
                 'StorageProvider' => ['name' => 'storageProvider', 'type' => 'select', 'label' => 'setting_storage_provider', 'options' => self::PROVIDERS, 'default' => 'OpenSim.Data.MySQL.dll'],
                 'ConnectionString' => ['name' => 'database', 'type' => 'connection-string', 'label' => 'setting_database', 'secret' => true],
@@ -120,7 +124,7 @@ final class Settings
                 'DATA_SRV_' => ['name' => 'dataServices', 'type' => 'url', 'label' => 'setting_data_service', 'service' => 'register', 'prefix' => true, 'multiple' => true, 'readOnly' => true, 'health' => 'register'],
             ],
             'Messaging' => [
-                'OfflineMessageModule' => ['name' => 'offlineModule', 'type' => 'select', 'label' => 'setting_offline_module', 'options' => ['OfflineMessageModule' => 'offline_module_v1', 'Offline Message Module V2' => 'offline_module_v2'], 'admin' => 'offline', 'readOnly' => true],
+                'OfflineMessageModule' => ['name' => 'offlineModule', 'type' => 'select', 'label' => 'setting_offline_module', 'options' => ['OfflineMessageModule' => 'offline_module_v1', 'Offline Message Module V2' => 'offline_module_v2'], 'admin' => 'offline'],
                 'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'health' => 'offline'],
             ],
             'Economy' => [

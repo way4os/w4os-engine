@@ -35,7 +35,7 @@ describe('A settings page of a service of the helpers', function () {
         // Provide first; the path and the whole address where w4os-wp shows the address
         $first = static function (string $page): array {
             $fields = array_column(GridSettings::form($page)['fields'], null, 'name');
-            $url = array_values(array_filter($fields, static fn(array $field): bool => ($field['condition'] ?? []) === ['provide' => [false]]))[0];
+            $url = array_values(array_filter($fields, static fn(array $field): bool => ($field['condition']['provide'] ?? []) === [false] && $field['type'] === 'url'))[0];
 
             return [GridSettings::form($page)['fields'][0], $fields['path'], $url];
         };
@@ -45,7 +45,7 @@ describe('A settings page of a service of the helpers', function () {
             [$provide, $path, $url] = $first($page);
             expect($provide)->toMatchArray(['name' => 'provide', 'type' => 'boolean', 'widget' => 'switch'])
                 ->and($path)->toMatchArray(['name' => 'path', 'type' => 'path', 'base' => in_array($page, ['economy', 'guide'], true) ? 'site' : 'helpers', 'condition' => ['provide' => [true]]])
-                ->and($url)->toMatchArray(['type' => 'url', 'condition' => ['provide' => [false]]]);
+                ->and($url['condition']['provide'])->toBe([false]);
         }
         expect(array_map(static fn(string $page): string => Catalog::MESSAGES[$first($page)[0]['label']], $pages))
             ->toBe(['Provide Economy Helper', 'Provide Search', 'Provide Destinations Guide Service', 'Provide Offline Messages Service', 'Provide Web Assets Server'])

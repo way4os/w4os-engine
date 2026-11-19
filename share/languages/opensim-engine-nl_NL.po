@@ -690,7 +690,8 @@ msgstr ""
 
 msgctxt "guide_source_help_name"
 msgid "A file name alone is read in the config folder of the grid."
-msgstr "Een bestandsnaam alleen wordt gelezen in de configuratiemap van het grid."
+msgstr ""
+"Een bestandsnaam alleen wordt gelezen in de configuratiemap van het grid."
 
 msgctxt "guide_example"
 msgid "Example of a destinations file"
@@ -2097,6 +2098,10 @@ msgstr "Door de helpers (V1)"
 msgctxt "offline_module_v2"
 msgid "By Robust (V2)"
 msgstr "Door Robust (V2)"
+
+msgctxt "offline_database"
+msgid "Offline Messages Database"
+msgstr "Database van de offline berichten"
 
 msgctxt "db_host"
 msgid "Hostname"

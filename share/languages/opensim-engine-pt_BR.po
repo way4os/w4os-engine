@@ -2086,6 +2086,10 @@ msgctxt "offline_module_v2"
 msgid "By Robust (V2)"
 msgstr "Pelo Robust (V2)"
 
+msgctxt "offline_database"
+msgid "Offline Messages Database"
+msgstr "Banco de dados das mensagens offline"
+
 msgctxt "db_host"
 msgid "Hostname"
 msgstr "Nome do host"
