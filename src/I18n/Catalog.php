@@ -215,6 +215,9 @@ final class Catalog
         'guide_example' => 'Example of a destinations file',
         'snippet_ini' => 'Lines to add to %s',
         'snippet_example' => 'Example',
+        // The message of the day of a grid that sets none (Grid::motd()): the name of the grid, the name of the avatar or the word for a visitor
+        'motd_welcome' => 'Welcome to %1$s, %2$s!',
+        'motd_visitor' => 'traveler',
         'guide_source_help_pipe' => 'Destination name and teleport URL are separated by a pipe (|) character.',
         'guide_source_help_categories' => 'Lines containing only text are interpreted as categories.',
         'guide_source_help_comments' => 'Lines beginning with "#" or "//" are ignored.',

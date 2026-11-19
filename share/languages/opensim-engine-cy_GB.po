@@ -702,6 +702,15 @@ msgctxt "snippet_example"
 msgid "Example"
 msgstr "Enghraifft"
 
+#, php-format
+msgctxt "motd_welcome"
+msgid "Welcome to %1$s, %2$s!"
+msgstr "Croeso i %1$s, %2$s!"
+
+msgctxt "motd_visitor"
+msgid "traveler"
+msgstr "teithiwr"
+
 msgctxt "guide_source_help_pipe"
 msgid ""
 "Destination name and teleport URL are separated by a pipe (|) character."

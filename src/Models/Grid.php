@@ -8,6 +8,7 @@ use OpenSim\Data\Listing;
 use OpenSim\Config\ConfigReader;
 use OpenSim\Config\ConnectionString;
 use OpenSim\Config\GridConfig;
+use OpenSim\I18n\Catalog;
 use OpenSim\Controllers\AbstractController;
 use OpenSim\Controllers\RobustController;
 use OpenSim\Data\Collection;
@@ -989,12 +990,14 @@ final class Grid extends InstalledModel
      * The message of the day the viewers show at login: `WelcomeMessage` of `[LoginService]`, else a welcome to the grid; `<USERNAME>`
      * stands for the name of the avatar, replaced when it is given.
      */
-    public function motd(string $username = ''): string
+    public function motd(string $username = '', ?string $locale = null): string
     {
-        $text =
-            $this->setting('LoginService', 'WelcomeMessage') ?? sprintf(_('Welcome to %s, <USERNAME>!'), $this->name());
+        // In a language (a page), the word for a visitor when the name is not known; for the viewers, <USERNAME>, Robust's
+        $texts = $locale === null ? Catalog::MESSAGES : Catalog::messages($locale) + Catalog::MESSAGES;
+        $username = $username !== '' ? $username : ($locale === null ? '<USERNAME>' : $texts['motd_visitor']);
+        $own = $this->setting('LoginService', 'WelcomeMessage');
 
-        return $username === '' ? $text : str_replace('<USERNAME>', $username, $text);
+        return $own !== null ? str_replace('<USERNAME>', $username, $own) : sprintf($texts['motd_welcome'], $this->name(), $username);
     }
 
     /**

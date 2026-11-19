@@ -743,7 +743,7 @@ class Health
         if ($code === 0) {
             return [
                 'level' => 'error',
-                'status' => 'cURL ' . _('error') . ' ' . $errno,
+                'status' => sprintf(_('cURL error %d'), $errno),
                 'ms' => null,
                 'detail' => $error,
             ];
