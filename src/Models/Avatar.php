@@ -1545,7 +1545,11 @@ final class Avatar extends Model
      */
     public static function find(GridConfig $config, string $id): ?static
     {
-        $accounts = self::connect($config, 'UserAccountService', null, 'read the avatar');
+        // A database the grid sets that cannot be reached is no missing avatar (ChannelUnavailable); null when it sets none
+        $accounts = self::optional($config, 'UserAccountService', null, "read the avatar $id");
+        if ($accounts === null) {
+            return null;
+        }
         if (Uuid::isValid($id)) {
             $where = ' WHERE u.PrincipalID = :a';
             $params = ['a' => strtolower($id)];
