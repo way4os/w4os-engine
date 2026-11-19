@@ -71,6 +71,25 @@ final class Environment
         );
     }
 
+    /** The same environment with the settings an application keeps (SettingsStore). */
+    public function withSettings(?\OpenSim\Config\SettingsStore $settings): self
+    {
+        return new self(
+            $this->layout,
+            $this->processes,
+            $this->launcher,
+            $this->consoles,
+            $this->clock,
+            $this->reporter,
+            $this->portMapping,
+            $this->probe,
+            $this->http,
+            $this->occupiedPorts,
+            $this->databases,
+            $settings,
+        );
+    }
+
     /** The same environment saying what it does to another reporter. */
     public function reporting(ReporterInterface $reporter): self
     {

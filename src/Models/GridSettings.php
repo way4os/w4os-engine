@@ -192,12 +192,6 @@ final class GridSettings
     {
         $entries = array_column(self::entries($page), null, 'name');
         isset(self::PROVIDE[$page]) && ($values = $this->addressOf($page, $values));
-        in_array('settings', $this->grid->access(), true) || throw \OpenSim\Exceptions\ChannelUnavailable::for(
-            "change the settings of {$this->grid->nick()}",
-            'the grid has no files on this machine, and the application keeps no settings for it: its settings are changed where its config is kept',
-        );
-        // No files here: the settings the application keeps
-        $store = in_array('files', $this->grid->access(), true) ? null : $this->grid->environment()->settings;
         $now = $this->read($page);
         $writes = [];
         foreach ($values as $name => $value) {
@@ -211,21 +205,103 @@ final class GridSettings
             if ($value === null || (($entry['secret'] ?? false) && $value === Settings::MASK)) {
                 continue;
             }
-            $writes[] = [$entry, $value];
+            $where = $this->destination($entry);
+            if (isset($where['reason'])) {
+                // Where it cannot be written: the same value is no change, another one is refused with its reason
+                $value == ($now[$name] ?? null) || throw \OpenSim\Exceptions\ChannelUnavailable::for("change $name of {$this->grid->nick()}", $where['reason']);
+                continue;
+            }
+            $writes[] = [$entry, $value, $where];
         }
-        foreach ($writes as [$entry, $value]) {
-            if ($store !== null) {
+        foreach ($writes as [$entry, $value, $where]) {
+            if ($where['store'] ?? false) {
+                $store = $this->grid->environment()->settings;
                 $current = $store->all()[$entry['section']][$entry['key']] ?? null;
                 $store->set($entry['section'], $entry['key'], trim(self::checked($entry, $value, $current), '"'));
                 continue;
             }
-            $file = $this->fileOf($entry);
+            $file = $where['file'];
             $ini = is_file($file) ? IniEditor::load($file) : new IniEditor('');
             $ini->set($entry['section'], $entry['key'], self::checked($entry, $value, $ini->get($entry['section'], $entry['key'])));
             $ini->save($file);
         }
 
         return $this->read($page);
+    }
+
+    /**
+     * Where a setting is written, at the best of what this process can do: the file of the grid that says it (or of its instance)
+     * when this process can write it; else the settings the application keeps, for what the helpers and the site read only
+     * (`readers` helpers); else nowhere here, with the reason (`reason`, and the file the grid reads it in, `file`).
+     *
+     * @param array<string,mixed> $entry
+     * @return array{file?:?string,store?:bool,reason?:string}
+     */
+    private function destination(array $entry): array
+    {
+        $store = $this->grid->environment()->settings;
+        $kept = $store !== null && $store->writable() && ($entry['readers'] ?? 'grid') === 'helpers';
+        if (in_array('files', $this->grid->access(), true)) {
+            $file = $this->fileOf($entry);
+            if (self::canWrite($file)) {
+                return ['file' => $file];
+            }
+            if ($kept) {
+                return ['store' => true];
+            }
+            $name = basename($file);
+
+            return ['file' => $file, 'reason' => ($entry['readers'] ?? 'grid') === 'grid'
+                ? "this server cannot write $name, where the grid reads it: set it there by hand"
+                : "this server cannot write $name, and the application keeps no settings for the grid: set it there by hand"];
+        }
+        if ($kept) {
+            return ['store' => true];
+        }
+
+        return ['file' => null, 'reason' => ($entry['readers'] ?? 'grid') === 'grid'
+            ? 'the grid has no files on this machine: the grid reads it in its files, set it there by hand'
+            : 'the grid has no files on this machine, and the application keeps no settings for it'];
+    }
+
+    /** Whether this process can write a file: the file itself, or the folder it would be made in. Checked, never assumed. */
+    private static function canWrite(string $file): bool
+    {
+        return is_file($file) ? is_writable($file) : is_dir(dirname($file)) && is_writable(dirname($file));
+    }
+
+    /**
+     * The fields of a page this process cannot change for the grid: why, the file the grid reads it in, the lines to write there by
+     * hand (`file`, `text`, never a secret), by field.
+     *
+     * @return array<string,array{reason:string,file:string,text:string}>
+     */
+    private function fixed(string $page): array
+    {
+        $config = $this->config();
+        $values = $this->read($page, false);
+        $fixed = [];
+        foreach (self::entries($page) as $entry) {
+            if ($entry['readOnly'] ?? false) {
+                continue;
+            }
+            $where = $this->destination($entry);
+            if (!isset($where['reason'])) {
+                continue;
+            }
+            $value = $values[$entry['name']] ?? null;
+            $value = ($entry['secret'] ?? false) ? '(your key)' : (is_array($value) ? implode(', ', array_map('strval', $value)) : (string) ($value ?? ''));
+            $line = [
+                'reason' => $where['reason'],
+                'file' => $where['file'] !== null ? basename($where['file']) : Settings::file($entry['instance'], $config),
+                'text' => self::ini([$entry['section'] => [$entry['key'] => $value]]),
+            ];
+            // The address of a service: its path as well as the whole address
+            ($entry['name'] === (self::PROVIDE[$page]['setting'] ?? null)) && ($fixed['path'] = $line);
+            $fixed[$entry['name']] = $line;
+        }
+
+        return $fixed;
     }
 
     /**
@@ -324,8 +400,9 @@ final class GridSettings
      */
     public function meta(string $page): array
     {
+        $fixed = $this->fixed($page);
         if (!isset(self::PROVIDE[$page])) {
-            return [];
+            return $fixed === [] ? [] : ['fixed' => $fixed];
         }
         $provide = self::PROVIDE[$page];
         $url = $this->address($page);
@@ -334,7 +411,7 @@ final class GridSettings
         $under = static fn(?string $base): bool => $url !== null && $base !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $base);
         $service = new Service($this->grid->environment(), $this->grid, $provide['service']);
 
-        return ['snippets' => $this->snippets($page), 'service' => [
+        return ($fixed === [] ? [] : ['fixed' => $fixed]) + ['snippets' => $this->snippets($page), 'service' => [
             'key' => $provide['service'],
             'base' => $site,
             'helpers' => $helpers,

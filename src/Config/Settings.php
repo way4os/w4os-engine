@@ -23,6 +23,8 @@ use OpenSim\I18n\Catalog;
  * without giving their address (the login: Robust serves it); `info` the key of get_grid_info that tells it; `hypergrid` only in
  * Robust.HG.ini; `secret` never shown, masked; `multiple` several values; `prefix` a family of keys that begin with the key (`*`);
  * `admin` the settings page a site edits it on (GridSettings), `readOnly` shown there, changed elsewhere (an option of the grid);
+ * `readers` who reads it: `grid` (Robust, the simulators, the money server: its files only), `helpers` (the helpers and the site: the
+ * settings the application keeps do, when its files cannot be written; the money key, the helpers tie the quotes with it);
  * `placeholder`, `condition` (clean names => the values it is shown for), `widget` as in the standard field format; `health` how
  * the health of the grid asks it (`address` a page, `login-search` the web search of the login, `xmlrpc` the search of the
  * simulators, `register` the data services, `offline` the offline messages, `secret` set or not).
@@ -134,7 +136,7 @@ final class Settings
         ],
         'moneyserver' => [
             'MoneyServer' => [
-                'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']], 'health' => 'secret'],
+                'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'readers' => 'helpers', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']], 'health' => 'secret'],
             ],
         ],
         'helpers' => [
@@ -181,6 +183,7 @@ final class Settings
                 foreach ($keys as $key => $entry) {
                     $description = $entry['label'] . '_help';
                     $entries[] = ['instance' => $instance, 'section' => $section, 'key' => $key] + $entry
+                        + ['readers' => $instance === 'helpers' ? 'helpers' : 'grid']
                         + (isset(Catalog::MESSAGES[$description]) ? ['description' => $description] : []);
                 }
             }
