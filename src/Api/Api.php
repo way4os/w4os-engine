@@ -11,6 +11,7 @@ use OpenSim\Exceptions\InvalidValue;
 use OpenSim\Exceptions\NotFound;
 use OpenSim\Interfaces\ModelInterface;
 use OpenSim\Assets\ConverterInterface;
+use OpenSim\Assets\ImagickConverter;
 use OpenSim\Assets\ImagickTextRenderer;
 use OpenSim\Assets\Logos;
 use OpenSim\Assets\TextRendererInterface;
@@ -654,6 +655,11 @@ final class Api
         $instance = self::path('assets', $id, $grid);
         try {
             $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            // Nothing here reads JPEG 2000: the external web assets service of the grid gives it
+            $elsewhere = WebAssets::elsewhere($found, $id, $format, $converter !== null || ImagickConverter::available());
+            if ($elsewhere !== null) {
+                return Response::binary('', 'text/plain', 302, ['Location' => $elsewhere]);
+            }
             $picture = WebAssets::for($found, $converter)->get($id, $format, $width, $of);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));

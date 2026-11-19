@@ -775,6 +775,10 @@ final class Contract
                     'description' => 'The picture, or the asset as it is',
                     'content' => ['image/*' => ['schema' => ['type' => 'string', 'format' => 'binary']]],
                 ],
+                '302' => [
+                    'description' => 'This machine does not read JPEG 2000 and the grid sets an external web assets service (AssetsURL of [Helpers]): the picture there, `<AssetsURL>/<id>.<format>`',
+                    'headers' => ['Location' => ['schema' => ['type' => 'string', 'format' => 'uri']]],
+                ],
                 '404' => [
                     'description' => 'There is no such asset, or it cannot be converted: the picture of nothing, or of a person (`default`)',
                     'content' => ['image/png' => ['schema' => ['type' => 'string', 'format' => 'binary']]],

@@ -884,36 +884,51 @@ class Health
     }
 
     /**
-     * What an install needs of PHP, one row per extension: installed, its version, what it is for.
+     * What an install needs of PHP, one row per extension: installed, its version, what it is for. Imagick is required; its JPEG 2000
+     * is required by the web assets service, unless the grid sets an external one.
      *
+     * @param ?string $external the external web assets service of the grid (WebAssets::external), null when it runs here
+     * @param array{file:string,section:string,key:string} $setting where the grid sets it
      * @return list<array<string,mixed>>
      */
-    public static function extensions()
+    public static function extensions($external = null, $setting = self::ASSETS_SETTING)
     {
         return [
             self::requirement('xmlrpc', function_exists('xmlrpc_encode'), 'extension or polyfill'),
             self::requirement('imagick', class_exists('Imagick'), 'text to image, web assets'),
-            self::jpeg2000(),
+            self::jpeg2000(class_exists('Imagick') && \Imagick::queryFormats('JP2') !== [], $external, $setting),
             self::requirement('gettext', function_exists('gettext'), 'translations'),
         ];
     }
 
-    /**
-     * Whether imagick reads JPEG 2000, the format of the pictures of the world (textures, profile pictures, map tiles): without it
-     * (an imagick built without OpenJPEG), a site cannot show them.
-     */
-    private static function jpeg2000()
-    {
-        $reads = class_exists('Imagick') && \Imagick::queryFormats('JP2') !== [];
+    /** Where a grid sets its web assets service, when the engine knows no other. */
+    public const ASSETS_SETTING = ['file' => 'Helpers.ini', 'section' => 'Helpers', 'key' => 'AssetsURL'];
 
-        return [
-            'label' => 'imagick JPEG 2000',
-            'kind' => 'requirement',
-            'installed' => $reads,
-            'version' => null,
-            'level' => $reads ? 'ok' : 'error',
-            'status' => $reads ? _('reads JPEG 2000') : _('cannot read JPEG 2000'),
-            'detail' => 'the pictures of the world (JPEG 2000): without it, a site cannot show them (imagick built with OpenJPEG)',
+    /**
+     * Whether imagick reads JPEG 2000, the format of the pictures of the world (textures, profile pictures, map tiles), required by
+     * the web assets service (an imagick built with OpenJPEG). Without it, the grid sets an external web assets service: then
+     * nothing is needed here.
+     *
+     * @param bool $reads whether imagick reads JPEG 2000 here
+     * @param ?string $external the external web assets service of the grid, null when it runs here
+     * @param array{file:string,section:string,key:string} $setting where the grid sets it
+     * @return array<string,mixed>
+     */
+    public static function jpeg2000($reads, $external, $setting = self::ASSETS_SETTING)
+    {
+        $where = $setting['file'] . ' · [' . $setting['section'] . '] · ' . $setting['key'];
+        $row = ['label' => 'imagick JPEG 2000', 'kind' => 'requirement', 'installed' => $reads, 'version' => null, 'setting' => $setting];
+        if ($reads) {
+            return $row + ['level' => 'ok', 'status' => _('reads JPEG 2000'), 'detail' => 'required by the web assets service: the pictures of the world (JPEG 2000)'];
+        }
+        if ($external !== null) {
+            return $row + ['level' => 'ok', 'url' => $external, 'status' => _('external web assets service'), 'detail' => "the pictures of the world are converted by the web assets service of the grid ($where)"];
+        }
+
+        return $row + [
+            'level' => 'error',
+            'status' => _('cannot read JPEG 2000'),
+            'detail' => "required by the web assets service, for the pictures of the world (imagick built with OpenJPEG): without it, set an external web assets service ($where)",
         ];
     }
 

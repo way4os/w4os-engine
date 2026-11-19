@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- change (health): imagick JPEG 2000 is required by the web assets service, unless the grid sets an external one (`AssetsURL`)
+- feature (assets): without JPEG 2000 here, a picture redirects to the grid's external web assets service (`WebAssets::external()`)
 - change (regions): the regions list has the columns, order and words of w4os-wp
 - feature (lists): `mirrors` in `x-list` marks a column that repeats a filter
 - feature (parcels): parcels say what they allow (`scripts`, `build`, `public`) and list their `snapshot`

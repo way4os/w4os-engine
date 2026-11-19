@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 1aac455
+  version: fde1f28
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -4692,6 +4692,13 @@ paths:
               schema:
                 type: string
                 format: binary
+        302:
+          description: 'This machine does not read JPEG 2000 and the grid sets an external web assets service (AssetsURL of [Helpers]): the picture there, `<AssetsURL>/<id>.<format>`'
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
         404:
           description: 'There is no such asset, or it cannot be converted: the picture of nothing, or of a person (`default`)'
           content:

@@ -88,6 +88,33 @@ final class WebAssets
         );
     }
 
+    /**
+     * The external web assets service of the grid: the one it sets (AssetsURL of [Helpers]) when it is not under its helpers, null
+     * when the web assets are served here (by the engine, or the helpers of the grid).
+     */
+    public static function external(Grid $grid): ?string
+    {
+        $url = (new \OpenSim\Models\Service($grid->environment(), $grid, 'assets'))->url();
+
+        return $url === null || trim($url) === '' || $grid->servedByHelpers($url) ? null : rtrim(trim($url), '/');
+    }
+
+    /**
+     * Where a picture is asked when nothing here reads JPEG 2000: at the external web assets service of the grid
+     * (`<AssetsURL>/<id>.<format>`, as w4os-wp asks it); null when it is converted here, or the grid has no external service, or it
+     * is a picture of the kit.
+     */
+    public static function elsewhere(Grid $grid, string $id, string $format, bool $readsHere): ?string
+    {
+        $id = strtolower($id);
+        if ($readsHere || !Uuid::isValid($id) || in_array($id, [self::PLACEHOLDER, self::PERSON], true)) {
+            return null;
+        }
+        $external = self::external($grid);
+
+        return $external !== null ? $external . '/' . $id . '.' . strtolower(ltrim($format, '.')) : null;
+    }
+
     /** The picture of the kit for what has none, a place or a person (DEFAULTS), null when it is not installed. */
     public static function placeholderFile(string $of = 'place'): ?string
     {
