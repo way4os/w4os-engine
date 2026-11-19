@@ -40,14 +40,14 @@ describe('The settings pages of the services', function () {
             ->toBe(['Economy Settings', 'Search Engine Settings', 'Destinations Guide Settings', 'Offline Messages Settings', 'Web Assets Server'])
             ->and(array_map($fields, $pages))
             ->toBe([
-                ['economyUrl', 'economyModule', 'moneyScriptKey', 'currencyRate', 'podexMessage', 'podexUrl'],
-                ['searchUrl', 'dataServices', 'searchDatabase', 'eventsUrl'],
-                ['destinationGuide', 'guideSource'],
-                ['offlineModule', 'offlineMessageUrl', 'mailSender'],
-                ['assetsUrl'],
+                ['provide', 'path', 'economyUrl', 'economyModule', 'moneyScriptKey', 'currencyRate', 'podexMessage', 'podexUrl'],
+                ['provide', 'path', 'searchUrl', 'dataServices', 'searchDatabase', 'eventsUrl'],
+                ['provide', 'path', 'destinationGuide', 'guideSource'],
+                ['provide', 'path', 'offlineMessageUrl', 'offlineModule', 'mailSender'],
+                ['provide', 'path', 'assetsUrl'],
             ])
             ->and(array_map(static fn(array $field): ?string => $en($field['label']), GridSettings::form('economy')['fields']))
-            ->toBe(['Economy', 'Economy Module', 'Money script key', 'Currency Conversion Rate', 'Podex Redirect Message', 'Exchange Teleport URL'])
+            ->toBe(['Provide Economy Helper', 'Path', 'Economy', 'Economy Module', 'Money script key', 'Currency Conversion Rate', 'Podex Redirect Message', 'Exchange Teleport URL'])
             // The translations of w4os-wp
             ->and([$fr['settings_economy'], $fr['setting_currency_rate'], $fr['setting_search_database'], $fr['setting_events_url'], $fr['setting_mail_sender'], $fr['setting_assets_url']])
             ->toBe(["Réglages de l'économie", 'Taux de conversion des devises', 'Base de données du moteur de recherche', "URL du serveur d'événements", "Adresse e-mail de l'expéditeur", 'URL du serveur de ressources web']);
@@ -78,7 +78,7 @@ describe('The settings pages of the services', function () {
             ->and(array_column($search['searchDatabase']['fields'], 'name'))
             ->toBe(['host', 'port', 'database', 'user', 'password'])
             ->and($economy['moneyScriptKey'])
-            ->toMatchArray(['type' => 'secret', 'condition' => ['economyModule' => ['DTLNSLMoneyModule']]])
+            ->toMatchArray(['type' => 'secret', 'condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule']]])
             ->and($economy['currencyRate'])
             ->toMatchArray(['type' => 'number', 'description' => 'setting_currency_rate_help'])
             ->and($economy['economyModule'])
@@ -90,7 +90,7 @@ describe('The settings pages of the services', function () {
             ->each->not->toHaveKeys(['section', 'key', 'instance', 'default']);
     });
 
-    test('show what the options of the grid set, and do not change it here', function () {
+    test('show what the options of the grid set, and do not change it here, but the address Provide gives', function () {
         [$machine, $patch, $get] = settings_pages();
         $machine->write($machine->grid . '/OpenSim.ini', "[Search]\n    SearchURL = \"https://play.example.org/helpers/query.php\"\n[DataSnapshot]\n    DATA_SRV_demo = \"https://play.example.org/helpers/register.php\"\n    DATA_SRV_2do = \"https://2do.directory/helpers/register.php\"\n[Economy]\n    economymodule = Gloebit\n");
 
@@ -100,8 +100,9 @@ describe('The settings pages of the services', function () {
             ->toMatchArray(['searchUrl' => 'https://play.example.org/helpers/query.php', 'dataServices' => ['https://play.example.org/helpers/register.php', 'https://2do.directory/helpers/register.php'], 'eventsUrl' => 'https://2do.directory/events'])
             ->and($get('economy')->document['data']['attributes']['economyModule'])
             ->toBe('Gloebit')
+            // The address of the search is the one of Provide (its page), the module of the economy the options'
             ->and([$patch('economy', ['economyModule' => 'DTLNSLMoneyModule'])->status, $patch('search', ['searchUrl' => 'https://x.example.org/q.php'])->status])
-            ->toBe([400, 400])
+            ->toBe([400, 200])
             // A form sends back what it shows
             ->and($patch('search', $search + ['eventsUrl' => 'https://events.example.org'])->status)
             ->toBe(200);

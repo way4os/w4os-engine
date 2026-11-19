@@ -603,6 +603,12 @@ final class Service extends InstalledModel
         return self::CATALOG[$this->key]['legacy'] ?? null;
     }
 
+    /** The page of the helpers that answers a service when the grid says nothing of it (`default`), null for none. */
+    public static function defaultPage(string $key): ?string
+    {
+        return self::CATALOG[$key]['default'] ?? null;
+    }
+
     /** The standard address of a service whose format is the engine's own (`GET /motd`), null when it has none. */
     public function standard(): ?string
     {

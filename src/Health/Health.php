@@ -36,6 +36,9 @@ class Health
     /** How many addresses are asked at once: the pages of a site call back the engine, and a small pool of workers serves both. */
     const CONCURRENCY = 2;
 
+    /** What is read of a page to find the block it shows. */
+    const PAGE_BYTES = 1048576;
+
     /** The curl error of an address that took too long. */
     const TIMED_OUT = 28;
 
@@ -401,6 +404,12 @@ class Health
         return ['label' => $label, 'kind' => 'value', 'text' => (string) $value, 'level' => 'none'];
     }
 
+    /** What a page that shows a block of the helpers holds: the mark of its root (`data-helpers-block`). */
+    public static function blockMarker($block)
+    {
+        return 'data-helpers-block="' . $block . '"';
+    }
+
     /** A page: asked with a GET, it answers. */
     public static function page($label, $url, $tag = null)
     {
@@ -543,7 +552,7 @@ class Health
         $unique = [];
         $same = [];
         foreach ($requests as $id => $row) {
-            $key = json_encode([$row['probe'] ?? $row['url'], $row['method'] ?? 'get', $row['body'] ?? null, !empty($row['stay'])]);
+            $key = json_encode([$row['probe'] ?? $row['url'], $row['method'] ?? 'get', $row['body'] ?? null, !empty($row['stay']), $row['contains'] ?? null]);
             $same[$id] = $unique[$key] ??= $id;
         }
         $results = self::ask(array_intersect_key($requests, array_flip($unique)), $timeout);
@@ -591,6 +600,11 @@ class Health
                     $location = !empty($row['stay']) ? $result['redirect'] : $result['effective'];
                     $asked = (string) ($row['probe'] ?? $row['url']);
                     $location !== '' && rtrim($location, '/') !== rtrim($asked, '/') && ($verdict['location'] = $location);
+                    // A page that does not show the block it must is wrong, whatever it answers
+                    if (($verdict['level'] ?? '') === 'ok' && isset($row['contains']) && !($result['contains'] ?? false)) {
+                        $verdict['level'] = 'error';
+                        $verdict['detail'] = sprintf(_('the page does not show the block %s'), (string) ($row['block'] ?? ''));
+                    }
                     // A redirection that does not lead where it must is wrong
                     if (($verdict['level'] ?? '') === 'ok' && ($row['leadsTo'] ?? '') !== '' && !self::sameAddress((string) ($verdict['location'] ?? ''), $row['leadsTo'])) {
                         $verdict['level'] = 'error';
@@ -607,6 +621,7 @@ class Health
                     'body' => 0,
                     'stay' => 0,
                     'leadsTo' => 0,
+                    'contains' => 0,
                 ]) +
                     ($address ? $verdict + ['ms' => null] : $verdict);
             }
@@ -635,15 +650,17 @@ class Health
             // A few at a time: the pages of a site call back the engine, a small pool of workers serves both
             while (count($running) < self::CONCURRENCY && $waiting !== []) {
                 $id = (string) array_key_first($waiting);
-                $handle = self::handle(array_shift($waiting), $timeout);
+                $row = array_shift($waiting);
+                $body = new \ArrayObject(['text' => '']);
+                $handle = self::handle($row, $timeout, isset($row['contains']) ? $body : null);
                 curl_multi_add_handle($multi, $handle);
-                $running[spl_object_id($handle)] = [$id, $handle];
+                $running[spl_object_id($handle)] = [$id, $handle, $row['contains'] ?? null, $body];
             }
             curl_multi_exec($multi, $active);
             $active && curl_multi_select($multi, 0.2);
             // The code of the error of each address is told by the set, not by the handle
             while (($done = curl_multi_info_read($multi)) !== false) {
-                [$id, $handle] = $running[spl_object_id($done['handle'])];
+                [$id, $handle, $contains, $body] = $running[spl_object_id($done['handle'])];
                 unset($running[spl_object_id($done['handle'])]);
                 $errno = (int) $done['result'];
                 $results[$id] = [
@@ -656,7 +673,7 @@ class Health
                     // Where it led (redirections followed), and where it sends to (a redirection not followed)
                     'effective' => (string) curl_getinfo($handle, CURLINFO_EFFECTIVE_URL),
                     'redirect' => (string) (curl_getinfo($handle, CURLINFO_REDIRECT_URL) ?: ''),
-                ];
+                ] + ($contains === null ? [] : ['contains' => str_contains((string) $body['text'], $contains)]);
                 curl_multi_remove_handle($multi, $handle);
             }
         } while ($running !== [] || $waiting !== []);
@@ -669,9 +686,10 @@ class Health
      * The request of a row, ready to be asked.
      *
      * @param array<string,mixed> $row
+     * @param ?\ArrayObject $body where its answer is kept, when the row looks for a block in it
      * @return \CurlHandle
      */
-    private static function handle($row, $timeout)
+    private static function handle($row, $timeout, $body = null)
     {
         $handle = curl_init($row['probe'] ?? $row['url']);
         curl_setopt_array($handle, [
@@ -683,8 +701,12 @@ class Health
             // answer of the address itself: a redirection away from it)
             CURLOPT_FOLLOWLOCATION => empty($row['stay']),
             CURLOPT_MAXREDIRS => 5,
-            // Only the answer matters, not what follows it
-            CURLOPT_WRITEFUNCTION => static fn($handle, $chunk) => strlen($chunk),
+            // Only the answer matters, not what follows it; the page of a block is kept, its first megabyte, to find the block in it
+            CURLOPT_WRITEFUNCTION => static function ($handle, $chunk) use ($body) {
+                $body !== null && strlen($body['text']) < self::PAGE_BYTES && ($body['text'] .= $chunk);
+
+                return strlen($chunk);
+            },
             // The certificate is not what is asked: an address with one this server does not trust is asked all the same,
             // and the result says so
             CURLOPT_SSL_VERIFYPEER => false,
@@ -810,8 +832,12 @@ class Health
                 continue;
             }
             $tag = ($page['servedBy'] ?? '') === 'helpers' ? _('helpers') : _('site');
+            // A page the site serves shows the block of the helpers it is the page of
+            $block = ($page['servedBy'] ?? '') === 'site' && ($page['block'] ?? null) !== null
+                ? ['block' => $page['block'], 'contains' => self::blockMarker($page['block'])]
+                : [];
             if (!str_contains($url, '[AGENT_NAME]')) {
-                $rows[] = self::page($page['page'], $url, $tag);
+                $rows[] = self::page($page['page'], $url, $tag) + $block;
                 continue;
             }
             $bare = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $url), '/');

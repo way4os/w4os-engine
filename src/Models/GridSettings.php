@@ -48,6 +48,19 @@ final class GridSettings
         'assets' => ['title' => 'settings_assets', 'menu' => 'settings_menu_assets'],
     ];
 
+    /**
+     * The pages of the services of the helpers, as w4os-wp has them: what Provide is the address of (the setting, the service of the
+     * helpers it is), its label and help, the block a page of the site shows when the site handles it, and whether the address is
+     * the base of the helpers (the economy: currency.php and landtool.php under it).
+     */
+    private const PROVIDE = [
+        'economy' => ['setting' => 'economyUrl', 'service' => 'currency', 'label' => 'provide_economy', 'base' => true],
+        'search' => ['setting' => 'searchUrl', 'service' => 'query', 'label' => 'provide_search'],
+        'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide'],
+        'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'label' => 'provide_offline', 'description' => 'provide_offline_help'],
+        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'label' => 'provide_assets', 'description' => 'provide_assets_help'],
+    ];
+
     /** The type of a field of the standard format, by type of setting. */
     private const FIELD_TYPES = [
         'text' => 'string',
@@ -99,6 +112,9 @@ final class GridSettings
                 + (($codec = Settings::type($entry['type'])) !== null ? ['fields' => $codec->fields()] : []),
             self::entries($page),
         );
+        if (isset(self::PROVIDE[$page])) {
+            $fields = self::provided($page, $fields);
+        }
 
         return ['title' => self::PAGES[$page]['title'], 'menu' => self::PAGES[$page]['menu'], 'fields' => $fields, 'submit' => 'action_save_changes', 'saved' => 'settings_saved']
             + array_intersect_key(self::PAGES[$page], ['description' => 1, 'preview' => 1]);
@@ -109,15 +125,31 @@ final class GridSettings
      *
      * @return array<string,mixed>
      */
-    public function read(string $page): array
+    public function read(string $page, bool $provide = true): array
     {
         $config = $this->config();
         $values = [];
         foreach (self::entries($page) as $entry) {
             $values[$entry['name']] = self::value($entry, $config);
         }
+        if (!$provide || !isset(self::PROVIDE[$page])) {
+            return $values;
+        }
+        // Provided: no address of its own, or one on the site of the grid
+        $url = $values[self::PROVIDE[$page]['setting']];
+        $site = $this->grid->site();
+        $on = !is_string($url) || $url === '' || ($site !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $site));
+        $path = $on && is_string($url) && $url !== '' ? self::pathAndQuery($url) : $this->defaultPath($page);
 
-        return $values;
+        return ['provide' => $on, 'path' => $path] + $values;
+    }
+
+    /** The path of an address with what follows it (its query), as a site shows it under its own address. */
+    private static function pathAndQuery(string $url): string
+    {
+        $parts = parse_url($url) ?: [];
+
+        return ($parts['path'] ?? '/') . (isset($parts['query']) ? '?' . $parts['query'] : '');
     }
 
     /**
@@ -131,6 +163,7 @@ final class GridSettings
     public function write(string $page, array $values): array
     {
         $entries = array_column(self::entries($page), null, 'name');
+        isset(self::PROVIDE[$page]) && ($values = $this->addressOf($page, $values));
         in_array('files', $this->grid->access(), true) || throw \OpenSim\Exceptions\ChannelUnavailable::for(
             "change the settings of {$this->grid->nick()}",
             'the grid has no files on this machine: its settings are changed where its config is kept',
@@ -158,6 +191,131 @@ final class GridSettings
         }
 
         return $this->read($page);
+    }
+
+    /**
+     * The values of a page of a service with its address in place of Provide and the path: on, the site and the path; off, the
+     * whole address given.
+     *
+     * @param array<string,mixed> $values
+     * @return array<string,mixed>
+     * @throws InvalidValue for a service provided by a grid that has no site, or not provided without its address
+     */
+    private function addressOf(string $page, array $values): array
+    {
+        $setting = self::PROVIDE[$page]['setting'];
+        $given = array_key_exists('provide', $values) || array_key_exists('path', $values);
+        $on = !array_key_exists('provide', $values) || filter_var($values['provide'], FILTER_VALIDATE_BOOLEAN);
+        unset($values['provide']);
+        $path = $values['path'] ?? null;
+        unset($values['path']);
+        if (!$given) {
+            return $values;
+        }
+        if ($on) {
+            $site = $this->grid->site() ?? throw InvalidValue::because(
+                'invalid-request',
+                "the grid has no web site (WebURL of [Const]) to provide $page on: give the whole address of the service, Provide off",
+            );
+            $path = trim((string) ($path ?? $this->read($page)['path']));
+
+            return [$setting => $site . '/' . ltrim($path, '/')] + $values;
+        }
+        trim((string) ($values[$setting] ?? '')) !== '' || throw InvalidValue::because(
+            'invalid-request',
+            "Provide off needs the whole address of the service ($setting)",
+        );
+
+        return $values;
+    }
+
+    /**
+     * The fields of a page of a service of the helpers: Provide first (on by default), the path under the site when on, the whole
+     * address when off, then the others, asked when the helpers provide it (but what the options set, always shown).
+     *
+     * @param list<array<string,mixed>> $fields
+     * @return list<array<string,mixed>>
+     */
+    private static function provided(string $page, array $fields): array
+    {
+        $provide = self::PROVIDE[$page];
+        $on = ['provide' => [true]];
+        $url = [];
+        $others = [];
+        foreach ($fields as $field) {
+            if ($field['name'] === $provide['setting']) {
+                $url = ['condition' => ['provide' => [false]]] + $field;
+                continue;
+            }
+            $others[] = ($field['readOnly'] ?? false) ? $field : ['condition' => $on + ($field['condition'] ?? [])] + $field;
+        }
+
+        return [
+            ['name' => 'provide', 'label' => $provide['label'], 'type' => 'boolean', 'widget' => 'switch']
+                + (isset($provide['description']) ? ['description' => $provide['description']] : []),
+            ['name' => 'path', 'label' => 'provide_path', 'type' => 'path', 'base' => 'site', 'description' => 'provide_path_help', 'condition' => $on],
+            $url,
+            ...$others,
+        ];
+    }
+
+    /**
+     * Who handles the requests of the service of a page, for a site to route them: `base` the site (its web address), `helpers` the
+     * base of the helpers, `handledBy` the helpers (its address under their base), the site (elsewhere on it: a page of the site
+     * that shows `block`, or the operation of the engine `endpoint`), elsewhere (another server, Provide off), null when it has none.
+     *
+     * @return array<string,mixed> empty for a page that is not of a service
+     */
+    public function meta(string $page): array
+    {
+        if (!isset(self::PROVIDE[$page])) {
+            return [];
+        }
+        $provide = self::PROVIDE[$page];
+        $url = $this->address($page);
+        $site = $this->grid->site();
+        $helpers = $this->grid->helpersUrl();
+        $under = static fn(?string $base): bool => $url !== null && $base !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $base);
+        $service = new Service($this->grid->environment(), $this->grid, $provide['service']);
+
+        return ['service' => [
+            'key' => $provide['service'],
+            'base' => $site,
+            'helpers' => $helpers,
+            'handledBy' => match (true) {
+                $url === null => null,
+                $under($helpers) => 'helpers',
+                $under($site) => 'site',
+                default => 'elsewhere',
+            },
+            'block' => $provide['block'] ?? null,
+            'endpoint' => $service->endpoint() ?? $service->standard(),
+        ]];
+    }
+
+    /** The address of the service of a page: the one the grid sets, else where its helpers answer it on its site; null for none. */
+    private function address(string $page): ?string
+    {
+        $said = $this->read($page, false)[self::PROVIDE[$page]['setting']] ?? null;
+        if (is_string($said) && $said !== '') {
+            return $said;
+        }
+        $site = $this->grid->site();
+
+        return $site === null ? null : $site . $this->defaultPath($page);
+    }
+
+    /** Where the helpers answer the service of a page, under the site: their base, and the page of the service. */
+    private function defaultPath(string $page): string
+    {
+        $base = rtrim(\OpenSim\Provisioning\Web\Services::pathOf((string) ($this->grid->helpersUrl() ?? '/helpers')), '/');
+        if (self::PROVIDE[$page]['base'] ?? false) {
+            return "$base/";
+        }
+        $default = (string) (Service::defaultPage(self::PROVIDE[$page]['service']) ?? self::PROVIDE[$page]['service']);
+        $url = $this->grid->helperUrl($default);
+
+        return $url !== '' ? \OpenSim\Provisioning\Web\Services::pathOf($url) : "$base/$default";
     }
 
     /**

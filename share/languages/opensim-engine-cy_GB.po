@@ -427,6 +427,48 @@ msgctxt "settings_saved"
 msgid "Settings saved."
 msgstr "Gosodiadau wedi’u cadw."
 
+msgctxt "provide_economy"
+msgid "Provide Economy Helper"
+msgstr "Darparu cynorthwywyr economi"
+
+msgctxt "provide_search"
+msgid "Provide Search"
+msgstr "Darparu chwilio"
+
+msgctxt "provide_guide"
+msgid "Provide Destinations Guide Service"
+msgstr "Darparu Gwasanaeth Tywysfa Cyfeiriannau"
+
+msgctxt "provide_offline"
+msgid "Provide Offline Messages Service"
+msgstr "Darparu Gwasanaeth Negeseuon All-lein"
+
+msgctxt "provide_offline_help"
+msgid "Honor \"Email me IMs when I'm offline\" viewer option."
+msgstr "Parchu dewis y gwyliwr “E-bostio IMs ataf pan fyddaf all-lein”."
+
+msgctxt "provide_assets"
+msgid "Provide Web Assets Server"
+msgstr "Darparu Gweinydd Asedau Gwe"
+
+msgctxt "provide_assets_help"
+msgid ""
+"A web assets server is required to display in-world assets (from the grid) "
+"on the website (e.g. profile pictures)."
+msgstr ""
+"Mae angen gweinydd asedau gwe i arddangos asedau yn y byd (o'r grid) ar y "
+"wefan (e.e. lluniau proffil)."
+
+msgctxt "provide_path"
+msgid "Path"
+msgstr "Llwybr"
+
+msgctxt "provide_path_help"
+msgid ""
+"Under the address of the site: under the base of the helpers, the helpers "
+"answer; elsewhere, the site, on a page with its block."
+msgstr "O dan gyfeiriad y wefan: o dan sylfaen yr helpers, yr helpers sy'n ateb; mewn man arall, y wefan, ar dudalen gyda'i bloc."
+
 msgctxt "models_match"
 msgid "Match"
 msgstr "Cyfateb"

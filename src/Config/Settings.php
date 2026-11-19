@@ -110,7 +110,7 @@ final class Settings
             'UserProfiles' => ['ProfileServiceURL' => ['name' => 'profileServiceUrl', 'type' => 'url', 'label' => 'service_profile', 'service' => 'profile']],
             'Search' => [
                 'Module' => ['name' => 'searchModule', 'type' => 'text', 'label' => 'setting_search_module', 'default' => 'OpenSimSearch'],
-                'SearchURL' => ['name' => 'searchUrl', 'type' => 'url', 'label' => 'setting_search_service', 'service' => 'query', 'admin' => 'search', 'readOnly' => true, 'health' => 'xmlrpc'],
+                'SearchURL' => ['name' => 'searchUrl', 'type' => 'url', 'label' => 'setting_search_service', 'service' => 'query', 'admin' => 'search', 'health' => 'xmlrpc'],
             ],
             'DataSnapshot' => [
                 'index_sims' => ['name' => 'indexSims', 'type' => 'bool', 'label' => 'setting_index_sims'],
@@ -119,7 +119,7 @@ final class Settings
             ],
             'Messaging' => [
                 'OfflineMessageModule' => ['name' => 'offlineModule', 'type' => 'select', 'label' => 'setting_offline_module', 'options' => ['OfflineMessageModule' => 'offline_module_v1', 'Offline Message Module V2' => 'offline_module_v2'], 'admin' => 'offline', 'readOnly' => true],
-                'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'readOnly' => true, 'health' => 'offline'],
+                'OfflineMessageURL' => ['name' => 'offlineMessageUrl', 'type' => 'url', 'label' => 'setting_offline_messages', 'service' => 'offline', 'admin' => 'offline', 'health' => 'offline'],
             ],
             'Economy' => [
                 'economymodule' => ['name' => 'economyModule', 'type' => 'select', 'label' => 'setting_economy_module', 'options' => ['BetaGridLikeMoneyModule' => 'economy_module_free', 'Gloebit' => 'economy_module_gloebit', 'DTLNSLMoneyModule' => 'economy_module_moneyserver'], 'admin' => 'economy', 'readOnly' => true],

@@ -1781,6 +1781,14 @@ final class Grid extends InstalledModel
         return $this->helpersBase()[0];
     }
 
+    /** The web site of the grid (`WebURL` of the `[Const]` of its Robust), without its last slash; null when it has none. */
+    public function site(): ?string
+    {
+        $site = rtrim(\OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource()) ?: $this->webUrl(), '/');
+
+        return $site === '' ? null : $site;
+    }
+
     /** Where the base of the helpers comes from: `config` (HelpersURL), `economy`; null when the grid sets none (never a guess). */
     public function helpersUrlSource(): ?string
     {

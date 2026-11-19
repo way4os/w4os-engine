@@ -7,7 +7,7 @@
 use OpenSim\Config\GridConfig;
 use OpenSim\Health\Health;
 
-/** A web server that answers the code its path says: /200, /404, /500, /redirect (to /200), /redirect404 (to /404); /needs-data refuses (400) what has no data. */
+/** A web server that answers the code its path says: /200, /404, /500, /redirect (to /200), /redirect404 (to /404); /needs-data refuses (400) what has no data; /block/NAME shows the block NAME of the helpers, far in the page. */
 function code_server(int $workers = 1): array
 {
     $dir = sys_get_temp_dir() . '/code-server-' . bin2hex(random_bytes(4));
@@ -22,6 +22,7 @@ function code_server(int $workers = 1): array
         if ($path === "get_grid_info") { header("Content-Type: text/xml"); echo "<gridinfo><gridname>Alpha</gridname><login>http://play.example.org:8002/</login></gridinfo>"; return; }
         if ($path === "busy") { $f = __DIR__ . "/busy"; $h = fopen($f, "c+"); flock($h, LOCK_EX); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h) ?: "0 0") + [0, 0]); $now++; $max = max($max, $now); ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); usleep(300000); flock($h, LOCK_EX); rewind($h); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h)) + [0, 0]); $now--; ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); return; }
         if (preg_match("#^slow/(\\d+)$#", $path, $m)) { usleep((int) $m[1] * 1000); http_response_code(200); return; }
+        if (preg_match("#^block/(.+)$#", $path, $m)) { echo str_repeat("x", 70000) . "<section data-helpers-block=\"" . $m[1] . "\">"; return; }
         if ($path === "needs-data") { http_response_code(file_get_contents("php://input") === "" && empty($_SERVER["QUERY_STRING"]) ? 400 : 200); return; }
         $first = explode("/", $path)[0]; http_response_code(is_numeric($first) ? (int) $first : 200); echo str_repeat("x", 5000);',
     );
@@ -1148,3 +1149,25 @@ describe('The helpers of a grid', function () {
             ->toMatchArray(['level' => 'error', 'status' => 'cURL error 7']);
     });
 });
+
+describe('A page the site serves', function () {
+    test('must show the block of the helpers it is the page of: a page without it is wrong, whatever it answers', function () {
+        [$server, $port] = code_server();
+        $base = "http://127.0.0.1:$port";
+        $pages = Health::pages([
+            ['page' => 'guide', 'url' => "$base/block/destination_guide", 'servedBy' => 'site', 'block' => 'destination_guide'],
+            ['page' => 'search', 'url' => "$base/200", 'servedBy' => 'site', 'block' => 'search'],
+            ['page' => 'status', 'url' => "$base/200", 'servedBy' => 'helpers', 'block' => 'grid-status'],
+        ]);
+        $rows = array_column(Health::answers([['file' => 'pages', 'title' => '', 'rows' => $pages]])[0]['rows'], null, 'label');
+        proc_terminate($server);
+
+        expect([$rows['guide']['level'], $rows['search']['level'], $rows['status']['level']])
+            ->toBe(['ok', 'error', 'ok'])
+            ->and($rows['search']['detail'] ?? '')->toContain('search')
+            ->and($rows['search']['block'] ?? null)->toBe('search')
+            // What it looks for in the page is the engine's business
+            ->and($rows['guide'])->not->toHaveKey('contains');
+    });
+});
+

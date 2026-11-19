@@ -958,11 +958,12 @@ final class Api
             in_array($group, \OpenSim\Models\GridSettings::groups(), true) || throw NotFound::for("settings called '$group'");
             $settings = new \OpenSim\Models\GridSettings($found);
             $values = $changes === null ? $settings->read($group) : $settings->write($group, $changes);
+            $meta = $settings->meta($group);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
 
-        return Response::document(['data' => ['type' => 'settings', 'id' => $group, 'attributes' => $values], 'links' => ['self' => $instance]]);
+        return Response::document(['data' => ['type' => 'settings', 'id' => $group, 'attributes' => $values], 'links' => ['self' => $instance]] + ($meta === [] ? [] : ['meta' => $meta]));
     }
 
     /**

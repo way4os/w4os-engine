@@ -24,24 +24,27 @@ final class SitePages
     /**
      * The pages, by the name they are set with: the service of the grid that has the address (Service), the settings it is written in
      * (section, key; the ones after the first are written when the file has them), the default page of the helpers when the service has
-     * none and the address it has under their base (Services::PAGES), what follows the address (the name of the avatar of a profile).
+     * none and the address it has under their base (Services::PAGES), what follows the address (the name of the avatar of a profile),
+     * the block of the helpers a page of the site shows for it (`block`).
      */
     public const PAGES = [
         'search' => [
             'service' => 'search',
             'keys' => [['GridInfoService', 'search'], ['LoginService', 'SearchURL']],
             'default' => 'search',
+            'block' => 'search',
         ],
         'profile' => [
             'service' => 'web-profile',
             'keys' => [['GridInfoService', 'web_profile_url']],
             'default' => 'profile',
             'suffix' => '[AGENT_NAME]',
+            'block' => 'profile',
         ],
-        'guide' => ['service' => 'guide', 'keys' => [['LoginService', 'DestinationGuide']], 'default' => 'guide'],
+        'guide' => ['service' => 'guide', 'keys' => [['LoginService', 'DestinationGuide']], 'default' => 'guide', 'block' => 'destination_guide'],
         'welcome' => ['service' => 'welcome', 'keys' => [['GridInfoService', 'welcome']], 'default' => 'welcome'],
-        'status' => ['service' => 'grid-status', 'keys' => [['GridInfoService', 'GridStatus']], 'default' => 'grid_status'],
-        'directory' => ['service' => 'directory', 'keys' => [['Helpers', 'DirectoryURL']], 'default' => 'directory'],
+        'status' => ['service' => 'grid-status', 'keys' => [['GridInfoService', 'GridStatus']], 'default' => 'grid_status', 'block' => 'grid-status'],
+        'directory' => ['service' => 'directory', 'keys' => [['Helpers', 'DirectoryURL']], 'default' => 'directory', 'block' => 'directory_info'],
     ];
 
     /**
@@ -49,7 +52,7 @@ final class SitePages
      * the helpers is not one), where it comes from (Service::source(), `config` or `economy` for the base), who serves it (`helpers`
      * or `site`, null without an address), the address it would have under the base of the helpers, and the settings it is set in.
      *
-     * @return list<array{page:string,url:?string,source:?string,servedBy:?string,helpersDefault?:?string,keys:list<string>}>
+     * @return list<array{page:string,url:?string,source:?string,servedBy:?string,helpersDefault?:?string,keys:list<string>,block?:?string}>
      */
     public static function rows(Grid $grid): array
     {
@@ -75,6 +78,7 @@ final class SitePages
                 'servedBy' => $url === null ? null : ($grid->servedByHelpers($url) ? 'helpers' : 'site'),
                 'helpersDefault' => $default === '' ? null : $default,
                 'keys' => array_map(static fn(array $key): string => "[{$key[0]}] {$key[1]}", $definition['keys']),
+                'block' => $definition['block'] ?? null,
             ];
         }
 

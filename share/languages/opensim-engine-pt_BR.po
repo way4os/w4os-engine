@@ -423,6 +423,49 @@ msgctxt "settings_saved"
 msgid "Settings saved."
 msgstr "Configurações salvas."
 
+msgctxt "provide_economy"
+msgid "Provide Economy Helper"
+msgstr "Fornecer Assistente de Economia"
+
+msgctxt "provide_search"
+msgid "Provide Search"
+msgstr "Fornecer pesquisa"
+
+msgctxt "provide_guide"
+msgid "Provide Destinations Guide Service"
+msgstr "Fornecer Serviço de Guia de Destinos"
+
+msgctxt "provide_offline"
+msgid "Provide Offline Messages Service"
+msgstr "Fornecer serviço de mensagens offline"
+
+msgctxt "provide_offline_help"
+msgid "Honor \"Email me IMs when I'm offline\" viewer option."
+msgstr ""
+"Honrar a opção do visualizador \"Enviar-me e-mails quando estiver offline\"."
+
+msgctxt "provide_assets"
+msgid "Provide Web Assets Server"
+msgstr "Fornecer Servidor de Ativos Web"
+
+msgctxt "provide_assets_help"
+msgid ""
+"A web assets server is required to display in-world assets (from the grid) "
+"on the website (e.g. profile pictures)."
+msgstr ""
+"É necessário um servidor de ativos da web para exibir ativos do mundo "
+"virtual (da grade) no site (por exemplo, fotos de perfil)."
+
+msgctxt "provide_path"
+msgid "Path"
+msgstr "Caminho"
+
+msgctxt "provide_path_help"
+msgid ""
+"Under the address of the site: under the base of the helpers, the helpers "
+"answer; elsewhere, the site, on a page with its block."
+msgstr "Sob o endereço do site: sob a base dos helpers, os helpers respondem; em outro lugar, o site, numa página com o seu bloco."
+
 msgctxt "models_match"
 msgid "Match"
 msgstr "Correspondência"

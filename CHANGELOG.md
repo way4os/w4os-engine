@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- feature (settings): the service pages start with Provide, the path under the site when on, the whole address when off
+- feature (settings): `meta.service` says who handles a service (helpers, site, elsewhere), with its block or its endpoint
+- feature (health): a page the site serves must show its block of the helpers (`data-helpers-block`)
 - change (settings): the menu labels Destination Guide and Web Assets, as Olivier set them
 - feature (grids): a grid says what the engine reaches of it (`access`: files, databases, http); `GET /grids/{grid}` serves a given grid
 - feature (api): `needs` of `x-access` says what of a grid an operation needs, unavailable (503) for a grid that has not
