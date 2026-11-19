@@ -136,7 +136,7 @@ describe('What a grid has, and what an operation needs', function () {
             $needs('/grids/{grid}/avatars', 'get'),
             $needs('/grids/{grid}/posts/{id}', 'delete'),
             $needs('/grids/{grid}/info', 'get'),
-        ])->toBe([['files'], [], ['files'], ['databases'], ['databases'], []])
+        ])->toBe([['settings'], [], ['files'], ['databases'], ['databases'], []])
             ->and(Contract::document()['info']['description'])->toContain('`needs`');
     });
 });

@@ -33,15 +33,24 @@ final class Environment
         public readonly ?array $occupiedPorts = null,
         /** The access to the databases an application gives (a site that has the engine in its own folder), for every grid */
         public readonly ?\OpenSim\Data\DatabaseAccess $databases = null,
+        /** The settings an application keeps for the engine (a site), read before the files of a grid, for every grid */
+        public readonly ?\OpenSim\Config\SettingsStore $settings = null,
     ) {}
 
     /** The environment of this machine. */
     /**
      * @param ?\OpenSim\Data\DatabaseAccess $databases the access to the databases an application gives, applied to every grid
      *        (Grid::config()): its server, its user, its password; null for the ones each grid says
+     * @param array<string,array<string,string>>|\OpenSim\Config\SettingsStore|null $settings the settings the application keeps for every
+     *        grid (section => key => value), read before its files: an array is read only, a store also keeps what the settings pages
+     *        write for a grid without files
      */
-    public static function system(Layout $layout, ?ReporterInterface $reporter = null, ?\OpenSim\Data\DatabaseAccess $databases = null): self
-    {
+    public static function system(
+        Layout $layout,
+        ?ReporterInterface $reporter = null,
+        ?\OpenSim\Data\DatabaseAccess $databases = null,
+        array|\OpenSim\Config\SettingsStore|null $settings = null,
+    ): self {
         $reporter ??= new NullReporter();
 
         return new self(
@@ -58,6 +67,7 @@ final class Environment
                     : $reporter->info($message),
             ),
             databases: $databases,
+            settings: is_array($settings) ? new \OpenSim\Config\ArraySettings($settings, false) : $settings,
         );
     }
 
@@ -76,6 +86,7 @@ final class Environment
             $this->http,
             $this->occupiedPorts,
             $this->databases,
+            $this->settings,
         );
     }
 
@@ -100,6 +111,7 @@ final class Environment
             $this->http,
             array_values(array_unique($ports)),
             $this->databases,
+            $this->settings,
         );
     }
 }

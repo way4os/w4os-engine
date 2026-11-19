@@ -123,6 +123,9 @@ final class Grid extends InstalledModel
     public function config(): ?GridConfig
     {
         $config = $this->given ?? ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null);
+        // The settings the application keeps, read first
+        $kept = $this->environment->settings?->all() ?? [];
+        $kept !== [] && ($config = ($config ?? new GridConfig())->withSettings($kept));
         // The access to the databases the application gives: its server and its credentials, for every database of the grid
         $access = $this->environment->databases;
 
@@ -767,7 +770,8 @@ final class Grid extends InstalledModel
 
     /**
      * What the engine reaches of the grid, for a site to offer what it can (`needs` of the operations, `x-access`): `files` its
-     * config on this machine (its folder), `databases` the databases its config sets, `http` an address of its own to ask.
+     * config on this machine (its folder), `settings` where its settings are changed (its files, or what the application keeps),
+     * `databases` the databases its config sets, `http` an address of its own to ask.
      *
      * @return list<string>
      */
@@ -777,6 +781,8 @@ final class Grid extends InstalledModel
 
         return array_values(array_filter([
             $this->in(self::FOLDER) && $this->directory !== '' && is_dir($this->directory) ? 'files' : null,
+            // Its settings changed: in its files, or kept by the application
+            ($this->in(self::FOLDER) && $this->directory !== '' && is_dir($this->directory)) || ($this->environment->settings?->writable() ?? false) ? 'settings' : null,
             $config !== null && \OpenSim\Data\Connections::key($config, \OpenSim\Data\Database::Robust) !== null ? 'databases' : null,
             $this->hostPort() !== null ? 'http' : null,
         ]));

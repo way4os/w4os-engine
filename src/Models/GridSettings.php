@@ -17,7 +17,7 @@ use OpenSim\Text\Uuid;
  * The settings of a grid a site shows and changes, by page, each a form (`x-form` of the contract): the settings of the registry
  * (Settings) whose `admin` is that page, in their order, in the standard field format, by their clean name. A setting is written in
  * the file of the grid that says it already (Robust, OpenSim.ini, Helpers.ini, MoneyServer.ini, in the order the grid reads them),
- * else in the file of its instance; what a site sends is checked against its field. What the options of the grid set is shown, not
+ * else in the file of its instance; for a grid without files here, in the settings the application keeps (SettingsStore); what a site sends is checked against its field. What the options of the grid set is shown, not
  * changed here (`readOnly`); a secret is never given back (Settings::MASK when it is set), and the mask sent back keeps it.
  *
  *     $settings = new GridSettings($grid);
@@ -192,10 +192,12 @@ final class GridSettings
     {
         $entries = array_column(self::entries($page), null, 'name');
         isset(self::PROVIDE[$page]) && ($values = $this->addressOf($page, $values));
-        in_array('files', $this->grid->access(), true) || throw \OpenSim\Exceptions\ChannelUnavailable::for(
+        in_array('settings', $this->grid->access(), true) || throw \OpenSim\Exceptions\ChannelUnavailable::for(
             "change the settings of {$this->grid->nick()}",
-            'the grid has no files on this machine: its settings are changed where its config is kept',
+            'the grid has no files on this machine, and the application keeps no settings for it: its settings are changed where its config is kept',
         );
+        // No files here: the settings the application keeps
+        $store = in_array('files', $this->grid->access(), true) ? null : $this->grid->environment()->settings;
         $now = $this->read($page);
         $writes = [];
         foreach ($values as $name => $value) {
@@ -212,6 +214,11 @@ final class GridSettings
             $writes[] = [$entry, $value];
         }
         foreach ($writes as [$entry, $value]) {
+            if ($store !== null) {
+                $current = $store->all()[$entry['section']][$entry['key']] ?? null;
+                $store->set($entry['section'], $entry['key'], trim(self::checked($entry, $value, $current), '"'));
+                continue;
+            }
             $file = $this->fileOf($entry);
             $ini = is_file($file) ? IniEditor::load($file) : new IniEditor('');
             $ini->set($entry['section'], $entry['key'], self::checked($entry, $value, $ini->get($entry['section'], $entry['key'])));

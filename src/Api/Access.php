@@ -97,8 +97,8 @@ final class Access
     ];
 
     /**
-     * What of a grid an operation needs the engine to reach (`needs` of `x-access`): `files`, its config on this machine (a change of
-     * its settings, the repair of its options), `databases`, its databases (what they hold). Empty for what it does with what it has.
+     * What of a grid an operation needs the engine to reach (`needs` of `x-access`): `files`, its config on this machine (the repair of
+     * its options), `settings`, where its settings are changed (its files, or what the application keeps), `databases`, its databases. Empty for what it does with what it has.
      *
      * @return list<string>
      */
@@ -109,7 +109,7 @@ final class Access
         }
         $first = explode('/', substr($path, strlen('/grids/{grid}/')))[0];
         if ($first === 'settings') {
-            return $method === 'PATCH' ? ['files'] : [];
+            return $method === 'PATCH' ? ['settings'] : [];
         }
         if ($first === 'assets') {
             return str_contains($path, '{format}') ? [] : ['databases'];

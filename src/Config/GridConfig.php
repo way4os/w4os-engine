@@ -143,6 +143,12 @@ class GridConfig
         return new static($tree, $this->files);
     }
 
+    /** The same config with the settings an application keeps read first (`Application`, before the files of the grid). */
+    public function withSettings(array $settings): static
+    {
+        return $settings === [] ? $this : new static(['Application' => $settings] + $this->tree, $this->files);
+    }
+
     /**
      * The same config with the database settings OpenSimulator takes from [DatabaseService] when a section does not give its own.
      *
