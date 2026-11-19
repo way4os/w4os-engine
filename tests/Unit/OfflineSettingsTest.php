@@ -39,3 +39,18 @@ describe('The offline messages', function () {
             ->and($ini())->toContain('OfflineMessageURL = "https://play.example.org/helpers/offline');
     });
 });
+
+describe('The database of the offline messages', function () {
+    test('is in the lines of the page when it is not the one of Robust, never with its password', function () {
+        [$machine, $router] = provided_grid();
+
+        $default = array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file');
+        address_patch($router, 'offline', ['provide' => true, 'mailSender' => 'no-reply@example.org', 'offlineDatabase' => ['host' => 'db.example.org', 'database' => 'offline', 'user' => 'im', 'password' => 'pw-secret']]);
+        $set = array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file');
+        $robust = $set['Robust.HG.ini'] ?? '';
+
+        expect(implode("\n", $default))->not->toContain('[Messaging]' . "\n    ConnectionString")
+            ->and($robust)->toContain('[Messaging]')->toContain('ConnectionString = "Data Source=db.example.org;Database=offline;User ID=im;Password=your_password;"')
+            ->and(implode("\n", $set))->not->toContain('pw-secret');
+    });
+});

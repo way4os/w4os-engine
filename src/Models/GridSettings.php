@@ -742,6 +742,9 @@ final class GridSettings
             : ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]);
         $v2 || $add($robust, ['GridInfoService' => ['OfflineMessageURL' => $url]]);
         $values['provide'] && $add('Helpers.ini', ['Helpers' => ['MailSender' => (string) $values['mailSender']]]);
+        // The database the helpers keep the messages in, when it is not the one of Robust
+        $values['provide'] && ($values['offlineDatabase'] ?? null) !== null
+            && $add($robust, ['Messaging' => self::lines(Settings::named('offlineDatabase'), $values['offlineDatabase'])]);
     }
 
     /**
