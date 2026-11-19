@@ -30,17 +30,63 @@ final class HealthCheck
     private const KEY = 'health.';
 
     /**
-     * Check the health of a grid now.
+     * Check the health of a grid now: every line.
      *
      * @param string $tasks the folder of the state of the tasks
      * @return array{level:string,groups:list<array<string,mixed>>,checked:int}
      */
     public static function run(Environment $environment, Grid $grid, ?GridConfig $config, string $tasks): array
     {
+        $groups = self::finish(Health::answers(self::lines($grid, $config, $tasks)), $grid, $config);
+
+        return ['level' => Health::level($groups), 'groups' => $groups, 'checked' => (int) $environment->clock->time()];
+    }
+
+    /**
+     * Check one line now, by its id, and keep it in the last check of the grid.
+     *
+     * @return ?array<string,mixed> the line, with when it was checked (`checked`); null for an id the health has not
+     */
+    public static function one(Environment $environment, Grid $grid, ?GridConfig $config, string $tasks, string $id): ?array
+    {
+        foreach (self::lines($grid, $config, $tasks) as $group) {
+            foreach ($group['rows'] as $row) {
+                if (($row['id'] ?? '') !== $id) {
+                    continue;
+                }
+                $line = self::finish(Health::answers([['rows' => [$row]] + $group]), $grid, $config)[0]['rows'][0];
+                $line['checked'] = (int) $environment->clock->time();
+                // The last check keeps it, the level of all of it again
+                $last = self::last($environment, $grid, $config);
+                if ($last !== null) {
+                    foreach ($last['groups'] as $g => $kept) {
+                        foreach ($kept['rows'] as $r => $was) {
+                            ($was['id'] ?? '') === $id && ($last['groups'][$g]['rows'][$r] = $line);
+                        }
+                    }
+                    $last['level'] = Health::level($last['groups']);
+                    Cache::for($environment, $config)->set(self::KEY . $grid->nick(), $last, 0);
+                }
+
+                return $line;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The lines of the health of a grid, not asked yet, each with its id: what the grid says, its files, its pages, what the engine
+     * needs (shown as it is).
+     *
+     * @return list<array<string,mixed>>
+     */
+    private static function lines(Grid $grid, ?GridConfig $config, string $tasks): array
+    {
         $live = $grid->gridInfo();
         // Where a site sends a profile asked signed out, as the check is
         $register = (string) ($live['register'] ?? ($config?->find('GridInfoService', 'register') ?? ''));
-        $groups = Health::answers([
+        $groups = [
             ...Health::grid([
                 'config' => $config,
                 'live' => $live,
@@ -50,7 +96,7 @@ final class HealthCheck
             ]),
             // The pages for people the grid declares: the helpers' under their base, the site's elsewhere
             ['file' => 'pages', 'title' => '', 'rows' => Health::pages(SitePages::rows($grid), $register)],
-        ]);
+        ];
         $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions()];
         $groups[] = [
             'file' => 'cache',
@@ -80,12 +126,28 @@ final class HealthCheck
         )];
         $files = Health::files($config?->files() ?? []);
         $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
-        // What each row is (a key of the catalog), and a service that needs an application of its own
-        $groups = Health::describe($groups, static fn(string $url): bool => $grid->servedByHelpers($url));
-        // What a wrong or missing address should be, and the line of its file to write
-        $groups = Health::expect($groups, $options->expected(), $config?->section('Const') ?? []);
+        // Each line its id: its file, its section, its setting, how it is asked
+        foreach ($groups as $g => $group) {
+            foreach ($group['rows'] as $r => $row) {
+                $groups[$g]['rows'][$r] = ['id' => substr(sha1(implode("\n", [$group['file'] ?? '', $group['title'] ?? '', $row['label'] ?? '', $row['tag'] ?? '', $row['method'] ?? ''])), 0, 12)] + $row;
+            }
+        }
 
-        return ['level' => Health::level($groups), 'groups' => $groups, 'checked' => (int) $environment->clock->time()];
+        return $groups;
+    }
+
+    /**
+     * The lines asked, with what each is (a key of the catalog), a service that needs an application of its own, and what a wrong or
+     * missing address should be.
+     *
+     * @param list<array<string,mixed>> $groups
+     * @return list<array<string,mixed>>
+     */
+    private static function finish(array $groups, Grid $grid, ?GridConfig $config): array
+    {
+        $groups = Health::describe($groups, static fn(string $url): bool => $grid->servedByHelpers($url));
+
+        return Health::expect($groups, (new GridOptions($grid))->expected(), $config?->section('Const') ?? []);
     }
 
     /**

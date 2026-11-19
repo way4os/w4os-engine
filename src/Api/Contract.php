@@ -1100,6 +1100,7 @@ final class Contract
         $field = static fn(string|array $type, string $description, array $more = []): array => ['type' => $type, 'description' => $description] + $more;
 
         return [
+            'id' => $field('string', 'The id of the line, to check it again alone (`getHealthCheck`)'),
             'label' => $field('string', 'The setting as the ini file writes it (its key), the page, or what an install needs'),
             'url' => $field('string', 'The address asked, empty for a row that is not one'),
             'text' => $field('string', 'A value that is not an address, shown as it is'),
@@ -1117,6 +1118,7 @@ final class Contract
             'name' => $field('string', 'What the setting or the page is, a key of the catalog (`setting_<name>`): a site shows it, with the key of the row in small'),
             'description' => $field('string', 'What it is for, a key of the catalog (`setting_<name>_help`)'),
             'thirdParty' => $field('boolean', 'A service that does not answer and that an application of its own serves (the helpers of the engine, or another one), not the helpers of the grid: `health_third_party` says it'),
+            'checked' => $field('integer', 'When this line was checked alone (`getHealthCheck`, Unix time); the others were checked with all of them (`checked` of the health)'),
             'cert' => $field('boolean', 'The certificate of the address is one this server does not trust (expired, self-signed, another name): told apart, it does not change the level, what counts is what the address answers'),
         ];
     }

@@ -253,6 +253,9 @@ final class Router
         } elseif ($grid !== null && $tail === ['health']) {
             $template = '/grids/{grid}/health';
             $routes = ['GET' => fn() => $this->api->health($grid, \OpenSim\Result::isTrue($query['refresh'] ?? false))];
+        } elseif ($grid !== null && count($tail) === 2 && $tail[0] === 'health') {
+            $template = '/grids/{grid}/health/{check}';
+            $routes = ['GET' => fn() => $this->api->healthCheck($grid, $tail[1])];
         } elseif ($grid !== null && $tail === ['motd']) {
             $template = '/grids/{grid}/motd';
             $routes = ['GET' => fn() => $this->api->motd($grid, (string) ($query['username'] ?? ''))];

@@ -1011,3 +1011,38 @@ describe('The same address', function () {
             ->toBe(1);
     });
 });
+
+describe('The health, line by line', function () {
+    test('lists every check at once with its id and the last result, then checks one on demand, which the list keeps', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $machine->clock->now = 1_800_000_000.0;
+        $search = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        OpenSim\Data\Connections::using(static fn() => $search);
+        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+
+        $list = $router->get('/grids/demo/health')->document['data']['attributes'];
+        $rows = array_merge(...array_column($list['groups'], 'rows'));
+        $asked = array_values(array_filter($rows, static fn(array $row): bool => ($row['url'] ?? '') !== ''))[0];
+        $machine->clock->now += 60;
+        $one = $router->get('/grids/demo/health/' . $asked['id']);
+        $kept = array_column(array_merge(...array_column($router->get('/grids/demo/health')->document['data']['attributes']['groups'], 'rows')), null, 'id')[$asked['id']];
+        $unknown = $router->get('/grids/demo/health/nothing');
+        $operation = OpenSim\Api\Contract::document()['paths']['/grids/{grid}/health/{check}']['get'] ?? [];
+        OpenSim\Data\Connections::using(null);
+
+        expect(count(array_unique(array_column($rows, 'id'))))
+            ->toBe(count($rows))
+            ->and($one->status)
+            ->toBe(200)
+            ->and($one->document['data'])
+            ->toMatchArray(['type' => 'health-checks', 'id' => $asked['id']])
+            ->and($one->document['data']['attributes'])
+            ->toMatchArray(['label' => $asked['label'], 'url' => $asked['url'], 'checked' => 1_800_000_060])
+            ->and($kept['checked'] ?? null)
+            ->toBe(1_800_000_060)
+            ->and($unknown->status)
+            ->toBe(404)
+            ->and([$operation['operationId'] ?? null, $operation['x-access']['level'] ?? null])
+            ->toBe(['getHealthCheck', 100]);
+    });
+});

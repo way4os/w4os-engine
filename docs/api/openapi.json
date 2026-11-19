@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "40c93a5",
+        "version": "0b4c044",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8294,6 +8294,169 @@
                 }
             }
         },
+        "/grids/{grid}/health/{check}": {
+            "get": {
+                "operationId": "getHealthCheck",
+                "tags": [
+                    "Health"
+                ],
+                "summary": "One line of the health, checked now",
+                "description": "One line of the health of the grid (its `id` in `getHealth`), checked now: the address asked, what it must answer and what it answered, as a row of `getHealth`, with when it was checked (`checked`). The last check keeps it. A site shows the lines of `getHealth` at once, then checks them one by one, a few at a time: the pages of a site call back the engine, so never all at once.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "check",
+                        "in": "path",
+                        "required": true,
+                        "description": "The id of the line",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The line, checked now",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "const": "health-checks"
+                                                },
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "attributes": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "description": "The id of the line, to check it again alone (`getHealthCheck`)"
+                                                        },
+                                                        "label": {
+                                                            "type": "string",
+                                                            "description": "The setting as the ini file writes it (its key), the page, or what an install needs"
+                                                        },
+                                                        "url": {
+                                                            "type": "string",
+                                                            "description": "The address asked, empty for a row that is not one"
+                                                        },
+                                                        "text": {
+                                                            "type": "string",
+                                                            "description": "A value that is not an address, shown as it is"
+                                                        },
+                                                        "display": {
+                                                            "type": "string",
+                                                            "description": "The address as the config writes it, when the one asked differs (a profile with [AGENT_NAME], asked with the name of an avatar)"
+                                                        },
+                                                        "tag": {
+                                                            "type": "string",
+                                                            "description": "How it was asked or what it is, translated (without data, with valid post data, Web search)"
+                                                        },
+                                                        "level": {
+                                                            "type": "string",
+                                                            "description": "ok: it answers as it should; slow: it took longer than the timeout (3 s) and answered as it should when asked again, longer (10 s), a page made after a deploy; error: it does not; none: nothing to ask (not set, or not an address)",
+                                                            "enum": [
+                                                                "ok",
+                                                                "slow",
+                                                                "error",
+                                                                "none"
+                                                            ]
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "description": "The HTTP code, OK, the error of curl, or what is wrong (missing, differs), translated"
+                                                        },
+                                                        "ms": {
+                                                            "type": [
+                                                                "integer",
+                                                                "null"
+                                                            ],
+                                                            "description": "How long it took to answer, in milliseconds"
+                                                        },
+                                                        "detail": {
+                                                            "type": "string",
+                                                            "description": "More on it: the error of curl, what get_grid_info says when it differs, the file or folder a row is about"
+                                                        },
+                                                        "expectedStatus": {
+                                                            "type": "string",
+                                                            "description": "What the address must answer: `2xx` for a page, the codes expected of it (`400, 405` for a service asked without data, `418` for an address that is not a page), `3xx` for one that must send elsewhere"
+                                                        },
+                                                        "expectedLocation": {
+                                                            "type": "string",
+                                                            "description": "Where an address that must send elsewhere must send to: the registration page, for the profile of a site asked signed out, as the check is"
+                                                        },
+                                                        "location": {
+                                                            "type": "string",
+                                                            "description": "Where the address led (its redirections followed), or where it sends to (one that must send elsewhere), when it is not the address asked"
+                                                        },
+                                                        "expected": {
+                                                            "type": "string",
+                                                            "description": "What a wrong or missing address should be, as the options of the grid write it (its constants read): a site says should be this, is that"
+                                                        },
+                                                        "snippet": {
+                                                            "type": "string",
+                                                            "description": "The line to write in the file of the group (`file`) for it, its section first, as the options of the grid write it (its constants as references)"
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "description": "What the setting or the page is, a key of the catalog (`setting_<name>`): a site shows it, with the key of the row in small"
+                                                        },
+                                                        "description": {
+                                                            "type": "string",
+                                                            "description": "What it is for, a key of the catalog (`setting_<name>_help`)"
+                                                        },
+                                                        "thirdParty": {
+                                                            "type": "boolean",
+                                                            "description": "A service that does not answer and that an application of its own serves (the helpers of the engine, or another one), not the helpers of the grid: `health_third_party` says it"
+                                                        },
+                                                        "checked": {
+                                                            "type": "integer",
+                                                            "description": "When this line was checked alone (`getHealthCheck`, Unix time); the others were checked with all of them (`checked` of the health)"
+                                                        },
+                                                        "cert": {
+                                                            "type": "boolean",
+                                                            "description": "The certificate of the address is one this server does not trust (expired, self-signed, another name): told apart, it does not change the level, what counts is what the address answers"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid, or a line of its health with this id, is not known here",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false
+                }
+            }
+        },
         "/grids/{grid}/health": {
             "get": {
                 "operationId": "getHealth",
@@ -8301,7 +8464,7 @@
                     "Health"
                 ],
                 "summary": "Health of the grid",
-                "description": "The addresses the config of the grid gives (the services of Robust, the web services, the pages), what the grid says of itself at `get_grid_info`, and the ones that are expected and not given, asked now: a service that must refuse a call without data refuses it, and answers one that makes sense. The pages for people (each answers, the base of the helpers answers, the helpers claim no page of the site), the PHP extensions the engine needs, the folders it writes (`cache`: `assets`, the pictures; `tasks`, the state of the tasks, `TasksRoot`: without it no task runs and the search index never fills) and the files it reads come with them. `level` is `error` when something does not answer as it should, `ok` when all that is asked does, `none` when there is nothing to ask. The groups are the sections of the files of the grid; each row has the address, the status (the HTTP code, or the error), the time in milliseconds and its own level. A check takes the time of the slowest address: the last one is given again with its time (`checked`, `cached` true), kept by the task of the grid that checks it every 15 minutes (`health`); `refresh` checks it now.",
+                "description": "The addresses the config of the grid gives (the services of Robust, the web services, the pages), what the grid says of itself at `get_grid_info`, and the ones that are expected and not given, asked now: a service that must refuse a call without data refuses it, and answers one that makes sense. The pages for people (each answers, the base of the helpers answers, the helpers claim no page of the site), the PHP extensions the engine needs, the folders it writes (`cache`: `assets`, the pictures; `tasks`, the state of the tasks, `TasksRoot`: without it no task runs and the search index never fills) and the files it reads come with them. `level` is `error` when something does not answer as it should, `ok` when all that is asked does, `none` when there is nothing to ask. The groups are the sections of the files of the grid; each row has the address, the status (the HTTP code, or the error), the time in milliseconds and its own level. A check takes the time of the slowest address: the last one is given again with its time (`checked`, `cached` true), kept by the task of the grid that checks it every 15 minutes (`health`); `refresh` checks it now. Each line has its `id`: a site shows them at once, then checks them one by one (`getHealthCheck`), a few at a time.",
                 "parameters": [
                     {
                         "name": "grid",
@@ -8378,6 +8541,10 @@
                                                                         "items": {
                                                                             "type": "object",
                                                                             "properties": {
+                                                                                "id": {
+                                                                                    "type": "string",
+                                                                                    "description": "The id of the line, to check it again alone (`getHealthCheck`)"
+                                                                                },
                                                                                 "label": {
                                                                                     "type": "string",
                                                                                     "description": "The setting as the ini file writes it (its key), the page, or what an install needs"
@@ -8454,6 +8621,10 @@
                                                                                 "thirdParty": {
                                                                                     "type": "boolean",
                                                                                     "description": "A service that does not answer and that an application of its own serves (the helpers of the engine, or another one), not the helpers of the grid: `health_third_party` says it"
+                                                                                },
+                                                                                "checked": {
+                                                                                    "type": "integer",
+                                                                                    "description": "When this line was checked alone (`getHealthCheck`, Unix time); the others were checked with all of them (`checked` of the health)"
                                                                                 },
                                                                                 "cert": {
                                                                                     "type": "boolean",

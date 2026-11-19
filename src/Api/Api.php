@@ -1367,6 +1367,25 @@ final class Api
         ]);
     }
 
+    /** One line of the health of a grid checked now (HealthCheck::one()), by its id: the last check keeps it. */
+    public function healthCheck(string $grid, string $id): Response
+    {
+        $instance = self::path('health', null, $grid) . '/' . rawurlencode($id);
+        try {
+            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $tasks = $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot();
+            $line = HealthCheck::one($this->environment, $found, ($this->config)($found), $tasks, $id)
+                ?? throw NotFound::for("check '$id' of the health of $grid");
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        unset($line['id']);
+
+        return Response::document([
+            'data' => ['type' => 'health-checks', 'id' => $id, 'attributes' => $line, 'links' => ['self' => $instance]],
+        ]);
+    }
+
     /** The resolved system layout and the identities that own or access it. */
     public function layout(): Response
     {
