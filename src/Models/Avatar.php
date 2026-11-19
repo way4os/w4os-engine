@@ -1547,6 +1547,9 @@ final class Avatar extends Model
     {
         $accounts = Connections::pdo($config, 'UserAccountService');
         if ($accounts === null) {
+            // A database the grid says that cannot be reached is no missing avatar: said as such (ChannelUnavailable), never null
+            Connections::key($config, 'UserAccountService') === null || self::connect($config, 'UserAccountService', null, "read the avatar $id");
+
             return null;
         }
         if (Uuid::isValid($id)) {
