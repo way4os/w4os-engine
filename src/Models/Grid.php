@@ -958,8 +958,10 @@ final class Grid extends InstalledModel
             return $this->info = [$saved, true];
         }
         $controller = $this->isStandalone() ? ($this->simulators()[0] ?? null)?->controller() : $this->robust();
+        // A grid without its instance here (described by an application): the config it was given
+        $section = $controller?->settings()['GridInfoService'] ?? $this->config()?->section('GridInfoService') ?? [];
         $configured = [];
-        foreach ($controller?->settings()['GridInfoService'] ?? [] as $key => $value) {
+        foreach ($section as $key => $value) {
             is_string($value) && ($configured[$key] = $value);
         }
 

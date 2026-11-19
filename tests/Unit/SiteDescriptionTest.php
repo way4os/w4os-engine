@@ -60,3 +60,27 @@ describe('The description of a grid for a site', function () {
             ->and($grid->destinations()['Welcome'][0]['name'] ?? null)->toBe('Plaza');
     })->depends('gives what its helpers need, never a secret');
 });
+
+/** The addresses of a grid a site uses. */
+const ADDRESSES = ['helpersUrl', 'site', 'welcomeUrl', 'guideUrl', 'motdUrl', 'searchUrl', 'uri'];
+
+describe('The grid a site makes of a description', function () {
+    test('says of itself what the grid of the folder says: the same get_grid_info', function () {
+        $machine = new Machine();
+        $machine->write($machine->grid . '/Robust.HG.ini', file_get_contents($machine->grid . '/Robust.HG.ini')
+            . "\n[GridInfoService]\n    gridname = \"Friendly Fowl\"\n    gridnick = \"demo\"\n    login = \"http://localhost:8002/\"\n    economy = \"https://play.example.org/helpers/\"\n    welcome = \"https://play.example.org/welcome\"\n    register = \"https://play.example.org/register\"\n");
+        $folder = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $site = test_tmp() . '/site-description-info-' . bin2hex(random_bytes(4));
+        mkdir($site);
+        $environment = Environment::system(new Layout(['EtcRoot' => "$site/etc", 'CacheRoot' => "$site/cache", 'StateRoot' => "$site/state"]));
+
+        $described = SiteDescription::grid($environment, SiteDescription::of($folder));
+
+        expect($folder->gridInfo())->toMatchArray(['gridname' => 'Friendly Fowl', 'login' => 'http://localhost:8002/'])
+            ->and($described->gridInfo())->toBe($folder->gridInfo())
+            ->and($described->loginUrl())->toBe($folder->loginUrl())
+            // Its addresses too, read in the config it was given
+            ->and(array_map(static fn(string $method): mixed => $described->$method(), ADDRESSES))
+            ->toBe(array_map(static fn(string $method): mixed => $folder->$method(), ADDRESSES));
+    });
+});
