@@ -30,15 +30,16 @@ function pages_grid(string $gridInfo = '', string $helpers = ''): array
 }
 
 describe('The base of the helpers', function () {
-    test('is HelpersURL of Helpers.ini, else the economy, else WebURL/helpers, and says where it comes from', function () {
+    test('is HelpersURL of Helpers.ini, else the economy, never a guess, and says where it comes from', function () {
         $base = static function (string $gridInfo, string $helpers): array {
             [, $grid] = pages_grid($gridInfo, $helpers);
 
             return [$grid()->helpersUrl(), $grid()->helpersUrlSource()];
         };
 
+        // A grid that sets no helpers has none: /helpers is no base of its own
         expect($base('', ''))
-            ->toBe(['https://demo.example.org/helpers', 'default'])
+            ->toBe([null, null])
             ->and($base("[GridInfoService]\n    economy = \"https://demo.example.org/shop\"", ''))
             ->toBe(['https://demo.example.org/shop', 'economy'])
             ->and($base("[GridInfoService]\n    economy = \"https://demo.example.org/shop\"", 'HelpersURL = "https://demo.example.org/helperz/"'))
@@ -77,30 +78,19 @@ describe('The base of the helpers', function () {
 });
 
 describe('The pages of a grid', function () {
-    test('are under the base of the helpers by default, at the root when the base is the site', function () {
+    test('are the ones the grid sets, never the addresses they would have under the helpers', function () {
         [, $grid] = pages_grid('', 'HelpersURL = "https://demo.example.org/helperz"');
-        [, $root] = pages_grid('', 'HelpersURL = "https://demo.example.org/"');
         $addresses = static fn(Grid $grid): array => array_map(
             static fn(string $key): ?string => $grid->address($key),
             ['search' => 'search', 'welcome' => 'welcome', 'guide' => 'guide', 'status' => 'grid-status', 'directory' => 'directory'],
         );
+        $pages = array_column(SitePages::rows($grid()), null, 'page');
 
         expect($addresses($grid()))
-            ->toBe([
-                'search' => 'https://demo.example.org/helperz/search',
-                'welcome' => 'https://demo.example.org/helperz/welcome',
-                'guide' => 'https://demo.example.org/helperz/guide',
-                'status' => 'https://demo.example.org/helperz/grid_status',
-                'directory' => 'https://demo.example.org/helperz/directory_info',
-            ])
-            ->and($addresses($root()))
-            ->toBe([
-                'search' => 'https://demo.example.org/search',
-                'welcome' => 'https://demo.example.org/welcome',
-                'guide' => 'https://demo.example.org/guide',
-                'status' => 'https://demo.example.org/grid_status',
-                'directory' => 'https://demo.example.org/directory_info',
-            ])
+            ->toBe(['search' => null, 'welcome' => null, 'guide' => null, 'status' => null, 'directory' => null])
+            // Where each would be under the helpers is said apart, for a site that sets it
+            ->and($pages['guide'])
+            ->toMatchArray(['url' => null, 'source' => null, 'servedBy' => null, 'helpersDefault' => 'https://demo.example.org/helperz/guide'])
             ->and((new Services('/helperz'))->path('currency'))
             ->toBe('/helperz/currency.php');
     });
@@ -113,7 +103,7 @@ describe('The pages of a grid', function () {
         expect([$grid->helpersUrl(), $grid->address('guide'), $grid->helperUrl('currency')])
             ->toBe([
                 'https://site.example.org:8443/helperz',
-                'https://site.example.org:8443/helperz/guide',
+                null,
                 'https://site.example.org:8443/helperz/currency.php',
             ])
             ->and(Services::originOf('https://site.example.org:8443/helperz/x'))
@@ -122,14 +112,15 @@ describe('The pages of a grid', function () {
 
     test('are listed with who serves each: the helpers under their base, the site elsewhere', function () {
         [, $grid] = pages_grid(
-            "[GridInfoService]\n    search = \"https://demo.example.org/search\"\n    web_profile_url = \"https://demo.example.org/helpers/profile/[AGENT_NAME]\"",
+            "[GridInfoService]\n    economy = \"https://demo.example.org/helpers\"\n    search = \"https://demo.example.org/search\"\n    web_profile_url = \"https://demo.example.org/helpers/profile/[AGENT_NAME]\"",
         );
         $pages = array_column(SitePages::rows($grid()), null, 'page');
 
         expect(array_keys($pages))
             ->toBe(['helpers', 'search', 'profile', 'guide', 'welcome', 'status', 'directory'])
+            // The helpers the grid sets: where its economy is
             ->and($pages['helpers'])
-            ->toMatchArray(['url' => 'https://demo.example.org/helpers', 'source' => 'default'])
+            ->toMatchArray(['url' => 'https://demo.example.org/helpers', 'source' => 'economy'])
             ->and($pages['search'])
             ->toMatchArray(['url' => 'https://demo.example.org/search', 'source' => 'config', 'servedBy' => 'site'])
             ->and($pages['profile'])
@@ -139,7 +130,8 @@ describe('The pages of a grid', function () {
                 'servedBy' => 'helpers',
             ])
             ->and($pages['guide'])
-            ->toMatchArray(['url' => 'https://demo.example.org/helpers/guide', 'source' => 'default', 'servedBy' => 'helpers']);
+            // A page the grid does not set has no address, where it would be under the helpers said apart
+            ->toMatchArray(['url' => null, 'source' => null, 'servedBy' => null, 'helpersDefault' => 'https://demo.example.org/helpers/guide']);
     });
 
     test('are set one at a time, in the one key of each, and say what must restart', function () {
@@ -179,7 +171,7 @@ describe('The pages of a grid', function () {
             ->and($helpers)
             ->toMatchArray(['file' => $machine->grid . '/Helpers.ini', 'keys' => ['[Helpers] HelpersURL'], 'restart' => null])
             ->and([$grid()->helpersUrl(), $grid()->address('directory'), $grid()->address('welcome')])
-            ->toBe(['https://demo.example.org/helperz', 'https://site.example.org/directory', 'https://demo.example.org/helperz/welcome'])
+            ->toBe(['https://demo.example.org/helperz', 'https://site.example.org/directory', null])
             ->and($refused('menu', 'https://site.example.org/menu'))
             ->toContain('menu')
             ->and($refused('search', 'not an address'))
@@ -190,7 +182,7 @@ describe('The pages of a grid', function () {
 describe('The addresses of a grid, for the pages', function () {
     test('say where the base of the helpers comes from and who serves each page', function () {
         [$machine] = pages_grid(
-            "[GridInfoService]\n    search = \"https://demo.example.org/search\"",
+            "[GridInfoService]\n    search = \"https://demo.example.org/search\"\n    welcome = \"https://demo.example.org/helperz/welcome\"",
             'HelpersURL = "https://demo.example.org/helperz"',
         );
         $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
@@ -202,6 +194,6 @@ describe('The addresses of a grid, for the pages', function () {
             ->and($attributes['sources']['helpers'] ?? null)
             ->toBe('config')
             ->and($attributes['servedBy'])
-            ->toMatchArray(['search' => 'site', 'welcome' => 'helpers', 'guide' => 'helpers']);
+            ->toMatchArray(['search' => 'site', 'welcome' => 'helpers', 'guide' => null]);
     });
 });

@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "b917ce1",
+        "version": "fd08119",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -7251,7 +7251,7 @@
                     "Addresses"
                 ],
                 "summary": "Addresses",
-                "description": "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `default`: the helpers' habit). `helpers` is where the helpers are (a page under it is theirs, any other the site's: `servedBy`), `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`), `logo` the logo of the grid for the top bar of its sites (`LogoURL` of `[Helpers]`). These are links, not identities: the identity of the grid is its `uri`.",
+                "description": "The addresses of the grid: the ones it gives its viewers and its simulators, each with where it comes from (`provider`: a Robust or a simulator that serves it, `simulator`, `live`: what the grid says at `get_grid_info`, `config`, `helpers`: a tool of the helpers no setting gives, where the helpers the grid has are; an address the grid does not set it has not, whatever the helpers would answer by default). `helpers` is where the helpers are, the ones the grid sets (`HelpersURL` of Helpers.ini, else where its economy is), none when it sets none (a page under it is theirs, any other the site's: `servedBy`), `economy` the address `currency.php` and `landtool.php` are under, `search` the web search, `searchApi` the one the simulators ask (`query`), `logo` the logo of the grid for the top bar of its sites (`LogoURL` of `[Helpers]`). These are links, not identities: the identity of the grid is its `uri`.",
                 "parameters": [
                     {
                         "name": "grid",

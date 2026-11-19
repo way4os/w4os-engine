@@ -190,7 +190,7 @@ describe('web services of a grid', function () {
     );
 
     test(
-        'are all asked the same way, wherever the grid says them, the running grid before its config before the helpers',
+        'are all asked the same way, wherever the grid says them, the running grid before its config; what it does not say it has not',
         function () {
             $machine = new Machine();
             $machine->write(
@@ -218,7 +218,7 @@ describe('web services of a grid', function () {
                     'search' => 'https://play.example.org/websearch',
                     'grid-status' => 'https://play.example.org/helpers/status-page',
                     'assets' => 'https://assets.example.org/a',
-                    'query' => 'https://play.example.org/helpers/query.php',
+                    // The tools of the helpers no setting gives: where the helpers the grid has are
                     'parser' => 'https://play.example.org/helpers/parser.php',
                     'events-parser' => 'https://play.example.org/helpers/eventsparser.php',
                     'text-images' => 'https://play.example.org/helpers/textgen.php',
@@ -240,7 +240,8 @@ describe('web services of a grid', function () {
                     'https://play.example.org/helpers',
                     'https://play.example.org/helpers',
                     'https://play.example.org/websearch',
-                    'https://play.example.org/helpers/query.php',
+                    // No search of the simulators set: the default of the helpers is no address of the grid
+                    null,
                     'https://assets.example.org/a',
                     'https://play.example.org/live.rss',
                     null,
@@ -251,10 +252,12 @@ describe('web services of a grid', function () {
                         'welcome',
                         'search',
                         'grid-status',
-                        'query',
+                        'text-images',
                     ]),
                 )
-                ->toBe(['live', 'live', 'config', 'config', 'default'])
+                ->toBe(['live', 'live', 'config', 'config', 'helpers'])
+                ->and($grid->service('query'))
+                ->toBeNull()
                 ->and($grid->addresses())
                 ->toHaveKeys(['currency', 'asset', 'grid']);
         },

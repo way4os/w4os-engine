@@ -45,9 +45,9 @@ final class SitePages
     ];
 
     /**
-     * The base of the helpers and each page: its address, where it comes from (Service::source(), `config` or `default` for the
-     * base), who serves it (`helpers` or `site`, null without an address), the address it would have under the base of the helpers,
-     * and the settings it is set in.
+     * The base of the helpers and each page: its address as the grid sets it (none when it does not: the address it would have under
+     * the helpers is not one), where it comes from (Service::source(), `config` or `economy` for the base), who serves it (`helpers`
+     * or `site`, null without an address), the address it would have under the base of the helpers, and the settings it is set in.
      *
      * @return list<array{page:string,url:?string,source:?string,servedBy:?string,helpersDefault?:?string,keys:list<string>}>
      */
@@ -66,11 +66,8 @@ final class SitePages
             $service = $grid->service($definition['service']);
             $url = $service?->url();
             $source = $service?->source();
+            // The address it would have under the helpers is no address of the grid: a page the grid does not set it has not
             $default = $grid->helperUrl($definition['default']);
-            if ($url === null && $default !== '') {
-                $url = $default . (isset($definition['suffix']) ? '/' . $definition['suffix'] : '');
-                $source = 'default';
-            }
             $rows[] = [
                 'page' => $page,
                 'url' => $url,

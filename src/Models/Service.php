@@ -773,7 +773,7 @@ final class Service extends InstalledModel
         return $this->isServed() ||
             $this->declared() !== null ||
             $this->live() !== null ||
-            $this->helperAddress() !== null;
+            (self::CATALOG[$this->key]['setting'] === null && $this->helperAddress() !== null);
     }
 
     /**
@@ -790,7 +790,8 @@ final class Service extends InstalledModel
 
     /**
      * Where the address comes from: `provider` (the Robust or the simulator that serves it), `simulator` (its own config), `live`
-     * (the running grid says it at get_grid_info), `config`, `default` (where the helpers answer it); null when it has none.
+     * (the running grid says it at get_grid_info), `config`, `helpers` (a tool of the helpers no setting gives, where the helpers the
+     * grid has are: the parser, textgen); null when it has none (an address the grid does not set is not one of the grid).
      */
     public function source(): ?string
     {
@@ -836,9 +837,13 @@ final class Service extends InstalledModel
         if (($declared = $this->declared()) !== null) {
             return $this->resolved = [$with($declared), 'config'];
         }
-        $default = $this->helperAddress();
+        // What the grid does not say it has not: the address the helpers would answer by default is no address of the grid. A tool
+        // of the helpers no setting gives (the parser, textgen: a script in-world calls it) is where the helpers the grid has are
+        if (self::CATALOG[$this->key]['setting'] === null && ($tool = $this->helperAddress()) !== null) {
+            return $this->resolved = [$tool, 'helpers'];
+        }
 
-        return $this->resolved = [$default, $default !== null ? 'default' : null];
+        return $this->resolved = [null, null];
     }
 
     /** What the running grid says for it at get_grid_info, null when it does not say, or does not answer. */

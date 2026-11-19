@@ -1716,7 +1716,7 @@ final class Grid extends InstalledModel
         return $this->helpersBase()[0];
     }
 
-    /** Where the base of the helpers comes from: `config` (HelpersURL), `economy`, `default` (/helpers); null when there is none. */
+    /** Where the base of the helpers comes from: `config` (HelpersURL), `economy`; null when the grid sets none (never a guess). */
     public function helpersUrlSource(): ?string
     {
         return $this->helpersBase()[1];
@@ -1746,15 +1746,14 @@ final class Grid extends InstalledModel
         if ($web === '') {
             return [null, null];
         }
+        // The economy the grid gives, on its web site: the base of the helpers is where currency.php is; else the grid has none
         $economy = $this->economy();
-        $local = $economy !== null && parse_url($economy, PHP_URL_HOST) === parse_url($web, PHP_URL_HOST);
-        $path = $local
-            ? \OpenSim\Provisioning\Web\Services::pathOf($economy)
-            : \OpenSim\Provisioning\Web\HelpersConfig::DEFAULT_PATH;
-        // An economy the grid does not give is the one of the helpers by default: not a source of its own
-        $given = $local && $this->service('currency')?->source() !== 'default';
+        if ($economy === null || parse_url($economy, PHP_URL_HOST) !== parse_url($web, PHP_URL_HOST)) {
+            return [null, null];
+        }
+        $path = \OpenSim\Provisioning\Web\Services::pathOf($economy);
 
-        return [rtrim($web, '/') . ($path === '/' ? '' : $path), $given ? 'economy' : 'default'];
+        return [rtrim($web, '/') . ($path === '/' ? '' : $path), 'economy'];
     }
 
     /** The web page of the search of the grid. */
