@@ -136,13 +136,26 @@ final class Api
         ?\Closure $instanceAccess = null,
         private readonly ?\Closure $dumper = null,
         private readonly ?\Closure $restoreLoader = null,
+        ?\Closure $grids = null,
     ) {
+        // The grids it serves: the ones of this machine (their folder in EtcRoot), or the ones an application gives (a site that has
+        // the engine in its own folder: the settings of a grid and its databases over the network, nothing read from the machine)
+        $this->grids = $grids ?? fn(string $nick): ?Grid => Grid::find($this->environment, $nick);
         $this->instanceAccess = $instanceAccess ?? static fn(Environment $environment): ?string => InstanceAccess::refusal($environment->layout);
         $this->config =
             $config ??
             static fn(Grid $grid): ?GridConfig => $grid->directory() !== '' && is_dir($grid->directory())
                 ? GridConfig::fromFolder($grid->directory(), ['Helpers' => 'Helpers.ini'])
                 : null;
+    }
+
+    /** @var \Closure(string):?Grid the grid of a nick, null when it is not one of the grids served */
+    private \Closure $grids;
+
+    /** The grid of a nick, as the API serves it (its folder on this machine, or the one an application gives), null when none. */
+    private function grid(string $nick): ?Grid
+    {
+        return ($this->grids)($nick);
     }
 
     /**
@@ -177,7 +190,7 @@ final class Api
                 ]);
             }
             if ($type === 'destinations' && $grid !== null && ($query['format'] ?? '') === 'list') {
-                $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+                $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
 
                 return Response::binary(
                     DestinationList::format($found->destinations(($this->config)($found), true)),
@@ -642,7 +655,7 @@ final class Api
     ): Response {
         $instance = self::path('assets', $id, $grid);
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
             $picture = WebAssets::for($found, $converter)->get($id, $format, $width, $of);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -667,7 +680,7 @@ final class Api
     public function motd(string $grid, string $username = ''): Response
     {
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, self::path('motd', null, $grid)));
         }
@@ -787,7 +800,7 @@ final class Api
     public function offline(string $grid, string $method, string $body): Response
     {
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw new Failure("There is no grid called '$grid'", 404);
+            $found = $this->grid($grid) ?? throw new Failure("There is no grid called '$grid'", 404);
             $config = ($this->config)($found) ?? throw new Failure("There is no config for the grid '$grid'", 404);
             $messages = Connections::pdo($config, Database::Offline);
             if ($messages === null || !$messages->connected) {
@@ -842,7 +855,7 @@ final class Api
      */
     private function economy(string $nick, string $ip): CurrencyServer
     {
-        $grid = Grid::find($this->environment, $nick) ?? throw new Failure("There is no grid called '$nick'", 404);
+        $grid = $this->grid($nick) ?? throw new Failure("There is no grid called '$nick'", 404);
         $config = ($this->config)($grid) ?? throw new Failure("There is no config for the grid '$nick'", 404);
         $money = Connections::pdo($config, Database::Economy) ?? Connections::pdo($config, Database::Robust);
         if ($money === null || !$money->connected) {
@@ -935,7 +948,7 @@ final class Api
     {
         $instance = self::path('grids', $grid, null) . "/settings/$group";
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
             in_array($group, \OpenSim\Models\GridSettings::groups(), true) || throw NotFound::for("settings called '$group'");
             $settings = new \OpenSim\Models\GridSettings($found);
             $values = $changes === null ? $settings->read($group) : $settings->write($group, $changes);
@@ -957,7 +970,7 @@ final class Api
         try {
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
             $repair = (new \OpenSim\Provisioning\GridOptions($found))->repair($mode === 'apply');
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -1225,7 +1238,7 @@ final class Api
     {
         $instance = self::path('addresses', null, $grid);
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
             $addresses = $found->addresses();
             // Each service, what it is, where it is set: file by file, then section by section
             $services = array_map(static fn(Service $service): array => $service->address(), Service::of($found)->items());
@@ -1276,7 +1289,7 @@ final class Api
     {
         $instance = self::path('info', null, $grid);
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1307,7 +1320,7 @@ final class Api
     {
         $instance = self::path('monitor', null, $grid);
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
             $monitor = GridMonitor::of($found, ($this->config)($found));
             $text = GridMonitor::text($monitor);
             $format = (string) ($query['format'] ?? 'json');
@@ -1352,7 +1365,7 @@ final class Api
     {
         $instance = self::path('health', null, $grid);
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
             $config = ($this->config)($found);
             $tasks = $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot();
             $last = $refresh ? null : HealthCheck::last($this->environment, $found, $config);
@@ -1376,7 +1389,7 @@ final class Api
     {
         $instance = self::path('health', null, $grid) . '/' . rawurlencode($id);
         try {
-            $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
             $tasks = $this->scheduler?->directory() ?? $this->environment->layout->tasksRoot();
             $line = HealthCheck::one($this->environment, $found, ($this->config)($found), $tasks, $id)
                 ?? throw NotFound::for("check '$id' of the health of $grid");
@@ -1423,7 +1436,7 @@ final class Api
      */
     private function searchDatabase(string $nick): array
     {
-        $grid = Grid::find($this->environment, $nick) ?? throw new Failure("There is no grid called '$nick'", 404);
+        $grid = $this->grid($nick) ?? throw new Failure("There is no grid called '$nick'", 404);
         $config = ($this->config)($grid) ?? throw new Failure("There is no config for the grid '$nick'", 404);
         $db = Connections::pdo($config, Database::Search);
         if ($db === null || !$db->connected) {
@@ -1487,7 +1500,7 @@ final class Api
         if ($refusal !== null) {
             return Response::problem(Problem::from(InvalidValue::because('instance-user-required', $refusal), $instance));
         }
-        if (OpenSim::instance($this->environment, $name) === null && Grid::find($this->environment, $name) === null) {
+        if (OpenSim::instance($this->environment, $name) === null && $this->grid($name) === null) {
             return Response::problem(Problem::notFound("instance called '$name'", $instance));
         }
         $simulators = Result::isTrue($attributes['simulators'] ?? false);
@@ -1580,7 +1593,7 @@ final class Api
     /** What lets the avatars of a grid of this machine back in: its tokens and its mails. */
     private function access(string $nick): AvatarAccess
     {
-        $grid = Grid::find($this->environment, $nick) ?? throw NotFound::for("grid called '$nick'");
+        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'");
         $config = ($this->config)($grid) ?? throw NotFound::for("config of the grid '$nick' on this machine");
         $sender = $config->find('Helpers', 'MailSender') ?? 'no-reply@' . $grid->baseHostname();
 
@@ -1670,7 +1683,7 @@ final class Api
     /** The config of a grid of this machine. */
     private function gridConfig(string $nick): GridConfig
     {
-        $grid = Grid::find($this->environment, $nick) ?? throw NotFound::for("grid called '$nick'");
+        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'");
 
         return ($this->config)($grid) ?? throw NotFound::for("config of the grid '$nick' on this machine");
     }
@@ -1699,7 +1712,7 @@ final class Api
      */
     private function destinations(string $grid): array
     {
-        $found = Grid::find($this->environment, $grid) ?? throw NotFound::for("grid called '$grid'");
+        $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'");
         $resources = [];
         foreach ($found->guide(($this->config)($found)) as $category => $section) {
             foreach ($section['destinations'] as $destination) {
