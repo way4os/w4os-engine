@@ -1073,7 +1073,7 @@ msgctxt "offline"
 msgid "Offline"
 msgstr "All-lein"
 
-msgctxt "view_all"
+msgctxt "all"
 msgid "All"
 msgstr "Cy_GB"
 

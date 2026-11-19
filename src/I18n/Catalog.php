@@ -339,7 +339,7 @@ final class Catalog
         // Online or offline: a region that runs (its status), an avatar in the world (its presence)
         'offline' => 'Offline',
         // The views of a list (Listing::view()), the row of links above it, in the words of w4os-wp
-        'view_all' => 'All',
+        'all' => 'All',
         'view_active' => 'Active',
         'view_inactive' => 'Inactive',
         // A grid partly broken (GridMonitor::DEGRADED)

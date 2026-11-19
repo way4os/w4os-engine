@@ -1361,11 +1361,8 @@ final class Region extends Model
                 Listing::action('enable', 'action_enable', $method, $path, ['enabled' => true], $known + ['enabled' => [false]]),
                 Listing::action('disable', 'action_disable', $method, $path, ['enabled' => false], $known + ['enabled' => [true]]),
             ],
-            views: [
-                // The views of w4os-wp, in its order: the size (the ones the grid has), then the status
-                Listing::view('size'),
-                Listing::view('status', ['offline' => 'offline', 'online' => 'online']),
-            ],
+            // The views: the status, then the size (the ones the grid has, meta.available.size)
+            views: ['status', 'size'],
         );
     }
 

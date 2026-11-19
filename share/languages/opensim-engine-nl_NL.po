@@ -1063,7 +1063,7 @@ msgctxt "offline"
 msgid "Offline"
 msgstr "Offline"
 
-msgctxt "view_all"
+msgctxt "all"
 msgid "All"
 msgstr "Alles"
 

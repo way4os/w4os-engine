@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * The views of a list, the row of links above it in w4os-wp (All (n) | Default Model (n) | ...): the filters a site shows that way,
- * in their order, each value with its label, its count in `meta.counts`.
+ * in their order, each value with the label of its filter and its count in `meta.counts`.
  */
 
 use OpenSim\Api\Contract;
@@ -13,43 +13,45 @@ use OpenSim\Models\Avatar;
 use OpenSim\Models\Region;
 
 describe('The views of a list', function () {
-    test('are the ones of w4os-wp for the avatars: their type, active or not, in the world or not, in its words', function () {
-        $views = Avatar::listing(true)->document()['views'];
+    test('are the ones of w4os-wp for the avatars, in its order and its words: the type, active, online', function () {
+        $listing = Avatar::listing(true);
+        $filters = array_column($listing->filters, null, 'name');
+        $label = static fn(array $texts, string $filter): array => array_map(static fn(array $value): string => $texts[$value['label']], $filters[$filter]['values']);
         $en = Catalog::MESSAGES;
         $fr = Catalog::messages('fr_FR');
-        $labels = static fn(array $texts): array => array_map(
-            static fn(array $view): array => array_map(static fn(array $value): string => $texts[$value['label']] ?? $value['label'], $view['values']),
-            $views['filters'],
-        );
 
-        expect($views['all'])
-            ->toBe('view_all')
-            ->and(array_column($views['filters'], 'filter'))
+        expect($listing->document()['views'])
             ->toBe(['type', 'active', 'online'])
-            ->and(array_map(static fn(array $view): array => array_column($view['values'], 'value'), $views['filters']))
-            ->toBe([['model', 'service', 'user'], ['yes', 'no'], ['offline', 'online']])
-            ->and([$en['view_all'], ...array_merge(...$labels($en))])
-            ->toBe(['All', 'Default Model', 'Service Account', 'User Avatar', 'Active', 'Inactive', 'Offline', 'Online'])
-            ->and([$fr['view_all'], ...$labels($fr)[0]])
-            ->toBe(['Tout', 'Modèle par défaut', 'Compte de service', "Avatar de l'utilisateur"])
+            ->and([$en['all'], ...$label($en, 'type'), ...$label($en, 'active'), ...$label($en, 'online')])
+            ->toBe(['All', 'User Avatar', 'Default Model', 'Service Account', 'Active', 'Inactive', 'Online', 'Offline'])
+            ->and([$fr['all'], ...$label($fr, 'type'), ...$label($fr, 'online')])
+            ->toBe(['Tout', "Avatar de l'utilisateur", 'Modèle par défaut', 'Compte de service', 'En ligne', 'Hors ligne'])
             // A list without the visits has no presence, nor its view
-            ->and(array_column(Avatar::listing(false)->document()['views']['filters'], 'filter'))
-            ->toBe(['type', 'active']);
+            ->and(Avatar::listing(false)->document()['views'])
+            ->toBe(['type', 'active'])
+            ->and(array_diff($listing->keys(), array_keys($en)))
+            ->toBe([]);
     });
 
-    test('are the size and the status for the regions, the sizes the ones the grid has', function () {
-        $views = Region::listing()->document()['views']['filters'];
+    test('are the status and the size of the regions, in the contract', function () {
+        expect(Region::listing()->document()['views'])
+            ->toBe(['status', 'size'])
+            ->and(Contract::document()['paths']['/grids/{grid}/regions']['get']['x-list']['views'] ?? null)
+            ->toBe(['status', 'size'])
+            ->and(Contract::document()['paths']['/grids/{grid}/avatars']['get']['x-list']['views'] ?? null)
+            ->toBe(['type', 'active', 'online']);
+    });
 
-        expect(array_column($views, 'filter'))
-            ->toBe(['size', 'status'])
-            ->and($views[0])
-            ->toBe(['filter' => 'size', 'dynamic' => true, 'values' => []])
-            ->and(array_column($views[1]['values'], 'value'))
-            ->toBe(['offline', 'online'])
-            // In the contract, with the keys of the catalog
-            ->and(Contract::document()['paths']['/grids/{grid}/regions']['get']['x-list']['views']['filters'][1]['filter'] ?? null)
-            ->toBe('status')
-            ->and(array_diff(Region::listing()->keys(), array_keys(Catalog::MESSAGES)))
-            ->toBe([]);
+    test('count the user avatars only for active and online, as w4os-wp shows them', function () {
+        avatars_in(avatar_database());
+        $counts = Avatar::all(avatar_grid())->counts();
+        $users = Avatar::all(avatar_grid(), ['filters' => ['type' => 'user']])->total();
+
+        expect(($counts['active']['yes'] ?? 0) + ($counts['active']['no'] ?? 0))
+            ->toBe($users)
+            ->and(($counts['online']['online'] ?? 0) + ($counts['online']['offline'] ?? 0))
+            ->toBe($users)
+            ->and(array_sum($counts['type']))
+            ->toBe(Avatar::all(avatar_grid())->total());
     });
 });

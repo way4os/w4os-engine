@@ -98,23 +98,11 @@ final class Listing
         public readonly array $moreSorts = [],
         public readonly array $views = [],
     ) {
+        // The views: filters of the list, the row of links a site shows above it, in their order
         foreach ($views as $view) {
-            in_array($view['filter'], array_column($filters, 'name'), true) ||
-                throw new \InvalidArgumentException("'{$view['filter']}' is not a filter of the list");
+            in_array($view, array_column($filters, 'name'), true) ||
+                throw new \InvalidArgumentException("'$view' is not a filter of the list");
         }
-    }
-
-    /**
-     * A view of a list: a filter a site shows as the row of links above it (All (n) | Default Model (n) | ...), its values in their
-     * order with the key of the text of each, their counts in `meta.counts`; `dynamic` for a filter whose values are the ones the
-     * list has (`meta.available`, their text their own).
-     *
-     * @param array<string,string> $values value => key of its text; none for a dynamic filter
-     * @return array{filter:string,values:list<array{value:string,label:string}>,dynamic?:bool}
-     */
-    public static function view(string $filter, array $values = []): array
-    {
-        return ['filter' => $filter] + ($values === [] ? ['dynamic' => true] : []) + ['values' => self::values($values)];
     }
 
     /**
@@ -355,7 +343,7 @@ final class Listing
             'search' => $this->search,
             'filters' => $this->filters,
             'actions' => $this->actions,
-        ] + ($this->views === [] ? [] : ['views' => ['all' => 'view_all', 'filters' => $this->views]]);
+        ] + ($this->views === [] ? [] : ['views' => $this->views]);
     }
 
     /**
@@ -398,9 +386,7 @@ final class Listing
             );
         }
 
-        foreach ($this->views as $view) {
-            array_push($keys, 'view_all', ...array_column($view['values'], 'label'));
-        }
+        $this->views === [] || ($keys[] = 'all');
 
         return array_values(array_unique([...$keys, ...array_column($this->actions, 'label')]));
     }

@@ -72,6 +72,9 @@ final class Avatar extends Model
     /** What an avatar is: a person's (user), a model of the grid (an outfit to copy, [Models]), the account of its services. */
     public const TYPES = ['user', 'model', 'service'];
 
+    /** The filters whose counts are the user avatars' only (`meta.counts`), as the views of w4os-wp show them. */
+    private const USER_COUNTS = ['active', 'online'];
+
     /**
      * What an avatar wants to do, the check boxes of its profile in the viewer (profileWantToMask), as OpenSimulator and w4os have
      * them: the name of each flag and its bit.
@@ -1628,7 +1631,8 @@ final class Avatar extends Model
             Listing::filter('model', 'filter_model'),
             Listing::filter('technical', 'filter_technical'),
             Listing::filter('god', 'god'),
-            Listing::filter('active', 'filter_active'),
+            // Active or not, as w4os-wp says it
+            Listing::filter('active', 'filter_active', ['yes' => 'view_active', 'no' => 'view_inactive']),
         ];
         [$method, $path] = ['PATCH', '/grids/{grid}/avatars/{id}'];
         $actions = [
@@ -1668,11 +1672,7 @@ final class Avatar extends Model
         }
 
         // The views of w4os-wp, in its order: the type, active or not, in the world or not (with the visits)
-        $views = [
-            Listing::view('type', ['model' => 'avatar_type_model', 'service' => 'avatar_type_service', 'user' => 'avatar_type_user']),
-            Listing::view('active', ['yes' => 'view_active', 'no' => 'view_inactive']),
-            ...($joined ? [Listing::view('online', ['offline' => 'offline', 'online' => 'online'])] : []),
-        ];
+        $views = ['type', 'active', ...($joined ? ['online'] : [])];
 
         return new Listing($columns, $filters, ['name', 'email'], $actions, '-created', $joined ? ['online'] : [], $views);
     }
@@ -1974,6 +1974,8 @@ final class Avatar extends Model
                     continue;
                 }
                 $others = array_map(static fn(string $other, string $was): string => $filters[$other][$was], array_keys(array_diff_key($asked, [$name => 1])), array_diff_key($asked, [$name => 1]));
+                // Active or not, in the world or not: the user avatars only, as w4os-wp counts them (a model, a service account is neither)
+                in_array($name, self::USER_COUNTS, true) && isset($filters['type']['user']) && ($others[] = $filters['type']['user']);
                 $sums[] = 'SUM(CASE WHEN ' . implode(' AND ', [$filters[$name][$value], ...$others]) . ' THEN 1 ELSE 0 END) AS c' . count($keys);
                 $keys[] = [$name, $value];
             }
