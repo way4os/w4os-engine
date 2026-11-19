@@ -595,6 +595,18 @@ msgctxt "snippet_example"
 msgid "Example"
 msgstr ""
 
+msgctxt "dashboard_grid_info"
+msgid "Grid Info"
+msgstr ""
+
+msgctxt "dashboard_grid_status"
+msgid "Grid Status"
+msgstr ""
+
+msgctxt "total"
+msgid "Total"
+msgstr ""
+
 msgctxt "tip_models_match"
 msgid "How a model is recognised"
 msgstr ""
@@ -721,7 +733,7 @@ msgid "Destinations guide is a Viewer 3 feature, providing a window with places 
 msgstr ""
 
 msgctxt "guide_help_places"
-msgid "While it is not mandatory, and not every user will benefit from it, it is a useful way to provide them a list of must-see places, from your own grid or outside."
+msgid "While it is not mandatory, and not every avatar will benefit from it, it is a useful way to provide them a list of must-see places, from your own grid or outside."
 msgstr ""
 
 msgctxt "offline_helper"
@@ -789,7 +801,7 @@ msgid "No models found."
 msgstr ""
 
 msgctxt "models_help_choice"
-msgid "If avatar models are defined, new users will be presented with a choice on the avatar creation form, which will determine the initial outfit of the created avatar."
+msgid "If avatar models are defined, the avatar creation form offers a choice of them, which determines the initial outfit of the new avatar."
 msgstr ""
 
 msgctxt "models_help_create"
@@ -797,7 +809,7 @@ msgid "The grid administrator needs to create each model from the ROBUST console
 msgstr ""
 
 msgctxt "models_help_not_users"
-msgid "The avatars used for the models should never be real user accounts."
+msgid "The avatars used for the models should never be avatars that people use."
 msgstr ""
 
 msgctxt "models_help_outfit"
@@ -1186,7 +1198,7 @@ msgid "Banned"
 msgstr ""
 
 msgctxt "avatar_type_user"
-msgid "User Avatar"
+msgid "Resident"
 msgstr ""
 
 msgctxt "avatar_type_model"
@@ -1615,7 +1627,7 @@ msgid "Economy"
 msgstr ""
 
 msgctxt "setting_economy_help"
-msgid "Currencies and some other services queried by the viewer. They are not accessed directly by the user."
+msgid "Currencies and some other services queried by the viewer. The avatars do not open them directly."
 msgstr ""
 
 msgctxt "setting_about"
@@ -1631,7 +1643,7 @@ msgid "Registration page"
 msgstr ""
 
 msgctxt "setting_register_help"
-msgid "Link to the user registration."
+msgid "Link to the registration of an avatar."
 msgstr ""
 
 msgctxt "setting_help"
@@ -1719,7 +1731,7 @@ msgid "Offline messages"
 msgstr ""
 
 msgctxt "setting_offline_messages_help"
-msgid "Needed by viewers to keep messages while user is offline and deliver them when they come back online. Internal service, not accessed directly by the user."
+msgid "Needed by viewers to keep messages while an avatar is offline and deliver them when it comes back online. Internal service, the avatars do not open it directly."
 msgstr ""
 
 msgctxt "setting_offline_module"
@@ -1943,7 +1955,7 @@ msgid "Sender e-mail address"
 msgstr ""
 
 msgctxt "setting_mail_sender_help"
-msgid "A no-reply e-mail address used to forward messages for users enabling \"Email me IMs when I'm offline\" option."
+msgid "A no-reply e-mail address used to forward messages for avatars enabling \"Email me IMs when I'm offline\" option."
 msgstr ""
 
 msgctxt "setting_currency_rate"

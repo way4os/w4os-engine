@@ -23,9 +23,9 @@ describe('The views of a list', function () {
         expect($listing->document()['views'])
             ->toBe(['type', 'active', 'online'])
             ->and([$en['all'], ...$label($en, 'type'), ...$label($en, 'active'), ...$label($en, 'online')])
-            ->toBe(['All', 'User Avatar', 'Default Model', 'Service Account', 'Active', 'Inactive', 'Online', 'Offline'])
+            ->toBe(['All', 'Resident', 'Default Model', 'Service Account', 'Active', 'Inactive', 'Online', 'Offline'])
             ->and([$fr['all'], ...$label($fr, 'type'), ...$label($fr, 'online')])
-            ->toBe(['Tout', "Avatar de l'utilisateur", 'Modèle par défaut', 'Compte de service', 'En ligne', 'Hors ligne'])
+            ->toBe(['Tout', 'Résident', 'Modèle par défaut', 'Compte de service', 'En ligne', 'Hors ligne'])
             // A list without the visits has no presence, nor its view
             ->and(Avatar::listing(false)->document()['views'])
             ->toBe(['type', 'active'])

@@ -109,14 +109,14 @@ describe('The rule of the avatar models', function () {
             // The help of w4os-wp, its five points
             ->and($text($en, ...$form['description']))
             ->toBe([
-                'If avatar models are defined, new users will be presented with a choice on the avatar creation form, which will determine the initial outfit of the created avatar.',
+                'If avatar models are defined, the avatar creation form offers a choice of them, which determines the initial outfit of the new avatar.',
                 'The grid administrator needs to create each model from the ROBUST console, log in with the viewer, customize the outfit, and add a profile picture.',
-                'The avatars used for the models should never be real user accounts.',
+                'The avatars used for the models should never be avatars that people use.',
                 'The new avatar will wear the same outfit as the model at the time of registration.',
                 'If the model assignment rule is based on the name, each newly created avatar matching that rule will be automatically added to the list.',
             ])
             ->and($fr[$form['description'][2]] ?? null)
-            ->toBe("Les avatars utilisés pour les modèles ne doivent jamais être de véritables comptes d'utilisateur.")
+            ->toBe('Les avatars utilisés comme modèles ne doivent jamais être des avatars que des personnes utilisent.')
             // The models the rule of the form picks, asked as it is changed
             ->and($form['preview'])
             ->toBe(['label' => 'models_preview', 'empty' => 'models_none', 'path' => '/grids/{grid}/avatar-models', 'filters' => ['match', 'pattern', 'list']])

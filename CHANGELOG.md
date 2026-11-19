@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (texts): the people of the world are avatars in every text, never users (Resident for the avatar of a person); the titles of the cards of a dashboard (`dashboard_grid_info`, `dashboard_grid_status`, `total`)
 - fix (offline): the database of the offline messages is in the lines of the page when it is not the one of Robust
 - change (guide): a grid that has saved no source has no guide; its page saves the guide of 2do.directory when the source is left empty or the guide is switched on, the field no longer required
 - change (search): the Web Search URL (the page people search in, at login and in get_grid_info), apart from the Search Engine URL the simulators call; the registers of other search engines as a list (`registers`), 2do.directory recommended, the grid's own as a path
