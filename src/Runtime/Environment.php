@@ -31,10 +31,16 @@ final class Environment
         public readonly ?\Closure $http = null,
         /** @var ?list<int> occupied ports reported by the deployment host; replaces local config/socket discovery */
         public readonly ?array $occupiedPorts = null,
+        /** The access to the databases an application gives (a site that has the engine in its own folder), for every grid */
+        public readonly ?\OpenSim\Data\DatabaseAccess $databases = null,
     ) {}
 
     /** The environment of this machine. */
-    public static function system(Layout $layout, ?ReporterInterface $reporter = null): self
+    /**
+     * @param ?\OpenSim\Data\DatabaseAccess $databases the access to the databases an application gives, applied to every grid
+     *        (Grid::config()): its server, its user, its password; null for the ones each grid says
+     */
+    public static function system(Layout $layout, ?ReporterInterface $reporter = null, ?\OpenSim\Data\DatabaseAccess $databases = null): self
     {
         $reporter ??= new NullReporter();
 
@@ -51,6 +57,7 @@ final class Environment
                     ? $reporter->error($message)
                     : $reporter->info($message),
             ),
+            databases: $databases,
         );
     }
 
@@ -68,6 +75,7 @@ final class Environment
             $this->probe,
             $this->http,
             $this->occupiedPorts,
+            $this->databases,
         );
     }
 
@@ -91,6 +99,7 @@ final class Environment
             $this->probe,
             $this->http,
             array_values(array_unique($ports)),
+            $this->databases,
         );
     }
 }

@@ -142,11 +142,9 @@ final class Api
         // the engine in its own folder: the settings of a grid and its databases over the network, nothing read from the machine)
         $this->grids = $grids ?? fn(string $nick): ?Grid => Grid::find($this->environment, $nick);
         $this->instanceAccess = $instanceAccess ?? static fn(Environment $environment): ?string => InstanceAccess::refusal($environment->layout);
-        $this->config =
-            $config ??
-            static fn(Grid $grid): ?GridConfig => $grid->directory() !== '' && is_dir($grid->directory())
-                ? GridConfig::fromFolder($grid->directory(), ['Helpers' => 'Helpers.ini'])
-                : null;
+        // The config of a grid as the grid reads it: the one an application gives, else its folder, with the access to the
+        // databases the environment gives
+        $this->config = $config ?? static fn(Grid $grid): ?GridConfig => $grid->config();
     }
 
     /** @var \Closure(string):?Grid the grid of a nick, null when it is not one of the grids served */

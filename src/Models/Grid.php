@@ -122,7 +122,11 @@ final class Grid extends InstalledModel
      */
     public function config(): ?GridConfig
     {
-        return $this->given ?? ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null);
+        $config = $this->given ?? ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null);
+        // The access to the databases the application gives: its server and its credentials, for every database of the grid
+        $access = $this->environment->databases;
+
+        return $config !== null && $access !== null ? $config->withDatabaseAccess($access) : $config;
     }
 
     /** Where the settings of its helpers are read: the config given, else its folder. */

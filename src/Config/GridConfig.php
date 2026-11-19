@@ -113,6 +113,37 @@ class GridConfig
     }
 
     /**
+     * The same config with the access to the databases an application gives (DatabaseAccess): every connection string of every
+     * file (a key that ends with ConnectionString: EstateConnectionString, MuteConnectionString...) on its server, as its user,
+     * each keeping its database.
+     */
+    public function withDatabaseAccess(\OpenSim\Data\DatabaseAccess $access): static
+    {
+        $apply = static function (array $ini) use ($access): array {
+            foreach ($ini as $section => $keys) {
+                if (!is_array($keys)) {
+                    continue;
+                }
+                foreach ($keys as $key => $value) {
+                    is_string($value) && preg_match('/ConnectionString$/i', (string) $key) === 1 && ($ini[$section][$key] = $access->applyTo($value));
+                }
+            }
+
+            return $ini;
+        };
+        $tree = $this->tree;
+        foreach ($tree as $role => $ini) {
+            if ($role === 'simulators') {
+                $tree[$role] = array_map(static fn($simulator): array => is_array($simulator) ? $apply($simulator) : [], (array) $ini);
+            } elseif (is_array($ini)) {
+                $tree[$role] = $apply($ini);
+            }
+        }
+
+        return new static($tree, $this->files);
+    }
+
+    /**
      * The same config with the database settings OpenSimulator takes from [DatabaseService] when a section does not give its own.
      *
      * Robust: StorageProvider and ConnectionString of the services (AssetService, UserAccountService, UserProfilesService...) that
