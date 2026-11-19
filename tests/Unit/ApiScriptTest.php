@@ -11,6 +11,11 @@ function api_script(array $words, array $env = [], ?string $home = null): array
 {
     $home ??= test_tmp() . '/api-script-' . bin2hex(random_bytes(4));
     is_dir($home) || mkdir($home);
+    // Never the opensim.conf of the machine the tests run on (its user, its folders): an empty one, unless the test gives its own
+    if (!isset($env['OPENSIM_CONF'])) {
+        file_put_contents("$home/opensim.conf", "[Defaults]\n");
+        $env['OPENSIM_CONF'] = "$home/opensim.conf";
+    }
     $process = proc_open(
         [dirname(__DIR__, 2) . '/bin/opensim-api', ...$words],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
