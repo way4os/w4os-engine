@@ -10,6 +10,12 @@ final class Gatekeeper
     /** @var bool whether the certificate of a gatekeeper must be one somebody signed (a grid with its own can say it is not) */
     public static bool $verifyPeer = true;
 
+    /** How long a gatekeeper has to answer, in seconds: most answer below one. */
+    public const TIMEOUT = 3;
+
+    /** How many gatekeepers are asked at once. */
+    public const CONCURRENCY = 8;
+
     /** @var array<string,array<string,mixed>> what the gatekeepers answered during this request, by call and key */
     private static array $cache = [];
 
@@ -50,17 +56,20 @@ final class Gatekeeper
             error_log('[ERROR] (XML RPC missing) self::request() requires xmlrpc_encode_request()');
             return false;
         }
+        // A host that did not answer during this run is not asked again
+        if (isset(self::$cache['down'][self::host($gatekeeper)])) {
+            return false;
+        }
         $xml_request = xmlrpc_encode_request($method, [$request]); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions
 
         $options = [
             'http' => [
                 'method' => 'POST',
                 'header' => 'Content-Type: text/xml' . "\r\n",
-                'timeout' => 3, // most of the time below 1 sec, but leave some time for slow ones
+                'timeout' => self::TIMEOUT, // most of the time below 1 sec, but leave some time for slow ones
                 'content' => $xml_request,
             ],
         ];
-        // A grid with a certificate nobody signed, when the settings of the engine say it is fine
         if (!self::$verifyPeer) {
             $options['ssl'] = ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true];
         }
@@ -68,15 +77,21 @@ final class Gatekeeper
 
         $response = self::$transport !== null ? (self::$transport)($gatekeeper, $xml_request) ?? false : @file_get_contents($gatekeeper, false, $context);
         if ($response === false) {
-            return false;
-        } elseif (empty($response)) {
+            self::$cache['down'][self::host($gatekeeper)] = true;
+
             return false;
         }
 
-        // xmlrpc_decode() from library-xmlrpc.php does not handle raw XML strings
-        // (new Response($xml) does not parse XML — it is a phpxmlrpc limitation).
-        // Use Encoder::decodeXml() directly, which correctly parses any XML-RPC envelope.
-        // decodeXml() returns a PhpXmlRpc\Response object; extract the PHP array from it.
+        return self::decode($gatekeeper, $method, $response);
+    }
+
+    /** What a gatekeeper answered, as an array; false for an answer that is none, or a fault. */
+    private static function decode($gatekeeper, $method, $response)
+    {
+        if (empty($response)) {
+            return false;
+        }
+
         try {
             $encoder = new \PhpXmlRpc\Encoder();
             $decoded = $encoder->decodeXml($response);
@@ -89,12 +104,7 @@ final class Gatekeeper
         }
         if ($decoded instanceof \PhpXmlRpc\Response) {
             if ($decoded->faultCode()) {
-                error_log(
-                    "oxXmlRequest fault ($gatekeeper $method): " .
-                        $decoded->faultCode() .
-                        ' ' .
-                        $decoded->faultString(),
-                );
+                error_log("oxXmlRequest fault ($gatekeeper $method): " . $decoded->faultCode() . ' ' . $decoded->faultString());
                 return false;
             }
             $xml_array = $encoder->decode($decoded->value());
@@ -109,6 +119,103 @@ final class Gatekeeper
             return false;
         }
         return $xml_array;
+    }
+
+    /** The host and the port of a gatekeeper, what tells one server from another. */
+    private static function host(string $gatekeeper): string
+    {
+        $parts = parse_url(preg_match('#://#', $gatekeeper) ? $gatekeeper : "http://$gatekeeper") ?: [];
+
+        return strtolower(($parts['host'] ?? $gatekeeper) . ':' . ($parts['port'] ?? 80));
+    }
+
+    /**
+     * Ask the gatekeepers of these places what linkRegion() and region() ask, all at once, a few at a time (CONCURRENCY), each within
+     * the TIMEOUT: their answers are remembered for the run, so that the places are then known without waiting for one after the
+     * other. A host that does not answer is not asked again.
+     *
+     * @param list<string> $places region addresses (host:port:Region or host:port/Region...)
+     */
+    public static function prefetch(array $places): void
+    {
+        $links = [];
+        foreach ($places as $place) {
+            $region = is_string($place) && trim($place) !== '' ? \OpenSim\Hypergrid\Destination::parse($place) : null;
+            if (empty($region['gatekeeper']) || empty($region['region_uri']) || isset(self::$cache['link_region'][$region['region_uri']])) {
+                continue;
+            }
+            $gatekeeper = preg_match('#://#', $region['gatekeeper']) ? $region['gatekeeper'] : 'http://' . $region['gatekeeper'];
+            $links[$region['region_uri']] ??= [$gatekeeper, 'link_region', ['region_name' => $region['region'] ?? '']];
+        }
+        foreach (self::many($links) as $uri => $answer) {
+            self::$cache['link_region'][$uri] = $answer;
+        }
+        $regions = [];
+        foreach ($links as $uri => [$gatekeeper]) {
+            $uuid = self::$cache['link_region'][$uri]['uuid'] ?? null;
+            \OpenSim\Text\Uuid::isValid((string) $uuid) && !isset(self::$cache['get_region'][$uuid])
+                && ($regions[$uuid] ??= [$gatekeeper, 'get_region', ['region_uuid' => (string) $uuid]]);
+        }
+        foreach (self::many($regions) as $uuid => $answer) {
+            self::$cache['get_region'][$uuid] = $answer;
+        }
+    }
+
+    /**
+     * Ask several gatekeepers at once.
+     *
+     * @param array<string,array{0:string,1:string,2:array<string,mixed>}> $requests by key: gatekeeper, method, request
+     * @return array<string,array<string,mixed>|false> by key, what each answered
+     */
+    private static function many(array $requests): array
+    {
+        if ($requests === [] || !function_exists('xmlrpc_encode_request')) {
+            return [];
+        }
+        // A transport of its own (the tests): one after the other, as request() asks
+        if (self::$transport !== null || !function_exists('curl_multi_init')) {
+            return array_map(static fn(array $asked) => self::request(...$asked), $requests);
+        }
+        $answers = [];
+        $waiting = $requests;
+        $running = [];
+        $multi = curl_multi_init();
+        do {
+            while (count($running) < self::CONCURRENCY && $waiting !== []) {
+                $key = (string) array_key_first($waiting);
+                [$gatekeeper, $method, $request] = array_shift($waiting);
+                if (isset(self::$cache['down'][self::host($gatekeeper)])) {
+                    $answers[$key] = false;
+                    continue;
+                }
+                $handle = curl_init($gatekeeper);
+                curl_setopt_array($handle, [
+                    CURLOPT_POST => true,
+                    CURLOPT_POSTFIELDS => xmlrpc_encode_request($method, [$request]), // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions
+                    CURLOPT_HTTPHEADER => ['Content-Type: text/xml'],
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => self::TIMEOUT,
+                    CURLOPT_CONNECTTIMEOUT => self::TIMEOUT,
+                    CURLOPT_SSL_VERIFYPEER => self::$verifyPeer,
+                    CURLOPT_SSL_VERIFYHOST => self::$verifyPeer ? 2 : 0,
+                ]);
+                curl_multi_add_handle($multi, $handle);
+                $running[spl_object_id($handle)] = [$key, $handle, $gatekeeper, $method];
+            }
+            curl_multi_exec($multi, $active);
+            $active && curl_multi_select($multi, 0.2);
+            while (($done = curl_multi_info_read($multi)) !== false) {
+                [$key, $handle, $gatekeeper, $method] = $running[spl_object_id($done['handle'])];
+                unset($running[spl_object_id($done['handle'])]);
+                $body = (int) $done['result'] === 0 ? (string) curl_multi_getcontent($handle) : null;
+                $body === null && (self::$cache['down'][self::host($gatekeeper)] = true);
+                $answers[$key] = $body === null ? false : self::decode($gatekeeper, $method, $body);
+                curl_multi_remove_handle($multi, $handle);
+            }
+        } while ($running !== [] || $waiting !== []);
+        curl_multi_close($multi);
+
+        return $answers;
     }
 
     public static function post($requestURL, $request)

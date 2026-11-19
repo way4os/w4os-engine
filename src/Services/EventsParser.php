@@ -43,13 +43,13 @@ final class EventsParser
         'social' => 28,
     ];
 
-    /** @var array{online:\Closure(string):bool,parts:\Closure(string):array<string,mixed>,located:\Closure(string):array<string,mixed>,link:\Closure(string,int):string} */
+    /** @var array{prefetch:\Closure(list<string>):void,online:\Closure(string):bool,parts:\Closure(string):array<string,mixed>,located:\Closure(string):array<string,mixed>,link:\Closure(string,int):string} */
     private array $places;
 
     /**
      * @param string $source the address of the calendar (HYPEvents), without `/events.json`
      * @param ?\Closure(string):?string $http the body of an address, null when it does not answer (default: curl)
-     * @param ?array<string,\Closure> $places how a place is known: `online` (its region answers), `parts` (host, port, region, position),
+     * @param ?array<string,\Closure> $places how a place is known: `prefetch` (the places of a run, asked at once), `online` (its region answers), `parts` (host, port, region, position),
      *        `located` (the region on the map), `link` (the text of the links to it); the ones of the hypergrid by default
      */
     public function __construct(
@@ -60,7 +60,13 @@ final class EventsParser
         private readonly string $table = SearchTables::EVENTS,
         private readonly ?ClockInterface $clock = null,
     ) {
+        // The gatekeepers asked all at once first, what they say remembered for the run (when the places are the hypergrid's)
+        $prefetch = isset($places['online']) ? static function (array $urls): void {} : static function (array $urls): void {
+            Gatekeeper::forget();
+            Gatekeeper::prefetch($urls);
+        };
         $this->places = ($places ?? []) + [
+            'prefetch' => $prefetch,
             'online' => static fn(string $url): bool => Gatekeeper::regionIsOnline($url),
             'parts' => static fn(string $url): array => Destination::sanitize($url, '', true),
             'located' => static fn(string $url): array => (array) Gatekeeper::region($url),
@@ -83,6 +89,12 @@ final class EventsParser
 
             return -1;
         }
+        // The places of the events to come, asked all at once
+        $now = (int) ($this->clock?->time() ?? time());
+        $this->places['prefetch'](array_values(array_unique(array_map(
+            static fn(array $event): string => (string) ($event['hgurl'] ?? ''),
+            array_filter($calendar, static fn($event): bool => is_array($event) && (int) strtotime((string) ($event['start'] ?? '')) >= $now - 3600),
+        ))));
         $events = [];
         foreach ($calendar as $event) {
             $row = is_array($event) ? $this->event($event) : null;
