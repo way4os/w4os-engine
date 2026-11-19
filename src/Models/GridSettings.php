@@ -131,6 +131,10 @@ final class GridSettings
     public function write(string $page, array $values): array
     {
         $entries = array_column(self::entries($page), null, 'name');
+        in_array('files', $this->grid->access(), true) || throw \OpenSim\Exceptions\ChannelUnavailable::for(
+            "change the settings of {$this->grid->nick()}",
+            'the grid has no files on this machine: its settings are changed where its config is kept',
+        );
         $now = $this->read($page);
         $writes = [];
         foreach ($values as $name => $value) {
@@ -294,8 +298,9 @@ final class GridSettings
         };
     }
 
+    /** The config of the grid as it reads it: its files on this machine, or the one an application gives (Grid::config()). */
     private function config(): GridConfig
     {
-        return GridConfig::fromFolder($this->grid->directory(), ['Helpers' => 'Helpers.ini']);
+        return $this->grid->config() ?? new GridConfig();
     }
 }

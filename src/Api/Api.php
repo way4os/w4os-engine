@@ -977,6 +977,10 @@ final class Api
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
             $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            in_array('files', $found->access(), true) || throw ChannelUnavailable::for(
+                "repair the options of $grid",
+                'the grid has no files on this machine: its options are repaired where its config is kept',
+            );
             $repair = (new \OpenSim\Provisioning\GridOptions($found))->repair($mode === 'apply');
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
@@ -1579,6 +1583,8 @@ final class Api
         $class = self::classOf($type, $grid);
         $model = match (true) {
             $class === null => null,
+            // A grid is one of the grids served: of this machine, or given by an application
+            $type === 'grids' => $this->grid($id),
             isset(self::RESOURCES[$type]) => $class::find($this->environment, $id),
             default => $class::find($this->gridConfig((string) $grid), $id),
         };

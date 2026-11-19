@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: a08c16c
+  version: ae64b1d
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -14,7 +14,7 @@ info:
 
     ## Who may do what through a site
 
-    Every operation says it in `x-access`, by the user levels of OpenSimulator (0 GOD_NOT, 1 GOD_LIKE, 100 GOD_CUSTOMER_SERVICE, 150 GOD_LIAISON, 200 GOD_FULL, 250 GOD_MAINTENANCE; a level has every right of the ones below it): `level`, the lowest level of a person who does it on what is not their own (none: anybody may), and `self`, whether a visitor may do it for their own account. Reading and the care of the accounts are for the customer service and above (100); what changes the grid itself (its instances, its regions, its setups, its backups and restores, the role of an avatar) for a god (200), as only GOD_FULL has rights of its own in OpenSimulator; 250 is never needed. What belongs to a site and not to the engine (its own settings, such as its theme) is changed by whom `x-site` says at the root of this document (`settings`: a god, as any change). A site asks `OpenSim\Api\Access` (or reads `x-access` and `x-site`), it never writes a level. The key of the site is what opens the API: the level is the one of the person the site acts for.
+    Every operation says it in `x-access`, by the user levels of OpenSimulator (0 GOD_NOT, 1 GOD_LIKE, 100 GOD_CUSTOMER_SERVICE, 150 GOD_LIAISON, 200 GOD_FULL, 250 GOD_MAINTENANCE; a level has every right of the ones below it): `level`, the lowest level of a person who does it on what is not their own (none: anybody may), and `self`, whether a visitor may do it for their own account. `needs`, what of a grid it needs the engine to reach, among the `access` of the grid: `files` (its config on this machine: the change of its settings, the repair of its options), `databases` (what they hold); a site hides or disables an operation whose needs the grid has not, as the engine answers it unavailable (503, its reason). The engine does its best with what it has: what its databases and its answers over HTTP give is given. Reading and the care of the accounts are for the customer service and above (100); what changes the grid itself (its instances, its regions, its setups, its backups and restores, the role of an avatar) for a god (200), as only GOD_FULL has rights of its own in OpenSimulator; 250 is never needed. What belongs to a site and not to the engine (its own settings, such as its theme) is changed by whom `x-site` says at the root of this document (`settings`: a god, as any change). A site asks `OpenSim\Api\Access` (or reads `x-access` and `x-site`), it never writes a level. The key of the site is what opens the API: the level is the one of the person the site acts for.
 
     ## Authentication
 
@@ -1958,6 +1958,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
     post:
       operationId: createAvatar
       tags:
@@ -2068,6 +2070,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
   '/grids/{grid}/avatars/{id}':
     get:
       operationId: getAvatar
@@ -2499,6 +2503,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
     patch:
       operationId: updateAvatar
       tags:
@@ -2562,6 +2568,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
     delete:
       operationId: deleteAvatar
       tags:
@@ -2599,6 +2607,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - databases
   '/grids/{grid}/avatar-models':
     get:
       operationId: listAvatarModels
@@ -2657,6 +2667,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/avatar-models/{id}':
     get:
       operationId: getAvatarModel
@@ -2703,6 +2715,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/regions':
     get:
       operationId: listRegions
@@ -3077,6 +3091,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/regions/{id}':
     get:
       operationId: getRegion
@@ -3349,6 +3365,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
     patch:
       operationId: updateRegion
       tags:
@@ -3412,6 +3430,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - databases
   '/grids/{grid}/parcels':
     get:
       operationId: listParcels
@@ -3619,6 +3639,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/parcels/{id}':
     get:
       operationId: getParcel
@@ -3760,6 +3782,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/posts':
     get:
       operationId: listPosts
@@ -3889,6 +3913,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/posts/{id}':
     get:
       operationId: getPost
@@ -3935,6 +3961,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
     delete:
       operationId: deletePost
       tags:
@@ -3972,6 +4000,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/estates':
     get:
       operationId: listEstates
@@ -4123,6 +4153,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
     post:
       operationId: createEstate
       tags:
@@ -4174,6 +4206,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - databases
   '/grids/{grid}/estates/{id}':
     get:
       operationId: getEstate
@@ -4220,6 +4254,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/assets':
     get:
       operationId: listAssets
@@ -4487,6 +4523,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/assets/{id}':
     get:
       operationId: getAsset
@@ -4533,6 +4571,8 @@ paths:
       x-access:
         level: 100
         self: false
+        needs:
+          - databases
   '/grids/{grid}/destinations':
     get:
       operationId: listDestinations
@@ -5380,6 +5420,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - files
   '/grids/{grid}/settings/economy':
     get:
       operationId: getEconomySettings
@@ -5508,6 +5550,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - files
   '/grids/{grid}/settings/search':
     get:
       operationId: getSearchSettings
@@ -5634,6 +5678,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - files
   '/grids/{grid}/settings/guide':
     get:
       operationId: getGuideSettings
@@ -5727,6 +5773,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - files
   '/grids/{grid}/settings/offline':
     get:
       operationId: getOfflineSettings
@@ -5830,6 +5878,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - files
   '/grids/{grid}/settings/assets':
     get:
       operationId: getAssetsSettings
@@ -5918,6 +5968,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - files
   '/grids/{grid}/options/repair':
     post:
       operationId: repairOptions
@@ -5960,6 +6012,8 @@ paths:
       x-access:
         level: 200
         self: false
+        needs:
+          - files
   '/grids/{grid}/addresses':
     get:
       operationId: getAddresses
@@ -6043,6 +6097,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
   '/grids/{grid}/avatars/{id}/classifieds':
     get:
       operationId: listAvatarClassifieds
@@ -6087,6 +6143,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
   '/grids/{grid}/avatars/{id}/groups':
     get:
       operationId: listAvatarGroups
@@ -6131,6 +6189,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
   '/grids/{grid}/avatars/{id}/posts':
     get:
       operationId: listAvatarPosts
@@ -6175,6 +6235,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
     post:
       operationId: createAvatarPost
       tags:
@@ -6257,6 +6319,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
   '/grids/{grid}/avatars/{id}/posts/{post}':
     delete:
       operationId: deleteAvatarPost
@@ -6298,6 +6362,8 @@ paths:
       x-access:
         level: 100
         self: true
+        needs:
+          - databases
   '/grids/{grid}/info':
     get:
       operationId: getInfo
@@ -9165,6 +9231,9 @@ components:
             sources:
               type: array
               description: 'Where it is known from: folder, plan, described, announced'
+            access:
+              type: array
+              description: 'What the engine reaches of it: `files` its config on this machine, `databases` the databases its config sets, `http` an address of its own to ask. An operation that needs what a grid has not (`needs` of `x-access`) is unavailable for it (503, its reason): a site hides it'
             directory:
               type:
                 - string

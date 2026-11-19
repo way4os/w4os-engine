@@ -84,8 +84,38 @@ final class Access
             return ['level' => null, 'self' => true];
         }
         $level = $method === 'GET' || in_array($operationId, self::CUSTOMER_SERVICE, true) ? Avatar::GOD_CUSTOMER_SERVICE : Avatar::GOD_FULL;
+        $needs = self::needs($method, $path);
 
-        return ['level' => $level, 'self' => in_array($operationId, self::SELF, true)];
+        return ['level' => $level, 'self' => in_array($operationId, self::SELF, true)] + ($needs === [] ? [] : ['needs' => $needs]);
+    }
+
+    /** What of a grid the engine must reach for an operation (`access` of the grid), by the first part of its path under the grid. */
+    private const NEEDS = [
+        'avatars' => 'databases', 'avatar-models' => 'databases', 'regions' => 'databases', 'parcels' => 'databases',
+        'estates' => 'databases', 'posts' => 'databases', 'sign-ins' => 'databases', 'password-resets' => 'databases',
+        'email-confirmations' => 'databases', 'options' => 'files',
+    ];
+
+    /**
+     * What of a grid an operation needs the engine to reach (`needs` of `x-access`): `files`, its config on this machine (a change of
+     * its settings, the repair of its options), `databases`, its databases (what they hold). Empty for what it does with what it has.
+     *
+     * @return list<string>
+     */
+    private static function needs(string $method, string $path): array
+    {
+        if (!str_starts_with($path, '/grids/{grid}/')) {
+            return [];
+        }
+        $first = explode('/', substr($path, strlen('/grids/{grid}/')))[0];
+        if ($first === 'settings') {
+            return $method === 'PATCH' ? ['files'] : [];
+        }
+        if ($first === 'assets') {
+            return str_contains($path, '{format}') ? [] : ['databases'];
+        }
+
+        return isset(self::NEEDS[$first]) ? [self::NEEDS[$first]] : [];
     }
 
     /**

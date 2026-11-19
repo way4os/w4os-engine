@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- feature (grids): a grid says what the engine reaches of it (`access`: files, databases, http); `GET /grids/{grid}` serves a given grid
+- feature (api): `needs` of `x-access` says what of a grid an operation needs, unavailable (503) for a grid that has not
+- fix (settings): a grid without files reads its settings from the config given, and refuses a change (503) instead of writing elsewhere
 - feature (settings): the settings pages give their menu label (`menu`) and their message once saved (`saved`), in w4os-wp's words
 - feature (posts): the posts of every avatar of a grid, listed and deleted (`/grids/{grid}/posts`), for the Flux admin list
 - change (guide): the popular places leave out the other grids and the land for sale by default, as w4os-wp 2.x

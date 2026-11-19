@@ -765,6 +765,23 @@ final class Grid extends InstalledModel
         return $uri === null ? null : $uri . '/' . $region . ($position !== '' ? '/' . $position : '');
     }
 
+    /**
+     * What the engine reaches of the grid, for a site to offer what it can (`needs` of the operations, `x-access`): `files` its
+     * config on this machine (its folder), `databases` the databases its config sets, `http` an address of its own to ask.
+     *
+     * @return list<string>
+     */
+    public function access(): array
+    {
+        $config = $this->config();
+
+        return array_values(array_filter([
+            $this->in(self::FOLDER) && $this->directory !== '' && is_dir($this->directory) ? 'files' : null,
+            $config !== null && \OpenSim\Data\Connections::key($config, \OpenSim\Data\Database::Robust) !== null ? 'databases' : null,
+            $this->hostPort() !== null ? 'http' : null,
+        ]));
+    }
+
     /** The channels a write can go through: the config of its Robust. */
     public function channels(): array
     {
@@ -1472,6 +1489,7 @@ final class Grid extends InstalledModel
             'name' => $this->name(),
             'slug' => $this->slug(),
             'sources' => $this->sources(),
+            'access' => $this->access(),
             'directory' => $this->directory() ?: null,
             'remote' => $this->isRemote(),
             'standalone' => $this->isStandalone(),
