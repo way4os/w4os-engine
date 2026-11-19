@@ -549,7 +549,7 @@ final class Contract
             'scope' => 'grid',
             'summary' => 'The destinations of the guide of a grid',
             'description' =>
-                'The places the guide of the grid shows, by category, in the order of its source (`GuideSource` of `[Helpers]`: a file or a URL of "Name|Region URL" lines). The same list feeds the page of the guide and the boards of the scripts.',
+                'The places the guide of the grid shows, by category, in the order of its source (`GuideSource` of `[Helpers]`: a file or a URL of "Name|Region URL" lines; the guide of 2do.directory when the grid sets none). The same list feeds the page of the guide and the boards of the scripts.',
             'attributes' => [
                 'name' => ['string', 'What the guide shows'],
                 'category' => ['string', 'The group it is listed in'],

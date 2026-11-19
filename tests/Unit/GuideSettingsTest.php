@@ -32,3 +32,15 @@ describe('The page of the guide', function () {
             ->and(Catalog::messages('fr_FR', false)['guide_source_help_name'] ?? '')->not->toBe('');
     });
 });
+
+describe('The guide of a grid that sets no source', function () {
+    test('is the guide of 2do.directory, as if it were set', function () {
+        $machine = new OpenSim\Testing\Machine();
+        $machine->http['https://2do.directory/destinations/guide'] = "Hypergrid\nPlace|hg.example.org:8002/Place\n";
+
+        $destinations = OpenSim\Models\Grid::find($machine->environment, 'demo')->destinations();
+
+        expect(array_keys($destinations))->toBe(['Hypergrid'])
+            ->and($destinations['Hypergrid'][0]['name'] ?? null)->toBe('Place');
+    });
+});

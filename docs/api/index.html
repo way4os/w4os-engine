@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "dd31a55",
+        "version": "c6e6f80",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -77,7 +77,7 @@
         },
         {
             "name": "Destinations",
-            "description": "The places the guide of the grid shows, by category, in the order of its source (`GuideSource` of `[Helpers]`: a file or a URL of \"Name|Region URL\" lines). The same list feeds the page of the guide and the boards of the scripts."
+            "description": "The places the guide of the grid shows, by category, in the order of its source (`GuideSource` of `[Helpers]`: a file or a URL of \"Name|Region URL\" lines; the guide of 2do.directory when the grid sets none). The same list feeds the page of the guide and the boards of the scripts."
         },
         {
             "name": "Tasks",
@@ -6546,7 +6546,7 @@
                     "Destinations"
                 ],
                 "summary": "List destinations",
-                "description": "The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of \"Name|Region URL\" lines, a name alone starting a category) is the list; a grid that gives none has the places its search knows, ten popular places and ten places shown in search, in two sections: the places of this grid only, no land for sale among the popular places, nothing that is not shown in search. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them: the place in the region in its own column (`x,y,z`), their layout hints kept (`-` a new column, `|` an empty row). A source is read when it is text, 1 MB at most, in UTF-8 (the Gudz Teleport Board reads 2048 bytes of it). The lines are read as the board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th and the landing point in the 5th; an address listed already is left out, `http://` taken off.",
+                "description": "The list of the guide. `GuideSource` of `[Helpers]` (a file or an address of \"Name|Region URL\" lines, a name alone starting a category) is the list, the guide of 2do.directory (`https://2do.directory/destinations/guide`) for a grid that gives none; when the list cannot be read, the places its search knows, ten popular places and ten places shown in search, in two sections: the places of this grid only, no land for sale among the popular places, nothing that is not shown in search. With `format=list` (or `Accept: text/plain`) it is the lines themselves, as the boards of the scripts read them: the place in the region in its own column (`x,y,z`), their layout hints kept (`-` a new column, `|` an empty row). A source is read when it is text, 1 MB at most, in UTF-8 (the Gudz Teleport Board reads 2048 bytes of it). The lines are read as the board reads them: the old format of 5 columns gives the name in the 2nd, the address in the 4th and the landing point in the 5th; an address listed already is left out, `http://` taken off.",
                 "parameters": [
                     {
                         "name": "grid",

@@ -1002,7 +1002,8 @@ final class Grid extends InstalledModel
 
     /**
      * The destinations of the guide of the grid, by category: the file or the URL `GuideSource` of `[Helpers]` gives, "Name|Region URL"
-     * lines. A grid that gives none has the places its search knows: the popular places and the places shown in search, ten of each.
+     * lines, the guide of 2do.directory when it gives none. When the list cannot be read, the places its search knows: the popular
+     * places and the places shown in search, ten of each.
      *
      * @param ?GridConfig $config the config of the grid, to find its search database (default: its folder)
      * @param bool $layout for the boards: the place in its own column and their layout hints kept (DestinationList::parse())
@@ -1014,7 +1015,8 @@ final class Grid extends InstalledModel
         $text = $this->get('destinationsText');
         $listed = DestinationList::parse(
             is_string($text) && $text !== '' ? $text : (string) DestinationList::read(
-                $this->setting('Helpers', 'GuideSource'),
+                // A grid that sets no source has the guide of 2do.directory, as if it were set
+                $this->setting('Helpers', 'GuideSource') ?? (string) \OpenSim\Config\Settings::named('guideSource')['default'],
                 $this->directory !== '' ? $this->directory : null,
                 $this->environment->http,
             ),
