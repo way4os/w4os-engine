@@ -67,6 +67,50 @@ class Health
     /** What an address that is not a page answers: not served, and not an error (a teapot). */
     const TEAPOT = [418];
 
+    /**
+     * The settings and pages a row can be, by `section/key` (the section of the group, GridInfoService for what the grid says,
+     * `pages` and `cache` for those groups; `*` ends a key that is a prefix): the name of each in the catalog, `setting_<name>` and
+     * `setting_<name>_help` its description.
+     */
+    const SETTINGS = [
+        'GridInfoService/login' => 'login',
+        'GridInfoService/gatekeeper' => 'gatekeeper',
+        'GridInfoService/uas' => 'uas',
+        'GridInfoService/welcome' => 'welcome',
+        'GridInfoService/economy' => 'economy',
+        'GridInfoService/about' => 'about',
+        'GridInfoService/register' => 'register',
+        'GridInfoService/help' => 'help',
+        'GridInfoService/password' => 'password',
+        'GridInfoService/GridStatus' => 'grid_status',
+        'GridInfoService/GridStatusRSS' => 'grid_status_rss',
+        'GridInfoService/web_profile_url' => 'web_profile',
+        'GridInfoService/search' => 'web_search',
+        'LoginService/DestinationGuide' => 'destination_guide',
+        'LoginService/MessageUrl' => 'message_url',
+        'LoginService/SearchURL' => 'web_search',
+        'Search/SearchURL' => 'search_service',
+        'DataSnapshot/DATA_SRV_*' => 'data_service',
+        'Messaging/OfflineMessageURL' => 'offline_messages',
+        'Messaging/OfflineMessageModule*' => 'offline_module',
+        'MoneyServer/MoneyScriptAccessKey' => 'money_script_key',
+        'pages/helpers' => 'helpers',
+        'pages/search' => 'web_search',
+        'pages/profile' => 'web_profile',
+        'pages/guide' => 'destination_guide',
+        'pages/welcome' => 'welcome',
+        'pages/status' => 'grid_status',
+        'pages/directory' => 'directory',
+        'cache/assets' => 'cache_assets',
+        'cache/tasks' => 'cache_tasks',
+    ];
+
+    /**
+     * The services an application serves apart from the grid (the helpers of the engine, or another one): one that does not answer
+     * and is not served by the helpers of the grid needs it (`thirdParty`).
+     */
+    const THIRD_PARTY = ['economy', 'web_search', 'search_service', 'data_service', 'offline_messages', 'destination_guide'];
+
     /** An identifier that is a UUID and nobody has, to ask for what an avatar has (nothing). */
     const UNKNOWN_AVATAR = '00000000-0000-4000-8000-000000000000';
 
@@ -790,6 +834,57 @@ class Health
         }
 
         return 'none';
+    }
+
+    /**
+     * The rows with what they are: the name of their setting in the catalog (`name`) and its description (`description`), keys
+     * that a site translates; `thirdParty` for a service that does not answer and needs an application of its own (not served by
+     * the helpers of the grid).
+     *
+     * @param list<array{file?:string,title?:string,rows:list<array<string,mixed>>}> $groups
+     * @param ?callable(string):bool $servedByHelpers whether an address is under the helpers of the grid
+     * @return list<array{file?:string,title?:string,rows:list<array<string,mixed>>}>
+     */
+    public static function describe($groups, $servedByHelpers = null)
+    {
+        foreach ($groups as $g => $group) {
+            $file = (string) ($group['file'] ?? '');
+            $section = match (true) {
+                $file === 'get_grid_info' => 'GridInfoService',
+                in_array($file, ['pages', 'cache'], true) => $file,
+                default => trim((string) ($group['title'] ?? ''), '[] '),
+            };
+            foreach ($group['rows'] as $r => $row) {
+                $name = self::settingName($section, (string) ($row['label'] ?? ''));
+                if ($name === null) {
+                    continue;
+                }
+                $row += ['name' => "setting_$name", 'description' => "setting_{$name}_help"];
+                $url = (string) ($row['url'] ?? '');
+                if (($row['level'] ?? '') === 'error' && in_array($name, self::THIRD_PARTY, true) && $url !== '' && !($servedByHelpers !== null && $servedByHelpers($url))) {
+                    $row['thirdParty'] = true;
+                }
+                $groups[$g]['rows'][$r] = $row;
+            }
+        }
+
+        return $groups;
+    }
+
+    /** The name of a setting in the catalog (SETTINGS), null for one it does not name. */
+    private static function settingName($section, $key)
+    {
+        foreach (self::SETTINGS as $setting => $name) {
+            [$s, $k] = explode('/', $setting, 2);
+            if (strcasecmp($s, $section) !== 0) {
+                continue;
+            }
+            if (str_ends_with($k, '*') ? stripos($key, substr($k, 0, -1)) === 0 : strcasecmp($k, $key) === 0) {
+                return $name;
+            }
+        }
+
+        return null;
     }
 
     /** Seconds as they are said: 3, 1.5. */

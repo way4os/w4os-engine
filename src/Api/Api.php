@@ -1388,6 +1388,8 @@ final class Api
             )];
             $files = Health::files($config?->files() ?? []);
             $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
+            // What each row is (a key of the catalog), and a service that needs an application of its own
+            $groups = Health::describe($groups, static fn(string $url): bool => $found->servedByHelpers($url));
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }

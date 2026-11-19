@@ -1033,6 +1033,231 @@ msgctxt "degraded"
 msgid "Degraded"
 msgstr "Dégradé"
 
+msgctxt "setting_login"
+msgid "Login address"
+msgstr "Adresse de connexion"
+
+msgctxt "setting_login_help"
+msgid ""
+"The address the viewers log in at, and ask what the grid says of itself "
+"(get_grid_info)."
+msgstr "L’adresse où les viewers se connectent, et demandent ce que la grille dit d’elle-même (get_grid_info)."
+
+msgctxt "setting_gatekeeper"
+msgid "Gatekeeper"
+msgstr "Gatekeeper"
+
+msgctxt "setting_gatekeeper_help"
+msgid "The address other grids reach this one by (hypergrid)."
+msgstr "L’adresse par laquelle les autres grilles atteignent celle-ci (hypergrid)."
+
+msgctxt "setting_uas"
+msgid "User agent service"
+msgstr "Service des agents"
+
+msgctxt "setting_uas_help"
+msgid ""
+"Where the avatars of this grid are known when they visit other grids "
+"(hypergrid)."
+msgstr "Là où les avatars de cette grille sont connus quand ils visitent d’autres grilles (hypergrid)."
+
+msgctxt "setting_welcome"
+msgid "Splash page"
+msgstr "Page d’accueil"
+
+msgctxt "setting_welcome_help"
+msgid ""
+"The page the viewer shows with its login form: short, only what matters."
+msgstr "La page que le viewer affiche avec son formulaire de connexion : courte, l’essentiel seulement."
+
+msgctxt "setting_economy"
+msgid "Economy"
+msgstr "Économie"
+
+msgctxt "setting_economy_help"
+msgid ""
+"The base of the currency and land services the viewer calls (currency.php, "
+"landtool.php): not a page."
+msgstr "La base des services de monnaie et de terrain que le viewer appelle (currency.php, landtool.php) : pas une page."
+
+msgctxt "setting_about"
+msgid "About this grid"
+msgstr "À propos de cette grille"
+
+msgctxt "setting_about_help"
+msgid ""
+"A page of the web site about the grid, linked from the login page of the "
+"viewer."
+msgstr "Une page du site sur la grille, liée depuis la page de connexion du viewer."
+
+msgctxt "setting_register"
+msgid "Registration page"
+msgstr "Page d’inscription"
+
+msgctxt "setting_register_help"
+msgid "Where a visitor makes an avatar."
+msgstr "Là où un visiteur crée un avatar."
+
+msgctxt "setting_help"
+msgid "Help"
+msgstr "Aide"
+
+msgctxt "setting_help_help"
+msgid "A help page of the web site."
+msgstr "Une page d’aide du site."
+
+msgctxt "setting_password"
+msgid "Password recovery"
+msgstr "Mot de passe perdu"
+
+msgctxt "setting_password_help"
+msgid "Where a user who lost their password gets a new one."
+msgstr "Là où un utilisateur qui a perdu son mot de passe en obtient un nouveau."
+
+msgctxt "setting_grid_status"
+msgid "Grid status"
+msgstr "État de la grille"
+
+msgctxt "setting_grid_status_help"
+msgid "The page of the status of the grid."
+msgstr "La page de l’état de la grille."
+
+msgctxt "setting_grid_status_rss"
+msgid "Grid status feed"
+msgstr "Flux de l’état de la grille"
+
+msgctxt "setting_grid_status_rss_help"
+msgid "The feed of the status of the grid the viewers read (RSS)."
+msgstr "Le flux de l’état de la grille que lisent les viewers (RSS)."
+
+msgctxt "setting_web_profile"
+msgid "Avatar profile"
+msgstr "Profil d’avatar"
+
+msgctxt "setting_web_profile_help"
+msgid ""
+"The web profile of an avatar, [AGENT_NAME] standing for its name: the "
+"viewers open it."
+msgstr "Le profil web d’un avatar, [AGENT_NAME] remplaçant son nom : les viewers l’ouvrent."
+
+msgctxt "setting_web_search"
+msgid "Web search"
+msgstr "Recherche web"
+
+msgctxt "setting_web_search_help"
+msgid ""
+"The Web tab of the search window of the viewers: a page that searches the "
+"grid."
+msgstr "L’onglet Web de la fenêtre de recherche des viewers : une page qui cherche dans la grille."
+
+msgctxt "setting_destination_guide"
+msgid "Destination guide"
+msgstr "Guide des destinations"
+
+msgctxt "setting_destination_guide_help"
+msgid "The destinations the viewers show in their guide."
+msgstr "Les destinations que les viewers montrent dans leur guide."
+
+msgctxt "setting_message_url"
+msgid "Message of the day"
+msgstr "Message du jour"
+
+msgctxt "setting_message_url_help"
+msgid "The message the viewers show at login."
+msgstr "Le message que les viewers affichent à la connexion."
+
+msgctxt "setting_search_service"
+msgid "Search service"
+msgstr "Service de recherche"
+
+msgctxt "setting_search_service_help"
+msgid ""
+"What the simulators ask for the search of the viewers (places, people, "
+"events, classifieds); needs the OpenSimSearch module. Not a page."
+msgstr "Ce que les simulateurs demandent pour la recherche des viewers (lieux, personnes, événements, petites annonces) ; demande le module OpenSimSearch. Pas une page."
+
+msgctxt "setting_data_service"
+msgid "Data service"
+msgstr "Service de données"
+
+msgctxt "setting_data_service_help"
+msgid ""
+"Where the simulators register their regions, so that the search finds them. "
+"Not a page."
+msgstr "Là où les simulateurs inscrivent leurs régions, pour que la recherche les trouve. Pas une page."
+
+msgctxt "setting_offline_messages"
+msgid "Offline messages"
+msgstr "Messages hors ligne"
+
+msgctxt "setting_offline_messages_help"
+msgid ""
+"Where the simulators keep the messages of the avatars who are away, "
+"delivered at their next login. Not a page."
+msgstr "Là où les simulateurs gardent les messages des avatars absents, remis à leur prochaine connexion. Pas une page."
+
+msgctxt "setting_offline_module"
+msgid "Offline messages module"
+msgstr "Module des messages hors ligne"
+
+msgctxt "setting_offline_module_help"
+msgid ""
+"The module of the simulators that keeps the messages of the avatars who are "
+"away: V2 by Robust, V1 by the helpers."
+msgstr "Le module des simulateurs qui garde les messages des avatars absents : V2 par Robust, V1 par les helpers."
+
+msgctxt "setting_money_script_key"
+msgid "Money script key"
+msgstr "Clé des scripts de monnaie"
+
+msgctxt "setting_money_script_key_help"
+msgid ""
+"The key the currency services and the money server share: never shown, only "
+"whether it is set."
+msgstr "La clé que partagent les services de monnaie et le serveur de monnaie : jamais affichée, seulement si elle est définie."
+
+msgctxt "setting_helpers"
+msgid "Helpers"
+msgstr "Helpers"
+
+msgctxt "setting_helpers_help"
+msgid "The base of the pages and services of the helpers."
+msgstr "La base des pages et des services des helpers."
+
+msgctxt "setting_directory"
+msgid "Directory"
+msgstr "Annuaire"
+
+msgctxt "setting_directory_help"
+msgid "The page of the grid in the shared directory of the regions."
+msgstr "La page de la grille dans l’annuaire partagé des régions."
+
+msgctxt "setting_cache_assets"
+msgid "Picture cache"
+msgstr "Cache des images"
+
+msgctxt "setting_cache_assets_help"
+msgid ""
+"The folder the pictures are kept in: without it, they are made again on "
+"every request."
+msgstr "Le dossier où les images sont gardées : sans lui, elles sont refaites à chaque demande."
+
+msgctxt "setting_cache_tasks"
+msgid "Task state"
+msgstr "État des tâches"
+
+msgctxt "setting_cache_tasks_help"
+msgid ""
+"The folder of the state of the tasks: without it, no task runs and the "
+"search index never fills."
+msgstr "Le dossier de l’état des tâches : sans lui, aucune tâche ne tourne et l’index de recherche ne se remplit jamais."
+
+msgctxt "health_third_party"
+msgid ""
+"This service needs a web application of its own: the helpers of OpenSim "
+"engine, or another one."
+msgstr "Ce service demande une application web à part : les helpers d’OpenSim engine, ou une autre."
+
 msgctxt "presence"
 msgid "Presence"
 msgstr "Présence"

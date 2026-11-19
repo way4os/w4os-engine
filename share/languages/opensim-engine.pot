@@ -978,6 +978,202 @@ msgctxt "degraded"
 msgid "Degraded"
 msgstr ""
 
+msgctxt "setting_login"
+msgid "Login address"
+msgstr ""
+
+msgctxt "setting_login_help"
+msgid "The address the viewers log in at, and ask what the grid says of itself (get_grid_info)."
+msgstr ""
+
+msgctxt "setting_gatekeeper"
+msgid "Gatekeeper"
+msgstr ""
+
+msgctxt "setting_gatekeeper_help"
+msgid "The address other grids reach this one by (hypergrid)."
+msgstr ""
+
+msgctxt "setting_uas"
+msgid "User agent service"
+msgstr ""
+
+msgctxt "setting_uas_help"
+msgid "Where the avatars of this grid are known when they visit other grids (hypergrid)."
+msgstr ""
+
+msgctxt "setting_welcome"
+msgid "Splash page"
+msgstr ""
+
+msgctxt "setting_welcome_help"
+msgid "The page the viewer shows with its login form: short, only what matters."
+msgstr ""
+
+msgctxt "setting_economy"
+msgid "Economy"
+msgstr ""
+
+msgctxt "setting_economy_help"
+msgid "The base of the currency and land services the viewer calls (currency.php, landtool.php): not a page."
+msgstr ""
+
+msgctxt "setting_about"
+msgid "About this grid"
+msgstr ""
+
+msgctxt "setting_about_help"
+msgid "A page of the web site about the grid, linked from the login page of the viewer."
+msgstr ""
+
+msgctxt "setting_register"
+msgid "Registration page"
+msgstr ""
+
+msgctxt "setting_register_help"
+msgid "Where a visitor makes an avatar."
+msgstr ""
+
+msgctxt "setting_help"
+msgid "Help"
+msgstr ""
+
+msgctxt "setting_help_help"
+msgid "A help page of the web site."
+msgstr ""
+
+msgctxt "setting_password"
+msgid "Password recovery"
+msgstr ""
+
+msgctxt "setting_password_help"
+msgid "Where a user who lost their password gets a new one."
+msgstr ""
+
+msgctxt "setting_grid_status"
+msgid "Grid status"
+msgstr ""
+
+msgctxt "setting_grid_status_help"
+msgid "The page of the status of the grid."
+msgstr ""
+
+msgctxt "setting_grid_status_rss"
+msgid "Grid status feed"
+msgstr ""
+
+msgctxt "setting_grid_status_rss_help"
+msgid "The feed of the status of the grid the viewers read (RSS)."
+msgstr ""
+
+msgctxt "setting_web_profile"
+msgid "Avatar profile"
+msgstr ""
+
+msgctxt "setting_web_profile_help"
+msgid "The web profile of an avatar, [AGENT_NAME] standing for its name: the viewers open it."
+msgstr ""
+
+msgctxt "setting_web_search"
+msgid "Web search"
+msgstr ""
+
+msgctxt "setting_web_search_help"
+msgid "The Web tab of the search window of the viewers: a page that searches the grid."
+msgstr ""
+
+msgctxt "setting_destination_guide"
+msgid "Destination guide"
+msgstr ""
+
+msgctxt "setting_destination_guide_help"
+msgid "The destinations the viewers show in their guide."
+msgstr ""
+
+msgctxt "setting_message_url"
+msgid "Message of the day"
+msgstr ""
+
+msgctxt "setting_message_url_help"
+msgid "The message the viewers show at login."
+msgstr ""
+
+msgctxt "setting_search_service"
+msgid "Search service"
+msgstr ""
+
+msgctxt "setting_search_service_help"
+msgid "What the simulators ask for the search of the viewers (places, people, events, classifieds); needs the OpenSimSearch module. Not a page."
+msgstr ""
+
+msgctxt "setting_data_service"
+msgid "Data service"
+msgstr ""
+
+msgctxt "setting_data_service_help"
+msgid "Where the simulators register their regions, so that the search finds them. Not a page."
+msgstr ""
+
+msgctxt "setting_offline_messages"
+msgid "Offline messages"
+msgstr ""
+
+msgctxt "setting_offline_messages_help"
+msgid "Where the simulators keep the messages of the avatars who are away, delivered at their next login. Not a page."
+msgstr ""
+
+msgctxt "setting_offline_module"
+msgid "Offline messages module"
+msgstr ""
+
+msgctxt "setting_offline_module_help"
+msgid "The module of the simulators that keeps the messages of the avatars who are away: V2 by Robust, V1 by the helpers."
+msgstr ""
+
+msgctxt "setting_money_script_key"
+msgid "Money script key"
+msgstr ""
+
+msgctxt "setting_money_script_key_help"
+msgid "The key the currency services and the money server share: never shown, only whether it is set."
+msgstr ""
+
+msgctxt "setting_helpers"
+msgid "Helpers"
+msgstr ""
+
+msgctxt "setting_helpers_help"
+msgid "The base of the pages and services of the helpers."
+msgstr ""
+
+msgctxt "setting_directory"
+msgid "Directory"
+msgstr ""
+
+msgctxt "setting_directory_help"
+msgid "The page of the grid in the shared directory of the regions."
+msgstr ""
+
+msgctxt "setting_cache_assets"
+msgid "Picture cache"
+msgstr ""
+
+msgctxt "setting_cache_assets_help"
+msgid "The folder the pictures are kept in: without it, they are made again on every request."
+msgstr ""
+
+msgctxt "setting_cache_tasks"
+msgid "Task state"
+msgstr ""
+
+msgctxt "setting_cache_tasks_help"
+msgid "The folder of the state of the tasks: without it, no task runs and the search index never fills."
+msgstr ""
+
+msgctxt "health_third_party"
+msgid "This service needs a web application of its own: the helpers of OpenSim engine, or another one."
+msgstr ""
+
 msgctxt "presence"
 msgid "Presence"
 msgstr ""

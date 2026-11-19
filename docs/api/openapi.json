@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "a2eaecb",
+        "version": "8d2db23",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8405,6 +8405,18 @@
                                                                                 "detail": {
                                                                                     "type": "string",
                                                                                     "description": "More on it: the error of curl, what get_grid_info says when it differs, the file or folder a row is about"
+                                                                                },
+                                                                                "name": {
+                                                                                    "type": "string",
+                                                                                    "description": "What the setting or the page is, a key of the catalog (`setting_<name>`): a site shows it, with the key of the row in small"
+                                                                                },
+                                                                                "description": {
+                                                                                    "type": "string",
+                                                                                    "description": "What it is for, a key of the catalog (`setting_<name>_help`)"
+                                                                                },
+                                                                                "thirdParty": {
+                                                                                    "type": "boolean",
+                                                                                    "description": "A service that does not answer and that an application of its own serves (the helpers of the engine, or another one), not the helpers of the grid: `health_third_party` says it"
                                                                                 },
                                                                                 "cert": {
                                                                                     "type": "boolean",

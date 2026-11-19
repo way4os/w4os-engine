@@ -837,3 +837,35 @@ describe('The health in the contract', function () {
             ->toBe(['error', 'slow', 'ok', 'none']);
     });
 });
+
+describe('A row of the health', function () {
+    test('has the name and the description of its setting in the catalog, and says a service that needs an application of its own', function () {
+        $groups = Health::describe([
+            ['file' => 'get_grid_info', 'title' => '', 'rows' => [['label' => 'welcome', 'level' => 'ok'], ['label' => 'gridname', 'level' => 'none']]],
+            ['file' => 'Robust.HG.ini', 'title' => '[LoginService]', 'rows' => [['label' => 'DestinationGuide', 'level' => 'ok'], ['label' => 'SearchURL', 'level' => 'ok']]],
+            ['file' => 'OpenSim.ini', 'title' => '[Search]', 'rows' => [
+                ['label' => 'SearchURL', 'url' => 'https://elsewhere.example.org/query.php', 'level' => 'error'],
+                ['label' => 'SearchURL', 'url' => 'https://grid.example.org/helpers/query.php', 'level' => 'error'],
+            ]],
+            ['file' => 'OpenSim.ini', 'title' => '[DataSnapshot]', 'rows' => [['label' => 'DATA_SRV_demo', 'url' => 'https://grid.example.org/helpers/register.php', 'level' => 'ok']]],
+            ['file' => 'pages', 'title' => '', 'rows' => [['label' => 'profile', 'level' => 'ok']]],
+        ], static fn(string $url): bool => str_starts_with($url, 'https://grid.example.org/helpers/'));
+        $rows = array_merge(...array_column($groups, 'rows'));
+        $names = array_column($rows, 'name');
+        $keys = [...$names, ...array_filter(array_column($rows, 'description')), 'health_third_party'];
+
+        expect($names)
+            ->toBe(['setting_welcome', 'setting_destination_guide', 'setting_web_search', 'setting_search_service', 'setting_search_service', 'setting_data_service', 'setting_web_profile'])
+            ->and($rows[1])
+            ->not->toHaveKey('name')
+            ->and($rows[4]['description'])
+            ->toBe('setting_search_service_help')
+            // An application of its own: an address that does not answer, not the helpers of the grid
+            ->and([$rows[4]['thirdParty'] ?? false, $rows[5]['thirdParty'] ?? false, $rows[6]['thirdParty'] ?? false])
+            ->toBe([true, false, false])
+            ->and(array_diff($keys, array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->toBe([])
+            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['setting_search_service'] ?? '')
+            ->not->toBe('');
+    });
+});

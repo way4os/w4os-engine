@@ -1109,6 +1109,9 @@ final class Contract
             'status' => $field('string', 'The HTTP code, OK, the error of curl, or what is wrong (missing, differs), translated'),
             'ms' => $field(['integer', 'null'], 'How long it took to answer, in milliseconds'),
             'detail' => $field('string', 'More on it: the error of curl, what get_grid_info says when it differs, the file or folder a row is about'),
+            'name' => $field('string', 'What the setting or the page is, a key of the catalog (`setting_<name>`): a site shows it, with the key of the row in small'),
+            'description' => $field('string', 'What it is for, a key of the catalog (`setting_<name>_help`)'),
+            'thirdParty' => $field('boolean', 'A service that does not answer and that an application of its own serves (the helpers of the engine, or another one), not the helpers of the grid: `health_third_party` says it'),
             'cert' => $field('boolean', 'The certificate of the address is one this server does not trust (expired, self-signed, another name): told apart, it does not change the level, what counts is what the address answers'),
         ];
     }
