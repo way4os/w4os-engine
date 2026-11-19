@@ -197,6 +197,37 @@ final class Settings
         return self::$entries = $entries;
     }
 
+    /**
+     * Settings an application keeps, without the ones the grid reads (`readers` grid: Robust, the simulators, the money server): the
+     * grid reads those in its files, the application keeps what it chose.
+     *
+     * @param array<string,array<string,string>> $settings section => key => value
+     * @return array<string,array<string,string>>
+     */
+    public static function notReadByGrid(array $settings): array
+    {
+        $grid = [];
+        foreach (self::entries() as $entry) {
+            if (($entry['readers'] ?? 'grid') === 'grid') {
+                foreach (isset($entry['parts']) ? array_values($entry['parts']) : [$entry['key']] as $key) {
+                    $grid[strtolower($entry['section'])][strtolower($key)] = true;
+                }
+            }
+        }
+        foreach ($settings as $section => $keys) {
+            foreach (array_keys($keys) as $key) {
+                if (isset($grid[strtolower((string) $section)][strtolower((string) $key)])) {
+                    unset($settings[$section][$key]);
+                }
+            }
+            if ($settings[$section] === []) {
+                unset($settings[$section]);
+            }
+        }
+
+        return $settings;
+    }
+
     /** The setting a file says at that section and key, whatever their case (a key of a family by its prefix), null for none. */
     public static function entry(string $instance, string $section, string $key): ?array
     {
