@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (guide): the popular places leave out, when asked, the other grids and the land for sale (`Grid::popularPlaces()`)
 - change (addresses): `Service::address()` and getAddresses read the registry of the settings, no list of their own
 - change (health): the health reads its settings from the registry (`health` of an entry), no list of its own
 - update (texts): the labels of the registry of the settings, in the six languages

@@ -74,17 +74,21 @@ final class DefaultDestinations
      *
      * @return list<array{name:string,url:string,picture:?string,dwell:int}>
      */
-    public function popular(int $limit = self::LIMIT): array
+    public function popular(int $limit = self::LIMIT, bool $landSales = true): array
     {
         if (!$this->search->tables_exist(['popularplaces', 'parcels', $this->regions])) {
             return [];
         }
+        // The land for sale left out, as the search of the viewer does (include_landsales)
+        $sales = !$landSales && $this->search->tables_exist(['parcelsales']);
         $rows = $this->rows(
             'SELECT pop.name AS name, r.regionname AS region, par.landingpoint AS landing, pop.gatekeeperURL AS gatekeeper, par.imageUUID AS picture, pop.dwell AS dwell FROM popularplaces AS pop ' .
-                "INNER JOIN parcels AS par ON pop.parcelUUID = par.parcelUUID INNER JOIN {$this->regions} AS r ON par.regionUUID = r.regionUUID %s ORDER BY pop.dwell DESC, par.parcelname",
+                "INNER JOIN parcels AS par ON pop.parcelUUID = par.parcelUUID INNER JOIN {$this->regions} AS r ON par.regionUUID = r.regionUUID " .
+                ($sales ? 'LEFT JOIN parcelsales AS sales ON sales.parcelUUID = pop.parcelUUID ' : '') .
+                '%s ORDER BY pop.dwell DESC, par.parcelname',
             'pop.gatekeeperURL',
             max(1, $limit),
-            'pop.dwell > 0',
+            'pop.dwell > 0' . ($sales ? ' AND sales.parcelUUID IS NULL' : ''),
         );
 
         return array_map(function (array $row): array {

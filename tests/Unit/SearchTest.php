@@ -840,6 +840,30 @@ describe('The guide of a grid that has no list', function () {
         ]);
     });
 
+    test('leave out, when asked, the places of the other grids and the land for sale, as the options of w4os-wp 2.x', function () {
+        $db = guide_database();
+        // The market is for sale
+        $db->exec("INSERT INTO parcelsales VALUES ('r1', 'Market', 'p3', 512, 100, '10/10/30', 'info', 10, 1, 'PG', 'http://grid.example.org:8002')");
+        $names = static fn(OpenSim\Services\DefaultDestinations $guide, bool $sales = true): array => array_column($guide->popular(10, $sales), 'name');
+
+        expect($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002')))
+            ->toBe(['Elsewhere', 'Rose garden', 'Market'])
+            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'), false))
+            ->toBe(['Elsewhere', 'Rose garden'])
+            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002', 'http://grid.example.org:8002/'), false))
+            ->toBe(['Rose garden']);
+
+        $machine = new OpenSim\Testing\Machine();
+        OpenSim\Data\Connections::using(static fn() => $db);
+        $machine->write($machine->grid . '/Robust.HG.ini', (string) file_get_contents($machine->grid . '/Robust.HG.ini') . "\n[GridInfoService]\n    login = \"http://grid.example.org:8002/\"\n");
+        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $ours = array_column($grid->popularPlaces(10, hypergrid: false, landSales: false), 'name');
+        $all = array_column($grid->popularPlaces(10), 'name');
+        OpenSim\Data\Connections::using(null);
+
+        expect([$ours, $all])->toBe([['Rose garden'], ['Elsewhere', 'Rose garden', 'Market']]);
+    });
+
     test('of a grid: the popular places with the label of their address, as a card shows it', function () {
         $machine = new OpenSim\Testing\Machine();
         $db = guide_database();

@@ -1094,6 +1094,18 @@ msgctxt "shortcode_option_name"
 msgid "The name of the avatar (First.Last)"
 msgstr ""
 
+msgctxt "shortcode_option_count"
+msgid "Max Results"
+msgstr ""
+
+msgctxt "shortcode_option_include_hypergrid"
+msgid "Include Hypergrid"
+msgstr ""
+
+msgctxt "shortcode_option_include_landsales"
+msgid "Include Land for Sale"
+msgstr ""
+
 msgctxt "block_grid_info_help"
 msgid "General information (grid name and login uri)"
 msgstr ""
