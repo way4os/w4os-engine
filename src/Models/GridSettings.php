@@ -74,20 +74,20 @@ final class GridSettings
 
     /** The tip of a field, under its label where the label is not enough: a few words, the details being its description. */
     private const TIPS = [
-        'models' => ['match' => 'tip_models_match', 'pattern' => 'tip_models_pattern', 'list' => 'tip_models_list'],
+        'models' => ['match' => 'tip_models_match', 'pattern' => 'tip_models_pattern'],
         'economy' => [
-            'path' => 'tip_economy_url', 'economyUrl' => 'tip_economy_url', 'economyModule' => 'tip_economy_module', 'moneyDatabase' => 'tip_money_database',
-            'gloebitDatabase' => 'tip_gloebit_database', 'gloebitEnvironment' => 'tip_gloebit_environment', 'gloebitKey' => 'tip_gloebit_keys',
+            'path' => 'tip_economy_url', 'economyUrl' => 'tip_economy_url',
+            'gloebitEnvironment' => 'tip_gloebit_environment', 'gloebitKey' => 'tip_gloebit_keys',
             'gloebitSecret' => 'tip_gloebit_keys', 'currencyRate' => 'tip_currency_rate', 'moneyScriptKey' => 'tip_money_script_key',
             'podexMessage' => 'tip_podex_message', 'podexUrl' => 'tip_podex_url',
         ],
         'search' => [
-            'searchDatabase' => 'tip_search_database', 'path' => 'tip_search_url', 'searchExternalUrl' => 'tip_search_url',
-            'registerPath' => 'tip_search_register', 'registers' => 'tip_search_registers', 'webSearchUrl' => 'tip_web_search', 'eventsUrl' => 'tip_events_url',
+            'path' => 'tip_search_url', 'searchExternalUrl' => 'tip_search_url',
+            'webSearchUrl' => 'tip_web_search',
         ],
         'guide' => ['guideSource' => 'tip_guide_source', 'path' => 'tip_guide_url', 'destinationGuide' => 'tip_guide_url'],
         'offline' => [
-            'mailSender' => 'tip_mail_sender', 'offlineDatabase' => 'tip_offline_database', 'offlineModule' => 'tip_offline_module',
+            'offlineModule' => 'tip_offline_module',
             'path' => 'tip_offline_url', 'offlineMessageUrl' => 'tip_offline_url',
         ],
         'assets' => ['path' => 'tip_assets_url', 'assetsUrl' => 'tip_assets_url'],

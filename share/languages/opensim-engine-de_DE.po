@@ -455,12 +455,12 @@ msgid "Profile Service URI"
 msgstr "URI des Profildienstes"
 
 msgctxt "uri_default_robust"
-msgid "Use default: the address of Robust."
-msgstr "Standard verwenden: die Adresse von Robust."
+msgid "Default: the address of Robust."
+msgstr "Standard: die Adresse von Robust."
 
 msgctxt "uri_default_login"
-msgid "Use default: the login URI."
-msgstr "Standard verwenden: die Login-URI."
+msgid "Default: the login URI."
+msgstr "Standard: die Login-URI."
 
 msgctxt "setting_profile_page"
 msgid "Profile Page"
@@ -771,10 +771,6 @@ msgstr ""
 "die Viewer öffnen sie aus ihrem Suchfenster. Die URL der Suchmaschine oben "
 "ist etwas anderes: Die Simulatoren rufen sie auf, niemand sieht sie."
 
-msgctxt "tip_search_registers"
-msgid "2do.directory recommended"
-msgstr "2do.directory empfohlen"
-
 msgctxt "tip_web_search"
 msgid "User-facing search form"
 msgstr "Suchformular für die Nutzer"
@@ -889,25 +885,9 @@ msgctxt "tip_models_pattern"
 msgid "Part of the name of the models"
 msgstr "Teil des Namens der Modelle"
 
-msgctxt "tip_models_list"
-msgid "The models chosen one by one"
-msgstr "Die einzeln gewählten Modelle"
-
 msgctxt "tip_economy_url"
 msgid "Where currency.php and landtool.php are"
 msgstr "Wo currency.php und landtool.php liegen"
-
-msgctxt "tip_economy_module"
-msgid "The currency of the grid"
-msgstr "Die Währung des Grids"
-
-msgctxt "tip_money_database"
-msgid "The database of the money server"
-msgstr "Die Datenbank des Geldservers"
-
-msgctxt "tip_gloebit_database"
-msgid "Where Gloebit keeps its transactions"
-msgstr "Wo Gloebit seine Transaktionen speichert"
 
 msgctxt "tip_gloebit_environment"
 msgid "Sandbox to test, production to sell"
@@ -933,21 +913,9 @@ msgctxt "tip_podex_url"
 msgid "Where the Podex terminals are"
 msgstr "Wo die Podex-Terminals sind"
 
-msgctxt "tip_search_database"
-msgid "Where the helpers keep the search"
-msgstr "Wo die Helpers die Suche speichern"
-
 msgctxt "tip_search_url"
 msgid "Used directly by the simulators"
 msgstr "Direkt von den Simulatoren verwendet"
-
-msgctxt "tip_search_register"
-msgid "Where the regions are listed for search"
-msgstr "Wo die Regionen für die Suche gelistet werden"
-
-msgctxt "tip_events_url"
-msgid "The calendar of the events"
-msgstr "Der Kalender der Events"
 
 msgctxt "tip_guide_source"
 msgid "A URL or a file of destinations"
@@ -956,14 +924,6 @@ msgstr "Eine URL oder eine Zieldatei"
 msgctxt "tip_guide_url"
 msgid "The page the viewers show"
 msgstr "Die Seite, die die Viewer zeigen"
-
-msgctxt "tip_mail_sender"
-msgid "The sender of the forwarded e-mails"
-msgstr "Der Absender der weitergeleiteten E-Mails"
-
-msgctxt "tip_offline_database"
-msgid "Where the helpers keep the messages"
-msgstr "Wo die Helpers die Nachrichten speichern"
 
 msgctxt "tip_offline_module"
 msgid "V1 by the helpers, V2 by Robust"
@@ -2512,12 +2472,12 @@ msgid "Use default"
 msgstr "Standard verwenden"
 
 msgctxt "db_default_main"
-msgid "Use default: the main database of the grid."
-msgstr "Standard verwenden: die Hauptdatenbank des Grids."
+msgid "Default: the main database of the grid."
+msgstr "Standard: die Hauptdatenbank des Grids."
 
 msgctxt "db_default_simulator"
-msgid "Use default: the database of the simulator."
-msgstr "Standard verwenden: die Datenbank des Simulators."
+msgid "Default: the database of the simulator."
+msgstr "Standard: die Datenbank des Simulators."
 
 msgctxt "economy_database"
 msgid "Economy Database"
@@ -3935,6 +3895,22 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#~ msgctxt "uri_default_robust"
+#~ msgid "Use default: the address of Robust."
+#~ msgstr "Standard verwenden: die Adresse von Robust."
+
+#~ msgctxt "uri_default_login"
+#~ msgid "Use default: the login URI."
+#~ msgstr "Standard verwenden: die Login-URI."
+
+#~ msgctxt "db_default_main"
+#~ msgid "Use default: the main database of the grid."
+#~ msgstr "Standard verwenden: die Hauptdatenbank des Grids."
+
+#~ msgctxt "db_default_simulator"
+#~ msgid "Use default: the database of the simulator."
+#~ msgstr "Standard verwenden: die Datenbank des Simulators."
 
 #~ msgctxt "group_users"
 #~ msgid "Users"

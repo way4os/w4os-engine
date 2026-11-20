@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "ff4321c",
+        "version": "111528e",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8085,7 +8085,6 @@
                             }
                         },
                         {
-                            "tip": "tip_models_list",
                             "name": "list",
                             "type": "avatar",
                             "label": "models_list",
@@ -8450,7 +8449,6 @@
                             "type": "url"
                         },
                         {
-                            "tip": "tip_economy_module",
                             "condition": {
                                 "provide": [
                                     true
@@ -8500,7 +8498,6 @@
                             "example": "YC$"
                         },
                         {
-                            "tip": "tip_money_database",
                             "condition": {
                                 "provide": [
                                     true
@@ -8643,7 +8640,6 @@
                             "example": "banker@example.org"
                         },
                         {
-                            "tip": "tip_gloebit_database",
                             "condition": {
                                 "provide": [
                                     true
@@ -9027,7 +9023,6 @@
                             "widget": "switch"
                         },
                         {
-                            "tip": "tip_search_database",
                             "condition": {
                                 "provide": [
                                     true
@@ -9102,7 +9097,6 @@
                             "default": "http://2do.directory/helpers/query.php"
                         },
                         {
-                            "tip": "tip_search_register",
                             "name": "registerPath",
                             "type": "path",
                             "base": "helpers",
@@ -9126,7 +9120,6 @@
                             "default": true
                         },
                         {
-                            "tip": "tip_search_registers",
                             "name": "registers",
                             "type": "url",
                             "multiple": true,
@@ -9150,7 +9143,6 @@
                             "type": "url"
                         },
                         {
-                            "tip": "tip_events_url",
                             "condition": {
                                 "provide": [
                                     true
@@ -9549,7 +9541,6 @@
                             "widget": "switch"
                         },
                         {
-                            "tip": "tip_mail_sender",
                             "condition": {
                                 "provide": [
                                     true
@@ -9563,7 +9554,6 @@
                             "description": "setting_mail_sender_help"
                         },
                         {
-                            "tip": "tip_offline_database",
                             "condition": {
                                 "provide": [
                                     true

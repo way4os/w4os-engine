@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (settings): no tip that says again what its label says (the databases, the list of the models, the module, the registers, the events, the sender); what a default is said in a few words (Default: the main database of the grid)
 - change (search): 2do.directory has a box of its own, Include 2do.directory, on by default; the list of the registers is the other search engines only
 - feat (grid): a page of settings, Grid: its login URI, name and nick; the ways to reach its Robust in one place (Robust URI, ROBUST Database, Console User, Password and Port); the Assets and Profile Service URIs (Use default); the profile page; Exclude from stats (models, accounts without email, hypergrid visitors; the first two by default, as w4os-wp), applied to the numbers of the grid
 - change (assets): provided, the web assets are a path under the site, the helpers' by default, routed apart to the engine as the prefix of the economy, not a page of the site

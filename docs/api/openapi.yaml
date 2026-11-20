@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: ff4321c
+  version: 111528e
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -5646,7 +5646,6 @@ paths:
                 - any
                 - last
           -
-            tip: tip_models_list
             name: list
             type: avatar
             label: models_list
@@ -5880,7 +5879,6 @@ paths:
             name: economyUrl
             type: url
           -
-            tip: tip_economy_module
             condition:
               provide:
                 - true
@@ -5917,7 +5915,6 @@ paths:
             label: setting_currency_symbol
             example: YC$
           -
-            tip: tip_money_database
             condition:
               provide:
                 - true
@@ -6022,7 +6019,6 @@ paths:
             label: setting_gloebit_owner_email
             example: banker@example.org
           -
-            tip: tip_gloebit_database
             condition:
               provide:
                 - true
@@ -6217,7 +6213,6 @@ paths:
             type: boolean
             widget: switch
           -
-            tip: tip_search_database
             condition:
               provide:
                 - true
@@ -6274,7 +6269,6 @@ paths:
             type: url
             default: 'http://2do.directory/helpers/query.php'
           -
-            tip: tip_search_register
             name: registerPath
             type: path
             base: helpers
@@ -6292,7 +6286,6 @@ paths:
               - search_register_help_2do
             default: true
           -
-            tip: tip_search_registers
             name: registers
             type: url
             multiple: true
@@ -6310,7 +6303,6 @@ paths:
             name: webSearchUrl
             type: url
           -
-            tip: tip_events_url
             condition:
               provide:
                 - true
@@ -6541,7 +6533,6 @@ paths:
             type: boolean
             widget: switch
           -
-            tip: tip_mail_sender
             condition:
               provide:
                 - true
@@ -6552,7 +6543,6 @@ paths:
             example: no-reply@example.org
             description: setting_mail_sender_help
           -
-            tip: tip_offline_database
             condition:
               provide:
                 - true

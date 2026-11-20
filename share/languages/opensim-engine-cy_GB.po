@@ -452,12 +452,12 @@ msgid "Profile Service URI"
 msgstr "URI gwasanaeth proffiliau"
 
 msgctxt "uri_default_robust"
-msgid "Use default: the address of Robust."
-msgstr "Defnyddio'r rhagosodiad: cyfeiriad Robust."
+msgid "Default: the address of Robust."
+msgstr "Rhagosodiad: cyfeiriad Robust."
 
 msgctxt "uri_default_login"
-msgid "Use default: the login URI."
-msgstr "Defnyddio'r rhagosodiad: yr URI mewngofnodi."
+msgid "Default: the login URI."
+msgstr "Rhagosodiad: yr URI mewngofnodi."
 
 msgctxt "setting_profile_page"
 msgid "Profile Page"
@@ -764,10 +764,6 @@ msgstr ""
 "mae'r gwylwyr yn ei hagor o'u ffenestr chwilio. Mae URL y peiriant chwilio "
 "uchod yn beth arall: mae'r efelychwyr yn ei galw, does neb yn ei gweld."
 
-msgctxt "tip_search_registers"
-msgid "2do.directory recommended"
-msgstr "2do.directory a argymhellir"
-
 msgctxt "tip_web_search"
 msgid "User-facing search form"
 msgstr "Ffurflen chwilio i'r cyhoedd"
@@ -879,25 +875,9 @@ msgctxt "tip_models_pattern"
 msgid "Part of the name of the models"
 msgstr "Rhan o enw'r modelau"
 
-msgctxt "tip_models_list"
-msgid "The models chosen one by one"
-msgstr "Y modelau a ddewiswyd fesul un"
-
 msgctxt "tip_economy_url"
 msgid "Where currency.php and landtool.php are"
 msgstr "Lle mae currency.php a landtool.php"
-
-msgctxt "tip_economy_module"
-msgid "The currency of the grid"
-msgstr "Arian y grid"
-
-msgctxt "tip_money_database"
-msgid "The database of the money server"
-msgstr "Cronfa ddata'r gweinydd arian"
-
-msgctxt "tip_gloebit_database"
-msgid "Where Gloebit keeps its transactions"
-msgstr "Lle mae Gloebit yn cadw ei drafodion"
 
 msgctxt "tip_gloebit_environment"
 msgid "Sandbox to test, production to sell"
@@ -923,21 +903,9 @@ msgctxt "tip_podex_url"
 msgid "Where the Podex terminals are"
 msgstr "Lle mae terfynellau Podex"
 
-msgctxt "tip_search_database"
-msgid "Where the helpers keep the search"
-msgstr "Lle mae'r helpers yn cadw'r chwiliad"
-
 msgctxt "tip_search_url"
 msgid "Used directly by the simulators"
 msgstr "Yn cael ei defnyddio'n uniongyrchol gan yr efelychwyr"
-
-msgctxt "tip_search_register"
-msgid "Where the regions are listed for search"
-msgstr "Lle mae'r rhanbarthau'n cael eu rhestru i'w chwilio"
-
-msgctxt "tip_events_url"
-msgid "The calendar of the events"
-msgstr "Calendr y digwyddiadau"
 
 msgctxt "tip_guide_source"
 msgid "A URL or a file of destinations"
@@ -946,14 +914,6 @@ msgstr "URL neu ffeil o gyrchfannau"
 msgctxt "tip_guide_url"
 msgid "The page the viewers show"
 msgstr "Y dudalen y mae'r gwylwyr yn ei dangos"
-
-msgctxt "tip_mail_sender"
-msgid "The sender of the forwarded e-mails"
-msgstr "Anfonwr yr e-byst a anfonir ymlaen"
-
-msgctxt "tip_offline_database"
-msgid "Where the helpers keep the messages"
-msgstr "Lle mae'r helpers yn cadw'r negeseuon"
 
 msgctxt "tip_offline_module"
 msgid "V1 by the helpers, V2 by Robust"
@@ -2514,12 +2474,12 @@ msgid "Use default"
 msgstr "Defnyddio'r rhagosodiad"
 
 msgctxt "db_default_main"
-msgid "Use default: the main database of the grid."
-msgstr "Defnyddio'r rhagosodiad: prif gronfa ddata'r grid."
+msgid "Default: the main database of the grid."
+msgstr "Rhagosodiad: prif gronfa ddata'r grid."
 
 msgctxt "db_default_simulator"
-msgid "Use default: the database of the simulator."
-msgstr "Defnyddio'r rhagosodiad: cronfa ddata'r efelychydd."
+msgid "Default: the database of the simulator."
+msgstr "Rhagosodiad: cronfa ddata'r efelychydd."
 
 msgctxt "economy_database"
 msgid "Economy Database"
@@ -3934,6 +3894,22 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#~ msgctxt "uri_default_robust"
+#~ msgid "Use default: the address of Robust."
+#~ msgstr "Defnyddio'r rhagosodiad: cyfeiriad Robust."
+
+#~ msgctxt "uri_default_login"
+#~ msgid "Use default: the login URI."
+#~ msgstr "Defnyddio'r rhagosodiad: yr URI mewngofnodi."
+
+#~ msgctxt "db_default_main"
+#~ msgid "Use default: the main database of the grid."
+#~ msgstr "Defnyddio'r rhagosodiad: prif gronfa ddata'r grid."
+
+#~ msgctxt "db_default_simulator"
+#~ msgid "Use default: the database of the simulator."
+#~ msgstr "Defnyddio'r rhagosodiad: cronfa ddata'r efelychydd."
 
 #~ msgctxt "group_users"
 #~ msgid "Users"
