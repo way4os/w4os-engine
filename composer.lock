@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3989b0e152166127abb7bca471826f9d",
+    "content-hash": "8fcdbf12d3e8d9eb332502187b8944bb",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -517,7 +517,7 @@
         },
         {
             "name": "magicoli/opensim-rest-php",
-            "version": "dev-opensim-kit",
+            "version": "dev-charm-dev",
             "dist": {
                 "type": "path",
                 "url": "../opensim-rest-php",
@@ -532,7 +532,7 @@
             "require-dev": {
                 "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
                 "magicoli/bash-tools": "^1.0.7",
-                "magicoli/build-tools": "^0.1.1",
+                "magicoli/build-tools": "dev-dev",
                 "magicoli/pest-failure-summary": "^1.0",
                 "pestphp/pest": "^3.0",
                 "phpcompatibility/php-compatibility": "dev-develop",
@@ -1748,16 +1748,16 @@
         },
         {
             "name": "magicoli/build-tools",
-            "version": "0.1.11",
+            "version": "0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/magicoli/build-tools.git",
-                "reference": "23830de70a31794375c40ad937a3e360c4820b27"
+                "reference": "8929c7fa7a154ee96a9616a711a6a8b216d152a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magicoli/build-tools/zipball/23830de70a31794375c40ad937a3e360c4820b27",
-                "reference": "23830de70a31794375c40ad937a3e360c4820b27",
+                "url": "https://api.github.com/repos/magicoli/build-tools/zipball/8929c7fa7a154ee96a9616a711a6a8b216d152a9",
+                "reference": "8929c7fa7a154ee96a9616a711a6a8b216d152a9",
                 "shasum": ""
             },
             "require": {
@@ -1782,9 +1782,9 @@
             "description": "Build, release and publish a project: Debian packages, zip, GitHub release, apt repository.",
             "support": {
                 "issues": "https://github.com/magicoli/build-tools/issues",
-                "source": "https://github.com/magicoli/build-tools/tree/0.1.11"
+                "source": "https://github.com/magicoli/build-tools/tree/0.2.0"
             },
-            "time": "2026-10-26T13:16:05+00:00"
+            "time": "2026-11-19T12:05:45+00:00"
         },
         {
             "name": "magicoli/pest-failure-summary",

@@ -40,7 +40,7 @@
         "phpcompatibility/php-compatibility": "dev-develop",
         "squizlabs/php_codesniffer": "^4.0",
         "magicoli/bash-tools": "^1.0",
-        "magicoli/build-tools": "^0.1.2",
+        "magicoli/build-tools": "^0.2.0",
         "nyholm/psr7": "^1.8"
     },
     "repositories": [
