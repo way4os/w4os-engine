@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (packaging): the default backup root (/var/backups/opensim) is made by the layout even when opensim.conf names it, as the one the engine writes does
 - feature (setup): the setup offers an existing install: its Robust config and its simulators, the plan of the migration, then the grid written disabled and how to switch
 - feature (import): the grid of another install migrated into this one (kind robust of POST /setups/imports): the same grid and database, its Robust config made here with its own settings kept, its simulators in the same run, written disabled, then switched once the old Robust is stopped
 - feature (import): the accounts of a list made in a grid through the API (kind accounts of POST /setups/imports): CSV, JSON or YAML, planned first, a password made for the ones given none, given back once made

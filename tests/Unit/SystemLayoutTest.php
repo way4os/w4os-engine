@@ -88,6 +88,15 @@ describe('The system layout', function () {
         exec('rm -rf ' . escapeshellarg($base));
     });
 
+    test('makes its default backup root, named or not, never a chosen one', function () {
+        expect(SystemLayout::makesBackupRoot(new Layout([])))
+            ->toBeTrue()
+            ->and(SystemLayout::makesBackupRoot(new Layout(['BackupRoot' => '/var/backups/opensim'])))
+            ->toBeTrue()
+            ->and(SystemLayout::makesBackupRoot(new Layout(['BackupRoot' => '/mnt/backups/opensim'])))
+            ->toBeFalse();
+    });
+
     test('refuses when it is not root', function () {
         $ui = new NullUi();
 

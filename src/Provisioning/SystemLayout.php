@@ -77,7 +77,7 @@ final class SystemLayout
         $etc = $layout->etcRoot();
         $folders = [$etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot()];
         // The backup root is made when it is the default one; a chosen one (a mount) is the administrator's
-        if ($layout->get('BackupRoot') === '') {
+        if (self::makesBackupRoot($layout)) {
             $folders[] = $layout->backupRoot();
         }
         foreach ($folders as $dir) {
@@ -106,6 +106,12 @@ final class SystemLayout
         }
 
         return true;
+    }
+
+    /** Whether the layout makes its backup root: the default one, named by opensim.conf (as a new one is written) or not. */
+    public static function makesBackupRoot(Layout $layout): bool
+    {
+        return $layout->get('BackupRoot') === '' || $layout->get('BackupRoot') === DirectoryLayout::roots(DirectoryLayout::SYSTEM)['BackupRoot'];
     }
 
     /** The content of a new `opensim.conf`: the roots of the layout, the core of the packages when there is one, the account. */
