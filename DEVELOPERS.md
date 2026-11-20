@@ -50,13 +50,31 @@ The addresses are in the contract (`docs/api/`), with the format OpenSimulator a
 
 ## Translations
 
-The texts of the websites of a grid are written in English in `OpenSim\I18n\Catalog::MESSAGES`, each with its key; the bridges know them by these keys, so a key does not change. `composer translations` (gettext tools: `msgmerge`) makes `share/languages/opensim-engine.pot` from it and merges every `.po` with it: a new text, or one whose English changed, is left to translate (Poedit, Weblate), its old translation kept obsolete (`#~`) in the file: msgmerge guesses nothing, its guesses are other meanings. A translation marked fuzzy by hand is given to the sites, unless they ask `fuzzy: false`. A test fails when the .pot is not the one of `MESSAGES`, when a problem code of `Problem::CODES` has no text, or when a text is not translated (or fuzzy) in a language: a new text lands translated in every language of `Catalog::LOCALES` (with English, the seven of the suite: en, de, fr, cy, it, nl, pt-BR).
+The texts of the websites of a grid are written in English in `OpenSim\I18n\Catalog::MESSAGES`, each with its key; the bridges know them by these keys, so a key does not change. `composer translations` (gettext tools: `msgmerge`) makes `share/languages/opensim-engine.pot` from it and merges every `.po` with it: a new text, or one whose English changed, is left to translate (Poedit, Weblate), its old translation kept obsolete (`#~`) in the file: msgmerge guesses nothing, its guesses are other meanings. A translation marked fuzzy by hand is given to the sites, unless they ask `fuzzy: false`. A test fails when the .pot is not the one of `MESSAGES`, when a problem code of `Problem::CODES` has no text, or when a text is not translated (or fuzzy) in a language: a new text lands translated in every language of `Catalog::LOCALES` (with English, the seven of the suite: en, de, fr, cy, it, nl, pt-BR). A translation left as the English text is listed in the test as reviewed (a name, a file, a format, or the same word in that language), and the words of another meaning met before (Hafen for a port, raster or grade for the grid, an assistant for the helpers, visualiseur for the viewer) are refused; a text that says viewer or helpers says them in every language.
 
 A new language is an entry of `Catalog::LOCALES`, then `composer translations`. `--seed` fills the texts not translated yet from other gettext files with the same English text, word for word (no guess): the .po files were seeded from w4os and the helpers this way (then the other translations of the Grav plugin; every translation is to be reviewed, in the context of the sites):
 
 ```bash
 php dev/translations.php --seed ~/Projects/w4os-wp/languages/w4os-%s.po --seed ~/Projects/opensim-helpers/locales/%s/LC_MESSAGES/messages.po
 ```
+
+The words of OpenSimulator take one translation in each language. The helpers are web services that the viewers and the simulators call (search, currency, offline messages, guide, web assets). They are a technical part, never a person or an assistant. They stay "helpers" everywhere, and the viewer stays "viewer", as the OpenSimulator people say them in every language:
+
+| English | de | fr | cy | it | nl | pt-BR |
+| --- | --- | --- | --- | --- | --- | --- |
+| you | du | vous | chi | tu | je | você |
+| avatar | Avatar | avatar | afatar | avatar | avatar | avatar |
+| grid | das Grid | la grille | grid (gridiau) | la griglia | het grid | o grid |
+| viewer | Viewer | viewer | viewer (viewers) | viewer | viewer | viewer |
+| simulator | Simulator | simulateur | efelychydd | simulatore | simulator | simulador |
+| region | Region | région | rhanbarth | regione | regio | região |
+| estate | Grundbesitz | domaine | ystad | proprietà | landgoed | propriedade |
+| parcel | Parzelle | parcelle | parsel | lotto | perceel | lote |
+| helpers | Helpers | helpers | helpers | helpers | helpers | helpers |
+| web assets | Web-Assets | ressources web | asedau gwe | risorse web | webassets | ativos web |
+| port | Port | port | porth | porta | poort | porta |
+| console | Konsole | console | consol | console | console | console |
+| in-world | in der Welt | dans le monde virtuel | yn y byd rhithwir | nel mondo virtuale | in de virtuele wereld | no mundo virtual |
 
 ## The options of a grid
 

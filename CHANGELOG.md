@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (texts): translations reviewed in every language: English or half-English labels translated, other meanings fixed (a harbour for a port, a lattice for the grid, two reversed search helps), one term per word (Welsh afatar, het grid, o grid, du), viewer and helpers kept in every language, never a watcher or an assistant; the catalog checks the texts left as the English ones and the known false friends
 - fix (texts): the texts of the posts, the caches and the services translated in every language (de, fr, cy, it, nl, pt-BR); the catalog checks that none is left
 - fix (in place): a grid in place runs with the core of its install (CoreDirectory of its section), not the one of the suite
 - new (in place): an existing install registered where it is through the API (kind robust, inPlace; forget removes it): only its section of the config of the suite is written

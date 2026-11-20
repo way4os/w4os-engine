@@ -108,6 +108,106 @@ describe('the catalog of the texts of the sites', function () {
         }
     });
 
+    test('translates the words that do translate: a text left as the English one is a name, a format or the same word there', function () {
+        // The texts each language writes as the English one, reviewed: '*' for all of them (names, files, formats)
+        $same = [
+        '*' => [
+            'column_cpu', 'column_prims_short', 'column_slug', 'column_uri', 'column_url', 'connection_config', 'connection_mysql',
+            'connection_regions', 'connection_screen', 'connection_sqlite', 'economy_help_modules', 'economy_module_gloebit',
+            'economy_module_podex', 'filter_hypergrid', 'flux_menu', 'group_robust', 'health_helpers', 'setting_gatekeeper',
+            'unit_dimensions', 'unit_km2', 'unit_percent',
+        ],
+        'cy_GB' => [
+            'column_grid', 'column_map', 'column_prims', 'label_value', 'role_model', 'settings_menu_grid', 'unit_mb',
+        ],
+        'de_DE' => [
+            'asset_animation', 'asset_link', 'asset_material', 'asset_mesh', 'asset_sound', 'asset_sound_wav', 'column_estates',
+            'column_flags', 'column_grid', 'column_name', 'column_port', 'column_presence_short', 'column_prims', 'column_region',
+            'column_server', 'column_status', 'count_avatars_short', 'count_prims', 'dashboard_title', 'db_host', 'db_port',
+            'filter_simulator', 'gloebit_sandbox', 'group_simulator', 'health_ok', 'kind_oar', 'label_value', 'menu_admin',
+            'models_pattern', 'offline', 'online', 'partner', 'port_web', 'profile_name', 'profile_tab_feed',
+            'profile_tab_inworld', 'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online', 'setting_welcome',
+            'settings_menu_grid', 'status', 'unit_mb',
+        ],
+        'fr_FR' => [
+            'actions', 'asset_animation', 'asset_image_jpeg', 'asset_image_tga', 'asset_mesh', 'asset_script', 'asset_texture',
+            'asset_texture_tga', 'avatars_count', 'avatars_menu', 'avatars_title', 'column_avatars', 'column_date', 'column_port',
+            'column_presence_short', 'column_prims', 'column_scripts', 'column_scripts_short', 'column_service', 'column_type',
+            'connection_console', 'count_avatars_short', 'count_prims', 'count_scripts', 'db_port', 'filter_local',
+            'flux_post', 'gloebit_production', 'group_avatars', 'group_console', 'group_services', 'health_ok', 'health_site', 'manage_title',
+            'menu_admin', 'parcel_scripts', 'port_public', 'port_web', 'profile_tab_web', 'role_liaison', 'role_maintenance',
+            'setting_guide_source', 'setting_welcome', 'shortcode_options', 'skill_architecture', 'total',
+        ],
+        'it_IT' => [
+            'asset_mesh', 'asset_script', 'asset_texture', 'asset_texture_tga', 'column_file', 'column_presence_short',
+            'column_scripts_short', 'column_server', 'connection_console', 'count_avatars_short', 'db_password', 'email',
+            'gloebit_sandbox', 'group_console', 'group_database', 'health_ok', 'kind_backup', 'label_value', 'menu_admin', 'no',
+            'offline', 'online', 'partner', 'password', 'password_title', 'port_web', 'profile_tab_account', 'profile_tab_feed',
+            'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online', 'setting_directory', 'setting_welcome',
+            'skill_scripting', 'unit_mb',
+        ],
+        'nl_NL' => [
+            'asset_landmark', 'asset_link', 'asset_mesh', 'asset_object', 'asset_script', 'avatars_count', 'avatars_menu',
+            'avatars_title', 'column_avatars', 'column_grid', 'column_presence_short', 'column_prims', 'column_scripts',
+            'column_scripts_short', 'column_server', 'column_status', 'column_type', 'connection_console', 'count_avatars_short',
+            'count_prims', 'count_scripts', 'dashboard_title', 'filter_simulator', 'filters', 'gloebit_sandbox', 'god',
+            'group_avatars', 'group_console', 'group_database', 'group_simulator', 'health_ok', 'health_site', 'label_value',
+            'manage_title', 'offline', 'online', 'parcel_scripts', 'partner', 'port_web', 'profile_tab_account',
+            'profile_tab_feed', 'profile_tab_inworld', 'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online',
+            'role_god', 'role_model', 'setting_welcome', 'settings_menu_grid', 'simulators_count', 'simulators_title',
+            'skill_scripting', 'status', 'unit_mb',
+        ],
+        'pt_BR' => [
+            'asset_link', 'asset_material', 'asset_mesh', 'asset_script', 'column_grid', 'column_presence_short', 'column_prims',
+            'column_scripts', 'column_scripts_short', 'column_status', 'connection_console', 'count_avatars_short', 'count_prims',
+            'count_scripts', 'email', 'filter_local', 'gloebit_sandbox', 'group_console', 'health_ok', 'health_site',
+            'kind_backup', 'label_value', 'offline', 'online', 'parcel_scripts', 'port_web', 'profile_tab_feed', 'profile_tab_web',
+            'region_flag_region_online', 'settings_menu_grid', 'skill_scripting', 'status', 'total', 'unit_mb',
+        ],
+        ];
+        foreach (Catalog::LOCALES as $locale) {
+            $kept = array_keys(array_filter(
+                Catalog::messages($locale),
+                fn(string $text, string $key) => mb_strtolower($text) === mb_strtolower(Catalog::MESSAGES[$key]),
+                ARRAY_FILTER_USE_BOTH,
+            ));
+            sort($kept);
+            $listed = [...$same['*'], ...$same[$locale]];
+            sort($listed);
+            expect($kept)->toBe($listed, $locale);
+        }
+    });
+
+    test('says the technical words with their meaning, not another one', function () {
+        // Words of another meaning met in the translations: a harbour for a port, a lattice for the grid, a watcher or a slide
+        // projector for the viewer, an assistant (a person) for the helpers, the web services the viewers and the simulators call
+        $wrong = [
+            'cy_GB' => '/porthladd|cynorthwy|\\bg?wyl(iwr|wyr)\\b|golygydd/iu',
+            'de_DE' => '/\\b(Hafen|Raster)\\b|Helfer|Assistent|Betrachter/u',
+            'fr_FR' => '/\\bassistants?\\b|visionneuse|visualiseur/iu',
+            'it_IT' => '/\\bporto\\b|\\b(aiutant|assistent|visualizzator)\\w*/iu',
+            'nl_NL' => '/\\b(haven|raster|rooster|kijker)\\b|assistent/iu',
+            'pt_BR' => '/\\b(porto|grade|visualizador|ajudantes?|assistentes?|auxiliar(es)?)\\b/iu',
+        ];
+        foreach ($wrong as $locale => $pattern) {
+            $found = array_filter(Catalog::messages($locale), fn(string $text) => preg_match($pattern, preg_replace('/\\{\\w+\\}/', '', $text)) === 1);
+            expect($found)->toBe([], $locale);
+        }
+    });
+
+    test('says viewer and helpers in every language, as OpenSimulator does', function () {
+        foreach (['viewer', 'helper'] as $term) {
+            foreach (Catalog::LOCALES as $locale) {
+                $renamed = array_filter(
+                    Catalog::messages($locale),
+                    fn(string $text, string $key) => stripos(Catalog::MESSAGES[$key], $term) !== false && stripos($text, $term) === false,
+                    ARRAY_FILTER_USE_BOTH,
+                );
+                expect($renamed)->toBe([], "$locale $term");
+            }
+        }
+    });
+
     test('keeps the placeholders of a text in its translations', function () {
         foreach (Catalog::LOCALES as $locale) {
             foreach (Catalog::messages($locale) as $key => $text) {
