@@ -1585,17 +1585,18 @@ final class Avatar extends Model
     public static function all(GridConfig $config, array $options = []): Collection
     {
         $joined = self::joined($config);
+        $profiled = self::profiled($config, $joined);
         self::listing($joined)->check($options);
         $accounts = self::connect($config, 'UserAccountService', null, 'read the avatars');
         [$sortName, $direction] = self::sort((string) ($options['sort'] ?? 'name'), $joined);
         $model = AvatarModel::condition($config, 'u.');
         [$where, $params, $applied] = self::conditions($options, $joined, $model);
 
-        $from = self::from($joined);
+        $from = self::from($joined, $profiled);
         $total = (int) $accounts->get_var("SELECT COUNT(*) FROM $from$where", $params);
         $order = self::order($sortName, $direction, $model);
         $sortParams = $sortName === 'type' ? $model[1] : [];
-        $sql = 'SELECT ' . self::select($joined) . " FROM $from$where ORDER BY " . $order;
+        $sql = 'SELECT ' . self::select($joined, $profiled) . " FROM $from$where ORDER BY " . $order;
         $params += $sortParams;
         $perPage = max(0, (int) ($options['perPage'] ?? 0));
         $page = max(1, (int) ($options['page'] ?? 1));
@@ -1653,8 +1654,9 @@ final class Avatar extends Model
             return null;
         }
         $joined = self::joined($config);
+        $profiled = self::profiled($config, $joined);
         $rows = $accounts->get_results(
-            'SELECT ' . self::select($joined) . ' FROM ' . self::from($joined) . $where,
+            'SELECT ' . self::select($joined, $profiled) . ' FROM ' . self::from($joined, $profiled) . $where,
             $params,
             \PDO::FETCH_ASSOC,
         );
@@ -1975,17 +1977,22 @@ final class Avatar extends Model
         return $keys[0] !== null && count(array_unique($keys)) === 1;
     }
 
-    private static function from(bool $joined): string
+    /** Whether the profiles are joined too: in the database of the accounts, and a grid that has them (their table is there). */
+    private static function profiled(GridConfig $config, bool $joined): bool
     {
-        return 'UserAccounts u' .
-            ($joined
-                ? ' LEFT JOIN GridUser g ON g.UserID = u.PrincipalID LEFT JOIN userprofile p ON p.useruuid = u.PrincipalID'
-                : '');
+        return $joined && (Connections::pdo($config, 'UserAccountService')?->table_exists('userprofile') ?? false);
     }
 
-    private static function select(bool $joined): string
+    private static function from(bool $joined, bool $profiled = true): string
     {
-        return self::ACCOUNT_COLUMNS . ($joined ? ', ' . self::VISIT_COLUMNS . ', ' . self::PROFILE_COLUMNS : '');
+        return 'UserAccounts u' .
+            ($joined ? ' LEFT JOIN GridUser g ON g.UserID = u.PrincipalID' : '') .
+            ($joined && $profiled ? ' LEFT JOIN userprofile p ON p.useruuid = u.PrincipalID' : '');
+    }
+
+    private static function select(bool $joined, bool $profiled = true): string
+    {
+        return self::ACCOUNT_COLUMNS . ($joined ? ', ' . self::VISIT_COLUMNS : '') . ($joined && $profiled ? ', ' . self::PROFILE_COLUMNS : '');
     }
 
     /** @return array{0:string,1:string} the sort and its direction; by name, ascending, when the sort asked is not available */

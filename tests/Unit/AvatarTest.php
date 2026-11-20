@@ -111,6 +111,18 @@ describe('avatars', function () {
             ->toBe([null]);
     });
 
+    test('are listed with their account and their last visit when the grid has no profiles (no table of them)', function () {
+        $pdo = avatar_database();
+        $pdo->exec('DROP TABLE userprofile');
+        avatars_in($pdo);
+        $list = Avatar::all(avatar_grid(), ['search' => 'Ada']);
+
+        expect(array_column($list->array(), 'name'))
+            ->toBe(['Ada Love'])
+            ->and($list->first()->detail()['online'])
+            ->toBeTrue();
+    });
+
     test('are listed with their account, their last visit and their profile', function () {
         avatars_in(avatar_database());
         $list = Avatar::all(avatar_grid());

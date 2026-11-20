@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (avatars): the list of the avatars of a grid without profiles (no userprofile table), with their visits
 - fix (ports): the ports bound on Linux are read from /proc/net, netstat is not on a Debian of today (a switch of an import no longer starts a grid over the old one)
 - fix (packaging): the default backup root (/var/backups/opensim) is made by the layout even when opensim.conf names it, as the one the engine writes does
 - feature (setup): the setup offers an existing install: its Robust config and its simulators, the plan of the migration, then the grid written disabled and how to switch
