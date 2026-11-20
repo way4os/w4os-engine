@@ -66,7 +66,10 @@ describe('A grid in place', function () {
         $environment = $environment->withLayout(Layout::load($conf, $machine->environment->layout->all()));
         $enabled = array_map(static fn($instance): string => $instance->name() . ' ' . $instance->ini(), OpenSim::enabled($environment));
 
-        expect(InPlaceGrids::section($conf, 'oldgrid'))
+        $placed = array_filter(OpenSim::enabled($environment), static fn($instance): bool => str_starts_with($instance->name(), 'oldgrid'));
+        expect(array_values(array_map(static fn($instance): string => $instance->core()?->directory() ?? '', $placed)))
+            ->toBe([$old, $old])
+            ->and(InPlaceGrids::section($conf, 'oldgrid'))
             ->toMatchArray(['Enabled' => 'yes', 'EnabledSimulators' => 'welcome'])
             ->and($enabled)
             ->toContain("oldgrid $old/bin/Robust.HG.ini", "oldgrid.welcome $old/bin/OpenSim.ini")

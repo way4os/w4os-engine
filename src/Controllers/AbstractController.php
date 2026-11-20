@@ -260,6 +260,13 @@ abstract class AbstractController implements Enablable
         if ($bin !== '') {
             return Core::ofBin($bin);
         }
+        // A grid in place runs with the core of its install, where it is
+        if (($owner = \OpenSim\Config\InPlaceGrids::owner($this->environment->layout, $this->ini)) !== null) {
+            $core = trim((string) ($this->environment->layout->grids()[$owner['nick']]['CoreDirectory'] ?? ''));
+            if ($core !== '') {
+                return Core::at($core);
+            }
+        }
         if (($grid = $this->gridDirectory()) !== null) {
             $conf = ConfigReader::load("$grid/" . basename($grid) . '.conf')['Grid'] ?? [];
             if (trim((string) ($conf['CoreDirectory'] ?? '')) !== '') {
