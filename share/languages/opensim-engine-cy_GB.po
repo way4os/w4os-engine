@@ -387,6 +387,106 @@ msgctxt "settings_avatars"
 msgid "Avatar Settings"
 msgstr "Gosodiadau Afatarau"
 
+msgctxt "settings_grid"
+msgid "Grid Settings"
+msgstr "Gosodiadau Grid"
+
+msgctxt "settings_menu_grid"
+msgid "Grid"
+msgstr "Grid"
+
+msgctxt "group_grid_info"
+msgid "Grid Info"
+msgstr "Gwybodaeth y Grid"
+
+msgctxt "group_robust"
+msgid "Robust"
+msgstr "Robust"
+
+msgctxt "group_services"
+msgid "Services"
+msgstr "Gwasanaethau"
+
+msgctxt "group_users"
+msgid "Users"
+msgstr "Defnyddwyr"
+
+msgctxt "setting_robust_uri"
+msgid "Robust URI"
+msgstr "URI Robust"
+
+msgctxt "setting_robust_uri_help"
+msgid ""
+"The private address of Robust the simulators call for the services of the "
+"grid."
+msgstr "Cyfeiriad preifat Robust y mae'r efelychwyr yn ei alw ar gyfer gwasanaethau'r grid."
+
+msgctxt "setting_robust_database"
+msgid "ROBUST Database"
+msgstr "Cronfa ddata ROBUST"
+
+msgctxt "setting_console_user"
+msgid "Console User"
+msgstr "Defnyddiwr y consol"
+
+msgctxt "setting_console_pass"
+msgid "Console Password"
+msgstr "Cyfrinair y consol"
+
+msgctxt "setting_console_port"
+msgid "Console Port"
+msgstr "Porth y consol"
+
+msgctxt "setting_console_port_help"
+msgid "The port of the remote console of Robust, what drives it."
+msgstr "Porth consol pell Robust, sy'n ei yrru."
+
+msgctxt "setting_assets_service_uri"
+msgid "Assets Service URI"
+msgstr "URI gwasanaeth asedau"
+
+msgctxt "setting_profile_service_uri"
+msgid "Profile Service URI"
+msgstr "URI gwasanaeth proffiliau"
+
+msgctxt "uri_default_robust"
+msgid "Use default: the address of Robust."
+msgstr "Defnyddio'r rhagosodiad: cyfeiriad Robust."
+
+msgctxt "uri_default_login"
+msgid "Use default: the login URI."
+msgstr "Defnyddio'r rhagosodiad: yr URI mewngofnodi."
+
+msgctxt "setting_profile_page"
+msgid "Profile Page"
+msgstr "Proffil Page"
+
+msgctxt "setting_exclude_from_stats"
+msgid "Exclude from stats"
+msgstr "Eithrio o ystadegau"
+
+msgctxt "setting_exclude_from_stats_help"
+msgid ""
+"Accounts without email address are usually test or service accounts, created "
+"from the console. Uncheck only if you have real avatars without email "
+"address."
+msgstr ""
+"Cyfrifon heb gyfeiriad e-bost fel arfer yw cyfrifon prawf neu wasanaeth, a "
+"grëwyd o'r consol. Dicewch dim ond os oes gennych gymeriadau go iawn heb "
+"gyfeiriad e-bost."
+
+msgctxt "exclude_models"
+msgid "Models"
+msgstr "Modelau"
+
+msgctxt "exclude_nomail"
+msgid "Accounts without mail address"
+msgstr "Cyfrifon heb gyfeiriad post"
+
+msgctxt "exclude_hypergrid"
+msgid "Hypergrid visitors"
+msgstr "Ymwelwyr Hypergrid"
+
 msgctxt "setting_allow_multiple_avatars"
 msgid "Allow multiple avatars"
 msgstr "Caniatáu llu o avatarau"
@@ -403,7 +503,9 @@ msgctxt "setting_reserved_names_help"
 msgid ""
 "No new avatar may have one of them as its first or last name, nor the name "
 "of the grid."
-msgstr "Ni chaiff unrhyw afatar newydd gael un ohonynt fel ei enw cyntaf neu olaf, nac enw'r grid."
+msgstr ""
+"Ni chaiff unrhyw afatar newydd gael un ohonynt fel ei enw cyntaf neu olaf, "
+"nac enw'r grid."
 
 msgctxt "settings_economy"
 msgid "Economy Settings"

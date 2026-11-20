@@ -36,6 +36,12 @@ final class GridSettings
      * of w4os-wp, with its translations.
      */
     private const PAGES = [
+        // The ways to reach its Robust in one place: its address, its database, its console
+        'grid' => [
+            'title' => 'settings_grid',
+            'menu' => 'settings_menu_grid',
+            'groups' => [['name' => 'grid', 'label' => 'group_grid_info'], ['name' => 'robust', 'label' => 'group_robust'], ['name' => 'services', 'label' => 'group_services'], ['name' => 'users', 'label' => 'group_users']],
+        ],
         'models' => [
             'title' => 'settings_models',
             'menu' => 'settings_models',
@@ -92,6 +98,7 @@ final class GridSettings
         'economy' => ['economyModule', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'webSearchUrl', 'eventsUrl'],
         'offline' => ['mailSender', 'offlineDatabase', 'offlineModule'],
+        'grid' => ['loginUri', 'gridName', 'gridNick', 'gridServerUri', 'database', 'consoleUser', 'consolePass', 'consolePort', 'assetServerUri', 'profileServiceUrl', 'webProfileUrl', 'excludeFromStats'],
     ];
 
     /**
@@ -99,6 +106,21 @@ final class GridSettings
      * what it requires, when it is shown), and the notes it shows (`note`: a text, no value), by page and field.
      */
     private const SHOWN_AS = [
+        'grid' => [
+            'loginUri' => ['group' => 'grid'],
+            'gridName' => ['group' => 'grid'],
+            'gridNick' => ['group' => 'grid'],
+            'gridServerUri' => ['group' => 'robust', 'label' => 'setting_robust_uri'],
+            'database' => ['group' => 'robust', 'label' => 'setting_robust_database'],
+            'consoleUser' => ['group' => 'robust'],
+            'consolePass' => ['group' => 'robust'],
+            'consolePort' => ['group' => 'robust'],
+            // The services that may be in Robust instances of their own
+            'assetServerUri' => ['group' => 'services', 'label' => 'setting_assets_service_uri', 'description' => ['uri_default_robust']],
+            'profileServiceUrl' => ['group' => 'services', 'label' => 'setting_profile_service_uri', 'description' => ['uri_default_login']],
+            'webProfileUrl' => ['group' => 'users', 'label' => 'setting_profile_page'],
+            'excludeFromStats' => ['group' => 'users'],
+        ],
         'economy' => [
             'currencyRate' => ['condition' => ['economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex']]],
             'gloebitConfiguration' => ['note' => true, 'after' => 'currencyRate', 'label' => 'gloebit_configuration', 'description' => ['gloebit_help_crash', 'gloebit_help_linux', 'gloebit_help_register', 'gloebit_help_config', 'gloebit_help_dll'], 'condition' => ['economyModule' => ['Gloebit']]],
@@ -149,6 +171,7 @@ final class GridSettings
     {
         return match ($page) {
             'models' => 'The rule the avatar models are picked by (`[Models]`, the keys of w4os): `match` first (the first name is the pattern), last (the last name), any (either), uuid (the list); `pattern`, the name; `list`, the UUIDs of the models for uuid. The models it picks are the list of `/grids/{grid}/avatar-models`.',
+            'grid' => 'What the grid is (its login URI, its name, its nick), the ways to reach its Robust in one place (its address, the private one of the services, its database, its remote console: `[Network]` of Robust), the services that may be in Robust instances of their own (the assets, the profiles: null, Use default, the address of Robust, the login URI), the web page of a profile, and what the numbers of the grid leave out (`excludeFromStats`: models, nomail, the accounts without email, hypergrid, the visitors of other grids; the models and nomail by default, as w4os-wp).',
             'avatars' => 'What is checked when an avatar is made (`[Avatars]` of Helpers.ini): `allowMultipleAvatars`, more than one avatar for an email (true by default; false refuses a new avatar whose email an avatar has, `email-taken`); `reservedNames`, the names no new avatar may have as its first or last name (Default, Test, Admin by default; the name of the grid always, `name-reserved`).',
             'economy' => 'The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module chosen as w4os-wp chooses its provider (the free economy, the generic money server, Gloebit and its settings, or Podex: the generic money server, `[Helpers] CurrencyProvider = podex`), its database, the key of the money server, the rate and the settings of Podex the helpers use.',
             'search' => 'The search of the grid, as w4os-wp has it: what the simulators call and where they register (set by the options of the grid), the database of the search, the calendar of the events.',
@@ -181,12 +204,17 @@ final class GridSettings
         );
         if (isset(self::PROVIDE[$page])) {
             $fields = self::provided($page, $fields);
+        } else {
+            // What the page shows of them, in its order
+            $fields = array_map(static fn(array $field): array => (self::SHOWN_AS[$page][$field['name']] ?? []) + $field, $fields);
+            $order = array_flip(self::ORDER[$page] ?? []);
+            usort($fields, static fn(array $one, array $two): int => ($order[$one['name']] ?? PHP_INT_MAX) <=> ($order[$two['name']] ?? PHP_INT_MAX));
         }
         // The tip under the label, where the label is not enough
         $fields = array_map(static fn(array $field): array => isset(self::TIPS[$page][$field['name']]) ? ['tip' => self::TIPS[$page][$field['name']]] + $field : $field, $fields);
 
         return ['title' => self::PAGES[$page]['title'], 'menu' => self::PAGES[$page]['menu'], 'fields' => $fields, 'submit' => 'action_save_changes', 'saved' => 'settings_saved']
-            + array_intersect_key(self::PAGES[$page], ['description' => 1, 'preview' => 1]);
+            + array_intersect_key(self::PAGES[$page], ['description' => 1, 'preview' => 1, 'groups' => 1]);
     }
 
     /**
@@ -869,6 +897,13 @@ final class GridSettings
             return $said === null ? '' : Settings::MASK;
         }
         if ($entry['multiple'] ?? false) {
+            // Boxes all unchecked are a choice: none
+            if ($entry['type'] === 'checkboxes') {
+                $raw = $config->find($entry['section'], $entry['key']);
+
+                return $raw === null ? ($entry['default'] ?? []) : self::list($raw);
+            }
+
             return $said === null ? ($entry['default'] ?? []) : ($entry['type'] === 'avatar' ? array_map('strtolower', self::list($said)) : self::list($said));
         }
         if ($said === null) {
@@ -904,6 +939,7 @@ final class GridSettings
             $list = array_values(array_unique(array_filter(array_map(static fn($v): string => $entry['type'] === 'avatar' ? strtolower(trim((string) $v)) : trim((string) $v), $list), 'strlen')));
             foreach ($list as $item) {
                 $entry['type'] === 'avatar' && !Uuid::isValid($item) && $refuse("'$item' is not the UUID of an avatar");
+                isset($entry['options']) && !isset($entry['options'][$item]) && $refuse("'$item' is not a choice (" . implode(', ', array_keys($entry['options'])) . ')');
             }
 
             return '"' . implode(', ', $list) . '"';

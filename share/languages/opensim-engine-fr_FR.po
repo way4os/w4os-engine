@@ -388,6 +388,106 @@ msgctxt "settings_avatars"
 msgid "Avatar Settings"
 msgstr "Réglages des avatars"
 
+msgctxt "settings_grid"
+msgid "Grid Settings"
+msgstr "Réglages de la grille"
+
+msgctxt "settings_menu_grid"
+msgid "Grid"
+msgstr "Grille"
+
+msgctxt "group_grid_info"
+msgid "Grid Info"
+msgstr "Infos sur la grille"
+
+msgctxt "group_robust"
+msgid "Robust"
+msgstr "Robust"
+
+msgctxt "group_services"
+msgid "Services"
+msgstr "Services"
+
+msgctxt "group_users"
+msgid "Users"
+msgstr "Utilisateurs"
+
+msgctxt "setting_robust_uri"
+msgid "Robust URI"
+msgstr "URI de Robust"
+
+msgctxt "setting_robust_uri_help"
+msgid ""
+"The private address of Robust the simulators call for the services of the "
+"grid."
+msgstr "L'adresse privée de Robust que les simulateurs appellent pour les services de la grille."
+
+msgctxt "setting_robust_database"
+msgid "ROBUST Database"
+msgstr "Base de données ROBUST"
+
+msgctxt "setting_console_user"
+msgid "Console User"
+msgstr "Utilisateur de la console"
+
+msgctxt "setting_console_pass"
+msgid "Console Password"
+msgstr "Mot de passe de la console"
+
+msgctxt "setting_console_port"
+msgid "Console Port"
+msgstr "Port de la console"
+
+msgctxt "setting_console_port_help"
+msgid "The port of the remote console of Robust, what drives it."
+msgstr "Le port de la console distante de Robust, qui la pilote."
+
+msgctxt "setting_assets_service_uri"
+msgid "Assets Service URI"
+msgstr "URI du service des assets"
+
+msgctxt "setting_profile_service_uri"
+msgid "Profile Service URI"
+msgstr "URI du service des profils"
+
+msgctxt "uri_default_robust"
+msgid "Use default: the address of Robust."
+msgstr "Utiliser la valeur par défaut : l'adresse de Robust."
+
+msgctxt "uri_default_login"
+msgid "Use default: the login URI."
+msgstr "Utiliser la valeur par défaut : l'URI de connexion."
+
+msgctxt "setting_profile_page"
+msgid "Profile Page"
+msgstr "Page de profil"
+
+msgctxt "setting_exclude_from_stats"
+msgid "Exclude from stats"
+msgstr "Exclure des statistiques"
+
+msgctxt "setting_exclude_from_stats_help"
+msgid ""
+"Accounts without email address are usually test or service accounts, created "
+"from the console. Uncheck only if you have real avatars without email "
+"address."
+msgstr ""
+"Les comptes sans adresse e-mail sont généralement des comptes de test ou de "
+"service, créés depuis la console. Décochez uniquement si vous avez de vrais "
+"avatars sans adresse e-mail."
+
+msgctxt "exclude_models"
+msgid "Models"
+msgstr "Modèles"
+
+msgctxt "exclude_nomail"
+msgid "Accounts without mail address"
+msgstr "Comptes sans adresse e-mail"
+
+msgctxt "exclude_hypergrid"
+msgid "Hypergrid visitors"
+msgstr "Visiteurs hypergrid"
+
 msgctxt "setting_allow_multiple_avatars"
 msgid "Allow multiple avatars"
 msgstr "Autoriser plusieurs avatars"
@@ -404,7 +504,9 @@ msgctxt "setting_reserved_names_help"
 msgid ""
 "No new avatar may have one of them as its first or last name, nor the name "
 "of the grid."
-msgstr "Aucun nouvel avatar ne peut avoir l'un d'eux comme prénom ou nom, ni le nom de la grille."
+msgstr ""
+"Aucun nouvel avatar ne peut avoir l'un d'eux comme prénom ou nom, ni le nom "
+"de la grille."
 
 msgctxt "settings_economy"
 msgid "Economy Settings"

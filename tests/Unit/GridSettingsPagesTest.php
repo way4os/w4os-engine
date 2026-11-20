@@ -35,7 +35,7 @@ describe('The settings pages of the services', function () {
         $fr = Catalog::messages('fr_FR');
 
         expect(GridSettings::groups())
-            ->toBe(['models', 'avatars', ...$pages])
+            ->toBe(['grid', 'models', 'avatars', ...$pages])
             ->and(array_map(static fn(string $page): ?string => $en(GridSettings::form($page)['title']), $pages))
             ->toBe(['Economy Settings', 'Search Engine Settings', 'Destinations Guide Settings', 'Offline Messages Settings', 'Web Assets Server'])
             ->and(array_map($fields, $pages))
@@ -60,10 +60,10 @@ describe('The settings pages of the services', function () {
         $forms = array_map(static fn(string $page): array => GridSettings::form($page), GridSettings::groups());
 
         expect(array_map(static fn(array $form): string => $en[$form['menu']], $forms))
-            ->toBe(['Avatar Models', 'Avatar Settings', 'Economy', 'Search Engine', 'Destination Guide', 'Offline Messages', 'Web Assets'])
+            ->toBe(['Grid', 'Avatar Models', 'Avatar Settings', 'Economy', 'Search Engine', 'Destination Guide', 'Offline Messages', 'Web Assets'])
             ->and(array_unique(array_column($forms, 'saved')))
             ->toBe(['settings_saved'])
-            ->and([$en['settings_saved'], $fr['settings_saved'], $fr[$forms[3]['menu']]])
+            ->and([$en['settings_saved'], $fr['settings_saved'], $fr[$forms[4]['menu']]])
             ->toBe(['Settings saved.', 'Réglages enregistrés.', 'Moteur de recherche']);
         foreach (Catalog::LOCALES as $language) {
             expect(Catalog::messages($language))->toHaveKeys(['settings_saved', ...array_column($forms, 'menu')]);

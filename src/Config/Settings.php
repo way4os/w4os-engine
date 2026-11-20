@@ -39,7 +39,7 @@ final class Settings
     public const MASK = '********';
 
     /** The types of the settings. */
-    public const TYPES = ['text', 'url', 'hostname', 'integer', 'float', 'bool', 'select', 'email', 'password', 'avatar', 'connection-string'];
+    public const TYPES = ['text', 'url', 'hostname', 'integer', 'float', 'bool', 'select', 'checkboxes', 'email', 'password', 'avatar', 'connection-string'];
 
     /** The instances, the role of their file in the config of a grid (GridConfig) and its name when the grid has none. */
     public const INSTANCES = [
@@ -61,20 +61,26 @@ final class Settings
                 'PublicPort' => ['name' => 'publicPort', 'type' => 'integer', 'label' => 'setting_public_port', 'default' => 8002],
                 'PrivatePort' => ['name' => 'privatePort', 'type' => 'integer', 'label' => 'setting_private_port', 'default' => 8003],
             ],
+            // The remote console of Robust, what drives it
+            'Network' => [
+                'ConsoleUser' => ['name' => 'consoleUser', 'type' => 'text', 'label' => 'setting_console_user', 'admin' => 'grid'],
+                'ConsolePass' => ['name' => 'consolePass', 'type' => 'password', 'label' => 'setting_console_pass', 'secret' => true, 'admin' => 'grid'],
+                'ConsolePort' => ['name' => 'consolePort', 'type' => 'integer', 'label' => 'setting_console_port', 'admin' => 'grid'],
+            ],
             // The offline messages the helpers keep, in the database of Robust by default
             'Messaging' => [
                 'ConnectionString' => ['name' => 'offlineDatabase', 'type' => 'connection-string', 'label' => 'offline_database', 'secret' => true, 'readers' => 'helpers', 'admin' => 'offline', 'fallback' => 'db_use_default'],
             ],
             'DatabaseService' => [
                 'StorageProvider' => ['name' => 'storageProvider', 'type' => 'select', 'label' => 'setting_storage_provider', 'options' => self::PROVIDERS, 'default' => 'OpenSim.Data.MySQL.dll'],
-                'ConnectionString' => ['name' => 'database', 'type' => 'connection-string', 'label' => 'setting_database', 'secret' => true],
+                'ConnectionString' => ['name' => 'database', 'type' => 'connection-string', 'label' => 'setting_database', 'secret' => true, 'admin' => 'grid'],
             ],
             'GridInfoService' => [
-                'login' => ['name' => 'loginUri', 'type' => 'url', 'label' => 'setting_login', 'info' => 'login', 'names' => ['login'], 'health' => 'address'],
+                'login' => ['name' => 'loginUri', 'type' => 'url', 'label' => 'setting_login', 'info' => 'login', 'names' => ['login'], 'health' => 'address', 'admin' => 'grid'],
                 'gatekeeper' => ['name' => 'gatekeeper', 'type' => 'url', 'label' => 'setting_gatekeeper', 'info' => 'gatekeeper', 'hypergrid' => true, 'names' => ['gatekeeper'], 'health' => 'address'],
                 'uas' => ['name' => 'userAgentService', 'type' => 'url', 'label' => 'setting_uas', 'info' => 'uas', 'hypergrid' => true, 'names' => ['user-agent']],
-                'gridname' => ['name' => 'gridName', 'type' => 'text', 'label' => 'setting_grid_name', 'info' => 'gridname'],
-                'gridnick' => ['name' => 'gridNick', 'type' => 'text', 'label' => 'setting_grid_nick', 'info' => 'gridnick'],
+                'gridname' => ['name' => 'gridName', 'type' => 'text', 'label' => 'setting_grid_name', 'info' => 'gridname', 'admin' => 'grid'],
+                'gridnick' => ['name' => 'gridNick', 'type' => 'text', 'label' => 'setting_grid_nick', 'info' => 'gridnick', 'admin' => 'grid'],
                 'welcome' => ['name' => 'welcomePage', 'type' => 'url', 'label' => 'setting_welcome', 'info' => 'welcome', 'service' => 'welcome', 'health' => 'address'],
                 'economy' => ['name' => 'economyUrl', 'type' => 'url', 'label' => 'setting_economy', 'info' => 'economy', 'service' => ['currency', 'landtool'], 'labels' => ['currency' => 'service_currency', 'landtool' => 'service_landtool'], 'admin' => 'economy', 'health' => 'address'],
                 'about' => ['name' => 'aboutPage', 'type' => 'url', 'label' => 'setting_about', 'info' => 'about', 'health' => 'address'],
@@ -83,7 +89,7 @@ final class Settings
                 'password' => ['name' => 'passwordPage', 'type' => 'url', 'label' => 'setting_password', 'info' => 'password', 'health' => 'address'],
                 'GridStatus' => ['name' => 'gridStatusPage', 'type' => 'url', 'label' => 'setting_grid_status', 'info' => 'GridStatus', 'service' => 'grid-status', 'health' => 'address'],
                 'GridStatusRSS' => ['name' => 'gridStatusRss', 'type' => 'url', 'label' => 'setting_grid_status_rss', 'info' => 'GridStatusRSS', 'service' => 'grid-status-rss', 'health' => 'address'],
-                'web_profile_url' => ['name' => 'webProfileUrl', 'type' => 'url', 'label' => 'setting_web_profile', 'info' => 'web_profile_url', 'service' => 'web-profile', 'health' => 'address'],
+                'web_profile_url' => ['name' => 'webProfileUrl', 'type' => 'url', 'label' => 'setting_web_profile', 'info' => 'web_profile_url', 'service' => 'web-profile', 'health' => 'address', 'admin' => 'grid'],
                 'search' => ['name' => 'webSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'info' => 'search', 'service' => 'search', 'health' => 'address', 'admin' => 'search'],
             ],
             // Where an old config gave the economy
@@ -100,9 +106,9 @@ final class Settings
         ],
         'opensim' => [
             // The services of Robust the simulators call
-            'AssetService' => ['AssetServerURI' => ['name' => 'assetServerUri', 'type' => 'url', 'label' => 'service_asset', 'service' => 'asset']],
+            'AssetService' => ['AssetServerURI' => ['name' => 'assetServerUri', 'type' => 'url', 'label' => 'service_asset', 'service' => 'asset', 'admin' => 'grid', 'fallback' => 'db_use_default']],
             'InventoryService' => ['InventoryServerURI' => ['name' => 'inventoryServerUri', 'type' => 'url', 'label' => 'service_inventory', 'service' => 'inventory']],
-            'GridService' => ['GridServerURI' => ['name' => 'gridServerUri', 'type' => 'url', 'label' => 'service_grid', 'service' => 'grid']],
+            'GridService' => ['GridServerURI' => ['name' => 'gridServerUri', 'type' => 'url', 'label' => 'service_grid', 'service' => 'grid', 'admin' => 'grid']],
             'EstateService' => ['EstateServerURI' => ['name' => 'estateServerUri', 'type' => 'url', 'label' => 'service_estate', 'service' => 'estate']],
             'AuthenticationService' => ['AuthenticationServerURI' => ['name' => 'authenticationServerUri', 'type' => 'url', 'label' => 'service_authentication', 'service' => 'authentication']],
             'AvatarService' => ['AvatarServerURI' => ['name' => 'avatarServerUri', 'type' => 'url', 'label' => 'service_avatar', 'service' => 'avatar']],
@@ -115,7 +121,7 @@ final class Settings
             'MuteListService' => ['MuteListServerURI' => ['name' => 'muteListServerUri', 'type' => 'url', 'label' => 'service_mute_list', 'service' => 'mute-list']],
             'XBakes' => ['URL' => ['name' => 'bakesUrl', 'type' => 'url', 'label' => 'service_bakes', 'service' => 'bakes']],
             'Groups' => ['GroupsServerURI' => ['name' => 'groupsServerUri', 'type' => 'url', 'label' => 'service_groups', 'service' => 'groups']],
-            'UserProfiles' => ['ProfileServiceURL' => ['name' => 'profileServiceUrl', 'type' => 'url', 'label' => 'service_profile', 'service' => 'profile']],
+            'UserProfiles' => ['ProfileServiceURL' => ['name' => 'profileServiceUrl', 'type' => 'url', 'label' => 'service_profile', 'service' => 'profile', 'admin' => 'grid', 'fallback' => 'db_use_default']],
             'Search' => [
                 'Module' => ['name' => 'searchModule', 'type' => 'text', 'label' => 'setting_search_module', 'default' => 'OpenSimSearch'],
                 'SearchURL' => ['name' => 'searchUrl', 'type' => 'url', 'label' => 'setting_search_service', 'service' => 'query', 'admin' => 'search', 'health' => 'xmlrpc'],
@@ -176,6 +182,10 @@ final class Settings
                 'GloebitConversionThreshold' => ['name' => 'gloebitThreshold', 'type' => 'float', 'label' => 'setting_gloebit_threshold', 'default' => 1.2],
                 'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'default' => \OpenSim\Economy\CurrencySettings::PODEX_MESSAGE, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
                 'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'example' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
+            ],
+            // What the numbers of the grid leave out (Stats::of())
+            'Stats' => [
+                'Exclude' => ['name' => 'excludeFromStats', 'type' => 'checkboxes', 'label' => 'setting_exclude_from_stats', 'multiple' => true, 'options' => ['models' => 'exclude_models', 'nomail' => 'exclude_nomail', 'hypergrid' => 'exclude_hypergrid'], 'default' => \OpenSim\Data\Stats::EXCLUDED, 'admin' => 'grid'],
             ],
             // Checked when an avatar is made (Avatar::check())
             'Avatars' => [

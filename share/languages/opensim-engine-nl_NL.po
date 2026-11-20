@@ -387,6 +387,106 @@ msgctxt "settings_avatars"
 msgid "Avatar Settings"
 msgstr "Avatarinstellingen"
 
+msgctxt "settings_grid"
+msgid "Grid Settings"
+msgstr "Gridinstellingen"
+
+msgctxt "settings_menu_grid"
+msgid "Grid"
+msgstr "Grid"
+
+msgctxt "group_grid_info"
+msgid "Grid Info"
+msgstr "Gridgegevens"
+
+msgctxt "group_robust"
+msgid "Robust"
+msgstr "Robust"
+
+msgctxt "group_services"
+msgid "Services"
+msgstr "Diensten"
+
+msgctxt "group_users"
+msgid "Users"
+msgstr "Gebruikersnaam"
+
+msgctxt "setting_robust_uri"
+msgid "Robust URI"
+msgstr "Robust-URI"
+
+msgctxt "setting_robust_uri_help"
+msgid ""
+"The private address of Robust the simulators call for the services of the "
+"grid."
+msgstr "Het privéadres van Robust dat de simulators aanroepen voor de diensten van het grid."
+
+msgctxt "setting_robust_database"
+msgid "ROBUST Database"
+msgstr "ROBUST database"
+
+msgctxt "setting_console_user"
+msgid "Console User"
+msgstr "Consolegebruiker"
+
+msgctxt "setting_console_pass"
+msgid "Console Password"
+msgstr "Consolewachtwoord"
+
+msgctxt "setting_console_port"
+msgid "Console Port"
+msgstr "Consolepoort"
+
+msgctxt "setting_console_port_help"
+msgid "The port of the remote console of Robust, what drives it."
+msgstr "De poort van de externe console van Robust, waarmee het wordt bestuurd."
+
+msgctxt "setting_assets_service_uri"
+msgid "Assets Service URI"
+msgstr "URI van de assetdienst"
+
+msgctxt "setting_profile_service_uri"
+msgid "Profile Service URI"
+msgstr "URI van de profieldienst"
+
+msgctxt "uri_default_robust"
+msgid "Use default: the address of Robust."
+msgstr "Standaard gebruiken: het adres van Robust."
+
+msgctxt "uri_default_login"
+msgid "Use default: the login URI."
+msgstr "Standaard gebruiken: de login-URI."
+
+msgctxt "setting_profile_page"
+msgid "Profile Page"
+msgstr "Profielpagina"
+
+msgctxt "setting_exclude_from_stats"
+msgid "Exclude from stats"
+msgstr "Uitsluiten van statistieken"
+
+msgctxt "setting_exclude_from_stats_help"
+msgid ""
+"Accounts without email address are usually test or service accounts, created "
+"from the console. Uncheck only if you have real avatars without email "
+"address."
+msgstr ""
+"Accounts zonder e-mailadres zijn meestal test- of serviceaccounts, "
+"aangemaakt vanuit de console. Schakel dit alleen uit als je echte avatars "
+"zonder e-mailadres hebt."
+
+msgctxt "exclude_models"
+msgid "Models"
+msgstr "Modellen"
+
+msgctxt "exclude_nomail"
+msgid "Accounts without mail address"
+msgstr "Accounts zonder e-mailadres"
+
+msgctxt "exclude_hypergrid"
+msgid "Hypergrid visitors"
+msgstr "Hypergrid bezoekers"
+
 msgctxt "setting_allow_multiple_avatars"
 msgid "Allow multiple avatars"
 msgstr "Meerdere avatars toestaan"
@@ -403,7 +503,9 @@ msgctxt "setting_reserved_names_help"
 msgid ""
 "No new avatar may have one of them as its first or last name, nor the name "
 "of the grid."
-msgstr "Geen nieuwe avatar mag een van deze als voor- of achternaam hebben, noch de naam van het grid."
+msgstr ""
+"Geen nieuwe avatar mag een van deze als voor- of achternaam hebben, noch de "
+"naam van het grid."
 
 msgctxt "settings_economy"
 msgid "Economy Settings"
