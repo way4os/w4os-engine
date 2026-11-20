@@ -957,6 +957,8 @@ final class Catalog
         'notice_import_module_missing' => 'The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install: the simulator would not load it. Put a build of it for this core in {folder} and add {name} to EnabledModules of opensim.conf, or leave the setting out.',
         'notice_import_module_found' => 'The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install, the older install has it in {file}: the simulator would not load it. Put a build of it for this core in {folder} (a module is built for a version of OpenSimulator: that file only if both cores are the same version) and add {name} to EnabledModules of opensim.conf, or leave the setting out.',
         'notice_import_enable_start' => 'Then: {enable}, {start}.',
+        'notice_restart_grid' => 'Grid restart is required: {restart}.',
+        'notice_restart_simulators' => 'Simulator(s) restart is required: {restart}.',
         'notice_import_stop_grid' => 'The old Robust of {grid} keeps running until it is stopped: stop it and keep it from starting again (its service, its cron, its screen), its ports {ports} are the ones of the grid here, its database the same.',
         'notice_import_switch' => 'Then switch: {command} (the grid and its simulators enabled and started here).',
         'notice_restore_estate_missing' => 'The regions {regions} have no estate in {database}, the database of the grid here, which is kept as it is: they would start with none. Restore their estate there, or link them to one (estate link region) before starting.',

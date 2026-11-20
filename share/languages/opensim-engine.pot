@@ -3340,6 +3340,14 @@ msgctxt "notice_import_enable_start"
 msgid "Then: {enable}, {start}."
 msgstr ""
 
+msgctxt "notice_restart_grid"
+msgid "Grid restart is required: {restart}."
+msgstr ""
+
+msgctxt "notice_restart_simulators"
+msgid "Simulator(s) restart is required: {restart}."
+msgstr ""
+
 msgctxt "notice_import_stop_grid"
 msgid "The old Robust of {grid} keeps running until it is stopped: stop it and keep it from starting again (its service, its cron, its screen), its ports {ports} are the ones of the grid here, its database the same."
 msgstr ""

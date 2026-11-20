@@ -373,6 +373,7 @@ final class GridSettings
         $switchedOn = filter_var($values['provide'] ?? false, FILTER_VALIDATE_BOOLEAN);
         isset(self::PROVIDE[$page]) && ($values = $this->addressOf($page, $values));
         $now = $this->read($page);
+        $before = $now;
         // Podex is written as the generic money server, and the provider the helpers serve
         if ($page === 'economy' && isset($values['economyModule']) && $values['economyModule'] !== $now['economyModule']) {
             $values['currencyProvider'] = $values['economyModule'] === 'Podex' ? 'podex' : '';
@@ -426,6 +427,8 @@ final class GridSettings
                 $value = ['host' => $main->host ?: $main->source, 'port' => $main->port, 'database' => $main->database, 'user' => $main->user, 'password' => $main->password];
                 $default = false;
             }
+            // The instances that read the file restart to take a value that changed (the helpers and the site read theirs each time)
+            ($value != ($before[$entry['name']] ?? null)) && isset($where['file']) && $this->restartFor((string) $where['file']);
             // false: the key commented out, as w4os-wp leaves the register the grid does not use
             if ($value === false) {
                 ($where['store'] ?? false) && $this->grid->environment()->settings->set($entry['section'], $entry['key'], '');
@@ -462,6 +465,38 @@ final class GridSettings
         }
 
         return $this->read($page);
+    }
+
+    /** @var array<string,true> what the changes written leave to restart: `grid` (Robust), `simulators` */
+    private array $restarts = [];
+
+    /** Who restarts for a file written: Robust for its config and the money server's, the simulators for theirs, nobody for the helpers'. */
+    private function restartFor(string $file): void
+    {
+        $robust = (string) $this->grid->robustIni();
+        if (basename($file) === Settings::INSTANCES['helpers']['file']) {
+            return;
+        }
+        $grid = !$this->grid->isStandalone() && ($file === $robust || basename($file) === Settings::INSTANCES['moneyserver']['file']);
+        $this->restarts[$grid ? 'grid' : 'simulators'] = true;
+    }
+
+    /**
+     * What the changes written leave to do: the notices of the restarts they need (`restart-grid`, `restart-simulators`, with the
+     * command), none when nothing that an instance reads changed.
+     *
+     * @return list<array{code:string,params:array<string,string>,detail:string}>
+     */
+    public function reminders(): array
+    {
+        $reminders = [];
+        isset($this->restarts['grid']) && ($reminders[] = Notice::of('restart-grid', ['restart' => 'opensim restart ' . $this->grid->nick()]));
+        if (isset($this->restarts['simulators'])) {
+            $names = array_map(static fn($simulator): string => $simulator->name(), $this->grid->simulators());
+            $reminders[] = Notice::of('restart-simulators', ['restart' => 'opensim restart ' . ($names === [] ? $this->grid->nick() . ' --simulators' : implode(' ', $names))]);
+        }
+
+        return $reminders;
     }
 
     /**

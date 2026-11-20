@@ -36,6 +36,9 @@ final class Notice
         'import-module-missing' => ['section', 'key', 'module', 'folder', 'name'],
         'import-module-found' => ['section', 'key', 'module', 'folder', 'name', 'file'],
         'import-enable-start' => ['enable', 'start'],
+        // What a change of the settings leaves to do (GridSettings::reminders())
+        'restart-grid' => ['restart'],
+        'restart-simulators' => ['restart'],
         // The plan of the import of a grid (GridImport)
         'import-stop-grid' => ['grid', 'ports'],
         'import-switch' => ['command'],

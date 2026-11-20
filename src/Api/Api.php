@@ -419,6 +419,10 @@ final class Api
             if ($model instanceof Region && $model->reminders() !== []) {
                 $meta['reminders'] = $model->reminders();
             }
+            // A simulator reads its own file at its start
+            if ($model instanceof \OpenSim\Models\Simulator && $attributes !== []) {
+                $meta['reminders'] = [Notice::of('restart-simulators', ['restart' => 'opensim restart ' . $model->name()])];
+            }
             if ($email !== null) {
                 $send = !Result::isFalse($options['send'] ?? true);
                 $meta = self::confirmation(
@@ -960,6 +964,8 @@ final class Api
             $settings = new \OpenSim\Models\GridSettings($found);
             $values = $changes === null ? $settings->read($group) : $settings->write($group, $changes);
             $meta = $settings->meta($group);
+            // What the change leaves to do: the restart of the instances that read what changed
+            ($reminders = $settings->reminders()) !== [] && ($meta['reminders'] = $reminders);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
