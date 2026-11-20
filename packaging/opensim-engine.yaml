@@ -18,11 +18,9 @@ homepage: https://github.com/GuduleLapointe/opensim-engine
 license: AGPL-3.0-or-later
 
 depends:
-  - container-tools
   - opensim-rest-php
   - php-cli (>= 2:8.2)
   - php-curl
-  - php-imagick
   - php-intl
   - php-mbstring
   - php-mysql
@@ -30,6 +28,11 @@ depends:
   # The instances run in screen when they have no REST console; their processes are read with ps
   - procps
   - screen
+# What some features need, not the engine itself (a light install, --no-install-recommends, has the rest): the instances in
+# containers (podman, through container-tools), the pictures of the assets (JPEG 2000) and the text images
+recommends:
+  - container-tools
+  - php-imagick
 
 contents:
   - src: build/opensim-engine
