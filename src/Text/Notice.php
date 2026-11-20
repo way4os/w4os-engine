@@ -42,6 +42,7 @@ final class Notice
         // The plan of the import of a grid (GridImport)
         'import-stop-grid' => ['grid', 'ports'],
         'import-switch' => ['command'],
+        'in-place-enable' => ['enable', 'start'],
         // The plan of a restore (Archives\BackupRestore)
         'restore-start' => ['instance', 'command'],
         'restore-estate-missing' => ['regions', 'database'],

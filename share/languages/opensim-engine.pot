@@ -3352,6 +3352,10 @@ msgctxt "notice_import_stop_grid"
 msgid "The old Robust of {grid} keeps running until it is stopped: stop it and keep it from starting again (its service, its cron, its screen), its ports {ports} are the ones of the grid here, its database the same."
 msgstr ""
 
+msgctxt "notice_in_place_enable"
+msgid "The grid is registered in place, disabled: once its own start is stopped (its service, its cron, its screen), {enable}, then {start}."
+msgstr ""
+
 msgctxt "notice_import_switch"
 msgid "Then switch: {command} (the grid and its simulators enabled and started here)."
 msgstr ""

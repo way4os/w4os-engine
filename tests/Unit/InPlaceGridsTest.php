@@ -95,3 +95,38 @@ describe('The settings of the helpers of a grid in place', function () {
             ->toBe([]);
     });
 });
+
+describe('A grid of an existing install, through the API', function () {
+    test('is registered in place (planned first), then forgotten: only its section is written, the install as it was', function () {
+        [$machine, , $old] = in_place_machine();
+        $conf = $machine->etc . '/' . Layout::FILE;
+        file_put_contents($conf, "[Defaults]\nEtcRoot = {$machine->etc}\n");
+        $environment = $machine->environment->withLayout(Layout::load($conf, $machine->environment->layout->all()));
+        $router = new \OpenSim\Api\Router(new \OpenSim\Api\Api($environment));
+        $ask = static fn(array $more) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => $more + ['kind' => 'robust', 'file' => "$old/bin/Robust.HG.ini", 'inPlace' => true, 'simulators' => [['file' => "$old/bin/OpenSim.ini", 'name' => 'welcome']]]]]);
+        $before = file_get_contents("$old/bin/Robust.HG.ini");
+
+        $plan = $ask([]);
+        $planned = InPlaceGrids::section($conf, 'oldgrid');
+        $applied = $ask(['mode' => 'apply']);
+        $section = InPlaceGrids::section($conf, 'oldgrid');
+        $forgotten = $ask(['mode' => 'apply', 'forget' => true]);
+
+        expect($plan->status)
+            ->toBe(200)
+            ->and($plan->document['data']['attributes']['section'])
+            ->toMatchArray(['RobustIni' => "$old/bin/Robust.HG.ini", 'CoreDirectory' => $old, 'Simulators' => "welcome:$old/bin/OpenSim.ini"])
+            ->and($planned)
+            ->toBe([])
+            ->and($applied->document['data']['attributes']['applied'])
+            ->toBeTrue()
+            ->and($section['RobustIni'] ?? null)
+            ->toBe("$old/bin/Robust.HG.ini")
+            ->and($forgotten->status)
+            ->toBe(200)
+            ->and(InPlaceGrids::section($conf, 'oldgrid'))
+            ->toBe([])
+            ->and(file_get_contents("$old/bin/Robust.HG.ini"))
+            ->toBe($before);
+    });
+});

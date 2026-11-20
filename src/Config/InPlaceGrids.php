@@ -60,6 +60,39 @@ final class InPlaceGrids
         return $simulators;
     }
 
+    /**
+     * The section that registers an existing install in place: its Robust config, its core (the folder above its bin), its
+     * simulators (`short:ini`), disabled.
+     *
+     * @param list<array{file:string,name?:?string}> $simulators
+     * @return array<string,string>
+     */
+    public static function sectionFor(string $robustIni, array $simulators): array
+    {
+        $robustIni = (string) (realpath($robustIni) ?: $robustIni);
+        $bin = dirname($robustIni);
+        $entries = [];
+        foreach ($simulators as $simulator) {
+            $file = (string) (realpath((string) $simulator['file']) ?: $simulator['file']);
+            $short = \OpenSim\Provisioning\Slug::slug((string) (($simulator['name'] ?? '') ?: basename(dirname($file, basename(dirname($file)) === 'bin' ? 2 : 1))));
+            $entries[] = "$short:$file";
+        }
+
+        return ['RobustIni' => $robustIni, 'CoreDirectory' => basename($bin) === 'bin' ? dirname($bin) : $bin]
+            + ($entries === [] ? [] : ['Simulators' => implode(', ', $entries)]);
+    }
+
+    /** Remove the section of a grid: the suite forgets it, the install is as it was. */
+    public static function forget(string $conf, string $nick): void
+    {
+        if (!is_file($conf)) {
+            return;
+        }
+        $ini = IniEditor::load($conf);
+        $ini->removeSection(Layout::GRID_SECTION . $nick);
+        $ini->save($conf);
+    }
+
     /** @param array<string,string> $section */
     public static function robustEnabled(array $section): bool
     {

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (in place): an existing install registered where it is through the API (kind robust, inPlace; forget removes it): only its section of the config of the suite is written
 - new (in place): the settings of the helpers of a grid in place, in its section of the config of the suite (Section.Key), never in a file of the install
 - new (in place): a grid of an existing install run where it is, by its [Grid <nick>] section in the config of the suite: read from its files, enabled in its section (Enabled, EnabledSimulators), started from its own files; nothing written in the install (InPlaceGrids)
 - new (layout): the name of the config of the suite in one place (Layout::FILE); its [Grid <nick>] sections, the grids of an existing install the suite runs where they are (Layout::grids())

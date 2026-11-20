@@ -3841,6 +3841,12 @@ msgstr ""
 "Screen); seine Ports {ports} sind die des Grids hier, seine Datenbank "
 "dieselbe."
 
+msgctxt "notice_in_place_enable"
+msgid ""
+"The grid is registered in place, disabled: once its own start is stopped "
+"(its service, its cron, its screen), {enable}, then {start}."
+msgstr "Das Grid ist an Ort und Stelle registriert, deaktiviert: sobald sein eigener Start gestoppt ist (sein Dienst, sein Cron, sein Screen), {enable}, dann {start}."
+
 msgctxt "notice_import_switch"
 msgid ""
 "Then switch: {command} (the grid and its simulators enabled and started "

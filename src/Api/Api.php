@@ -1150,6 +1150,10 @@ final class Api
         $simulators = array_values(array_filter(is_array($attributes['simulators'] ?? null) ? $attributes['simulators'] : [], 'is_array'));
         $switch = !Result::isFalse($attributes['switch'] ?? false);
         $file = (string) ($attributes['file'] ?? '');
+        // In place: the install where it is, only its section of the config of the suite written (or removed)
+        if (Result::isTrue($attributes['inPlace'] ?? false) || Result::isTrue($attributes['forget'] ?? false)) {
+            return $this->registerInPlace($file, $nick, $simulators, $mode, Result::isTrue($attributes['forget'] ?? false), $instance);
+        }
         // Switched once applied: the grid is here, written by the import
         $planned = \OpenSim\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply');
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
@@ -1160,6 +1164,47 @@ final class Api
                 'type' => 'imports',
                 'id' => $planned->plan->gridNick,
                 'attributes' => ['kind' => 'robust', 'mode' => $mode, 'applied' => $mode === 'apply', 'switched' => $switch, 'started' => $started] + $planned->document(),
+            ],
+            'links' => ['self' => $instance],
+        ]);
+    }
+
+    /**
+     * An existing install registered in place (InPlaceGrids): its section of the config of the suite planned, written with `mode`
+     * apply, or removed (`forget`); nothing else is written, the install is never changed.
+     *
+     * @param list<array<string,mixed>> $simulators
+     */
+    private function registerInPlace(string $file, ?string $nick, array $simulators, string $mode, bool $forget, string $instance): Response
+    {
+        is_file($file) && is_readable($file) || throw InvalidValue::because('invalid-request', "cannot read the Robust config: $file");
+        $conf = (string) $this->environment->layout->file();
+        $conf !== '' || throw InvalidValue::because('invalid-request', 'this install has no ' . \OpenSim\Config\Layout::FILE . ' to register the grid in');
+        $raw = \OpenSim\Config\ConfigReader::load($file);
+        $nick ??= trim((string) ($raw['GridInfoService']['gridnick'] ?? ''), '"') ?: \OpenSim\Provisioning\Slug::nick(trim((string) ($raw['GridInfoService']['gridname'] ?? ''), '"'));
+        ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with nick");
+        $section = \OpenSim\Config\InPlaceGrids::sectionFor($file, $simulators);
+        $known = \OpenSim\Config\InPlaceGrids::section($conf, (string) $nick);
+        if ($forget) {
+            $known !== [] || throw NotFound::for("grid in place called '$nick'", 'grids');
+            $mode === 'apply' && \OpenSim\Config\InPlaceGrids::forget($conf, (string) $nick);
+        } else {
+            $known === [] && is_dir(rtrim($this->environment->layout->etcRoot(), '/') . "/grids/$nick") &&
+                throw InvalidValue::because('invalid-request', "this install has the grid $nick already: give another nick (nick)");
+            $known === [] || ($known['RobustIni'] ?? '') === $section['RobustIni'] ||
+                throw InvalidValue::because('invalid-request', "the grid $nick is registered in place from another Robust config already ({$known['RobustIni']})");
+            $mode === 'apply' && \OpenSim\Config\InPlaceGrids::set($conf, (string) $nick, $section);
+        }
+
+        return Response::document([
+            'data' => [
+                'type' => 'imports',
+                'id' => (string) $nick,
+                'attributes' => [
+                    'kind' => 'robust', 'mode' => $mode, 'inPlace' => true, 'forget' => $forget, 'applied' => $mode === 'apply',
+                    'grid' => (string) $nick, 'config' => $conf, 'section' => $forget ? $known : $section,
+                    'reminders' => $forget ? [] : [Notice::of('in-place-enable', ['enable' => "opensim enable $nick", 'start' => "opensim start $nick"])],
+                ],
             ],
             'links' => ['self' => $instance],
         ]);

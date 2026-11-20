@@ -3858,6 +3858,12 @@ msgstr ""
 "empêchez-le de redémarrer (son service, son cron, son screen), ses ports "
 "{ports} sont ceux de la grille ici, sa base de données la même."
 
+msgctxt "notice_in_place_enable"
+msgid ""
+"The grid is registered in place, disabled: once its own start is stopped "
+"(its service, its cron, its screen), {enable}, then {start}."
+msgstr "La grille est inscrite sur place, désactivée : une fois son propre démarrage arrêté (son service, son cron, son screen), {enable}, puis {start}."
+
 msgctxt "notice_import_switch"
 msgid ""
 "Then switch: {command} (the grid and its simulators enabled and started "
