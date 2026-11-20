@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: cb85c3b
+  version: 6cedefb
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later

@@ -80,6 +80,26 @@ describe('The page of the grid', function () {
             ->and(json_encode($saved->document))->not->toContain('c0nsole-s3cret');
     });
 
+    test('gives null for a service on its default, an empty value too; an empty one sent is the default, never an empty key', function () {
+        [$machine, $router] = provided_grid("[AssetService]\n    AssetServerURI = \"\"\n[GridService]\n    GridServerURI = \" \"\n");
+
+        $read = $router->get('/grids/demo/settings/grid')->document['data']['attributes'];
+        $saved = address_patch($router, 'grid', ['assetServerUri' => '', 'profileServiceUrl' => '']);
+        $ini = ConfigReader::load($machine->grid . '/OpenSim.ini', expand: false);
+
+        // Kept by the site as quotes only, as an empty value of a file
+        $store = new OpenSim\Config\ArraySettings();
+        $store->set('AssetService', 'AssetServerURI', '""');
+        $kept = (new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment->withSettings($store))))->get('/grids/demo/settings/grid')->document['data']['attributes'];
+
+        expect([$read['assetServerUri'], $read['gridServerUri'], $read['profileServiceUrl']])->toBe([null, null, null])
+            ->and($kept['assetServerUri'])->toBeNull()
+            ->and($saved->status)->toBe(200)
+            ->and([$saved->document['data']['attributes']['assetServerUri'], $saved->document['data']['attributes']['profileServiceUrl']])->toBe([null, null])
+            ->and(array_key_exists('AssetServerURI', $ini['AssetService'] ?? []))->toBeFalse()
+            ->and(array_key_exists('ProfileServiceURL', $ini['UserProfiles'] ?? []))->toBeFalse();
+    });
+
     test('leaves out of the numbers what it says: the models and the accounts without email by default, the visitors too when asked', function () {
         $db = excluded_stats_database();
         $count = static fn(array $exclude): array => array_intersect_key(

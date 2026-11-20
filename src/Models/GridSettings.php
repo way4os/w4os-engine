@@ -416,8 +416,10 @@ final class GridSettings
             $writes[] = [$entry, $value, $where];
         }
         foreach ($writes as [$entry, $value, $where]) {
-            // Its default: what the grid uses when the setting says nothing (the database of Robust for the search)
-            $default = isset($entry['fallback']) && is_array($value) && filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            // Its default: what the grid uses when the setting says nothing (the database of Robust for the search); an empty address
+            // sent is the default too, never an empty key
+            $default = isset($entry['fallback']) && ((is_array($value) && filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                || (is_string($value) && trim($value) === ''));
             // A database in keys of its own (the money server) reads no other: the main database of the grid is written in them
             if ($default && isset($entry['parts'])) {
                 $main = \OpenSim\Data\Database::Robust->connection($this->config()) ?? throw InvalidValue::because('invalid-request', "the grid says no main database to use for {$entry['name']}");
@@ -921,7 +923,8 @@ final class GridSettings
             return self::parts($entry, $config);
         }
         $said = $config->find($entry['section'], $entry['key']);
-        $said = $said === null || trim($said) === '' ? null : trim($said, " \t\"");
+        // Empty, or its quotes only: the file says nothing
+        $said = $said === null || trim($said, " \t\"") === '' ? null : trim($said, " \t\"");
         if (($codec = Settings::type($entry['type'])) !== null) {
             $value = $said === null ? null : $codec->decode($said);
 
