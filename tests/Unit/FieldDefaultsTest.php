@@ -60,7 +60,7 @@ describe('An empty field of a page of settings', function () {
             ->and($hints['search'])->toMatchArray([
                 'eventsUrl' => ['default' => SearchTasks::EVENTS_SOURCE],
                 'searchExternalUrl' => ['default' => 'http://2do.directory/helpers/query.php'],
-                'registers' => ['default' => ['http://2do.directory/helpers/register.php']],
+                'include2do' => ['default' => true],
                 'searchDatabase.port' => ['default' => 3306],
             ])
             ->and($hints['guide'])->toMatchArray(['guideSource' => ['default' => 'https://2do.directory/destinations/guide']])

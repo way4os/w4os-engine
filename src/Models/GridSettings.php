@@ -40,7 +40,7 @@ final class GridSettings
         'grid' => [
             'title' => 'settings_grid',
             'menu' => 'settings_menu_grid',
-            'groups' => [['name' => 'grid', 'label' => 'group_grid_info'], ['name' => 'robust', 'label' => 'group_robust'], ['name' => 'services', 'label' => 'group_services'], ['name' => 'users', 'label' => 'group_users']],
+            'groups' => [['name' => 'grid', 'label' => 'group_grid_info'], ['name' => 'robust', 'label' => 'group_robust'], ['name' => 'services', 'label' => 'group_services'], ['name' => 'avatars', 'label' => 'group_avatars']],
         ],
         'models' => [
             'title' => 'settings_models',
@@ -118,8 +118,8 @@ final class GridSettings
             // The services that may be in Robust instances of their own
             'assetServerUri' => ['group' => 'services', 'label' => 'setting_assets_service_uri', 'description' => ['uri_default_robust']],
             'profileServiceUrl' => ['group' => 'services', 'label' => 'setting_profile_service_uri', 'description' => ['uri_default_login']],
-            'webProfileUrl' => ['group' => 'users', 'label' => 'setting_profile_page'],
-            'excludeFromStats' => ['group' => 'users'],
+            'webProfileUrl' => ['group' => 'avatars', 'label' => 'setting_profile_page'],
+            'excludeFromStats' => ['group' => 'avatars'],
         ],
         'economy' => [
             'currencyRate' => ['condition' => ['economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex']]],
@@ -289,7 +289,7 @@ final class GridSettings
      * Where the simulators register for the search: their own register under the helpers (`registerPath`), and the registers of
      * other search engines (`registers`, the other DATA_SRV_ of [DataSnapshot]; 2do.directory's when the grid has none).
      *
-     * @return array{registerPath:string,registers:list<string>}
+     * @return array{registerPath:string,include2do:bool,registers:list<string>}
      */
     private function register(GridConfig $config, bool $on): array
     {
@@ -298,9 +298,15 @@ final class GridSettings
         $mine = static fn(string $url): bool => $base !== null && str_starts_with($url, $base . '/');
         $own = trim((string) $config->find('DataSnapshot', $this->ownRegister()), " \t\"");
         $others = [];
-        foreach ($config->keys('DataSnapshot', '/^DATA_SRV_/i') as $key => $url) {
+        $twoDo = null;
+        $keys = $config->keys('DataSnapshot', '/^DATA_SRV_/i');
+        foreach ($keys as $key => $url) {
             $url = trim((string) $url, " \t\"");
             if ($url === '' || strcasecmp((string) $key, $this->ownRegister()) === 0) {
+                continue;
+            }
+            if (self::is2do($url)) {
+                $twoDo = true;
                 continue;
             }
             $mine($url) ? ($own !== '' || ($own = $url)) : ($others[] = $url);
@@ -308,12 +314,33 @@ final class GridSettings
 
         return [
             'registerPath' => $own !== '' && $base !== null && str_starts_with($own, $base . '/') ? substr($own, strlen($base) + 1) : 'register.php',
-            'registers' => $others !== [] ? array_values(array_unique($others)) : [self::REGISTER_2DO],
+            // 2do.directory, on for a grid that registers nowhere yet
+            'include2do' => $twoDo ?? array_filter(array_map(static fn($url): string => trim((string) $url, " \t\""), $keys)) === [],
+            'registers' => array_values(array_unique($others)),
         ];
     }
 
     /** The register of 2do.directory, the one recommended. */
     private const REGISTER_2DO = 'http://2do.directory/helpers/register.php';
+
+    /** The address of 2do.directory the grid registers on now (http or https), null when none. */
+    private function twoDoRegister(): ?string
+    {
+        foreach ($this->config()->keys('DataSnapshot', '/^DATA_SRV_/i') as $url) {
+            $url = trim((string) $url, " \t\"");
+            if ($url !== '' && self::is2do($url)) {
+                return $url;
+            }
+        }
+
+        return null;
+    }
+
+    /** Whether an address is the one of 2do.directory. */
+    private static function is2do(string $url): bool
+    {
+        return str_contains((string) parse_url($url, PHP_URL_HOST), '2do.directory');
+    }
 
     /** The key of a register in [DataSnapshot]: DATA_SRV_2do for 2do.directory, else DATA_SRV_ and its host. */
     private static function registerKey(string $url): string
@@ -551,12 +578,12 @@ final class GridSettings
         $provide = self::PROVIDE[$page];
         $setting = $provide['setting'];
         $external = $provide['external'] ?? null;
-        $register = $page === 'search' ? array_intersect_key($values, ['registerPath' => 1, 'registers' => 1]) : [];
+        $register = $page === 'search' ? array_intersect_key($values, ['registerPath' => 1, 'registers' => 1, 'include2do' => 1]) : [];
         $given = array_key_exists('provide', $values) || array_key_exists('path', $values) || ($external !== null && array_key_exists($external, $values)) || $register !== [];
         $now = $given ? $this->read($page) : [];
         $on = array_key_exists('provide', $values) ? filter_var($values['provide'], FILTER_VALIDATE_BOOLEAN) : (bool) ($now['provide'] ?? true);
         $path = $values['path'] ?? null;
-        unset($values['provide'], $values['path'], $values['registerPath'], $values['registers']);
+        unset($values['provide'], $values['path'], $values['registerPath'], $values['registers'], $values['include2do']);
         if (!$given) {
             return $values;
         }
@@ -596,6 +623,11 @@ final class GridSettings
             foreach ($this->config()->keys('DataSnapshot', '/^DATA_SRV_/i') as $key => $url) {
                 strcasecmp((string) $key, $own) === 0 || ($values[(string) $key] = false);
             }
+            // 2do.directory by its box; given in the list, it is included all the same
+            $twoDo = array_values(array_filter($registers, self::is2do(...)));
+            $registers = array_diff($registers, $twoDo);
+            $include = $twoDo !== [] || filter_var($register['include2do'] ?? $now['include2do'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $include && ($values['DATA_SRV_2do'] = $twoDo[0] ?? $this->twoDoRegister() ?? self::REGISTER_2DO);
             foreach ($registers as $url) {
                 $values[self::registerKey($url)] = $url;
             }
@@ -653,7 +685,8 @@ final class GridSettings
         // The registers of the search: its own under the helpers, and the ones of other search engines, whatever Provide
         $page === 'search' && ($register = [
             ['name' => 'registerPath', 'type' => 'path', 'base' => 'helpers', 'label' => 'search_register_url', 'description' => ['search_register_help_data'], 'condition' => $on],
-            ['name' => 'registers', 'type' => 'url', 'multiple' => true, 'label' => 'search_registers', 'description' => ['search_register_help_several', 'search_register_help_2do'], 'default' => [self::REGISTER_2DO]],
+            ['name' => 'include2do', 'type' => 'boolean', 'label' => 'search_include_2do', 'description' => ['search_register_help_2do'], 'default' => true],
+            ['name' => 'registers', 'type' => 'url', 'multiple' => true, 'label' => 'search_registers', 'description' => ['search_register_help_several']],
         ]);
         // The address where w4os-wp shows it: after Provide, or after the field it follows
         $at = isset($provide['after']) ? array_search($provide['after'], array_column($others, 'name'), true) : false;
@@ -771,6 +804,7 @@ final class GridSettings
     private function searchLines(\Closure $add, array $values, string $url): void
     {
         $register = $values['provide'] ? [$this->ownRegister() => '"' . $this->baseOf('search') . '/' . ltrim($values['registerPath'], '/') . '"'] : [];
+        ($values['include2do'] ?? true) && ($register['DATA_SRV_2do'] = '"' . ($this->twoDoRegister() ?? self::REGISTER_2DO) . '"');
         foreach ($values['registers'] as $url) {
             $register[self::registerKey($url)] = '"' . $url . '"';
         }

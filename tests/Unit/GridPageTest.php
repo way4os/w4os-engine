@@ -42,9 +42,9 @@ describe('The page of the grid', function () {
             ['loginUri', 'grid'], ['gridName', 'grid'], ['gridNick', 'grid'],
             ['gridServerUri', 'robust'], ['database', 'robust'], ['consoleUser', 'robust'], ['consolePass', 'robust'], ['consolePort', 'robust'],
             ['assetServerUri', 'services'], ['profileServiceUrl', 'services'],
-            ['webProfileUrl', 'users'], ['excludeFromStats', 'users'],
+            ['webProfileUrl', 'avatars'], ['excludeFromStats', 'avatars'],
         ])
-            ->and(array_map(static fn(array $group): string => $en($group['label']), $form['groups']))->toBe(['Grid Info', 'Robust', 'Services', 'Users'])
+            ->and(array_map(static fn(array $group): string => $en($group['label']), $form['groups']))->toBe(['Grid Info', 'Robust', 'Services', 'Avatars'])
             ->and(array_map(static fn(array $field): string => $en($field['label']), $form['fields']))->toBe([
                 'Login URI', 'Grid Name', 'Grid Nickname', 'Robust URI', 'ROBUST Database', 'Console User', 'Console Password', 'Console Port',
                 'Assets Service URI', 'Profile Service URI', 'Profile Page', 'Exclude from stats',

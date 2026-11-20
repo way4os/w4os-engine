@@ -370,8 +370,8 @@ msgctxt "group_services"
 msgid "Services"
 msgstr ""
 
-msgctxt "group_users"
-msgid "Users"
+msgctxt "group_avatars"
+msgid "Avatars"
 msgstr ""
 
 msgctxt "setting_robust_uri"
@@ -616,6 +616,10 @@ msgstr ""
 
 msgctxt "search_register_url"
 msgid "Search Register URL"
+msgstr ""
+
+msgctxt "search_include_2do"
+msgid "Include 2do.directory"
 msgstr ""
 
 msgctxt "search_registers"

@@ -35,7 +35,7 @@ function english(array|string $keys): array
 describe('The pages of the services, as w4os-wp', function () {
     test('have its fields in its order', function () {
         expect(page_fields('economy'))->toBe(['provide', 'path', 'economyUrl', 'economyModule', 'moneyServerWarning', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'])
-            ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'registers', 'webSearchUrl', 'eventsUrl'])
+            ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'include2do', 'registers', 'webSearchUrl', 'eventsUrl'])
             ->and(page_fields('guide'))->toBe(['provide', 'guideSource', 'path', 'destinationGuide'])
             ->and(page_fields('offline'))->toBe(['provide', 'mailSender', 'offlineDatabase', 'offlineModule', 'path', 'offlineMessageUrl'])
             ->and(page_fields('assets'))->toBe(['provide', 'path', 'assetsUrl']);

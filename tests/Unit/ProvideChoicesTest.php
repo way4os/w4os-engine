@@ -46,8 +46,8 @@ describe('Provide', function () {
         foreach (PROVIDED_PAGES as $page) {
             $fields = provided_fields($page);
             $setting = array_values(array_filter($fields, static fn(array $field): bool => ($field['condition']['provide'] ?? null) === [false]));
-            // The registers of the search are shown whatever Provide: the ones of other search engines (2do.directory)
-            $others = array_diff_key($fields, ['provide' => 1, 'registers' => 1], array_column($setting, null, 'name'));
+            // The registers of the search are shown whatever Provide: 2do.directory and the other search engines
+            $others = array_diff_key($fields, ['provide' => 1, 'registers' => 1, 'include2do' => 1], array_column($setting, null, 'name'));
 
             // The offline messages have their module too
             expect($setting)->toHaveCount($page === 'offline' ? 2 : 1)

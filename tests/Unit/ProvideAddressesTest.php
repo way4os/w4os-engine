@@ -42,16 +42,16 @@ describe('The address of a service', function () {
         $onIni = file_get_contents($machine->grid . '/OpenSim.ini');
 
         expect([$fields['searchExternalUrl']['condition'], $fields['registerPath']['condition']])->toBe([['provide' => [false]], ['provide' => [true]]])
-            ->and($fields['registers'])->toMatchArray(['type' => 'url', 'multiple' => true, 'default' => ['http://2do.directory/helpers/register.php']])
+            ->and($fields['registers'])->toMatchArray(['type' => 'url', 'multiple' => true])
             ->and($fields['registers'])->not->toHaveKey('condition')
             ->and($fields['registerPath']['base'])->toBe('helpers')
             ->and(array_keys($fields))->not->toContain('searchUrl')->not->toContain('dataServices')->not->toContain('registerExternalUrl')
-            // 2do.directory, recommended, when the grid registers nowhere else
-            ->and([$default['searchExternalUrl'], $default['registers']])->toBe(['http://2do.directory/helpers/query.php', ['http://2do.directory/helpers/register.php']])
+            // 2do.directory, recommended, by its box; the list the other search engines
+            ->and([$default['searchExternalUrl'], $default['include2do'], $default['registers']])->toBe(['http://2do.directory/helpers/query.php', true, []])
             ->and($off->status)->toBe(200)
             ->and($offIni)->toContain('SearchURL = "https://search.example.org/query.php"')->toContain('DATA_SRV_SearchExampleOrg = "https://search.example.org/register.php"')
             ->and($on->document['data']['attributes'])->toMatchArray(['provide' => true, 'searchExternalUrl' => 'https://search.example.org/query.php'])
-            ->and($on->document['data']['attributes']['registers'])->toEqualCanonicalizing(['http://2do.directory/helpers/register.php', 'https://search.example.org/register.php'])
+            ->and([$on->document['data']['attributes']['include2do'], $on->document['data']['attributes']['registers']])->toBe([true, ['https://search.example.org/register.php']])
             ->and($onIni)->toContain('SearchURL = "https://play.example.org/helpers/query')->toContain('= "https://play.example.org/helpers/register')
             ->and($onIni)->toContain('DATA_SRV_2do = "http://2do.directory/helpers/register.php"');
     });
