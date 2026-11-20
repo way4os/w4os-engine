@@ -346,6 +346,26 @@ msgctxt "settings_models"
 msgid "Avatar Models"
 msgstr ""
 
+msgctxt "settings_avatars"
+msgid "Avatar Settings"
+msgstr ""
+
+msgctxt "setting_allow_multiple_avatars"
+msgid "Allow multiple avatars"
+msgstr ""
+
+msgctxt "setting_allow_multiple_avatars_help"
+msgid "Allow more than one avatar for a single email address."
+msgstr ""
+
+msgctxt "setting_reserved_names"
+msgid "Forbidden names"
+msgstr ""
+
+msgctxt "setting_reserved_names_help"
+msgid "No new avatar may have one of them as its first or last name, nor the name of the grid."
+msgstr ""
+
 msgctxt "settings_economy"
 msgid "Economy Settings"
 msgstr ""
@@ -3078,6 +3098,10 @@ msgstr ""
 
 msgctxt "error_name_taken"
 msgid "An avatar already has this name, please choose another one."
+msgstr ""
+
+msgctxt "error_email_taken"
+msgid "An avatar already has this email address."
 msgstr ""
 
 msgctxt "error_password_required"

@@ -177,6 +177,11 @@ final class Settings
                 'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'default' => \OpenSim\Economy\CurrencySettings::PODEX_MESSAGE, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
                 'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'example' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
             ],
+            // Checked when an avatar is made (Avatar::check())
+            'Avatars' => [
+                'AllowMultipleAvatars' => ['name' => 'allowMultipleAvatars', 'type' => 'bool', 'label' => 'setting_allow_multiple_avatars', 'default' => true, 'admin' => 'avatars'],
+                'ReservedNames' => ['name' => 'reservedNames', 'type' => 'text', 'label' => 'setting_reserved_names', 'multiple' => true, 'default' => \OpenSim\Models\Avatar::RESERVED_NAMES, 'admin' => 'avatars'],
+            ],
             'Models' => [
                 'Match' => ['name' => 'match', 'type' => 'select', 'label' => 'models_match', 'widget' => 'radio', 'options' => ['first' => 'models_match_first', 'any' => 'models_match_any', 'last' => 'models_match_last', 'uuid' => 'models_match_uuid'], 'default' => 'any', 'admin' => 'models'],
                 'MatchPattern' => ['name' => 'pattern', 'type' => 'text', 'label' => 'models_pattern', 'default' => 'Default', 'condition' => ['match' => ['first', 'any', 'last']], 'admin' => 'models'],

@@ -383,6 +383,28 @@ msgctxt "settings_models"
 msgid "Avatar Models"
 msgstr "Modelau Afatar"
 
+msgctxt "settings_avatars"
+msgid "Avatar Settings"
+msgstr "Gosodiadau Afatarau"
+
+msgctxt "setting_allow_multiple_avatars"
+msgid "Allow multiple avatars"
+msgstr "Caniatáu llu o avatarau"
+
+msgctxt "setting_allow_multiple_avatars_help"
+msgid "Allow more than one avatar for a single email address."
+msgstr "Caniatáu mwy nag un avatar ar gyfer cyfeiriad ebost unigol."
+
+msgctxt "setting_reserved_names"
+msgid "Forbidden names"
+msgstr "Enwau gwaharddedig"
+
+msgctxt "setting_reserved_names_help"
+msgid ""
+"No new avatar may have one of them as its first or last name, nor the name "
+"of the grid."
+msgstr "Ni chaiff unrhyw afatar newydd gael un ohonynt fel ei enw cyntaf neu olaf, nac enw'r grid."
+
 msgctxt "settings_economy"
 msgid "Economy Settings"
 msgstr "Gosodiadau"
@@ -3449,6 +3471,10 @@ msgstr "Mae’r enw hwn wedi’i gadw, dewiswch un arall."
 msgctxt "error_name_taken"
 msgid "An avatar already has this name, please choose another one."
 msgstr "Mae gan avatar yr enw hwn yn barod, dewiswch un arall."
+
+msgctxt "error_email_taken"
+msgid "An avatar already has this email address."
+msgstr "Mae gan afatar y cyfeiriad e-bost hwn eisoes."
 
 msgctxt "error_password_required"
 msgid "Please fill in every field."

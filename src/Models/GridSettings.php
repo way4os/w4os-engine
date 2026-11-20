@@ -42,6 +42,7 @@ final class GridSettings
             'description' => ['models_help_choice', 'models_help_create', 'models_help_not_users', 'models_help_outfit', 'models_help_rule'],
             'preview' => ['label' => 'models_preview', 'empty' => 'models_none', 'path' => '/grids/{grid}/avatar-models', 'filters' => ['match', 'pattern', 'list']],
         ],
+        'avatars' => ['title' => 'settings_avatars', 'menu' => 'settings_avatars'],
         'economy' => ['title' => 'settings_economy', 'menu' => 'settings_menu_economy', 'description' => ['economy_help_helpers', 'economy_help_scripts', 'economy_help_module', 'economy_help_modules', 'economy_help_binaries']],
         'search' => ['title' => 'settings_search', 'menu' => 'settings_menu_search', 'description' => ['search_help_local', 'search_help_external', 'search_help_module', 'search_help_binary']],
         'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide', 'description' => ['guide_help_feature', 'guide_help_places', 'guide_source_help_file', 'guide_source_help_pipe', 'guide_source_help_categories', 'guide_source_help_comments', 'guide_source_help_board']],
@@ -147,6 +148,7 @@ final class GridSettings
     {
         return match ($page) {
             'models' => 'The rule the avatar models are picked by (`[Models]`, the keys of w4os): `match` first (the first name is the pattern), last (the last name), any (either), uuid (the list); `pattern`, the name; `list`, the UUIDs of the models for uuid. The models it picks are the list of `/grids/{grid}/avatar-models`.',
+            'avatars' => 'What is checked when an avatar is made (`[Avatars]` of Helpers.ini): `allowMultipleAvatars`, more than one avatar for an email (true by default; false refuses a new avatar whose email an avatar has, `email-taken`); `reservedNames`, the names no new avatar may have as its first or last name (Default, Test, Admin by default; the name of the grid always, `name-reserved`).',
             'economy' => 'The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module chosen as w4os-wp chooses its provider (the free economy, the generic money server, Gloebit and its settings, or Podex: the generic money server, `[Helpers] CurrencyProvider = podex`), its database, the key of the money server, the rate and the settings of Podex the helpers use.',
             'search' => 'The search of the grid, as w4os-wp has it: what the simulators call and where they register (set by the options of the grid), the database of the search, the calendar of the events.',
             'guide' => 'The destinations guide of the grid, as w4os-wp has it: its address (`DestinationGuide` of `[LoginService]`) and its source (`GuideSource` of `[Helpers]`).',
@@ -866,7 +868,7 @@ final class GridSettings
             return $said === null ? '' : Settings::MASK;
         }
         if ($entry['multiple'] ?? false) {
-            return $said === null ? ($entry['default'] ?? []) : self::list($said);
+            return $said === null ? ($entry['default'] ?? []) : ($entry['type'] === 'avatar' ? array_map('strtolower', self::list($said)) : self::list($said));
         }
         if ($said === null) {
             return $entry['default'] ?? null;
@@ -897,7 +899,8 @@ final class GridSettings
         }
         if ($entry['multiple'] ?? false) {
             $list = is_array($value) ? $value : self::list((string) $value);
-            $list = array_values(array_unique(array_map(static fn($v): string => strtolower(trim((string) $v)), $list)));
+            // The UUIDs in small letters, the names as they are typed
+            $list = array_values(array_unique(array_filter(array_map(static fn($v): string => $entry['type'] === 'avatar' ? strtolower(trim((string) $v)) : trim((string) $v), $list), 'strlen')));
             foreach ($list as $item) {
                 $entry['type'] === 'avatar' && !Uuid::isValid($item) && $refuse("'$item' is not the UUID of an avatar");
             }
@@ -1027,7 +1030,7 @@ final class GridSettings
     /** @return list<string> the items of a list as the files keep it, separated by commas, spaces or semicolons */
     private static function list(string $text): array
     {
-        return array_values(array_map('strtolower', preg_split('/[\s,;]+/', trim($text, " \t\""), -1, PREG_SPLIT_NO_EMPTY) ?: []));
+        return array_values(preg_split('/[\s,;]+/', trim($text, " \t\""), -1, PREG_SPLIT_NO_EMPTY) ?: []);
     }
 
     /**

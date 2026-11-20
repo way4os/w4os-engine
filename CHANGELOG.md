@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feat (avatars): a page of settings, Avatar Settings: more than one avatar for an email (on by default) and the forbidden names (Default, Test, Admin by default, the name of the grid always), checked when an avatar is made
 - change (settings): the switch of a database that may use the default says Use default only, the field its own label, what the default is in its description
 - change (offline): the lines of Robust for the module V2 have the connector that keeps the messages (`OfflineIMServiceConnector` of `[ServiceList]`, commented in the distribution)
 - fix (search): the own register of the grid shown once, as its path, whatever the key the simulators have it under (`DATA_SRV_<nick>`), not again in the list of the other search engines

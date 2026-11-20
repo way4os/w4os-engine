@@ -386,6 +386,28 @@ msgctxt "settings_models"
 msgid "Avatar Models"
 msgstr "Avatar-Modelle"
 
+msgctxt "settings_avatars"
+msgid "Avatar Settings"
+msgstr "Avatar-Einstellungen"
+
+msgctxt "setting_allow_multiple_avatars"
+msgid "Allow multiple avatars"
+msgstr "Erlaube mehrere Avatare"
+
+msgctxt "setting_allow_multiple_avatars_help"
+msgid "Allow more than one avatar for a single email address."
+msgstr "Erlaube mehr als einen Avatar für eine einzige E-Mail-Adresse."
+
+msgctxt "setting_reserved_names"
+msgid "Forbidden names"
+msgstr "Verbotene Namen"
+
+msgctxt "setting_reserved_names_help"
+msgid ""
+"No new avatar may have one of them as its first or last name, nor the name "
+"of the grid."
+msgstr "Kein neuer Avatar darf einen davon als Vor- oder Nachnamen haben, ebenso wenig den Namen des Grids."
+
 msgctxt "settings_economy"
 msgid "Economy Settings"
 msgstr "Wirtschaftseinstellungen"
@@ -3443,6 +3465,10 @@ msgstr "Dieser Name ist reserviert, bitte wähle einen anderen."
 msgctxt "error_name_taken"
 msgid "An avatar already has this name, please choose another one."
 msgstr "Ein Avatar hat schon diesen Namen, bitte wähle einen anderen."
+
+msgctxt "error_email_taken"
+msgid "An avatar already has this email address."
+msgstr "Ein Avatar hat diese E-Mail-Adresse bereits."
 
 msgctxt "error_password_required"
 msgid "Please fill in every field."

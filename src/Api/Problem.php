@@ -39,6 +39,7 @@ final class Problem
         'name-invalid' => 'The name is not a first and a last name of letters, digits and -',
         'name-reserved' => 'A part of the name is reserved: Default, Test, Admin, the name of the grid',
         'name-taken' => 'An avatar has this name already',
+        'email-taken' => 'An avatar has this email already, and the grid allows one avatar for an email',
         'password-required' => 'A password is needed',
         'password-invalid' => 'The password is too short, too long, or has a double quote',
         'email-invalid' => 'The email is not an address',

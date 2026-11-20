@@ -815,17 +815,31 @@ final class Avatar extends Model
      *
      * @param string $grid the name of the grid, '' when it has none
      */
-    public static function validateNewName(mixed $value, string $grid = ''): ?string
+    public static function validateNewName(mixed $value, string $grid = '', ?array $reserved = null): ?string
     {
         $wrong = self::validateName($value);
         if ($wrong !== null) {
             return $wrong;
         }
-        $reserved = array_filter(array_map('strtolower', [...self::RESERVED_NAMES, str_replace(' ', '', $grid)]));
+        $names = $reserved ?? self::RESERVED_NAMES;
+        $forbidden = array_filter(array_map('strtolower', [...$names, str_replace(' ', '', $grid)]));
 
-        return array_intersect(explode(' ', strtolower(trim((string) $value))), $reserved) !== []
-            ? sprintf(_('reserved (%s and the name of the grid)'), implode(', ', self::RESERVED_NAMES))
+        return array_intersect(explode(' ', strtolower(trim((string) $value))), $forbidden) !== []
+            ? sprintf(_('reserved (%s and the name of the grid)'), implode(', ', $names))
             : null;
+    }
+
+    /**
+     * The names no new avatar may have, as the grid sets them (`ReservedNames` of `[Avatars]`), else RESERVED_NAMES; the name of the
+     * grid is always one of them (validateNewName()).
+     *
+     * @return list<string>
+     */
+    public static function reservedNames(GridConfig $config): array
+    {
+        $said = $config->find('Avatars', 'ReservedNames');
+
+        return $said === null ? self::RESERVED_NAMES : array_values(preg_split('/[\s,;]+/', trim($said, " \t\""), -1, PREG_SPLIT_NO_EMPTY) ?: []);
     }
 
     /**
@@ -919,7 +933,7 @@ final class Avatar extends Model
         }
         if (
             !Result::isTrue($values['reservedName'] ?? false) &&
-            ($wrong = self::validateNewName("$first $last", (string) $config->find('GridInfoService', 'gridname'))) !==
+            ($wrong = self::validateNewName("$first $last", (string) $config->find('GridInfoService', 'gridname'), self::reservedNames($config))) !==
                 null
         ) {
             throw InvalidValue::because('name-reserved', "the name '$first $last' is $wrong");
@@ -949,6 +963,15 @@ final class Avatar extends Model
             ]) > 0
         ) {
             throw InvalidValue::because('name-taken', "an avatar called '$first $last' exists already");
+        }
+        // One avatar for an email, when the grid allows no more (`AllowMultipleAvatars` of `[Avatars]`, true by default)
+        $email = trim((string) ($values['email'] ?? ''));
+        if (
+            $email !== '' &&
+            in_array(strtolower(trim((string) $config->find('Avatars', 'AllowMultipleAvatars'), " \t\"")), ['false', '0', 'no', 'off'], true) &&
+            (int) $accounts->get_var('SELECT COUNT(*) FROM UserAccounts WHERE LOWER(Email) = :e', ['e' => strtolower($email)]) > 0
+        ) {
+            throw InvalidValue::because('email-taken', "an avatar has the email '$email' already, and the grid allows one avatar for an email");
         }
         $model = null;
         if (trim((string) ($values['model'] ?? '')) !== '') {
