@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- feature (import): the grid of another install migrated into this one (kind robust of POST /setups/imports): the same grid and database, its Robust config made here with its own settings kept, its simulators in the same run, written disabled, then switched once the old Robust is stopped
 - feature (import): the accounts of a list made in a grid through the API (kind accounts of POST /setups/imports): CSV, JSON or YAML, planned first, a password made for the ones given none, given back once made
 - fix (packaging): every ini of a grid, MoneyServer.ini too, is 640 for the group of the web server again at each upgrade, as opensim-tools made them
 - fix (packaging): the engine depends on screen and procps; its preinst also replaces the old container-tools folder; purge removes the cache and the owners of the layout

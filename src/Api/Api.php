@@ -1061,7 +1061,7 @@ final class Api
         $instance = '/setups/imports';
         try {
             $kind = (string) ($attributes['kind'] ?? 'simulator');
-            in_array($kind, ['simulator', 'flux', 'grid-settings', 'accounts'], true) || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator, flux, grid-settings, accounts");
+            in_array($kind, ['simulator', 'flux', 'grid-settings', 'accounts', 'robust'], true) || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator, flux, grid-settings, accounts, robust");
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
             if ($kind === 'flux') {
@@ -1069,6 +1069,9 @@ final class Api
             }
             if ($kind === 'accounts') {
                 return $this->importAccounts($attributes, $mode, $instance);
+            }
+            if ($kind === 'robust') {
+                return $this->importGrid($attributes, $mode, $instance);
             }
             // The settings of a grid of another install, in the OpenSim.ini of a grid of this machine
             if ($kind === 'grid-settings') {
@@ -1121,6 +1124,36 @@ final class Api
                 'type' => 'imports',
                 'id' => $import->plan->slug,
                 'attributes' => ['kind' => $kind, 'mode' => $mode, 'applied' => $mode === 'apply'] + $import->document(),
+            ],
+            'links' => ['self' => $instance],
+        ]);
+    }
+
+    /**
+     * The grid of another install migrated into this one (GridImport): `file` its Robust config, `nick` and `core` when they are
+     * not the ones of its config and of this install, `simulators` the configs of its simulators (`file`, `name`, `core`, `scripts`
+     * each). Written disabled with `mode` apply; `switch` (with apply, or once applied) enables and starts it here once the old Robust
+     * is stopped.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    private function importGrid(array $attributes, string $mode, string $instance): Response
+    {
+        $nick = ($attributes['nick'] ?? '') !== '' ? (string) $attributes['nick'] : null;
+        $core = ($attributes['core'] ?? '') !== '' ? (string) $attributes['core'] : null;
+        $simulators = array_values(array_filter(is_array($attributes['simulators'] ?? null) ? $attributes['simulators'] : [], 'is_array'));
+        $switch = !Result::isFalse($attributes['switch'] ?? false);
+        $file = (string) ($attributes['file'] ?? '');
+        // Switched once applied: the grid is here, written by the import
+        $planned = \OpenSim\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply');
+        $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
+        $started = $switch ? $planned->switch($this->environment, new NullUi()) : [];
+
+        return Response::document([
+            'data' => [
+                'type' => 'imports',
+                'id' => $planned->plan->gridNick,
+                'attributes' => ['kind' => 'robust', 'mode' => $mode, 'applied' => $mode === 'apply', 'switched' => $switch, 'started' => $started] + $planned->document(),
             ],
             'links' => ['self' => $instance],
         ]);

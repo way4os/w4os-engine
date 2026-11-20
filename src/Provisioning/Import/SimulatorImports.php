@@ -30,8 +30,9 @@ final class SimulatorImports
      * What the imports would do, checked each against the grid, then between them; nothing written.
      *
      * @param list<array{file:string,name?:?string,core?:?string,scripts?:bool}> $simulators
+     * @param ?\OpenSim\Models\Grid $planned the grid they join when it is not written yet (GridImport)
      */
-    public static function prepare(Environment $environment, array $simulators, string $grid): self
+    public static function prepare(Environment $environment, array $simulators, string $grid, ?\OpenSim\Models\Grid $planned = null): self
     {
         $simulators !== [] || throw InvalidValue::because('invalid-request', 'no simulator to import (simulators)');
         $imports = [];
@@ -45,6 +46,7 @@ final class SimulatorImports
                     ($simulator['name'] ?? '') !== '' ? (string) $simulator['name'] : null,
                     ($simulator['core'] ?? '') !== '' ? (string) $simulator['core'] : null,
                     !\OpenSim\Result::isFalse($simulator['scripts'] ?? true),
+                    $planned,
                 );
             } catch (\OpenSim\Exceptions\NotFound $error) {
                 throw $error;

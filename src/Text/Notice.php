@@ -36,6 +36,9 @@ final class Notice
         'import-module-missing' => ['section', 'key', 'module', 'folder', 'name'],
         'import-module-found' => ['section', 'key', 'module', 'folder', 'name', 'file'],
         'import-enable-start' => ['enable', 'start'],
+        // The plan of the import of a grid (GridImport)
+        'import-stop-grid' => ['grid', 'ports'],
+        'import-switch' => ['command'],
         // The plan of a restore (Archives\BackupRestore)
         'restore-start' => ['instance', 'command'],
         'restore-estate-missing' => ['regions', 'database'],

@@ -62,6 +62,7 @@ final class SimulatorImport
      * @param ?string $core the folder of the core it will run with (default: the one of the grid)
      * @param bool $scripts copy the state of its scripts (its ScriptEngines folders) into the folder of the new simulator: false loses
      *        it, every script starts again from the beginning
+     * @param ?Grid $planned the grid it joins when it is not written yet (Grid::planned(): the import of a grid plans its simulators)
      * @throws NotFound for a grid this machine does not have
      * @throws InvalidValue for what cannot be imported, said
      */
@@ -72,12 +73,14 @@ final class SimulatorImport
         ?string $name = null,
         ?string $core = null,
         bool $scripts = true,
+        ?Grid $planned = null,
     ): self {
         if (!is_file($file) || !is_readable($file)) {
             throw InvalidValue::because('invalid-request', "cannot read the config of the simulator: $file");
         }
         $file = (string) realpath($file);
-        $found = Grid::find($environment, $grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+        // A grid of this machine, or the one an import of a grid plans and writes first (GridImport)
+        $found = $planned ?? Grid::find($environment, $grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
         if ($found->isRemote()) {
             throw InvalidValue::because('invalid-request', "the grid '$grid' is described here, its Robust runs elsewhere: import into a grid of this machine");
         }
@@ -305,7 +308,7 @@ final class SimulatorImport
      * @param array{key:string,value:string} $setting
      * @return array<string,mixed>
      */
-    private static function masked(array $setting): array
+    public static function masked(array $setting): array
     {
         // Only the secret is masked: a connection string keeps its host, its database and its user
         $line = "{$setting['key']} = {$setting['value']}";
@@ -386,7 +389,7 @@ final class SimulatorImport
      * @param list<string> $paths
      * @return list<string>
      */
-    private static function unreadable(array $paths): array
+    public static function unreadable(array $paths): array
     {
         $found = [];
         foreach (array_unique($paths) as $path) {
