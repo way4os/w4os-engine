@@ -172,6 +172,29 @@ describe('Ports bound on a machine', function () {
     );
 });
 
+describe('The ports bound on Linux without netstat', function () {
+    test('are read from /proc/net: a TCP socket that listens, a UDP one, not a connection', function () {
+        // /proc/net/tcp: local address and port in hexadecimal, state 0A listens, 01 is a connection
+        $tcp = <<<'PROC'
+          sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode
+           0: 00000000:1F42 00000000:0000 0A 00000000:00000000 00:00000000 00000000   999        0 1 1
+           1: 0100007F:1F43 00000000:0000 0A 00000000:00000000 00:00000000 00000000   999        0 2 1
+           2: 0200000A:A112 0900000A:2332 01 00000000:00000000 00:00000000 00000000   999        0 3 1
+          PROC;
+        $udp = <<<'PROC'
+          sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode ref pointer drops
+           5: 00000000:232B 00000000:0000 07 00000000:00000000 00:00000000 00000000   999        0 4 2 0 0
+          PROC;
+
+        expect(SystemProcessTable::parseProc($tcp, 'tcp'))
+            ->toBe([8002, 8003])
+            ->and(SystemProcessTable::parseProc($udp, 'udp'))
+            ->toBe([9003])
+            ->and(SystemProcessTable::parseProc('', 'tcp'))
+            ->toBe([]);
+    });
+});
+
 describe('Ports in use', function () {
     test('are not the ones of the master of a grid, which is made of the defaults of the core', function () {
         $root = test_tmp() . '/ports-' . bin2hex(random_bytes(4));

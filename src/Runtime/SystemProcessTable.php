@@ -76,7 +76,39 @@ final class SystemProcessTable implements ProcessTableInterface
 
     public function listening(): array
     {
+        // Linux tells them in /proc/net, whatever is installed (netstat is not, on a Debian of today); the others through netstat
+        if (is_readable('/proc/net/tcp')) {
+            $ports = [];
+            foreach (['tcp', 'tcp6', 'udp', 'udp6'] as $file) {
+                array_push($ports, ...self::parseProc((string) @file_get_contents("/proc/net/$file"), str_starts_with($file, 'tcp') ? 'tcp' : 'udp'));
+            }
+
+            return array_values(array_unique($ports));
+        }
+
         return self::parseBound((string) @shell_exec('netstat -an 2>/dev/null'));
+    }
+
+    /**
+     * The ports of a table of /proc/net (tcp, tcp6, udp, udp6): the local port of a TCP socket that listens (state 0A) and of a UDP
+     * socket (state 07, unconnected).
+     *
+     * @param 'tcp'|'udp' $protocol
+     * @return list<int>
+     */
+    public static function parseProc(string $table, string $protocol): array
+    {
+        $ports = [];
+        foreach (preg_split('/\R/', $table) ?: [] as $line) {
+            if (preg_match('/^\s*\d+:\s+[0-9A-Fa-f]+:([0-9A-Fa-f]{4})\s+[0-9A-Fa-f]+:[0-9A-Fa-f]{4}\s+([0-9A-Fa-f]{2})\s/', $line, $m) !== 1) {
+                continue;
+            }
+            if (strtoupper($m[2]) === ($protocol === 'tcp' ? '0A' : '07')) {
+                $ports[] = (int) hexdec($m[1]);
+            }
+        }
+
+        return $ports;
     }
 
     public function cpus(): int
