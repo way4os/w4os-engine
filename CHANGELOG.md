@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (assets): provided, the web assets are a path under the site, the helpers' by default, routed apart to the engine as the prefix of the economy, not a page of the site
 - feat (avatars): a page of settings, Avatar Settings: more than one avatar for an email (on by default) and the forbidden names (Default, Test, Admin by default, the name of the grid always), checked when an avatar is made
 - change (settings): the switch of a database that may use the default says Use default only, the field its own label, what the default is in its description
 - change (offline): the lines of Robust for the module V2 have the connector that keeps the messages (`OfflineIMServiceConnector` of `[ServiceList]`, commented in the distribution)

@@ -5,7 +5,8 @@ declare(strict_types=1);
 /**
  * The address of a service is always changed on its page (provided_grid() of ProvideChoicesTest): off, the whole address; on, the
  * path under the site (the guide, the prefix of the economy: currency.php and landtool.php are fixed under it), or under the helpers
- * for what the viewers and the simulators call (the search, the registration, the offline messages, the web assets). The address
+ * for what the viewers and the simulators call (the search, the registration, the offline messages); the web assets under the site,
+ * a tool of their own. The address
  * of another search is kept apart, so that it is not lost when Provide is switched.
  */
 
@@ -23,7 +24,7 @@ describe('The address of a service', function () {
         $search = address_patch($router, 'search', ['provide' => true, 'path' => 'search/query.php']);
         $economy = address_patch($router, 'economy', ['provide' => true, 'path' => '/money/']);
 
-        expect($bases)->toBe(['site', 'helpers', 'site', 'helpers', 'helpers'])
+        expect($bases)->toBe(['site', 'helpers', 'site', 'helpers', 'site'])
             ->and($search->document['data']['attributes']['path'])->toBe('search/query.php')
             ->and(file_get_contents($machine->grid . '/OpenSim.ini'))->toContain('SearchURL = "https://play.example.org/helpers/search/query.php"')
             ->and($economy->document['data']['attributes']['path'])->toBe('money/')
@@ -95,7 +96,7 @@ describe('The path of a service', function () {
 
         expect(array_filter($paths, static fn(string $path): bool => str_starts_with($path, '/')))->toBe([])
             ->and($paths[0])->toBe('helpers/')
-            ->and($prefixes)->toBe(['https://play.example.org/', 'https://play.example.org/helpers/', 'https://play.example.org/', 'https://play.example.org/helpers/', 'https://play.example.org/helpers/'])
+            ->and($prefixes)->toBe(['https://play.example.org/', 'https://play.example.org/helpers/', 'https://play.example.org/', 'https://play.example.org/helpers/', 'https://play.example.org/'])
             ->and($saved)->toBe('places/guide');
     });
 });
