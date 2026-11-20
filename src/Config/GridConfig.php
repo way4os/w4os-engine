@@ -113,6 +113,30 @@ class GridConfig
     }
 
     /**
+     * The config of the files named, each a role (Robust, OpenSim, simulators/<name>, MoneyServer...), read in that order: the
+     * constants of Robust serve the files after it. The files of a grid in place, where they are.
+     *
+     * @param array<string,string> $files role => path; a file that is not there is not a role
+     */
+    public static function fromFiles(array $files): static
+    {
+        $tree = [];
+        $paths = [];
+        $constants = [];
+        foreach ($files as $role => $path) {
+            if ($path === '' || !is_file($path)) {
+                continue;
+            }
+            $ini = ConfigReader::load($path, $constants);
+            $role === 'Robust' && ($constants = $ini['Const'] ?? []);
+            $paths[$role] = $path;
+            str_starts_with($role, 'simulators/') ? ($tree['simulators'][substr($role, 11)] = $ini) : ($tree[$role] = $ini);
+        }
+
+        return new static($tree, $paths);
+    }
+
+    /**
      * The config of a grid this install does not manage, from its Robust config where it is (and the files it includes): nothing is
      * copied nor written, the databases are the ones it names.
      */

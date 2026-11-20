@@ -312,12 +312,17 @@ abstract class AbstractController implements Enablable
 
     public function isEnabled(): bool
     {
-        return is_link($this->link()) || is_file($this->link());
+        // A grid in place says it in its section of the config of the suite, nothing is linked
+        return \OpenSim\Config\InPlaceGrids::isEnabled($this->environment->layout, $this->ini)
+            ?? (is_link($this->link()) || is_file($this->link()));
     }
 
     /** Link its config where the launcher finds it, so that it starts with the others. */
     public function enable(): bool
     {
+        if (\OpenSim\Config\InPlaceGrids::owner($this->environment->layout, $this->ini) !== null) {
+            return \OpenSim\Config\InPlaceGrids::setEnabled($this->environment->layout, $this->ini, true);
+        }
         $target = realpath($this->ini) ?: $this->ini;
         if (!is_file($target) || $target === $this->link()) {
             return false;
@@ -336,6 +341,9 @@ abstract class AbstractController implements Enablable
     /** Stop it from starting with the others. A running instance is not stopped. */
     public function disable(): void
     {
+        if (\OpenSim\Config\InPlaceGrids::setEnabled($this->environment->layout, $this->ini, false)) {
+            return;
+        }
         if (is_link($this->link()) || is_file($this->link())) {
             unlink($this->link());
         }

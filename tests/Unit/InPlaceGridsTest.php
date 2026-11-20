@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * A grid of an existing install the suite runs where it is: its [Grid <nick>] section in the config of the suite says where its
+ * files are, and is the only thing written; the install stays as it was.
+ */
+
+use OpenSim\Config\InPlaceGrids;
+use OpenSim\Config\Layout;
+use OpenSim\Models\Grid;
+use OpenSim\OpenSim;
+use OpenSim\Testing\Machine;
+
+/** A machine with an existing install beside it, registered in place: its Robust and one simulator, where they are. */
+function in_place_machine(bool $enabled = false): array
+{
+    $machine = new Machine();
+    $old = $machine->root . '/old';
+    mkdir("$old/bin/Regions", 0o755, true);
+    file_put_contents("$old/bin/Robust.HG.ini", "[Const]\n    BaseHostname = \"old.example.org\"\n    PublicPort = \"8102\"\n    PrivatePort = \"8103\"\n[GridInfoService]\n    gridname = \"Old Grid\"\n    gridnick = \"oldgrid\"\n[DatabaseService]\n    ConnectionString = \"Data Source=localhost;Database=oldgrid;User ID=old;Password=oldpass;\"\n");
+    file_put_contents("$old/bin/OpenSim.ini", "[Startup]\n    regionload_regionsdir = \"$old/bin/Regions\"\n[Network]\n    http_listener_port = 9100\n");
+    file_put_contents("$old/bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+    $conf = $machine->etc . '/' . Layout::FILE;
+    file_put_contents($conf, "[Defaults]\nEtcRoot = {$machine->etc}\n\n[Grid oldgrid]\nRobustIni = $old/bin/Robust.HG.ini\nCoreDirectory = $old\nSimulators = welcome:$old/bin/OpenSim.ini\n" . ($enabled ? "Enabled = yes\nEnabledSimulators = welcome\n" : ''));
+    $environment = $machine->environment->withLayout(Layout::load($conf, $machine->environment->layout->all()));
+
+    return [$machine, $environment, $old, $conf];
+}
+
+describe('A grid in place', function () {
+    test('is a grid of the suite, read where its files are, nothing written in the install', function () {
+        [$machine, $environment, $old] = in_place_machine();
+        $before = [file_get_contents("$old/bin/Robust.HG.ini"), file_get_contents("$old/bin/OpenSim.ini")];
+
+        $grid = Grid::find($environment, 'oldgrid');
+
+        expect($grid)
+            ->not->toBeNull()
+            ->and($grid->name())
+            ->toBe('Old Grid')
+            ->and($grid->robustIni())
+            ->toBe("$old/bin/Robust.HG.ini")
+            ->and($grid->publicPort())
+            ->toBe(8102)
+            ->and($grid->databaseName())
+            ->toBe('oldgrid')
+            ->and(array_map(static fn($simulator): string => $simulator->name(), $grid->simulators()))
+            ->toBe(['oldgrid.welcome'])
+            ->and($grid->simulators()[0]->httpPort())
+            ->toBe(9100)
+            ->and(array_map(static fn(Grid $g): string => $g->nick(), Grid::all($environment)->items()))
+            ->toContain('demo', 'oldgrid')
+            ->and([file_get_contents("$old/bin/Robust.HG.ini"), file_get_contents("$old/bin/OpenSim.ini")])
+            ->toBe($before);
+    });
+
+    test('is enabled in its section only, and started from its own files', function () {
+        [$machine, $environment, $old, $conf] = in_place_machine();
+        $grid = Grid::find($environment, 'oldgrid');
+
+        expect($grid->isEnabled())->toBeFalse();
+        $grid->enable();
+        $grid->simulators()[0]->enable();
+        $environment = $environment->withLayout(Layout::load($conf, $machine->environment->layout->all()));
+        $enabled = array_map(static fn($instance): string => $instance->name() . ' ' . $instance->ini(), OpenSim::enabled($environment));
+
+        expect(InPlaceGrids::section($conf, 'oldgrid'))
+            ->toMatchArray(['Enabled' => 'yes', 'EnabledSimulators' => 'welcome'])
+            ->and($enabled)
+            ->toContain("oldgrid $old/bin/Robust.HG.ini", "oldgrid.welcome $old/bin/OpenSim.ini")
+            ->and(glob($machine->etc . '/robust.d/oldgrid*'))
+            ->toBe([])
+            ->and(Grid::find($environment, 'oldgrid')->isEnabled())
+            ->toBeTrue();
+    });
+});

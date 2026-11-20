@@ -149,6 +149,21 @@ final class OpenSim
                 }
             }
         }
+        // The grids in place, enabled in their section of the config of the suite: run from their own files
+        foreach ($environment->layout->grids() as $nick => $section) {
+            $section = \OpenSim\Config\InPlaceGrids::section((string) $environment->layout->file(), (string) $nick) ?: $section;
+            $robust = $section['RobustIni'] ?? '';
+            if ($robust !== '' && \OpenSim\Config\InPlaceGrids::robustEnabled($section) && !isset($seen[realpath($robust) ?: $robust])) {
+                $seen[realpath($robust) ?: $robust] = true;
+                array_unshift($instances, new RobustController($environment, $robust, (string) $nick));
+            }
+            foreach (\OpenSim\Config\InPlaceGrids::simulators((string) $nick, $section) as $simulator) {
+                if (in_array($simulator['short'], \OpenSim\Config\InPlaceGrids::enabledSimulators($section), true) && !isset($seen[realpath($simulator['ini']) ?: $simulator['ini']])) {
+                    $seen[realpath($simulator['ini']) ?: $simulator['ini']] = true;
+                    $instances[] = new OpenSimController($environment, $simulator['ini'], $simulator['name']);
+                }
+            }
+        }
 
         return $instances;
     }

@@ -37,6 +37,12 @@ final class Environment
         public readonly ?\OpenSim\Config\SettingsStore $settings = null,
     ) {}
 
+    /** The same environment with another layout (the config of the suite read again). */
+    public function withLayout(Layout $layout): self
+    {
+        return new self($layout, $this->processes, $this->launcher, $this->consoles, $this->clock, $this->reporter, $this->portMapping, $this->probe, $this->http, $this->occupiedPorts, $this->databases, $this->settings);
+    }
+
     /** The environment of this machine. */
     /**
      * @param ?\OpenSim\Data\DatabaseAccess $databases the access to the databases an application gives, applied to every grid

@@ -61,6 +61,8 @@ final class Grid extends InstalledModel
     public const PLAN = 'plan';
     public const DESCRIBED = 'described';
     public const ANNOUNCED = 'announced';
+    /** A grid of an existing install run where it is: its [Grid <nick>] section in the config of the suite says where its files are */
+    public const IN_PLACE = 'in-place';
 
     /** What a grid is when its sources do not say. */
     private const DEFAULTS = [
@@ -115,8 +117,28 @@ final class Grid extends InstalledModel
         private readonly string $directory,
         private ?array $values = null,
         private readonly array $sources = [self::FOLDER],
+        private readonly ?string $placed = null,
     ) {
         parent::__construct($environment);
+    }
+
+    /** A grid in place: its files where they are, its folder the one of its Robust config (InPlaceGrids). */
+    public static function inPlace(Environment $environment, string $nick): ?self
+    {
+        $robust = $environment->layout->grids()[$nick]['RobustIni'] ?? '';
+
+        return $robust === '' ? null : new self($environment, dirname($robust), null, [self::FOLDER, self::IN_PLACE], $nick);
+    }
+
+    /** @return array<string,string> its section in the config of the suite, as the file says it now (empty for another grid) */
+    public function placement(): array
+    {
+        if ($this->placed === null) {
+            return [];
+        }
+
+        return \OpenSim\Config\InPlaceGrids::section((string) $this->environment->layout->file(), $this->placed)
+            ?: ($this->environment->layout->grids()[$this->placed] ?? []);
     }
 
     /**
@@ -125,7 +147,7 @@ final class Grid extends InstalledModel
      */
     public function config(): ?GridConfig
     {
-        $config = $this->given ?? ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null);
+        $config = $this->given ?? ($this->placed !== null ? $this->placedConfig() : ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null));
         // The settings the application keeps, read first
         $kept = $this->environment->settings?->all() ?? [];
         $kept !== [] && ($config = ($config ?? new GridConfig())->withSettings($kept));
@@ -133,6 +155,17 @@ final class Grid extends InstalledModel
         $access = $this->environment->databases;
 
         return $config !== null && $access !== null ? $config->withDatabaseAccess($access) : $config;
+    }
+
+    /** The config of a grid in place: its Robust and its simulators, from their files where they are. */
+    private function placedConfig(): GridConfig
+    {
+        $files = ['Robust' => (string) ($this->placement()['RobustIni'] ?? '')];
+        foreach (\OpenSim\Config\InPlaceGrids::simulators((string) $this->placed, $this->placement()) as $simulator) {
+            $files['simulators/' . $simulator['name']] = $simulator['ini'];
+        }
+
+        return GridConfig::fromFiles($files);
     }
 
     /** Where the settings of its helpers are read: the config given, else its folder. */
@@ -568,8 +601,11 @@ final class Grid extends InstalledModel
     public static function find(Environment $environment, string $nick): ?static
     {
         $directory = rtrim($environment->layout->etcRoot(), '/') . "/grids/$nick";
-        if ($nick === '' || preg_match('/^[A-Za-z0-9._-]+$/', $nick) !== 1 || !is_dir($directory)) {
+        if ($nick === '' || preg_match('/^[A-Za-z0-9._-]+$/', $nick) !== 1) {
             return null;
+        }
+        if (!is_dir($directory)) {
+            return self::inPlace($environment, $nick);
         }
         $grid = new self($environment, $directory);
 
@@ -588,6 +624,10 @@ final class Grid extends InstalledModel
         foreach (glob(rtrim($environment->layout->etcRoot(), '/') . '/grids/*', GLOB_ONLYDIR) ?: [] as $directory) {
             $grid = new self($environment, $directory);
             $grid->isKnown() && ($grids[] = $grid);
+        }
+        $nicks = array_map(static fn(self $grid): string => $grid->nick(), $grids);
+        foreach (array_keys($environment->layout->grids()) as $nick) {
+            !in_array((string) $nick, $nicks, true) && ($placed = self::inPlace($environment, (string) $nick)) !== null && ($grids[] = $placed);
         }
         $yesNo = static fn(\Closure $is): \Closure => static fn(self $grid, string $value): bool => $is($grid) ===
             ($value === 'yes');
@@ -1171,7 +1211,7 @@ final class Grid extends InstalledModel
     private function fromFolder(): array
     {
         $layout = $this->environment->layout;
-        $nick = basename($this->directory);
+        $nick = $this->placed ?? basename($this->directory);
         $conf = $this->settings();
         $values = [
             'nick' => $nick,
@@ -1689,6 +1729,10 @@ final class Grid extends InstalledModel
      */
     public function settings(): array
     {
+        if ($this->placed !== null) {
+            return $this->placement();
+        }
+
         return ConfigReader::load($this->directory . '/' . basename($this->directory) . '.conf')['Grid'] ?? [];
     }
 
@@ -1725,6 +1769,11 @@ final class Grid extends InstalledModel
     /** The config file of its Robust in its folder. */
     private function robustFile(): ?string
     {
+        if ($this->placed !== null) {
+            $file = $this->placement()['RobustIni'] ?? '';
+
+            return $file !== '' && is_file($file) ? $file : null;
+        }
         foreach (self::ROBUST_FILES as $file) {
             if (is_file("{$this->directory}/$file")) {
                 return "{$this->directory}/$file";
@@ -1755,6 +1804,10 @@ final class Grid extends InstalledModel
             return null;
         }
         $robust = new RobustController($this->environment, $file, $this->nick());
+        // A grid in place runs from its own file, never a link
+        if ($this->placed !== null) {
+            return $robust;
+        }
 
         return $robust->isEnabled()
             ? new RobustController($this->environment, $robust->link(), $this->nick())
@@ -1960,6 +2013,12 @@ final class Grid extends InstalledModel
      */
     public function simulators(): array
     {
+        if ($this->placed !== null) {
+            return array_map(
+                fn(array $simulator): Simulator => new Simulator($this->environment, $simulator['ini'], $simulator['name']),
+                \OpenSim\Config\InPlaceGrids::simulators($this->placed, $this->placement()),
+            );
+        }
         $files = glob(GridConfig::simulatorsDirectory($this->directory) . '/*.ini') ?: [];
         sort($files);
         $simulators = [];
@@ -1980,6 +2039,9 @@ final class Grid extends InstalledModel
      */
     public function simulatorNames(): array
     {
+        if ($this->placed !== null) {
+            return array_column(\OpenSim\Config\InPlaceGrids::simulators($this->placed, $this->placement()), 'name');
+        }
         $names = array_map(
             static fn(string $file): string => basename($file, '.ini'),
             glob(GridConfig::simulatorsDirectory($this->directory) . '/*.ini') ?: [],
