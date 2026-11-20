@@ -19,7 +19,7 @@ describe('The page of the guide', function () {
         $read = $router->get('/grids/demo/settings/guide')->document;
 
         expect($read['data']['attributes']['guideSource'])->toBe('https://2do.directory/destinations/guide')
-            ->and($source['placeholder'])->toBe('https://2do.directory/destinations/guide')
+            ->and($source['default'])->toBe('https://2do.directory/destinations/guide')->and($source)->not->toHaveKey('placeholder')
             ->and($source['description'])->toBe(['guide_source_help_where', 'guide_source_help_name'])
             ->and(GridSettings::form('guide')['description'])->toContain('guide_source_help_pipe')->toContain('guide_source_help_categories')
             // The example of a list, apart; the lines of a file, named

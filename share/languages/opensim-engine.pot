@@ -546,10 +546,6 @@ msgctxt "events_help_fetch"
 msgid "HYPEvents Server URL, used to fetch upcoming events and make them available in search."
 msgstr ""
 
-msgctxt "events_help_blank"
-msgid "Leave blank to ignore events or if you have an other events implementation."
-msgstr ""
-
 msgctxt "search_help_local"
 msgid "Enable to use a local search engine, allowing only local results (recommended for private grids)."
 msgstr ""
@@ -1040,6 +1036,11 @@ msgstr[1] ""
 #, php-format
 msgctxt "label_value"
 msgid "%1$s: %2$s"
+msgstr ""
+
+#, php-format
+msgctxt "example_value"
+msgid "e.g.: %s"
 msgstr ""
 
 msgctxt "tab_overview"
@@ -2017,10 +2018,6 @@ msgstr ""
 
 msgctxt "setting_podex_url"
 msgid "Exchange Teleport URL"
-msgstr ""
-
-msgctxt "podex_message_placeholder"
-msgid "Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area."
 msgstr ""
 
 msgctxt "setting_assets_url"

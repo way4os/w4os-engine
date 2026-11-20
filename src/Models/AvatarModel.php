@@ -190,7 +190,8 @@ final class AvatarModel extends Model
         }
         $match = strtolower(trim((string) ($asked['match'] ?? ($config->find('Models', 'Match') ?? 'any'))));
         in_array($match, self::MATCHES, true) || ($match = 'any');
-        $pattern = trim((string) ($asked['pattern'] ?? ($config->find('Models', 'MatchPattern') ?? 'Default')), " \t\"");
+        // Left empty, the pattern is its default
+        $pattern = trim((string) ($asked['pattern'] ?? $config->find('Models', 'MatchPattern')), " \t\"") ?: 'Default';
         $list = array_values(
             array_filter(
                 array_map(

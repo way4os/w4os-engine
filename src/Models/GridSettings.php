@@ -61,7 +61,7 @@ final class GridSettings
         'search' => ['setting' => 'searchUrl', 'service' => 'query', 'base' => 'helpers', 'external' => 'searchExternalUrl', 'label' => 'provide_search', 'after' => 'searchDatabase', 'url' => 'search_engine_url', 'help' => ['search_url_help_viewer', 'search_url_help_one']],
         'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide', 'after' => 'guideSource', 'url' => 'guide_url'],
         'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'base' => 'helpers', 'label' => 'provide_offline', 'after' => 'offlineModule', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
-        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'base' => 'helpers', 'label' => 'provide_assets', 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'placeholder' => 'https://example.org/assets', 'required' => true],
+        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'base' => 'helpers', 'label' => 'provide_assets', 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'example' => 'https://example.org/assets', 'required' => true],
     ];
 
     /** The tip of a field, under its label where the label is not enough: a few words, the details being its description. */
@@ -93,7 +93,7 @@ final class GridSettings
     ];
 
     /**
-     * What w4os-wp shows of a field on a page that its setting does not say (its label there, its help in points, its placeholder,
+     * What w4os-wp shows of a field on a page that its setting does not say (its label there, its help in points,
      * what it requires, when it is shown), and the notes it shows (`note`: a text, no value), by page and field.
      */
     private const SHOWN_AS = [
@@ -109,7 +109,7 @@ final class GridSettings
         ],
         'search' => [
             'webSearchUrl' => ['label' => 'web_search_url', 'description' => ['web_search_help']],
-            'eventsUrl' => ['description' => ['events_help_fetch', 'events_help_blank'], 'placeholder' => 'http://2do.directory/events/'],
+            'eventsUrl' => ['description' => ['events_help_fetch']],
         ],
         'guide' => [
             'guideSource' => ['description' => ['guide_source_help_where', 'guide_source_help_name']],
@@ -131,7 +131,7 @@ final class GridSettings
     ];
 
     /** What a field says of its setting, beside its name and its type. */
-    private const SHOWN = ['label', 'options', 'widget', 'placeholder', 'condition', 'multiple', 'description', 'readOnly', 'required', 'fallback'];
+    private const SHOWN = ['label', 'options', 'widget', 'default', 'example', 'placeholder', 'condition', 'multiple', 'description', 'readOnly', 'required', 'fallback'];
 
     /** The roles of the files of the grid, in the order it reads a setting from them (GridConfig::find()). */
     private const FILES = ['Robust', 'OpenSim', 'Helpers', 'MoneyServer'];
@@ -168,7 +168,7 @@ final class GridSettings
     {
         $fields = array_map(
             static fn(array $entry): array => ['name' => $entry['name'], 'type' => self::fieldType($entry)]
-                + array_intersect_key($entry, array_flip(self::SHOWN))
+                + array_intersect_key(array_filter($entry, static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== []), array_flip(self::SHOWN))
                 + (($codec = Settings::type($entry['type'])) !== null ? ['fields' => $codec->fields()] : []),
             self::entries($page),
         );
@@ -530,6 +530,8 @@ final class GridSettings
             unset($values[$setting]);
         } else {
             $address = $external !== null ? ($values[$external] ?? $now[$external]) : ($values[$setting] ?? null);
+            // Left empty, the address of another server is its default (the search of 2do.directory)
+            $external !== null && trim((string) $address) === '' && ($address = Settings::named($external)['default'] ?? $address);
             // Not provided: another service, never the helpers
             $helpers = $this->baseOf($page);
             $page === 'offline' && $helpers !== null && is_string($address) && str_starts_with($address, $helpers . '/') && throw InvalidValue::because(
@@ -589,7 +591,7 @@ final class GridSettings
 
             if ($field['name'] === ($provide['external'] ?? $provide['setting'])) {
                 $address[] = ['condition' => ['provide' => [false]] + ($shownAs[$field['name']]['condition'] ?? []), 'label' => $provide['url'], 'description' => $provide['urlHelp'] ?? $provide['help'] ?? []]
-                    + array_intersect_key($provide, ['placeholder' => 1, 'required' => 1]) + $field;
+                    + array_intersect_key($provide, ['example' => 1, 'required' => 1]) + $field;
                 $address[1]['description'] === [] && ($address[1] = array_diff_key($address[1], ['description' => 1]));
                 continue;
             }
@@ -610,7 +612,7 @@ final class GridSettings
         // The registers of the search: its own under the helpers, and the ones of other search engines, whatever Provide
         $page === 'search' && ($register = [
             ['name' => 'registerPath', 'type' => 'path', 'base' => 'helpers', 'label' => 'search_register_url', 'description' => ['search_register_help_data'], 'condition' => $on],
-            ['name' => 'registers', 'type' => 'url', 'multiple' => true, 'label' => 'search_registers', 'description' => ['search_register_help_several', 'search_register_help_2do'], 'placeholder' => self::REGISTER_2DO],
+            ['name' => 'registers', 'type' => 'url', 'multiple' => true, 'label' => 'search_registers', 'description' => ['search_register_help_several', 'search_register_help_2do'], 'default' => [self::REGISTER_2DO]],
         ]);
         // The address where w4os-wp shows it: after Provide, or after the field it follows
         $at = isset($provide['after']) ? array_search($provide['after'], array_column($others, 'name'), true) : false;

@@ -62,7 +62,7 @@ final class ConnectionStringType implements SettingType
     {
         return [
             ['name' => 'host', 'label' => 'db_host', 'type' => 'string'],
-            ['name' => 'port', 'label' => 'db_port', 'type' => 'integer', 'placeholder' => '3306'],
+            ['name' => 'port', 'label' => 'db_port', 'type' => 'integer', 'default' => 3306],
             ['name' => 'database', 'label' => 'db_name', 'type' => 'string'],
             ['name' => 'user', 'label' => 'db_user', 'type' => 'string'],
             ['name' => 'password', 'label' => 'db_password', 'type' => 'secret'],

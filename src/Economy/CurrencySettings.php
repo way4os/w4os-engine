@@ -20,6 +20,12 @@ final class CurrencySettings
     /** The packs of Gloebit and what they cost, in cents: the currency estimates the cost of what a viewer asks with them. */
     public const GLOEBIT_PACKS = [400 => 199, 1050 => 499, 2150 => 999, 4500 => 1999, 11500 => 4999];
 
+    /** What the viewer says when it is asked to buy currency with Podex, without a message of the grid (`PodexMessage`). */
+    public const PODEX_MESSAGE = 'Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area.';
+
+    /** Where the viewer is sent then, without an address of the grid (`PodexUrl`): w4os-wp's. */
+    public const PODEX_URL = 'secondlife://Podex Exchange/128/128/21';
+
     /**
      * @param string $provider the module the engine knows by name (`gloebit`, `podex`), empty for any other
      * @param bool $useMoneyServer a module that is not the beta one keeps the balances and relays the transfers
@@ -41,8 +47,8 @@ final class CurrencySettings
         public readonly bool $gloebitSandbox = false,
         public readonly array $gloebitPacks = self::GLOEBIT_PACKS,
         public readonly float $gloebitThreshold = 1.2,
-        public readonly string $podexMessage = 'Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area.',
-        public readonly string $podexUrl = 'secondlife://Podex Exchange/128/128/21',
+        public readonly string $podexMessage = self::PODEX_MESSAGE,
+        public readonly string $podexUrl = self::PODEX_URL,
     ) {}
 
     /**
@@ -57,6 +63,8 @@ final class CurrencySettings
         $number = static fn(string $name, float $default): float => is_numeric($config->find('Helpers', $name))
             ? (float) $config->find('Helpers', $name)
             : $default;
+        // A text left empty is its default
+        $text = static fn(string $name, string $default): string => trim((string) $config->find('Helpers', $name), " \t\"") ?: $default;
 
         return new self(
             // Podex: the generic money server, the helpers told it is Podex
@@ -69,8 +77,8 @@ final class CurrencySettings
             ratePer: $number('CurrencyRatePer', 1000.0),
             gloebitSandbox: strtolower((string) $config->find('Gloebit', 'GLBEnvironment')) === 'sandbox',
             gloebitThreshold: $number('GloebitConversionThreshold', 1.2),
-            podexMessage: $config->find('Helpers', 'PodexMessage') ?? (new self())->podexMessage,
-            podexUrl: $config->find('Helpers', 'PodexUrl') ?? (new self())->podexUrl,
+            podexMessage: $text('PodexMessage', self::PODEX_MESSAGE),
+            podexUrl: $text('PodexUrl', self::PODEX_URL),
         );
     }
 

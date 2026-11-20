@@ -25,7 +25,9 @@ use OpenSim\I18n\Catalog;
  * `admin` the settings page a site edits it on (GridSettings), `readOnly` shown there, changed elsewhere (an option of the grid);
  * `readers` who reads it: `grid` (Robust, the simulators, the money server: its files only), `helpers` (the helpers and the site: the
  * settings the application keeps do, when its files cannot be written; the money key, the helpers tie the quotes with it);
- * `placeholder`, `condition` (clean names => the values it is shown for), `widget` as in the standard field format; `health` how
+ * `example` a value shown as one in an empty field, never taken (the default is shown as it is); `placeholder` the key of a text
+ * shown in an empty field that is neither; `condition` (clean names => the values it is shown for), `widget` as in the standard
+ * field format; `health` how
  * the health of the grid asks it (`address` a page, `login-search` the web search of the login, `xmlrpc` the search of the
  * simulators, `register` the data services, `offline` the offline messages, `secret` set or not).
  *
@@ -93,7 +95,7 @@ final class Settings
                 'MessageUrl' => ['name' => 'messageUrl', 'type' => 'url', 'label' => 'setting_message_url', 'service' => 'motd', 'health' => 'address'],
                 'SearchURL' => ['name' => 'loginSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'service' => 'search', 'health' => 'login-search'],
                 'WelcomeMessage' => ['name' => 'welcomeMessage', 'type' => 'text', 'label' => 'setting_welcome_message'],
-                'Currency' => ['name' => 'currencySymbol', 'type' => 'text', 'label' => 'setting_currency_symbol', 'placeholder' => 'YC$', 'admin' => 'economy'],
+                'Currency' => ['name' => 'currencySymbol', 'type' => 'text', 'label' => 'setting_currency_symbol', 'example' => 'YC$', 'admin' => 'economy'],
             ],
         ],
         'opensim' => [
@@ -139,8 +141,8 @@ final class Settings
                 'GLBEnvironment' => ['name' => 'gloebitEnvironment', 'type' => 'select', 'label' => 'setting_gloebit_environment', 'options' => ['sandbox' => 'gloebit_sandbox', 'production' => 'gloebit_production'], 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
                 'GLBKey' => ['name' => 'gloebitKey', 'type' => 'password', 'label' => 'setting_gloebit_key', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
                 'GLBSecret' => ['name' => 'gloebitSecret', 'type' => 'password', 'label' => 'setting_gloebit_secret', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
-                'GLBOwnerName' => ['name' => 'gloebitOwnerName', 'type' => 'text', 'label' => 'setting_gloebit_owner_name', 'placeholder' => 'Banker Name', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
-                'GLBOwnerEmail' => ['name' => 'gloebitOwnerEmail', 'type' => 'email', 'label' => 'setting_gloebit_owner_email', 'placeholder' => 'banker@example.org', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
+                'GLBOwnerName' => ['name' => 'gloebitOwnerName', 'type' => 'text', 'label' => 'setting_gloebit_owner_name', 'example' => 'Banker Name', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
+                'GLBOwnerEmail' => ['name' => 'gloebitOwnerEmail', 'type' => 'email', 'label' => 'setting_gloebit_owner_email', 'example' => 'banker@example.org', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
             ],
         ],
         'moneyserver' => [
@@ -150,30 +152,30 @@ final class Settings
             ],
             'MoneyServer' => [
                 // The avatar that can create money: it buys it from the system at no cost (zeros: every avatar, empty: nobody)
-                'BankerAvatar' => ['name' => 'moneyBanker', 'type' => 'text', 'label' => 'setting_money_banker', 'placeholder' => '00000000-0000-0000-0000-000000000000', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
+                'BankerAvatar' => ['name' => 'moneyBanker', 'type' => 'text', 'label' => 'setting_money_banker', 'example' => '00000000-0000-0000-0000-000000000000', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']]],
                 'MoneyScriptAccessKey' => ['name' => 'moneyScriptKey', 'type' => 'password', 'label' => 'setting_money_script_key', 'secret' => true, 'readers' => 'helpers', 'admin' => 'economy', 'condition' => ['economyModule' => ['DTLNSLMoneyModule', 'Podex']], 'health' => 'secret'],
             ],
         ],
         'helpers' => [
             'Helpers' => [
                 'HelpersURL' => ['name' => 'helpersUrl', 'type' => 'url', 'label' => 'setting_helpers'],
-                'AssetsURL' => ['name' => 'assetsUrl', 'type' => 'url', 'label' => 'setting_assets_url', 'service' => 'assets', 'labels' => ['assets' => 'service_assets'], 'admin' => 'assets', 'placeholder' => 'https://example.org/assets'],
+                'AssetsURL' => ['name' => 'assetsUrl', 'type' => 'url', 'label' => 'setting_assets_url', 'service' => 'assets', 'labels' => ['assets' => 'service_assets'], 'admin' => 'assets', 'example' => 'https://example.org/assets'],
                 'DirectoryURL' => ['name' => 'directoryUrl', 'type' => 'url', 'label' => 'setting_directory', 'service' => 'directory'],
                 'GridStatusURL' => ['name' => 'gridStatusUrl', 'type' => 'url', 'label' => 'setting_grid_status', 'service' => 'grid-status'],
-                'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'default' => 'https://2do.directory/destinations/guide', 'placeholder' => 'https://2do.directory/destinations/guide'],
+                'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'default' => 'https://2do.directory/destinations/guide'],
                 'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search', 'fallback' => 'db_use_default'],
-                'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => 'https://2do.directory/events', 'placeholder' => 'https://2do.directory/events'],
+                'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => \OpenSim\Services\SearchTasks::EVENTS_SOURCE],
                 // The search engine of another server, kept for when the helpers do not provide the search
                 'ExternalSearchURL' => ['name' => 'searchExternalUrl', 'type' => 'url', 'label' => 'search_engine_url', 'default' => 'http://2do.directory/helpers/query.php', 'admin' => 'search'],
                 'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
-                'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'placeholder' => 'no-reply@example.org'],
-                'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'placeholder' => '10', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
+                'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'example' => 'no-reply@example.org'],
+                'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
                 // The currency provider the helpers serve with the generic money server: podex, else none
                 'CurrencyProvider' => ['name' => 'currencyProvider', 'type' => 'text', 'label' => 'setting_currency_provider'],
                 'CurrencyRatePer' => ['name' => 'currencyRatePer', 'type' => 'float', 'label' => 'setting_currency_rate_per', 'default' => 1000.0],
                 'GloebitConversionThreshold' => ['name' => 'gloebitThreshold', 'type' => 'float', 'label' => 'setting_gloebit_threshold', 'default' => 1.2],
-                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'placeholder' => 'podex_message_placeholder', 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
-                'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'placeholder' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
+                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'default' => \OpenSim\Economy\CurrencySettings::PODEX_MESSAGE, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
+                'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'example' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
             ],
             'Models' => [
                 'Match' => ['name' => 'match', 'type' => 'select', 'label' => 'models_match', 'widget' => 'radio', 'options' => ['first' => 'models_match_first', 'any' => 'models_match_any', 'last' => 'models_match_last', 'uuid' => 'models_match_uuid'], 'default' => 'any', 'admin' => 'models'],

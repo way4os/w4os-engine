@@ -40,6 +40,12 @@ final class SearchTasks
     /** The calendar the events are read from unless the grid says another one (`HypEventsURL` of `[Helpers]`). */
     public const EVENTS_SOURCE = 'https://2do.directory/events';
 
+    /** The calendar the events of a grid are read from: its `HypEventsURL`, EVENTS_SOURCE when it says none or leaves it empty. */
+    public static function eventsSource(GridConfig $config): string
+    {
+        return rtrim(trim((string) $config->find('Helpers', 'HypEventsURL'), " \t\"") ?: self::EVENTS_SOURCE, '/');
+    }
+
     /** The nick of a grid: the name of the folder of its config (Robust, else OpenSim.ini, else Helpers.ini). */
     private static function gridOf(GridConfig $config): string
     {
@@ -126,7 +132,7 @@ final class SearchTasks
                 $scope,
             ),
         );
-        $source = rtrim($config->find('Helpers', 'HypEventsURL') ?? self::EVENTS_SOURCE, '/');
+        $source = self::eventsSource($config);
         $scheduler->add(
             new Task(
                 'events-parse',

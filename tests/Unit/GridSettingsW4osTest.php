@@ -61,19 +61,19 @@ describe('The pages of the services, as w4os-wp', function () {
             ->and($offline['provide'])->not->toHaveKey('description');
     });
 
-    test('with its conditions, its placeholders, what it requires', function () {
+    test('with its conditions, its defaults and examples, what it requires', function () {
         $economy = page_field('economy');
         $guide = page_field('guide');
         $offline = page_field('offline');
         $search = page_field('search');
 
         expect($economy['currencyRate']['condition'])->toBe(['provide' => [true], 'economyModule' => ['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Podex']])
-            ->and($economy['currencyRate']['placeholder'])->toBe('10')
+            ->and($economy['currencyRate']['default'])->toBe(10.0)
             ->and($economy['gloebitConfiguration'])->toMatchArray(['type' => 'note', 'condition' => ['provide' => [true], 'economyModule' => ['Gloebit']]])
             // Left empty, it is the guide of 2do.directory: not required
             ->and($guide['guideSource'])->not->toHaveKey('required')
-            ->and($offline['mailSender'])->toMatchArray(['type' => 'email', 'required' => true, 'placeholder' => 'no-reply@example.org'])
-            ->and($search['eventsUrl']['placeholder'])->toBe('http://2do.directory/events/')
+            ->and($offline['mailSender'])->toMatchArray(['type' => 'email', 'required' => true, 'example' => 'no-reply@example.org'])
+            ->and($search['eventsUrl']['default'])->toBe('https://2do.directory/events')
             ->and(page_field('assets')['assetsUrl'])->toMatchArray(['required' => true, 'condition' => ['provide' => [false]]]);
     });
 });

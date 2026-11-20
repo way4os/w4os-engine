@@ -212,7 +212,6 @@ final class Catalog
         'search_register_help_several' => 'You can register to several search engines.',
         'search_register_help_prefix' => 'Each line must have a unique identifier beginning with "DATA_SRV_"',
         'events_help_fetch' => 'HYPEvents Server URL, used to fetch upcoming events and make them available in search.',
-        'events_help_blank' => 'Leave blank to ignore events or if you have an other events implementation.',
         'search_help_local' => 'Enable to use a local search engine, allowing only local results (recommended for private grids).',
         'search_help_external' => 'Disable to use an external search engine like 2do Directory, allowing results from both your grid and other public grids.',
         'search_help_module' => 'Search features require the installation of OpenSimSearch Module on OpenSimulator.',
@@ -348,6 +347,8 @@ final class Catalog
         'filters' => 'Filters',
         'filters_active' => '%d active filters',
         'label_value' => '%1$s: %2$s',
+        // An example in an empty field, never taken: a default is shown as it is
+        'example_value' => 'e.g.: %s',
         // The first tab of the page of an item
         'tab_overview' => 'Overview',
         'column_status' => 'Status',
@@ -608,7 +609,6 @@ final class Catalog
         'setting_gloebit_threshold' => 'Gloebit Conversion Threshold',
         'setting_podex_message' => 'Podex Redirect Message',
         'setting_podex_url' => 'Exchange Teleport URL',
-        'podex_message_placeholder' => 'Please use our terminals in-world to proceed. Click OK to teleport to Podex Exchange area.',
         'setting_assets_url' => 'Web Assets Server URL',
         'setting_assets_url_help' => 'The web assets server of the grid when it is not the one of the helpers: it converts the pictures of the world (JPEG 2000) for the web.',
         'offline_module_v1' => 'By the helpers (V1)',

@@ -41,7 +41,7 @@ describe('The address of a service', function () {
         $onIni = file_get_contents($machine->grid . '/OpenSim.ini');
 
         expect([$fields['searchExternalUrl']['condition'], $fields['registerPath']['condition']])->toBe([['provide' => [false]], ['provide' => [true]]])
-            ->and($fields['registers'])->toMatchArray(['type' => 'url', 'multiple' => true, 'placeholder' => 'http://2do.directory/helpers/register.php'])
+            ->and($fields['registers'])->toMatchArray(['type' => 'url', 'multiple' => true, 'default' => ['http://2do.directory/helpers/register.php']])
             ->and($fields['registers'])->not->toHaveKey('condition')
             ->and($fields['registerPath']['base'])->toBe('helpers')
             ->and(array_keys($fields))->not->toContain('searchUrl')->not->toContain('dataServices')->not->toContain('registerExternalUrl')
