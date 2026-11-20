@@ -127,7 +127,13 @@ final class Grid extends InstalledModel
     {
         $robust = $environment->layout->grids()[$nick]['RobustIni'] ?? '';
 
-        return $robust === '' ? null : new self($environment, dirname($robust), null, [self::FOLDER, self::IN_PLACE], $nick);
+        if ($robust === '') {
+            return null;
+        }
+        // What its helpers keep that OpenSimulator has no place for: in its section, never in a file of the install
+        $kept = $environment->settings ?? new \OpenSim\Config\InPlaceSettings((string) $environment->layout->file(), $nick);
+
+        return new self($environment->withSettings($kept), dirname($robust), null, [self::FOLDER, self::IN_PLACE], $nick);
     }
 
     /** @return array<string,string> its section in the config of the suite, as the file says it now (empty for another grid) */

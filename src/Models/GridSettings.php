@@ -511,6 +511,10 @@ final class GridSettings
     {
         $store = $this->grid->environment()->settings;
         $kept = $store !== null && $store->writable() && ($entry['readers'] ?? 'grid') === 'helpers';
+        // A grid in place: what only the helpers read goes to its section of the config of the suite, never in a file of the install
+        if ($kept && $this->grid->in(Grid::IN_PLACE)) {
+            return ['store' => true];
+        }
         if (in_array('files', $this->grid->access(), true)) {
             $file = $this->fileOf($entry);
             if (self::canWrite($file)) {

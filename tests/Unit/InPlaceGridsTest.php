@@ -76,3 +76,22 @@ describe('A grid in place', function () {
             ->toBeTrue();
     });
 });
+
+describe('The settings of the helpers of a grid in place', function () {
+    test('go to its section of the config of the suite, never in a file of the install', function () {
+        [$machine, $environment, $old, $conf] = in_place_machine();
+        $router = new \OpenSim\Api\Router(new \OpenSim\Api\Api($environment));
+
+        $changed = $router->patch('/grids/oldgrid/settings/guide', ['data' => ['type' => 'settings', 'id' => 'guide', 'attributes' => ['guideSource' => 'https://guide.example.org/list.txt']]]);
+        $read = $router->get('/grids/oldgrid/settings/guide');
+
+        expect($changed->status)
+            ->toBe(200)
+            ->and(InPlaceGrids::section($conf, 'oldgrid')['Helpers.GuideSource'] ?? null)
+            ->toBe('https://guide.example.org/list.txt')
+            ->and($read->document['data']['attributes']['guideSource'] ?? null)
+            ->toBe('https://guide.example.org/list.txt')
+            ->and(glob("$old/bin/*elpers*"))
+            ->toBe([]);
+    });
+});
