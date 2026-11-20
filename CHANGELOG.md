@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new: `opensim-api --version`, and with -v the versions of everything that matters on the machine (the engine, rest-php, the helpers, the site, the kit, the cores, .NET, PHP): Support\Versions
 - fix (import): an import of accounts into a grid whose database cannot be read says so (503), not an internal error
 - change (packaging): container-tools (podman) and php-imagick are recommended, not required: the engine and a command line alone install light (--no-install-recommends)
 - feature (import): the accounts of a list into a grid this install does not manage, by its Robust config (robust), and for a site through the config it gives the API

@@ -7,6 +7,7 @@
  *
  *   opensim-api GET /forms/grid
  *   opensim-api --grid=demo GET /monitor format=text
+ *   opensim-api --version [-v]          the version of the engine; with -v, of everything that matters here
  *
  * The install is the one of opensim.conf (or the OPENSIM_* variables). The status is 0 for a success, 1 for a problem, 2 for a command
  * that is not understood.
@@ -39,6 +40,23 @@ if (!class_exists(Router::class)) {
 }
 
 $args = array_slice($_SERVER['argv'], 1);
+// The version of the engine; with -v, of everything that matters on this machine
+if (in_array('--version', $args, true) || in_array('-V', $args, true)) {
+    if (array_intersect(['-v', '--verbose'], $args) === []) {
+        echo 'opensim-engine ' . \OpenSim\Support\Versions::engine() . "\n";
+        exit(0);
+    }
+    try {
+        $environment = Environment::system(Layout::resolve());
+    } catch (\RuntimeException $e) {
+        fwrite(STDERR, 'opensim-api: ' . $e->getMessage() . "\n");
+        exit(2);
+    }
+    foreach (\OpenSim\Support\Versions::all($environment) as $name => $version) {
+        printf("%-24s %s\n", $name, $version);
+    }
+    exit(0);
+}
 $grid = null;
 foreach ($args as $index => $arg) {
     if (str_starts_with($arg, '--grid=')) {
