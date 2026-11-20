@@ -14,7 +14,7 @@ use OpenSim\Provisioning\NullUi;
 use OpenSim\Testing\Machine;
 
 /** A machine whose core has the example of Robust, and an old install beside it, with its Robust config. */
-function old_install(): array
+function old_robust_install(): array
 {
     $machine = new Machine();
     file_put_contents(
@@ -32,7 +32,7 @@ function old_install(): array
 }
 
 /** A dump that writes nothing of a database: the tests have none. */
-function no_dump(): Closure
+function grid_import_no_dump(): Closure
 {
     return static function (array $database, string $to): void {
         file_put_contents($to, "-- {$database['name']}\n");
@@ -41,7 +41,7 @@ function no_dump(): Closure
 
 describe('The import of a grid', function () {
     test('is planned: the same grid and database, the settings of the old one kept, the secrets masked, nothing written', function () {
-        [$machine, $robust] = old_install();
+        [$machine, $robust] = old_robust_install();
 
         $plan = GridImport::prepare($machine->environment, $robust)->document();
         $kept = array_map(static fn(array $s): string => "{$s['section']}.{$s['key']}", $plan['settings']);
@@ -65,11 +65,11 @@ describe('The import of a grid', function () {
     });
 
     test('is written disabled, with the settings kept and a report, the old install untouched', function () {
-        [$machine, $robust] = old_install();
+        [$machine, $robust] = old_robust_install();
         $before = file_get_contents($robust);
 
         $import = GridImport::prepare($machine->environment, $robust);
-        $import->apply($machine->environment, new NullUi(), no_dump());
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
         $written = ConfigReader::file($import->plan->robustIni());
         $grid = Grid::find($machine->environment, 'oldgrid');
 
@@ -92,7 +92,7 @@ describe('The import of a grid', function () {
     });
 
     test('brings its simulators in the same run, planned against the grid it writes first', function () {
-        [$machine, $robust] = old_install();
+        [$machine, $robust] = old_robust_install();
         $bin = dirname($robust);
         mkdir("$bin/Regions");
         file_put_contents("$bin/OpenSim.ini", "[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n");
@@ -100,7 +100,7 @@ describe('The import of a grid', function () {
 
         $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']]);
         $plan = $import->document();
-        $import->apply($machine->environment, new NullUi(), no_dump());
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
         $grid = Grid::find($machine->environment, 'oldgrid');
 
         expect($plan['problems'])
@@ -114,15 +114,15 @@ describe('The import of a grid', function () {
     });
 
     test('refuses a grid this install has already', function () {
-        [$machine, $robust] = old_install();
+        [$machine, $robust] = old_robust_install();
 
         expect(fn() => GridImport::prepare($machine->environment, $robust, 'demo'))->toThrow(InvalidArgumentException::class, 'demo already');
     });
 
     test('switches only once the old Robust is stopped: then the grid is enabled and started here', function () {
-        [$machine, $robust] = old_install();
+        [$machine, $robust] = old_robust_install();
         $import = GridImport::prepare($machine->environment, $robust);
-        $import->apply($machine->environment, new NullUi(), no_dump());
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
 
         // The old Robust holds the public port of the grid
         $machine->processes->listening = [8102];
@@ -138,8 +138,8 @@ describe('The import of a grid', function () {
     });
 
     test('goes through the API: kind robust, planned, applied, switched', function () {
-        [$machine, $robust] = old_install();
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment, dumper: no_dump()));
+        [$machine, $robust] = old_robust_install();
+        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment, dumper: grid_import_no_dump()));
         $ask = static fn(array $more) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => $more + ['kind' => 'robust', 'file' => $robust]]]);
 
         $plan = $ask([]);
@@ -159,9 +159,9 @@ describe('The import of a grid', function () {
 
 describe('The setup from an existing install', function () {
     test('asks its Robust config, shows the plan, then writes the grid disabled and says how to switch', function () {
-        [$machine, $robust] = old_install();
+        [$machine, $robust] = old_robust_install();
         $env = $machine->environment;
-        OpenSim\Provisioning\QuickSetup::through(['dumper' => no_dump()]);
+        OpenSim\Provisioning\QuickSetup::through(['dumper' => grid_import_no_dump()]);
 
         $type = OpenSim\Provisioning\QuickSetup::next($env, []);
         $form = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $type['state'], 'answers' => ['type' => 'existing']]);
