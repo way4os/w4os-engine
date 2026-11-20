@@ -25,7 +25,7 @@ final class ItemForm
      * (one line), `text` (several lines), `integer`, `select` (one of `options`), `checkboxes` (some of `options`), `secret` (a
      * password, never shown), `url`, `avatar` (the UUID of an avatar of the grid).
      */
-    public const INPUTS = ['string', 'text', 'integer', 'select', 'checkboxes', 'secret', 'url', 'avatar'];
+    public const INPUTS = ['string', 'text', 'integer', 'select', 'checkboxes', 'secret', 'url', 'avatar', 'connection-string'];
 
     /**
      * @param list<array<string,mixed>> $fields made by field()

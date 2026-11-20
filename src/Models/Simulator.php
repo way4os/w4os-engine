@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace OpenSim\Models;
 
 use OpenSim\Data\Listing;
+use OpenSim\Config\IniEditor;
+use OpenSim\Config\Settings;
+use OpenSim\Exceptions\InvalidValue;
+use OpenSim\Forms\ItemForm;
 use OpenSim\Provisioning\Slug;
 use OpenSim\Config\ConnectionString;
 use OpenSim\Console\ConsoleInterface;
@@ -608,7 +612,7 @@ final class Simulator extends InstalledModel
                 'memory' => null,
                 'memoryUsed' => null,
                 'memoryTotal' => null,
-            ] + array_fill_keys(['consolePort', 'console', 'databaseHost', 'databaseName', 'databaseUser', 'estateDatabaseName', 'estateName', 'estateOwner', 'regionsDirectory', 'core'], null);
+            ] + array_fill_keys(['consolePort', 'consoleUser', 'consolePass', 'database', 'console', 'databaseHost', 'databaseName', 'databaseUser', 'estateDatabaseName', 'estateName', 'estateOwner', 'regionsDirectory', 'core'], null);
         }
 
         return [
@@ -641,6 +645,10 @@ final class Simulator extends InstalledModel
             // memory, and that memory in MB of the total
             ...$this->load(),
             'consolePort' => $this->consolePort(),
+            'consoleUser' => $this->consoleUser(),
+            // Its password masked, as a secret of a form: sent back, it keeps it
+            'consolePass' => (string) $this->consolePassword() !== '' ? Settings::MASK : null,
+            'database' => $this->ownDatabase(),
             'console' => $this->remoteConsole() !== null ? 'rest' : 'screen',
             'databaseHost' => $this->databaseHost(),
             'databaseName' => $this->databaseName(),
@@ -656,6 +664,129 @@ final class Simulator extends InstalledModel
     public function name(): string
     {
         return $this->controller->name();
+    }
+
+    /** The page of a simulator: its address, its console, its database (Use default: the default of its grid). */
+    public static function itemForm(): ItemForm
+    {
+        $database = Settings::type('connection-string');
+
+        return new ItemForm(
+            [
+                ItemForm::shown('uri', 'setting_simulator_uri', 'text', 'simulator'),
+                ItemForm::field('httpPort', 'setting_http_port', 'integer', 'simulator'),
+                ItemForm::field('consoleUser', 'setting_console_user', 'string', 'console'),
+                ItemForm::field('consolePass', 'setting_console_pass', 'secret', 'console'),
+                ItemForm::field('consolePort', 'setting_console_port', 'integer', 'console'),
+                ItemForm::field('database', 'setting_simulator_database', 'connection-string', 'database', more: ['fallback' => 'db_use_default', 'description' => ['db_default_opensim'], 'fields' => $database?->fields() ?? []]),
+            ],
+            [ItemForm::group('simulator', 'group_simulator'), ItemForm::group('console', 'group_console'), ItemForm::group('database', 'group_database')],
+        );
+    }
+
+    /** The keys of [Network] of its file, by attribute. */
+    private const NETWORK = ['httpPort' => 'http_listener_port', 'consoleUser' => 'ConsoleUser', 'consolePass' => 'ConsolePass', 'consolePort' => 'console_port'];
+
+    /**
+     * Change what its page changes, in its own file: its HTTP port and its console ([Network]), its database ([DatabaseService]); the
+     * mask of a secret sent back keeps it, `useDefault` true gives it the default database (defaultDatabase()). It takes effect when
+     * it starts again.
+     *
+     * @param array<string,mixed> $values
+     * @throws InvalidValue for an attribute it does not change, a port that is not one
+     */
+    public function update(array $values): void
+    {
+        $this->elsewhere === null || throw InvalidValue::because('invalid-request', 'a simulator of another machine is changed there');
+        $ini = IniEditor::load($this->ini());
+        foreach ($values as $name => $value) {
+            if ($name === 'database') {
+                $this->writeDatabase($ini, $value);
+                continue;
+            }
+            $key = self::NETWORK[$name] ?? throw InvalidValue::because('field-unknown', "a simulator has no changeable '$name'");
+            if ($value === null || ($name === 'consolePass' && $value === Settings::MASK)) {
+                continue;
+            }
+            $text = trim((string) $value);
+            in_array($name, ['httpPort', 'consolePort'], true) && !(ctype_digit($text) && (int) $text > 0 && (int) $text < 65536)
+                && throw InvalidValue::because('invalid-request', "'$text' is not a port ($name)");
+            $ini->set('Network', $key, in_array($name, ['consoleUser', 'consolePass'], true) ? '"' . $text . '"' : $text);
+        }
+        $ini->save($this->ini());
+    }
+
+    /** Its own database written in its file, or the default one when `useDefault` is sent. */
+    private function writeDatabase(IniEditor $ini, mixed $value): void
+    {
+        is_array($value) || throw InvalidValue::because('invalid-request', 'a database is given by its parts (host, port, database, user, password), or useDefault');
+        $codec = Settings::type('connection-string');
+        if (filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            // The database of the OpenSim.ini of the grid is read with it; without one, the main database is written in its file
+            $grid = $this->grid()?->config()?->get('OpenSim.DatabaseService.ConnectionString');
+            $default = $this->defaultDatabase();
+            is_string($grid) && trim($grid) !== '' ? $ini->remove('DatabaseService', 'ConnectionString')
+                : ($default !== null ? $ini->set('DatabaseService', 'ConnectionString', '"' . $codec->encode(self::partsOf($default)) . '"')
+                    : throw InvalidValue::because('invalid-request', 'the grid says no database for its simulators to use'));
+
+            return;
+        }
+        $current = $ini->get('DatabaseService', 'ConnectionString');
+        $ini->set('DatabaseService', 'ConnectionString', '"' . $codec->encode($value, $current === null ? null : trim($current, " \t\"")) . '"');
+    }
+
+    /**
+     * The database it uses when it has none of its own: the one of the OpenSim.ini of its grid, else the main database of the grid,
+     * whose localhost is the machine of Robust (onRobustHost()) when Robust runs elsewhere. Null when the grid says none.
+     */
+    public function defaultDatabase(): ?ConnectionString
+    {
+        $grid = $this->grid();
+        $config = $grid?->config();
+        if ($config === null) {
+            return null;
+        }
+        $opensim = ConnectionString::parse(trim((string) $config->get('OpenSim.DatabaseService.ConnectionString', ''), " \t\""));
+        if ($opensim !== null) {
+            return $opensim;
+        }
+        $main = \OpenSim\Data\Database::Robust->connection($config);
+        $host = (string) (parse_url((string) $grid->loginUrl(), PHP_URL_HOST) ?: $grid->baseHostname());
+
+        return $main === null || $grid->robust() !== null || $host === '' ? $main : self::onRobustHost($main, $host);
+    }
+
+    /** The parts of a database, as a form gives them. */
+    private static function partsOf(ConnectionString $database): array
+    {
+        return ['host' => $database->host ?: $database->source, 'port' => $database->port, 'database' => $database->database, 'user' => $database->user, 'password' => $database->password];
+    }
+
+    /** A database of Robust as a simulator elsewhere reaches it: its localhost (localhost, 127.0.0.1, ::1) is the host of Robust. */
+    public static function onRobustHost(ConnectionString $database, string $robustHost): ConnectionString
+    {
+        if (!in_array(strtolower($database->source), ['localhost', '127.0.0.1', '::1'], true)) {
+            return $database;
+        }
+
+        return new ConnectionString($robustHost, $database->database, $database->user, $database->password, $robustHost, $database->port, $database->driver);
+    }
+
+    /** Its own database, its parts with the password masked; null when it uses the default (none of its own, or the same). */
+    private function ownDatabase(): ?array
+    {
+        $codec = Settings::type('connection-string');
+        $own = is_file($this->ini()) ? IniEditor::load($this->ini())->get('DatabaseService', 'ConnectionString') : null;
+        $own = $own === null ? '' : trim($own, " \t\"");
+        if ($own === '' || $codec === null) {
+            return null;
+        }
+        $default = $this->defaultDatabase();
+        if ($default !== null && ConnectionString::parse($own)?->key() === $default->key() && ConnectionString::parse($own)?->password === $default->password) {
+            return null;
+        }
+
+        return $codec->mask($codec->decode($own));
     }
 
     /** The name to show: the one given to it, without its grid ("Test North" for friendly_fowl.test_north). */

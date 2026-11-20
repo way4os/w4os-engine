@@ -110,6 +110,9 @@ final class Contract
                 'connections' => ['object', 'How the engine reaches it: console, screen, config, regions, mysql, sqlite, each none, configured, ok or failed'],
                 'httpPort' => ['integer', 'Its HTTP port, the first of its block of ten'],
                 'consolePort' => ['integer?', 'The port of its console (x4 of the block)'],
+                'consoleUser' => ['string?', 'The user of its remote console (`ConsoleUser` of [Network] of its file)'],
+                'consolePass' => ['string?', 'The password of its remote console, masked (`********`), null when it has none'],
+                'database' => ['object?', 'Its own database (`ConnectionString` of [DatabaseService] of its file), by its parts, the password masked; null when it uses the default: the database of the OpenSim.ini of its grid, else the main database of the grid, whose localhost is the machine of Robust when Robust runs elsewhere'],
                 'console' => ['string?', 'How its console is reached: rest or screen'],
                 'databaseHost' => ['string?', 'The host of its database'],
                 'databaseName' => ['string?', 'The name of its database'],
@@ -122,6 +125,11 @@ final class Contract
             ],
             'writable' => [
                 'enabled' => ['boolean', 'Enable or disable the simulator; a running simulator is not stopped'],
+                'httpPort' => ['integer', 'Its HTTP port (`http_listener_port` of [Network] of its file), when it starts again'],
+                'consoleUser' => ['string', 'The user of its remote console'],
+                'consolePass' => ['string', 'The password of its remote console; the mask sent back keeps it'],
+                'consolePort' => ['integer', 'The port of its remote console (`console_port`)'],
+                'database' => ['object', 'Its own database by its parts (host, port, database, user, password: the mask keeps it), or `useDefault` true: the default database (written in its file when the OpenSim.ini of its grid says none)'],
             ],
         ],
         'services' => [

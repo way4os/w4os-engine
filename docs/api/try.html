@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "111528e",
+        "version": "b80da8c",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -1290,6 +1290,306 @@
                         }
                     }
                 },
+                "x-form": {
+                    "groups": [
+                        {
+                            "name": "simulator",
+                            "label": "group_simulator"
+                        },
+                        {
+                            "name": "console",
+                            "label": "group_console"
+                        },
+                        {
+                            "name": "database",
+                            "label": "group_database"
+                        }
+                    ],
+                    "fields": [
+                        {
+                            "name": "uri",
+                            "label": "setting_simulator_uri",
+                            "type": "text",
+                            "group": "simulator",
+                            "readOnly": true
+                        },
+                        {
+                            "name": "httpPort",
+                            "label": "setting_http_port",
+                            "type": "integer",
+                            "group": "simulator",
+                            "access": {
+                                "level": 200
+                            }
+                        },
+                        {
+                            "name": "consoleUser",
+                            "label": "setting_console_user",
+                            "type": "string",
+                            "group": "console",
+                            "access": {
+                                "level": 200
+                            }
+                        },
+                        {
+                            "name": "consolePass",
+                            "label": "setting_console_pass",
+                            "type": "secret",
+                            "group": "console",
+                            "access": {
+                                "level": 200
+                            }
+                        },
+                        {
+                            "name": "consolePort",
+                            "label": "setting_console_port",
+                            "type": "integer",
+                            "group": "console",
+                            "access": {
+                                "level": 200
+                            }
+                        },
+                        {
+                            "name": "database",
+                            "label": "setting_simulator_database",
+                            "type": "connection-string",
+                            "group": "database",
+                            "fallback": "db_use_default",
+                            "description": [
+                                "db_default_opensim"
+                            ],
+                            "fields": [
+                                {
+                                    "name": "host",
+                                    "label": "db_host",
+                                    "type": "string"
+                                },
+                                {
+                                    "name": "port",
+                                    "label": "db_port",
+                                    "type": "integer",
+                                    "default": 3306
+                                },
+                                {
+                                    "name": "database",
+                                    "label": "db_name",
+                                    "type": "string"
+                                },
+                                {
+                                    "name": "user",
+                                    "label": "db_user",
+                                    "type": "string"
+                                },
+                                {
+                                    "name": "password",
+                                    "label": "db_password",
+                                    "type": "secret"
+                                }
+                            ],
+                            "access": {
+                                "level": 200
+                            }
+                        }
+                    ],
+                    "actions": [],
+                    "header": {
+                        "title": "name",
+                        "subtitle": [
+                            "uri",
+                            "slug"
+                        ],
+                        "indicators": [
+                            {
+                                "name": "enabled",
+                                "icon": "power",
+                                "label": "column_enabled",
+                                "states": [
+                                    {
+                                        "value": true,
+                                        "label": "state_enabled",
+                                        "tone": "ok"
+                                    },
+                                    {
+                                        "value": false,
+                                        "label": "state_disabled",
+                                        "tone": "off"
+                                    }
+                                ],
+                                "actions": [
+                                    "enable",
+                                    "disable"
+                                ]
+                            },
+                            {
+                                "name": "state",
+                                "icon": "play",
+                                "label": "column_running",
+                                "states": [
+                                    {
+                                        "value": "running",
+                                        "label": "state_running",
+                                        "tone": "ok",
+                                        "icon": "play"
+                                    },
+                                    {
+                                        "value": "stopped",
+                                        "label": "state_stopped",
+                                        "tone": "off",
+                                        "icon": "pause"
+                                    },
+                                    {
+                                        "value": "unresponsive",
+                                        "label": "state_unresponsive",
+                                        "tone": "failed",
+                                        "icon": "play"
+                                    },
+                                    {
+                                        "value": "crashed",
+                                        "label": "state_crashed",
+                                        "tone": "failed",
+                                        "icon": "pause"
+                                    }
+                                ],
+                                "actions": [
+                                    "start",
+                                    "stop"
+                                ]
+                            },
+                            {
+                                "name": "connections.console",
+                                "icon": "console",
+                                "label": "connection_console",
+                                "states": [
+                                    {
+                                        "value": "configured",
+                                        "label": "connection_console",
+                                        "tone": "off"
+                                    },
+                                    {
+                                        "value": "ok",
+                                        "label": "connection_console",
+                                        "tone": "ok"
+                                    },
+                                    {
+                                        "value": "failed",
+                                        "label": "connection_console_failed",
+                                        "tone": "failed"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "connections.screen",
+                                "icon": "screen",
+                                "label": "connection_screen",
+                                "states": [
+                                    {
+                                        "value": "configured",
+                                        "label": "connection_screen",
+                                        "tone": "off"
+                                    },
+                                    {
+                                        "value": "ok",
+                                        "label": "connection_screen",
+                                        "tone": "ok"
+                                    },
+                                    {
+                                        "value": "failed",
+                                        "label": "connection_screen_failed",
+                                        "tone": "failed"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "connections.config",
+                                "icon": "file",
+                                "label": "connection_config",
+                                "states": [
+                                    {
+                                        "value": "configured",
+                                        "label": "connection_config",
+                                        "tone": "off"
+                                    },
+                                    {
+                                        "value": "ok",
+                                        "label": "connection_config",
+                                        "tone": "ok"
+                                    },
+                                    {
+                                        "value": "failed",
+                                        "label": "connection_config_failed",
+                                        "tone": "failed"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "connections.regions",
+                                "icon": "files",
+                                "label": "connection_regions",
+                                "states": [
+                                    {
+                                        "value": "configured",
+                                        "label": "connection_regions",
+                                        "tone": "off"
+                                    },
+                                    {
+                                        "value": "ok",
+                                        "label": "connection_regions",
+                                        "tone": "ok"
+                                    },
+                                    {
+                                        "value": "failed",
+                                        "label": "connection_regions_failed",
+                                        "tone": "failed"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "connections.mysql",
+                                "icon": "database",
+                                "label": "connection_mysql",
+                                "states": [
+                                    {
+                                        "value": "configured",
+                                        "label": "connection_mysql",
+                                        "tone": "off"
+                                    },
+                                    {
+                                        "value": "ok",
+                                        "label": "connection_mysql",
+                                        "tone": "ok"
+                                    },
+                                    {
+                                        "value": "failed",
+                                        "label": "connection_mysql_failed",
+                                        "tone": "failed"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "connections.sqlite",
+                                "icon": "database",
+                                "label": "connection_sqlite",
+                                "states": [
+                                    {
+                                        "value": "configured",
+                                        "label": "connection_sqlite",
+                                        "tone": "off"
+                                    },
+                                    {
+                                        "value": "ok",
+                                        "label": "connection_sqlite",
+                                        "tone": "ok"
+                                    },
+                                    {
+                                        "value": "failed",
+                                        "label": "connection_sqlite_failed",
+                                        "tone": "failed"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
                 "x-access": {
                     "level": 100,
                     "self": false
@@ -1327,6 +1627,26 @@
                                                     "enabled": {
                                                         "type": "boolean",
                                                         "description": "Enable or disable the simulator; a running simulator is not stopped"
+                                                    },
+                                                    "httpPort": {
+                                                        "type": "integer",
+                                                        "description": "Its HTTP port (`http_listener_port` of [Network] of its file), when it starts again"
+                                                    },
+                                                    "consoleUser": {
+                                                        "type": "string",
+                                                        "description": "The user of its remote console"
+                                                    },
+                                                    "consolePass": {
+                                                        "type": "string",
+                                                        "description": "The password of its remote console; the mask sent back keeps it"
+                                                    },
+                                                    "consolePort": {
+                                                        "type": "integer",
+                                                        "description": "The port of its remote console (`console_port`)"
+                                                    },
+                                                    "database": {
+                                                        "type": "object",
+                                                        "description": "Its own database by its parts (host, port, database, user, password: the mask keeps it), or `useDefault` true: the default database (written in its file when the OpenSim.ini of its grid says none)"
                                                     }
                                                 }
                                             }
@@ -14848,6 +15168,27 @@
                                     "null"
                                 ],
                                 "description": "The port of its console (x4 of the block)"
+                            },
+                            "consoleUser": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The user of its remote console (`ConsoleUser` of [Network] of its file)"
+                            },
+                            "consolePass": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The password of its remote console, masked (`********`), null when it has none"
+                            },
+                            "database": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "description": "Its own database (`ConnectionString` of [DatabaseService] of its file), by its parts, the password masked; null when it uses the default: the database of the OpenSim.ini of its grid, else the main database of the grid, whose localhost is the machine of Robust when Robust runs elsewhere"
                             },
                             "console": {
                                 "type": [

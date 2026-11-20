@@ -388,6 +388,35 @@ msgctxt "settings_avatars"
 msgid "Avatar Settings"
 msgstr "Réglages des avatars"
 
+msgctxt "group_simulator"
+msgid "Simulator"
+msgstr "Simulateur"
+
+msgctxt "group_console"
+msgid "Console"
+msgstr "Console"
+
+msgctxt "group_database"
+msgid "Database"
+msgstr "Base de données"
+
+msgctxt "setting_simulator_uri"
+msgid "Simulator URI"
+msgstr "URI du simulateur"
+
+msgctxt "setting_http_port"
+msgid "HTTP Port"
+msgstr "Port HTTP"
+
+msgctxt "setting_simulator_database"
+msgid "Simulator Database"
+msgstr "Base de données du simulateur"
+
+msgctxt "db_default_opensim"
+msgid ""
+"Default: the database of the simulators of the grid, else its main database."
+msgstr "Par défaut : la base des simulateurs de la grille, sinon sa base principale."
+
 msgctxt "settings_grid"
 msgid "Grid Settings"
 msgstr "Réglages de la grille"

@@ -387,6 +387,35 @@ msgctxt "settings_avatars"
 msgid "Avatar Settings"
 msgstr "Gosodiadau Afatarau"
 
+msgctxt "group_simulator"
+msgid "Simulator"
+msgstr "Simulator"
+
+msgctxt "group_console"
+msgid "Console"
+msgstr "Consôl"
+
+msgctxt "group_database"
+msgid "Database"
+msgstr "Cronfa ddata"
+
+msgctxt "setting_simulator_uri"
+msgid "Simulator URI"
+msgstr "URI yr efelychydd"
+
+msgctxt "setting_http_port"
+msgid "HTTP Port"
+msgstr "Porth HTTP"
+
+msgctxt "setting_simulator_database"
+msgid "Simulator Database"
+msgstr "Cronfa ddata'r efelychydd"
+
+msgctxt "db_default_opensim"
+msgid ""
+"Default: the database of the simulators of the grid, else its main database."
+msgstr "Rhagosodiad: cronfa ddata efelychwyr y grid, fel arall ei phrif gronfa ddata."
+
 msgctxt "settings_grid"
 msgid "Grid Settings"
 msgstr "Gosodiadau Grid"

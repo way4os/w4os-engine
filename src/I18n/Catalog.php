@@ -164,6 +164,14 @@ final class Catalog
         'settings_models' => 'Avatar Models',
         'settings_avatars' => 'Avatar Settings',
         // The page of the grid: what it is, the ways to reach its Robust, its services apart, what the numbers leave out
+        // The page of a simulator: its address, its console, its database
+        'group_simulator' => 'Simulator',
+        'group_console' => 'Console',
+        'group_database' => 'Database',
+        'setting_simulator_uri' => 'Simulator URI',
+        'setting_http_port' => 'HTTP Port',
+        'setting_simulator_database' => 'Simulator Database',
+        'db_default_opensim' => 'Default: the database of the simulators of the grid, else its main database.',
         'settings_grid' => 'Grid Settings',
         'settings_menu_grid' => 'Grid',
         'group_grid_info' => 'Grid Info',
