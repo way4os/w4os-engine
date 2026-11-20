@@ -619,8 +619,10 @@ final class Catalog
         'db_name' => 'Database name',
         'db_user' => 'User',
         'db_password' => 'Password',
-        'db_use_default' => 'Use default (same as main database)',
-        'db_use_simulator' => 'Use default (the database of the simulator)',
+        // The switch of a field that may use the default, what the default is in its description
+        'db_use_default' => 'Use default',
+        'db_default_main' => 'Use default: the main database of the grid.',
+        'db_default_simulator' => 'Use default: the database of the simulator.',
         'economy_database' => 'Economy Database',
         // What an address of the grid is used for (Service::usage())
         'usage_robust_simulators' => 'Robust service, used by the simulators',

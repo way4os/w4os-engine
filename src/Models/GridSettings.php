@@ -106,9 +106,12 @@ final class GridSettings
             'moneyBanker' => ['description' => ['money_banker_help', 'money_banker_podex_help']],
             'gloebitOwnerName' => ['description' => ['gloebit_banker_help']],
             'currencySymbol' => ['description' => ['currency_symbol_help']],
+            'moneyDatabase' => ['description' => ['db_default_main']],
+            'gloebitDatabase' => ['description' => ['db_default_simulator']],
         ],
         'search' => [
             'webSearchUrl' => ['label' => 'web_search_url', 'description' => ['web_search_help']],
+            'searchDatabase' => ['description' => ['db_default_main']],
             'eventsUrl' => ['description' => ['events_help_fetch']],
         ],
         'guide' => [
@@ -116,6 +119,7 @@ final class GridSettings
         ],
         'offline' => [
             'mailSender' => ['required' => true],
+            'offlineDatabase' => ['description' => ['db_default_main']],
             // Not provided, the module is chosen: V1 with the address of another service, V2 Robust's
             'offlineModule' => ['condition' => ['provide' => [false]]],
             'offlineMessageUrl' => ['condition' => ['offlineModule' => ['OfflineMessageModule']]],

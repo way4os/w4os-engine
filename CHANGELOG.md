@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (settings): the switch of a database that may use the default says Use default only, the field its own label, what the default is in its description
 - change (offline): the lines of Robust for the module V2 have the connector that keeps the messages (`OfflineIMServiceConnector` of `[ServiceList]`, commented in the distribution)
 - fix (search): the own register of the grid shown once, as its path, whatever the key the simulators have it under (`DATA_SRV_<nick>`), not again in the list of the other search engines
 - change (settings): an empty field shows its default as it is, an example as one (e.g.: YC$); left empty, a field takes its default

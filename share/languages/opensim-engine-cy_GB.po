@@ -2380,12 +2380,16 @@ msgid "Password"
 msgstr "Cyfrinair"
 
 msgctxt "db_use_default"
-msgid "Use default (same as main database)"
-msgstr "Defnyddio'r rhagosodiad (yr un fath â'r brif gronfa ddata)"
+msgid "Use default"
+msgstr "Defnyddio'r rhagosodiad"
 
-msgctxt "db_use_simulator"
-msgid "Use default (the database of the simulator)"
-msgstr "Defnyddio'r rhagosodiad (cronfa ddata'r efelychydd)"
+msgctxt "db_default_main"
+msgid "Use default: the main database of the grid."
+msgstr "Defnyddio'r rhagosodiad: prif gronfa ddata'r grid."
+
+msgctxt "db_default_simulator"
+msgid "Use default: the database of the simulator."
+msgstr "Defnyddio'r rhagosodiad: cronfa ddata'r efelychydd."
 
 msgctxt "economy_database"
 msgid "Economy Database"
@@ -3796,6 +3800,14 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#~ msgctxt "db_use_default"
+#~ msgid "Use default (same as main database)"
+#~ msgstr "Defnyddio'r rhagosodiad (yr un fath â'r brif gronfa ddata)"
+
+#~ msgctxt "db_use_simulator"
+#~ msgid "Use default (the database of the simulator)"
+#~ msgstr "Defnyddio'r rhagosodiad (cronfa ddata'r efelychydd)"
 
 #~ msgctxt "events_help_blank"
 #~ msgid ""

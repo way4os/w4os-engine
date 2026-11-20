@@ -2361,12 +2361,16 @@ msgid "Password"
 msgstr "Senha"
 
 msgctxt "db_use_default"
-msgid "Use default (same as main database)"
-msgstr "Usar o padrão (o mesmo do banco de dados principal)"
+msgid "Use default"
+msgstr "Usar padrão"
 
-msgctxt "db_use_simulator"
-msgid "Use default (the database of the simulator)"
-msgstr "Usar o padrão (o banco de dados do simulador)"
+msgctxt "db_default_main"
+msgid "Use default: the main database of the grid."
+msgstr "Usar padrão: o banco de dados principal do grid."
+
+msgctxt "db_default_simulator"
+msgid "Use default: the database of the simulator."
+msgstr "Usar padrão: o banco de dados do simulador."
 
 msgctxt "economy_database"
 msgid "Economy Database"
@@ -3759,6 +3763,14 @@ msgstr "A configuração do grid não diz onde está este banco de dados."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "O banco de dados não pode ser acessado."
+
+#~ msgctxt "db_use_default"
+#~ msgid "Use default (same as main database)"
+#~ msgstr "Usar o padrão (o mesmo do banco de dados principal)"
+
+#~ msgctxt "db_use_simulator"
+#~ msgid "Use default (the database of the simulator)"
+#~ msgstr "Usar o padrão (o banco de dados do simulador)"
 
 #~ msgctxt "events_help_blank"
 #~ msgid ""

@@ -137,7 +137,7 @@ final class Settings
             ],
             'Gloebit' => [
                 'Enabled' => ['name' => 'gloebitEnabled', 'type' => 'bool', 'label' => 'setting_gloebit_enabled', 'default' => false],
-                'GLBSpecificConnectionString' => ['name' => 'gloebitDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'fallback' => 'db_use_simulator', 'condition' => ['economyModule' => ['Gloebit']]],
+                'GLBSpecificConnectionString' => ['name' => 'gloebitDatabase', 'type' => 'connection-string', 'label' => 'economy_database', 'secret' => true, 'admin' => 'economy', 'fallback' => 'db_use_default', 'condition' => ['economyModule' => ['Gloebit']]],
                 'GLBEnvironment' => ['name' => 'gloebitEnvironment', 'type' => 'select', 'label' => 'setting_gloebit_environment', 'options' => ['sandbox' => 'gloebit_sandbox', 'production' => 'gloebit_production'], 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
                 'GLBKey' => ['name' => 'gloebitKey', 'type' => 'password', 'label' => 'setting_gloebit_key', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
                 'GLBSecret' => ['name' => 'gloebitSecret', 'type' => 'password', 'label' => 'setting_gloebit_secret', 'secret' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],

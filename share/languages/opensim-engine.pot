@@ -2061,11 +2061,15 @@ msgid "Password"
 msgstr ""
 
 msgctxt "db_use_default"
-msgid "Use default (same as main database)"
+msgid "Use default"
 msgstr ""
 
-msgctxt "db_use_simulator"
-msgid "Use default (the database of the simulator)"
+msgctxt "db_default_main"
+msgid "Use default: the main database of the grid."
+msgstr ""
+
+msgctxt "db_default_simulator"
+msgid "Use default: the database of the simulator."
 msgstr ""
 
 msgctxt "economy_database"
