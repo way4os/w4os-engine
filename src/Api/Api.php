@@ -140,6 +140,7 @@ final class Api
         private readonly ?\Closure $dumper = null,
         private readonly ?\Closure $restoreLoader = null,
         ?\Closure $grids = null,
+        private readonly ?\OpenSim\Provisioning\AccountImporter $accounts = null,
     ) {
         // The grids it serves: the ones of this machine (their folder in EtcRoot), or the ones an application gives (a site that has
         // the engine in its own folder: the settings of a grid and its databases over the network, nothing read from the machine)
@@ -1051,7 +1052,7 @@ final class Api
     /**
      * What another install brings into this one, planned, or applied with `mode` apply: `kind` simulator (a simulator of an older
      * install joining a grid of this machine, SimulatorImport), its config `file`, the `grid`, and `name` and `core` when they are not
-     * the ones of its config and of the grid. Nothing is written in plan mode.
+     * the ones of its config and of the grid; flux, grid-settings, accounts (importAccounts()). Nothing is written in plan mode.
      *
      * @param array<string,mixed> $attributes
      */
@@ -1060,11 +1061,14 @@ final class Api
         $instance = '/setups/imports';
         try {
             $kind = (string) ($attributes['kind'] ?? 'simulator');
-            in_array($kind, ['simulator', 'flux', 'grid-settings'], true) || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator, flux, grid-settings");
+            in_array($kind, ['simulator', 'flux', 'grid-settings', 'accounts'], true) || throw InvalidValue::because('invalid-request', "'$kind' cannot be imported: simulator, flux, grid-settings, accounts");
             $mode = (string) ($attributes['mode'] ?? 'plan');
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
             if ($kind === 'flux') {
                 return $this->importFlux($attributes, $mode, $instance);
+            }
+            if ($kind === 'accounts') {
+                return $this->importAccounts($attributes, $mode, $instance);
             }
             // The settings of a grid of another install, in the OpenSim.ini of a grid of this machine
             if ($kind === 'grid-settings') {
@@ -1117,6 +1121,47 @@ final class Api
                 'type' => 'imports',
                 'id' => $import->plan->slug,
                 'attributes' => ['kind' => $kind, 'mode' => $mode, 'applied' => $mode === 'apply'] + $import->document(),
+            ],
+            'links' => ['self' => $instance],
+        ]);
+    }
+
+    /**
+     * The accounts of a list made in a grid (AccountList, AccountImporter): `text` the list (CSV: first, last, email, password, with or
+     * without a header line; JSON or YAML: a list of objects with the same keys), `format` when it is not found from the text, the
+     * `grid`, `keepGoing` to go on after an account that failed. The names that exist are skipped; an account given no password gets
+     * one, given back only once it is made (`results`, `csv`).
+     *
+     * @param array<string,mixed> $attributes
+     */
+    private function importAccounts(array $attributes, string $mode, string $instance): Response
+    {
+        $nick = (string) ($attributes['grid'] ?? '');
+        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
+        $format = ($attributes['format'] ?? '') !== '' ? (string) $attributes['format'] : null;
+        $format === null || in_array($format, ['csv', 'json', 'yaml'], true) || throw InvalidValue::because('invalid-request', "'$format' is not a format: csv, json or yaml");
+        $list = \OpenSim\Provisioning\AccountList::parse((string) ($attributes['text'] ?? ''), $format);
+        $list['accounts'] !== [] || throw InvalidValue::because('invalid-request', 'nothing to make' . ($list['errors'] === [] ? '' : ': every line has a problem (' . implode('; ', $list['errors']) . ')'));
+        $done = ($this->accounts ?? \OpenSim\Provisioning\AccountImporter::forModels())->run($grid, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false));
+        $done['error'] === null || throw new \RuntimeException($done['error']);
+
+        $counts = [];
+        $results = [];
+        foreach ($done['results'] as $row) {
+            $counts[$row['status']] = ($counts[$row['status']] ?? 0) + 1;
+            $made = $row['generated'] && $row['status'] === \OpenSim\Provisioning\AccountImporter::CREATED;
+            // A password is given back only when it was made here and its account exists
+            $results[] = ['first' => $row['first'], 'last' => $row['last'], 'email' => $row['email'], 'status' => $row['status'], 'detail' => $row['detail'], 'generated' => $row['generated'] && $row['status'] !== \OpenSim\Provisioning\AccountImporter::EXISTS]
+                + ($made ? ['password' => $row['password']] : []);
+        }
+        $applied = $mode === 'apply';
+
+        return Response::document([
+            'data' => [
+                'type' => 'imports',
+                'id' => $nick,
+                'attributes' => ['kind' => 'accounts', 'mode' => $mode, 'applied' => $applied, 'grid' => $nick, 'errors' => $list['errors'], 'counts' => $counts, 'results' => $results]
+                    + ($applied ? ['csv' => \OpenSim\Provisioning\AccountImporter::resultCsv(array_map(static fn(array $row): array => $row + ['password' => '', 'generated' => false], $results))] : []),
             ],
             'links' => ['self' => $instance],
         ]);

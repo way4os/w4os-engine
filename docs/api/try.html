@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "0cdf6ce",
+        "version": "27c262b",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -13299,7 +13299,7 @@
                     "Setup"
                 ],
                 "summary": "Import",
-                "description": "What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already. `kind` `flux`: the posts of the stream of a site of w4os-wp (its `flux_post` posts, published, with their author `_avatar_uuid`) brought into the stream of the `grid`, each once; `file` the wp-config.php of the site, which says its database and the prefix of its tables. The plan says how many posts (`posts`), by avatar (`avatars`), the ones it skips and why (`skipped`), and how many were brought before (`imported`). `kind` `grid-settings`: the settings of a grid of another install (`file`, its OpenSim.ini, with the files it includes, as OpenSimulator reads them: its constants replaced, the last word of each key) brought into the OpenSim.ini of the `grid` of this machine, for the sections of its options (search and data services, economy and Gloebit, offline messages, profiles, groups): what the grid has already is never replaced, a folder of a simulator and the money of DTL/NSL are left out; the plan says the `settings` of its OpenSim.ini and the `files` laid (OpenSim.ini, and the Gloebit.ini of the grid, the one place of the settings of Gloebit, which the simulators include), a secret masked (a key, a secret, a password, a connection string), the constants kept as references (the ones this machine lacks, the site of the grid `WebURL`, defined in the `[Const]` of the grid), the `target` file and the `notes` (what is left out and why: the money of DTL/NSL is not handled; DATA_SRV_MISearch is DATA_SRV_<nick> now). One place for the settings of the simulators (`targets`): the OpenSim.ini of a grid that has a master (the master gives it to every simulator), else each simulator of the grid, whose config is whole (a grid that runs elsewhere, its simulators made without a master), the constants they lack defined in each; the repair of the options copies none of them again, and never changes a valid value.",
+                "description": "What another install brings into this one. `kind` `simulator`: a simulator of an older install (its config, an OpenSim.ini or its file of opensim.d with its includes, and the regions it names) joins a grid of this machine: its database is kept as it is (the new config uses the same, nothing is copied), its regions are copied with their UUID and their place, its ports and the settings that differ from the defaults of the core are kept. `mode` `plan` (the default) writes nothing and says what would be written and where (`writes`), `apply` writes it, the simulator disabled: the old one is stopped by its operator (`reminders`), then the new one enabled and started. Refused (400) when the grid has the simulator, or a region of its name or UUID, already. `kind` `flux`: the posts of the stream of a site of w4os-wp (its `flux_post` posts, published, with their author `_avatar_uuid`) brought into the stream of the `grid`, each once; `file` the wp-config.php of the site, which says its database and the prefix of its tables. The plan says how many posts (`posts`), by avatar (`avatars`), the ones it skips and why (`skipped`), and how many were brought before (`imported`). `kind` `grid-settings`: the settings of a grid of another install (`file`, its OpenSim.ini, with the files it includes, as OpenSimulator reads them: its constants replaced, the last word of each key) brought into the OpenSim.ini of the `grid` of this machine, for the sections of its options (search and data services, economy and Gloebit, offline messages, profiles, groups): what the grid has already is never replaced, a folder of a simulator and the money of DTL/NSL are left out; the plan says the `settings` of its OpenSim.ini and the `files` laid (OpenSim.ini, and the Gloebit.ini of the grid, the one place of the settings of Gloebit, which the simulators include), a secret masked (a key, a secret, a password, a connection string), the constants kept as references (the ones this machine lacks, the site of the grid `WebURL`, defined in the `[Const]` of the grid), the `target` file and the `notes` (what is left out and why: the money of DTL/NSL is not handled; DATA_SRV_MISearch is DATA_SRV_<nick> now). One place for the settings of the simulators (`targets`): the OpenSim.ini of a grid that has a master (the master gives it to every simulator), else each simulator of the grid, whose config is whole (a grid that runs elsewhere, its simulators made without a master), the constants they lack defined in each; the repair of the options copies none of them again, and never changes a valid value. `kind` `accounts`: the accounts of a list made in the `grid` (`text`: CSV, first, last, email, password, with or without a header line, or JSON or YAML, a list of objects with the same keys; `format` when the text does not say it; a password may be given as Robust keeps it, `password_hash` with its `password_salt`): the names the grid has are skipped (`exists`), an account given no password gets one (`generated`), the first failure stops the others (`not tried`) unless `keepGoing`. The answer says the lines that cannot be used (`errors`), each account (`results`: first, last, email, `status` created, would create, exists, failed or not tried, `detail`, `generated`, and `password`, the one made here, only once its account is made), the `counts` by status and, once applied, `csv`, the result for whoever sent the list (the passwords made here are the only ones in it): a site or a command line keeps it for the owner only. Refused (400) when no line of the list can be used.",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -13324,8 +13324,26 @@
                                                         "enum": [
                                                             "simulator",
                                                             "flux",
-                                                            "grid-settings"
+                                                            "grid-settings",
+                                                            "accounts"
                                                         ]
+                                                    },
+                                                    "text": {
+                                                        "type": "string",
+                                                        "description": "accounts: the list, CSV, JSON or YAML"
+                                                    },
+                                                    "format": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "csv",
+                                                            "json",
+                                                            "yaml"
+                                                        ],
+                                                        "description": "accounts: the format of the list, when its text does not say it"
+                                                    },
+                                                    "keepGoing": {
+                                                        "type": "boolean",
+                                                        "description": "accounts: go on after an account that failed (false: the others are not tried)"
                                                     },
                                                     "file": {
                                                         "type": "string",
