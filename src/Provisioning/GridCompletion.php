@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace OpenSim\Provisioning;
 
+use OpenSim\Config\GridFileService;
 use OpenSim\Models\Grid;
 use OpenSim\Runtime\Environment;
 
 /**
  * What a package that is installed or upgraded adds to the grids of the machine, without the setup and without anybody: the files
- * a grid is missing (the MoneyServer.ini the helpers need), and the options of a grid its simulators miss, laid again in their files
+ * a grid is missing (the MoneyServer.ini the helpers need), its ini files readable by the web server and nobody else (mode 640), and the options of a grid its simulators miss, laid again in their files
  * (GridOptions::repair(), planned then applied: a simulator made before an option became standard, or by an older engine). What is
  * there is left as it is, a second run does nothing; the simulators take what was laid at their next start.
  *
@@ -27,6 +28,10 @@ final class GridCompletion
             // A grid with helpers has a Helpers.ini, and its helpers need the key
             if (is_file("$dir/Helpers.ini") && ($made = MoneyServerConfig::ensure($dir)) !== null) {
                 $done[] = "wrote $made";
+            }
+            // Every ini may hold a password and the web server reads them (the helpers): theirs, and nobody else's
+            if (!GridFileService::protect($dir, GridFileService::canGiveWebGroup())) {
+                $done[] = basename($dir) . ': some ini files could not be given to the group of the web server';
             }
             try {
                 $repair = (new GridOptions(Grid::at($environment, $dir)))->repair(true);

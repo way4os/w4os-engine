@@ -397,7 +397,7 @@ final class Grid extends InstalledModel
                 'label' => _('Web site'),
                 'options' => [
                     'helpers' => _('The helpers only'),
-                    'website' => _('The helpers and the mini website (opensim-web)'),
+                    'website' => _('The helpers and the light website (w4os-site)'),
                 ],
                 'condition' => ['helpers' => true],
                 'enable' => $new,

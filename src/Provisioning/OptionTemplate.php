@@ -38,7 +38,7 @@ use OpenSim\Config\TextFileService;
  * Requires = helpers, !standalone    what the grid must be or have: helpers, standalone, hypergrid, connector:<Name>, service:<name>
  * Uses = helpers                     what a grid made by the setup must have for the option to be of any use (helpers)
  * Modules = opensimsearch            modules of the install it needs (EnabledModules, the package of the core)
- * Paths = /usr/share/opensim-web/html  folders or files of the install it needs
+ * Paths = /var/lib/opensim/www        folders or files of the install it needs
  * PathNote = "..."                   what is told when one is not there
  * Asks = Gloebit/GLBKey              settings the administrator gives: told when they are missing
  * Note = "..."                       what is told of them ({keys})

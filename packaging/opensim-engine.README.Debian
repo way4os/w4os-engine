@@ -1,0 +1,31 @@
+opensim-engine on Debian
+========================
+
+The system layout
+-----------------
+
+Installing the package makes the account the instances run as (opensim), the folders of the layout, owned by it
+through dpkg-statoverride (an administrator's own override is kept), and /etc/opensim/opensim.conf, left as it is
+once written:
+
+  /etc/opensim          config: opensim.conf, the grids (grids/<grid>), the enabled instances (robust.d, opensim.d)
+  /var/lib/opensim      data, and the home of the account
+  /var/log/opensim      logs
+  /var/cache/opensim    cache
+  /var/backups/opensim  backups
+
+Each OpenSimulator release installed in /usr/share/opensim gets an install profile in opensim.conf, added and
+removed with it; the latest one is the default.
+
+The files of a grid
+-------------------
+
+Every ini file of a grid may hold a password: it is readable by its owner and the group of the web server only
+(mode 640, group www-data when the machine has one), as the helpers read the settings of the grid. Each install or
+upgrade of the package gives them these modes again, and adds the files a grid is missing (MoneyServer.ini).
+
+Purge
+-----
+
+Purging the package removes /var/cache/opensim and the owner it gave to the folders of the layout. Config, data,
+logs, backups and the account are kept.

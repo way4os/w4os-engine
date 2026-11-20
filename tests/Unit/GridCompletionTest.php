@@ -45,4 +45,27 @@ describe('The completion of the grids at an upgrade', function () {
             ->and((new GridOptions(Grid::find($machine->environment, 'demo')))->repair(false)['simulators']['alpha'] ?? [])
             ->not->toContain('offline-robust');
     });
+
+    test('gives every ini of a grid, the MoneyServer.ini it adds too, mode 640 and the group of the web server when the machine has one', function () {
+        $machine = new Machine();
+        $alpha = GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        chmod($alpha, 0o644);
+        file_put_contents($machine->grid . '/Helpers.ini', "[Helpers]\n");
+        chmod($machine->grid . '/Helpers.ini', 0o664);
+        // The MoneyServer.ini made from an original, as the completion does when a grid with helpers has none
+        $original = $machine->root . '/MoneyServer.ini.original';
+        file_put_contents($original, "[MoneyServer]\n");
+
+        GridCompletion::run($machine->environment, $machine->etc);
+        OpenSim\Provisioning\MoneyServerConfig::write($machine->grid, $original);
+        $files = [$alpha, $machine->grid . '/Helpers.ini', $machine->grid . '/MoneyServer.ini'];
+        clearstatcache();
+
+        expect(array_map(static fn(string $file): int => fileperms($file) & 0o777, $files))->toBe([0o640, 0o640, 0o640]);
+        // The group is given when this user may give it (a member of the group of the web server, as the account of the instances is)
+        $gid = OpenSim\Config\GridFileService::webGroup();
+        if ($gid !== null && in_array($gid, posix_getgroups(), true)) {
+            expect(array_map(static fn(string $file): int => filegroup($file), $files))->toBe([$gid, $gid, $gid]);
+        }
+    });
 });

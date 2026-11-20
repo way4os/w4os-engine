@@ -2,6 +2,7 @@
 
 namespace OpenSim\Provisioning;
 
+use OpenSim\Config\GridFileService;
 use OpenSim\Config\IniEditor;
 use OpenSim\Config\TextFileService;
 
@@ -68,7 +69,7 @@ final class MoneyServerConfig
             @copy($path, "$path~");
         }
         file_put_contents($path, $text);
-        chmod($path, 0o640);
+        GridFileService::protectFile($path);
 
         return $path;
     }

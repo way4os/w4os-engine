@@ -21,15 +21,24 @@ final class GridFileService
         return $group === false ? null : (int) $group['gid'];
     }
 
+    /** Whether this process may give a file to the group of the web server: root, or a member of it (the account of the instances is). */
+    public static function canGiveWebGroup(): bool
+    {
+        $gid = self::webGroup();
+
+        return $gid !== null && function_exists('posix_geteuid') &&
+            (posix_geteuid() === 0 || in_array($gid, posix_getgroups() ?: [], true));
+    }
+
     /**
      * Mode 640 and the group of the web server for every ini file of a folder (the simulators', the includes, the regions').
      *
+     * @param bool $group give them the group of the web server too (false: the mode only)
      * @return bool false when the machine has a group for the web server and the files could not be given to it (a machine with none has
      *              nothing to give them to: the mode is all that is done)
      */
-    public static function protect(string $dir): bool
+    public static function protect(string $dir, bool $group = true): bool
     {
-        $gid = self::webGroup();
         $files = [];
         if (is_dir($dir)) {
             $iterator = new \RecursiveIteratorIterator(
@@ -43,12 +52,24 @@ final class GridFileService
         }
         $done = true;
         foreach ($files as $file) {
-            // Mode 640 in any case: nobody else reads what may hold a password
-            if ($gid !== null && !@chgrp($file, $gid)) {
-                $done = false;
-            }
-            chmod($file, 0o640);
+            $done = self::protectFile($file, $group) && $done;
         }
+
+        return $done;
+    }
+
+    /**
+     * Mode 640 and the group of the web server for one file.
+     *
+     * @param bool $group give it the group of the web server too (false: the mode only)
+     * @return bool false when the machine has a group for the web server and the file could not be given to it
+     */
+    public static function protectFile(string $file, bool $group = true): bool
+    {
+        $gid = $group ? self::webGroup() : null;
+        // Mode 640 in any case: nobody else reads what may hold a password
+        $done = $gid === null || @chgrp($file, $gid);
+        @chmod($file, 0o640);
 
         return $done;
     }

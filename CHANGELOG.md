@@ -2,6 +2,10 @@
 
 ### Unreleased
 
+- fix (packaging): every ini of a grid, MoneyServer.ini too, is 640 for the group of the web server again at each upgrade, as opensim-tools made them
+- fix (packaging): the engine depends on screen and procps; its preinst also replaces the old container-tools folder; purge removes the cache and the owners of the layout
+- new (packaging): copyright and README.Debian of the package
+- fix (presets): the website of a grid is the one of w4os-site, in /var/lib/opensim/www, no more opensim-web
 - fix (settings): a value of quotes only reads as none, null for a field that may use the default; an empty address sent to such a field is its default, never an empty key
 - fix (settings): the path of the web assets says the engine serves them wherever it is; Robust URI says what it is, not the text of the grid service
 - feat (simulators): the page of a simulator, changed in its own file: its URI and HTTP port, its console (user, password masked, port), its database, Use default by default (the database of the simulators of the grid, else its main database, whose localhost is the machine of Robust when Robust runs elsewhere)
