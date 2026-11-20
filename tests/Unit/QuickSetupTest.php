@@ -329,6 +329,7 @@ describe('quick setup, what is wrong', function () {
                 ['name' => 'grid', 'label' => 'Grid', 'implemented' => true],
                 ['name' => 'standalone', 'label' => 'Standalone', 'implemented' => true],
                 ['name' => 'simulator', 'label' => 'Simulator (join other grid)', 'implemented' => true],
+                ['name' => 'existing', 'label' => 'Existing install (migrate its grid)', 'implemented' => true],
                 ['name' => 'speculoos', 'label' => 'Speculoos', 'implemented' => true],
                 ['name' => 'osgrid', 'label' => 'OSGrid', 'implemented' => true],
             ]);
@@ -904,7 +905,7 @@ describe('quick setup, the scenario', function () {
         expect($reply)
             ->toMatchArray(['action' => 'screen', 'kind' => 'menu', 'name' => 'type', 'title' => 'OpenSim setup'])
             ->and(array_column($reply['items'], 'note', 'key'))
-            ->toBe(['grid' => '', 'standalone' => '', 'simulator' => '', 'speculoos' => '', 'osgrid' => ''])
+            ->toBe(['grid' => '', 'standalone' => '', 'simulator' => '', 'existing' => '', 'speculoos' => '', 'osgrid' => ''])
             ->and($reply['buttons'])
             ->toBe(['next' => 'OK', 'back' => 'Quit']);
     });

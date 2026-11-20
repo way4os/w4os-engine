@@ -92,6 +92,8 @@ final class QuickSetup
                 'implemented' => true,
                 'kind' => 'remote',
             ],
+            // The grid of another install migrated into this one (GridImport)
+            ['name' => 'existing', 'label' => 'Existing install (migrate its grid)', 'implemented' => true, 'kind' => 'import'],
         ];
         $presets = new Presets([], $environment->layout->etcRoot());
         $found = $presets->names();
@@ -431,6 +433,9 @@ final class QuickSetup
                 if (($known[$type] ?? false) !== true) {
                     return self::screenType($environment, $answers, self::notImplemented($environment));
                 }
+                if (self::kindOf($environment, $type) === 'import') {
+                    return self::screenImport($answers, '');
+                }
                 if (in_array(self::kindOf($environment, $type), ['remote', 'preset'], true)) {
                     $answers += ['name' => 'Welcome'];
                 } else {
@@ -443,6 +448,39 @@ final class QuickSetup
                 }
 
                 return self::screenForm($environment, $answers, '');
+
+            case 'import':
+                $answers = self::keep($answers, $given, ['robust_config', 'simulator_configs', 'nick']);
+                if ($button === 'back') {
+                    return self::screenType($environment, $answers, '');
+                }
+                try {
+                    return self::screenImportReview(self::gridImport($environment, $answers), $answers);
+                } catch (\InvalidArgumentException $error) {
+                    return self::screenImport($answers, $error->getMessage());
+                }
+
+            case 'import-review':
+                if ($button === 'back') {
+                    return self::screenImport($answers, '');
+                }
+                try {
+                    $import = self::gridImport($environment, $answers);
+                    $import->apply($environment, new NullUi(), self::$dumper);
+                } catch (\InvalidArgumentException $error) {
+                    return self::screenImport($answers, $error->getMessage());
+                }
+                $document = $import->document();
+
+                return [
+                    'action' => 'quit',
+                    'message' => implode("\n", [
+                        sprintf(_('Grid %s written in %s, disabled: the old install still runs.'), $document['name'], dirname($document['config'])),
+                        sprintf(_('Report: %s'), $document['report']),
+                        '',
+                        ...array_map(static fn(array $notice): string => (string) $notice['detail'], $document['reminders']),
+                    ]),
+                ];
 
             case 'form':
                 $answers = self::keep($answers, $given, self::editable(self::fields($environment, $answers)));
@@ -668,6 +706,71 @@ final class QuickSetup
         ];
     }
 
+    /** The questions of the import of an existing install: its Robust config, the configs of its simulators, its nick here. */
+    private static function screenImport(array $answers, string $notice): array
+    {
+        return [
+            'action' => 'screen',
+            'kind' => 'form',
+            'title' => _('Existing install'),
+            'text' => _('The grid of the install is migrated: the same database, its config made here, the old install never changed.'),
+            'notice' => $notice,
+            'fields' => [
+                ['name' => 'robust_config', 'label' => _('Its Robust config (Robust.HG.ini)'), 'value' => (string) ($answers['robust_config'] ?? ''), 'secret' => false, 'readonly' => false],
+                ['name' => 'simulator_configs', 'label' => _('Its simulators (their OpenSim.ini, separated by commas)'), 'value' => (string) ($answers['simulator_configs'] ?? ''), 'secret' => false, 'readonly' => false],
+                ['name' => 'nick', 'label' => _('Its nick here (empty: the one of its config)'), 'value' => (string) ($answers['nick'] ?? ''), 'secret' => false, 'readonly' => false],
+            ],
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'state' => self::encode('import', $answers),
+        ];
+    }
+
+    /** What the import of an existing install would write, to confirm. */
+    private static function screenImportReview(Import\GridImport $import, array $answers): array
+    {
+        $document = $import->document();
+        $rows = [
+            ['section' => 'grid', 'label' => _('Grid'), 'value' => "{$document['name']} ({$document['grid']})"],
+            ['section' => 'grid', 'label' => _('From'), 'value' => $document['source']],
+            ['section' => 'grid', 'label' => _('Database'), 'value' => "{$document['database']['name']} @ {$document['database']['host']} (user {$document['database']['user']}), kept as it is"],
+            ['section' => 'grid', 'label' => _('Ports'), 'value' => "{$document['ports']['public']}, {$document['ports']['private']}"],
+            ['section' => 'grid', 'label' => _('Config'), 'value' => $document['config']],
+            ['section' => 'grid', 'label' => _('Settings kept'), 'value' => (string) count($document['settings'])],
+        ];
+        foreach ($document['simulators']['steps'] ?? [] as $step) {
+            $rows[] = ['section' => 'simulator', 'label' => _('Simulator'), 'value' => "{$step['simulator']} ({$step['slug']})"];
+        }
+
+        return [
+            'action' => 'screen',
+            'kind' => 'review',
+            'title' => _('Review'),
+            'text' => implode("\n", array_values($document['problems'])),
+            'notice' => '',
+            'rows' => $rows,
+            'buttons' => ['next' => _('Import'), 'back' => _('Back')],
+            'wait' => _('Importing, this can take a few minutes…'),
+            'state' => self::encode('import-review', $answers),
+        ];
+    }
+
+    /** The import the answers ask for. */
+    private static function gridImport(Environment $environment, array $answers): Import\GridImport
+    {
+        $simulators = array_values(array_map(
+            static fn(string $file): array => ['file' => $file],
+            array_filter(array_map('trim', explode(',', (string) ($answers['simulator_configs'] ?? ''))), static fn(string $file): bool => $file !== ''),
+        ));
+
+        return Import\GridImport::prepare(
+            $environment,
+            trim((string) ($answers['robust_config'] ?? '')),
+            trim((string) ($answers['nick'] ?? '')) ?: null,
+            null,
+            $simulators,
+        );
+    }
+
     /** The questions of the type chosen, filled with the answers so far. */
     private static function screenForm(Environment $environment, array $answers, string $notice): array
     {
@@ -798,7 +901,11 @@ final class QuickSetup
         self::$account = $doubles['account'] ?? null;
         self::$says = $doubles['says'] ?? null;
         self::$region = $doubles['region'] ?? [];
+        self::$dumper = $doubles['dumper'] ?? null;
     }
+
+    /** The dump of a database for the backup of an import (null: DatabaseDump::write()). */
+    private static ?\Closure $dumper = null;
 
     /** @var array<string,mixed> */
     private static array $region = [];

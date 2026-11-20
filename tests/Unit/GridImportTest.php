@@ -156,3 +156,39 @@ describe('The import of a grid', function () {
             ->toBe(400);
     });
 });
+
+describe('The setup from an existing install', function () {
+    test('asks its Robust config, shows the plan, then writes the grid disabled and says how to switch', function () {
+        [$machine, $robust] = old_install();
+        $env = $machine->environment;
+        OpenSim\Provisioning\QuickSetup::through(['dumper' => no_dump()]);
+
+        $type = OpenSim\Provisioning\QuickSetup::next($env, []);
+        $form = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $type['state'], 'answers' => ['type' => 'existing']]);
+        $wrong = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $form['state'], 'answers' => ['robust_config' => '/nowhere/Robust.ini']]);
+        $review = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $form['state'], 'answers' => ['robust_config' => $robust]]);
+        $done = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $review['state'], 'button' => 'next']);
+        OpenSim\Provisioning\QuickSetup::through();
+
+        expect(array_column($type['items'], 'key'))
+            ->toContain('existing')
+            ->and($form['kind'])
+            ->toBe('form')
+            ->and(array_column($form['fields'], 'name'))
+            ->toBe(['robust_config', 'simulator_configs', 'nick'])
+            ->and($wrong['kind'])
+            ->toBe('form')
+            ->and($wrong['notice'])
+            ->toContain('cannot read')
+            ->and($review['kind'])
+            ->toBe('review')
+            ->and(implode("\n", array_column($review['rows'], 'value')))
+            ->toContain('Old Grid', 'oldgrid @ db.example.org')
+            ->and($done['action'])
+            ->toBe('quit')
+            ->and($done['message'])
+            ->toContain('--switch')
+            ->and(Grid::find($env, 'oldgrid')?->isEnabled())
+            ->toBeFalse();
+    });
+});
