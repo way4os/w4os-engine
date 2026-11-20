@@ -194,3 +194,18 @@ describe('layouts of an install', function () {
             ->toBe('/var/backups/localhost/opensim');
     });
 });
+
+describe('The grids of an existing install, in the config of the suite', function () {
+    test('are its [Grid <nick>] sections: where the files of each are, kept apart from the layout', function () {
+        $layout = Layout::load(layout_conf(
+            "[Defaults]\nEtcRoot = /etc/opensim\n\n[Grid oldgrid]\nRobustIni = /opt/old/bin/Robust.HG.ini\nCoreDirectory = /opt/old\nSimulators = welcome:/opt/old/bin/OpenSim.ini\n\n[opensim-0.9.3.0]\nCoreDirectory = /usr/share/opensim/0.9.3.0\n",
+        ));
+
+        expect($layout->grids())
+            ->toBe(['oldgrid' => ['RobustIni' => '/opt/old/bin/Robust.HG.ini', 'CoreDirectory' => '/opt/old', 'Simulators' => 'welcome:/opt/old/bin/OpenSim.ini']])
+            ->and($layout->get('RobustIni'))
+            ->toBe('')
+            ->and(Layout::FILE)
+            ->toBe('opensim.conf');
+    });
+});

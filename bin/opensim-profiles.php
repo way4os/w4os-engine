@@ -30,7 +30,7 @@ if (!class_exists(PackagedProfiles::class)) {
 }
 
 $options = getopt('', ['conf:', 'cores:', 'default-modules:']);
-$profiles = new PackagedProfiles($options['conf'] ?? '/etc/opensim/opensim.conf', $options['cores'] ?? '/usr/share/opensim');
+$profiles = new PackagedProfiles($options['conf'] ?? \OpenSim\Config\Layout::systemFile(), $options['cores'] ?? '/usr/share/opensim');
 foreach ($profiles->update() as $note) {
     echo "opensim: $note\n";
 }

@@ -169,8 +169,8 @@ final class BackupService
                     $paths[] = substr($link, strlen($etc) + 1);
                 }
             }
-            if (is_file("$etc/opensim.conf")) {
-                $paths[] = 'opensim.conf';
+            if (is_file("$etc/" . \OpenSim\Config\Layout::FILE)) {
+                $paths[] = \OpenSim\Config\Layout::FILE;
             }
             $this->append($tar, 'etc', $etc, $paths, $excludes);
 

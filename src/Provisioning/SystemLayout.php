@@ -98,7 +98,7 @@ final class SystemLayout
             $this->execute(sprintf('/usr/sbin/usermod -aG www-data %s', ShellService::arg($user)));
         }
 
-        $conf = "$etc/opensim.conf";
+        $conf = "$etc/" . Layout::FILE;
         if (!is_file($conf)) {
             file_put_contents($conf, $this->conf($layout, $user));
             $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($user), ShellService::arg($conf)));

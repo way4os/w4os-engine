@@ -19,8 +19,20 @@ use OpenSim\Runtime\Core;
  */
 final class Layout
 {
-    /** @var list<string> where `opensim.conf` is looked for, in this order ($HOME is the one of the caller) */
-    private const FILES = ['%HOME%/.config/opensim/opensim.conf', '%HOME%/.opensim.conf', '/etc/opensim/opensim.conf'];
+    /** The name of the config file of the suite: the one place it is written, a rename is this one change */
+    public const FILE = 'opensim.conf';
+
+    /** The folder of the system config of the suite */
+    public const SYSTEM_DIR = '/etc/opensim';
+
+    /** @var list<string> where the config file is looked for, in this order ($HOME is the one of the caller) */
+    private const FILES = ['%HOME%/.config/opensim/' . self::FILE, '%HOME%/.' . self::FILE, self::SYSTEM_DIR . '/' . self::FILE];
+
+    /** The config file of the suite on the system: /etc/opensim/opensim.conf */
+    public static function systemFile(): string
+    {
+        return self::SYSTEM_DIR . '/' . self::FILE;
+    }
 
     private ?Core $core = null;
     private bool $coreFound = false;
@@ -32,7 +44,22 @@ final class Layout
         private readonly array $values = [],
         private readonly ?string $file = null,
         private readonly string $profile = '',
+        private readonly array $grids = [],
     ) {}
+
+    /** The prefix of the sections of the grids of an existing install that the suite runs where they are: `[Grid <nick>]`. */
+    public const GRID_SECTION = 'Grid ';
+
+    /**
+     * The grids of an existing install the suite runs where they are, each its `[Grid <nick>]` section: where its files are
+     * (RobustIni, CoreDirectory, Simulators...), and the settings of the helpers that have no place of their own in OpenSimulator.
+     *
+     * @return array<string,array<string,string>> nick => its settings
+     */
+    public function grids(): array
+    {
+        return $this->grids;
+    }
 
     /**
      * The layout of the install: `opensim.conf` found in the usual places (or given), then the profile.
@@ -51,8 +78,14 @@ final class Layout
             $values = $ini[$profile] + $values;
         }
         unset($values['DefaultProfile']);
+        $grids = [];
+        foreach ($ini as $section => $settings) {
+            if (str_starts_with((string) $section, self::GRID_SECTION) && is_array($settings) && ($nick = trim(substr((string) $section, strlen(self::GRID_SECTION)))) !== '') {
+                $grids[$nick] = array_map(static fn($value): string => (string) $value, $settings);
+            }
+        }
 
-        return new self($values + $defaults, $file !== null && is_file($file) ? $file : null, $profile);
+        return new self($values + $defaults, $file !== null && is_file($file) ? $file : null, $profile, $grids);
     }
 
     /**
@@ -95,7 +128,7 @@ final class Layout
             }
         }
 
-        return new self($given + $layout->all(), $layout->file(), $layout->profile());
+        return new self($given + $layout->all(), $layout->file(), $layout->profile(), $layout->grids());
     }
 
     /** The name a setting of opensim.conf has in an environment: EtcRoot is OPENSIM_ETC_ROOT. */

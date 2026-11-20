@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (layout): the name of the config of the suite in one place (Layout::FILE); its [Grid <nick>] sections, the grids of an existing install the suite runs where they are (Layout::grids())
 - new (settings): a change says the grid restart or the simulator(s) restart is required (meta.reminders, with the command), when it went to a file they read
 - new: `opensim-api --version`, and with -v the versions of everything that matters on the machine (the engine, rest-php, the helpers, the site, the kit, the cores, .NET, PHP): Support\Versions
 - fix (import): an import of accounts into a grid whose database cannot be read says so (503), not an internal error
