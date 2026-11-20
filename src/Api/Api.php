@@ -1169,13 +1169,21 @@ final class Api
      */
     private function importAccounts(array $attributes, string $mode, string $instance): Response
     {
-        $nick = (string) ($attributes['grid'] ?? '');
-        $grid = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
+        // A grid of this install, or one it does not manage, by its Robust config where it is (nothing registered)
+        $robust = (string) ($attributes['robust'] ?? '');
+        if ($robust !== '') {
+            is_file($robust) && is_readable($robust) || throw InvalidValue::because('invalid-request', "cannot read the Robust config: $robust");
+            $target = GridConfig::fromRobust($robust);
+            $nick = trim((string) $target->get('Robust.GridInfoService.gridnick', ''), '"') ?: basename(dirname($robust));
+        } else {
+            $nick = (string) ($attributes['grid'] ?? '');
+            $target = $this->grid($nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
+        }
         $format = ($attributes['format'] ?? '') !== '' ? (string) $attributes['format'] : null;
         $format === null || in_array($format, ['csv', 'json', 'yaml'], true) || throw InvalidValue::because('invalid-request', "'$format' is not a format: csv, json or yaml");
         $list = \OpenSim\Provisioning\AccountList::parse((string) ($attributes['text'] ?? ''), $format);
         $list['accounts'] !== [] || throw InvalidValue::because('invalid-request', 'nothing to make' . ($list['errors'] === [] ? '' : ': every line has a problem (' . implode('; ', $list['errors']) . ')'));
-        $done = ($this->accounts ?? \OpenSim\Provisioning\AccountImporter::forModels())->run($grid, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false));
+        $done = ($this->accounts ?? \OpenSim\Provisioning\AccountImporter::forModels(fn(Grid $grid): ?GridConfig => ($this->config)($grid)))->run($target, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false));
         $done['error'] === null || throw new \RuntimeException($done['error']);
 
         $counts = [];

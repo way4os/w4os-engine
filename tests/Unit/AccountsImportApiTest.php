@@ -122,3 +122,37 @@ describe('The accounts of a list, through the API', function () {
         expect(accounts_import($router, ['grid' => 'nowhere', 'text' => "John,Roe\n"])->status)->toBe(404);
     });
 });
+
+describe('The accounts of a list, into a grid this install does not manage', function () {
+    test('are planned against the Robust config given, nothing registered', function () {
+        $machine = new Machine();
+        $robust = $machine->root . '/elsewhere/Robust.HG.ini';
+        mkdir(dirname($robust), 0o755, true);
+        file_put_contents($robust, "[GridInfoService]\n    gridnick = \"faraway\"\n[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=faraway;User ID=u;Password=p;\"\n");
+        $seen = [];
+        $importer = new AccountImporter(
+            static function (?Grid $grid, ?OpenSim\Config\GridConfig $config = null) use (&$seen): array {
+                $seen[] = $config?->file('Robust');
+
+                return ['Jane Doe'];
+            },
+            static fn(): ?string => null,
+            static function (): void {},
+        );
+        $router = new Router(new Api($machine->environment, accounts: $importer));
+
+        $plan = $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'accounts', 'robust' => $robust, 'text' => "Jane,Doe\nJohn,Roe\n"]]]);
+        $attributes = $plan->document['data']['attributes'] ?? [];
+
+        expect($plan->status)
+            ->toBe(200)
+            ->and($attributes['grid'])
+            ->toBe('faraway')
+            ->and(array_column($attributes['results'], 'status'))
+            ->toBe([AccountImporter::EXISTS, AccountImporter::WOULD_CREATE])
+            ->and($seen)
+            ->toBe([realpath($robust)])
+            ->and(is_dir($machine->etc . '/grids/faraway'))
+            ->toBeFalse();
+    });
+});

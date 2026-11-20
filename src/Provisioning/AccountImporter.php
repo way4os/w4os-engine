@@ -21,56 +21,67 @@ final class AccountImporter
     public const NOT_TRIED = 'not tried';
 
     /**
-     * @param \Closure(Grid):?list<string> $names the names ("First Last") of the avatars of the grid, null when they cannot be read
-     * @param \Closure(Grid):?string $home the id of the default region of the grid, null when it has none
-     * @param \Closure(Grid,array<string,mixed>):void $create makes an avatar (the values of Avatar::create()), throws when it cannot
+     * Each closure is given the grid (a grid of this install) or the config of a grid it does not manage (its Robust config), the
+     * other one null.
+     *
+     * @param \Closure(?Grid,?GridConfig):?list<string> $names the names ("First Last") of the avatars of the grid, null when they cannot be read
+     * @param \Closure(?Grid,?GridConfig):?string $home the id of the default region of the grid, null when it has none
+     * @param \Closure(?Grid,array<string,mixed>,?GridConfig):void $create makes an avatar (the values of Avatar::create()), throws when it cannot
      */
     public function __construct(private \Closure $names, private \Closure $home, private \Closure $create) {}
 
-    /** The importer of a real grid: its avatars are read and made by the model. */
-    public static function forModels(): self
+    /**
+     * The importer of a real grid: its avatars are read and made by the model, in the databases of its config.
+     *
+     * @param ?\Closure(Grid):?GridConfig $configOf the config of a grid of this install (default: its folder; the API gives the one an
+     *        application gives, a site that has the engine in its own folder)
+     */
+    public static function forModels(?\Closure $configOf = null): self
     {
-        $config = static fn(Grid $grid): GridConfig => GridConfig::fromFolder($grid->directory());
+        $configOf ??= static fn(Grid $grid): GridConfig => GridConfig::fromFolder($grid->directory());
+        $config = static fn(?Grid $grid, ?GridConfig $given = null): GridConfig => $given ?? $configOf($grid) ?? throw new ChannelUnavailable('the grid has no config here');
 
         return new self(
-            static function (Grid $grid) use ($config): ?array {
+            static function (?Grid $grid, ?GridConfig $given = null) use ($config): ?array {
                 try {
                     return array_map(
                         static fn(Avatar $avatar): string => $avatar->name(),
-                        Avatar::all($config($grid))->items(),
+                        Avatar::all($config($grid, $given))->items(),
                     );
                 } catch (ChannelUnavailable) {
                     return null;
                 }
             },
-            static function (Grid $grid) use ($config): ?string {
-                $pdo = Connections::pdo($config($grid), 'GridService');
+            static function (?Grid $grid, ?GridConfig $given = null) use ($config): ?string {
+                $pdo = Connections::pdo($config($grid, $given), 'GridService');
                 $id = $pdo?->get_var('SELECT uuid FROM regions WHERE (flags & 1) = 1 ORDER BY regionName LIMIT 1');
 
                 return is_string($id) && preg_match('/^[0-9a-fA-F-]{36}$/', $id) === 1 ? $id : null;
             },
             // The accounts of a list exist elsewhere: their names are taken as they are, reserved or not
-            static function (Grid $grid, array $values) use ($config): void {
-                Avatar::create($config($grid), $values + ['reservedName' => true]);
+            static function (?Grid $grid, array $values, ?GridConfig $given = null) use ($config): void {
+                Avatar::create($config($grid, $given), $values + ['reservedName' => true]);
             },
         );
     }
 
     /**
+     * @param Grid|GridConfig $target a grid of this install, or the config of a grid it does not manage (GridConfig::fromRobust())
      * @param list<array{first:string,last:string,email:string,password:string,line:int}> $accounts
      * @param bool $apply     write the accounts, else only tell what would be written
      * @param bool $keepGoing go on after an account that failed
      * @return array{error:?string,results:list<array{first:string,last:string,email:string,status:string,detail:string,password:string,generated:bool}>}
      */
-    public function run(Grid $grid, array $accounts, bool $apply, bool $keepGoing = false): array
+    public function run(Grid|GridConfig $target, array $accounts, bool $apply, bool $keepGoing = false): array
     {
-        $names = ($this->names)($grid);
+        [$grid, $config] = $target instanceof Grid ? [$target, null] : [null, $target];
+        $names = ($this->names)($grid, $config);
         if ($names === null) {
             return ['error' => 'the database of the grid cannot be read', 'results' => []];
         }
         $exists = array_fill_keys(array_map('strtolower', array_map('trim', $names)), true);
         // The home of the accounts: the default region, when the grid has one
-        $homeId = ($this->home)($grid);
+        $homeId = ($this->home)($grid, $config);
 
         $results = [];
         $stopped = false;
@@ -123,6 +134,7 @@ final class AccountImporter
                         ],
                         static fn($value): bool => $value !== null,
                     ),
+                    $config,
                 );
                 $row['status'] = self::CREATED;
                 $exists[strtolower("{$account['first']} {$account['last']}")] = true;

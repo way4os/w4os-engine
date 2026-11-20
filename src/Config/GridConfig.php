@@ -113,6 +113,17 @@ class GridConfig
     }
 
     /**
+     * The config of a grid this install does not manage, from its Robust config where it is (and the files it includes): nothing is
+     * copied nor written, the databases are the ones it names.
+     */
+    public static function fromRobust(string $file): static
+    {
+        $file = (string) (realpath($file) ?: $file);
+
+        return new static(['Robust' => ConfigReader::load($file)], ['Robust' => $file]);
+    }
+
+    /**
      * The same config with the access to the databases an application gives (DatabaseAccess): every connection string of every
      * file (a key that ends with ConnectionString: EstateConnectionString, MuteConnectionString...) on its server, as its user,
      * each keeping its database.
