@@ -747,14 +747,17 @@ final class GridSettings
         $values['provide'] && $add('Helpers.ini', ['Helpers' => ['HypEventsURL' => (string) $values['eventsUrl']]]);
     }
 
-    /** The lines of the offline messages: the module chosen, V1 and its address or V2, Robust's; the sender of the mails. */
+    /** The lines of the offline messages: the module chosen, V1 and its address or V2 and the connector of Robust; the sender of the mails. */
     private function offlineLines(\Closure $add, array $values, string $url, string $robust): void
     {
         $v2 = stripos((string) $values['offlineModule'], 'V2') !== false;
         $add('OpenSim.ini', ['Messaging' => $v2
             ? ['OfflineMessageModule' => '"Offline Message Module V2"', 'OfflineMessageURL' => '${Const|PrivateURL}:${Const|PrivatePort}']
             : ['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => $url]]);
-        $v2 || $add($robust, ['GridInfoService' => ['OfflineMessageURL' => $url]]);
+        // V2: the connector of Robust that keeps them, commented in the distribution; V1: the address of the helpers, which relay
+        // the messages between the grids that use them too (not a standard key of Robust)
+        $v2 ? $add($robust, ['ServiceList' => ['OfflineIMServiceConnector' => '"${Const|PrivatePort}/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"']])
+            : $add($robust, ['GridInfoService' => ['OfflineMessageURL' => $url]]);
         $values['provide'] && $add('Helpers.ini', ['Helpers' => ['MailSender' => (string) $values['mailSender']]]);
         // The database the helpers keep the messages in, when it is not the one of Robust
         $values['provide'] && ($values['offlineDatabase'] ?? null) !== null

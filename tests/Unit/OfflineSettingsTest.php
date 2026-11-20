@@ -40,6 +40,22 @@ describe('The offline messages', function () {
     });
 });
 
+describe('The lines of Robust for the offline messages', function () {
+    test('V2: the connector of Robust that keeps them, off in the distribution; V1: the address of the helpers, relayed between grids', function () {
+        [, $router] = provided_grid();
+        $robust = static fn(): string => array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file')['Robust.HG.ini'] ?? '';
+
+        address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'Offline Message Module V2']);
+        $v2 = $robust();
+        address_patch($router, 'offline', ['provide' => true, 'mailSender' => 'no-reply@example.org']);
+        $v1 = $robust();
+
+        expect($v2)->toContain("[ServiceList]\n    OfflineIMServiceConnector = \"\${Const|PrivatePort}/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector\"")
+            ->not->toContain('OfflineMessageURL')
+            ->and($v1)->toContain("[GridInfoService]\n    OfflineMessageURL = https://play.example.org/helpers/offline")->not->toContain('OfflineIMServiceConnector');
+    });
+});
+
 describe('The database of the offline messages', function () {
     test('is in the lines of the page when it is not the one of Robust, never with its password', function () {
         [$machine, $router] = provided_grid();

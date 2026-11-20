@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (offline): the lines of Robust for the module V2 have the connector that keeps the messages (`OfflineIMServiceConnector` of `[ServiceList]`, commented in the distribution)
 - fix (search): the own register of the grid shown once, as its path, whatever the key the simulators have it under (`DATA_SRV_<nick>`), not again in the list of the other search engines
 - change (settings): an empty field shows its default as it is, an example as one (e.g.: YC$); left empty, a field takes its default
 - change (regions): the presence, the prims and the scripts back in their own columns, av., pr., scr., sorted on, on the widest screens; the type of a region (RegionType of its file) in place of them; sorts on the type, the owner, the simulator; filters on the owner and the type (the simulators: av. and pr. too)
