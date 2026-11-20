@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (search): the own register of the grid shown once, as its path, whatever the key the simulators have it under (`DATA_SRV_<nick>`), not again in the list of the other search engines
 - change (settings): an empty field shows its default as it is, an example as one (e.g.: YC$); left empty, a field takes its default
 - change (regions): the presence, the prims and the scripts back in their own columns, av., pr., scr., sorted on, on the widest screens; the type of a region (RegionType of its file) in place of them; sorts on the type, the owner, the simulator; filters on the owner and the type (the simulators: av. and pr. too)
 - change (lists): no label where the value says it all (`bare` on the parts of a column too): the location, the size, the flags, an area; the usage reads 0 av., 3 prims, 2 scripts (`count`)

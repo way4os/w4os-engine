@@ -258,11 +258,17 @@ final class GridSettings
      */
     private function register(GridConfig $config, bool $on): array
     {
-        $own = trim((string) $config->find('DataSnapshot', $this->ownRegister()), " \t\"");
         $base = $this->baseOf('search');
+        // A register under the helpers of the grid is its own, whatever its key (the simulators may name it by the nick)
+        $mine = static fn(string $url): bool => $base !== null && str_starts_with($url, $base . '/');
+        $own = trim((string) $config->find('DataSnapshot', $this->ownRegister()), " \t\"");
         $others = [];
         foreach ($config->keys('DataSnapshot', '/^DATA_SRV_/i') as $key => $url) {
-            strcasecmp((string) $key, $this->ownRegister()) === 0 || trim((string) $url, " \t\"") === '' || ($others[] = trim((string) $url, " \t\""));
+            $url = trim((string) $url, " \t\"");
+            if ($url === '' || strcasecmp((string) $key, $this->ownRegister()) === 0) {
+                continue;
+            }
+            $mine($url) ? ($own !== '' || ($own = $url)) : ($others[] = $url);
         }
 
         return [
