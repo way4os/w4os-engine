@@ -115,6 +115,18 @@ describe('The accounts of a list, through the API', function () {
             ->toBe(['Ann']);
     });
 
+    test('say why when the database of the grid cannot be read', function () {
+        $importer = new AccountImporter(static fn(): ?array => null, static fn(): ?string => null, static function (): void {});
+        $router = new Router(new Api((new Machine())->environment, accounts: $importer));
+
+        $refused = accounts_import($router, ['text' => "John,Roe\n"]);
+
+        expect($refused->status)
+            ->toBe(503)
+            ->and($refused->document['detail'] ?? '')
+            ->toContain('the database of the grid cannot be read');
+    });
+
     test('refuse a grid that is not here', function () {
         $made = [];
         $router = accounts_router(new Machine(), $made);

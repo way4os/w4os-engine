@@ -1184,7 +1184,7 @@ final class Api
         $list = \OpenSim\Provisioning\AccountList::parse((string) ($attributes['text'] ?? ''), $format);
         $list['accounts'] !== [] || throw InvalidValue::because('invalid-request', 'nothing to make' . ($list['errors'] === [] ? '' : ': every line has a problem (' . implode('; ', $list['errors']) . ')'));
         $done = ($this->accounts ?? \OpenSim\Provisioning\AccountImporter::forModels(fn(Grid $grid): ?GridConfig => ($this->config)($grid)))->run($target, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false));
-        $done['error'] === null || throw new \RuntimeException($done['error']);
+        $done['error'] === null || throw \OpenSim\Exceptions\ChannelUnavailable::for('import the accounts', $done['error'] . ': its server must be reachable from here and its user allowed to read it');
 
         $counts = [];
         $results = [];
