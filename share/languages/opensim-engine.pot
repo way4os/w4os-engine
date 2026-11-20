@@ -407,7 +407,7 @@ msgid "Robust URI"
 msgstr ""
 
 msgctxt "setting_robust_uri_help"
-msgid "The private address of Robust the simulators call for the services of the grid."
+msgid "The private address of Robust, which the simulators call for the services of the grid."
 msgstr ""
 
 msgctxt "setting_robust_database"
@@ -852,8 +852,8 @@ msgctxt "assets_external_help"
 msgid "If 'Provide Web Assets Server' is disabled, it is necessary to install a third-party service and enter its URL here to ensure the proper functioning of the plugin."
 msgstr ""
 
-msgctxt "provide_path_help"
-msgid "Under the address of the site: under the base of the helpers, the helpers answer; elsewhere, the site, on a page with its block."
+msgctxt "assets_path_help"
+msgid "Any path under the site: the engine serves the pictures there, whatever the helpers."
 msgstr ""
 
 msgctxt "models_match"

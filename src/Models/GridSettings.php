@@ -69,7 +69,7 @@ final class GridSettings
         'guide' => ['setting' => 'destinationGuide', 'service' => 'guide', 'label' => 'provide_guide', 'block' => 'destination_guide', 'after' => 'guideSource', 'url' => 'guide_url'],
         'offline' => ['setting' => 'offlineMessageUrl', 'service' => 'offline', 'base' => 'helpers', 'label' => 'provide_offline', 'after' => 'offlineModule', 'url' => 'offline_helper', 'help' => ['offline_helper_help']],
         // A tool of its own, not a page of the site: anywhere under the site, routed apart to the engine
-        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'label' => 'provide_assets', 'url' => 'assets_url', 'help' => ['provide_path_help'], 'urlHelp' => ['assets_external_help'], 'example' => 'https://example.org/assets', 'required' => true],
+        'assets' => ['setting' => 'assetsUrl', 'service' => 'assets', 'label' => 'provide_assets', 'url' => 'assets_url', 'help' => ['assets_path_help'], 'urlHelp' => ['assets_external_help'], 'example' => 'https://example.org/assets', 'required' => true],
     ];
 
     /** The tip of a field, under its label where the label is not enough: a few words, the details being its description. */
@@ -110,7 +110,7 @@ final class GridSettings
             'loginUri' => ['group' => 'grid'],
             'gridName' => ['group' => 'grid'],
             'gridNick' => ['group' => 'grid'],
-            'gridServerUri' => ['group' => 'robust', 'label' => 'setting_robust_uri'],
+            'gridServerUri' => ['group' => 'robust', 'label' => 'setting_robust_uri', 'description' => 'setting_robust_uri_help'],
             'database' => ['group' => 'robust', 'label' => 'setting_robust_database'],
             'consoleUser' => ['group' => 'robust'],
             'consolePass' => ['group' => 'robust'],

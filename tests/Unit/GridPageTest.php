@@ -50,6 +50,8 @@ describe('The page of the grid', function () {
                 'Assets Service URI', 'Profile Service URI', 'Profile Page', 'Exclude from stats',
             ])
             ->and($fields['consolePass']['type'])->toBe('secret')
+            // What Robust URI is, not the text of the grid service
+            ->and($en($fields['gridServerUri']['description']))->toBe('The private address of Robust, which the simulators call for the services of the grid.')
             // Use default: a field of its own label, the switch saying Use default only
             ->and([$fields['assetServerUri']['fallback'], $fields['profileServiceUrl']['fallback']])->toBe(['db_use_default', 'db_use_default'])
             ->and([$fields['assetServerUri']['description'], $fields['profileServiceUrl']['description']])->toBe([['uri_default_robust'], ['uri_default_login']])

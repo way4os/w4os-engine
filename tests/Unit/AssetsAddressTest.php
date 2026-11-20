@@ -15,6 +15,9 @@ describe('The address of the web assets', function () {
         $moved = address_patch($router, 'assets', ['provide' => true, 'path' => 'assets/']);
 
         expect(provided_fields('assets')['path']['base'])->toBe('site')
+            // Its help says the engine answers wherever the path is
+            ->and(provided_fields('assets')['path']['description'])->toBe(['assets_path_help'])
+            ->and(OpenSim\I18n\Catalog::MESSAGES['assets_path_help'])->toBe('Any path under the site: the engine serves the pictures there, whatever the helpers.')
             ->and($default['data']['attributes']['path'])->toBe('helpers/assets')
             ->and($moved->status)->toBe(200)
             ->and($moved->document['data']['attributes']['path'])->toBe('assets/')

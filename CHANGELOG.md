@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (settings): the path of the web assets says the engine serves them wherever it is; Robust URI says what it is, not the text of the grid service
 - feat (simulators): the page of a simulator, changed in its own file: its URI and HTTP port, its console (user, password masked, port), its database, Use default by default (the database of the simulators of the grid, else its main database, whose localhost is the machine of Robust when Robust runs elsewhere)
 - change (settings): no tip that says again what its label says (the databases, the list of the models, the module, the registers, the events, the sender); what a default is said in a few words (Default: the main database of the grid)
 - change (search): 2do.directory has a box of its own, Include 2do.directory, on by default; the list of the registers is the other search engines only
