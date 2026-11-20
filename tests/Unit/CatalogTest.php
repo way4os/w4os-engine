@@ -102,6 +102,12 @@ describe('the catalog of the texts of the sites', function () {
             ->and(Catalog::messages('es'))->toBe([]);
     });
 
+    test('translates every text in every language, none fuzzy', function () {
+        foreach (Catalog::LOCALES as $locale) {
+            expect(array_keys(array_diff_key(Catalog::MESSAGES, Catalog::messages($locale, fuzzy: false))))->toBe([], $locale);
+        }
+    });
+
     test('keeps the placeholders of a text in its translations', function () {
         foreach (Catalog::LOCALES as $locale) {
             foreach (Catalog::messages($locale) as $key => $text) {

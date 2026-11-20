@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (texts): the texts of the posts, the caches and the services translated in every language (de, fr, cy, it, nl, pt-BR); the catalog checks that none is left
 - fix (in place): a grid in place runs with the core of its install (CoreDirectory of its section), not the one of the suite
 - new (in place): an existing install registered where it is through the API (kind robust, inPlace; forget removes it): only its section of the config of the suite is written
 - new (in place): the settings of the helpers of a grid in place, in its section of the config of the suite (Section.Key), never in a file of the install
