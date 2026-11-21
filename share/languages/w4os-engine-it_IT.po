@@ -951,6 +951,10 @@ msgctxt "start_done"
 msgid "Done"
 msgstr "Fatto"
 
+msgctxt "home_all_news"
+msgid "All news"
+msgstr "Tutte le notizie"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Totale"

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (texts): home_all_news, the link under the last news of a site to its news page, in every language
 - new (urls): Url::build(), a site's link for the page shown: base, language prefix and kept arguments
 - change (texts): the Connect block's buttons in one mood per language; start_viewer removed
 - change (texts): start_viewer_note removed, the Connect block no longer shows it
