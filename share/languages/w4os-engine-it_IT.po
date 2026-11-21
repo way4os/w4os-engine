@@ -902,6 +902,92 @@ msgctxt "grid_add_to_viewer"
 msgid "Add this grid to your viewer"
 msgstr "Aggiungi questa griglia al tuo viewer"
 
+#, php-format
+msgctxt "viewer_add_grid"
+msgid "Add %1$s to your viewer"
+msgstr "Aggiungi %1$s al tuo viewer"
+
+msgctxt "viewer_add_grid_other"
+msgid "Other link"
+msgstr "Altro link"
+
+msgctxt "viewer_login_uri_by_hand"
+msgid "Or add it in the grid manager of your viewer with its login URI:"
+msgstr ""
+"Oppure aggiungila nel gestore delle griglie del tuo viewer, con il suo URI "
+"di accesso:"
+
+msgctxt "copy"
+msgid "Copy"
+msgstr "Copia"
+
+msgctxt "copied"
+msgid "Copied"
+msgstr "Copiato"
+
+msgctxt "start_title"
+msgid "Getting started"
+msgstr "Primi passi"
+
+msgctxt "start_avatar"
+msgid "Create your avatar"
+msgstr "Crea il tuo avatar"
+
+msgctxt "start_avatar_text"
+msgid ""
+"Choose its name and its look. The name is for good: it cannot be changed "
+"later."
+msgstr ""
+"Scegli il suo nome e il suo aspetto. Il nome è definitivo: non potrà essere "
+"cambiato in seguito."
+
+#, php-format
+msgctxt "start_avatar_done"
+msgid "Your avatar is %s."
+msgstr "Il tuo avatar è %s."
+
+msgctxt "start_viewer"
+msgid "Add the grid to your viewer"
+msgstr "Aggiungi la griglia al tuo viewer"
+
+#, php-format
+msgctxt "start_viewer_text"
+msgid ""
+"The viewer is the program that opens the virtual world. Install one made for "
+"OpenSimulator, such as Firestorm (its OpenSim version), then add %s to it."
+msgstr ""
+"Il viewer è il programma che apre il mondo virtuale. Installane uno fatto "
+"per OpenSimulator, come Firestorm (la sua versione OpenSim), poi aggiungi %s."
+
+msgctxt "start_viewer_get"
+msgid "Get Firestorm"
+msgstr "Scarica Firestorm"
+
+msgctxt "start_viewer_others"
+msgid "Other viewers"
+msgstr "Altri viewer"
+
+msgctxt "start_login"
+msgid "Log in"
+msgstr "Accedi"
+
+#, php-format
+msgctxt "start_login_text"
+msgid ""
+"In the viewer, choose %s in the list of grids, then log in with the name of "
+"your avatar and its password."
+msgstr ""
+"Nel viewer, scegli %s nell'elenco delle griglie, poi accedi con il nome del "
+"tuo avatar e la sua password."
+
+msgctxt "start_done"
+msgid "Done"
+msgstr "Fatto"
+
+msgctxt "start_next"
+msgid "Next step"
+msgstr "Passo successivo"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Totale"

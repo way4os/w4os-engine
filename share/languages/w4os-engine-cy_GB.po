@@ -896,6 +896,90 @@ msgctxt "grid_add_to_viewer"
 msgid "Add this grid to your viewer"
 msgstr "Ychwanegu'r grid hwn at eich viewer"
 
+#, php-format
+msgctxt "viewer_add_grid"
+msgid "Add %1$s to your viewer"
+msgstr "Ychwanegu %1$s at eich viewer"
+
+msgctxt "viewer_add_grid_other"
+msgid "Other link"
+msgstr "Dolen arall"
+
+msgctxt "viewer_login_uri_by_hand"
+msgid "Or add it in the grid manager of your viewer with its login URI:"
+msgstr ""
+"Neu ychwanegwch ef yn rheolwr gridiau eich viewer, gyda'i URI mewngofnodi:"
+
+msgctxt "copy"
+msgid "Copy"
+msgstr "Copïo"
+
+msgctxt "copied"
+msgid "Copied"
+msgstr "Wedi'i gopïo"
+
+msgctxt "start_title"
+msgid "Getting started"
+msgstr "Dechrau arni"
+
+msgctxt "start_avatar"
+msgid "Create your avatar"
+msgstr "Creu eich afatar"
+
+msgctxt "start_avatar_text"
+msgid ""
+"Choose its name and its look. The name is for good: it cannot be changed "
+"later."
+msgstr ""
+"Dewiswch ei enw a'i olwg. Mae'r enw yn barhaol: ni ellir ei newid wedyn."
+
+#, php-format
+msgctxt "start_avatar_done"
+msgid "Your avatar is %s."
+msgstr "Eich afatar yw %s."
+
+msgctxt "start_viewer"
+msgid "Add the grid to your viewer"
+msgstr "Ychwanegu'r grid at eich viewer"
+
+#, php-format
+msgctxt "start_viewer_text"
+msgid ""
+"The viewer is the program that opens the virtual world. Install one made for "
+"OpenSimulator, such as Firestorm (its OpenSim version), then add %s to it."
+msgstr ""
+"Y viewer yw'r rhaglen sy'n agor y byd rhithwir. Gosodwch un a wnaed ar gyfer "
+"OpenSimulator, fel Firestorm (ei fersiwn OpenSim), yna ychwanegwch %s ato."
+
+msgctxt "start_viewer_get"
+msgid "Get Firestorm"
+msgstr "Cael Firestorm"
+
+msgctxt "start_viewer_others"
+msgid "Other viewers"
+msgstr "Viewers eraill"
+
+msgctxt "start_login"
+msgid "Log in"
+msgstr "Mewngofnodi"
+
+#, php-format
+msgctxt "start_login_text"
+msgid ""
+"In the viewer, choose %s in the list of grids, then log in with the name of "
+"your avatar and its password."
+msgstr ""
+"Yn y viewer, dewiswch %s yn y rhestr o gridiau, yna mewngofnodwch gydag enw "
+"eich afatar a'i gyfrinair."
+
+msgctxt "start_done"
+msgid "Done"
+msgstr "Wedi'i wneud"
+
+msgctxt "start_next"
+msgid "Next step"
+msgstr "Cam nesaf"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Cyfanswm"

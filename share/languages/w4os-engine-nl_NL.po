@@ -901,6 +901,91 @@ msgctxt "grid_add_to_viewer"
 msgid "Add this grid to your viewer"
 msgstr "Voeg dit grid toe aan je viewer"
 
+#, php-format
+msgctxt "viewer_add_grid"
+msgid "Add %1$s to your viewer"
+msgstr "Voeg %1$s toe aan je viewer"
+
+msgctxt "viewer_add_grid_other"
+msgid "Other link"
+msgstr "Andere link"
+
+msgctxt "viewer_login_uri_by_hand"
+msgid "Or add it in the grid manager of your viewer with its login URI:"
+msgstr "Of voeg het toe in de gridmanager van je viewer, met de login-URI:"
+
+msgctxt "copy"
+msgid "Copy"
+msgstr "Kopiëren"
+
+msgctxt "copied"
+msgid "Copied"
+msgstr "Gekopieerd"
+
+msgctxt "start_title"
+msgid "Getting started"
+msgstr "Aan de slag"
+
+msgctxt "start_avatar"
+msgid "Create your avatar"
+msgstr "Maak je avatar"
+
+msgctxt "start_avatar_text"
+msgid ""
+"Choose its name and its look. The name is for good: it cannot be changed "
+"later."
+msgstr ""
+"Kies de naam en het uiterlijk. De naam is definitief: die kan later niet "
+"meer worden gewijzigd."
+
+#, php-format
+msgctxt "start_avatar_done"
+msgid "Your avatar is %s."
+msgstr "Je avatar is %s."
+
+msgctxt "start_viewer"
+msgid "Add the grid to your viewer"
+msgstr "Voeg het grid toe aan je viewer"
+
+#, php-format
+msgctxt "start_viewer_text"
+msgid ""
+"The viewer is the program that opens the virtual world. Install one made for "
+"OpenSimulator, such as Firestorm (its OpenSim version), then add %s to it."
+msgstr ""
+"De viewer is het programma dat de virtuele wereld opent. Installeer er een "
+"die voor OpenSimulator gemaakt is, zoals Firestorm (de OpenSim-versie), en "
+"voeg er dan %s aan toe."
+
+msgctxt "start_viewer_get"
+msgid "Get Firestorm"
+msgstr "Firestorm downloaden"
+
+msgctxt "start_viewer_others"
+msgid "Other viewers"
+msgstr "Andere viewers"
+
+msgctxt "start_login"
+msgid "Log in"
+msgstr "Inloggen"
+
+#, php-format
+msgctxt "start_login_text"
+msgid ""
+"In the viewer, choose %s in the list of grids, then log in with the name of "
+"your avatar and its password."
+msgstr ""
+"Kies in de viewer %s in de lijst met grids en log dan in met de naam van je "
+"avatar en het wachtwoord."
+
+msgctxt "start_done"
+msgid "Done"
+msgstr "Klaar"
+
+msgctxt "start_next"
+msgid "Next step"
+msgstr "Volgende stap"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Totaal"

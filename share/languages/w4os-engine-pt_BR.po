@@ -893,6 +893,92 @@ msgctxt "grid_add_to_viewer"
 msgid "Add this grid to your viewer"
 msgstr "Adicione este grid ao seu viewer"
 
+#, php-format
+msgctxt "viewer_add_grid"
+msgid "Add %1$s to your viewer"
+msgstr "Adicione %1$s ao seu viewer"
+
+msgctxt "viewer_add_grid_other"
+msgid "Other link"
+msgstr "Outro link"
+
+msgctxt "viewer_login_uri_by_hand"
+msgid "Or add it in the grid manager of your viewer with its login URI:"
+msgstr ""
+"Ou adicione-o no gerenciador de grids do seu viewer, com a URI de login dele:"
+
+msgctxt "copy"
+msgid "Copy"
+msgstr "Copiar"
+
+msgctxt "copied"
+msgid "Copied"
+msgstr "Copiado"
+
+msgctxt "start_title"
+msgid "Getting started"
+msgstr "Primeiros passos"
+
+msgctxt "start_avatar"
+msgid "Create your avatar"
+msgstr "Crie seu avatar"
+
+msgctxt "start_avatar_text"
+msgid ""
+"Choose its name and its look. The name is for good: it cannot be changed "
+"later."
+msgstr ""
+"Escolha o nome e a aparência dele. O nome é definitivo: não poderá ser "
+"alterado depois."
+
+#, php-format
+msgctxt "start_avatar_done"
+msgid "Your avatar is %s."
+msgstr "Seu avatar é %s."
+
+msgctxt "start_viewer"
+msgid "Add the grid to your viewer"
+msgstr "Adicione o grid ao seu viewer"
+
+#, php-format
+msgctxt "start_viewer_text"
+msgid ""
+"The viewer is the program that opens the virtual world. Install one made for "
+"OpenSimulator, such as Firestorm (its OpenSim version), then add %s to it."
+msgstr ""
+"O viewer é o programa que abre o mundo virtual. Instale um feito para o "
+"OpenSimulator, como o Firestorm (a versão OpenSim dele), e depois adicione "
+"%s a ele."
+
+msgctxt "start_viewer_get"
+msgid "Get Firestorm"
+msgstr "Baixar o Firestorm"
+
+msgctxt "start_viewer_others"
+msgid "Other viewers"
+msgstr "Outros viewers"
+
+msgctxt "start_login"
+msgid "Log in"
+msgstr "Entrar"
+
+#, php-format
+msgctxt "start_login_text"
+msgid ""
+"In the viewer, choose %s in the list of grids, then log in with the name of "
+"your avatar and its password."
+msgstr ""
+"No viewer, escolha %s na lista de grids e entre com o nome do seu avatar e a "
+"senha dele."
+
+msgctxt "start_done"
+msgid "Done"
+msgstr "Concluído"
+
+msgctxt "start_next"
+msgid "Next step"
+msgstr "Próximo passo"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Total"

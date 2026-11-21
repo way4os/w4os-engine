@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (texts): the button that adds a grid to the viewer (viewer_add_grid, as w4os-wp says it, its other link, the login URI by hand, copy, copied) and the getting-started block of a site (start_*), in every language
 - new (viewer links): the links that add a grid to a viewer (Firestorm app/gridmanager/addgrid, its login URI encoded), hop and secondlife, in the info and the addresses of a grid (addGrid, Destination::addGrid(), Grid::addGrid()); its text grid_add_to_viewer in every language
 - fix (packaging): the libraries of the package are links whatever the machine that builds it has (nfpm took the mode of an existing target, and shipped an empty folder); the web configs of the API of before w4os (paths, socket, pool) moved to the ones of now at the upgrade; the packaging check reads the links in the package and upgrades such configs, then serves the API with Apache and its pool on 127.0.0.1:8780
 - fix (tests): tests/Packaging/check takes where its container runs on its command line (--connection NAME, or --local), never from the environment, and refuses to run on macOS without it; a named connection must exist, and the machine used is the one podman itself reports; the container tests of the suite are skipped there unless PODMAN_LOCAL=1; the check loads the engine by its autoload (no bootstrap.php any more) and installs the empty package first on the upgrade, as apt does

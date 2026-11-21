@@ -743,6 +743,78 @@ msgctxt "grid_add_to_viewer"
 msgid "Add this grid to your viewer"
 msgstr ""
 
+#, php-format
+msgctxt "viewer_add_grid"
+msgid "Add %1$s to your viewer"
+msgstr ""
+
+msgctxt "viewer_add_grid_other"
+msgid "Other link"
+msgstr ""
+
+msgctxt "viewer_login_uri_by_hand"
+msgid "Or add it in the grid manager of your viewer with its login URI:"
+msgstr ""
+
+msgctxt "copy"
+msgid "Copy"
+msgstr ""
+
+msgctxt "copied"
+msgid "Copied"
+msgstr ""
+
+msgctxt "start_title"
+msgid "Getting started"
+msgstr ""
+
+msgctxt "start_avatar"
+msgid "Create your avatar"
+msgstr ""
+
+msgctxt "start_avatar_text"
+msgid "Choose its name and its look. The name is for good: it cannot be changed later."
+msgstr ""
+
+#, php-format
+msgctxt "start_avatar_done"
+msgid "Your avatar is %s."
+msgstr ""
+
+msgctxt "start_viewer"
+msgid "Add the grid to your viewer"
+msgstr ""
+
+#, php-format
+msgctxt "start_viewer_text"
+msgid "The viewer is the program that opens the virtual world. Install one made for OpenSimulator, such as Firestorm (its OpenSim version), then add %s to it."
+msgstr ""
+
+msgctxt "start_viewer_get"
+msgid "Get Firestorm"
+msgstr ""
+
+msgctxt "start_viewer_others"
+msgid "Other viewers"
+msgstr ""
+
+msgctxt "start_login"
+msgid "Log in"
+msgstr ""
+
+#, php-format
+msgctxt "start_login_text"
+msgid "In the viewer, choose %s in the list of grids, then log in with the name of your avatar and its password."
+msgstr ""
+
+msgctxt "start_done"
+msgid "Done"
+msgstr ""
+
+msgctxt "start_next"
+msgid "Next step"
+msgstr ""
+
 msgctxt "total"
 msgid "Total"
 msgstr ""
