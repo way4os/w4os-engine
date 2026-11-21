@@ -54,7 +54,7 @@ describe('Destinations', function () {
     });
 
     test('land a little above the sea when their height is zero or missing, at the height they give else', function () {
-        expect(Destination::parse('ursull.magiiic.dev:8012/Welcome/128/128/0')['pos'])
+        expect(Destination::parse('dev.w4os.org:8012/Welcome/128/128/0')['pos'])
             ->toBe('128/128/' . Destination::HEIGHT)
             ->and(Destination::HEIGHT)
             ->toBe(21)
@@ -62,8 +62,8 @@ describe('Destinations', function () {
             ->toBe('128/64/21')
             ->and(Destination::parse('grid.example:8002:Plaza/128/64/2')['pos'])
             ->toBe('128/64/2')
-            ->and(Destination::format('hop://ursull.magiiic.dev:8012/Welcome/128/128/0', TPLINK_HOP))
-            ->toBe('hop://ursull.magiiic.dev:8012/Welcome/128/128/21')
+            ->and(Destination::format('hop://dev.w4os.org:8012/Welcome/128/128/0', TPLINK_HOP))
+            ->toBe('hop://dev.w4os.org:8012/Welcome/128/128/21')
             ->and(Destination::format('grid.example:8002:Plaza/10/20/0', TPLINK_APPTP))
             ->toBe('secondlife:///app/teleport/grid.example:8002:Plaza/10/20/21')
             // A point written by hand keeps its separator; no point stays none (the landing point of the region)
@@ -305,13 +305,13 @@ const TP_BROWSER = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/12
 
 describe('The label of a destination, as a card shows it under its name', function () {
     test('is its region and its point on the grid itself, its grid and its region elsewhere, as text', function (string $destination, string $label) {
-        expect(Destination::format($destination, Destination::LABEL, context: ['login' => 'http://ursull.magiiic.dev:8012']))
+        expect(Destination::format($destination, Destination::LABEL, context: ['login' => 'http://dev.w4os.org:8012']))
             ->toBe($label)
-            ->and(Destination::label($destination, 'http://ursull.magiiic.dev:8012'))
+            ->and(Destination::label($destination, 'http://dev.w4os.org:8012'))
             ->toBe($label);
     })->with([
-        'of the grid itself' => ['ursull.magiiic.dev:8012/Welcome/128/128/25', 'Welcome/128/128/25'],
-        'of the grid itself, a height of zero' => ['hop://ursull.magiiic.dev:8012/Test%20North/116.5/136/0', 'Test North/116.5/136/21'],
+        'of the grid itself' => ['dev.w4os.org:8012/Welcome/128/128/25', 'Welcome/128/128/25'],
+        'of the grid itself, a height of zero' => ['hop://dev.w4os.org:8012/Test%20North/116.5/136/0', 'Test North/116.5/136/21'],
         'a region alone' => ['Welcome', 'Welcome'],
         'another grid: its grid alone, the region is the title' => ['hop://speculoos.world:8002/Grand%20Place/128/128/25', 'speculoos.world:8002'],
         'another grid, its port 80' => ['hop://hg.osgrid.org:80/Lbsa%20Plaza', 'hg.osgrid.org:80'],
@@ -319,9 +319,9 @@ describe('The label of a destination, as a card shows it under its name', functi
     ]);
 
     test('has a title: the name in the list on the grid itself, the region on another grid, else the name', function (string $destination, string $name, string $title) {
-        expect(Destination::title($destination, $name, 'http://ursull.magiiic.dev:8012'))->toBe($title);
+        expect(Destination::title($destination, $name, 'http://dev.w4os.org:8012'))->toBe($title);
     })->with([
-        'of the grid itself' => ['ursull.magiiic.dev:8012/Welcome/128/128/25', 'Our welcome', 'Our welcome'],
+        'of the grid itself' => ['dev.w4os.org:8012/Welcome/128/128/25', 'Our welcome', 'Our welcome'],
         'another grid' => ['hop://speculoos.world:8002/Grand%20Place/128/128/25', 'Speculoos', 'Grand Place'],
         'another grid without a region' => ['hop://hg.osgrid.org:80', 'OSGrid', 'OSGrid'],
     ]);
@@ -356,18 +356,18 @@ describe('The label of a destination, as a card shows it under its name', functi
 });
 
 describe('A link made for where it is shown (AUTO)', function () {
-    $login = 'http://ursull.magiiic.dev:8012';
-    $here = 'ursull.magiiic.dev:8012/Welcome/128/128/25';
+    $login = 'http://dev.w4os.org:8012';
+    $here = 'dev.w4os.org:8012/Welcome/128/128/25';
     $there = 'hg.example.org:8002/My Region/10/20/30';
 
     test('in a viewer, its login screen too: the location with its grid, for the grid itself and another one alike', function () use ($login, $here, $there) {
         expect(Destination::format($here, Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
-            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
+            ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
             ->and(Destination::format($here, Destination::AUTO, context: ['agent' => TP_VIEWER, 'splash' => true, 'login' => $login]))
-            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
+            ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
             // A region named alone is of the grid itself
             ->and(Destination::format('Welcome/128/128/25', Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
-            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
+            ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
             ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_VIEWER, 'login' => $login]))
             ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30')
             ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_VIEWER, 'splash' => true, 'login' => $login]))
@@ -376,7 +376,7 @@ describe('A link made for where it is shown (AUTO)', function () {
 
     test('out of a viewer: hop, for the grid itself too', function () use ($login, $here, $there) {
         expect(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login]))
-            ->toBe('hop://ursull.magiiic.dev:8012/Welcome/128/128/25')
+            ->toBe('hop://dev.w4os.org:8012/Welcome/128/128/25')
             ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login]))
             ->toBe('hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/10/20/30');
     });
@@ -403,7 +403,7 @@ describe('A link made for where it is shown (AUTO)', function () {
             $_SERVER['HTTP_USER_AGENT'] = $before;
         }
 
-        expect([$viewer, $browser])->toBe(['secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25', 'hop://ursull.magiiic.dev:8012/Welcome/128/128/25']);
+        expect([$viewer, $browser])->toBe(['secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25', 'hop://dev.w4os.org:8012/Welcome/128/128/25']);
     });
 
     test('of a grid: its login tells its own places', function () {
@@ -440,9 +440,9 @@ describe('A link made for where it is shown (AUTO)', function () {
 
     test('take the class of the client, which wins over the user agent', function () use ($login, $here, $there) {
         expect(Destination::format($here, Destination::AUTO, context: ['client' => 'viewer', 'login' => $login]))
-            ->toBe('secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25')
+            ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
             ->and(Destination::format($here, Destination::AUTO, context: ['client' => 'browser', 'agent' => TP_VIEWER, 'login' => $login]))
-            ->toBe('hop://ursull.magiiic.dev:8012/Welcome/128/128/25')
+            ->toBe('hop://dev.w4os.org:8012/Welcome/128/128/25')
             ->and(Destination::format($there, Destination::AUTO, context: ['client' => 'viewer', 'agent' => TP_BROWSER, 'login' => $login]))
             ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
     });
@@ -454,14 +454,14 @@ describe('A link made for where it is shown (AUTO)', function () {
 
 describe('The login URI of a grid', function () {
     test('is host:port whatever form it is written in, the URL kept apart for the calls', function () {
-        $forms = ['ursull.magiiic.dev:8012', 'http://ursull.magiiic.dev:8012/', 'https://ursull.magiiic.dev:8012', 'hop://ursull.magiiic.dev:8012/Welcome/128/128/25', 'secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25', ' HTTP://ursull.magiiic.dev:8012 '];
+        $forms = ['dev.w4os.org:8012', 'http://dev.w4os.org:8012/', 'https://dev.w4os.org:8012', 'hop://dev.w4os.org:8012/Welcome/128/128/25', 'secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25', ' HTTP://dev.w4os.org:8012 '];
 
         expect(array_map(Destination::loginUri(...), $forms))
-            ->toBe(array_fill(0, count($forms), 'ursull.magiiic.dev:8012'))
-            ->and(Destination::loginUrl('hop://ursull.magiiic.dev:8012/Welcome'))
-            ->toBe('http://ursull.magiiic.dev:8012')
-            ->and(Destination::loginUrl('https://ursull.magiiic.dev:8012/'))
-            ->toBe('https://ursull.magiiic.dev:8012')
+            ->toBe(array_fill(0, count($forms), 'dev.w4os.org:8012'))
+            ->and(Destination::loginUrl('hop://dev.w4os.org:8012/Welcome'))
+            ->toBe('http://dev.w4os.org:8012')
+            ->and(Destination::loginUrl('https://dev.w4os.org:8012/'))
+            ->toBe('https://dev.w4os.org:8012')
             ->and(Destination::loginUri(''))
             ->toBeNull();
     });
@@ -469,13 +469,13 @@ describe('The login URI of a grid', function () {
 
 describe('The links that add a grid to a viewer', function () {
     test('are the gridmanager command of Firestorm with the login URI encoded, in hop and secondlife forms', function () {
-        expect(Destination::addGrid('http://ursull.magiiic.dev:8012/'))
+        expect(Destination::addGrid('http://dev.w4os.org:8012/'))
             ->toBe([
-                'hop' => 'hop:///app/gridmanager/addgrid/ursull.magiiic.dev%3A8012',
-                'secondlife' => 'secondlife:///app/gridmanager/addgrid/ursull.magiiic.dev%3A8012',
+                'hop' => 'hop:///app/gridmanager/addgrid/dev.w4os.org%3A8012',
+                'secondlife' => 'secondlife:///app/gridmanager/addgrid/dev.w4os.org%3A8012',
             ])
-            ->and(Destination::addGrid('hop://ursull.magiiic.dev:8012/Welcome')['hop'])
-            ->toBe('hop:///app/gridmanager/addgrid/ursull.magiiic.dev%3A8012')
+            ->and(Destination::addGrid('hop://dev.w4os.org:8012/Welcome')['hop'])
+            ->toBe('hop:///app/gridmanager/addgrid/dev.w4os.org%3A8012')
             // A viewer takes http for a login URI without a scheme: https is said
             ->and(Destination::addGrid('https://grid.example.org/')['hop'])
             ->toBe('hop:///app/gridmanager/addgrid/https%3A%2F%2Fgrid.example.org')
