@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- doc (api): a site in a rootless container reaches the engine API at 10.0.2.2, allow_host_loopback, never on the network
 - fix (search): an upgrade adds to an old events table the columns read now (landingpoint, parcelName, mature); the import fills landingpoint
 - fix (search): an event of another grid names its region host:port:Region, as a viewer names it; one of the grid asking, by its name
 - change (links): hop:// first in a web browser by default, the scheme of OpenSimulator (secondlife:// may open a Second Life viewer)

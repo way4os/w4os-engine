@@ -1,6 +1,8 @@
 # The engine API of the grid {{grid_nick}}, for the sites of this machine only (127.0.0.1:{{api_port}}), run as the user of the
 # instances through the pool w4os-api ({{php_socket}}). A site block of its own in the Caddyfile; the site sets
 # api_url http://127.0.0.1:{{api_port}}/api and its key.
+# A site in a rootless container of this machine (podman, slirp4netns) reaches it without opening it on the network: the
+# container started with --network slirp4netns:allow_host_loopback=true, the site sets api_url http://10.0.2.2:{{api_port}}/api.
 http://127.0.0.1:{{api_port}} {
 	bind 127.0.0.1
 	@api path /api /api/*
