@@ -66,7 +66,11 @@ final class Destination
      * simulator links a name with a grid before a colon as a region of that grid (MapSearchModule of OpenSimulator, the names with
      * `:`), so the region of another grid is named `host:port:Region Name`, the one of the grid itself by its name alone, a grid
      * alone by `host:port` (its default region). The colon form exists here, in APPTP and in LSL, never in a hop:// link. Not
-     * tried yet; it does nothing before the login (the handler waits for the session, FIRE-17927).
+     * tried yet; it does nothing before the login (the handler waits for the session, FIRE-17927). From the source (2026-11-21,
+     * Firestorm, not tried): the handler is UNTRUSTED_THROTTLE but takes an untrusted link only clicked in a page or external
+     * (canHandleUntrusted()), and a link the system passes from a web browser comes with no kind (dispatchUrl() of
+     * llappviewermacosx.cpp): blocked there, so a link for the viewer only (Destination::links()); its point is read in whole
+     * meters (asInteger()), 128/128/0 without one.
      */
     public const MAP = 64;
     /** all formats */
@@ -130,10 +134,10 @@ final class Destination
     /**
      * The links worth offering beside the one of AUTO, in that order, by the class of the client (Destination::links()): in a web
      * browser hop:// (the hypergrid link the viewers read, from the source), then GRID; in the viewer the teleport of its own
-     * browser (APPTP, seen there, through the search of the map), then GRID. GRID stays second until a grid the viewer does not
-     * know is tried.
+     * browser (APPTP, seen there, through the search of the map), then GRID, then the place on its map (MAP: the viewer only, a
+     * web browser cannot open it, from the source). GRID stays second until a grid the viewer does not know is tried.
      */
-    public const LINKS = ['browser' => [self::HOP, self::GRID], 'viewer' => [self::APPTP, self::GRID]];
+    public const LINKS = ['browser' => [self::HOP, self::GRID], 'viewer' => [self::APPTP, self::GRID, self::MAP]];
 
     /** The formats that need a region: a grid alone has no such link in links() and in AUTO (hop:// without one is refused). */
     private const REGION_LINKS = self::GRID | self::HOP | self::LOCAL;
@@ -144,6 +148,7 @@ final class Destination
         self::HOP => 'link_menu_hop',
         self::APPTP => 'link_menu_apptp',
         self::LOCAL => 'link_menu_local',
+        self::MAP => 'link_menu_map',
         self::LSL => 'link_menu_copy',
     ];
 
@@ -445,7 +450,10 @@ final class Destination
     /** The address a format takes for a destination read by parse(): its region and point alone for LOCAL. */
     private static function autoUri(array $parsed, int $format): string
     {
-        return $format === self::LOCAL ? $parsed['region'] . ($parsed['pos'] === '' ? '' : '/' . $parsed['pos']) : $parsed['dest_uri'];
+        // A region of the grid itself by its name alone on its map (MAP: the search of the map reads host:port as another grid)
+        $alone = $format === self::LOCAL || ($format === self::MAP && ($parsed['local'] ?? false) && !empty($parsed['region']));
+
+        return $alone ? $parsed['region'] . ($parsed['pos'] === '' ? '' : '/' . $parsed['pos']) : $parsed['dest_uri'];
     }
 
     /**

@@ -583,6 +583,7 @@ final class Catalog
         'link_menu_hop' => 'hop:// link',
         'link_menu_apptp' => 'Teleport in the viewer',
         'link_menu_local' => 'Region of this grid',
+        'link_menu_map' => 'Show on the map',
         'link_menu_copy' => 'Copy the address',
         // The button beside a teleport link that opens the menu of its other links
         'tp_more' => 'More ways to go there',

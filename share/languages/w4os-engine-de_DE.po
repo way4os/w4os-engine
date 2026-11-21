@@ -2121,6 +2121,10 @@ msgctxt "link_menu_local"
 msgid "Region of this grid"
 msgstr "Region dieses Grids"
 
+msgctxt "link_menu_map"
+msgid "Show on the map"
+msgstr "Auf der Karte zeigen"
+
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Adresse kopieren"
