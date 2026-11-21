@@ -931,20 +931,12 @@ msgid "Copied"
 msgstr "Copié"
 
 msgctxt "start_title"
-msgid "Getting started"
-msgstr "Premiers pas"
+msgid "Connect"
+msgstr "Connexion"
 
 msgctxt "start_avatar"
 msgid "Create your avatar"
-msgstr "Créez votre avatar"
-
-msgctxt "start_avatar_text"
-msgid ""
-"Choose its name and its look. The name is for good: it cannot be changed "
-"later."
-msgstr ""
-"Choisissez son nom et son apparence. Le nom est définitif : il ne pourra "
-"plus être changé."
+msgstr "Créer votre avatar"
 
 #, php-format
 msgctxt "start_avatar_done"
@@ -952,46 +944,26 @@ msgid "Your avatar is %s."
 msgstr "Votre avatar est %s."
 
 msgctxt "start_viewer"
-msgid "Add the grid to your viewer"
-msgstr "Ajoutez la grille à votre viewer"
+msgid "Add the grid"
+msgstr "Ajouter la grille"
 
 #, php-format
-msgctxt "start_viewer_text"
-msgid ""
-"The viewer is the program that opens the virtual world. Install one made for "
-"OpenSimulator, such as Firestorm (its OpenSim version), then add %s to it."
-msgstr ""
-"Le viewer est le programme qui ouvre le monde virtuel. Installez-en un fait "
-"pour OpenSimulator, comme Firestorm (sa version OpenSim), puis ajoutez-y %s."
+msgctxt "start_add_grid"
+msgid "Add %s"
+msgstr "Ajouter %s"
 
-msgctxt "start_viewer_get"
-msgid "Get Firestorm"
-msgstr "Télécharger Firestorm"
-
-msgctxt "start_viewer_others"
-msgid "Other viewers"
-msgstr "Autres viewers"
+#, php-format
+msgctxt "start_viewer_note"
+msgid "No viewer yet? Get %s, or any viewer for OpenSim."
+msgstr "Pas encore de viewer ? Prenez %s, ou n'importe quel viewer pour OpenSim."
 
 msgctxt "start_login"
 msgid "Log in"
-msgstr "Connexion"
-
-#, php-format
-msgctxt "start_login_text"
-msgid ""
-"In the viewer, choose %s in the list of grids, then log in with the name of "
-"your avatar and its password."
-msgstr ""
-"Dans le viewer, choisissez %s dans la liste des grilles, puis connectez-vous "
-"avec le nom de votre avatar et son mot de passe."
+msgstr "Connectez-vous"
 
 msgctxt "start_done"
 msgid "Done"
 msgstr "Terminé"
-
-msgctxt "start_next"
-msgid "Next step"
-msgstr "Étape suivante"
 
 msgctxt "total"
 msgid "Total"
@@ -4063,6 +4035,54 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#~ msgctxt "start_title"
+#~ msgid "Getting started"
+#~ msgstr "Premiers pas"
+
+#~ msgctxt "start_avatar_text"
+#~ msgid ""
+#~ "Choose its name and its look. The name is for good: it cannot be changed "
+#~ "later."
+#~ msgstr ""
+#~ "Choisissez son nom et son apparence. Le nom est définitif : il ne pourra "
+#~ "plus être changé."
+
+#~ msgctxt "start_viewer"
+#~ msgid "Add the grid to your viewer"
+#~ msgstr "Ajoutez la grille à votre viewer"
+
+#, php-format
+#~ msgctxt "start_viewer_text"
+#~ msgid ""
+#~ "The viewer is the program that opens the virtual world. Install one made "
+#~ "for OpenSimulator, such as Firestorm (its OpenSim version), then add %s "
+#~ "to it."
+#~ msgstr ""
+#~ "Le viewer est le programme qui ouvre le monde virtuel. Installez-en un "
+#~ "fait pour OpenSimulator, comme Firestorm (sa version OpenSim), puis "
+#~ "ajoutez-y %s."
+
+#~ msgctxt "start_viewer_get"
+#~ msgid "Get Firestorm"
+#~ msgstr "Télécharger Firestorm"
+
+#~ msgctxt "start_viewer_others"
+#~ msgid "Other viewers"
+#~ msgstr "Autres viewers"
+
+#, php-format
+#~ msgctxt "start_login_text"
+#~ msgid ""
+#~ "In the viewer, choose %s in the list of grids, then log in with the name "
+#~ "of your avatar and its password."
+#~ msgstr ""
+#~ "Dans le viewer, choisissez %s dans la liste des grilles, puis connectez-"
+#~ "vous avec le nom de votre avatar et son mot de passe."
+
+#~ msgctxt "start_next"
+#~ msgid "Next step"
+#~ msgstr "Étape suivante"
 
 #~ msgctxt "setting_robust_uri_help"
 #~ msgid ""
