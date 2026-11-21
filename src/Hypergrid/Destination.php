@@ -110,12 +110,14 @@ final class Destination
     public const LABEL = 4096;
     /**
      * hop:///app/teleport/yourgrid.org:8002:Region%20Name/x/y/z, the teleport of APPTP through the hop: scheme, as the link that
-     * adds a grid (hop:///app/gridmanager/addgrid/..., seen working from a web browser). On trial in links(), to be removed if it
-     * does not work once tried. From the source (2026-11-21, Firestorm): a hop:///app/ link is read as the same command as
+     * adds a grid (hop:///app/gridmanager/addgrid/..., seen working from a web browser). Tried (2026-11-21, Firestorm 7.2.5 on
+     * macOS): from a web browser it did nothing. Not tried in the browser of the viewer, which does not open hop: (unknown url
+     * scheme, seen with HOP_MAP), nor in the chat, where HOP_MAP works. So in no link of a page (links()): a format for the chat
+     * or a script only; the results of the search of the viewer (the events) may need such formats, to be tried (opensim-kit
+     * ROADMAP, the events). From the source (2026-11-21, Firestorm): a hop:///app/ link is read as the same command as
      * secondlife:///app/ (fsslurl.cpp) and goes to the same handler, a link the system passes from a web browser having no kind
-     * (dispatchUrl() of llappviewermacosx.cpp); teleport takes an untrusted link only clicked (UNTRUSTED_CLICK_ONLY), so it is
-     * expected blocked from a web browser as APPTP is (addgrid passes: UNTRUSTED_THROTTLE, without a condition); the browser of
-     * the viewer does not open hop: (seen with HOP).
+     * (dispatchUrl() of llappviewermacosx.cpp), which teleport refuses (UNTRUSTED_CLICK_ONLY), as for APPTP; addgrid passes, its
+     * handler being UNTRUSTED_THROTTLE without a condition.
      */
     public const HOP_APPTP = 8192;
     /**
@@ -157,14 +159,10 @@ final class Destination
      * The links worth offering beside the one of AUTO, in that order, by the class of the client (Destination::links()): in a web
      * browser hop:// (the hypergrid link the viewers read, from the source), then GRID; in the viewer the teleport of its own
      * browser (APPTP, seen there, through the search of the map), then GRID, then the place on its map (MAP: the viewer only, a
-     * web browser cannot open it). GRID stays second until a grid the viewer does not know is tried. On trial, to be removed
-     * where it does not work once tried: the teleport through hop:///app/ (HOP_APPTP), for both (the map through it, HOP_MAP,
-     * works nowhere a page is seen).
+     * web browser cannot open it). GRID stays second until a grid the viewer does not know is tried. The commands through
+     * hop:///app/ (HOP_APPTP, HOP_MAP) are in none: tried, they work nowhere a page is seen.
      */
-    public const LINKS = [
-        'browser' => [self::HOP, self::GRID, self::HOP_APPTP],
-        'viewer' => [self::APPTP, self::GRID, self::HOP_APPTP, self::MAP],
-    ];
+    public const LINKS = ['browser' => [self::HOP, self::GRID], 'viewer' => [self::APPTP, self::GRID, self::MAP]];
 
     /** The formats that need a region: a grid alone has no such link in links() and in AUTO (hop:// without one is refused). */
     private const REGION_LINKS = self::GRID | self::HOP | self::LOCAL;
@@ -176,7 +174,6 @@ final class Destination
         self::APPTP => 'link_menu_apptp',
         self::LOCAL => 'link_menu_local',
         self::MAP => 'link_menu_map',
-        self::HOP_APPTP => 'link_menu_hop_apptp',
         self::LSL => 'link_menu_copy',
     ];
 
@@ -186,7 +183,6 @@ final class Destination
         self::HOP => 'teleport',
         self::APPTP => 'teleport',
         self::LOCAL => 'teleport',
-        self::HOP_APPTP => 'teleport',
         self::MAP => 'map',
         self::LSL => 'copy',
     ];
@@ -631,7 +627,7 @@ final class Destination
      *                          TPLINK or 255:       output all formats
      *                          TPLINK_ARRAY or 256: output all formats as array
      *                          AUTO or 512:         the link for where it is shown (see AUTO), with `$context`
-     *                          HOP_APPTP or 8192:   hop:///app/teleport link (see HOP_APPTP, not tried)
+     *                          HOP_APPTP or 8192:   hop:///app/teleport link (see HOP_APPTP: the chat only)
      *                          HOP_MAP or 16384:    hop:///app/worldmap link (see HOP_MAP: in the chat only)
      *
      * The region of a hop:// or secondlife:// link of a grid comes after a colon, its spaces as SPACE

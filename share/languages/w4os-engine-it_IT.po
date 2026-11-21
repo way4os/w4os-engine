@@ -2122,10 +2122,6 @@ msgctxt "link_menu_map"
 msgid "Show on the map"
 msgstr "Mostra sulla mappa"
 
-msgctxt "link_menu_hop_apptp"
-msgid "Teleport (hop app)"
-msgstr "Teletrasportati (hop app)"
-
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Copia l'indirizzo"
@@ -4108,6 +4104,10 @@ msgstr ""
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Il database non è raggiungibile."
+
+#~ msgctxt "link_menu_hop_apptp"
+#~ msgid "Teleport (hop app)"
+#~ msgstr "Teletrasportati (hop app)"
 
 #~ msgctxt "link_menu_hop_map"
 #~ msgid "Show on the map (hop app)"

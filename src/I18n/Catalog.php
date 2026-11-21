@@ -584,8 +584,6 @@ final class Catalog
         'link_menu_apptp' => 'Teleport (app/teleport)',
         'link_menu_local' => 'Teleport (this grid)',
         'link_menu_map' => 'Show on the map',
-        // On trial: the teleport through hop:///app/
-        'link_menu_hop_apptp' => 'Teleport (hop app)',
         'link_menu_copy' => 'Copy the address',
         // The button beside a teleport link that opens the menu of its other links
         'tp_more' => 'More ways to go there',
