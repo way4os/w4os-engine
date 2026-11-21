@@ -2111,7 +2111,7 @@ msgctxt "link_menu_local"
 msgid "Region of this grid"
 msgstr "Regio van dit grid"
 
-msgctxt "link_menu_txt"
+msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Adres kopiëren"
 

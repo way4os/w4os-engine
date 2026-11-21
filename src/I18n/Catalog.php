@@ -581,7 +581,7 @@ final class Catalog
         'link_menu_hop' => 'hop:// link',
         'link_menu_apptp' => 'Teleport in the viewer',
         'link_menu_local' => 'Region of this grid',
-        'link_menu_txt' => 'Copy the address',
+        'link_menu_copy' => 'Copy the address',
         'setting_gatekeeper_help' => 'The address other grids reach this one by (hypergrid).',
         'setting_uas' => 'User agent service',
         'setting_uas_help' => 'Where the avatars of this grid are known when they visit other grids (hypergrid).',

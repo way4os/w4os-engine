@@ -2115,7 +2115,7 @@ msgctxt "link_menu_local"
 msgid "Region of this grid"
 msgstr "Rhanbarth y grid hwn"
 
-msgctxt "link_menu_txt"
+msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Copïo'r cyfeiriad"
 

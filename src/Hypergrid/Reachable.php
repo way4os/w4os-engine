@@ -30,10 +30,10 @@ interface Reachable
 
     /**
      * Its links for a client, `browser` or `viewer` (the one of the context or of the request served without one): the one of
-     * AUTO first, then the other ones that fit that client, then its address to copy (TXT), by format, each with the key of the
+     * AUTO first, then the other ones that fit that client, then its address to copy into the map of the viewer (LSL), by format, each with the key of the
      * catalog naming it in a menu (Destination::links()); none when it has no address.
      *
-     *     $region->tpLinks('browser');   // [GRID => ['link' => 'secondlife://...', 'label' => 'link_menu_grid'], HOP => [...], TXT => [...]]
+     *     $region->tpLinks('browser');   // [GRID => ['link' => 'secondlife://...', 'label' => 'link_menu_grid'], HOP => [...], LSL => [...]]
      *
      * @param  array{agent?:?string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context as tpLink()
      * @return array<int,array{link:string,label:string}>

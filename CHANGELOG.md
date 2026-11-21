@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- change (links): tpLinks() offers hop:// then GRID in a browser, APPTP then GRID in the viewer, then host:port:Region to copy
+- doc (destinations): HOP, GRID, APPTP and LSL tell what the viewers' sources say apart from what was seen
 - doc (destinations): GRID seen working towards another grid both ways and towards OSgrid, Firestorm 7.2.5 on macOS
 - new (links): tpLinks() on Grid, Region, Parcel and Place, the links fitting a browser or the viewer, AUTO's first, named
 - new (links): LinkFormatBrowser and LinkFormatViewer, the formats AUTO gives, settings of the grid, GRID by default

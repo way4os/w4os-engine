@@ -38,7 +38,10 @@ final class Destination
      * grid of the link not in its list of grids): from a web browser, `hop://host:port/Region` went to the region of that name of
      * the grid the viewer was on, `hop://host:port` (no region) did nothing. Firestorm uses the grid of a hop:// link only when it
      * has that grid's gatekeeper (its list of grids), else it asks its own grid for the region by its name (dispatchRegion() of
-     * llurldispatcher.cpp).
+     * llurldispatcher.cpp). From the source (2026-11-21, not tried): Firestorm and Dayturn read it as a hypergrid link and refuse
+     * one without a region by design (fsslurl_test.cpp); Cool VL Viewer reads it but looks for the region on the grid it is on
+     * (CantTeleportToGrid towards another one); the system passes it on only where the viewer registered hop: (Firestorm on macOS,
+     * on Windows in its OpenSim builds when accepted at install, never on Linux; Cool VL Viewer everywhere).
      */
     public const HOP = 8;
     /** yourgrid.org:8002 Region Name/x/y/z, the address as text, to read or to copy. */
@@ -49,6 +52,10 @@ final class Destination
      * Firestorm, a region of the grid the viewer was on): the colon form with %20 works in the browser of the viewer; with `+`
      * for the spaces it failed everywhere. Not tried for another grid. From a web browser Firestorm blocks it, as it reads
      * (`teleport` is a command for a click in a trusted page: llcommandhandler.cpp, dispatchUrl() of llappviewermacosx.cpp).
+     * From the source (2026-11-21, not tried): a click in the viewer only in Firestorm and Cool VL Viewer (UNTRUSTED_CLICK_ONLY),
+     * a few times a minute from outside in Dayturn (UNTRUSTED_THROTTLE); in the viewer `host:port:Region` goes through the search
+     * of the map, which reaches other grids. The browser of the viewer is told by `SecondLife/` in its user agent
+     * (llviewermedia.cpp).
      */
     public const APPTP = 32;
     /**
@@ -67,8 +74,11 @@ final class Destination
     public const AS_ARRAY = 256;
     /**
      * yourgrid.org:8002:Region Name/x/y/z, the region after a colon: the name a script gives llMapDestination() (a region after a
-     * slash is read as its x), the one of the teleport boards. Not a link: the colon form exists only here and in APPTP, never in
-     * a hop:// link.
+     * slash is read as its x), the one of the teleport boards, and the address to copy into the search of the map of a viewer
+     * (links()); a grid alone is yourgrid.org:8002, its default region. Not a link: the colon form exists only here and in APPTP,
+     * never in a hop:// link. From the source (2026-11-21, not tried): the one way where no link reaches the viewer, Firestorm on
+     * Linux (no hop: and nothing but secondlife: registered), hop: not registered on Windows, Cool VL Viewer towards another grid,
+     * Radegast (it takes no address from the system).
      */
     public const LSL = 1024;
     /**
@@ -76,10 +86,12 @@ final class Destination
      * the viewer as `secondlife://<Grid>/secondlife/<region>/<x>/<y>/<z>` (the parser of the links of Firestorm, fsslurl.cpp),
      * for the grid it is on and for another one alike. Tried (2026-11-18, Firestorm): it works in the viewer and on its login
      * screen, where it sets the landing of the login, for a region of the grid the viewer was on. Tried (2026-11-21, Firestorm
-     * 7.2.5 on macOS, from the test page of the links): it took the viewer to the region of another grid, neither grid in the
-     * list of grids of the other, both ways (demo.w4os.org and Speculoos World), and to OSgrid; when the grid of the link was
-     * down, the viewer went to the region of that name of its own grid. A region without its grid is of the grid the viewer is
-     * on (`secondlife:///secondlife/Region`).
+     * 7.2.5 on macOS, from the test page of the links): it took the viewer to the region of another grid, both ways (demo.w4os.org
+     * and Speculoos World), and to OSgrid, grids the viewer may have had in its list of grids (a grid it does not know is to be
+     * tried); when the grid of the link was down, the viewer went to the region of that name of its own grid. From the source
+     * (2026-11-21, not tried): Firestorm looks for the grid in its list and, without it, keeps the region on the grid it is on
+     * (fsslurl.cpp); Cool VL Viewer and Alchemy refuse this form. A region without its grid is of the grid the viewer is on
+     * (`secondlife:///secondlife/Region`).
      */
     public const GRID = 2048;
     /**
@@ -115,10 +127,15 @@ final class Destination
     ];
 
     /**
-     * The other links worth offering beside the one of AUTO, by the class of the client (Destination::links()): in a web browser
-     * hop:// (the form the viewer writes), in the viewer the teleport of its own browser (APPTP, seen there only).
+     * The links worth offering beside the one of AUTO, in that order, by the class of the client (Destination::links()): in a web
+     * browser hop:// (the hypergrid link the viewers read, from the source), then GRID; in the viewer the teleport of its own
+     * browser (APPTP, seen there, through the search of the map), then GRID. GRID stays second until a grid the viewer does not
+     * know is tried.
      */
-    public const LINKS = ['browser' => [self::GRID, self::HOP], 'viewer' => [self::GRID, self::APPTP]];
+    public const LINKS = ['browser' => [self::HOP, self::GRID], 'viewer' => [self::APPTP, self::GRID]];
+
+    /** The formats that need a region: a grid alone has no such link in links() and in AUTO (hop:// without one is refused). */
+    private const REGION_LINKS = self::GRID | self::HOP | self::LOCAL;
 
     /** The key of the catalog that names each link of links() in a menu. */
     public const LINK_LABELS = [
@@ -126,7 +143,7 @@ final class Destination
         self::HOP => 'link_menu_hop',
         self::APPTP => 'link_menu_apptp',
         self::LOCAL => 'link_menu_local',
-        self::TXT => 'link_menu_txt',
+        self::LSL => 'link_menu_copy',
     ];
 
     /** The formats a grid may choose for AUTO, by the name its settings give them (LinkFormatBrowser, LinkFormatViewer of Helpers.ini). */
@@ -411,7 +428,9 @@ final class Destination
         $default = self::AUTO_LINKS[$client === 'viewer' ? 'viewer' : 'web'][$local ? 'local' : 'other'];
         $format = (int) (((array) ($context['formats'] ?? []))[$client] ?? $default);
 
-        return [$format === self::LOCAL && !$local ? $default : $format, $parsed + ['local' => $local]];
+        $format = $format === self::LOCAL && !$local ? $default : $format;
+
+        return [empty($parsed['region']) && ($format & self::REGION_LINKS) ? 0 : $format, $parsed + ['local' => $local]];
     }
 
     /** The class of the client of a context: the one it gives (`client`), else the one of its user agent (`agent`, client()). */
@@ -430,8 +449,9 @@ final class Destination
 
     /**
      * The links of a destination where it is shown, the one AUTO gives first and then the other ones that fit that client
-     * (LINKS), by format; TXT last, its address to copy into the viewer. Each with the key of the catalog naming it in a menu
-     * (LINK_LABELS). A destination of another grid has no LOCAL one, a grid alone no GRID one (it needs a region).
+     * (LINKS), by format; LSL last, its address to copy into the search of the map of the viewer. Each with the key of the
+     * catalog naming it in a menu (LINK_LABELS). A destination of another grid has no LOCAL one, a grid alone none that needs a
+     * region (REGION_LINKS).
      *
      * @param  array{agent?:?string,client?:string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context as format()
      * @return array<int,array{link:string,label:string}> format => its link and its label, in that order
@@ -443,8 +463,9 @@ final class Destination
         }
         [$auto, $parsed] = self::autoFormat($destination, $context);
         $links = [];
-        foreach (array_merge([$auto], self::LINKS[self::contextClient($context)], [self::TXT]) as $format) {
-            if ($format === 0 || isset($links[$format]) || ($format === self::LOCAL && !$parsed['local'])) {
+        foreach (array_merge([$auto], self::LINKS[self::contextClient($context)], [self::LSL]) as $format) {
+            if ($format === 0 || isset($links[$format]) || ($format === self::LOCAL && !$parsed['local'])
+                || (empty($parsed['region']) && ($format & self::REGION_LINKS))) {
                 continue;
             }
             $link = (string) self::format(self::autoUri($parsed, $format), $format);
@@ -650,7 +671,7 @@ final class Destination
         }
         if ($format & self::LSL) {
             // The name of a region for llMapDestination(): host:port:Region Name, the point apart
-            $links[self::LSL] = (empty($host) ? '' : "$host:$port:") . ($region ?? '') . (empty($pos) ? '' : "/$pos");
+            $links[self::LSL] = implode(':', array_filter([empty($host) ? '' : "$host:$port", $region ?? ''])) . (empty($pos) || empty($region) ? '' : "/$pos");
         }
         if ($format & self::APPTP) {
             // In a viewer: secondlife:///app/teleport/speculoos.world:8002:Grand%20Place/128/128/21
