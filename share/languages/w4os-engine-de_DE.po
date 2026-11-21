@@ -2106,20 +2106,20 @@ msgid "Region of the grid the viewer is on (secondlife://Region)"
 msgstr "Region des Grids, in dem der Viewer ist (secondlife://Region)"
 
 msgctxt "link_menu_grid"
-msgid "secondlife:// link"
-msgstr "secondlife://-Link"
+msgid "Teleport (secondlife://)"
+msgstr "Teleportieren (secondlife://)"
 
 msgctxt "link_menu_hop"
-msgid "hop:// link"
-msgstr "hop://-Link"
+msgid "Teleport (hop://)"
+msgstr "Teleportieren (hop://)"
 
 msgctxt "link_menu_apptp"
-msgid "Teleport in the viewer"
-msgstr "Teleport im Viewer"
+msgid "Teleport (app/teleport)"
+msgstr "Teleportieren (app/teleport)"
 
 msgctxt "link_menu_local"
-msgid "Region of this grid"
-msgstr "Region dieses Grids"
+msgid "Teleport (this grid)"
+msgstr "Teleportieren (dieses Grid)"
 
 msgctxt "link_menu_map"
 msgid "Show on the map"
@@ -4119,6 +4119,22 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#~ msgctxt "link_menu_grid"
+#~ msgid "secondlife:// link"
+#~ msgstr "secondlife://-Link"
+
+#~ msgctxt "link_menu_hop"
+#~ msgid "hop:// link"
+#~ msgstr "hop://-Link"
+
+#~ msgctxt "link_menu_apptp"
+#~ msgid "Teleport in the viewer"
+#~ msgstr "Teleport im Viewer"
+
+#~ msgctxt "link_menu_local"
+#~ msgid "Region of this grid"
+#~ msgstr "Region dieses Grids"
 
 #, php-format
 #~ msgctxt "start_avatar_done"

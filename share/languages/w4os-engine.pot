@@ -1853,19 +1853,19 @@ msgid "Region of the grid the viewer is on (secondlife://Region)"
 msgstr ""
 
 msgctxt "link_menu_grid"
-msgid "secondlife:// link"
+msgid "Teleport (secondlife://)"
 msgstr ""
 
 msgctxt "link_menu_hop"
-msgid "hop:// link"
+msgid "Teleport (hop://)"
 msgstr ""
 
 msgctxt "link_menu_apptp"
-msgid "Teleport in the viewer"
+msgid "Teleport (app/teleport)"
 msgstr ""
 
 msgctxt "link_menu_local"
-msgid "Region of this grid"
+msgid "Teleport (this grid)"
 msgstr ""
 
 msgctxt "link_menu_map"

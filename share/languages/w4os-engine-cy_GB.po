@@ -2104,20 +2104,20 @@ msgid "Region of the grid the viewer is on (secondlife://Region)"
 msgstr "Rhanbarth y grid y mae'r viewer arno (secondlife://Rhanbarth)"
 
 msgctxt "link_menu_grid"
-msgid "secondlife:// link"
-msgstr "Dolen secondlife://"
+msgid "Teleport (secondlife://)"
+msgstr "Teleportio (secondlife://)"
 
 msgctxt "link_menu_hop"
-msgid "hop:// link"
-msgstr "Dolen hop://"
+msgid "Teleport (hop://)"
+msgstr "Teleportio (hop://)"
 
 msgctxt "link_menu_apptp"
-msgid "Teleport in the viewer"
-msgstr "Teleport yn y viewer"
+msgid "Teleport (app/teleport)"
+msgstr "Teleportio (app/teleport)"
 
 msgctxt "link_menu_local"
-msgid "Region of this grid"
-msgstr "Rhanbarth y grid hwn"
+msgid "Teleport (this grid)"
+msgstr "Teleportio (y grid hwn)"
 
 msgctxt "link_menu_map"
 msgid "Show on the map"
@@ -4113,6 +4113,22 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#~ msgctxt "link_menu_grid"
+#~ msgid "secondlife:// link"
+#~ msgstr "Dolen secondlife://"
+
+#~ msgctxt "link_menu_hop"
+#~ msgid "hop:// link"
+#~ msgstr "Dolen hop://"
+
+#~ msgctxt "link_menu_apptp"
+#~ msgid "Teleport in the viewer"
+#~ msgstr "Teleport yn y viewer"
+
+#~ msgctxt "link_menu_local"
+#~ msgid "Region of this grid"
+#~ msgstr "Rhanbarth y grid hwn"
 
 #, php-format
 #~ msgctxt "start_avatar_done"

@@ -578,11 +578,11 @@ final class Catalog
         'link_format_hop' => 'Hypergrid link (hop://)',
         'link_format_apptp' => 'Teleport of the viewer (secondlife:///app/teleport)',
         'link_format_local' => 'Region of the grid the viewer is on (secondlife://Region)',
-        // The links of a place beside its main one, as a menu names them
-        'link_menu_grid' => 'secondlife:// link',
-        'link_menu_hop' => 'hop:// link',
-        'link_menu_apptp' => 'Teleport in the viewer',
-        'link_menu_local' => 'Region of this grid',
+        // The links of a place in its menu: what each does, then its format
+        'link_menu_grid' => 'Teleport (secondlife://)',
+        'link_menu_hop' => 'Teleport (hop://)',
+        'link_menu_apptp' => 'Teleport (app/teleport)',
+        'link_menu_local' => 'Teleport (this grid)',
         'link_menu_map' => 'Show on the map',
         'link_menu_copy' => 'Copy the address',
         // The button beside a teleport link that opens the menu of its other links

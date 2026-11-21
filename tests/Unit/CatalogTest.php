@@ -92,6 +92,21 @@ describe('the catalog of the texts of the sites', function () {
             ->toBe(['en', ...Catalog::LOCALES]);
     });
 
+    test('names a teleport of a menu by what it does, then its format, never a link to copy', function () {
+        $teleports = ['link_menu_grid', 'link_menu_hop', 'link_menu_apptp', 'link_menu_local'];
+        $french = Catalog::messages('fr');
+
+        expect(array_map(fn ($key) => Catalog::MESSAGES[$key], $teleports))->toBe(['Teleport (secondlife://)', 'Teleport (hop://)', 'Teleport (app/teleport)', 'Teleport (this grid)'])
+            ->and(array_map(fn ($key) => $french[$key], $teleports))->each->toStartWith('Se téléporter (')
+            ->and(Catalog::MESSAGES['link_menu_copy'])->toBe('Copy the address');
+        foreach (['en', 'de', 'fr', 'cy', 'it', 'nl', 'pt-BR'] as $language) {
+            $texts = $language === 'en' ? Catalog::MESSAGES : Catalog::messages($language);
+            foreach ($teleports as $key) {
+                expect($texts[$key])->toEndWith(')')->not->toMatch('/\\b(link|lien|collegamento|koppeling|ligação|dolen)\\b/iu');
+            }
+        }
+    });
+
     test('gives the texts of a language by key, the translated ones only', function () {
         $french = Catalog::messages('fr');
 

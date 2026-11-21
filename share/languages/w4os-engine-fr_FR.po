@@ -2112,20 +2112,20 @@ msgid "Region of the grid the viewer is on (secondlife://Region)"
 msgstr "Région de la grille où est le viewer (secondlife://Région)"
 
 msgctxt "link_menu_grid"
-msgid "secondlife:// link"
-msgstr "Lien secondlife://"
+msgid "Teleport (secondlife://)"
+msgstr "Se téléporter (secondlife://)"
 
 msgctxt "link_menu_hop"
-msgid "hop:// link"
-msgstr "Lien hop://"
+msgid "Teleport (hop://)"
+msgstr "Se téléporter (hop://)"
 
 msgctxt "link_menu_apptp"
-msgid "Teleport in the viewer"
-msgstr "Téléportation dans le viewer"
+msgid "Teleport (app/teleport)"
+msgstr "Se téléporter (app/teleport)"
 
 msgctxt "link_menu_local"
-msgid "Region of this grid"
-msgstr "Région de cette grille"
+msgid "Teleport (this grid)"
+msgstr "Se téléporter (cette grille)"
 
 msgctxt "link_menu_map"
 msgid "Show on the map"
@@ -4121,6 +4121,22 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#~ msgctxt "link_menu_grid"
+#~ msgid "secondlife:// link"
+#~ msgstr "Lien secondlife://"
+
+#~ msgctxt "link_menu_hop"
+#~ msgid "hop:// link"
+#~ msgstr "Lien hop://"
+
+#~ msgctxt "link_menu_apptp"
+#~ msgid "Teleport in the viewer"
+#~ msgstr "Téléportation dans le viewer"
+
+#~ msgctxt "link_menu_local"
+#~ msgid "Region of this grid"
+#~ msgstr "Région de cette grille"
 
 #, php-format
 #~ msgctxt "start_avatar_done"
