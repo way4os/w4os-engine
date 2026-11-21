@@ -65,12 +65,13 @@ final class Destination
      * simulator for the region by its name as it is, as the search box of the map does (the grid of the link is not read); the
      * simulator links a name with a grid before a colon as a region of that grid (MapSearchModule of OpenSimulator, the names with
      * `:`), so the region of another grid is named `host:port:Region Name`, the one of the grid itself by its name alone, a grid
-     * alone by `host:port` (its default region). The colon form exists here, in APPTP and in LSL, never in a hop:// link. Not
-     * tried yet; it does nothing before the login (the handler waits for the session, FIRE-17927). From the source (2026-11-21,
-     * Firestorm, not tried): the handler is UNTRUSTED_THROTTLE but takes an untrusted link only clicked in a page or external
-     * (canHandleUntrusted()), and a link the system passes from a web browser comes with no kind (dispatchUrl() of
-     * llappviewermacosx.cpp): blocked there, so a link for the viewer only (Destination::links()); its point is read in whole
-     * meters (asInteger()), 128/128/0 without one.
+     * alone by `host:port` (its default region). The colon form exists here, in APPTP and in LSL, never in a hop:// link. Tried
+     * (2026-11-21, Firestorm 7.2.5 on macOS, clicked in the test page of the links in the browser of the viewer): it shows the place
+     * on the map, a region of another grid by `host:port:Region`. Not tried from a web browser, nor before the login. From the
+     * source (2026-11-21, Firestorm): it does nothing before the login (the handler waits for the session, FIRE-17927); the
+     * handler is UNTRUSTED_THROTTLE but takes an untrusted link only clicked in a page or external (canHandleUntrusted()), and a
+     * link the system passes from a web browser comes with no kind (dispatchUrl() of llappviewermacosx.cpp): blocked there, so a
+     * link for the viewer only (Destination::links()); its point is read in whole meters (asInteger()), 128/128/0 without one.
      */
     public const MAP = 64;
     /** all formats */
