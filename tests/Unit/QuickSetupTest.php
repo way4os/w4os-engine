@@ -1031,8 +1031,10 @@ describe('quick setup, the scenario', function () {
             ->toContain('Grid name:  Magic Grid', 'Login URI:  login.example.org:8102', 'Avatar:     Ada Love')
             ->toContain('The grid and its simulator are running.')
             ->toEndWith("Grid name:  Magic Grid\nLogin URI:  login.example.org:8102\nAvatar:     Ada Love")
-            ->not->toContain('MoneyServer')
-            ->not->toContain('chgrp');
+            ->not->toContain('MoneyServer');
+        // The group of the web server is asked for only on a machine that has one this user may not give
+        $ungiven = W4OS\Engine\Config\GridFileService::webGroup() !== null && !W4OS\Engine\Config\GridFileService::canGiveWebGroup();
+        expect(str_contains($done['message'], 'chgrp'))->toBe($ungiven);
         preg_match('/Written in (\S+)\./', $done['message'], $m);
         $folder = $m[1];
 

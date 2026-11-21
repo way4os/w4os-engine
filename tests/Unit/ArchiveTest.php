@@ -497,7 +497,8 @@ describe('opensim backup', function () {
             '20261003-101500',
         );
         $result = $backup->run(['alpha'], ['keep' => 4]);
-
+        // PHP may still give the mode it read before the change
+        clearstatcache();
         expect($result['saved'])
             ->toBe(["{$profile['root']}/backups/alpha/sim1/alpha-sim1-Welcome-20261003-101500.oar"])
             ->and(fileperms($result['saved'][0]) & 0777)

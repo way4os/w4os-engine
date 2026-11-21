@@ -56,7 +56,7 @@ describe('The settings an application keeps', function () {
             ->and($kept->all())->toBe(['Helpers' => ['AssetsURL' => 'https://assets.example.org/a'], 'MoneyServer' => ['MoneyScriptAccessKey' => 'k3y']])
             ->and($read->document['data']['attributes']['assetsUrl'])->toBe('https://assets.example.org/a')
             ->and($key->document['data']['attributes']['moneyScriptKey'])->toBe(W4OS\Engine\Config\Settings::MASK)
-            ->and(glob("$site/{,*/,*/*/}*.ini", GLOB_BRACE))->toBe([]);
+            ->and([...glob("$site/*.ini"), ...glob("$site/*/*.ini"), ...glob("$site/*/*/*.ini")])->toBe([]);
     });
 
     test('given as an array, are read only: a settings page of a grid without files is then unavailable, with its reason', function () {

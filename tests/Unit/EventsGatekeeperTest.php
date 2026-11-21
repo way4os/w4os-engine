@@ -107,4 +107,4 @@ describe('The events of a calendar', function () {
         expect($online)->toBe(array_fill(0, 6, true))
             ->and($took)->toBeLessThan(2.5);
     });
-});
+})->skip(fn() => test_pdo() === null, 'TEST_DATABASE is not set in tests/.env');

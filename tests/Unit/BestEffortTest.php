@@ -124,7 +124,7 @@ describe('What a grid has, and what an operation needs', function () {
             ->and([$write->document['reason']['code'] ?? null, $repair->document['reason']['code'] ?? null])->toBe(['setting-no-files-unkept', 'options-no-files'])
             ->and(W4OS\Engine\I18n\Catalog::notice('fr_FR', 'options-no-files'))->not->toBe($repair->document['reason']['detail'])
             ->and(is_file('/Helpers.ini'))->toBeFalse()
-            ->and(glob("$site/{,*/,*/*/}*.ini", GLOB_BRACE))->toBe([]);
+            ->and([...glob("$site/*.ini"), ...glob("$site/*/*.ini"), ...glob("$site/*/*/*.ini")])->toBe([]);
     });
 
     test('the contract says what an operation needs of a grid, for a site to hide what it cannot do', function () {
