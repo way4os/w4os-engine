@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- new (links): HOP_APPTP and HOP_MAP, teleport and map through hop:///app/, on trial in tpLinks() for both clients
+- new (links): each link of tpLinks() says what it does (action: teleport, map, copy)
+- doc (destinations): MAP seen doing nothing from a web browser, Firestorm 7.2.5 on macOS
 - doc (destinations): MAP seen showing a region of another grid on the map, clicked in the viewer, Firestorm 7.2.5 on macOS
 - fix (links): the links of a grid land on its region too, its address staying its login; a landing not found is asked again after 30 min
 - new (links): Show on the map (MAP, link_menu_map) among the links for the viewer, a browser cannot open it

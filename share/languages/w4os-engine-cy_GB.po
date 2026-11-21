@@ -2123,6 +2123,14 @@ msgctxt "link_menu_map"
 msgid "Show on the map"
 msgstr "Dangos ar y map"
 
+msgctxt "link_menu_hop_apptp"
+msgid "Teleport (hop app)"
+msgstr "Teleportio (hop app)"
+
+msgctxt "link_menu_hop_map"
+msgid "Show on the map (hop app)"
+msgstr "Dangos ar y map (hop app)"
+
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Copïo'r cyfeiriad"

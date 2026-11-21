@@ -177,6 +177,18 @@ describe('Teleport links', function () {
             ->and(Destination::format('wyldwoodbayou.com:8002', Destination::LSL))->toBe('wyldwoodbayou.com:8002');
     });
 
+    test('of the commands of the viewer through the hop: scheme, as the link that adds a grid: teleport and map', function () {
+        $destination = 'far.example.org:8002/Far Away/1/2/3';
+
+        expect(Destination::format($destination, Destination::HOP_APPTP))
+            ->toBe('hop:///app/teleport/far.example.org:8002:Far' . Destination::SPACE . 'Away/1/2/3')
+            ->and(Destination::format($destination, Destination::HOP_MAP))
+            ->toBe('hop:///app/worldmap/far.example.org:8002:Far' . Destination::SPACE . 'Away/1/2/3')
+            ->and(Destination::format('Welcome/128/128/25', Destination::HOP_MAP))->toBe('hop:///app/worldmap/Welcome/128/128/25')
+            ->and(Destination::format($destination, Destination::APPTP | Destination::HOP_APPTP | Destination::AS_ARRAY))
+            ->toHaveKeys([Destination::APPTP, Destination::HOP_APPTP]);
+    });
+
     test('keep the point of a var region, past 256 m, as the viewers take it', function () {
         $destination = 'grid.wolfterritories.org:8002/The Caribbean/2599/4737/23';
 

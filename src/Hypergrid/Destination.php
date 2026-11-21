@@ -66,12 +66,13 @@ final class Destination
      * simulator links a name with a grid before a colon as a region of that grid (MapSearchModule of OpenSimulator, the names with
      * `:`), so the region of another grid is named `host:port:Region Name`, the one of the grid itself by its name alone, a grid
      * alone by `host:port` (its default region). The colon form exists here, in APPTP and in LSL, never in a hop:// link. Tried
-     * (2026-11-21, Firestorm 7.2.5 on macOS, clicked in the test page of the links in the browser of the viewer): it shows the place
-     * on the map, a region of another grid by `host:port:Region`. Not tried from a web browser, nor before the login. From the
-     * source (2026-11-21, Firestorm): it does nothing before the login (the handler waits for the session, FIRE-17927); the
-     * handler is UNTRUSTED_THROTTLE but takes an untrusted link only clicked in a page or external (canHandleUntrusted()), and a
-     * link the system passes from a web browser comes with no kind (dispatchUrl() of llappviewermacosx.cpp): blocked there, so a
-     * link for the viewer only (Destination::links()); its point is read in whole meters (asInteger()), 128/128/0 without one.
+     * (2026-11-21, Firestorm 7.2.5 on macOS, clicked in the test page of the links in the browser of the viewer): it shows the
+     * place on the map, a region of another grid by `host:port:Region`; from a web browser it did nothing (the same day and
+     * viewer, as the source says, below). Not tried before the login. From the source (2026-11-21, Firestorm): it does nothing
+     * before the login (the handler waits for the session, FIRE-17927); the handler is UNTRUSTED_THROTTLE but takes an untrusted
+     * link only clicked in a page or external (canHandleUntrusted()), and a link the system passes from a web browser comes with
+     * no kind (dispatchUrl() of llappviewermacosx.cpp): blocked there, so a link for the viewer only (Destination::links()); its
+     * point is read in whole meters (asInteger()), 128/128/0 without one.
      */
     public const MAP = 64;
     /** all formats */
@@ -107,6 +108,23 @@ final class Destination
      */
     public const LABEL = 4096;
     /**
+     * hop:///app/teleport/yourgrid.org:8002:Region%20Name/x/y/z, the teleport of APPTP through the hop: scheme, as the link that
+     * adds a grid (hop:///app/gridmanager/addgrid/..., seen working from a web browser). On trial in links(), to be removed if it
+     * does not work once tried. From the source (2026-11-21, Firestorm): a hop:///app/ link is read as the same command as
+     * secondlife:///app/ (fsslurl.cpp) and goes to the same handler, a link the system passes from a web browser having no kind
+     * (dispatchUrl() of llappviewermacosx.cpp); teleport takes an untrusted link only clicked (UNTRUSTED_CLICK_ONLY), so it is
+     * expected blocked from a web browser as APPTP is (addgrid passes: UNTRUSTED_THROTTLE, without a condition); the browser of
+     * the viewer does not open hop: (seen with HOP).
+     */
+    public const HOP_APPTP = 8192;
+    /**
+     * hop:///app/worldmap/yourgrid.org:8002:Region%20Name/x/y/z, the map of MAP through the hop: scheme. On trial in links(), to
+     * be removed if it does not work once tried. From the source (2026-11-21, Firestorm): the same command as
+     * secondlife:///app/worldmap, so expected blocked from a web browser as MAP is (canHandleUntrusted() of LLWorldMapHandler
+     * takes no link without a kind), and not opened by the browser of the viewer (hop:, seen with HOP).
+     */
+    public const HOP_MAP = 16384;
+    /**
      * The link for where it is shown (the `context` of format()), so that no site tells it again: in a viewer (told by the user
      * agent of the request, isViewer(); any page, its login screen too) or in a web browser, the format the grid chooses for each
      * (LinkFormatViewer, LinkFormatBrowser of its settings, linkFormats()), else AUTO_LINKS: GRID for both, the one format seen
@@ -136,9 +154,13 @@ final class Destination
      * The links worth offering beside the one of AUTO, in that order, by the class of the client (Destination::links()): in a web
      * browser hop:// (the hypergrid link the viewers read, from the source), then GRID; in the viewer the teleport of its own
      * browser (APPTP, seen there, through the search of the map), then GRID, then the place on its map (MAP: the viewer only, a
-     * web browser cannot open it, from the source). GRID stays second until a grid the viewer does not know is tried.
+     * web browser cannot open it). GRID stays second until a grid the viewer does not know is tried. On trial, to be removed
+     * where they do not work once tried: the teleport and the map through hop:///app/ (HOP_APPTP, HOP_MAP), for both.
      */
-    public const LINKS = ['browser' => [self::HOP, self::GRID], 'viewer' => [self::APPTP, self::GRID, self::MAP]];
+    public const LINKS = [
+        'browser' => [self::HOP, self::GRID, self::HOP_APPTP, self::HOP_MAP],
+        'viewer' => [self::APPTP, self::GRID, self::HOP_APPTP, self::MAP, self::HOP_MAP],
+    ];
 
     /** The formats that need a region: a grid alone has no such link in links() and in AUTO (hop:// without one is refused). */
     private const REGION_LINKS = self::GRID | self::HOP | self::LOCAL;
@@ -150,7 +172,21 @@ final class Destination
         self::APPTP => 'link_menu_apptp',
         self::LOCAL => 'link_menu_local',
         self::MAP => 'link_menu_map',
+        self::HOP_APPTP => 'link_menu_hop_apptp',
+        self::HOP_MAP => 'link_menu_hop_map',
         self::LSL => 'link_menu_copy',
+    ];
+
+    /** What each link of links() does, for a site to show it (its icon, its place in a menu): teleport, map, copy. */
+    public const LINK_ACTIONS = [
+        self::GRID => 'teleport',
+        self::HOP => 'teleport',
+        self::APPTP => 'teleport',
+        self::LOCAL => 'teleport',
+        self::HOP_APPTP => 'teleport',
+        self::MAP => 'map',
+        self::HOP_MAP => 'map',
+        self::LSL => 'copy',
     ];
 
     /** The formats a grid may choose for AUTO, by the name its settings give them (LinkFormatBrowser, LinkFormatViewer of Helpers.ini). */
@@ -460,12 +496,12 @@ final class Destination
     /**
      * The links of a destination where it is shown, the one AUTO gives first and then the other ones that fit that client
      * (LINKS), by format; LSL last, its address to copy into the search of the map of the viewer, without its point (the search
-     * takes `host:port:Region` alone). Each with the key of the
-     * catalog naming it in a menu (LINK_LABELS). A destination of another grid has no LOCAL one, a grid alone none that needs a
+     * takes `host:port:Region` alone). Each with the key of the catalog naming it in a menu (LINK_LABELS) and what it does
+     * (LINK_ACTIONS: teleport, map, copy). A destination of another grid has no LOCAL one, a grid alone none that needs a
      * region (REGION_LINKS).
      *
      * @param  array{agent?:?string,client?:string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context as format()
-     * @return array<int,array{link:string,label:string}> format => its link and its label, in that order
+     * @return array<int,array{link:string,label:string,action:string}> format => its link, its label and its action, in that order
      */
     public static function links(string $destination, array $context = []): array
     {
@@ -481,7 +517,7 @@ final class Destination
             }
             // The address to copy without its point: the search of the map of the viewer takes host:port:Region alone
             $link = (string) self::format($format === self::LSL ? (string) $parsed['region_uri'] : self::autoUri($parsed, $format), $format);
-            $link === '' || ($links[$format] = ['link' => $link, 'label' => self::LINK_LABELS[$format] ?? '']);
+            $link === '' || ($links[$format] = ['link' => $link, 'label' => self::LINK_LABELS[$format] ?? '', 'action' => self::LINK_ACTIONS[$format] ?? 'teleport']);
         }
 
         return $links;
@@ -593,6 +629,8 @@ final class Destination
      *                          TPLINK or 255:       output all formats
      *                          TPLINK_ARRAY or 256: output all formats as array
      *                          AUTO or 512:         the link for where it is shown (see AUTO), with `$context`
+     *                          HOP_APPTP or 8192:   hop:///app/teleport link (see HOP_APPTP, not tried)
+     *                          HOP_MAP or 16384:    hop:///app/worldmap link (see HOP_MAP, not tried)
      *
      * The region of a hop:// or secondlife:// link of a grid comes after a colon, its spaces as SPACE
      * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.
@@ -687,19 +725,20 @@ final class Destination
             // The name of a region for llMapDestination(): host:port:Region Name, the point apart
             $links[self::LSL] = implode(':', array_filter([empty($host) ? '' : "$host:$port", $region ?? ''])) . (empty($pos) || empty($region) ? '' : "/$pos");
         }
-        if ($format & self::APPTP) {
+        if ($format & (self::APPTP | self::HOP_APPTP)) {
             // In a viewer: secondlife:///app/teleport/speculoos.world:8002:Grand%20Place/128/128/21
             $tp_region = str_replace('%20', self::SPACE, $region_percentencode);
-            $links[self::APPTP] =
-                (empty($host)
-                    ? "secondlife:///app/teleport/$tp_region/"
-                    : "secondlife:///app/teleport/$host:$port:$tp_region/") .
-                (!empty($pos) ? "$pos/" : '');
+            $teleport = 'app/teleport/' . (empty($host) ? "$tp_region/" : "$host:$port:$tp_region/") . (!empty($pos) ? "$pos/" : '');
+            ($format & self::APPTP) && ($links[self::APPTP] = "secondlife:///$teleport");
+            // The same command through the hop: scheme, as the link that adds a grid (hop:///app/gridmanager/addgrid/...)
+            ($format & self::HOP_APPTP) && ($links[self::HOP_APPTP] = "hop:///$teleport");
         }
-        if ($format & self::MAP) {
+        if ($format & (self::MAP | self::HOP_MAP)) {
             // The map of the viewer: secondlife:///app/worldmap/speculoos.world:8002:Grand%20Place/128/128/21
             $named = implode(':', array_filter([empty($host) ? '' : "$host:$port", str_replace('%20', self::SPACE, $region_percentencode)]));
-            $links[self::MAP] = $named === '' ? '' : "secondlife:///app/worldmap/$named" . (empty($pos) || empty($region) ? '' : "/$pos");
+            $map = $named === '' ? '' : "app/worldmap/$named" . (empty($pos) || empty($region) ? '' : "/$pos");
+            ($format & self::MAP) && ($links[self::MAP] = $map === '' ? '' : "secondlife:///$map");
+            ($format & self::HOP_MAP) && ($links[self::HOP_MAP] = $map === '' ? '' : "hop:///$map");
         }
 
         // clean up trailing/leading non-alphanumeric characters

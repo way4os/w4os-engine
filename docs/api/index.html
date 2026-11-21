@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "b651801",
+        "version": "745372f",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -10649,6 +10649,14 @@
                                                                     },
                                                                     "label": {
                                                                         "type": "string"
+                                                                    },
+                                                                    "action": {
+                                                                        "type": "string",
+                                                                        "enum": [
+                                                                            "teleport",
+                                                                            "map",
+                                                                            "copy"
+                                                                        ]
                                                                     }
                                                                 }
                                                             }
@@ -10666,6 +10674,14 @@
                                                                     },
                                                                     "label": {
                                                                         "type": "string"
+                                                                    },
+                                                                    "action": {
+                                                                        "type": "string",
+                                                                        "enum": [
+                                                                            "teleport",
+                                                                            "map",
+                                                                            "copy"
+                                                                        ]
                                                                     }
                                                                 }
                                                             }
@@ -11663,7 +11679,7 @@
                                                         },
                                                         "tpLinks": {
                                                             "type": "array",
-                                                            "description": "The teleport links of the grid for a browser (`tpLinks('browser')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link` and `label` (the key of the catalog naming it in a menu); a grid alone may have no link a browser opens, only its address",
+                                                            "description": "The teleport links of the grid for a browser (`tpLinks('browser')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link`, `label` (the key of the catalog naming it in a menu) and `action` (what it does: teleport, map, copy); a grid alone may have no link a browser opens, only its address",
                                                             "items": {
                                                                 "type": "object",
                                                                 "properties": {
@@ -11675,6 +11691,14 @@
                                                                     },
                                                                     "label": {
                                                                         "type": "string"
+                                                                    },
+                                                                    "action": {
+                                                                        "type": "string",
+                                                                        "enum": [
+                                                                            "teleport",
+                                                                            "map",
+                                                                            "copy"
+                                                                        ]
                                                                     }
                                                                 }
                                                             }

@@ -239,8 +239,8 @@ final class Endpoints
                     'description' => 'Its address and its links',
                     'content' => $document('place', [
                         'tpUri' => ['type' => 'string'],
-                        'browser' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string']]]],
-                        'viewer' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string']]]],
+                        'browser' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string'], 'action' => ['type' => 'string', 'enum' => ['teleport', 'map', 'copy']]]]],
+                        'viewer' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string'], 'action' => ['type' => 'string', 'enum' => ['teleport', 'map', 'copy']]]]],
                     ]),
                 ],
                 '404' => Contract::problem('The grid is not known here, or the destination is none'),
@@ -514,8 +514,8 @@ final class Endpoints
                         'tpUri' => ['type' => ['string', 'null'], 'description' => 'The address of the grid as a destination (`tpUri()` of the grid: its login URI, `host:port`), null when it is not known'],
                         'tpLinks' => [
                             'type' => 'array',
-                            'description' => 'The teleport links of the grid for a browser (`tpLinks(\'browser\')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link` and `label` (the key of the catalog naming it in a menu); a grid alone may have no link a browser opens, only its address',
-                            'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string']]],
+                            'description' => 'The teleport links of the grid for a browser (`tpLinks(\'browser\')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link`, `label` (the key of the catalog naming it in a menu) and `action` (what it does: teleport, map, copy); a grid alone may have no link a browser opens, only its address',
+                            'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string'], 'action' => ['type' => 'string', 'enum' => ['teleport', 'map', 'copy']]]],
                         ],
                         'elements' => ['type' => 'object', 'additionalProperties' => ['type' => 'string']],
                     ]),

@@ -2125,6 +2125,14 @@ msgctxt "link_menu_map"
 msgid "Show on the map"
 msgstr "Auf der Karte zeigen"
 
+msgctxt "link_menu_hop_apptp"
+msgid "Teleport (hop app)"
+msgstr "Teleportieren (hop app)"
+
+msgctxt "link_menu_hop_map"
+msgid "Show on the map (hop app)"
+msgstr "Auf der Karte zeigen (hop app)"
+
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Adresse kopieren"
