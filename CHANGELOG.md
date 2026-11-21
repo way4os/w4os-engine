@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (urls): Url::build(), a site's link for the page shown: base, language prefix and kept arguments
 - change (texts): start_viewer_note removed, the Connect block no longer shows it
 - fix (grids): a remote grid known by its login URI alone asks its get_grid_info once, else reads what the site gave
 - fix (grids): a nick in capitals finds its grid; an invalid nick is a warning naming the right one, never an error
