@@ -2,102 +2,102 @@
 
 ### Unreleased
 
-- fix (port mapping): a simulator started without the port mapping leaves the address its regions announce (ExternalHostName) as it is; the one they had before the port mapping gave them its public address is kept and given back when it is off (it set every region to SYSTEMIP at each start, a host of their own lost)
+- fix (port mapping): a start without port mapping keeps the regions' ExternalHostName
 - fix (packaging): the API command w4os-api is in /usr/bin, a link to the one of the engine; the packaging check calls it there
-- new (address): the address of a grid changed at once in every file of it on this machine (POST /grids/{grid}/address, GridAddress: host, public port, site; plan, then apply): Robust's [Const] and ConsoleHost, the addresses under the old login URI or the old site (by the constants of Robust), the regions' ExternalHostName (SYSTEMIP or the old host), the places of its list of destinations, setup.json and the web-server files; never a connection string, a comment or a database
-- fix (settings): a page read and written back gives the same address: an address of the site out of the helpers' base (the search at /helpers/ while the economy is at /economy/) is a path from the root of the site, with its slash, instead of being put under the helpers' base; the grid's own register is DATA_SRV_<nick>, as the search preset lays it in the master of the simulators (one register, not two), the one of before (another key on the site of the grid, its name) left commented
-- update (git): .gitignore is the projects' template (macOS, editors, AI files, config, generated content, data) with this project's own rules after it; phpunit.xml is phpunit.xml.dist (a local phpunit.xml overrides it), .phpactor.json no longer tracked
-- fix (packaging): w4os-engine breaks the opensim-cli and opensim-helpers of before w4os, which link to the emptied /usr/share/opensim-engine: apt upgrades them with it (to w4os-cli, w4os-helpers) or refuses, never a command line left broken; the packaging check installs the engine over a command line of before, alone and with the one of now
-- fix (xml-rpc): xmlrpc_server_call_method() of the library standing for the extension returns the answer and prints nothing, as the extension does (it printed it and returned true); what a method prints goes out as it is
+- new (address): change the host, port and site of a grid in all its files (POST /grids/{grid}/address)
+- fix (settings): a page read and written back keeps its addresses; the grid's own register is DATA_SRV_<nick>
+- update (git): .gitignore from the projects' template; phpunit.xml.dist; .phpactor.json untracked
+- fix (packaging): w4os-engine breaks opensim-cli and opensim-helpers of before w4os
+- fix (xml-rpc): the polyfill's xmlrpc_server_call_method() returns the answer, as the extension
 - change (login URI): the quick setup shows the login URI as host:port, in its review and when it is done
-- fix (tests): the suite passes on a machine with the xmlrpc extension, a web group this user may not give, PHP 8.3 or no test database (the XML-RPC tests against the contract of the extension, the stat cache cleared, the calendar test skipped without TEST_DATABASE, no brace glob)
-- change (texts): the getting-started block becomes the Connect block of a site, its words only: the title Connect, the button that creates the avatar, Add the grid with the button Add <grid> and the note on the viewer (start_add_grid, start_viewer_note), the button Log in; the explanations of before left out (start_avatar_text, start_viewer_text, start_viewer_get, start_viewer_others, start_login_text, start_next), in every language
-- change (login URI): the login URI is host:port wherever the engine shows or gives it (login of the info, the addresses and the monitor of a grid, loginUri of the page of the grid, addGrid), from any form it is written in (host:port, http://, https://, hop://, secondlife://); the URL apart as loginUrl, for what calls the grid; Robust keeps the URL viewers log in at (http://host:port/)
-- new (texts): the button that adds a grid to the viewer (viewer_add_grid, as w4os-wp says it, its other link, the login URI by hand, copy, copied) and the getting-started block of a site (start_*), in every language
-- new (viewer links): the links that add a grid to a viewer (Firestorm app/gridmanager/addgrid, its login URI encoded), hop and secondlife, in the info and the addresses of a grid (addGrid, Destination::addGrid(), Grid::addGrid()); its text grid_add_to_viewer in every language
-- fix (packaging): the libraries of the package are links whatever the machine that builds it has (nfpm took the mode of an existing target, and shipped an empty folder); the web configs of the API of before w4os (paths, socket, pool) moved to the ones of now at the upgrade; the packaging check reads the links in the package and upgrades such configs, then serves the API with Apache and its pool on 127.0.0.1:8780
-- fix (tests): tests/Packaging/check takes where its container runs on its command line (--connection NAME, or --local), never from the environment, and refuses to run on macOS without it; a named connection must exist, and the machine used is the one podman itself reports; the container tests of the suite are skipped there unless PODMAN_LOCAL=1; the check loads the engine by its autoload (no bootstrap.php any more) and installs the empty package first on the upgrade, as apt does
-- update (rename): the engine is w4os-engine: the namespace W4OS\Engine, the package w4os-engine in /usr/share/w4os-engine (opensim-engine an empty package that brings it), the API command w4os-api and its pool, the config of the suite /etc/w4os/w4os.conf (the /etc/opensim/opensim.conf of before moved there by the package), the site in /var/lib/w4os/www, the repository way4os/w4os-engine, the composer name w4os/w4os-engine
-- fix (texts): translations reviewed in every language: English or half-English labels translated, other meanings fixed (a harbour for a port, a lattice for the grid, two reversed search helps), one term per word (Welsh afatar, het grid, o grid, du), viewer and helpers kept in every language, never a watcher or an assistant; the catalog checks the texts left as the English ones and the known false friends
-- fix (texts): the texts of the posts, the caches and the services translated in every language (de, fr, cy, it, nl, pt-BR); the catalog checks that none is left
+- fix (tests): the suite passes with the xmlrpc extension, PHP 8.3, no web group or no test database
+- change (texts): the Connect block of a site, its words only (start_add_grid, start_viewer_note)
+- change (login URI): host:port wherever the engine shows it, from any form; loginUrl for calls
+- new (texts): the add-to-viewer button and the getting-started block, in every language
+- new (viewer links): addGrid, the hop and secondlife links that add a grid to a viewer
+- fix (packaging): the libraries ship as links on any build machine; API web configs of before w4os migrated
+- fix (tests): tests/Packaging/check runs where its command line says (--connection NAME or --local)
+- update (rename): the engine is w4os-engine (namespace, package, w4os-api, /etc/w4os/w4os.conf)
+- fix (texts): translations reviewed in every language, with a glossary check
+- fix (texts): the texts of the posts, the caches and the services translated in every language
 - fix (in place): a grid in place runs with the core of its install (CoreDirectory of its section), not the one of the suite
-- new (in place): an existing install registered where it is through the API (kind robust, inPlace; forget removes it): only its section of the config of the suite is written
-- new (in place): the settings of the helpers of a grid in place, in its section of the config of the suite (Section.Key), never in a file of the install
-- new (in place): a grid of an existing install run where it is, by its [Grid <nick>] section in the config of the suite: read from its files, enabled in its section (Enabled, EnabledSimulators), started from its own files; nothing written in the install (InPlaceGrids)
-- new (layout): the name of the config of the suite in one place (Layout::FILE); its [Grid <nick>] sections, the grids of an existing install the suite runs where they are (Layout::grids())
-- new (settings): a change says the grid restart or the simulator(s) restart is required (meta.reminders, with the command), when it went to a file they read
-- new: `opensim-api --version`, and with -v the versions of everything that matters on the machine (the engine, rest-php, the helpers, the site, the kit, the cores, .NET, PHP): Support\Versions
+- new (in place): an existing install registered where it is through the API (kind robust, inPlace)
+- new (in place): the settings of the helpers of a grid in place, in its section of the suite's config
+- new (in place): a grid of an existing install run where it is, by its [Grid <nick>] section
+- new (layout): Layout::FILE and Layout::grids(), the [Grid <nick>] sections of the suite's config
+- new (settings): meta.reminders say which restart a change needs
+- new: opensim-api --version [-v], the versions of the engine and what it needs (Support\Versions)
 - fix (import): an import of accounts into a grid whose database cannot be read says so (503), not an internal error
-- change (packaging): container-tools (podman) and php-imagick are recommended, not required: the engine and a command line alone install light (--no-install-recommends)
-- feature (import): the accounts of a list into a grid this install does not manage, by its Robust config (robust), and for a site through the config it gives the API
+- change (packaging): container-tools and php-imagick are recommended, not required
+- feature (import): accounts into a grid this install does not manage, by its Robust config
 - fix (avatars): the list of the avatars of a grid without profiles (no userprofile table), with their visits
-- fix (ports): the ports bound on Linux are read from /proc/net, netstat is not on a Debian of today (a switch of an import no longer starts a grid over the old one)
-- fix (packaging): the default backup root (/var/backups/opensim) is made by the layout even when opensim.conf names it, as the one the engine writes does
-- feature (setup): the setup offers an existing install: its Robust config and its simulators, the plan of the migration, then the grid written disabled and how to switch
-- feature (import): the grid of another install migrated into this one (kind robust of POST /setups/imports): the same grid and database, its Robust config made here with its own settings kept, its simulators in the same run, written disabled, then switched once the old Robust is stopped
-- feature (import): the accounts of a list made in a grid through the API (kind accounts of POST /setups/imports): CSV, JSON or YAML, planned first, a password made for the ones given none, given back once made
+- fix (ports): bound ports read from /proc/net on Linux
+- fix (packaging): the layout makes the default backup root
+- feature (setup): the setup offers to migrate an existing install
+- feature (import): migrate the grid of another install (kind robust of POST /setups/imports)
+- feature (import): import accounts from CSV, JSON or YAML (kind accounts of POST /setups/imports)
 - fix (packaging): every ini of a grid, MoneyServer.ini too, is 640 for the group of the web server again at each upgrade, as opensim-tools made them
-- fix (packaging): the engine depends on screen and procps; its preinst also replaces the old container-tools folder; purge removes the cache and the owners of the layout
+- fix (packaging): depends on screen and procps; preinst replaces the old container-tools folder; purge cleans up
 - new (packaging): copyright and README.Debian of the package
 - fix (presets): the website of a grid is the one of w4os-site, in /var/lib/opensim/www, no more opensim-web
-- fix (settings): a value of quotes only reads as none, null for a field that may use the default; an empty address sent to such a field is its default, never an empty key
+- fix (settings): a value of quotes only reads as none; an empty address is the field's default
 - fix (settings): the path of the web assets says the engine serves them wherever it is; Robust URI says what it is, not the text of the grid service
-- feat (simulators): the page of a simulator, changed in its own file: its URI and HTTP port, its console (user, password masked, port), its database, Use default by default (the database of the simulators of the grid, else its main database, whose localhost is the machine of Robust when Robust runs elsewhere)
-- change (settings): no tip that says again what its label says (the databases, the list of the models, the module, the registers, the events, the sender); what a default is said in a few words (Default: the main database of the grid)
-- change (search): 2do.directory has a box of its own, Include 2do.directory, on by default; the list of the registers is the other search engines only
-- feat (grid): a page of settings, Grid: its login URI, name and nick; the ways to reach its Robust in one place (Robust URI, ROBUST Database, Console User, Password and Port); the Assets and Profile Service URIs (Use default); the profile page; Exclude from stats (models, accounts without email, hypergrid visitors; the first two by default, as w4os-wp), applied to the numbers of the grid
-- change (assets): provided, the web assets are a path under the site, the helpers' by default, routed apart to the engine as the prefix of the economy, not a page of the site
-- feat (avatars): a page of settings, Avatar Settings: more than one avatar for an email (on by default) and the forbidden names (Default, Test, Admin by default, the name of the grid always), checked when an avatar is made
-- change (settings): the switch of a database that may use the default says Use default only, the field its own label, what the default is in its description
-- change (offline): the lines of Robust for the module V2 have the connector that keeps the messages (`OfflineIMServiceConnector` of `[ServiceList]`, commented in the distribution)
-- fix (search): the own register of the grid shown once, as its path, whatever the key the simulators have it under (`DATA_SRV_<nick>`), not again in the list of the other search engines
+- feat (simulators): the settings page of a simulator (URI, HTTP port, console, database)
+- change (settings): no tip that repeats its label; defaults said in a few words
+- change (search): an Include 2do.directory box; the registers list holds the other search engines
+- feat (grid): the Grid settings page (login URI, name, nick, Robust access, service URIs, Exclude from stats)
+- change (assets): provided web assets are a path under the site, routed to the engine
+- feat (avatars): the Avatar Settings page (several avatars per email, forbidden names)
+- change (settings): a database that may use the default shows a Use default switch
+- change (offline): Robust's V2 lines include OfflineIMServiceConnector
+- fix (search): the grid's own register shown once, as its path
 - change (settings): an empty field shows its default as it is, an example as one (e.g.: YC$); left empty, a field takes its default
-- change (regions): the presence, the prims and the scripts back in their own columns, av., pr., scr., sorted on, on the widest screens; the type of a region (RegionType of its file) in place of them; sorts on the type, the owner, the simulator; filters on the owner and the type (the simulators: av. and pr. too)
-- change (lists): no label where the value says it all (`bare` on the parts of a column too): the location, the size, the flags, an area; the usage reads 0 av., 3 prims, 2 scripts (`count`)
-- change (regions): the size reads 256 x 256 (meters always, no unit), the location 8015, 8012, spaces where a narrow column breaks the line; the page says Internal Port, with why
-- change (lists): a column can hold several values (`group`, its `parts`): the usage of the regions and the simulators (presence, prims, scripts), the location and the size of a region; the port on the page of a region only, labelled Port
-- change (lists): the `priority` of a column is a number, 1 at every width then 2, 3, 4... hidden in turn as the width shrinks, by what a manager needs first (was primary or secondary)
+- change (regions): presence, prims and scripts columns, region type, sorts and filters
+- change (lists): no label where the value says it all (bare, count)
+- change (regions): size and location formats; Internal Port on the region page
+- change (lists): a column can hold several values (group, parts)
+- change (lists): column priority is a number
 - change (regions): the size of a region is a column of its own type, `dimensions`, shown 256 × 256 m (`unit_dimensions`)
 - fix (texts): French typos (monnaie, utiliser, exemple) and the solde of an account
 - feature (economy): the database of the money server takes Use default, the main database of the grid, written in its own keys of [MySql]
 - fix (config): a connection string reads its port given apart (`Port=3307`)
-- change (texts): the people of the world are avatars in every text, never users (Resident for the avatar of a person); the titles of the cards of a dashboard (`dashboard_grid_info`, `dashboard_grid_status`, `total`)
+- change (texts): avatars, never users, in every text; dashboard card titles
 - fix (offline): the database of the offline messages is in the lines of the page when it is not the one of Robust
-- change (guide): a grid that has saved no source has no guide; its page saves the guide of 2do.directory when the source is left empty or the guide is switched on, the field no longer required
-- change (search): the Web Search URL (the page people search in, at login and in get_grid_info), apart from the Search Engine URL the simulators call; the registers of other search engines as a list (`registers`), 2do.directory recommended, the grid's own as a path
-- feature (economy): the symbol of the currency (G$ with Gloebit), the banker of the money server and of Podex (`BankerAvatar`), Banker Name and Banker Email for Gloebit, each with what the banker can do; a security warning with the money server and Podex
-- change (settings): each field has a short tip under its label where the label is not enough (`tip`), the details apart; what a page is about in its help (offline messages, web assets)
-- change (settings): `meta.snippets` is one block for each file of the page (its `file` and its `text`), for the values chosen, the helpers' too, the lines of the module chosen only
+- change (guide): no guide without a source; its page saves 2do.directory's when left empty
+- change (search): the Web Search URL apart from the Search Engine URL; other registers as a list
+- feature (economy): currency symbol, banker settings, security warning
+- change (settings): short tips under labels; page help texts
+- change (settings): meta.snippets is one block per file
 - change (settings): the path of a service never starts with a slash; `meta.service.prefix` is the address it is under, ending with the slash
-- change (texts): `recent_avatars` (was `recent_users`), Recent Avatars; the grid status block shows online avatars: the avatars of the grid are never called users
-- feature (avatars): the role column shows a model and the account of the services as roles of their own (`shownRole`); each avatar of a list says how many estates, regions and parcels it owns
-- feature (lists): the prims and the scripts of the regions, the prims of the simulators, from the databases of the simulators; the people of a simulator under Presence, as for the regions
+- change (texts): recent_avatars (was recent_users); online avatars in the grid status
+- feature (avatars): model and service account roles (shownRole); estates, regions and parcels owned
+- feature (lists): prims and scripts of regions and simulators; presence of simulators
 - change (lists): an area is shown in km², two decimals under 10, none above (no m², no ha)
 - fix (monitor): the state of a grid a site describes counts its regions and its people in the config it was given (the grid status block)
-- fix (grids): the get_grid_info a grid not verified yet says is Robust's: platform, the keys of [GridInfoService] (the password page too), home and gatekeeper from HomeURI and GatekeeperURI
+- fix (grids): get_grid_info of a grid not verified yet comes from its Robust config
 - fix (api): the site description keeps [GridInfoService] whole; its secrets are the registry's
 - fix (grids): a grid without its Robust here (described by a site) says of itself what the config it was given says (get_grid_info)
 - change (guide): a grid that sets no GuideSource has the guide of 2do.directory, as if it were set; its own places when it cannot be read
-- fix (health): what the health says is sentences of the catalog in six languages, each line giving their key and values (`texts`); `Health::translate()` says them in a language
-- fix (texts): the message of the day a grid sets none of is one sentence of the catalog in the language of the page (`motd_welcome`, `motd_visitor`); `Grid::motd()` takes the language
+- fix (health): health texts from the catalog, translated (Health::translate())
+- fix (texts): the default message of the day from the catalog, translated (Grid::motd())
 - change (texts): `block_new_avatars_help` (was `block_new_users_help`), for the shortcode new-avatars; `snippet_example`, Example
-- feature (api): `GET /grids/{grid}/site-description`, what a site needs of a grid for its helpers (its addresses, the names of its databases, its destinations, the settings of its helpers), never a secret; `SiteDescription::grid()` makes the grid of the engine a site bundles of it
+- feature (api): GET /grids/{grid}/site-description, what a site needs for its helpers (SiteDescription)
 - fix (grids): a grid an application describes without a folder never reads a file of the machine
-- fix (settings): an address written under a constant of the file's instance (WebURL, BaseURL...) keeps the `${Const|Name}` form, the one the line used first
+- fix (settings): an address under a constant keeps its ${Const|Name} form
 - fix (helpers): the WebURL of a grid folder written with a constant is read expanded
-- change (offline): not provided, the module is chosen, V1 with the address of another service (never the helpers'), V2 without one, the lines of the choice; provided, the helpers serve V1 with the database of the messages (`offlineDatabase`, Robust's by default)
-- change (guide): its source is the guide of 2do.directory by default, its help about what the field takes, the format in the help of the page; the example of a list apart (`meta.examples`), the lines of a file labelled as such (`snippet_ini`)
-- change (settings): with Provide, the path of what the viewers and the simulators call is under the helpers (`base` helpers); the search keeps the addresses of another search apart (searchExternalUrl, registerExternalUrl, 2do.directory by default), its register is a path too; its ini lines only what is chosen
-- change (economy): the module is chosen on its page: free, the generic money server, Gloebit (its environment, keys and owner), or Podex (the generic money server, `CurrencyProvider = podex` for the helpers)
-- feature (lists): an area in the unit that suits it (m², ha, km²), the cpu and the memory of a simulator as usages with their thresholds, the memory in MB of the total
+- change (offline): offline module chosen on its page (V1 elsewhere, V2, or provided by the helpers)
+- change (guide): 2do.directory's guide by default; examples in meta.examples
+- change (settings): with Provide, viewer and simulator paths under the helpers; another search kept apart
+- change (economy): the economy module chosen on its page (free, money server, Gloebit, Podex)
+- feature (lists): areas in their unit; simulator cpu and memory usage
 - fix (simulators): the cpu is the share of all the CPUs of the machine, not of one
 - fix (texts): what each block and shortcode shows, in one plain sentence, the shortcodes of a site too (shortcode_*_help)
 - feature (texts): the texts of the dashboard of a site (simulators_running, recent_users, see_all)
-- feature (economy): the database of the economy, by module: the [MySql] of the money server, the connection of Gloebit; "use default" for Gloebit and the search
+- feature (economy): the database of the economy, by module
 - fix (settings): Provide off shows the whole address of the service alone, its other settings hidden
 - fix (economy): an unset economymodule reads as the free economy (BetaGridLikeMoneyModule), the default of OpenSimulator
 - fix (texts): the reasons a grid cannot be changed or read (`meta.fixed`, 503 problems) are notices of the catalog, in six languages
-- fix (settings): a setting goes to its file when this process can write it, else to the application for what only the helpers read; the others are fixed (`meta.fixed`, the lines to add by hand)
+- fix (settings): a setting goes to its file, else to the application; the rest is fixed (meta.fixed)
 - feature (settings): the settings an application keeps (`Environment::system(settings:)`), read first; the pages write there for a grid without files
 - fix (economy): the currency and the land tool are served without a money key, with the default key of w4os-wp's helpers
 - fix (texts): Welsh texts in Chinese or left in English, copied from w4os-wp, translated; the catalog checks it
