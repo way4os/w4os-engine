@@ -959,6 +959,20 @@ msgctxt "home_all_news"
 msgid "All news"
 msgstr "Alle Neuigkeiten"
 
+msgctxt "hg_visit_title"
+msgid "Visit from another grid"
+msgstr "Besuch aus einem anderen Grid"
+
+msgctxt "hg_visit_text"
+msgid ""
+"Already have an avatar on another OpenSim grid? Visit us without creating "
+"one: enter this address in your viewer's map or search."
+msgstr "Du hast schon einen Avatar in einem anderen OpenSim-Grid? Besuch uns, ohne einen neuen zu erstellen: Gib diese Adresse in die Karte oder die Suche deines Viewers ein."
+
+msgctxt "hg_visit_go"
+msgid "Teleport here"
+msgstr "Hierher teleportieren"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Insgesamt"

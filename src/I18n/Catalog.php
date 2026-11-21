@@ -280,6 +280,11 @@ final class Catalog
         'start_done' => 'Done',
         // The link under the last news of a site, to its news page
         'home_all_news' => 'All news',
+        // The block of a site for the visitors who have an avatar on another grid (the grid reachable by hypergrid): its title, what to
+        // do, the button that takes them there
+        'hg_visit_title' => 'Visit from another grid',
+        'hg_visit_text' => "Already have an avatar on another OpenSim grid? Visit us without creating one: enter this address in your viewer's map or search.",
+        'hg_visit_go' => 'Teleport here',
         'total' => 'Total',
         // The tips of the fields of the settings pages, under their label: a few words
         'tip_models_match' => 'How a model is recognised',

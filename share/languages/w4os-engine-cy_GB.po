@@ -947,6 +947,20 @@ msgctxt "home_all_news"
 msgid "All news"
 msgstr "Yr holl newyddion"
 
+msgctxt "hg_visit_title"
+msgid "Visit from another grid"
+msgstr "Ymweld o grid arall"
+
+msgctxt "hg_visit_text"
+msgid ""
+"Already have an avatar on another OpenSim grid? Visit us without creating "
+"one: enter this address in your viewer's map or search."
+msgstr "Oes gennych chi afatar ar grid OpenSim arall yn barod? Dewch i ymweld heb greu un: rhowch y cyfeiriad hwn ym map neu chwiliad eich viewer."
+
+msgctxt "hg_visit_go"
+msgid "Teleport here"
+msgstr "Teleportio yma"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Cyfanswm"
