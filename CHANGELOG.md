@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (texts): the three buttons of the Connect block in one mood in each language (fr: Créer votre avatar, Ajouter <grille> au viewer, Se connecter); start_add_grid adds the grid to the viewer, start_viewer (the heading of that step) removed
 - change (texts): start_viewer_note removed, the Connect block no longer shows it
 - fix (grids): a remote grid known by its login URI alone asks its get_grid_info once, else reads what the site gave
 - fix (grids): a nick in capitals finds its grid; an invalid nick is a warning naming the right one, never an error

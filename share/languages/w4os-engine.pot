@@ -777,13 +777,9 @@ msgctxt "start_avatar_done"
 msgid "Your avatar is %s."
 msgstr ""
 
-msgctxt "start_viewer"
-msgid "Add the grid"
-msgstr ""
-
 #, php-format
 msgctxt "start_add_grid"
-msgid "Add %s"
+msgid "Add %s to your viewer"
 msgstr ""
 
 msgctxt "start_login"
