@@ -15,13 +15,13 @@ describe('An address written in a file of the grid', function () {
     test('under a constant of the grid, is written with the constant', function () {
         $machine = new Machine();
         $robust = $machine->grid . '/Robust.HG.ini';
-        $machine->write($robust, str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://dev.w4os.org\"\n    WebURL = \"\${Const|BaseURL}:8830\"\n", file_get_contents($robust))
+        $machine->write($robust, str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://studio.example.org\"\n    WebURL = \"\${Const|BaseURL}:8830\"\n", file_get_contents($robust))
             . "\n[LoginService]\n    DestinationGuide = \"\${Const|WebURL}/guide\"\n");
         $router = new Router(new Api($machine->environment));
         $patch = static fn(string $page, array $attributes) => $router->patch("/grids/demo/settings/$page", ['data' => ['type' => 'settings', 'id' => $page, 'attributes' => $attributes]]);
 
         $guide = $patch('guide', ['provide' => true, 'path' => '/places/guide']);
-        $economy = $patch('economy', ['provide' => false, 'economyUrl' => 'http://dev.w4os.org:8002/money/']);
+        $economy = $patch('economy', ['provide' => false, 'economyUrl' => 'http://studio.example.org:8002/money/']);
         $elsewhere = $patch('offline', ['provide' => false, 'offlineModule' => 'OfflineMessageModule', 'offlineMessageUrl' => 'https://im.example.org/offline.php']);
         $ini = file_get_contents($robust);
 
