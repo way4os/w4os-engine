@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (texts): the visit from another grid naming grids an avatar may come from (hg_visit_text_examples), and the last two of a list of choices (list_or: A, B or C), in every language
+- new (texts): the block of a site for the visitors with an avatar on another grid (hg_visit_title, hg_visit_text, hg_visit_go), in every language
 - fix (assets): a grid's pictures are read with its whole config, the database a site gives in Helpers.ini too
 - fix (guide): the popular places list the places not visited yet after the others, as w4os-wp and the viewers' search
 - change (texts): start_add_grid is Add the grid again, without its name, in every language

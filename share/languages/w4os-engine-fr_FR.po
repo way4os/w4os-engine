@@ -959,6 +959,35 @@ msgctxt "home_all_news"
 msgid "All news"
 msgstr "Toutes les actualités"
 
+msgctxt "hg_visit_title"
+msgid "Visit from another grid"
+msgstr "Visiter depuis une autre grille"
+
+msgctxt "hg_visit_text"
+msgid ""
+"Already have an avatar on another OpenSim grid? Visit us without creating "
+"one: enter this address in your viewer's map or search."
+msgstr ""
+"Vous avez déjà un avatar sur une autre grille OpenSim ? Venez nous voir sans "
+"en créer un : entrez cette adresse dans la carte ou la recherche de votre "
+"viewer."
+
+msgctxt "hg_visit_go"
+msgid "Teleport here"
+msgstr "Se téléporter ici"
+
+#, php-format
+msgctxt "hg_visit_text_examples"
+msgid ""
+"Already have an avatar on another OpenSim grid, like %s? Visit us without "
+"creating one: enter this address in your viewer's map or search."
+msgstr "Vous avez déjà un avatar sur une autre grille OpenSim, comme %s ? Venez nous voir sans en créer un : entrez cette adresse dans la carte ou la recherche de votre viewer."
+
+#, php-format
+msgctxt "list_or"
+msgid "%1$s or %2$s"
+msgstr "%1$s ou %2$s"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Total"
