@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (search): the viewers no longer list a classified that has expired, as the web search
 - new (texts): the web search as the viewers have it, its kinds, fields, ratings and categories, in every language
 - new (search): SearchFilters, what a search asks (words, category, ratings, price, area, day), for the viewers and the web search
 - new (address): opensim address changes the addresses the databases keep too (accounts, search, picks), planned with their rows first

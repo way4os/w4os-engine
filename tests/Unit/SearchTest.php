@@ -687,7 +687,9 @@ describe('The questions of the search', function () {
             'CREATE TABLE classifieds (classifieduuid CHAR(36), creatoruuid CHAR(36), creationdate INT, expirationdate INT, category VARCHAR(20), name VARCHAR(255), description TEXT, parceluuid CHAR(36), parentestate INT, snapshotuuid CHAR(36), simname VARCHAR(255), posglobal VARCHAR(255), parcelname VARCHAR(255), classifiedflags INT, priceforlisting INT)',
         );
         $profiles->exec(
-            "INSERT INTO classifieds VALUES ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'creator', 1, 2, '3', 'Shop here', 'Best shop', 'p', 1, 's', 'Welcome', '1,1,1', 'Mall', 4, 50)",
+            // One to come, one expired: only the first is listed
+            "INSERT INTO classifieds VALUES ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'creator', 1, 4102444800, '3', 'Shop here', 'Best shop', 'p', 1, 's', 'Welcome', '1,1,1', 'Mall', 4, 50), " .
+                "('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'creator', 1, 2, '3', 'Shop gone', 'Old shop', 'p', 1, 's', 'Welcome', '1,1,1', 'Mall', 4, 60)",
         );
         $rpc = new XmlRpc((new SearchQuery(search_database(), 'regionsregister', profiles: $profiles))->methods());
 
@@ -704,7 +706,7 @@ describe('The questions of the search', function () {
                 'name' => 'Shop here',
                 'classifiedflags' => 4,
                 'creation_date' => 1,
-                'expiration_date' => 2,
+                'expiration_date' => 4102444800,
                 'priceforlisting' => 50,
             ])
             ->and($mature['data'] ?? [])

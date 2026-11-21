@@ -29,6 +29,7 @@ describe('The filters of a search', function () {
             ->and(SearchFilters::land()[0])->toBe([])
             ->and($events)->toBe(['dateUTC + duration * 60 >= 1700000000'])
             ->and($classifieds)->toBe(['(classifiedflags & 8)', 'category = :category'])
-            ->and($classifiedValues)->toBe(['category' => 2]);
+            ->and($classifiedValues)->toBe(['category' => 2])
+            ->and(SearchFilters::classifieds('', now: 1_700_000_000)[0])->toBe(['expirationdate > 1700000000']);
     });
 });

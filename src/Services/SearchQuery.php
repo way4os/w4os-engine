@@ -318,7 +318,8 @@ final class SearchQuery
         if ($text === '%%%') {
             return XmlRpc::envelope(false, 'Invalid search terms', []);
         }
-        [$terms, $values] = SearchFilters::classifieds($text, $category, SearchFilters::ratings($flags, SearchFilters::CLASSIFIED_BITS));
+        // The ones not expired yet, as the web search lists them
+        [$terms, $values] = SearchFilters::classifieds($text, $category, SearchFilters::ratings($flags, SearchFilters::CLASSIFIED_BITS), now: $this->now());
         $rows = $this->rows(
             $this->profiles,
             'SELECT * FROM classifieds' .

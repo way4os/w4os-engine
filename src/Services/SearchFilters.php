@@ -143,15 +143,16 @@ final class SearchFilters
     }
 
     /**
-     * Classifieds: of a category, of the ratings asked, their name or description with the words (none: every one).
+     * Classifieds not expired yet (at $now, none: every one), of a category, of the ratings asked, their name or description with
+     * the words (none: every one).
      *
      * @param list<string> $ratings
      * @return array{0:list<string>,1:array<string,mixed>}
      */
-    public static function classifieds(string $text, int $category = 0, array $ratings = [], string $alias = ''): array
+    public static function classifieds(string $text, int $category = 0, array $ratings = [], string $alias = '', ?int $now = null): array
     {
         $p = self::prefix($alias);
-        $terms = [];
+        $terms = $now === null ? [] : ["{$p}expirationdate > $now"];
         $values = [];
         $bits = array_intersect_key(self::CLASSIFIED_BITS, array_flip($ratings));
         $bits === [] || ($terms[] = '(' . implode(' OR ', array_map(static fn(int $bit): string => "{$p}classifiedflags & $bit", $bits)) . ')');
