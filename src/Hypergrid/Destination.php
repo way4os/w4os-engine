@@ -39,7 +39,7 @@ final class Destination
      * the grid the viewer was on, `hop://host:port` (no region) did nothing. Firestorm uses the grid of a hop:// link only when it
      * has that grid's gatekeeper (its list of grids), else it asks its own grid for the region by its name (dispatchRegion() of
      * llurldispatcher.cpp). From the source (2026-11-21, not tried): Firestorm and Dayturn read it as a hypergrid link and refuse
-     * one without a region by design (fsslurl_test.cpp); Cool VL Viewer reads it but looks for the region on the grid it is on
+     * one without a region by design (fsslurl_test.cpp), so a grid alone has none here; Cool VL Viewer reads it but looks for the region on the grid it is on
      * (CantTeleportToGrid towards another one); the system passes it on only where the viewer registered hop: (Firestorm on macOS,
      * on Windows in its OpenSim builds when accepted at install, never on Linux; Cool VL Viewer everywhere).
      */
@@ -54,8 +54,9 @@ final class Destination
      * (`teleport` is a command for a click in a trusted page: llcommandhandler.cpp, dispatchUrl() of llappviewermacosx.cpp).
      * From the source (2026-11-21, not tried): a click in the viewer only in Firestorm and Cool VL Viewer (UNTRUSTED_CLICK_ONLY),
      * a few times a minute from outside in Dayturn (UNTRUSTED_THROTTLE); in the viewer `host:port:Region` goes through the search
-     * of the map, which reaches other grids. The browser of the viewer is told by `SecondLife/` in its user agent
-     * (llviewermedia.cpp).
+     * of the map, which reaches other grids; Firestorm takes the point as it is, past 256 m in a var region (no bound, on
+     * purpose: fsslurl.cpp, regionHandleCallback() of llurldispatcher.cpp). The browser of the viewer is told by `SecondLife/` in
+     * its user agent (llviewermedia.cpp).
      */
     public const APPTP = 32;
     /**
@@ -637,7 +638,8 @@ final class Destination
             );
         }
         // A region of this grid, by its name alone; the link of a grid without a region ends at its port
-        $local = "secondlife://$region_percentencode" . (empty($pos_sl) ? '' : "/$pos_sl");
+        // The point as it is: the viewers take one past 256 m, in a var region (Firestorm, fsslurl.cpp)
+        $local = "secondlife://$region_percentencode" . (empty($pos) ? '' : "/$pos");
         $named = empty($region) ? '' : ':' . str_replace('%20', self::SPACE, $region_percentencode);
         if ($format & self::LOCAL) {
             // Web only, do not use for in-world messages
@@ -659,7 +661,8 @@ final class Destination
             // Web and in-world, the region after a slash, never a colon. Position (/x/y/z) is
             // - optional for web browser links (viewer applies default)
             // - required for in-world messages
-            $links[self::HOP] = empty($gatekeeper)
+            // None without a region: the viewers refuse hop://host:port (Firestorm, fsslurl_test.cpp; seen 2026-11-21)
+            $links[self::HOP] = empty($gatekeeper) || empty($region)
                 ? ''
                 : "hop://$host:$port" . (empty($region) ? '' : '/' . str_replace('%20', self::SPACE, $region_percentencode)) . (empty($pos) ? '' : "/$pos");
         }
@@ -680,7 +683,7 @@ final class Destination
                 (empty($host)
                     ? "secondlife:///app/teleport/$tp_region/"
                     : "secondlife:///app/teleport/$host:$port:$tp_region/") .
-                (!empty($pos_sl) ? "$pos_sl/" : '');
+                (!empty($pos) ? "$pos/" : '');
         }
         if ($format & self::MAP) {
             // The map of the viewer: secondlife:///app/worldmap/speculoos.world:8002:Grand%20Place/128/128/21

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (links): APPTP and LOCAL keep the point of a var region, past 256 m, as the viewers take it
+- change (links): a grid alone has no hop:// link, the viewers refuse one without a region
 - change (assets): a picture that is not there is a 404 without a picture, so a page shows its own; `default` deprecated
 - change (links): tpLinks() offers hop:// then GRID in a browser, APPTP then GRID in the viewer, then host:port:Region to copy
 - doc (destinations): HOP, GRID, APPTP and LSL tell what the viewers' sources say apart from what was seen

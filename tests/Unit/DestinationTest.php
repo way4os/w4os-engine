@@ -172,8 +172,19 @@ describe('Teleport links', function () {
             ->toBe('secondlife:///app/worldmap/hg.osgrid.org:80');
     });
 
-    test('of a grid alone end at its port, with no colon after it', function () {
-        expect(Destination::format('wyldwoodbayou.com:8002', TPLINK_HOP))->toBe('hop://wyldwoodbayou.com:8002');
+    test('of a grid alone: no hop:// link (the viewers refuse one without a region), its address ending at its port', function () {
+        expect(Destination::format('wyldwoodbayou.com:8002', TPLINK_HOP))->toBe('')
+            ->and(Destination::format('wyldwoodbayou.com:8002', Destination::LSL))->toBe('wyldwoodbayou.com:8002');
+    });
+
+    test('keep the point of a var region, past 256 m, as the viewers take it', function () {
+        $destination = 'grid.wolfterritories.org:8002/The Caribbean/2599/4737/23';
+
+        expect(Destination::format($destination, Destination::APPTP))
+            ->toBe('secondlife:///app/teleport/grid.wolfterritories.org:8002:The' . Destination::SPACE . 'Caribbean/2599/4737/23')
+            ->and(Destination::format($destination, Destination::HOP))->toEndWith('/2599/4737/23')
+            ->and(Destination::format($destination, Destination::GRID))->toEndWith('/2599/4737/23')
+            ->and(Destination::format('The Caribbean/2599/4737/23', Destination::LOCAL))->toBe('secondlife://The' . Destination::SPACE . 'Caribbean/2599/4737/23');
     });
 
     test('never have a colon before the region in a hop link: only the scripts and the teleport of the viewer have one', function (string $written) {
