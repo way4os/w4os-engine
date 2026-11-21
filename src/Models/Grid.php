@@ -725,6 +725,16 @@ final class Grid extends InstalledModel
         return $this->hostPort() !== null ? Destination::loginUrl((string) $this->hostPort()) : null;
     }
 
+    /**
+     * The links that add the grid to a viewer (Destination::addGrid()), from its login URL; null when it has none.
+     *
+     * @return array{hop:string,secondlife:string}|null
+     */
+    public function addGrid(): ?array
+    {
+        return ($login = $this->loginUrl()) !== null ? Destination::addGrid($login) : null;
+    }
+
     /** The label of a destination, as a card shows it under its title (Destination::LABEL): its own places by their region and point. */
     public function label(string $destination): string
     {

@@ -739,6 +739,10 @@ msgctxt "dashboard_grid_status"
 msgid "Grid Status"
 msgstr ""
 
+msgctxt "grid_add_to_viewer"
+msgid "Add this grid to your viewer"
+msgstr ""
+
 msgctxt "total"
 msgid "Total"
 msgstr ""

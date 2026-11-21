@@ -211,6 +211,7 @@ final class Endpoints
                             'type' => ['string', 'null'],
                             'description' => 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), for the top bar of its sites',
                         ],
+                        'addGrid' => Contract::addGrid(),
                         'helpers' => [
                             'type' => ['string', 'null'],
                             'description' => 'The base of the helpers: `HelpersURL` of `[Helpers]`, else the economy, else the web site and /helpers (its source is `helpers` of `sources`: config, economy or default). A page under it is served by the helpers, any other by the site',
@@ -449,6 +450,7 @@ final class Endpoints
                             'type' => ['string', 'null'],
                             'description' => 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), null when it has none',
                         ],
+                        'addGrid' => Contract::addGrid(),
                         'elements' => ['type' => 'object', 'additionalProperties' => ['type' => 'string']],
                     ]),
                 ],

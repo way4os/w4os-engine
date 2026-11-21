@@ -401,6 +401,24 @@ final class Destination
     }
 
     /**
+     * The links that add a grid to the list of grids of a viewer and select it (`app/gridmanager/addgrid` of Firestorm, its login URI
+     * URL-encoded): `hop` the form OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one
+     * every system hands to the viewer. Null for an address that is not one of a grid.
+     *
+     * @return array{hop:string,secondlife:string}|null
+     */
+    public static function addGrid(string $login): ?array
+    {
+        $url = self::loginUrl($login);
+        if ($url === null) {
+            return null;
+        }
+        $command = 'app/gridmanager/addgrid/' . rawurlencode($url);
+
+        return ['hop' => "hop:///$command", 'secondlife' => "secondlife:///$command"];
+    }
+
+    /**
      * A link with its spaces as pluses, for the formats that take neither `%20` nor `_` (`host:port+Region+Name`), the characters
      * a URL cannot have removed.
      */

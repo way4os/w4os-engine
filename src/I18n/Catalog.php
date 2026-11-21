@@ -263,6 +263,8 @@ final class Catalog
         // The cards of the dashboard of a site, as the blocks of w4os-wp
         'dashboard_grid_info' => 'Grid Info',
         'dashboard_grid_status' => 'Grid Status',
+        // The link of the grid info that adds the grid to the viewer (addGrid of the info of a grid)
+        'grid_add_to_viewer' => 'Add this grid to your viewer',
         'total' => 'Total',
         // The tips of the fields of the settings pages, under their label: a few words
         'tip_models_match' => 'How a model is recognised',

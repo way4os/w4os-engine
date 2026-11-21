@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "8ab287a",
+        "version": "08575f2",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -10479,6 +10479,21 @@
                                                             ],
                                                             "description": "The address of the logo of the grid (`LogoURL` of `[Helpers]`), for the top bar of its sites"
                                                         },
+                                                        "addGrid": {
+                                                            "type": [
+                                                                "object",
+                                                                "null"
+                                                            ],
+                                                            "description": "The links that add the grid to the list of a viewer and select it (Firestorm `app/gridmanager/addgrid`, the login URI URL-encoded): `hop` the one OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one every system hands to the viewer. A site shows both, as \"Add this grid to your viewer\". Null without a login URI",
+                                                            "properties": {
+                                                                "hop": {
+                                                                    "type": "string"
+                                                                },
+                                                                "secondlife": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        },
                                                         "helpers": {
                                                             "type": [
                                                                 "string",
@@ -11330,6 +11345,21 @@
                                                                 "null"
                                                             ],
                                                             "description": "The address of the logo of the grid (`LogoURL` of `[Helpers]`), null when it has none"
+                                                        },
+                                                        "addGrid": {
+                                                            "type": [
+                                                                "object",
+                                                                "null"
+                                                            ],
+                                                            "description": "The links that add the grid to the list of a viewer and select it (Firestorm `app/gridmanager/addgrid`, the login URI URL-encoded): `hop` the one OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one every system hands to the viewer. A site shows both, as \"Add this grid to your viewer\". Null without a login URI",
+                                                            "properties": {
+                                                                "hop": {
+                                                                    "type": "string"
+                                                                },
+                                                                "secondlife": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
                                                         },
                                                         "elements": {
                                                             "type": "object",

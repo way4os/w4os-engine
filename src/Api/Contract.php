@@ -1378,6 +1378,16 @@ final class Contract
         ];
     }
 
+    /** @return array<string,mixed> the links that add a grid to a viewer, as the info and the addresses of a grid give them */
+    public static function addGrid(): array
+    {
+        return [
+            'type' => ['object', 'null'],
+            'description' => 'The links that add the grid to the list of a viewer and select it (Firestorm `app/gridmanager/addgrid`, the login URI URL-encoded): `hop` the one OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one every system hands to the viewer. A site shows both, as "Add this grid to your viewer". Null without a login URI',
+            'properties' => ['hop' => ['type' => 'string'], 'secondlife' => ['type' => 'string']],
+        ];
+    }
+
     /** @return array<string,mixed> */
     public static function problem(string $description): array
     {
