@@ -948,6 +948,10 @@ msgctxt "start_done"
 msgid "Done"
 msgstr "Klaar"
 
+msgctxt "home_all_news"
+msgid "All news"
+msgstr "Al het nieuws"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Totaal"

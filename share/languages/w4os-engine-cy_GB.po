@@ -944,6 +944,10 @@ msgctxt "start_done"
 msgid "Done"
 msgstr "Wedi'i wneud"
 
+msgctxt "home_all_news"
+msgid "All news"
+msgstr "Yr holl newyddion"
+
 msgctxt "total"
 msgid "Total"
 msgstr "Cyfanswm"

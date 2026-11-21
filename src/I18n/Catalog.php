@@ -278,6 +278,8 @@ final class Catalog
         'start_add_grid' => 'Add %s to your viewer',
         'start_login' => 'Log in',
         'start_done' => 'Done',
+        // The link under the last news of a site, to its news page
+        'home_all_news' => 'All news',
         'total' => 'Total',
         // The tips of the fields of the settings pages, under their label: a few words
         'tip_models_match' => 'How a model is recognised',
