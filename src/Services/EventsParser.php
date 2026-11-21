@@ -70,7 +70,7 @@ final class EventsParser
             'online' => static fn(string $url): bool => Gatekeeper::regionIsOnline($url),
             'parts' => static fn(string $url): array => Destination::sanitize($url, '', true),
             'located' => static fn(string $url): array => (array) Gatekeeper::region($url),
-            'link' => static fn(string $url, int $format): string => (string) Destination::format($url, $format),
+            'link' => static fn(string $url, int $format): string => (string) (new \W4OS\Engine\Hypergrid\Place($url))->tpLink($format),
         ];
     }
 

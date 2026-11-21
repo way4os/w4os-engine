@@ -619,7 +619,7 @@ final class Avatar extends Model
             'position' => $position,
             'teleport' => $host === null || $region === null
                 ? null
-                : (string) Destination::format("$host:$region" . ($position === null ? '' : '/' . implode('/', $position)), 8),
+                : (new \W4OS\Engine\Hypergrid\Place("$host:$region" . ($position === null ? '' : '/' . implode('/', $position))))->tpLink(Destination::HOP),
         ];
     }
 

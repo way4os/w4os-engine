@@ -22,6 +22,8 @@ use W4OS\Engine\Controllers\AbstractController;
 use W4OS\Engine\Exceptions\ChannelUnavailable;
 use W4OS\Engine\Exceptions\InvalidValue;
 use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Hypergrid\Reachable;
+use W4OS\Engine\Hypergrid\TeleportLinks;
 use W4OS\Engine\Provisioning\Slug;
 use W4OS\Engine\Text\Notice;
 
@@ -44,8 +46,10 @@ use W4OS\Engine\Text\Notice;
  * The flags are those of the regions table, named as in OpenSimulator (opensimulator.org/wiki/Regions_(database_table)). The ones a
  * region can be given are its roles; in the config of Robust they are written by name (see roles() and flagNames()).
  */
-final class Region extends Model
+final class Region extends Model implements Reachable
 {
+    use TeleportLinks;
+
     use HasName;
 
     /**
@@ -182,12 +186,23 @@ final class Region extends Model
         return (string) ($this->local['simulator'] ?? '');
     }
 
-    /** Its hop:// address on the grid, null for a link to a region of another grid or when the address of the grid is not known. */
+    /** Its hop:// address on the grid (tpLink() in HOP), null for a link to a region of another grid or when the grid is not known. */
     public function teleport(): ?string
+    {
+        return $this->tpLink(Destination::HOP);
+    }
+
+    /** Where it is (its URI), null for a link to a region of another grid or when the address of the grid is not known. */
+    public function tpUri(): ?string
     {
         $uri = $this->isHyperlink() ? null : $this->uri();
 
-        return $uri === null || $uri === '' ? null : (string) Destination::format($uri, Destination::HOP);
+        return $uri === '' ? null : $uri;
+    }
+
+    protected function tpLogin(): ?string
+    {
+        return $this->config->gridUri();
     }
 
     /** The size of a region that says none, and the unit of every size: a region is a square of 256 meters, or of a multiple of it. */

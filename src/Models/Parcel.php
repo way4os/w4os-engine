@@ -13,6 +13,8 @@ use W4OS\Engine\Data\Connections;
 use W4OS\Engine\Data\Database;
 use W4OS\Engine\Forms\ItemForm;
 use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Hypergrid\Reachable;
+use W4OS\Engine\Hypergrid\TeleportLinks;
 use W4OS\Engine\Provisioning\Slug;
 
 /**
@@ -25,8 +27,10 @@ use W4OS\Engine\Provisioning\Slug;
  * The flags are the parcel flags of OpenSimulator, named as the constants of LSL (llGetParcelFlags) without their PARCEL_FLAG_
  * prefix; FOR_SALE and SHOW_DIRECTORY (shown in the search) are those of the protocol, which LSL has no constant for.
  */
-final class Parcel extends Model
+final class Parcel extends Model implements Reachable
 {
+    use TeleportLinks;
+
     /** The name of a parcel, in bytes: what the land panel of the viewers takes (the database holds 255). */
     private const NAME_BYTES = 63;
 
@@ -105,12 +109,21 @@ final class Parcel extends Model
         return Destination::uri("$grid/$region/" . implode('/', $point));
     }
 
-    /** Its hop:// address, to the point of its URI. */
+    /** Its hop:// address, to the point of its URI (tpLink() in HOP). */
     public function teleport(): ?string
     {
-        $uri = $this->uri();
+        return $this->tpLink(Destination::HOP);
+    }
 
-        return $uri === null ? null : (string) Destination::format($uri, Destination::HOP);
+    /** Where it is: its URI, to its point. */
+    public function tpUri(): ?string
+    {
+        return $this->uri();
+    }
+
+    protected function tpLogin(): ?string
+    {
+        return $this->config->gridUri();
     }
 
     /**

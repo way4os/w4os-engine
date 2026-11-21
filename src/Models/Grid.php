@@ -44,8 +44,10 @@ use W4OS\Engine\Runtime\Outcome;
  * What a source does not tell has the value of a grid by the book (DEFAULTS). The xmlrpc calls of the hypergrid, the tables of
  * OpenSimSearch, the console and the database give the same properties when they are read.
  */
-final class Grid extends InstalledModel
+final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reachable
 {
+    use \W4OS\Engine\Hypergrid\TeleportLinks;
+
     use HasName {
         validateName as private validateGridName;
     }
@@ -819,18 +821,26 @@ final class Grid extends InstalledModel
     }
 
     /**
-     * The link to a destination for where it is shown (Destination::AUTO): in a viewer, the local link for a place of this grid
-     * and the teleport of the viewer for another grid; hop:// out of a viewer.
-     *
-     * @param ?string $agent the user agent of the request, the one of the request served when null
-     * @param bool $splash shown on the login screen of a viewer: it takes the same links as the other pages, kept for its callers
-     * @param ?string $client the class of the client, `viewer` or `browser` (Destination::client()): it wins over the agent
+     * Where the grid is: its login URI (host:port), the grid itself; its link (tpLink()) is the grid alone, its default region for
+     * the viewer. A place of the grid is place().
      */
-    public function link(string $destination, ?string $agent = null, bool $splash = false, ?string $client = null): string
+    public function tpUri(): ?string
     {
-        $context = ['login' => $this->loginUrl()] + ($agent === null ? [] : ['agent' => $agent]) + ($client === null ? [] : ['client' => $client]);
+        return $this->loginUri();
+    }
 
-        return (string) Destination::format($destination, Destination::AUTO, context: $context);
+    protected function tpLogin(): ?string
+    {
+        return $this->loginUrl();
+    }
+
+    /**
+     * A destination of this grid or another one (host:port/Region/x/y/z, host:port:Region, hop://..., a region of the grid by its
+     * name), as a place whose link is asked of it: `$grid->place($url)->tpLink(Destination::AUTO, ['client' => 'viewer'])`.
+     */
+    public function place(string $destination): \W4OS\Engine\Hypergrid\Place
+    {
+        return new \W4OS\Engine\Hypergrid\Place($destination, $this->loginUrl());
     }
 
     /** The address of a region of the grid, from where the grid says its login is: `host:port/Region Name[/x/y/z]`. */

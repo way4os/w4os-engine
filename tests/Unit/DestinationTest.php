@@ -409,18 +409,19 @@ describe('A link made for where it is shown (AUTO)', function () {
     test('of a grid: its login tells its own places', function () {
         $grid = W4OS\Engine\Models\Grid::find((new W4OS\Engine\Testing\Machine())->environment, 'demo');
         $login = (string) Destination::loginParts((string) $grid->loginUrl())['host'];
+        $link = static fn(string $destination, array $context) => $grid->place($destination)->tpLink(Destination::AUTO, $context);
 
-        expect($grid->link('Welcome/128/128/25', TP_VIEWER))
+        expect($link('Welcome/128/128/25', ['agent' => TP_VIEWER]))
             ->toStartWith("secondlife://$login:")
             ->toEndWith('/secondlife/Welcome/128/128/25')
-            ->and($grid->link('hg.example.org:8002/Far/1/2/3', TP_VIEWER))
+            ->and($link('hg.example.org:8002/Far/1/2/3', ['agent' => TP_VIEWER]))
             ->toBe('secondlife://hg.example.org:8002/secondlife/Far/1/2/3')
-            ->and($grid->link('Welcome/128/128/25', TP_BROWSER))
+            ->and($link('Welcome/128/128/25', ['agent' => TP_BROWSER]))
             ->toStartWith("hop://$login:")
             // The class of the client, as a site keeps a block for each
-            ->and($grid->link('Welcome/128/128/25', client: 'viewer'))
+            ->and($link('Welcome/128/128/25', ['client' => 'viewer']))
             ->toStartWith("secondlife://$login:")
-            ->and($grid->link('Welcome/128/128/25', TP_VIEWER, client: 'browser'))
+            ->and($link('Welcome/128/128/25', ['agent' => TP_VIEWER, 'client' => 'browser']))
             ->toStartWith("hop://$login:");
     });
 

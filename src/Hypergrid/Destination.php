@@ -89,7 +89,7 @@ final class Destination
     /**
      * The link for where it is shown (the `context` of format(), AUTO_LINKS), so that no site tells it again: in a viewer (told by
      * the user agent of the request, isViewer(); any page, its login screen too), GRID for every destination, of the grid itself
-     * or of another one; HOP out of a viewer. Grid::link() gives it with the login of the grid.
+     * or of another one; HOP out of a viewer. A Reachable gives it (tpLink()), with the login of its grid.
      */
     public const AUTO = 512;
 
