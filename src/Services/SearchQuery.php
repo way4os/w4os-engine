@@ -93,19 +93,11 @@ final class SearchQuery
     public function places(array $request): array
     {
         $flags = (int) ($request['flags'] ?? 0);
-        $category = (int) ($request['category'] ?? 0);
-        $text = '%' . implode('%', explode(' ', (string) ($request['text'] ?? ''))) . '%';
-        if ($text === '%%%') {
+        $text = (string) ($request['text'] ?? '');
+        if ('%' . implode('%', explode(' ', $text)) . '%' === '%%%') {
             return XmlRpc::envelope(false, 'Invalid search terms');
         }
-        $terms = ['(parcelname LIKE :text OR description LIKE :text)'];
-        $values = ['text' => $text];
-        $rating = $this->rating($flags);
-        $rating !== '' && ($terms[] = $rating);
-        if ($category > 0) {
-            $terms[] = 'searchcategory = :category';
-            $values['category'] = $category;
-        }
+        [$terms, $values] = SearchFilters::places($text, (int) ($request['category'] ?? 0), SearchFilters::ratings($flags), 'parcels');
         if ($this->gatekeeper !== null) {
             $terms[] = 'parcels.gatekeeperURL = :gatekeeper';
             $values['gatekeeper'] = $this->gatekeeper;
@@ -150,8 +142,7 @@ final class SearchQuery
         $terms = [];
         $values = [];
         $flags & (1 << 12) && ($terms[] = 'has_picture = 1');
-        $rating = $this->rating($flags, 'pop');
-        $rating !== '' && ($terms[] = $rating);
+        array_push($terms, ...SearchFilters::rated(SearchFilters::ratings($flags), 'pop'));
         if ($text !== '') {
             $terms[] = '(name LIKE :text)';
             $values['text'] = "%$text%";
@@ -212,19 +203,14 @@ final class SearchQuery
             if (($type & 26) === 2) {
                 return XmlRpc::envelope(true, '', []);
             }
-            ($type & 24) === 8 && ($terms[] = 'parentestate = 1');
-            ($type & 24) === 16 && ($terms[] = 'parentestate <> 1');
         }
-        $rating = $this->rating($flags);
-        $rating !== '' && ($terms[] = $rating);
-        if ($flags & (1 << 20)) {
-            $terms[] = 'saleprice <= :price';
-            $values['price'] = (int) ($request['price'] ?? 0);
-        }
-        if ($flags & (1 << 21)) {
-            $terms[] = 'area >= :area';
-            $values['area'] = (int) ($request['area'] ?? 0);
-        }
+        $kind = $type === 4294967295 ? 'any' : match ($type & 24) { 8 => 'mainland', 16 => 'estate', default => 'any' };
+        [$terms, $values] = SearchFilters::land(
+            $kind,
+            $flags & (1 << 20) ? (int) ($request['price'] ?? 0) : null,
+            $flags & (1 << 21) ? (int) ($request['area'] ?? 0) : null,
+            SearchFilters::ratings($flags),
+        );
         if ($this->gatekeeper !== null) {
             $terms[] = 'gatekeeperURL = :gatekeeper';
             $values['gatekeeper'] = $this->gatekeeper;
@@ -277,35 +263,13 @@ final class SearchQuery
             return XmlRpc::envelope(false, 'Invalid search terms');
         }
         $pieces = explode('|', $text);
-        $day = $pieces[0];
-        $category = (int) ($pieces[1] ?? 0);
-        $words = count($pieces) < 3 ? '' : $pieces[2];
-        $now = $this->now();
-        $terms = [];
-        $values = [];
-        if ($day === 'u') {
-            // The events to come and the ones in progress
-            $terms[] = 'dateUTC + duration * 60 >= ' . $now;
-        } else {
-            // The start of the day of the server, moved by the number of days asked
-            $now -= (int) date('Z', $now);
-            $now -= $now % 86400;
-            (int) $day !== 0 && ($now += (int) $day * 86400);
-            $terms[] = '(dateUTC + duration * 60 >= ' . $now . ' AND dateUTC < ' . ($now + 86400) . ')';
-        }
-        if ($category > 0) {
-            $terms[] = 'category = :category';
-            $values['category'] = $category;
-        }
-        $ratings = [];
-        $flags & (1 << 24) && ($ratings[] = 'eventflags = 0');
-        $flags & (1 << 25) && ($ratings[] = 'eventflags = 1');
-        $flags & (1 << 26) && ($ratings[] = 'eventflags = 2');
-        $ratings === [] || ($terms[] = '(' . implode(' OR ', $ratings) . ')');
-        if ($words !== '') {
-            $terms[] = '(name LIKE :text1 OR description LIKE :text2)';
-            $values['text1'] = $values['text2'] = "%$words%";
-        }
+        [$terms, $values] = SearchFilters::events(
+            $pieces[0] === 'u' ? 'u' : (int) $pieces[0],
+            (int) ($pieces[1] ?? 0),
+            SearchFilters::ratings($flags),
+            count($pieces) < 3 ? '' : $pieces[2],
+            $this->now(),
+        );
         $rows = $this->rows(
             $this->search,
             'SELECT owneruuid, name, eventid, dateUTC, eventflags, globalPos FROM ' .
@@ -354,23 +318,7 @@ final class SearchQuery
         if ($text === '%%%') {
             return XmlRpc::envelope(false, 'Invalid search terms', []);
         }
-        $terms = [];
-        $values = [];
-        $ratings = [];
-        // PG, Mature and Adult
-        foreach ([4, 8, 64] as $bit) {
-            $flags & $bit && ($ratings[] = "classifiedflags & $bit");
-        }
-        $ratings === [] || ($terms[] = '(' . implode(' OR ', $ratings) . ')');
-        // Any category is 0
-        if ($category > 0) {
-            $terms[] = 'category = :category';
-            $values['category'] = $category;
-        }
-        if ($text !== '') {
-            $terms[] = '(name LIKE :text OR description LIKE :text)';
-            $values['text'] = "%$text%";
-        }
+        [$terms, $values] = SearchFilters::classifieds($text, $category, SearchFilters::ratings($flags, SearchFilters::CLASSIFIED_BITS));
         $rows = $this->rows(
             $this->profiles,
             'SELECT * FROM classifieds' .
@@ -536,18 +484,6 @@ final class SearchQuery
     private function hasClassifieds(): bool
     {
         return $this->profiles !== null && $this->profiles->connected && $this->profiles->table_exists('classifieds');
-    }
-
-    /** The condition on the rating of what is looked for: PG, Mature and Adult are bits 24, 25 and 26 of the flags. */
-    private function rating(int $flags, string $table = ''): string
-    {
-        $prefix = $table === '' ? '' : "$table.";
-        $terms = [];
-        foreach ([24 => 'PG', 25 => 'Mature', 26 => 'Adult'] as $bit => $rating) {
-            $flags & (1 << $bit) && ($terms[] = "{$prefix}mature = '$rating'");
-        }
-
-        return $terms === [] ? '' : '(' . implode(' OR ', $terms) . ')';
     }
 
     /** The row to start from: the module sends the page as a string, it goes into the query as a number. */
