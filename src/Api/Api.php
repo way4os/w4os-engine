@@ -997,6 +997,36 @@ final class Api
         ]);
     }
 
+    /**
+     * The address of a grid changed in every file of it on this machine: its host, its public port, its site (GridAddress), `mode`
+     * plan (the default) or apply.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function changeAddress(string $grid, array $attributes): Response
+    {
+        $instance = self::path('grids', $grid, null) . '/address';
+        try {
+            $mode = (string) ($attributes['mode'] ?? 'plan');
+            in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            in_array('files', $found->access(), true) || throw ChannelUnavailable::because("change the address of $grid", 'options-no-files');
+            $to = array_intersect_key($attributes, ['host' => 1, 'port' => 1, 'site' => 1]);
+            $change = (new \W4OS\Engine\Provisioning\GridAddress($found))->change($to, $mode === 'apply');
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        $meta = $change['applied'] && $change['changes'] !== [] ? ['reminders' => [
+            Notice::of('restart-grid', ['restart' => 'opensim restart ' . $found->nick()]),
+            Notice::of('restart-simulators', ['restart' => 'opensim restart ' . $found->nick() . ' --simulators']),
+        ]] : [];
+
+        return Response::document([
+            'data' => ['type' => 'address', 'id' => $grid, 'attributes' => ['mode' => $mode] + $change],
+            'links' => ['self' => $instance],
+        ] + ($meta === [] ? [] : ['meta' => $meta]));
+    }
+
     /** What a site needs of a grid for its helpers (SiteDescription): from the files of this machine, never a secret. */
     public function siteDescription(string $grid): Response
     {

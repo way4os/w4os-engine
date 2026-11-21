@@ -191,6 +191,43 @@ final class Endpoints
                 '404' => Contract::problem('The grid is not known here'),
             ],
         ];
+        $paths['/grids/{grid}/address']['post'] = [
+            'operationId' => 'changeAddress',
+            'tags' => ['Setup'],
+            'summary' => 'Change the address of the grid',
+            'description' => 'The address of the grid changed in every file of it on this machine, at once: its `host` and its public `port` (the login URI), and its web `site` (`http://` or `https://`), each given only when it changes. Robust: `[Const]` BaseHostname, BaseURL (its scheme kept), PublicPort, WebURL, and `[Network]` ConsoleHost when it named the host; every address under the old login URI or the old site in the ini files of the grid and of its simulators (in Robust by its constants: `${Const|WebURL}/register`); the regions\' `ExternalHostName`, what viewers connect to, when it is SYSTEMIP or the old host; the places of its list of destinations (destinations.txt, the file `GuideSource` names on this machine); its setup.json; its web-server files (web/), made again. A connection string, a comment, a database are never touched; the master of the simulators follows Robust when they start. `mode` `plan` (the default) writes nothing and says each line that would change (`changes`: `file`, `line`, `before`, `after`), `apply` writes them (the owners and the modes of the files kept), then `meta.reminders` say to restart the grid and its simulators. `from` and `to` are the address before and after (`host`, `port`, `site`).',
+            'parameters' => [Contract::gridParameter()],
+            'requestBody' => [
+                'required' => true,
+                'content' => [
+                    Response::JSON_API => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'data' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'type' => ['const' => 'address'],
+                                        'attributes' => ['type' => 'object', 'properties' => [
+                                            'host' => ['type' => 'string', 'description' => 'The new host of the grid (its login URI), a name, never an IP chosen for one machine'],
+                                            'port' => ['type' => 'integer', 'description' => 'The new public port of Robust'],
+                                            'site' => ['type' => 'string', 'description' => 'The new address of its web site, http:// or https://'],
+                                            'mode' => ['type' => 'string', 'enum' => ['plan', 'apply'], 'default' => 'plan'],
+                                        ]],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'responses' => [
+                '200' => ['description' => 'The address before and after, the lines changed or that would change'],
+                '400' => Contract::problem('A host, a port or a site that cannot be one, or the address the grid has already (`invalid-request`)'),
+                '404' => Contract::problem('The grid is not known here'),
+                '503' => Contract::problem('The grid has no files on this machine (`channel-unavailable`)'),
+            ],
+        ];
         $paths['/grids/{grid}/addresses']['get'] = [
             'operationId' => 'getAddresses',
             'tags' => ['Addresses'],

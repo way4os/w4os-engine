@@ -275,6 +275,12 @@ final class Router
                 'POST' => fn() => $this->check($body, $parsed, $path, 'options') ??
                     $this->api->repairOptions($grid, $this->attributes($body, $parsed)),
             ];
+        } elseif ($grid !== null && $tail === ['address']) {
+            $template = '/grids/{grid}/address';
+            $routes = [
+                'POST' => fn() => $this->check($body, $parsed, $path, 'address') ??
+                    $this->api->changeAddress($grid, $this->attributes($body, $parsed)),
+            ];
         } elseif ($grid !== null && $tail === ['sign-ins']) {
             $template = '/grids/{grid}/sign-ins';
             $routes = [
