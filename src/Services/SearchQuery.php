@@ -413,11 +413,14 @@ final class SearchQuery
             true,
             '',
             array_map(function (array $row): array {
-                // The grid asking is the one of the event: the name of the region does not need its grid
-                $simname =
-                    $this->gk !== null && $this->gk !== '' && $this->gk === ($row['gatekeeperURL'] ?? null)
-                        ? preg_replace('/^[^ ]*/', '', (string) $row['simname'])
-                        : $row['simname'];
+                // The grid asking is the one of the event: its region by its name alone. Another grid: host:port:Region, the way a
+                // viewer names a region of another grid, which its panel of the event links as hop://<its grid>/host:port:Region/x/y/z
+                $own = $this->gatekeeper !== null
+                    && rtrim($this->gatekeeper, '/') === rtrim((string) self::gatekeeperUrl((string) ($row['gatekeeperURL'] ?? '')), '/');
+                $stored = (string) $row['simname'];
+                $simname = $own
+                    ? trim((string) preg_replace('/^\S+:\d+[ :]/', '', $stored))
+                    : ((string) (new \W4OS\Engine\Hypergrid\Place($stored))->tpLink(\W4OS\Engine\Hypergrid\Destination::LSL) ?: $stored);
 
                 return [
                     'event_id' => $row['eventid'],

@@ -632,9 +632,11 @@ describe('The questions of the search', function () {
         $db->exec(
             "INSERT INTO events VALUES ('o', 'Jazz night', 1, 'c', 20, 'Live jazz', " .
                 (1_700_000_000 + 3600) .
-                ", 60, 0, 0, 'Welcome (grid.example.org:8002)', 'p', '128,128,25', 0, '" .
+                ", 60, 0, 0, 'grid.example.org:8002 Welcome', 'p', '128,128,25', 0, '" .
                 SEARCH_GK .
-                "'), ('o', 'Old', 2, 'c', 19, 'Gone', 1000, 60, 0, 0, 'Somewhere', 'p', '1,1,1', 0, '')",
+                "'), ('o', 'Old', 2, 'c', 19, 'Gone', 1000, 60, 0, 0, 'Somewhere', 'p', '1,1,1', 0, ''), " .
+                "('o', 'Far night', 3, 'c', 20, 'Far away', " . (1_700_000_000 + 3600) .
+                ", 60, 0, 0, 'far.example.org:8002 Lonely Lands', 'p', '2583726,2579592,24', 0, 'http://far.example.org:8002')",
         );
         $rpc = new XmlRpc((new SearchQuery($db, 'regionsregister', gk: SEARCH_GK, clock: $clock))->methods());
 
@@ -642,6 +644,7 @@ describe('The questions of the search', function () {
         $category = rpc_call($rpc, 'dir_events_query', ['text' => 'u|19|', 'flags' => '0'])['data'];
         $invalid = rpc_call($rpc, 'dir_events_query', ['text' => '%%%'])['data'];
         $info = rpc_call($rpc, 'event_info_query', ['eventID' => '1'])['data']['data'][0];
+        $far = rpc_call($rpc, 'event_info_query', ['eventID' => '3'])['data']['data'][0];
 
         expect($coming['data'])
             ->toHaveCount(1)
@@ -662,8 +665,12 @@ describe('The questions of the search', function () {
                 'name' => 'Jazz night',
                 'category' => 'Live Music',
                 'duration' => 60,
-                'simname' => ' (grid.example.org:8002)',
-            ]);
+                // Of the grid asking: its region by its name
+                'simname' => 'Welcome',
+            ])
+            // Of another grid: host:port:Region, as a viewer names it (the place of the event, its link in the panel)
+            ->and([$far['simname'], $far['globalposition']])
+            ->toBe([(new W4OS\Engine\Hypergrid\Place('far.example.org:8002/Lonely Lands'))->tpLink(W4OS\Engine\Hypergrid\Destination::LSL), '2583726,2579592,24']);
     });
 
     test('list the classifieds of the profiles, and tell one in full, when the grid has them', function () {
