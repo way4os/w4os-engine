@@ -834,13 +834,18 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $this->loginUrl();
     }
 
+    protected function tpFormats(): array
+    {
+        return \W4OS\Engine\Hypergrid\Destination::linkFormats($this->config());
+    }
+
     /**
      * A destination of this grid or another one (host:port/Region/x/y/z, host:port:Region, hop://..., a region of the grid by its
      * name), as a place whose link is asked of it: `$grid->place($url)->tpLink(Destination::AUTO, ['client' => 'viewer'])`.
      */
     public function place(string $destination): \W4OS\Engine\Hypergrid\Place
     {
-        return new \W4OS\Engine\Hypergrid\Place($destination, $this->loginUrl());
+        return new \W4OS\Engine\Hypergrid\Place($destination, $this->loginUrl(), $this->tpFormats());
     }
 
     /**
@@ -849,7 +854,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
      */
     public function placeAt(string $region, string $landing = '', string $gatekeeper = ''): ?\W4OS\Engine\Hypergrid\Place
     {
-        return \W4OS\Engine\Hypergrid\Place::at($gatekeeper, $region, $landing, $this->loginUrl());
+        return \W4OS\Engine\Hypergrid\Place::at($gatekeeper, $region, $landing, $this->loginUrl(), $this->tpFormats());
     }
 
     /** The address of a region of the grid, from where the grid says its login is: `host:port/Region Name[/x/y/z]`. */

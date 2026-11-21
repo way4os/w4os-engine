@@ -87,9 +87,12 @@ final class Destination
      */
     public const LABEL = 4096;
     /**
-     * The link for where it is shown (the `context` of format(), AUTO_LINKS), so that no site tells it again: in a viewer (told by
-     * the user agent of the request, isViewer(); any page, its login screen too), GRID for every destination, of the grid itself
-     * or of another one; HOP out of a viewer. A Reachable gives it (tpLink()), with the login of its grid.
+     * The link for where it is shown (the `context` of format()), so that no site tells it again: in a viewer (told by the user
+     * agent of the request, isViewer(); any page, its login screen too) or in a web browser, the format the grid chooses for each
+     * (LinkFormatViewer, LinkFormatBrowser of its settings, linkFormats()), else AUTO_LINKS: GRID for both, the one format seen
+     * working in a web browser, in the viewer and on its login screen alike (2026-11-18, Firestorm, a region of the grid the
+     * viewer was on). LOCAL is for the grid itself only: a destination of another grid gets AUTO_LINKS. A Reachable gives it
+     * (tpLink()), with the login and the settings of its grid.
      */
     public const AUTO = 512;
 
@@ -100,14 +103,34 @@ final class Destination
     public const SPACE = '%20';
 
     /**
-     * The link AUTO gives, by where it is shown (a viewer, any page of it and its login screen alike, or a web browser) and whether
-     * the destination is of the grid itself (`local`) or of another one (`other`); 0 gives none, the destination being shown as
-     * text.
+     * The link AUTO gives when the grid chooses none (linkFormats()), by where it is shown (a viewer, any page of it and its login
+     * screen alike, or a web browser) and whether the destination is of the grid itself (`local`) or of another one (`other`); 0
+     * gives none, the destination being shown as text.
      */
     public const AUTO_LINKS = [
         'viewer' => ['local' => self::GRID, 'other' => self::GRID],
-        'web' => ['local' => self::HOP, 'other' => self::HOP],
+        'web' => ['local' => self::GRID, 'other' => self::GRID],
     ];
+
+    /** The formats a grid may choose for AUTO, by the name its settings give them (LinkFormatBrowser, LinkFormatViewer of Helpers.ini). */
+    public const LINK_FORMATS = ['GRID' => self::GRID, 'HOP' => self::HOP, 'APPTP' => self::APPTP, 'LOCAL' => self::LOCAL];
+
+    /**
+     * The formats AUTO gives in a browser and in the viewer, as the settings of a grid choose them (LINK_FORMATS); none for a
+     * setting a grid does not give or that names no format.
+     *
+     * @return array{browser?:int,viewer?:int}
+     */
+    public static function linkFormats(?\W4OS\Engine\Config\GridConfig $config): array
+    {
+        $formats = [];
+        foreach (['browser' => 'LinkFormatBrowser', 'viewer' => 'LinkFormatViewer'] as $client => $key) {
+            $name = strtoupper(trim((string) $config?->find('Helpers', $key), " \t\""));
+            isset(self::LINK_FORMATS[$name]) && ($formats[$client] = self::LINK_FORMATS[$name]);
+        }
+
+        return $formats;
+    }
 
     /** The user agents of the viewers (their own browser, the login screen). */
     public const VIEWER_PATTERN = '/SecondLife|OpenSim|Firestorm|Singularity|Kokua|Alchemy|Catznip/i';
@@ -344,7 +367,7 @@ final class Destination
     /**
      * The link of a destination for where it is shown (AUTO).
      *
-     * @param array{agent?:?string,client?:string,login?:?string} $context
+     * @param array{agent?:?string,client?:string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context
      */
     private static function auto(string $destination, int $array, string $sep, array $context): string|array
     {
@@ -354,7 +377,10 @@ final class Destination
         $client = in_array($context['client'] ?? null, self::CLIENTS, true)
             ? $context['client']
             : self::client(array_key_exists('agent', $context) ? (string) $context['agent'] : null);
-        $format = self::AUTO_LINKS[$client === 'viewer' ? 'viewer' : 'web'][$local ? 'local' : 'other'];
+        // The one the grid chooses for that client (`formats` of the context, linkFormats()), else the table; LOCAL for its own places only
+        $default = self::AUTO_LINKS[$client === 'viewer' ? 'viewer' : 'web'][$local ? 'local' : 'other'];
+        $format = (int) (((array) ($context['formats'] ?? []))[$client === 'viewer' ? 'viewer' : 'browser'] ?? $default);
+        $format = $format === self::LOCAL && !$local ? $default : $format;
         if ($format === 0) {
             return $array ? [] : '';
         }
@@ -474,7 +500,7 @@ final class Destination
      * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.
      *
      * @param  string  $sep      Separator for multiple formats, default new line
-     * @param  array{agent?:?string,client?:string,login?:?string} $context where AUTO is shown: the user agent of the request
+     * @param  array{agent?:?string,client?:string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context where AUTO is shown: the user agent of the request
      *         (`agent`, the one of the request served when none is given) or the class of the client (`client`, CLIENTS: it wins
      *         over the agent), the login
      *         address of the grid itself (`login`)

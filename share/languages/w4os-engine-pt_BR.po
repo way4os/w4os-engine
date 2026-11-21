@@ -965,7 +965,9 @@ msgctxt "hg_visit_text_examples"
 msgid ""
 "Already have an avatar on another OpenSim grid, like %s? Visit us without "
 "creating one: enter this address in your viewer's map or search."
-msgstr "Já tem um avatar em outro grid OpenSim, como %s? Venha nos visitar sem criar outro: digite este endereço no mapa ou na busca do seu viewer."
+msgstr ""
+"Já tem um avatar em outro grid OpenSim, como %s? Venha nos visitar sem criar "
+"outro: digite este endereço no mapa ou na busca do seu viewer."
 
 #, php-format
 msgctxt "list_or"
@@ -2046,6 +2048,34 @@ msgstr ""
 msgctxt "setting_gatekeeper"
 msgid "Gatekeeper"
 msgstr "Gatekeeper"
+
+msgctxt "group_links"
+msgid "Links to the places"
+msgstr "Links para os locais"
+
+msgctxt "setting_link_format_browser"
+msgid "Links in a web browser"
+msgstr "Links em um navegador web"
+
+msgctxt "setting_link_format_viewer"
+msgid "Links in the viewer"
+msgstr "Links no viewer"
+
+msgctxt "link_format_grid"
+msgid "Location with its grid (secondlife://grid/secondlife/Region)"
+msgstr "Local com seu grid (secondlife://grid/secondlife/Região)"
+
+msgctxt "link_format_hop"
+msgid "Hypergrid link (hop://)"
+msgstr "Link hypergrid (hop://)"
+
+msgctxt "link_format_apptp"
+msgid "Teleport of the viewer (secondlife:///app/teleport)"
+msgstr "Teletransporte do viewer (secondlife:///app/teleport)"
+
+msgctxt "link_format_local"
+msgid "Region of the grid the viewer is on (secondlife://Region)"
+msgstr "Região do grid onde está o viewer (secondlife://Região)"
 
 msgctxt "setting_gatekeeper_help"
 msgid "The address other grids reach this one by (hypergrid)."

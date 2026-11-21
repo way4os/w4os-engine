@@ -18,10 +18,22 @@ trait TeleportLinks
         }
         $login = $this->tpLogin();
         $context += $login === null || $login === '' ? [] : ['login' => $login];
+        $formats = $this->tpFormats();
+        $context += $formats === [] ? [] : ['formats' => $formats];
 
         $link = Destination::format($uri, $format ?? Destination::AUTO, context: $context);
 
         return is_array($link) ? $link : (string) $link;
+    }
+
+    /**
+     * The formats its grid chooses for AUTO, in a browser and in the viewer (Destination::linkFormats()); none, the default ones.
+     *
+     * @return array{browser?:int,viewer?:int}
+     */
+    protected function tpFormats(): array
+    {
+        return [];
     }
 
     /** The login of the grid it is on, which tells AUTO a place of that grid from one of another; null when it is not known. */

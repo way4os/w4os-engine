@@ -174,6 +174,9 @@ final class Settings
                 // The search engine of another server, kept for when the helpers do not provide the search
                 'ExternalSearchURL' => ['name' => 'searchExternalUrl', 'type' => 'url', 'label' => 'search_engine_url', 'default' => 'http://2do.directory/helpers/query.php', 'admin' => 'search'],
                 'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
+                // The link a page gives a destination (Destination::AUTO), in a web browser and in the viewer
+                'LinkFormatBrowser' => ['name' => 'linkFormatBrowser', 'type' => 'select', 'label' => 'setting_link_format_browser', 'options' => ['GRID' => 'link_format_grid', 'HOP' => 'link_format_hop', 'APPTP' => 'link_format_apptp', 'LOCAL' => 'link_format_local'], 'default' => 'GRID', 'admin' => 'grid'],
+                'LinkFormatViewer' => ['name' => 'linkFormatViewer', 'type' => 'select', 'label' => 'setting_link_format_viewer', 'options' => ['GRID' => 'link_format_grid', 'HOP' => 'link_format_hop', 'APPTP' => 'link_format_apptp', 'LOCAL' => 'link_format_local'], 'default' => 'GRID', 'admin' => 'grid'],
                 'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'example' => 'no-reply@example.org'],
                 'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
                 // The currency provider the helpers serve with the generic money server: podex, else none

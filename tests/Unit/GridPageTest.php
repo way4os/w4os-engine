@@ -43,12 +43,16 @@ describe('The page of the grid', function () {
             ['gridServerUri', 'robust'], ['database', 'robust'], ['consoleUser', 'robust'], ['consolePass', 'robust'], ['consolePort', 'robust'],
             ['assetServerUri', 'services'], ['profileServiceUrl', 'services'],
             ['webProfileUrl', 'avatars'], ['excludeFromStats', 'avatars'],
+            ['linkFormatBrowser', 'links'], ['linkFormatViewer', 'links'],
         ])
-            ->and(array_map(static fn(array $group): string => $en($group['label']), $form['groups']))->toBe(['Grid Info', 'Robust', 'Services', 'Avatars'])
+            ->and(array_map(static fn(array $group): string => $en($group['label']), $form['groups']))->toBe(['Grid Info', 'Robust', 'Services', 'Avatars', 'Links to the places'])
             ->and(array_map(static fn(array $field): string => $en($field['label']), $form['fields']))->toBe([
                 'Login URI', 'Grid Name', 'Grid Nickname', 'Robust URI', 'ROBUST Database', 'Console User', 'Console Password', 'Console Port',
                 'Assets Service URI', 'Profile Service URI', 'Profile Page', 'Exclude from stats',
+                'Links in a web browser', 'Links in the viewer',
             ])
+            // The link of the places, GRID by default in both (the only one seen working in every place tried, 2026-11)
+            ->and([$fields['linkFormatBrowser']['default'], $fields['linkFormatViewer']['default']])->toBe(['GRID', 'GRID'])
             ->and($fields['consolePass']['type'])->toBe('secret')
             // What Robust URI is, not the text of the grid service
             ->and($en($fields['gridServerUri']['description']))->toBe('The private address of Robust, which the simulators call for the services of the grid.')

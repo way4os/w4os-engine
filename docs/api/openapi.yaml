@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 32c0e68
+  version: 9b1504d
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -5756,6 +5756,28 @@ paths:
               - models
               - nomail
             description: setting_exclude_from_stats_help
+          -
+            group: links
+            name: linkFormatBrowser
+            type: select
+            label: setting_link_format_browser
+            options:
+              GRID: link_format_grid
+              HOP: link_format_hop
+              APPTP: link_format_apptp
+              LOCAL: link_format_local
+            default: GRID
+          -
+            group: links
+            name: linkFormatViewer
+            type: select
+            label: setting_link_format_viewer
+            options:
+              GRID: link_format_grid
+              HOP: link_format_hop
+              APPTP: link_format_apptp
+              LOCAL: link_format_local
+            default: GRID
         submit: action_save_changes
         saved: settings_saved
         groups:
@@ -5771,6 +5793,9 @@ paths:
           -
             name: avatars
             label: group_avatars
+          -
+            name: links
+            label: group_links
       responses:
         200:
           description: 'The settings, as the grid says them, else their defaults'
@@ -5813,7 +5838,7 @@ paths:
                       const: grid
                     attributes:
                       type: object
-                      properties: { loginUri: { type: string }, gridName: { type: string }, gridNick: { type: string }, gridServerUri: { type: string }, database: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string } }, nullable: true }, consoleUser: { type: string }, consolePass: { type: string }, consolePort: { type: integer }, assetServerUri: { type: string }, profileServiceUrl: { type: string }, webProfileUrl: { type: string }, excludeFromStats: { type: array, items: { type: string } } }
+                      properties: { loginUri: { type: string }, gridName: { type: string }, gridNick: { type: string }, gridServerUri: { type: string }, database: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string } }, nullable: true }, consoleUser: { type: string }, consolePass: { type: string }, consolePort: { type: integer }, assetServerUri: { type: string }, profileServiceUrl: { type: string }, webProfileUrl: { type: string }, excludeFromStats: { type: array, items: { type: string } }, linkFormatBrowser: { type: string, enum: [GRID, HOP, APPTP, LOCAL] }, linkFormatViewer: { type: string, enum: [GRID, HOP, APPTP, LOCAL] } }
       responses:
         200:
           description: 'The settings now'

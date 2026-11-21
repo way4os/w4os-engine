@@ -1820,6 +1820,34 @@ msgctxt "setting_gatekeeper"
 msgid "Gatekeeper"
 msgstr ""
 
+msgctxt "group_links"
+msgid "Links to the places"
+msgstr ""
+
+msgctxt "setting_link_format_browser"
+msgid "Links in a web browser"
+msgstr ""
+
+msgctxt "setting_link_format_viewer"
+msgid "Links in the viewer"
+msgstr ""
+
+msgctxt "link_format_grid"
+msgid "Location with its grid (secondlife://grid/secondlife/Region)"
+msgstr ""
+
+msgctxt "link_format_hop"
+msgid "Hypergrid link (hop://)"
+msgstr ""
+
+msgctxt "link_format_apptp"
+msgid "Teleport of the viewer (secondlife:///app/teleport)"
+msgstr ""
+
+msgctxt "link_format_local"
+msgid "Region of the grid the viewer is on (secondlife://Region)"
+msgstr ""
+
 msgctxt "setting_gatekeeper_help"
 msgid "The address other grids reach this one by (hypergrid)."
 msgstr ""

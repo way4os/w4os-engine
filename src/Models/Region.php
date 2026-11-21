@@ -205,6 +205,11 @@ final class Region extends Model implements Reachable
         return $this->config->gridUri();
     }
 
+    protected function tpFormats(): array
+    {
+        return Destination::linkFormats($this->config);
+    }
+
     /** The size of a region that says none, and the unit of every size: a region is a square of 256 meters, or of a multiple of it. */
     public const SIZE = 256;
 

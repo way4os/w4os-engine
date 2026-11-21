@@ -41,7 +41,7 @@ final class GridSettings
         'grid' => [
             'title' => 'settings_grid',
             'menu' => 'settings_menu_grid',
-            'groups' => [['name' => 'grid', 'label' => 'group_grid_info'], ['name' => 'robust', 'label' => 'group_robust'], ['name' => 'services', 'label' => 'group_services'], ['name' => 'avatars', 'label' => 'group_avatars']],
+            'groups' => [['name' => 'grid', 'label' => 'group_grid_info'], ['name' => 'robust', 'label' => 'group_robust'], ['name' => 'services', 'label' => 'group_services'], ['name' => 'avatars', 'label' => 'group_avatars'], ['name' => 'links', 'label' => 'group_links']],
         ],
         'models' => [
             'title' => 'settings_models',
@@ -99,7 +99,7 @@ final class GridSettings
         'economy' => ['economyModule', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'webSearchUrl', 'eventsUrl'],
         'offline' => ['mailSender', 'offlineDatabase', 'offlineModule'],
-        'grid' => ['loginUri', 'gridName', 'gridNick', 'gridServerUri', 'database', 'consoleUser', 'consolePass', 'consolePort', 'assetServerUri', 'profileServiceUrl', 'webProfileUrl', 'excludeFromStats'],
+        'grid' => ['loginUri', 'gridName', 'gridNick', 'gridServerUri', 'database', 'consoleUser', 'consolePass', 'consolePort', 'assetServerUri', 'profileServiceUrl', 'webProfileUrl', 'excludeFromStats', 'linkFormatBrowser', 'linkFormatViewer'],
     ];
 
     /**
@@ -120,6 +120,8 @@ final class GridSettings
             'assetServerUri' => ['group' => 'services', 'label' => 'setting_assets_service_uri', 'description' => ['uri_default_robust']],
             'profileServiceUrl' => ['group' => 'services', 'label' => 'setting_profile_service_uri', 'description' => ['uri_default_login']],
             'webProfileUrl' => ['group' => 'avatars', 'label' => 'setting_profile_page'],
+            'linkFormatBrowser' => ['group' => 'links'],
+            'linkFormatViewer' => ['group' => 'links'],
             'excludeFromStats' => ['group' => 'avatars'],
         ],
         'economy' => [

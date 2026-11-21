@@ -374,11 +374,22 @@ describe('A link made for where it is shown (AUTO)', function () {
             ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
     });
 
-    test('out of a viewer: hop, for the grid itself too', function () use ($login, $here, $there) {
+    test('out of a viewer: the location with its grid by default, the format the grid chooses otherwise', function () use ($login, $here, $there) {
+        $hop = ['formats' => ['browser' => Destination::HOP]];
+
         expect(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login]))
-            ->toBe('hop://dev.w4os.org:8012/Welcome/128/128/25')
+            ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
             ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login]))
-            ->toBe('hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/10/20/30');
+            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30')
+            ->and(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login] + $hop))
+            ->toBe('hop://dev.w4os.org:8012/Welcome/128/128/25')
+            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login] + $hop))
+            ->toBe('hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/10/20/30')
+            // LOCAL names a region of the grid the viewer is on: another grid keeps the default
+            ->and(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login, 'formats' => ['browser' => Destination::LOCAL]]))
+            ->toBe('secondlife://Welcome/128/128/25')
+            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => '', 'login' => $login, 'formats' => ['browser' => Destination::LOCAL]]))
+            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
     });
 
     test('follow the rules of AUTO_LINKS, the one place they are written', function () use ($login, $here, $there) {
@@ -394,9 +405,10 @@ describe('A link made for where it is shown (AUTO)', function () {
     test('read the user agent of the request when none is given', function () use ($login, $here) {
         $before = $_SERVER['HTTP_USER_AGENT'] ?? null;
         $_SERVER['HTTP_USER_AGENT'] = TP_VIEWER;
-        $viewer = Destination::format($here, Destination::AUTO, context: ['login' => $login]);
+        $hop = ['formats' => ['browser' => Destination::HOP]];
+        $viewer = Destination::format($here, Destination::AUTO, context: ['login' => $login] + $hop);
         $_SERVER['HTTP_USER_AGENT'] = TP_BROWSER;
-        $browser = Destination::format($here, Destination::AUTO, context: ['login' => $login]);
+        $browser = Destination::format($here, Destination::AUTO, context: ['login' => $login] + $hop);
         if ($before === null) {
             unset($_SERVER['HTTP_USER_AGENT']);
         } else {
@@ -406,8 +418,10 @@ describe('A link made for where it is shown (AUTO)', function () {
         expect([$viewer, $browser])->toBe(['secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25', 'hop://dev.w4os.org:8012/Welcome/128/128/25']);
     });
 
-    test('of a grid: its login tells its own places', function () {
-        $grid = W4OS\Engine\Models\Grid::find((new W4OS\Engine\Testing\Machine())->environment, 'demo');
+    test('of a grid: its login tells its own places, its settings the format in a browser and in the viewer', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    LinkFormatBrowser = HOP\n    LinkFormatViewer = GRID\n");
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
         $login = (string) Destination::loginParts((string) $grid->loginUrl())['host'];
         $link = static fn(string $destination, array $context) => $grid->place($destination)->tpLink(Destination::AUTO, $context);
 
@@ -440,11 +454,13 @@ describe('A link made for where it is shown (AUTO)', function () {
     });
 
     test('take the class of the client, which wins over the user agent', function () use ($login, $here, $there) {
-        expect(Destination::format($here, Destination::AUTO, context: ['client' => 'viewer', 'login' => $login]))
+        $hop = ['formats' => ['browser' => Destination::HOP]];
+
+        expect(Destination::format($here, Destination::AUTO, context: ['client' => 'viewer', 'login' => $login] + $hop))
             ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
-            ->and(Destination::format($here, Destination::AUTO, context: ['client' => 'browser', 'agent' => TP_VIEWER, 'login' => $login]))
+            ->and(Destination::format($here, Destination::AUTO, context: ['client' => 'browser', 'agent' => TP_VIEWER, 'login' => $login] + $hop))
             ->toBe('hop://dev.w4os.org:8012/Welcome/128/128/25')
-            ->and(Destination::format($there, Destination::AUTO, context: ['client' => 'viewer', 'agent' => TP_BROWSER, 'login' => $login]))
+            ->and(Destination::format($there, Destination::AUTO, context: ['client' => 'viewer', 'agent' => TP_BROWSER, 'login' => $login] + $hop))
             ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
     });
 

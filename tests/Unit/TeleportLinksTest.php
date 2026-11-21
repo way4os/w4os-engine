@@ -58,7 +58,7 @@ describe('The link of a grid, a region, a parcel or a place', function () {
             ->and($parcel->tpLink(Destination::GRID))->toBe("secondlife://play.example.org:8002/secondlife/Quiet{$space}Harbour/64/27/30")
             // AUTO: the link for where it is shown, a viewer or a browser
             ->and($parcel->tpLink(context: ['client' => 'viewer']))->toBe($parcel->tpLink(Destination::GRID))
-            ->and($parcel->tpLink(context: ['client' => 'browser']))->toBe($parcel->tpLink(Destination::HOP))
+            ->and($parcel->tpLink(context: ['client' => 'browser']))->toBe($parcel->tpLink(Destination::GRID))
             ->and($place->tpUri())->toBe('far.example.org:8002/Far Away/1/2/3')
             ->and($place->tpLink(Destination::HOP))->toBe("hop://far.example.org:8002/Far{$space}Away/1/2/3")
             ->and((new Place(''))->tpLink())->toBeNull();

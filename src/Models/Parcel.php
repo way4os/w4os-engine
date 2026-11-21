@@ -126,6 +126,11 @@ final class Parcel extends Model implements Reachable
         return $this->config->gridUri();
     }
 
+    protected function tpFormats(): array
+    {
+        return Destination::linkFormats($this->config);
+    }
+
     /**
      * Where it is entered: its landing point when it has one; else a point it holds (the square of its bitmap nearest to the middle
      * of its squares, never its geometric center, which may be out of it), at its own height. A height of zero is none: a little

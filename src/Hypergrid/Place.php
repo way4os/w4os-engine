@@ -16,7 +16,8 @@ final class Place implements Reachable
      * @param string $destination host:port/Region/x/y/z, host:port:Region, hop://... or a region of the grid by its name
      * @param ?string $login the login of the grid it is shown for: a region named alone is of that grid
      */
-    public function __construct(private readonly string $destination, private readonly ?string $login = null) {}
+    /** @param array{browser?:int,viewer?:int} $formats the formats its grid chooses for AUTO (Destination::linkFormats()) */
+    public function __construct(private readonly string $destination, private readonly ?string $login = null, private readonly array $formats = []) {}
 
     /**
      * The place of a region on a grid, at a landing point if it has one, as the search and the profiles keep them: its grid (the
@@ -24,8 +25,9 @@ final class Place implements Reachable
      * null without a region or a grid.
      *
      * @param ?string $login the login of the grid it is shown for
+     * @param array{browser?:int,viewer?:int} $formats the formats that grid chooses for AUTO
      */
-    public static function at(string $grid, string $region, string $landing = '', ?string $login = null): ?self
+    public static function at(string $grid, string $region, string $landing = '', ?string $login = null, array $formats = []): ?self
     {
         $grid = trim($grid) !== '' ? trim($grid) : trim((string) $login);
         if (trim($region) === '' || $grid === '') {
@@ -33,7 +35,7 @@ final class Place implements Reachable
         }
         $point = trim($landing) === '' ? '' : str_replace(',', '/', Destination::position($landing));
 
-        return new self(rtrim($grid, '/') . '/' . $region . ($point === '' ? '' : '/' . $point), $login);
+        return new self(rtrim($grid, '/') . '/' . $region . ($point === '' ? '' : '/' . $point), $login, $formats);
     }
 
     public function tpUri(): ?string
@@ -46,5 +48,10 @@ final class Place implements Reachable
     protected function tpLogin(): ?string
     {
         return $this->login;
+    }
+
+    protected function tpFormats(): array
+    {
+        return $this->formats;
     }
 }
