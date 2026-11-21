@@ -75,9 +75,11 @@ final class Destination
      * secondlife://yourgrid.org:8002/secondlife/Region%20Name/x/y/z, the grid and then its region: a location of a grid, read by
      * the viewer as `secondlife://<Grid>/secondlife/<region>/<x>/<y>/<z>` (the parser of the links of Firestorm, fsslurl.cpp),
      * for the grid it is on and for another one alike. Tried (2026-11-18, Firestorm): it works in the viewer and on its login
-     * screen, where it sets the landing of the login, for a region of the grid the viewer was on; reported to work for a hypergrid
-     * destination too (which grid, and whether the viewer had it in its list of grids, was not noted). A region
-     * without its grid is of the grid the viewer is on (`secondlife:///secondlife/Region`).
+     * screen, where it sets the landing of the login, for a region of the grid the viewer was on. Tried (2026-11-21, Firestorm
+     * 7.2.5 on macOS, from the test page of the links): it took the viewer to the region of another grid, neither grid in the
+     * list of grids of the other, both ways (demo.w4os.org and Speculoos World), and to OSgrid; when the grid of the link was
+     * down, the viewer went to the region of that name of its own grid. A region without its grid is of the grid the viewer is
+     * on (`secondlife:///secondlife/Region`).
      */
     public const GRID = 2048;
     /**
@@ -90,8 +92,8 @@ final class Destination
      * The link for where it is shown (the `context` of format()), so that no site tells it again: in a viewer (told by the user
      * agent of the request, isViewer(); any page, its login screen too) or in a web browser, the format the grid chooses for each
      * (LinkFormatViewer, LinkFormatBrowser of its settings, linkFormats()), else AUTO_LINKS: GRID for both, the one format seen
-     * working in a web browser, in the viewer and on its login screen alike (2026-11-18, Firestorm, a region of the grid the
-     * viewer was on). LOCAL is for the grid itself only: a destination of another grid gets AUTO_LINKS. A Reachable gives it
+     * working everywhere it was tried, towards the grid itself and towards other grids (see GRID). LOCAL is for the grid itself
+     * only: a destination of another grid gets AUTO_LINKS. A Reachable gives it
      * (tpLink()), with the login and the settings of its grid.
      */
     public const AUTO = 512;
