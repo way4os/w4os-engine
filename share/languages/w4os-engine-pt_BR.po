@@ -2105,10 +2105,6 @@ msgctxt "link_menu_hop_apptp"
 msgid "Teleport (hop app)"
 msgstr "Teletransportar (hop app)"
 
-msgctxt "link_menu_hop_map"
-msgid "Show on the map (hop app)"
-msgstr "Mostrar no mapa (hop app)"
-
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Copiar o endereço"
@@ -4078,6 +4074,10 @@ msgstr "A configuração do grid não diz onde está este banco de dados."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "O banco de dados não pode ser acessado."
+
+#~ msgctxt "link_menu_hop_map"
+#~ msgid "Show on the map (hop app)"
+#~ msgstr "Mostrar no mapa (hop app)"
 
 #~ msgctxt "link_menu_grid"
 #~ msgid "secondlife:// link"

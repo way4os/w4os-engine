@@ -59,11 +59,11 @@ describe('The link of a grid, a region, a parcel or a place', function () {
             // AUTO: the link for where it is shown, a viewer or a browser
             ->and($parcel->tpLink(context: ['client' => 'viewer']))->toBe($parcel->tpLink(Destination::GRID))
             ->and($parcel->tpLink(context: ['client' => 'browser']))->toBe($parcel->tpLink(Destination::GRID))
-            // The commands of the viewer through hop:, on trial in tpLinks() for both clients
+            // The teleport through hop:, on trial in tpLinks() for both clients; the map through it, asked of the object only (the chat)
             ->and($parcel->tpLink(Destination::HOP_APPTP))->toStartWith('hop:///app/teleport/play.example.org:8002:Quiet')
             ->and($place->tpLink(Destination::HOP_MAP))->toStartWith('hop:///app/worldmap/far.example.org:8002:Far')
             ->and($parcel->tpLinks('browser')[Destination::HOP_APPTP])->toBe(['link' => $parcel->tpLink(Destination::HOP_APPTP), 'label' => 'link_menu_hop_apptp', 'action' => 'teleport'])
-            ->and($parcel->tpLinks('viewer')[Destination::HOP_MAP])->toBe(['link' => $parcel->tpLink(Destination::HOP_MAP), 'label' => 'link_menu_hop_map', 'action' => 'map'])
+            ->and(array_key_exists(Destination::HOP_MAP, $parcel->tpLinks('browser') + $parcel->tpLinks('viewer')))->toBeFalse()
             ->and($place->tpUri())->toBe('far.example.org:8002/Far Away/1/2/3')
             ->and($place->tpLink(Destination::HOP))->toBe("hop://far.example.org:8002/Far{$space}Away/1/2/3")
             ->and((new Place(''))->tpLink())->toBeNull();
@@ -80,8 +80,8 @@ describe('The link of a grid, a region, a parcel or a place', function () {
             // a grid alone has no GRID link (it needs a region)
             ->and($grid->tpLink(Destination::GRID))->toBe('')
             // and none that needs one: hop:// without a region is refused by the viewers
-            ->and(array_column($grid->tpLinks('viewer'), 'link'))->toBe([$grid->tpLink(Destination::APPTP), $grid->tpLink(Destination::HOP_APPTP), $grid->tpLink(Destination::MAP), $grid->tpLink(Destination::HOP_MAP), $login])
-            ->and(array_column($grid->tpLinks('browser'), 'label'))->toBe(['link_menu_hop_apptp', 'link_menu_hop_map', 'link_menu_copy'])
+            ->and(array_column($grid->tpLinks('viewer'), 'link'))->toBe([$grid->tpLink(Destination::APPTP), $grid->tpLink(Destination::HOP_APPTP), $grid->tpLink(Destination::MAP), $login])
+            ->and(array_column($grid->tpLinks('browser'), 'label'))->toBe(['link_menu_hop_apptp', 'link_menu_copy'])
             ->and($grid->tpLink(Destination::LSL))->toBe($login)
             ->and($grid->place('Welcome/128/128/25')->tpUri())->toBe("$login/Welcome/128/128/25")
             ->and($grid->place('Welcome/128/128/25')->tpLink(Destination::HOP))->toBe("hop://$login/Welcome/128/128/25");
@@ -94,10 +94,10 @@ describe('The links of a place for a client', function () {
         $there = new Place('far.example.org:8002/Far Away/1/2/3', 'http://play.example.org:8002');
         $hop = new Place('Welcome/128/128/25', 'http://play.example.org:8002', ['browser' => Destination::HOP, 'viewer' => Destination::LOCAL]);
 
-        expect(array_keys($here->tpLinks('browser')))->toBe([Destination::GRID, Destination::HOP, Destination::HOP_APPTP, Destination::HOP_MAP, Destination::LSL])
-            ->and(array_keys($here->tpLinks('viewer')))->toBe([Destination::GRID, Destination::APPTP, Destination::HOP_APPTP, Destination::MAP, Destination::HOP_MAP, Destination::LSL])
+        expect(array_keys($here->tpLinks('browser')))->toBe([Destination::GRID, Destination::HOP, Destination::HOP_APPTP, Destination::LSL])
+            ->and(array_keys($here->tpLinks('viewer')))->toBe([Destination::GRID, Destination::APPTP, Destination::HOP_APPTP, Destination::MAP, Destination::LSL])
             // What each does, for a site to show it
-            ->and(array_column($here->tpLinks('viewer'), 'action'))->toBe(['teleport', 'teleport', 'teleport', 'map', 'map', 'copy'])
+            ->and(array_column($here->tpLinks('viewer'), 'action'))->toBe(['teleport', 'teleport', 'teleport', 'map', 'copy'])
             // On the map of the viewer: a region of the grid itself by its name alone, one of another grid with its grid; never in a browser
             ->and($here->tpLinks('viewer')[Destination::MAP])->toBe(['link' => (new Place('Welcome/128/128/25'))->tpLink(Destination::MAP), 'label' => 'link_menu_map', 'action' => 'map'])
             ->and($there->tpLinks('viewer')[Destination::MAP]['link'])->toBe($there->tpLink(Destination::MAP))
@@ -110,10 +110,10 @@ describe('The links of a place for a client', function () {
                 Destination::LSL => ['link' => (new Place('Welcome', 'http://play.example.org:8002'))->tpLink(Destination::LSL), 'label' => 'link_menu_copy', 'action' => 'copy'],
             ])
             // the format its grid chooses comes first, then the other ones in their order; LOCAL for its own places only
-            ->and(array_keys($hop->tpLinks('browser')))->toBe([Destination::HOP, Destination::GRID, Destination::HOP_APPTP, Destination::HOP_MAP, Destination::LSL])
-            ->and(array_keys($hop->tpLinks('viewer')))->toBe([Destination::LOCAL, Destination::APPTP, Destination::GRID, Destination::HOP_APPTP, Destination::MAP, Destination::HOP_MAP, Destination::LSL])
+            ->and(array_keys($hop->tpLinks('browser')))->toBe([Destination::HOP, Destination::GRID, Destination::HOP_APPTP, Destination::LSL])
+            ->and(array_keys($hop->tpLinks('viewer')))->toBe([Destination::LOCAL, Destination::APPTP, Destination::GRID, Destination::HOP_APPTP, Destination::MAP, Destination::LSL])
             ->and(array_keys((new Place('far.example.org:8002/Far Away', 'http://play.example.org:8002', ['viewer' => Destination::LOCAL]))->tpLinks('viewer')))
-            ->toBe([Destination::GRID, Destination::APPTP, Destination::HOP_APPTP, Destination::MAP, Destination::HOP_MAP, Destination::LSL])
+            ->toBe([Destination::GRID, Destination::APPTP, Destination::HOP_APPTP, Destination::MAP, Destination::LSL])
             ->and($there->tpLinks('browser')[Destination::LSL]['link'])->toBe('far.example.org:8002:Far Away')
             ->and($there->tpLink(Destination::LSL))->toBe('far.example.org:8002:Far Away/1/2/3')
             ->and((new Place(''))->tpLinks('browser'))->toBe([]);

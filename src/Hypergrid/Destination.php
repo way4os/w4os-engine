@@ -67,12 +67,13 @@ final class Destination
      * `:`), so the region of another grid is named `host:port:Region Name`, the one of the grid itself by its name alone, a grid
      * alone by `host:port` (its default region). The colon form exists here, in APPTP and in LSL, never in a hop:// link. Tried
      * (2026-11-21, Firestorm 7.2.5 on macOS, clicked in the test page of the links in the browser of the viewer): it shows the
-     * place on the map, a region of another grid by `host:port:Region`; from a web browser it did nothing (the same day and
-     * viewer, as the source says, below). Not tried before the login. From the source (2026-11-21, Firestorm): it does nothing
-     * before the login (the handler waits for the session, FIRE-17927); the handler is UNTRUSTED_THROTTLE but takes an untrusted
-     * link only clicked in a page or external (canHandleUntrusted()), and a link the system passes from a web browser comes with
-     * no kind (dispatchUrl() of llappviewermacosx.cpp): blocked there, so a link for the viewer only (Destination::links()); its
-     * point is read in whole meters (asInteger()), 128/128/0 without one.
+     * place on the map, a region of another grid by `host:port:Region`, and so it does written in the chat of the viewer
+     * (groovyverse.com:8002:Welcome); from a web browser it did nothing (the same day and viewer, as the source says, below). Not
+     * tried before the login. From the source (2026-11-21, Firestorm): it does nothing before the login (the handler waits for the
+     * session, FIRE-17927); the handler is UNTRUSTED_THROTTLE but takes an untrusted link only clicked in a page or external
+     * (canHandleUntrusted()), and a link the system passes from a web browser comes with no kind (dispatchUrl() of
+     * llappviewermacosx.cpp): blocked there, so a link for the viewer only (Destination::links()); its point is read in whole
+     * meters (asInteger()), 128/128/0 without one.
      */
     public const MAP = 64;
     /** all formats */
@@ -118,10 +119,12 @@ final class Destination
      */
     public const HOP_APPTP = 8192;
     /**
-     * hop:///app/worldmap/yourgrid.org:8002:Region%20Name/x/y/z, the map of MAP through the hop: scheme. On trial in links(), to
-     * be removed if it does not work once tried. From the source (2026-11-21, Firestorm): the same command as
-     * secondlife:///app/worldmap, so expected blocked from a web browser as MAP is (canHandleUntrusted() of LLWorldMapHandler
-     * takes no link without a kind), and not opened by the browser of the viewer (hop:, seen with HOP).
+     * hop:///app/worldmap/yourgrid.org:8002:Region%20Name/x/y/z, the map of MAP through the hop: scheme. Tried (2026-11-21,
+     * Firestorm 7.2.5 on macOS, groovyverse.com:8002:Welcome): from a web browser the viewer came to the front and did nothing;
+     * the browser of the viewer does not open it (unknown url scheme); written in the chat of the viewer, it shows the place on
+     * the map, as MAP does there. So in no link of a page (links()): a format for the chat or a script only. From the source
+     * (2026-11-21, Firestorm): the same command as secondlife:///app/worldmap, which canHandleUntrusted() of LLWorldMapHandler
+     * refuses for a link without a kind, the one the system passes from a web browser.
      */
     public const HOP_MAP = 16384;
     /**
@@ -155,11 +158,12 @@ final class Destination
      * browser hop:// (the hypergrid link the viewers read, from the source), then GRID; in the viewer the teleport of its own
      * browser (APPTP, seen there, through the search of the map), then GRID, then the place on its map (MAP: the viewer only, a
      * web browser cannot open it). GRID stays second until a grid the viewer does not know is tried. On trial, to be removed
-     * where they do not work once tried: the teleport and the map through hop:///app/ (HOP_APPTP, HOP_MAP), for both.
+     * where it does not work once tried: the teleport through hop:///app/ (HOP_APPTP), for both (the map through it, HOP_MAP,
+     * works nowhere a page is seen).
      */
     public const LINKS = [
-        'browser' => [self::HOP, self::GRID, self::HOP_APPTP, self::HOP_MAP],
-        'viewer' => [self::APPTP, self::GRID, self::HOP_APPTP, self::MAP, self::HOP_MAP],
+        'browser' => [self::HOP, self::GRID, self::HOP_APPTP],
+        'viewer' => [self::APPTP, self::GRID, self::HOP_APPTP, self::MAP],
     ];
 
     /** The formats that need a region: a grid alone has no such link in links() and in AUTO (hop:// without one is refused). */
@@ -173,7 +177,6 @@ final class Destination
         self::LOCAL => 'link_menu_local',
         self::MAP => 'link_menu_map',
         self::HOP_APPTP => 'link_menu_hop_apptp',
-        self::HOP_MAP => 'link_menu_hop_map',
         self::LSL => 'link_menu_copy',
     ];
 
@@ -185,11 +188,10 @@ final class Destination
         self::LOCAL => 'teleport',
         self::HOP_APPTP => 'teleport',
         self::MAP => 'map',
-        self::HOP_MAP => 'map',
         self::LSL => 'copy',
     ];
 
-    /** The formats a grid may choose for AUTO, by the name its settings give them (LinkFormatBrowser, LinkFormatViewer of Helpers.ini). */
+    /** The formats a grid may choose for AUTO, by the names its settings give (LinkFormatBrowser, LinkFormatViewer). */
     public const LINK_FORMATS = ['GRID' => self::GRID, 'HOP' => self::HOP, 'APPTP' => self::APPTP, 'LOCAL' => self::LOCAL];
 
     /**
@@ -630,7 +632,7 @@ final class Destination
      *                          TPLINK_ARRAY or 256: output all formats as array
      *                          AUTO or 512:         the link for where it is shown (see AUTO), with `$context`
      *                          HOP_APPTP or 8192:   hop:///app/teleport link (see HOP_APPTP, not tried)
-     *                          HOP_MAP or 16384:    hop:///app/worldmap link (see HOP_MAP, not tried)
+     *                          HOP_MAP or 16384:    hop:///app/worldmap link (see HOP_MAP: in the chat only)
      *
      * The region of a hop:// or secondlife:// link of a grid comes after a colon, its spaces as SPACE
      * (hop://yourgrid.org:8002:Region%20Name/x/y/z): a viewer takes that form in its own browser, not a slash.

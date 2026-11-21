@@ -158,7 +158,7 @@ describe('A grid alone', function () {
             ->toBe('')
             // No link that needs a region (the ones through hop:///app/ on trial aside)
             ->and(array_column($place->tpLinks('browser'), 'label'))
-            ->toBe(['link_menu_hop_apptp', 'link_menu_hop_map', 'link_menu_copy'])
+            ->toBe(['link_menu_hop_apptp', 'link_menu_copy'])
             ->and($soon)
             ->toBe($asked)
             ->and($later->tpUri())

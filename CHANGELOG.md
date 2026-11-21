@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (links): HOP_MAP out of tpLinks(), seen working in the chat only; MAP seen working in the chat too
 - new (links): HOP_APPTP and HOP_MAP, teleport and map through hop:///app/, on trial in tpLinks() for both clients
 - new (links): each link of tpLinks() says what it does (action: teleport, map, copy)
 - doc (destinations): MAP seen doing nothing from a web browser, Firestorm 7.2.5 on macOS
