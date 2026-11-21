@@ -967,11 +967,26 @@ msgctxt "hg_visit_text"
 msgid ""
 "Already have an avatar on another OpenSim grid? Visit us without creating "
 "one: enter this address in your viewer's map or search."
-msgstr "Du hast schon einen Avatar in einem anderen OpenSim-Grid? Besuch uns, ohne einen neuen zu erstellen: Gib diese Adresse in die Karte oder die Suche deines Viewers ein."
+msgstr ""
+"Du hast schon einen Avatar in einem anderen OpenSim-Grid? Besuch uns, ohne "
+"einen neuen zu erstellen: Gib diese Adresse in die Karte oder die Suche "
+"deines Viewers ein."
 
 msgctxt "hg_visit_go"
 msgid "Teleport here"
 msgstr "Hierher teleportieren"
+
+#, php-format
+msgctxt "hg_visit_text_examples"
+msgid ""
+"Already have an avatar on another OpenSim grid, like %s? Visit us without "
+"creating one: enter this address in your viewer's map or search."
+msgstr "Du hast schon einen Avatar in einem anderen OpenSim-Grid, etwa %s? Besuch uns, ohne einen neuen zu erstellen: Gib diese Adresse in die Karte oder die Suche deines Viewers ein."
+
+#, php-format
+msgctxt "list_or"
+msgid "%1$s or %2$s"
+msgstr "%1$s oder %2$s"
 
 msgctxt "total"
 msgid "Total"

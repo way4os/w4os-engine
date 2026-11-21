@@ -285,6 +285,10 @@ final class Catalog
         'hg_visit_title' => 'Visit from another grid',
         'hg_visit_text' => "Already have an avatar on another OpenSim grid? Visit us without creating one: enter this address in your viewer's map or search.",
         'hg_visit_go' => 'Teleport here',
+        // The same with grids an avatar may come from (%s: their names, list_or), when the site names some
+        'hg_visit_text_examples' => "Already have an avatar on another OpenSim grid, like %s? Visit us without creating one: enter this address in your viewer's map or search.",
+        // The last two of a list of choices (A, B or C: the others before them, joined by a comma)
+        'list_or' => '%1$s or %2$s',
         'total' => 'Total',
         // The tips of the fields of the settings pages, under their label: a few words
         'tip_models_match' => 'How a model is recognised',

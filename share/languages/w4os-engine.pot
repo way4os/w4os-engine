@@ -805,6 +805,16 @@ msgctxt "hg_visit_go"
 msgid "Teleport here"
 msgstr ""
 
+#, php-format
+msgctxt "hg_visit_text_examples"
+msgid "Already have an avatar on another OpenSim grid, like %s? Visit us without creating one: enter this address in your viewer's map or search."
+msgstr ""
+
+#, php-format
+msgctxt "list_or"
+msgid "%1$s or %2$s"
+msgstr ""
+
 msgctxt "total"
 msgid "Total"
 msgstr ""
