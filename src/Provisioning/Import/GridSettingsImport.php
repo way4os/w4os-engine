@@ -212,6 +212,16 @@ final class GridSettingsImport
     }
 
     /**
+     * The sections of the options of a grid in OpenSim.ini (its settings pages), by their name in lower case.
+     *
+     * @return array<string,string>
+     */
+    public static function sections(Grid $grid): array
+    {
+        return self::optionSections(new GridOptions($grid));
+    }
+
+    /**
      * The sections of the options of the grid in OpenSim.ini, by their name in lower case.
      *
      * @return array<string,string>

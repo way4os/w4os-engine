@@ -87,6 +87,36 @@ describe('A simulator imported', function () {
             ->toBeFalse();
     });
 
+    test('leaves the options of a grid with a master to the grid: its search, its data services, its economy are on its pages', function () {
+        $machine = new Machine();
+        // A grid of v3: the master of its simulators holds its OpenSim.ini, where its settings pages write its options
+        (new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
+        $file = old_install($machine);
+        $machine->write($file, (string) file_get_contents($file) .
+            "[Search]\nSearchURL = \"https://search.example.org/query.php\"\n[DataSnapshot]\nDATA_SRV_Old = \"https://old.example.org/register.php\"\n" .
+            "[Gloebit]\nEnabled = true\nGLBEnvironment = production\n[SMTP]\nenabled = true\n");
+
+        $plan = SimulatorImport::prepare($machine->environment, $file, 'demo')->document();
+        $kept = array_column($plan['settings'], 'section', 'key');
+        $grid = array_column(array_filter($plan['dropped'], static fn(array $d): bool => $d['reason'] === 'grid'), 'key');
+
+        expect($grid)->toContain('SearchURL', 'DATA_SRV_Old', 'Enabled', 'GLBEnvironment')
+            ->and($kept)->not->toHaveKeys(['SearchURL', 'DATA_SRV_Old', 'GLBEnvironment'])
+            // What no page of the grid has stays the simulator's: its threads, its mail
+            ->and($kept)->toHaveKey('MinThreads')
+            ->and($kept['enabled'] ?? null)->toBe('SMTP');
+    });
+
+    test('keeps the options in a simulator of a grid without a master, whose config is whole', function () {
+        $machine = new Machine();
+        $file = old_install($machine);
+        $machine->write($file, (string) file_get_contents($file) . "[Search]\nSearchURL = \"https://search.example.org/query.php\"\n");
+
+        $plan = SimulatorImport::prepare($machine->environment, $file, 'demo')->document();
+
+        expect(array_column($plan['settings'], 'value', 'key'))->toHaveKey('SearchURL');
+    });
+
     test('is written disabled: its config on the same database, its region file as it was, the settings it keeps, 640', function () {
         $machine = new Machine();
         $source = old_install($machine);
