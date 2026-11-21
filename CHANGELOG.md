@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (simulators): a setting that stops a simulator of its core (Warp3DImageModule on 0.9.3) is not imported, and commented at an upgrade
 - fix (import): a simulator moved into a grid with a master leaves the grid's options (search, data services, economy, Gloebit) to its pages
 - doc (api): a site in a rootless container reaches the engine API at 10.0.2.2, allow_host_loopback, never on the network
 - fix (search): an upgrade adds to an old events table the columns read now (landingpoint, parcelName, mature); the import fills landingpoint

@@ -35,6 +35,10 @@ final class GridCompletion
             foreach (self::localTls($dir) as $file => $count) {
                 $done[] = basename($dir) . ": SslMode=None added to $count connection string" . ($count > 1 ? 's' : '') . ' of a local database in ' . substr($file, strlen($dir) + 1) . ' (restart what reads it: opensim restart)';
             }
+            // What stops a simulator of its core (an older config: Warp3DImageModule on 0.9.3), commented with why
+            foreach (self::retired($environment, $dir) as $file => $count) {
+                $done[] = basename($dir) . ": $count setting" . ($count > 1 ? 's' : '') . ' that stop a simulator of its core commented in ' . substr($file, strlen($dir) + 1) . ' (restart what reads it: opensim restart)';
+            }
             // The tables of the search, with the columns the helpers read now (a grid made or moved from an older version)
             foreach (self::searchColumns($environment, $dir) as $line) {
                 $done[] = basename($dir) . ": $line";
@@ -60,6 +64,26 @@ final class GridCompletion
         }
 
         return $done;
+    }
+
+    /**
+     * The settings of the ini files of a grid that stop a simulator of its core, commented (RetiredSettings).
+     *
+     * @return array<string,int> the files changed, with how many lines
+     */
+    private static function retired(Environment $environment, string $dir): array
+    {
+        try {
+            $core = Grid::at($environment, $dir)->coreDirectory() ?: $environment->layout->coreDirectory();
+        } catch (\Throwable) {
+            return [];
+        }
+        $changed = [];
+        foreach ([...(glob("$dir/*.ini") ?: []), ...(glob("$dir/*/*.ini") ?: [])] as $file) {
+            ($count = RetiredSettings::repair($file, $core)) > 0 && ($changed[$file] = $count);
+        }
+
+        return $changed;
     }
 
     /**
