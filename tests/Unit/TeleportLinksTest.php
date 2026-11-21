@@ -72,8 +72,35 @@ describe('The link of a grid, a region, a parcel or a place', function () {
             ->and($grid->tpUri())->toBe($login)
             ->and($grid->tpLink(Destination::HOP))->toBe("hop://$login")
             ->and($grid->tpLink(Destination::TXT))->toBe($login)
+            // a grid alone has no GRID link (it needs a region)
+            ->and($grid->tpLink(Destination::GRID))->toBe('')
+            ->and(array_column($grid->tpLinks('viewer'), 'link'))->toBe([$grid->tpLink(Destination::APPTP), $login])
+            ->and(array_column($grid->tpLinks('browser'), 'label'))->toBe(['link_menu_hop', 'link_menu_txt'])
             ->and($grid->place('Welcome/128/128/25')->tpUri())->toBe("$login/Welcome/128/128/25")
             ->and($grid->place('Welcome/128/128/25')->tpLink(Destination::HOP))->toBe("hop://$login/Welcome/128/128/25");
+    });
+});
+
+describe('The links of a place for a client', function () {
+    test('give the one of AUTO first, then the other ones that fit, then the address to copy', function () {
+        $here = new Place('Welcome/128/128/25', 'http://play.example.org:8002');
+        $there = new Place('far.example.org:8002/Far Away/1/2/3', 'http://play.example.org:8002');
+        $hop = new Place('Welcome/128/128/25', 'http://play.example.org:8002', ['browser' => Destination::HOP, 'viewer' => Destination::LOCAL]);
+
+        expect(array_keys($here->tpLinks('browser')))->toBe([Destination::GRID, Destination::HOP, Destination::TXT])
+            ->and(array_keys($here->tpLinks('viewer')))->toBe([Destination::GRID, Destination::APPTP, Destination::TXT])
+            ->and($here->tpLinks('browser'))->toBe([
+                Destination::GRID => ['link' => $here->tpLink(Destination::GRID), 'label' => 'link_menu_grid'],
+                Destination::HOP => ['link' => $here->tpLink(Destination::HOP), 'label' => 'link_menu_hop'],
+                Destination::TXT => ['link' => $here->tpLink(Destination::TXT), 'label' => 'link_menu_txt'],
+            ])
+            // the format its grid chooses comes first; LOCAL for its own places only
+            ->and(array_keys($hop->tpLinks('browser')))->toBe([Destination::HOP, Destination::GRID, Destination::TXT])
+            ->and(array_keys($hop->tpLinks('viewer')))->toBe([Destination::LOCAL, Destination::GRID, Destination::APPTP, Destination::TXT])
+            ->and(array_keys((new Place('far.example.org:8002/Far Away', 'http://play.example.org:8002', ['viewer' => Destination::LOCAL]))->tpLinks('viewer')))
+            ->toBe([Destination::GRID, Destination::APPTP, Destination::TXT])
+            ->and($there->tpLinks('browser')[Destination::TXT]['link'])->toBe('far.example.org:8002 Far Away/1/2/3')
+            ->and((new Place(''))->tpLinks('browser'))->toBe([]);
     });
 });
 

@@ -27,4 +27,16 @@ interface Reachable
      *                                                                    its grid is the object's, unless the context gives one
      */
     public function tpLink(?int $format = null, array $context = []): string|array|null;
+
+    /**
+     * Its links for a client, `browser` or `viewer` (the one of the context or of the request served without one): the one of
+     * AUTO first, then the other ones that fit that client, then its address to copy (TXT), by format, each with the key of the
+     * catalog naming it in a menu (Destination::links()); none when it has no address.
+     *
+     *     $region->tpLinks('browser');   // [GRID => ['link' => 'secondlife://...', 'label' => 'link_menu_grid'], HOP => [...], TXT => [...]]
+     *
+     * @param  array{agent?:?string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context as tpLink()
+     * @return array<int,array{link:string,label:string}>
+     */
+    public function tpLinks(?string $client = null, array $context = []): array;
 }

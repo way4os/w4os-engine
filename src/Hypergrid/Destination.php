@@ -41,7 +41,7 @@ final class Destination
      * llurldispatcher.cpp).
      */
     public const HOP = 8;
-    /** yourgrid.org:8002:Region/x/y/z */
+    /** yourgrid.org:8002 Region Name/x/y/z, the address as text, to read or to copy. */
     public const TXT = 16;
     /**
      * secondlife:///app/teleport/yourgrid.org:8002:Region%20Name/x/y/z, the region after a colon: the teleport of the viewer to
@@ -110,6 +110,21 @@ final class Destination
     public const AUTO_LINKS = [
         'viewer' => ['local' => self::GRID, 'other' => self::GRID],
         'web' => ['local' => self::GRID, 'other' => self::GRID],
+    ];
+
+    /**
+     * The other links worth offering beside the one of AUTO, by the class of the client (Destination::links()): in a web browser
+     * hop:// (the form the viewer writes), in the viewer the teleport of its own browser (APPTP, seen there only).
+     */
+    public const LINKS = ['browser' => [self::GRID, self::HOP], 'viewer' => [self::GRID, self::APPTP]];
+
+    /** The key of the catalog that names each link of links() in a menu. */
+    public const LINK_LABELS = [
+        self::GRID => 'link_menu_grid',
+        self::HOP => 'link_menu_hop',
+        self::APPTP => 'link_menu_apptp',
+        self::LOCAL => 'link_menu_local',
+        self::TXT => 'link_menu_txt',
     ];
 
     /** The formats a grid may choose for AUTO, by the name its settings give them (LinkFormatBrowser, LinkFormatViewer of Helpers.ini). */
@@ -371,22 +386,70 @@ final class Destination
      */
     private static function auto(string $destination, int $array, string $sep, array $context): string|array
     {
-        $login = trim((string) ($context['login'] ?? ''));
-        $parsed = self::parse($destination, $login !== '' ? $login : null);
-        $local = self::isLocal($parsed, $login);
-        $client = in_array($context['client'] ?? null, self::CLIENTS, true)
-            ? $context['client']
-            : self::client(array_key_exists('agent', $context) ? (string) $context['agent'] : null);
-        // The one the grid chooses for that client (`formats` of the context, linkFormats()), else the table; LOCAL for its own places only
-        $default = self::AUTO_LINKS[$client === 'viewer' ? 'viewer' : 'web'][$local ? 'local' : 'other'];
-        $format = (int) (((array) ($context['formats'] ?? []))[$client === 'viewer' ? 'viewer' : 'browser'] ?? $default);
-        $format = $format === self::LOCAL && !$local ? $default : $format;
+        [$format, $parsed] = self::autoFormat($destination, $context);
         if ($format === 0) {
             return $array ? [] : '';
         }
-        $uri = $format === self::LOCAL ? $parsed['region'] . ($parsed['pos'] === '' ? '' : '/' . $parsed['pos']) : $parsed['dest_uri'];
 
-        return self::format($uri, $format | $array, $sep);
+        return self::format(self::autoUri($parsed, $format), $format | $array, $sep);
+    }
+
+    /**
+     * The format AUTO gives a destination where it is shown, with the destination as parse() reads it.
+     *
+     * @return array{0:int,1:array<string,mixed>}
+     */
+    private static function autoFormat(string $destination, array $context): array
+    {
+        $login = trim((string) ($context['login'] ?? ''));
+        $parsed = self::parse($destination, $login !== '' ? $login : null);
+        $local = self::isLocal($parsed, $login);
+        $client = self::contextClient($context);
+        // The one the grid chooses for that client (`formats` of the context, linkFormats()), else the table; LOCAL for its own places only
+        $default = self::AUTO_LINKS[$client === 'viewer' ? 'viewer' : 'web'][$local ? 'local' : 'other'];
+        $format = (int) (((array) ($context['formats'] ?? []))[$client] ?? $default);
+
+        return [$format === self::LOCAL && !$local ? $default : $format, $parsed + ['local' => $local]];
+    }
+
+    /** The class of the client of a context: the one it gives (`client`), else the one of its user agent (`agent`, client()). */
+    private static function contextClient(array $context): string
+    {
+        return in_array($context['client'] ?? null, self::CLIENTS, true)
+            ? $context['client']
+            : self::client(array_key_exists('agent', $context) ? (string) $context['agent'] : null);
+    }
+
+    /** The address a format takes for a destination read by parse(): its region and point alone for LOCAL. */
+    private static function autoUri(array $parsed, int $format): string
+    {
+        return $format === self::LOCAL ? $parsed['region'] . ($parsed['pos'] === '' ? '' : '/' . $parsed['pos']) : $parsed['dest_uri'];
+    }
+
+    /**
+     * The links of a destination where it is shown, the one AUTO gives first and then the other ones that fit that client
+     * (LINKS), by format; TXT last, its address to copy into the viewer. Each with the key of the catalog naming it in a menu
+     * (LINK_LABELS). A destination of another grid has no LOCAL one, a grid alone no GRID one (it needs a region).
+     *
+     * @param  array{agent?:?string,client?:string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context as format()
+     * @return array<int,array{link:string,label:string}> format => its link and its label, in that order
+     */
+    public static function links(string $destination, array $context = []): array
+    {
+        if (trim($destination) === '') {
+            return [];
+        }
+        [$auto, $parsed] = self::autoFormat($destination, $context);
+        $links = [];
+        foreach (array_merge([$auto], self::LINKS[self::contextClient($context)], [self::TXT]) as $format) {
+            if ($format === 0 || isset($links[$format]) || ($format === self::LOCAL && !$parsed['local'])) {
+                continue;
+            }
+            $link = (string) self::format(self::autoUri($parsed, $format), $format);
+            $link === '' || ($links[$format] = ['link' => $link, 'label' => self::LINK_LABELS[$format] ?? '']);
+        }
+
+        return $links;
     }
 
     /** The height a point is landed at: the one it gives, HEIGHT when it gives none or zero. */

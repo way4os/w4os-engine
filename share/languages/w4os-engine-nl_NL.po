@@ -2095,6 +2095,26 @@ msgctxt "link_format_local"
 msgid "Region of the grid the viewer is on (secondlife://Region)"
 msgstr "Regio van het grid waar de viewer is (secondlife://Regio)"
 
+msgctxt "link_menu_grid"
+msgid "secondlife:// link"
+msgstr "secondlife://-link"
+
+msgctxt "link_menu_hop"
+msgid "hop:// link"
+msgstr "hop://-link"
+
+msgctxt "link_menu_apptp"
+msgid "Teleport in the viewer"
+msgstr "Teleport in de viewer"
+
+msgctxt "link_menu_local"
+msgid "Region of this grid"
+msgstr "Regio van dit grid"
+
+msgctxt "link_menu_txt"
+msgid "Copy the address"
+msgstr "Adres kopiëren"
+
 msgctxt "setting_gatekeeper_help"
 msgid "The address other grids reach this one by (hypergrid)."
 msgstr "Het adres waarmee andere grids dit grid bereiken (hypergrid)."

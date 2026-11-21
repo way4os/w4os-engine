@@ -16,14 +16,27 @@ trait TeleportLinks
         if ($uri === null || trim($uri) === '') {
             return null;
         }
+        $link = Destination::format($uri, $format ?? Destination::AUTO, context: $this->tpContext($context));
+
+        return is_array($link) ? $link : (string) $link;
+    }
+
+    public function tpLinks(?string $client = null, array $context = []): array
+    {
+        $uri = $this->tpUri();
+        $context = $client === null ? $context : ['client' => $client] + $context;
+
+        return $uri === null || trim($uri) === '' ? [] : Destination::links($uri, $this->tpContext($context));
+    }
+
+    /** A context of Destination with the login and the formats of its grid, unless it gives them. */
+    private function tpContext(array $context): array
+    {
         $login = $this->tpLogin();
         $context += $login === null || $login === '' ? [] : ['login' => $login];
         $formats = $this->tpFormats();
-        $context += $formats === [] ? [] : ['formats' => $formats];
 
-        $link = Destination::format($uri, $format ?? Destination::AUTO, context: $context);
-
-        return is_array($link) ? $link : (string) $link;
+        return $context + ($formats === [] ? [] : ['formats' => $formats]);
     }
 
     /**

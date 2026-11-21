@@ -576,6 +576,12 @@ final class Catalog
         'link_format_hop' => 'Hypergrid link (hop://)',
         'link_format_apptp' => 'Teleport of the viewer (secondlife:///app/teleport)',
         'link_format_local' => 'Region of the grid the viewer is on (secondlife://Region)',
+        // The links of a place beside its main one, as a menu names them
+        'link_menu_grid' => 'secondlife:// link',
+        'link_menu_hop' => 'hop:// link',
+        'link_menu_apptp' => 'Teleport in the viewer',
+        'link_menu_local' => 'Region of this grid',
+        'link_menu_txt' => 'Copy the address',
         'setting_gatekeeper_help' => 'The address other grids reach this one by (hypergrid).',
         'setting_uas' => 'User agent service',
         'setting_uas_help' => 'Where the avatars of this grid are known when they visit other grids (hypergrid).',

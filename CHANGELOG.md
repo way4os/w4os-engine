@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (links): tpLinks() on Grid, Region, Parcel and Place, the links fitting a browser or the viewer, AUTO's first, named
 - new (links): LinkFormatBrowser and LinkFormatViewer, the formats AUTO gives, settings of the grid, GRID by default
 - fix (databases): SslMode=None for a local database, written by the setup and added at each upgrade (MySql.Data on Mono, MariaDB TLS)
 - new (status): Status::withoutDatabase(), a running Robust whose grid service fails (RobustController::databaseAnswers())
