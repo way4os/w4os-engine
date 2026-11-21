@@ -1497,6 +1497,8 @@ final class Api
                     'uri' => $found->uri(),
                     'logo' => $found->logoUrl(),
                     'addGrid' => $found->addGrid(),
+                    'tpUri' => $found->tpUri(),
+                    'tpLinks' => array_map(fn (int $format, array $link) => ['format' => $format] + $link, array_keys($links = $found->tpLinks('browser')), $links),
                     'elements' => (object) $found->gridInfo(),
                 ],
                 'links' => ['self' => $instance],

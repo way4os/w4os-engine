@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (api): the info of a grid gives its address as a destination (tpUri) and its links for a browser (tpLinks: format, link, label), as the grid makes them, for a site that shows them
 - doc (destinations): GRID seen working towards another grid both ways and towards OSgrid, Firestorm 7.2.5 on macOS
 - new (links): tpLinks() on Grid, Region, Parcel and Place, the links fitting a browser or the viewer, AUTO's first, named
 - new (links): LinkFormatBrowser and LinkFormatViewer, the formats AUTO gives, settings of the grid, GRID by default
