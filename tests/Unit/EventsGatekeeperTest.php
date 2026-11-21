@@ -53,6 +53,7 @@ describe('The events of a calendar', function () {
         $clock->now = 1_700_000_000.0;
         $calendar = events_at($clock, 'grid.example.org:8002:Welcome', 'grid.example.org:8002:Welcome/10/20/30', 'grid.example.org:8002:Plaza',
             'down.example.org:8002:Far', 'down.example.org:8002:Farther', 'grid.example.org:8002:Welcome');
+        W4OS\Engine\Services\SearchTables::upgrade($db);
         $parser = new EventsParser($db, 'https://calendar.example.org', static fn(string $url): ?string => json_encode($calendar), clock: $clock);
 
         $kept = $parser->parse();

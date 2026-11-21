@@ -148,6 +148,8 @@ final class EventsParser
         $region = $this->places['parts']($place);
         $located = $this->places['located']($place);
         $position = empty($region['pos']) ? [128, 128, 25] : explode('/', (string) $region['pos']);
+        // The point in its region, as the parcels keep theirs; the global position adds the region's place on its grid
+        $landing = implode('/', $position);
         if (!empty($located['x']) && !empty($located['y'])) {
             $position[0] += $located['x'];
             $position[1] += $located['y'];
@@ -168,6 +170,7 @@ final class EventsParser
             'simname' => $this->places['link']($place, Destination::TXT),
             'parcelUUID' => self::NOBODY,
             'globalPos' => implode(',', $position),
+            'landingpoint' => $landing,
             'eventflags' => 0,
             'gatekeeperURL' => (string) ($region['gatekeeper'] ?? ''),
         ];

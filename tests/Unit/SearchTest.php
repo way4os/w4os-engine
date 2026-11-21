@@ -445,6 +445,8 @@ describe('The events of the search', function () {
         $clock = new ClockFake();
         $clock->now = 1_700_000_000.0;
         $db->exec("INSERT INTO events (eventid, name, dateUTC) VALUES (99, 'Old', 1)");
+        // A table of an older version gets the columns read now (its landing point), as the task does before it runs
+        $added = W4OS\Engine\Services\SearchTables::upgrade($db);
         $places = [
             'online' => static fn(string $url): bool => !str_contains($url, 'gone'),
             'parts' => static fn(string $url): array => [
@@ -480,7 +482,13 @@ describe('The events of the search', function () {
                 'globalPos' => '256010,256020,30',
                 'gatekeeperURL' => 'http://grid.example.org:8002',
                 'simname' => 'link:16:grid.example.org:8002:Welcome/10/20/30',
+                // The point in its region, as the parcels keep theirs
+                'landingpoint' => '10/20/30',
             ])
+            ->and($added)
+            ->toContain('events.landingpoint', 'events.parcelName')
+            ->and(W4OS\Engine\Services\SearchTables::upgrade($db))
+            ->not->toContain('events.landingpoint')
             ->and($event['description'])
             ->toStartWith('link:40:grid.example.org:8002:Welcome/10/20/30')
             ->toEndWith('Come in');

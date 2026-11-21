@@ -35,6 +35,10 @@ final class GridCompletion
             foreach (self::localTls($dir) as $file => $count) {
                 $done[] = basename($dir) . ": SslMode=None added to $count connection string" . ($count > 1 ? 's' : '') . ' of a local database in ' . substr($file, strlen($dir) + 1) . ' (restart what reads it: opensim restart)';
             }
+            // The tables of the search, with the columns the helpers read now (a grid made or moved from an older version)
+            foreach (self::searchColumns($environment, $dir) as $line) {
+                $done[] = basename($dir) . ": $line";
+            }
             // Every ini may hold a password and the web server reads them (the helpers): theirs, and nobody else's
             if (!GridFileService::protect($dir, GridFileService::canGiveWebGroup())) {
                 $done[] = basename($dir) . ': some ini files could not be given to the group of the web server';
@@ -56,6 +60,25 @@ final class GridCompletion
         }
 
         return $done;
+    }
+
+    /**
+     * The columns later versions read, added to the tables of the search of a grid (SearchTables::upgrade()); nothing when its
+     * search database is not reachable from here.
+     *
+     * @return list<string>
+     */
+    private static function searchColumns(Environment $environment, string $dir): array
+    {
+        try {
+            $config = Grid::at($environment, $dir)->config();
+            $db = $config === null ? null : \W4OS\Engine\Data\Connections::pdo($config, \W4OS\Engine\Data\Database::Search);
+            $added = $db !== null && $db->connected ? \W4OS\Engine\Services\SearchTables::upgrade($db) : [];
+        } catch (\Throwable) {
+            return [];
+        }
+
+        return $added === [] ? [] : ['search tables: added ' . implode(', ', $added)];
     }
 
     /**

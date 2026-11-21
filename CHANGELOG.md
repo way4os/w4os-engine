@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (search): an upgrade adds to an old events table the columns read now (landingpoint, parcelName, mature); the import fills landingpoint
 - fix (search): an event of another grid names its region host:port:Region, as a viewer names it; one of the grid asking, by its name
 - change (links): hop:// first in a web browser by default, the scheme of OpenSimulator (secondlife:// may open a Second Life viewer)
 - change (links): HOP_APPTP out of tpLinks(), seen doing nothing from a browser; the hop:///app/ formats for the chat only

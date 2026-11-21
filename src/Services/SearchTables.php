@@ -63,16 +63,21 @@ final class SearchTables
                 }
             }
         }
-        self::update($pdo);
+        self::upgrade($pdo);
 
         return self::exist($pdo);
     }
 
-    /** The columns the first versions did not have: the gatekeeper of the grid a row comes from, the picture of a parcel. */
-    private static function update(OSPDO $pdo): void
+    /**
+     * Add the columns the first versions did not have, to tables made by them (an upgrade, a grid moved from an older one): the
+     * gatekeeper of the grid a row comes from, the picture of a parcel, the landing point, the parcel and the rating of an event.
+     *
+     * @return list<string> the columns added, `table.column`
+     */
+    public static function upgrade(OSPDO $pdo): array
     {
-        $added = [
-            'gatekeeperURL' => [
+        $columns = [
+            'gatekeeperURL' => ['varchar(255)', [
                 'allparcels',
                 'classifieds',
                 self::EVENTS,
@@ -82,22 +87,43 @@ final class SearchTables
                 'parcelsales',
                 'popularplaces',
                 Region::searchTable($pdo),
-            ],
-            'imageUUID' => ['parcels'],
+            ]],
+            'imageUUID' => ['char(36)', ['parcels']],
+            'landingpoint' => ['varchar(35) DEFAULT NULL', [self::EVENTS]],
+            'parcelName' => ['varchar(255) DEFAULT NULL', [self::EVENTS]],
+            'mature' => ["enum('true','false') NOT NULL DEFAULT 'false'", [self::EVENTS]],
         ];
-        foreach ($added as $column => $tables) {
+        $added = [];
+        foreach ($columns as $column => [$definition, $tables]) {
             foreach ($tables as $table) {
                 try {
-                    if (!$pdo->query("SHOW COLUMNS FROM `$table` LIKE '$column'")->fetchAll()) {
-                        $pdo->exec(
-                            "ALTER TABLE `$table` ADD `$column` " .
-                                ($column === 'imageUUID' ? 'char(36)' : 'varchar(255)'),
-                        );
+                    if (self::hasColumn($pdo, $table, $column) === false) {
+                        $pdo->exec("ALTER TABLE `$table` ADD `$column` $definition");
+                        $added[] = "$table.$column";
                     }
                 } catch (\Throwable) {
-                    // A table that is not there, or a database that does not tell its columns: nothing to bring up to date
+                    // A column this database cannot take as it is written: left to the next version
                 }
             }
+        }
+
+        return $added;
+    }
+
+    /** Whether a table has a column; null when the table is not there. */
+    private static function hasColumn(OSPDO $pdo, string $table, string $column): ?bool
+    {
+        try {
+            $pdo->query("SELECT * FROM `$table` LIMIT 0");
+        } catch (\Throwable) {
+            return null;
+        }
+        try {
+            $pdo->query("SELECT `$column` FROM `$table` LIMIT 0");
+
+            return true;
+        } catch (\Throwable) {
+            return false;
         }
     }
 
