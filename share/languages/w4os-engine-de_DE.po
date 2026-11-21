@@ -940,8 +940,8 @@ msgstr "Avatar erstellen"
 
 #, php-format
 msgctxt "start_avatar_done"
-msgid "Your avatar is %s."
-msgstr "Dein Avatar ist %s."
+msgid "Signed in as %s"
+msgstr "Angemeldet als %s"
 
 msgctxt "start_add_grid"
 msgid "Add the grid"
@@ -950,6 +950,10 @@ msgstr "Grid hinzufügen"
 msgctxt "start_login"
 msgid "Log in"
 msgstr "Einloggen"
+
+msgctxt "start_login_done"
+msgid "Enjoy!"
+msgstr "Viel Spaß!"
 
 msgctxt "start_done"
 msgid "Done"
@@ -4107,6 +4111,11 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#, php-format
+#~ msgctxt "start_avatar_done"
+#~ msgid "Your avatar is %s."
+#~ msgstr "Dein Avatar ist %s."
 
 #, php-format
 #~ msgctxt "start_add_grid"

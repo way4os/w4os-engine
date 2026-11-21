@@ -5,6 +5,8 @@
 - change (assets): a picture that is not there is a 404 without a picture, so a page shows its own; `default` deprecated
 - change (links): tpLinks() offers hop:// then GRID in a browser, APPTP then GRID in the viewer, then host:port:Region to copy
 - doc (destinations): HOP, GRID, APPTP and LSL tell what the viewers' sources say apart from what was seen
+- change (texts): the Connect block for an avatar signed in: Signed in as <name> (start_avatar_done), and its button to log in Enjoy! once it has been in the world (start_login_done), in every language
+- new (api): the info of a grid gives its address as a destination (tpUri) and its links for a browser (tpLinks: format, link, label), as the grid makes them, for a site that shows them
 - doc (destinations): GRID seen working towards another grid both ways and towards OSgrid, Firestorm 7.2.5 on macOS
 - new (links): tpLinks() on Grid, Region, Parcel and Place, the links fitting a browser or the viewer, AUTO's first, named
 - new (links): LinkFormatBrowser and LinkFormatViewer, the formats AUTO gives, settings of the grid, GRID by default

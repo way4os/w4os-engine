@@ -522,4 +522,17 @@ describe('The links that add a grid to a viewer', function () {
             ->and(W4OS\Engine\I18n\Catalog::MESSAGES['grid_add_to_viewer'])
             ->toBe('Add this grid to your viewer');
     });
+
+    test('the info of a grid gives its address as a destination and its links for a browser, as the grid makes them', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $info = $router->get('/grids/demo/info')->document['data']['attributes'];
+        $links = $grid->tpLinks('browser');
+
+        expect($info['tpUri'])->toBe($grid->tpUri())
+            ->and(array_column($info['tpLinks'], 'format'))->toBe(array_keys($links))
+            ->and(array_column($info['tpLinks'], 'link'))->toBe(array_column($links, 'link'))
+            ->and(array_column($info['tpLinks'], 'label'))->toBe(array_column($links, 'label'));
+    });
 });

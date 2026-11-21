@@ -928,8 +928,8 @@ msgstr "Creu eich afatar"
 
 #, php-format
 msgctxt "start_avatar_done"
-msgid "Your avatar is %s."
-msgstr "Eich afatar yw %s."
+msgid "Signed in as %s"
+msgstr "Wedi mewngofnodi fel %s"
 
 msgctxt "start_add_grid"
 msgid "Add the grid"
@@ -938,6 +938,10 @@ msgstr "Ychwanegu'r grid"
 msgctxt "start_login"
 msgid "Log in"
 msgstr "Mewngofnodi"
+
+msgctxt "start_login_done"
+msgid "Enjoy!"
+msgstr "Mwynhewch!"
 
 msgctxt "start_done"
 msgid "Done"
@@ -4101,6 +4105,11 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#, php-format
+#~ msgctxt "start_avatar_done"
+#~ msgid "Your avatar is %s."
+#~ msgstr "Eich afatar yw %s."
 
 #, php-format
 #~ msgctxt "start_add_grid"

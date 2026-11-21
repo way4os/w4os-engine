@@ -493,6 +493,12 @@ final class Endpoints
                             'description' => 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), null when it has none',
                         ],
                         'addGrid' => Contract::addGrid(),
+                        'tpUri' => ['type' => ['string', 'null'], 'description' => 'The address of the grid as a destination (`tpUri()` of the grid: its login URI, `host:port`), null when it is not known'],
+                        'tpLinks' => [
+                            'type' => 'array',
+                            'description' => 'The teleport links of the grid for a browser (`tpLinks(\'browser\')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link` and `label` (the key of the catalog naming it in a menu); a grid alone may have no link a browser opens, only its address',
+                            'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string']]],
+                        ],
                         'elements' => ['type' => 'object', 'additionalProperties' => ['type' => 'string']],
                     ]),
                 ],
