@@ -169,6 +169,20 @@ describe('assets', function () {
             ->toThrow(ChannelUnavailable::class);
     });
 
+    test('of a grid without its Robust here are read in the database a site gives in Helpers.ini', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $directory = $machine->etc . '/grids/far';
+        $machine->write("$directory/far.conf", "[Grid]\nRemote = true\nGridName = Far\nGridNick = far\nBaseHostname = far.example.org\nPublicPort = 8002\n");
+        $machine->write("$directory/Helpers.ini", "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=far;User ID=os;Password=pw;\"\n");
+        // The database only for the connection the config gives
+        Connections::using(static fn($what, $simulator, $connection) => $connection?->database === 'far' ? asset_database() : null);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'far');
+
+        $notecard = W4OS\Engine\Assets\WebAssets::for($grid)->get(ASSET_NOTECARD, 'jpg');
+
+        expect([$notecard['found'], $notecard['data']])->toBe([true, 'Linden text version 2']);
+    });
+
     test('are read from the asset service of the grid, whatever it stores them in', function () {
         $xml =
             '<?xml version="1.0"?><AssetBase><Data>' .

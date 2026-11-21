@@ -182,10 +182,8 @@ final class WebAssets
      */
     private function asset(string $id): ?Asset
     {
-        $config =
-            $this->grid->directory() !== '' && is_dir($this->grid->directory())
-                ? GridConfig::fromFolder($this->grid->directory())
-                : new GridConfig();
+        // The config of the grid as the engine knows it: its files, Helpers.ini, what a site describes and the access it gives
+        $config = $this->grid->config() ?? new GridConfig();
         if (($kept = $this->sources->get($id) ?? $this->remote($config, $id)) !== null) {
             return $this->rebuilt($config, $id, $kept);
         }
