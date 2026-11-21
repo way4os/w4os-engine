@@ -2123,6 +2123,10 @@ msgctxt "link_menu_txt"
 msgid "Copy the address"
 msgstr "Copïo'r cyfeiriad"
 
+msgctxt "tp_more"
+msgid "More ways to go there"
+msgstr "Mwy o ffyrdd o fynd yno"
+
 msgctxt "setting_gatekeeper_help"
 msgid "The address other grids reach this one by (hypergrid)."
 msgstr ""

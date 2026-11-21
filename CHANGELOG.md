@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (texts): tp_more, the button beside a teleport link that opens the menu of its other links, in every language
 - new (api): GET /grids/{grid}/place?destination=..., open: a destination as a site shows a link to it, its address and its links for a browser and for the viewer (tpLinks of the place the grid makes of it)
 - change (texts): the Connect block for an avatar signed in: Signed in as <name> (start_avatar_done), and its button to log in Enjoy! once it has been in the world (start_login_done), in every language
 - new (api): the info of a grid gives its address as a destination (tpUri) and its links for a browser (tpLinks: format, link, label), as the grid makes them, for a site that shows them
