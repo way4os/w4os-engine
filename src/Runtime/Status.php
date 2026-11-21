@@ -28,6 +28,24 @@ final class Status
         return count($this->instances) - $this->up();
     }
 
+    /**
+     * The Robusts that run without their database: they answer, with an error, what needs it (RobustController::databaseAnswers()).
+     *
+     * @param ?\Closure(string,array<string,string>):array{0:int,1:string} $post the POST of the probe (Http::exchange() without it)
+     * @return list<string> their names
+     */
+    public function withoutDatabase(?\Closure $post = null): array
+    {
+        $names = [];
+        foreach ($this->instances as $instance) {
+            if ($instance instanceof \W4OS\Engine\Controllers\RobustController && $instance->process() !== null && $instance->databaseAnswers($post) === false) {
+                $names[] = $instance->name();
+            }
+        }
+
+        return $names;
+    }
+
     /** @return array{cpu:float,memory:float,rss:int} */
     public function totals(): array
     {

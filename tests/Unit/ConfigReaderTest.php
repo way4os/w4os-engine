@@ -173,7 +173,7 @@ describe('A connection string', function () {
         $text = (string) ConnectionString::for('localhost', 'grid', 'opensim', 'pw');
 
         expect($text)
-            ->toBe('Data Source=localhost;Database=grid;User ID=opensim;Password=pw;Old Guids=true;')
+            ->toBe('Data Source=localhost;Database=grid;User ID=opensim;Password=pw;Old Guids=true;SslMode=None;')
             ->and(ConnectionString::parse($text)->key())
             ->toBe('opensim@localhost/grid');
     });

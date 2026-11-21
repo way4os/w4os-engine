@@ -85,7 +85,38 @@ final class ConnectionString
             $this->database,
             $this->user,
             $this->password,
-        );
+        ) . (self::isLocal($this->host) ? 'SslMode=None;' : '');
+    }
+
+    /**
+     * Whether a host is this machine: localhost, 127.0.0.1, ::1, or a socket. A database there takes no TLS: the MySql.Data of an
+     * OpenSimulator on Mono cannot do the TLS a MariaDB of today offers by default, and Robust then starts without its database.
+     */
+    public static function isLocal(string $host): bool
+    {
+        $host = strtolower(trim($host, " \t[]"));
+
+        return in_array($host, ['localhost', '127.0.0.1', '::1'], true) || str_starts_with($host, '/');
+    }
+
+    /**
+     * A connection string of a config with `SslMode=None;` added when its database is on this machine and it says no SslMode (a
+     * MySQL one; isLocal()); null when there is nothing to add.
+     */
+    public static function withLocalTls(string $text): ?string
+    {
+        $value = trim($text);
+        if ($value === '' || stripos($value, 'URI=file:') !== false) {
+            return null;
+        }
+        $pairs = array_change_key_case(self::pairs($value), CASE_LOWER);
+        $said = array_intersect_key($pairs, ['sslmode' => 1, 'ssl mode' => 1, 'ssl-mode' => 1]);
+        $source = $pairs['data source'] ?? $pairs['server'] ?? $pairs['host'] ?? '';
+        if ($said !== [] || $source === '' || !self::isLocal(self::split($source)[0])) {
+            return null;
+        }
+
+        return rtrim($value, '; ') . ';SslMode=None;';
     }
 
     /**

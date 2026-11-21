@@ -84,6 +84,26 @@ final class RobustController extends AbstractController
         return (array) ($this->own('connectors') ?? []);
     }
 
+    /**
+     * Whether it reaches its database, as it answers: its grid service asked for the default regions (what it reads in its
+     * database). True for an answer of the service, false for an error (Robust runs, its database does not answer it: a connection
+     * string its MySql.Data cannot use, a server down), null when it does not answer (stopped, still starting).
+     *
+     * @param ?\Closure(string,array<string,string>):array{0:int,1:string} $post the POST (Http::exchange() without it)
+     */
+    public function databaseAnswers(?\Closure $post = null): ?bool
+    {
+        $entry = (string) ($this->settings()['ServiceList']['GridServiceConnector'] ?? '');
+        $port = preg_match('/^\s*"?(\d+)\//', $entry, $m) === 1 ? (int) $m[1] : $this->privatePort();
+        if ($port === null || $port <= 0) {
+            return null;
+        }
+        $fields = ['METHOD' => 'get_default_regions', 'SCOPEID' => '00000000-0000-0000-0000-000000000000'];
+        [$status, $body] = ($post ?? static fn(string $url, array $form): array => \W4OS\Engine\Network\Http::exchange($url, $form))("http://127.0.0.1:$port/grid", $fields);
+
+        return $status === 0 ? null : $status === 200 && str_contains($body, '<ServerResponse');
+    }
+
     public function serves(string $connector): bool
     {
         return in_array($connector, $this->connectors(), true);

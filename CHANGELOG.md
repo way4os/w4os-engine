@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (databases): SslMode=None for a local database, written by the setup and added at each upgrade (MySql.Data on Mono, MariaDB TLS)
+- new (status): Status::withoutDatabase(), a running Robust whose grid service fails (RobustController::databaseAnswers())
 - new (destinations): Place::at() and Grid::placeAt(), a region at a landing point; tpLink() gives every format, arrays too
 - change (destinations): tpUri() and tpLink() on Grid, Region, Parcel and Place, the one way to a teleport link; Grid::link() removed
 - doc (destinations): each link format says only what was seen in a viewer, where and towards which grid

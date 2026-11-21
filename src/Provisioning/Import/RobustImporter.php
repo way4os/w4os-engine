@@ -189,7 +189,7 @@ final class RobustImporter
                 // What the setup wrote is its own; what is as in the core is no choice of the user
                 $reason = match (true) {
                     $value === '' => 'empty',
-                    $value === $standard => 'same',
+                    $value === $standard || self::sameDatabase($value, $standard) => 'same',
                     $standard !== null && $standard !== $default => 'replaced',
                     $value === $default => 'default',
                     default => null,
@@ -280,5 +280,20 @@ final class RobustImporter
         rmdir($folder);
 
         return $text;
+    }
+
+    /**
+     * Whether two connection strings name the same database (its server, its name, its user), whatever their other pairs: the
+     * new config writes `SslMode=None;` for a local one (ConnectionString), the database is the same.
+     */
+    private static function sameDatabase(string $value, ?string $standard): bool
+    {
+        if ($standard === null || stripos($value, 'Data Source') === false) {
+            return false;
+        }
+        $old = \W4OS\Engine\Config\ConnectionString::parse($value);
+        $new = \W4OS\Engine\Config\ConnectionString::parse($standard);
+
+        return $old !== null && $new !== null && $old->key() === $new->key() && $old->password === $new->password;
     }
 }

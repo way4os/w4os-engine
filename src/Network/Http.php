@@ -31,6 +31,30 @@ final class Http
         return self::answer($handle, curl_exec($handle));
     }
 
+    /**
+     * A POST and its answer, whatever its status: [the status, 0 when nothing answered; the body].
+     *
+     * @param array<string,scalar>|string $body the fields of a form, or the body as it is
+     * @return array{0:int,1:string}
+     */
+    public static function exchange(string $url, array|string $body, int $timeout = 5): array
+    {
+        $handle = curl_init($url);
+        if ($handle === false) {
+            return [0, ''];
+        }
+        curl_setopt_array($handle, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => is_array($body) ? http_build_query($body) : $body,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => min(3, $timeout),
+            CURLOPT_TIMEOUT => $timeout,
+        ]);
+        $answer = curl_exec($handle);
+
+        return [is_string($answer) ? (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE) : 0, is_string($answer) ? $answer : ''];
+    }
+
     public static function get(string $url, int $timeout = 5): ?string
     {
         $handle = curl_init($url);
