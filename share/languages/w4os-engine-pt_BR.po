@@ -2101,6 +2101,10 @@ msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Copiar o endereço"
 
+msgctxt "tp_more"
+msgid "More ways to go there"
+msgstr "Mais formas de ir até lá"
+
 msgctxt "setting_gatekeeper_help"
 msgid "The address other grids reach this one by (hypergrid)."
 msgstr "O endereço pelo qual os outros grids alcançam este (hypergrid)."

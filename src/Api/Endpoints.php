@@ -228,6 +228,24 @@ final class Endpoints
                 '503' => Contract::problem('The grid has no files on this machine (`channel-unavailable`)'),
             ],
         ];
+        $paths['/grids/{grid}/place']['get'] = [
+            'operationId' => 'getPlace',
+            'tags' => ['Destinations'],
+            'summary' => 'Links of a destination',
+            'description' => 'A destination as a site shows a link to it, for any place it prints (a region, a parcel, a place of the guide, of the search, of a profile, a grid): its address (`tpUri`), then its links for a browser and for the viewer (`tpLinks()` of the place the grid makes of it, `Grid::place()`), each `format` (a Destination format), `link` and `label` (the key of the catalog naming it in a menu), the one AUTO gives first, then the other ones that fit, then the address to copy (TXT). Open: a site asks it for its visitors.',
+            'parameters' => [Contract::gridParameter(), ['name' => 'destination', 'in' => 'query', 'required' => true, 'schema' => ['type' => 'string'], 'description' => 'host:port/Region/x/y/z, host:port:Region, hop://... or a region of the grid by its name']],
+            'responses' => [
+                '200' => [
+                    'description' => 'Its address and its links',
+                    'content' => $document('place', [
+                        'tpUri' => ['type' => 'string'],
+                        'browser' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string']]]],
+                        'viewer' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['format' => ['type' => 'integer'], 'link' => ['type' => 'string'], 'label' => ['type' => 'string']]]],
+                    ]),
+                ],
+                '404' => Contract::problem('The grid is not known here, or the destination is none'),
+            ],
+        ];
         $paths['/grids/{grid}/addresses']['get'] = [
             'operationId' => 'getAddresses',
             'tags' => ['Addresses'],
