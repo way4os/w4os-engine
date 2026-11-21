@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (texts): the columns and the details of the web search, as the viewers show them, in every language
 - fix (search): the viewers no longer list a classified that has expired, as the web search
 - new (texts): the web search as the viewers have it, its kinds, fields, ratings and categories, in every language
 - new (search): SearchFilters, what a search asks (words, category, ratings, price, area, day), for the viewers and the web search

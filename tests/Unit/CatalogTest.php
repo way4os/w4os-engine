@@ -156,6 +156,7 @@ describe('the catalog of the texts of the sites', function () {
             'setting_guide_source', 'setting_welcome', 'shortcode_options', 'skill_architecture', 'total',
             // The web search: the words of the viewers, the same in this language
             'classified_category_service', 'classified_category_shopping', 'event_category_commercial', 'event_category_discussion', 'event_category_sports', 'place_category_shopping', 'web_search_date', 'web_search_land_type',
+            'web_search_description',
         ],
         'it_IT' => [
             'asset_mesh', 'asset_script', 'asset_texture', 'asset_texture_tga', 'column_file', 'column_presence_short',
@@ -166,6 +167,7 @@ describe('the catalog of the texts of the sites', function () {
             'skill_scripting', 'unit_mb',
             // The web search: the words of the viewers, the same in this language
             'classified_category_shopping', 'place_category_shopping',
+            'web_search_no',
         ],
         'nl_NL' => [
             'asset_landmark', 'asset_link', 'asset_mesh', 'asset_object', 'asset_script', 'avatars_count', 'avatars_menu',

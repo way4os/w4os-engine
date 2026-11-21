@@ -2271,6 +2271,66 @@ msgctxt "web_search_duration"
 msgid "Duration"
 msgstr "Durata"
 
+msgctxt "web_search_sort"
+msgid "Sort by"
+msgstr "Ordina per"
+
+msgctxt "web_search_price_m2"
+msgid "Price/m²"
+msgstr "Prezzo/m²"
+
+msgctxt "web_search_time"
+msgid "Time"
+msgstr "Ora"
+
+msgctxt "web_search_adult_content"
+msgid "Adult content"
+msgstr "Contenuto per adulti"
+
+msgctxt "web_search_yes"
+msgid "Yes"
+msgstr "Sì"
+
+msgctxt "web_search_no"
+msgid "No"
+msgstr "No"
+
+msgctxt "web_search_organizer"
+msgid "Organizer"
+msgstr "Organizzatore"
+
+msgctxt "web_search_location"
+msgid "Location"
+msgstr "Luogo"
+
+msgctxt "web_search_entry_fee"
+msgid "Entry fee"
+msgstr "Ingresso"
+
+msgctxt "web_search_none"
+msgid "None"
+msgstr "Nessuno"
+
+msgctxt "web_search_description"
+msgid "Description"
+msgstr "Descrizione"
+
+msgctxt "web_search_content_type"
+msgid "Content type"
+msgstr "Tipo di contenuto"
+
+msgctxt "web_search_creation_date"
+msgid "Creation date"
+msgstr "Data di creazione"
+
+msgctxt "web_search_listing_cost"
+msgid "Listing cost"
+msgstr "Costo dell'annuncio"
+
+msgctxt "web_search_rating"
+msgid "Rating"
+msgstr "Classificazione"
+
 msgctxt "place_category_arts"
 msgid "Arts and Culture"
 msgstr "Arte e cultura"

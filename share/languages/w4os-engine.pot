@@ -2017,6 +2017,66 @@ msgctxt "web_search_duration"
 msgid "Duration"
 msgstr ""
 
+msgctxt "web_search_sort"
+msgid "Sort by"
+msgstr ""
+
+msgctxt "web_search_price_m2"
+msgid "Price/m²"
+msgstr ""
+
+msgctxt "web_search_time"
+msgid "Time"
+msgstr ""
+
+msgctxt "web_search_adult_content"
+msgid "Adult content"
+msgstr ""
+
+msgctxt "web_search_yes"
+msgid "Yes"
+msgstr ""
+
+msgctxt "web_search_no"
+msgid "No"
+msgstr ""
+
+msgctxt "web_search_organizer"
+msgid "Organizer"
+msgstr ""
+
+msgctxt "web_search_location"
+msgid "Location"
+msgstr ""
+
+msgctxt "web_search_entry_fee"
+msgid "Entry fee"
+msgstr ""
+
+msgctxt "web_search_none"
+msgid "None"
+msgstr ""
+
+msgctxt "web_search_description"
+msgid "Description"
+msgstr ""
+
+msgctxt "web_search_content_type"
+msgid "Content type"
+msgstr ""
+
+msgctxt "web_search_creation_date"
+msgid "Creation date"
+msgstr ""
+
+msgctxt "web_search_listing_cost"
+msgid "Listing cost"
+msgstr ""
+
+msgctxt "web_search_rating"
+msgid "Rating"
+msgstr ""
+
 msgctxt "place_category_arts"
 msgid "Arts and Culture"
 msgstr ""
