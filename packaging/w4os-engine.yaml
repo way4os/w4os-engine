@@ -53,6 +53,12 @@ contents:
     # A mode of its own: without it nfpm takes the mode of the target on the machine that builds, and ships a folder or a file
     file_info:
       mode: 0777
+  # The API of the engine on the command line
+  - src: /usr/share/w4os-engine/bin/w4os-api
+    dst: /usr/bin/w4os-api
+    type: symlink
+    file_info:
+      mode: 0777
   - src: packaging/w4os-engine.copyright
     dst: /usr/share/doc/w4os-engine/copyright
     file_info:

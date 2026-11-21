@@ -81,6 +81,7 @@ check "its files are in /usr/share/w4os-engine" "[ -f /usr/share/w4os-engine/src
 check "rest-php comes from its own package, by a link" "[ -L /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php ] && [ -f /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php/class-rest.php ]"
 check "the engine loads, with its dependencies" "loads /usr/share/w4os-engine"
 check "it loads as an unprivileged user, it writes nothing" "runuser -u nobody -- php -r \"require \\\"/usr/share/w4os-engine/vendor/autoload.php\\\"; echo 1;\" | grep -q 1"
+check "the API command is in /usr/bin and answers" "[ -L /usr/bin/w4os-api ] && w4os-api --version | grep -q \"^w4os-engine \""
 # The upgrade from the name of before w4os, from a version that bundled rest-php
 dpkg -r opensim-engine w4os-engine >/dev/null 2>&1
 previous opensim-engine opensim-rest-php
