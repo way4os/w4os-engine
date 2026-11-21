@@ -940,11 +940,6 @@ msgctxt "start_add_grid"
 msgid "Add %s"
 msgstr "Ychwanegu %s"
 
-#, php-format
-msgctxt "start_viewer_note"
-msgid "No viewer yet? Get %s, or any viewer for OpenSim."
-msgstr "Dim viewer eto? Mynnwch %s, neu unrhyw viewer ar gyfer OpenSim."
-
 msgctxt "start_login"
 msgid "Log in"
 msgstr "Mewngofnodi"
@@ -4029,6 +4024,11 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#, php-format
+#~ msgctxt "start_viewer_note"
+#~ msgid "No viewer yet? Get %s, or any viewer for OpenSim."
+#~ msgstr "Dim viewer eto? Mynnwch %s, neu unrhyw viewer ar gyfer OpenSim."
 
 #~ msgctxt "start_title"
 #~ msgid "Getting started"

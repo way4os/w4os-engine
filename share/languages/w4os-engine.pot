@@ -786,11 +786,6 @@ msgctxt "start_add_grid"
 msgid "Add %s"
 msgstr ""
 
-#, php-format
-msgctxt "start_viewer_note"
-msgid "No viewer yet? Get %s, or any viewer for OpenSim."
-msgstr ""
-
 msgctxt "start_login"
 msgid "Log in"
 msgstr ""

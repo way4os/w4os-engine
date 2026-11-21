@@ -952,11 +952,6 @@ msgctxt "start_add_grid"
 msgid "Add %s"
 msgstr "%s hinzufügen"
 
-#, php-format
-msgctxt "start_viewer_note"
-msgid "No viewer yet? Get %s, or any viewer for OpenSim."
-msgstr "Noch keinen Viewer? Hol dir %s oder einen anderen Viewer für OpenSim."
-
 msgctxt "start_login"
 msgid "Log in"
 msgstr "Einloggen"
@@ -4033,6 +4028,12 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#, php-format
+#~ msgctxt "start_viewer_note"
+#~ msgid "No viewer yet? Get %s, or any viewer for OpenSim."
+#~ msgstr ""
+#~ "Noch keinen Viewer? Hol dir %s oder einen anderen Viewer für OpenSim."
 
 #~ msgctxt "start_title"
 #~ msgid "Getting started"

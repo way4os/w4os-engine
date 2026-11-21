@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (texts): start_viewer_note removed, the Connect block no longer shows it
 - fix (grids): a remote grid known by its login URI alone asks its get_grid_info once, else reads what the site gave
 - fix (grids): a nick in capitals finds its grid; an invalid nick is a warning naming the right one, never an error
 - fix (port mapping): a start without port mapping keeps the regions' ExternalHostName
@@ -13,7 +14,7 @@
 - fix (xml-rpc): the polyfill's xmlrpc_server_call_method() returns the answer, as the extension
 - change (login URI): the quick setup shows the login URI as host:port, in its review and when it is done
 - fix (tests): the suite passes with the xmlrpc extension, PHP 8.3, no web group or no test database
-- change (texts): the Connect block of a site, its words only (start_add_grid, start_viewer_note)
+- change (texts): the Connect block of a site, its words only (start_add_grid)
 - change (login URI): host:port wherever the engine shows it, from any form; loginUrl for calls
 - new (texts): the add-to-viewer button and the getting-started block, in every language
 - new (viewer links): addGrid, the hop and secondlife links that add a grid to a viewer

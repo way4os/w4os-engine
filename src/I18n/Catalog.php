@@ -266,7 +266,7 @@ final class Catalog
         // The link of the grid info that adds the grid to the viewer (addGrid of the info of a grid)
         'grid_add_to_viewer' => 'Add this grid to your viewer',
         // The button that adds a grid to the viewer (%1$s its name), and the Connect block of a site: its steps (start_avatar and start_login
-        // the buttons; %s the name of the grid in start_add_grid, the link to Firestorm in start_viewer_note, the avatar in start_avatar_done)
+        // the buttons; %s the name of the grid in start_add_grid, the avatar in start_avatar_done)
         'viewer_add_grid' => 'Add %1$s to your viewer',
         'viewer_add_grid_other' => 'Other link',
         'viewer_login_uri_by_hand' => 'Or add it in the grid manager of your viewer with its login URI:',
@@ -277,7 +277,6 @@ final class Catalog
         'start_avatar_done' => 'Your avatar is %s.',
         'start_viewer' => 'Add the grid',
         'start_add_grid' => 'Add %s',
-        'start_viewer_note' => 'No viewer yet? Get %s, or any viewer for OpenSim.',
         'start_login' => 'Log in',
         'start_done' => 'Done',
         'total' => 'Total',
