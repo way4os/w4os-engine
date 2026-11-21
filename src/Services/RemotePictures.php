@@ -21,7 +21,8 @@ use W4OS\Engine\Text\Uuid;
  * (WebAssets). A task of the scheduler asks (refresh()), a guide only reads what was kept (lookup()): a viewer never waits for
  * another grid. A picture is asked again after a day (CHECK), what was not found after a few hours (RETRY), and both are kept a
  * month (KEEP): a grid that does not answer for a while keeps the picture it gave. The grids are asked their info too (GridInfoCache),
- * once a day, so that the cards can say the names they give themselves.
+ * once a day, so that the cards can say the names they give themselves. A destination that is a grid alone (no region) gets the region
+ * its gatekeeper lands on (link_region without a name, then get_region), kept the same way: its link names it (Grid::place()).
  *
  *     (new RemotePictures($cache, $http, $config, $login))->refresh($grid->guide());
  *     RemotePictures::lookup($cache, 'far.example.net:8002/Far/10/20/30', 'Far beach');   // '<uuid>'
@@ -79,6 +80,23 @@ final class RemotePictures
         return $data === false || $data === '' ? null : ['data' => $data, 'type' => (int) ($kept['type'] ?? 0), 'name' => (string) ($kept['name'] ?? '')];
     }
 
+    /**
+     * The region a grid alone lands on (`host:port`), as refresh() kept it from its gatekeeper; null when it is not known. Asks
+     * nothing.
+     */
+    public static function landing(Cache $cache, string $grid): ?string
+    {
+        $kept = $cache->get(self::landingKey($grid));
+
+        return is_array($kept) && is_string($kept['region'] ?? null) && $kept['region'] !== '' ? $kept['region'] : null;
+    }
+
+    /** The key of what is kept of the region a grid alone lands on. */
+    private static function landingKey(string $grid): string
+    {
+        return 'guide.landing.' . strtolower(trim($grid, " /"));
+    }
+
     /** The picture of a hypergrid destination, as it was kept, null when none was found. Asks nothing. */
     public static function lookup(Cache $cache, string $url, string $name = ''): ?string
     {
@@ -105,6 +123,11 @@ final class RemotePictures
                 $local = $own !== null && strtolower((string) $own['host']) === strtolower((string) ($at['host'] ?? '')) && (int) ($own['port'] ?? 80) === (int) ($at['port'] ?? 0);
                 // What the grid says of itself (its name, for the cards), once a day
                 $local || ($at['host'] ?? '') === '' || $this->grids?->login((string) $at['gatekeeper'], true);
+                // A grid alone: the region its gatekeeper lands on, so that its link names one
+                if (!$local && ($at['host'] ?? '') !== '' && ($at['region'] ?? '') === '') {
+                    $this->askLanding((string) $at['region_uri']);
+                    continue;
+                }
                 if (($destination['picture'] ?? null) !== null || $local || ($at['region'] ?? '') === '' || ($at['host'] ?? '') === '') {
                     continue;
                 }
@@ -129,6 +152,21 @@ final class RemotePictures
         }
 
         return $found;
+    }
+
+    /** Ask a grid alone (`host:port`) the region its gatekeeper lands on, when it is time to; one that does not answer keeps the one it gave. */
+    private function askLanding(string $grid): void
+    {
+        $key = self::landingKey($grid);
+        $kept = $this->cache->get($key);
+        $region = is_array($kept) && is_string($kept['region'] ?? null) ? $kept['region'] : null;
+        $due = is_array($kept) ? (int) ($kept['checked'] ?? 0) + ($region !== null && !($kept['failed'] ?? false) ? self::CHECK : self::RETRY) : 0;
+        if ($due > $this->now()) {
+            return;
+        }
+        $asked = Gatekeeper::region($grid);
+        $name = is_array($asked) ? trim((string) ($asked['region_name'] ?? '')) : '';
+        $this->cache->set($key, ['region' => $name !== '' ? $name : $region, 'checked' => $this->now(), 'failed' => $name === ''], self::KEEP);
     }
 
     /**

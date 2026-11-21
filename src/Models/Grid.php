@@ -845,7 +845,22 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
      */
     public function place(string $destination): \W4OS\Engine\Hypergrid\Place
     {
-        return new \W4OS\Engine\Hypergrid\Place($destination, $this->loginUrl(), $this->tpFormats());
+        return new \W4OS\Engine\Hypergrid\Place($this->landing($destination), $this->loginUrl(), $this->tpFormats());
+    }
+
+    /**
+     * Another grid alone (`host:port`, no region) at the region its gatekeeper lands on, as the task of the guide kept it
+     * (RemotePictures::landing()): a link needs a region. Any other destination, or one not known yet, as it is.
+     */
+    private function landing(string $destination): string
+    {
+        $at = \W4OS\Engine\Hypergrid\Destination::parse($destination);
+        if (($at['host'] ?? '') === '' || ($at['region'] ?? '') !== '' || \W4OS\Engine\Hypergrid\Destination::isHere($destination, $this->loginUrl())) {
+            return $destination;
+        }
+        $region = \W4OS\Engine\Services\RemotePictures::landing(\W4OS\Engine\Data\Cache::for($this->environment, $this->config()), (string) $at['region_uri']);
+
+        return $region === null ? $destination : $at['region_uri'] . '/' . $region;
     }
 
     /**

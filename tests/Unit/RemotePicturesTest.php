@@ -94,6 +94,38 @@ function remote_grid(): object
 
 afterEach(fn() => Gatekeeper::using(null));
 
+describe('A grid alone of the guide', function () {
+    test('lands on the region its gatekeeper gives, asked by the task and kept: its link names it, a page asks nothing', function () {
+        $world = remote_grid();
+        $machine = new Machine();
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $cache = Cache::for($machine->environment, $grid->config());
+        $pictures = new RemotePictures($cache, static fn(string $url): ?string => null, new GridConfig(), (string) $grid->loginUrl(), $world->clock);
+        $before = $grid->place('far.example.net:8002');
+
+        $pictures->refresh((new DestinationPictures(null))->of(['Visit' => [['name' => 'Far grid', 'url' => 'far.example.net:8002']]]));
+        $asked = $world->asked;
+        $world->asked = [];
+        $place = $grid->place('far.example.net:8002');
+
+        expect($asked)
+            ->toBe(['http://far.example.net:8002 link_region', 'http://far.example.net:8002 get_region'])
+            ->and(RemotePictures::landing($cache, 'far.example.net:8002'))
+            ->toBe('Far')
+            // Not known yet: no link, its address to copy only
+            ->and($before->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
+            ->toBe('')
+            ->and(array_column($before->tpLinks('browser'), 'label'))
+            ->toBe(['link_menu_copy'])
+            ->and($place->tpUri())
+            ->toBe('far.example.net:8002/Far')
+            ->and($place->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
+            ->toBe('hop://far.example.net:8002/Far')
+            ->and($world->asked)
+            ->toBe([]);
+    });
+});
+
 describe('The pictures of the hypergrid destinations', function () {
     test('are asked to their grid: its gatekeeper, the land of the simulator of the region at the landing point, its picture', function () {
         $world = remote_grid();

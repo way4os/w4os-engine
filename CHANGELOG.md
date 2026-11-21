@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (guide): a grid alone lands on the region its gatekeeper gives, asked by the task and kept; Grid::place() links it
 - fix (links): APPTP and LOCAL keep the point of a var region, past 256 m, as the viewers take it
 - change (links): a grid alone has no hop:// link, the viewers refuse one without a region
 - change (assets): a picture that is not there is a 404 without a picture, so a page shows its own; `default` deprecated
