@@ -94,35 +94,64 @@ function remote_grid(): object
 
 afterEach(fn() => Gatekeeper::using(null));
 
-describe('A grid alone of the guide', function () {
-    test('lands on the region its gatekeeper gives, asked by the task and kept: its link names it, a page asks nothing', function () {
+describe('A grid alone', function () {
+    test('lands on the region its gatekeeper gives: a page asks it once, within a second or two, then reads what was kept', function () {
         $world = remote_grid();
         $machine = new Machine();
         $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
         $cache = Cache::for($machine->environment, $grid->config());
-        $pictures = new RemotePictures($cache, static fn(string $url): ?string => null, new GridConfig(), (string) $grid->loginUrl(), $world->clock);
-        $before = $grid->place('far.example.net:8002');
 
-        $pictures->refresh((new DestinationPictures(null))->of(['Visit' => [['name' => 'Far grid', 'url' => 'far.example.net:8002']]]));
+        $place = $grid->place('far.example.net:8002');
         $asked = $world->asked;
         $world->asked = [];
-        $place = $grid->place('far.example.net:8002');
+        $again = $grid->place('far.example.net:8002');
 
         expect($asked)
             ->toBe(['http://far.example.net:8002 link_region', 'http://far.example.net:8002 get_region'])
             ->and(RemotePictures::landing($cache, 'far.example.net:8002'))
             ->toBe('Far')
-            // Not known yet: no link, its address to copy only
-            ->and($before->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
-            ->toBe('')
-            ->and(array_column($before->tpLinks('browser'), 'label'))
-            ->toBe(['link_menu_copy'])
             ->and($place->tpUri())
             ->toBe('far.example.net:8002/Far')
             ->and($place->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
             ->toBe('hop://far.example.net:8002/Far')
+            ->and($again->tpUri())
+            ->toBe('far.example.net:8002/Far')
             ->and($world->asked)
-            ->toBe([]);
+            ->toBe([])
+            ->and(W4OS\Engine\Hypergrid\Gatekeeper::$timeout)
+            ->toBe(Gatekeeper::TIMEOUT);
+    });
+
+    test('whose gatekeeper does not answer has no link that needs a region, its address to copy only, asked again hours later', function () {
+        $world = remote_grid();
+        $world->down = true;
+        $grid = W4OS\Engine\Models\Grid::find((new Machine())->environment, 'demo');
+
+        $place = $grid->place('far.example.net:8002');
+        $asked = count($world->asked);
+        $grid->place('far.example.net:8002');
+
+        expect($place->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
+            ->toBe('')
+            ->and(array_column($place->tpLinks('browser'), 'label'))
+            ->toBe(['link_menu_copy'])
+            ->and(count($world->asked))
+            ->toBe($asked);
+    });
+
+    test('of the guide is asked by the task too, and kept', function () {
+        $world = remote_grid();
+        $machine = new Machine();
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $cache = Cache::for($machine->environment, $grid->config());
+        $pictures = new RemotePictures($cache, static fn(string $url): ?string => null, new GridConfig(), (string) $grid->loginUrl(), $world->clock);
+
+        $pictures->refresh((new DestinationPictures(null))->of(['Visit' => [['name' => 'Far grid', 'url' => 'far.example.net:8002']]]));
+
+        expect($world->asked)
+            ->toBe(['http://far.example.net:8002 link_region', 'http://far.example.net:8002 get_region'])
+            ->and(RemotePictures::landing($cache, 'far.example.net:8002'))
+            ->toBe('Far');
     });
 });
 

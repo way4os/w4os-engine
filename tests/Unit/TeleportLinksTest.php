@@ -94,14 +94,16 @@ describe('The links of a place for a client', function () {
             ->and($here->tpLinks('browser'))->toBe([
                 Destination::GRID => ['link' => $here->tpLink(Destination::GRID), 'label' => 'link_menu_grid'],
                 Destination::HOP => ['link' => $here->tpLink(Destination::HOP), 'label' => 'link_menu_hop'],
-                Destination::LSL => ['link' => $here->tpLink(Destination::LSL), 'label' => 'link_menu_copy'],
+                // The address to copy, without its point: the search of the map takes the region alone
+                Destination::LSL => ['link' => (new Place('Welcome', 'http://play.example.org:8002'))->tpLink(Destination::LSL), 'label' => 'link_menu_copy'],
             ])
             // the format its grid chooses comes first, then the other ones in their order; LOCAL for its own places only
             ->and(array_keys($hop->tpLinks('browser')))->toBe([Destination::HOP, Destination::GRID, Destination::LSL])
             ->and(array_keys($hop->tpLinks('viewer')))->toBe([Destination::LOCAL, Destination::APPTP, Destination::GRID, Destination::LSL])
             ->and(array_keys((new Place('far.example.org:8002/Far Away', 'http://play.example.org:8002', ['viewer' => Destination::LOCAL]))->tpLinks('viewer')))
             ->toBe([Destination::GRID, Destination::APPTP, Destination::LSL])
-            ->and($there->tpLinks('browser')[Destination::LSL]['link'])->toBe('far.example.org:8002:Far Away/1/2/3')
+            ->and($there->tpLinks('browser')[Destination::LSL]['link'])->toBe('far.example.org:8002:Far Away')
+            ->and($there->tpLink(Destination::LSL))->toBe('far.example.org:8002:Far Away/1/2/3')
             ->and((new Place(''))->tpLinks('browser'))->toBe([]);
     });
 });

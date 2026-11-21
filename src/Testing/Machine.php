@@ -31,6 +31,8 @@ final class Machine
 
     public function __construct()
     {
+        // No gatekeeper of another grid is asked over the network, unless a test gives its own
+        \W4OS\Engine\Hypergrid\Gatekeeper::hasTransport() || \W4OS\Engine\Hypergrid\Gatekeeper::using(static fn(string $url, string $body): ?string => null);
         $this->root = (realpath(sys_get_temp_dir()) ?: sys_get_temp_dir()) . '/machine-' . bin2hex(random_bytes(4));
         $this->etc = $this->root . '/etc';
         $this->core = $this->root . '/core/0.9.3.0';

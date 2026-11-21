@@ -22,7 +22,8 @@ use W4OS\Engine\Text\Uuid;
  * another grid. A picture is asked again after a day (CHECK), what was not found after a few hours (RETRY), and both are kept a
  * month (KEEP): a grid that does not answer for a while keeps the picture it gave. The grids are asked their info too (GridInfoCache),
  * once a day, so that the cards can say the names they give themselves. A destination that is a grid alone (no region) gets the region
- * its gatekeeper lands on (link_region without a name, then get_region), kept the same way: its link names it (Grid::place()).
+ * its gatekeeper lands on (link_region without a name, then get_region), kept the same way: its link names it (Grid::place(), which
+ * asks it itself, within a second or two, when it is not known yet: resolveLanding()).
  *
  *     (new RemotePictures($cache, $http, $config, $login))->refresh($grid->guide());
  *     RemotePictures::lookup($cache, 'far.example.net:8002/Far/10/20/30', 'Far beach');   // '<uuid>'
@@ -91,6 +92,36 @@ final class RemotePictures
         return is_array($kept) && is_string($kept['region'] ?? null) && $kept['region'] !== '' ? $kept['region'] : null;
     }
 
+    /** Seconds a page waits for the gatekeeper of a grid alone (resolveLanding()). */
+    public const PAGE_TIMEOUT = 2;
+
+    /**
+     * The region a grid alone lands on, asked to its gatekeeper when it is time to (never asked, after a day when it answered, after
+     * a few hours when it did not) within $timeout seconds, and kept; the one kept when it does not answer, null when none is.
+     */
+    public static function resolveLanding(Cache $cache, string $grid, int $now, int $timeout = Gatekeeper::TIMEOUT): ?string
+    {
+        $key = self::landingKey($grid);
+        $kept = $cache->get($key);
+        $region = is_array($kept) && is_string($kept['region'] ?? null) && $kept['region'] !== '' ? $kept['region'] : null;
+        $due = is_array($kept) ? (int) ($kept['checked'] ?? 0) + ($region !== null && !($kept['failed'] ?? false) ? self::CHECK : self::RETRY) : 0;
+        if ($due > $now) {
+            return $region;
+        }
+        $before = Gatekeeper::$timeout;
+        Gatekeeper::$timeout = min($before, $timeout);
+        try {
+            $asked = Gatekeeper::region($grid);
+        } finally {
+            Gatekeeper::$timeout = $before;
+        }
+        $name = is_array($asked) ? trim((string) ($asked['region_name'] ?? '')) : '';
+        $region = $name !== '' ? $name : $region;
+        $cache->set($key, ['region' => $region, 'checked' => $now, 'failed' => $name === ''], self::KEEP);
+
+        return $region;
+    }
+
     /** The key of what is kept of the region a grid alone lands on. */
     private static function landingKey(string $grid): string
     {
@@ -125,7 +156,7 @@ final class RemotePictures
                 $local || ($at['host'] ?? '') === '' || $this->grids?->login((string) $at['gatekeeper'], true);
                 // A grid alone: the region its gatekeeper lands on, so that its link names one
                 if (!$local && ($at['host'] ?? '') !== '' && ($at['region'] ?? '') === '') {
-                    $this->askLanding((string) $at['region_uri']);
+                    self::resolveLanding($this->cache, (string) $at['region_uri'], $this->now());
                     continue;
                 }
                 if (($destination['picture'] ?? null) !== null || $local || ($at['region'] ?? '') === '' || ($at['host'] ?? '') === '') {
@@ -152,21 +183,6 @@ final class RemotePictures
         }
 
         return $found;
-    }
-
-    /** Ask a grid alone (`host:port`) the region its gatekeeper lands on, when it is time to; one that does not answer keeps the one it gave. */
-    private function askLanding(string $grid): void
-    {
-        $key = self::landingKey($grid);
-        $kept = $this->cache->get($key);
-        $region = is_array($kept) && is_string($kept['region'] ?? null) ? $kept['region'] : null;
-        $due = is_array($kept) ? (int) ($kept['checked'] ?? 0) + ($region !== null && !($kept['failed'] ?? false) ? self::CHECK : self::RETRY) : 0;
-        if ($due > $this->now()) {
-            return;
-        }
-        $asked = Gatekeeper::region($grid);
-        $name = is_array($asked) ? trim((string) ($asked['region_name'] ?? '')) : '';
-        $this->cache->set($key, ['region' => $name !== '' ? $name : $region, 'checked' => $this->now(), 'failed' => $name === ''], self::KEEP);
     }
 
     /**

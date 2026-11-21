@@ -849,8 +849,9 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     }
 
     /**
-     * Another grid alone (`host:port`, no region) at the region its gatekeeper lands on, as the task of the guide kept it
-     * (RemotePictures::landing()): a link needs a region. Any other destination, or one not known yet, as it is.
+     * Another grid alone (`host:port`, no region) at the region its gatekeeper lands on: a link needs a region. Kept by the task of
+     * the guide, else asked now, within a second or two, and kept (RemotePictures::resolveLanding()). Any other destination, or one
+     * whose gatekeeper does not answer, as it is.
      */
     private function landing(string $destination): string
     {
@@ -858,7 +859,12 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         if (($at['host'] ?? '') === '' || ($at['region'] ?? '') !== '' || \W4OS\Engine\Hypergrid\Destination::isHere($destination, $this->loginUrl())) {
             return $destination;
         }
-        $region = \W4OS\Engine\Services\RemotePictures::landing(\W4OS\Engine\Data\Cache::for($this->environment, $this->config()), (string) $at['region_uri']);
+        $region = \W4OS\Engine\Services\RemotePictures::resolveLanding(
+            \W4OS\Engine\Data\Cache::for($this->environment, $this->config()),
+            (string) $at['region_uri'],
+            (int) $this->environment->clock->time(),
+            \W4OS\Engine\Services\RemotePictures::PAGE_TIMEOUT,
+        );
 
         return $region === null ? $destination : $at['region_uri'] . '/' . $region;
     }

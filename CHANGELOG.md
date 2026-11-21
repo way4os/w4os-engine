@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- change (links): a page asks a grid alone its landing region itself, within 2 s, and keeps it; tests never ask the network
+- change (links): the address to copy is host:port:Region without its point, as the map of the viewer takes it
 - new (guide): a grid alone lands on the region its gatekeeper gives, asked by the task and kept; Grid::place() links it
 - fix (links): APPTP and LOCAL keep the point of a var region, past 256 m, as the viewers take it
 - change (links): a grid alone has no hop:// link, the viewers refuse one without a region

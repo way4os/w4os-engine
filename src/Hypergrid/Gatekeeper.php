@@ -13,6 +13,9 @@ final class Gatekeeper
     /** How long a gatekeeper has to answer, in seconds: most answer below one. */
     public const TIMEOUT = 3;
 
+    /** How long a gatekeeper has to answer a call made now (request()), in seconds: TIMEOUT, less while a page waits. */
+    public static int $timeout = self::TIMEOUT;
+
     /** How many gatekeepers are asked at once. */
     public const CONCURRENCY = 8;
 
@@ -31,6 +34,12 @@ final class Gatekeeper
     {
         self::$transport = $transport;
         self::forget();
+    }
+
+    /** Whether the gatekeepers are asked with another function (using()), not over HTTP. */
+    public static function hasTransport(): bool
+    {
+        return self::$transport !== null;
     }
 
     /** Forget what the gatekeepers answered: the next calls ask them again. */
@@ -66,7 +75,7 @@ final class Gatekeeper
             'http' => [
                 'method' => 'POST',
                 'header' => 'Content-Type: text/xml' . "\r\n",
-                'timeout' => self::TIMEOUT, // most of the time below 1 sec, but leave some time for slow ones
+                'timeout' => self::$timeout, // most of the time below 1 sec, but leave some time for slow ones
                 'content' => $xml_request,
             ],
         ];

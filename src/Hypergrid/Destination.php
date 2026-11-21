@@ -450,7 +450,8 @@ final class Destination
 
     /**
      * The links of a destination where it is shown, the one AUTO gives first and then the other ones that fit that client
-     * (LINKS), by format; LSL last, its address to copy into the search of the map of the viewer. Each with the key of the
+     * (LINKS), by format; LSL last, its address to copy into the search of the map of the viewer, without its point (the search
+     * takes `host:port:Region` alone). Each with the key of the
      * catalog naming it in a menu (LINK_LABELS). A destination of another grid has no LOCAL one, a grid alone none that needs a
      * region (REGION_LINKS).
      *
@@ -469,7 +470,8 @@ final class Destination
                 || (empty($parsed['region']) && ($format & self::REGION_LINKS))) {
                 continue;
             }
-            $link = (string) self::format(self::autoUri($parsed, $format), $format);
+            // The address to copy without its point: the search of the map of the viewer takes host:port:Region alone
+            $link = (string) self::format($format === self::LSL ? (string) $parsed['region_uri'] : self::autoUri($parsed, $format), $format);
             $link === '' || ($links[$format] = ['link' => $link, 'label' => self::LINK_LABELS[$format] ?? '']);
         }
 
