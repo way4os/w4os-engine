@@ -31,6 +31,27 @@ describe('The address of a service', function () {
             ->and(file_get_contents($machine->grid . '/Robust.HG.ini'))->toContain('${Const|WebURL}/money/');
     });
 
+    test('read and written back, is the same address, also on the site out of the helpers', function () {
+        // The register of the grid under another key, as the pages wrote it before under the name of the grid
+        [$machine, $router] = provided_grid("[Search]\n    SearchURL = \"https://play.example.org/helpers/query.php\"\n[DataSnapshot]\n    DATA_SRV_OldName = \"https://play.example.org/helpers/register.php\"\n");
+        // The helpers elsewhere on the site: where currency.php is, the economy's prefix
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    HelpersURL = \"https://play.example.org/economy\"\n");
+
+        $read = $router->get('/grids/demo/settings/search')->document['data']['attributes'];
+        $written = address_patch($router, 'search', array_intersect_key($read, array_flip(['provide', 'path', 'registerPath', 'include2do', 'registers'])));
+        $ini = file_get_contents($machine->grid . '/OpenSim.ini');
+
+        expect([$read['provide'], $read['path'], $read['registerPath'], $read['registers']])->toBe([true, '/helpers/query.php', '/helpers/register.php', []])
+            ->and($written->status)->toBe(200)
+            ->and($written->document['data']['attributes']['path'])->toBe('/helpers/query.php')
+            ->and($ini)->toContain('SearchURL = "https://play.example.org/helpers/query.php"')
+            // Once, under the key of its nick, the one the search preset lays in the master of the simulators; the other left commented
+            ->and(preg_match_all('#^\s*DATA_SRV_\w+ = "https://play.example.org/helpers/register.php"#m', $ini))->toBe(1)
+            ->and($ini)->toContain('DATA_SRV_demo = "https://play.example.org/helpers/register.php"')
+            ->and($ini)->toContain(';DATA_SRV_OldName')
+            ->and($ini)->not->toContain('/economy/');
+    });
+
     test('of another search engine is kept apart, 2do.directory by default, and not lost when Provide is switched', function () {
         [$machine, $router] = provided_grid();
         $fields = provided_fields('search');
@@ -80,7 +101,7 @@ describe('The address of a service', function () {
         expect(array_count_values(array_column($snippets, 'file'))['OpenSim.ini'] ?? 0)->toBe(1)
             ->and(substr_count($opensim, 'SearchURL'))->toBe(1)
             // Its own register once, and 2do.directory's
-            ->and(substr_count($opensim, 'DATA_SRV_Demo'))->toBe(1)
+            ->and(substr_count($opensim, 'DATA_SRV_demo'))->toBe(1)
             ->and(substr_count($opensim, 'DATA_SRV_2do'))->toBe(1);
     });
 });

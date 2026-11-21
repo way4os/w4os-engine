@@ -246,8 +246,10 @@ final class GridSettings
         $on = !is_string($url) || $url === '' || ($site !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $site));
         // The module V2 is Robust's: the helpers do not provide it
         $page === 'offline' && stripos((string) $values['offlineModule'], 'V2') !== false && ($on = false);
-        // The path under its base, which ends with the slash: it never starts with one
-        $path = ltrim($on && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page), '/');
+        // The path under its base, which ends with the slash: it starts with one only for an address of the site out of the
+        // helpers' base, from the root of the site
+        $path = $on && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page);
+        (self::PROVIDE[$page]['base'] ?? 'site') === 'helpers' || ($path = ltrim($path, '/'));
         // The address of another server: the one kept, else the one the grid uses when it is elsewhere
         if (isset($provide['external']) && !$on && $config->find('Helpers', Settings::named($provide['external'])['key']) === null) {
             $values[$provide['external']] = $url;
@@ -271,21 +273,49 @@ final class GridSettings
         return $this->grid->site();
     }
 
-    /** The path of an address under the base of its page (with its query), as the page shows it. */
+    /**
+     * The path of an address under the base of its page (with its query), as the page shows it: under the helpers for what they
+     * serve, else from the root of the site, with its slash, so that the path written back gives the same address.
+     */
     private function pathOf(string $page, string $url): string
     {
         $base = $this->baseOf($page);
-        if ((self::PROVIDE[$page]['base'] ?? 'site') === 'helpers' && $base !== null && str_starts_with($url, $base . '/')) {
-            return substr($url, strlen($base) + 1);
+        if ((self::PROVIDE[$page]['base'] ?? 'site') === 'helpers' && $base !== null) {
+            return str_starts_with($url, $base . '/') ? substr($url, strlen($base) + 1) : '/' . ltrim(self::pathAndQuery($url), '/');
         }
 
         return self::pathAndQuery($url);
     }
 
-    /** The key the grid registers on its own search with (`DATA_SRV_` and its name). */
+    /** The address of a path of a page: under its base, or from the root of the site when it starts with a slash (pathOf()). */
+    private function urlOf(string $page, string $base, string $path): string
+    {
+        $site = $this->grid->site();
+        $path = trim($path);
+        if ((self::PROVIDE[$page]['base'] ?? 'site') === 'helpers' && $site !== null && str_starts_with($path, '/')) {
+            return rtrim($site, '/') . $path;
+        }
+
+        return rtrim($base, '/') . '/' . ltrim($path, '/');
+    }
+
+    /** Whether an address is on the site of the grid. */
+    private function onSite(string $url): bool
+    {
+        $site = $this->grid->site();
+
+        return $site !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $site);
+    }
+
+    /**
+     * The key the grid registers on its own search with: `DATA_SRV_` and its nick, as the search preset lays it in the master of
+     * the simulators, so that the grid's own replaces it there (a key of its name, from before, is read as its own and replaced).
+     */
     private function ownRegister(): string
     {
-        return 'DATA_SRV_' . preg_replace('/[^A-Za-z0-9]/', '', ucwords($this->grid->name() ?: 'Your Grid'));
+        $nick = preg_replace('/[^A-Za-z0-9_]/', '', $this->grid->nick());
+
+        return 'DATA_SRV_' . ($nick !== '' ? $nick : preg_replace('/[^A-Za-z0-9]/', '', ucwords($this->grid->name() ?: 'Your Grid')));
     }
 
     /**
@@ -297,15 +327,20 @@ final class GridSettings
     private function register(GridConfig $config, bool $on): array
     {
         $base = $this->baseOf('search');
-        // A register under the helpers of the grid is its own, whatever its key (the simulators may name it by the nick)
-        $mine = static fn(string $url): bool => $base !== null && str_starts_with($url, $base . '/');
+        // A register on the site of the grid is its own, whatever its key (the simulators may name it by the nick)
+        $mine = fn(string $url): bool => $base !== null && $this->onSite($url);
         $own = trim((string) $config->find('DataSnapshot', $this->ownRegister()), " \t\"");
         $others = [];
         $twoDo = null;
         $keys = $config->keys('DataSnapshot', '/^DATA_SRV_/i');
         foreach ($keys as $key => $url) {
             $url = trim((string) $url, " \t\"");
-            if ($url === '' || strcasecmp((string) $key, $this->ownRegister()) === 0) {
+            if ($url === '') {
+                continue;
+            }
+            // Its own key, whatever its case
+            if (strcasecmp((string) $key, $this->ownRegister()) === 0) {
+                $own !== '' || ($own = $url);
                 continue;
             }
             if (self::is2do($url)) {
@@ -316,7 +351,7 @@ final class GridSettings
         }
 
         return [
-            'registerPath' => $own !== '' && $base !== null && str_starts_with($own, $base . '/') ? substr($own, strlen($base) + 1) : 'register.php',
+            'registerPath' => $own !== '' && $base !== null && $this->onSite($own) ? $this->pathOf('search', $own) : 'register.php',
             // 2do.directory, on for a grid that registers nowhere yet
             'include2do' => $twoDo ?? array_filter(array_map(static fn($url): string => trim((string) $url, " \t\""), $keys)) === [],
             'registers' => array_values(array_unique($others)),
@@ -636,7 +671,7 @@ final class GridSettings
                 'invalid-request',
                 "the grid has no web site (WebURL of [Const]) to provide $page on: give the whole address of the service, Provide off",
             );
-            $values = [$setting => $base . '/' . ltrim(trim((string) ($path ?? $now['path'])), '/')] + $values;
+            $values = [$setting => $this->urlOf($page, $base, (string) ($path ?? $now['path']))] + $values;
         } elseif ($page === 'offline' && stripos((string) ($values['offlineModule'] ?? $now['offlineModule']), 'V2') !== false) {
             // V2: Robust serves them, no address of the helpers
             unset($values[$setting]);
@@ -661,7 +696,11 @@ final class GridSettings
         if ($page === 'search') {
             // The simulators register on the search the grid uses: its own under the helpers, else the other one
             $own = $this->ownRegister();
-            $values[$own] = $on ? $this->baseOf('search') . '/' . ltrim((string) ($register['registerPath'] ?? $now['registerPath']), '/') : false;
+            // The key the grid has already, whatever its case
+            foreach (array_keys($this->config()->keys('DataSnapshot', '/^DATA_SRV_/i')) as $key) {
+                strcasecmp((string) $key, $own) === 0 && ($own = (string) $key);
+            }
+            $values[$own] = $on ? $this->urlOf('search', (string) $this->baseOf('search'), (string) ($register['registerPath'] ?? $now['registerPath'])) : false;
             // The registers of other search engines, the ones not in the list left commented
             $registers = array_values(array_filter(array_map('trim', (array) ($register['registers'] ?? $now['registers'])), static fn(string $url): bool => $url !== ''));
             foreach ($this->config()->keys('DataSnapshot', '/^DATA_SRV_/i') as $key => $url) {
@@ -847,7 +886,7 @@ final class GridSettings
     /** The lines of the search: what the simulators call and where they register, the database and the events of the helpers. */
     private function searchLines(\Closure $add, array $values, string $url): void
     {
-        $register = $values['provide'] ? [$this->ownRegister() => '"' . $this->baseOf('search') . '/' . ltrim($values['registerPath'], '/') . '"'] : [];
+        $register = $values['provide'] ? [$this->ownRegister() => '"' . $this->urlOf('search', (string) $this->baseOf('search'), $values['registerPath']) . '"'] : [];
         ($values['include2do'] ?? true) && ($register['DATA_SRV_2do'] = '"' . ($this->twoDoRegister() ?? self::REGISTER_2DO) . '"');
         foreach ($values['registers'] as $url) {
             $register[self::registerKey($url)] = '"' . $url . '"';
