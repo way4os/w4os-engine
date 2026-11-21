@@ -74,6 +74,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq >/dev/null
 apt-get install -y -qq unzip /deps/*.deb /dist/*.deb >/dev/null 2>&1
 
+check "the package ships its libraries as links, whatever the machine that built it has" "dpkg-deb -c /dist/w4os-engine_*.deb | grep \"^l.*vendor/magicoli/opensim-rest-php -> /usr/share/opensim-rest-php\" >/dev/null && dpkg-deb -c /dist/w4os-engine_*.deb | grep \"^l.*vendor/magicoli/container-tools -> /usr/share/container-tools\" >/dev/null"
 check "the package is installed, it depends on opensim-rest-php" "dpkg -s w4os-engine | grep -q \"^Depends:.*opensim-rest-php\""
 check "its files are in /usr/share/w4os-engine" "[ -f /usr/share/w4os-engine/src/Config/Layout.php ] && [ -f /usr/share/w4os-engine/vendor/autoload.php ]"
 check "rest-php comes from its own package, by a link" "[ -L /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php ] && [ -f /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php/class-rest.php ]"
@@ -82,8 +83,13 @@ check "it loads as an unprivileged user, it writes nothing" "runuser -u nobody -
 # The upgrade from the name of before w4os, from a version that bundled rest-php
 dpkg -r opensim-engine w4os-engine >/dev/null 2>&1
 previous opensim-engine opensim-rest-php
+# The web configs of the API written from the snippets of before w4os (opensim web <grid> api)
+mkdir -p /etc/apache2/conf-available /etc/php/8.4/fpm/pool.d
+printf "Listen 127.0.0.1:8780\n<VirtualHost 127.0.0.1:8780>\n\tDocumentRoot /usr/share/opensim-engine/public\n\tAlias /api /usr/share/opensim-engine/public/index.php\n\tSetHandler \"proxy:unix:/run/php/opensim-api.sock|fcgi://localhost\"\n</VirtualHost>\n" >/etc/apache2/conf-available/opensim-api-demo.conf
+printf "[opensim-api]\nuser = opensim\nlisten = /run/php/opensim-api.sock\n" >/etc/php/8.4/fpm/pool.d/opensim-api.conf
 # The empty package first, as apt orders them: dpkg alone does not deconfigure what the new one breaks
 dpkg -i /dist/opensim-engine_*.deb /dist/w4os-engine_*.deb >/dev/null 2>&1
+check "the web configs of the API name the paths, the socket and the pool of w4os-engine" "! grep -qE \"opensim-engine|opensim-api\" /etc/apache2/conf-available/opensim-api-demo.conf /etc/php/8.4/fpm/pool.d/opensim-api.conf && grep -q \"DocumentRoot /usr/share/w4os-engine/public\" /etc/apache2/conf-available/opensim-api-demo.conf && grep -q \"^\\[w4os-api\\]\" /etc/php/8.4/fpm/pool.d/opensim-api.conf && [ -f /usr/share/w4os-engine/public/index.php ]"
 check "an upgrade from opensim-engine brings w4os-engine, the old name an empty package" "dpkg-query -W -f=\"\\\${db:Status-Abbrev}\\n\" w4os-engine opensim-engine | grep -c ^ii | grep -qx 2 && dpkg -s opensim-engine | grep -q \"^Depends:.*w4os-engine\" && [ ! -e /usr/share/opensim-engine ]"
 check "the engine loads after the upgrade, rest-php by a link" "[ -L /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php ] && loads /usr/share/w4os-engine"
 

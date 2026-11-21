@@ -44,9 +44,15 @@ contents:
   - src: /usr/share/opensim-rest-php
     dst: /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php
     type: symlink
+    # A mode of its own: without it nfpm takes the mode of the target on the machine that builds, and ships a folder or a file
+    file_info:
+      mode: 0777
   - src: /usr/share/container-tools
     dst: /usr/share/w4os-engine/vendor/magicoli/container-tools
     type: symlink
+    # A mode of its own: without it nfpm takes the mode of the target on the machine that builds, and ships a folder or a file
+    file_info:
+      mode: 0777
   - src: packaging/w4os-engine.copyright
     dst: /usr/share/doc/w4os-engine/copyright
     file_info:

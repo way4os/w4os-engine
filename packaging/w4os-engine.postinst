@@ -1,11 +1,42 @@
 #!/bin/sh
 # postinst of w4os-engine: the system layout of the machine (the account the instances run as, the folders, w4os.conf), made
 # by the engine when it is not there (the /etc/opensim/opensim.conf of before w4os moved to /etc/w4os/w4os.conf); one install
-# profile per OpenSimulator release installed (also when a release comes or goes, see the trigger); the files the grids that exist are missing, and the options of a grid its simulators miss laid again (the
-# simulators take them at their next start). Nothing is done twice, what is there is left as it is.
+# profile per OpenSimulator release installed (also when a release comes or goes, see the trigger); the files the grids that
+# exist are missing, and the options of a grid its simulators miss laid again (the simulators take them at their next start); the
+# web configs of the API of before w4os on the paths of now. Nothing is done twice, what is there is left as it is.
 set -e
 
 engine=/usr/share/w4os-engine/bin
+package=w4os-engine
+
+# The web configs written from the snippets of before w4os (`opensim web <grid> ...`, by hand, under any name): the paths, socket
+# and pool of now, in place, and the services that read them reloaded. A file that names none of the old ones is left as it is.
+migrate_web_configs() { # sed expressions, then -- and the pattern a file to migrate matches
+    sed_args=
+    while [ "$1" != -- ]; do
+        sed_args="$sed_args -e $1"
+        shift
+    done
+    pattern=$2
+    changed=
+    for file in /etc/apache2/conf-available/*.conf /etc/apache2/sites-available/*.conf /etc/nginx/conf.d/*.conf \
+        /etc/nginx/sites-available/* /etc/caddy/Caddyfile /etc/caddy/*.caddyfile /etc/caddy/*/*.caddyfile /etc/caddy/*/* \
+        /etc/php/*/fpm/pool.d/*.conf; do
+        [ -f "$file" ] && [ ! -L "$file" ] && grep -qE "$pattern" "$file" || continue
+        # shellcheck disable=SC2086
+        set -f
+        sed -i $sed_args "$file"
+        set +f
+        echo "$package: $file now names the paths of $package" >&2
+        changed=yes
+    done
+    [ -n "$changed" ] && [ -d /run/systemd/system ] || return 0
+    # The pools first (their sockets), then the web servers that reach them
+    for unit in $(systemctl list-units --type=service --state=active --plain --no-legend 'php*-fpm.service' | awk '{print $1}') \
+        $(systemctl list-units --type=service --state=active --plain --no-legend apache2.service nginx.service caddy.service | awk '{print $1}'); do
+        systemctl reload "$unit" || echo "$package: could not reload $unit" >&2
+    done
+}
 
 case "$1" in
     configure)
@@ -19,6 +50,8 @@ case "$1" in
         if [ -d /etc/opensim/grids ] && getent passwd opensim >/dev/null; then
             runuser -u opensim -- php "$engine/opensim-complete-grids.php" || true
         fi
+        migrate_web_configs 's#/usr/share/opensim-engine\b#/usr/share/w4os-engine#g' 's#/run/php/opensim-api\.sock#/run/php/w4os-api.sock#g' \
+            's#^\[opensim-api\]#[w4os-api]#' -- '/usr/share/opensim-engine\b|/run/php/opensim-api\.sock|^\[opensim-api\]'
         ;;
     triggered)
         [ -f /etc/w4os/w4os.conf ] && php "$engine/opensim-profiles.php" || true
