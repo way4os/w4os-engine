@@ -233,6 +233,33 @@ describe('Port mapping, not enabled', function () {
         expect(file_get_contents($t['regions']))->toContain('ExternalHostName = SYSTEMIP');
     });
 
+    test('leaves the address a region announces of its own, without a port mapping', function () {
+        $t = portmapping_setup("PortMappingEnabled = false\n");
+        file_put_contents($t['regions'], "[R]\nExternalHostName = dev.example.org\n");
+
+        $t['service']->start('demo_sim', $t['sim'], portmapping_ports($t['sim']));
+
+        expect(file_get_contents($t['regions']))->toContain('ExternalHostName = dev.example.org');
+    });
+
+    test('gives a region its own address back once the port mapping is off', function () {
+        $t = portmapping_setup("PortMappingModule = fake\nPortMappingEnabled = true\n");
+        file_put_contents($t['regions'], "[R]\nExternalHostName = dev.example.org\n");
+        $t['service']->start('demo', $t['robust'], portmapping_ports($t['robust']));
+        $t['service']->start('demo_sim', $t['sim'], portmapping_ports($t['sim']));
+        $mapped = file_get_contents($t['regions']);
+        // Started again with the mapping: what the region had before is kept, not the public address
+        $t['service']->stop('demo_sim', $t['sim'], portmapping_ports($t['sim']));
+        $t['service']->start('demo_sim', $t['sim'], portmapping_ports($t['sim']));
+        file_put_contents($t['grid'] . '/demo.conf', "[Grid]\nPortMappingModule = fake\nPortMappingEnabled = false\n");
+
+        $t['service']->stop('demo_sim', $t['sim'], portmapping_ports($t['sim']));
+        $t['service']->start('demo_sim', $t['sim'], portmapping_ports($t['sim']));
+
+        expect($mapped)->toContain('ExternalHostName = 203.0.113.7')
+            ->and(file_get_contents($t['regions']))->toContain('ExternalHostName = dev.example.org');
+    });
+
     test('does nothing without a module', function () {
         $t = portmapping_setup("PortMappingEnabled = false\n");
 

@@ -71,9 +71,9 @@ final class PortMappingService
 
         if ($module === '') {
             // Not asked: what is still mapped is closed (the stop has done it when it ran), and the regions announce what
-            // they would without port mapping, whatever they announced before
+            // they announced before the port mapping gave them its address
             is_file($this->state($instance)) && $this->release($instance, $ports, $grid['module']);
-            $this->announce($grid, 'SYSTEMIP');
+            $this->restore($instance);
 
             return;
         }
@@ -91,7 +91,7 @@ final class PortMappingService
             // Only what was mapped is closed: nothing was, when the grid was not ready
             is_file($this->state($instance)) && $this->release($instance, $ports, $module);
         }
-        $this->announce($grid, $host !== '' ? $host : 'SYSTEMIP');
+        $host !== '' ? $this->announce($instance, $grid, $host) : $this->restore($instance);
     }
 
     /**
@@ -220,18 +220,47 @@ final class PortMappingService
         is_file($state) && unlink($state);
     }
 
-    /** The regions of a simulator announce this address (SYSTEMIP when they have no public one). */
-    private function announce(array $grid, string $host): void
+    /**
+     * The regions of a simulator announce the public address of the port mapping; what each announced before is kept
+     * (`<state dir>/<instance>.announced`, once), to be given back when the port mapping is not made.
+     */
+    private function announce(string $instance, array $grid, string $host): void
     {
         if (!$grid['simulator'] || $grid['regions'] === '') {
             return;
         }
+        $kept = $this->state($instance) . '.announced';
+        $before = [];
         foreach (glob($grid['regions'] . '/*.ini') ?: [] as $file) {
             $text = (string) file_get_contents($file);
-            $new = preg_replace('/^([ \t]*ExternalHostName[ \t]*=)[^\r\n]*/mi', '${1} ' . $host, $text);
-            if ($new !== null && $new !== $text) {
-                file_put_contents($file, $new);
-            }
+            preg_match('/^[ \t]*ExternalHostName[ \t]*=[ \t]*([^\r\n]*)/mi', $text, $m) === 1 && ($before[$file] = trim($m[1]));
+            self::write($file, $text, $host);
+        }
+        if (!is_file($kept) && $before !== []) {
+            is_dir($this->stateDir) || mkdir($this->stateDir, 0o755, true);
+            file_put_contents($kept, json_encode($before, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        }
+    }
+
+    /** The regions announce again what they did before the port mapping gave them its address; nothing when it never did. */
+    private function restore(string $instance): void
+    {
+        $kept = $this->state($instance) . '.announced';
+        if (!is_file($kept)) {
+            return;
+        }
+        foreach ((array) json_decode((string) file_get_contents($kept), true) as $file => $host) {
+            is_string($host) && is_file((string) $file) && self::write((string) $file, (string) file_get_contents((string) $file), $host);
+        }
+        unlink($kept);
+    }
+
+    /** The ExternalHostName of a region file set to this address. */
+    private static function write(string $file, string $text, string $host): void
+    {
+        $new = preg_replace('/^([ \t]*ExternalHostName[ \t]*=)[^\r\n]*/mi', '${1} ' . $host, $text);
+        if ($new !== null && $new !== $text) {
+            file_put_contents($file, $new);
         }
     }
 

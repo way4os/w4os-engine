@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (port mapping): a simulator started without the port mapping leaves the address its regions announce (ExternalHostName) as it is; the one they had before the port mapping gave them its public address is kept and given back when it is off (it set every region to SYSTEMIP at each start, a host of their own lost)
 - fix (packaging): the API command w4os-api is in /usr/bin, a link to the one of the engine; the packaging check calls it there
 - new (address): the address of a grid changed at once in every file of it on this machine (POST /grids/{grid}/address, GridAddress: host, public port, site; plan, then apply): Robust's [Const] and ConsoleHost, the addresses under the old login URI or the old site (by the constants of Robust), the regions' ExternalHostName (SYSTEMIP or the old host), the places of its list of destinations, setup.json and the web-server files; never a connection string, a comment or a database
 - fix (settings): a page read and written back gives the same address: an address of the site out of the helpers' base (the search at /helpers/ while the economy is at /economy/) is a path from the root of the site, with its slash, instead of being put under the helpers' base; the grid's own register is DATA_SRV_<nick>, as the search preset lays it in the master of the simulators (one register, not two), the one of before (another key on the site of the grid, its name) left commented
