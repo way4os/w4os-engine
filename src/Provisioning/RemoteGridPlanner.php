@@ -153,14 +153,20 @@ final class RemoteGridPlanner
             trim((string) $v['name']) !== ''
                 ? trim((string) $v['name'])
                 : $said['gridname'] ?? ucfirst(explode('.', $host)[0]);
-        // The nick given or the one the grid says, as it is (it names the folder of a grid of this machine): refused when it is not
-        // one, never changed; a grid that says none gets the one of its name
+        // The nick given or the one the grid says (it names the folder of a grid of this machine); a grid that says none gets the one
+        // of its name. One that is not a nick is never a failure: the nick it stands for is used, said in a warning (the same in
+        // small letters, else the one Slug::nick() makes of it)
         $nick = trim((string) $v['nick']) !== '' ? trim((string) $v['nick']) : trim((string) ($said['gridnick'] ?? ''));
         $nick = $nick !== '' ? $nick : Slug::nick($name);
-        if (($wrong = Grid::validateNick($nick)) !== null) {
-            $result['error'] = sprintf(_("The nick '%s' is %s: give the nick of the grid."), $nick, $wrong);
+        if (Grid::validateNick($nick) !== null) {
+            $given = $nick;
+            $nick = Slug::isNick(strtolower($given)) ? strtolower($given) : Slug::nick($given);
+            if (($wrong = Grid::validateNick($nick)) !== null) {
+                $result['error'] = sprintf(_("The nick '%s' is %s: give the nick of the grid."), $given, $wrong);
 
-            return $result;
+                return $result;
+            }
+            $result['warnings'][] = sprintf(_("'%1\$s' is not a nick: the grid is '%2\$s' here, write '%2\$s'."), $given, $nick);
         }
 
         $known = Grid::find($environment, $nick);

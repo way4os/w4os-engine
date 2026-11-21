@@ -606,12 +606,23 @@ final class Grid extends InstalledModel
     /** The grid of this nick on this machine, null when there is none: a Robust config or the description of a remote grid. */
     public static function find(Environment $environment, string $nick): ?static
     {
-        $directory = rtrim($environment->layout->etcRoot(), '/') . "/grids/$nick";
         if ($nick === '' || preg_match('/^[A-Za-z0-9._-]+$/', $nick) !== 1) {
             return null;
         }
-        if (!is_dir($directory)) {
-            return self::inPlace($environment, $nick);
+        $root = rtrim($environment->layout->etcRoot(), '/') . '/grids';
+        // A nick is in small letters: the same in capitals finds the grid, by the name of its folder (whatever the file system)
+        $names = is_dir($root) ? (scandir($root) ?: []) : [];
+        if (!in_array($nick, $names, true)) {
+            foreach ($names as $name) {
+                if (strcasecmp($name, $nick) === 0) {
+                    $nick = $name;
+                    break;
+                }
+            }
+        }
+        $directory = "$root/$nick";
+        if (!in_array($nick, $names, true) || !is_dir($directory)) {
+            return self::inPlace($environment, $nick) ?? ($nick !== strtolower($nick) ? self::inPlace($environment, strtolower($nick)) : null);
         }
         $grid = new self($environment, $directory);
 

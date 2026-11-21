@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (grids): a nick in capitals finds its grid; an invalid nick is a warning naming the right one, never an error
 - fix (port mapping): a start without port mapping keeps the regions' ExternalHostName
 - fix (packaging): the API command w4os-api is in /usr/bin, a link to the one of the engine; the packaging check calls it there
 - new (address): change the host, port and site of a grid in all its files (POST /grids/{grid}/address)

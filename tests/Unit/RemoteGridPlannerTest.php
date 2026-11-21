@@ -150,23 +150,34 @@ describe('A grid on another machine', function () {
             ->toContain("already has the nick 'friendly_fowl'");
     });
 
-    test('refuses a nick that is not one, given or said, and never changes it', function () {
-        [$planner] = remote_planner(['gridname' => 'Far', 'gridnick' => 'FarWorld']);
+    test('takes a nick in capitals in small letters, any other that is not one as the nick it stands for, and says it', function () {
+        [$planner] = remote_planner(['gridname' => 'W4os Demo Grid', 'gridnick' => 'W4osDemoGrid']);
         $said = $planner->plan(['address' => 'play.example.org:8002']);
+        $given = $planner->plan(['address' => 'play.example.org:8002', 'nick' => 'W4osDemoGrid']);
         $typed = $planner->plan(['address' => 'play.example.org:8002', 'nick' => 'my-nick!']);
         [$silent] = remote_planner(['gridname' => 'Far World']);
 
-        expect($said['grid'])
-            ->toBeNull()
-            ->and($said['error'])
-            ->toStartWith("The nick 'FarWorld' is invalid")
-            ->and($typed['error'])
-            ->toStartWith("The nick 'my-nick!' is invalid")
-            // A grid that says no nick gets the one of its name
+        expect([$said['error'], $said['grid']->nick(), $given['grid']->nick()])
+            ->toBe([null, 'w4osdemogrid', 'w4osdemogrid'])
+            ->and($said['warnings'])
+            ->toContain("'W4osDemoGrid' is not a nick: the grid is 'w4osdemogrid' here, write 'w4osdemogrid'.")
+            ->and([$typed['error'], $typed['grid']->nick()])
+            ->toBe([null, 'my-nick'])
+            ->and($typed['warnings'])
+            ->toContain("'my-nick!' is not a nick: the grid is 'my-nick' here, write 'my-nick'.")
+            // A grid that says no nick gets the one of its name, without a word
             ->and($silent->plan(['address' => 'play.example.org:8002'])['grid']->nick())
             ->toBe('far_world')
             ->and([\W4OS\Engine\Provisioning\Slug::isNick('friendly_fowl'), \W4OS\Engine\Provisioning\Slug::isNick('Friendly_Fowl'), \W4OS\Engine\Provisioning\Slug::isNick('')])
             ->toBe([true, false, false]);
+    });
+
+    test('refuses a nick nothing can be made of', function () {
+        [$planner] = remote_planner(['gridname' => 'Far']);
+
+        $result = $planner->plan(['address' => 'play.example.org:8002', 'nick' => '!!!']);
+
+        expect($result['grid'])->toBeNull()->and($result['error'])->toStartWith("The nick '!!!' is invalid");
     });
 
     test('is kept as it was described when it is already known here', function () {
