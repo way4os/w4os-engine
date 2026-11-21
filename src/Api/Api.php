@@ -648,8 +648,9 @@ final class Api
 
     /**
      * An asset of a grid as a page shows it: an image of any type as a picture in the format asked, resized to a width when it is asked
-     * (the grid keeps textures as JPEG 2000), the other types as they are. What is not there is the picture of nothing, or of a person
-     * who has none (`$of` person, WebAssets::DEFAULTS), with the status 404.
+     * (the grid keeps textures as JPEG 2000), the other types as they are. The pictures of what has none (WebAssets::PLACEHOLDER,
+     * WebAssets::PERSON) are the picture of nothing and the one of a person; what is not there is a 404 without a picture, so that
+     * a page shows what it puts in its place (an img fails, its onerror runs).
      */
     public function media(
         string $grid,
@@ -672,7 +673,9 @@ final class Api
             return Response::problem(Problem::from($error, $instance));
         }
 
-        return Response::binary($picture['data'], $picture['mime'], $picture['found'] ? 200 : 404);
+        return $picture['found']
+            ? Response::binary($picture['data'], $picture['mime'])
+            : Response::problem(Problem::notFound("asset '$id'", $instance, 'assets'));
     }
 
     /** A logo the engine ships for the sites (Logos: w4os, OpenSimulator), as a picture; 404 for a name that is not one. */

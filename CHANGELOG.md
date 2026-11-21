@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (assets): a picture that is not there is a 404 without a picture, so a page shows its own; `default` deprecated
 - change (links): tpLinks() offers hop:// then GRID in a browser, APPTP then GRID in the viewer, then host:port:Region to copy
 - doc (destinations): HOP, GRID, APPTP and LSL tell what the viewers' sources say apart from what was seen
 - doc (destinations): GRID seen working towards another grid both ways and towards OSgrid, Firestorm 7.2.5 on macOS

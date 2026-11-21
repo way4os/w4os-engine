@@ -886,7 +886,7 @@ describe('The API, for the assets of a grid', function () {
                 ->and($nothing->status)
                 ->toBe(404)
                 ->and($nothing->headers['Content-Type'])
-                ->toBe('image/png')
+                ->toBe(Problem::CONTENT_TYPE)
                 ->and($api->media('nowhere', $id)->status)
                 ->toBe(404);
         },
@@ -1052,7 +1052,7 @@ describe('The problems of the API', function () {
 });
 
 describe('The pictures of what has none', function () {
-    test('are the picture of nothing for a place, the silhouette of a person for a profile, found by their ids', function () {
+    test('are the picture of nothing for a place, the silhouette of a person for a profile, found by their ids; a missing one is a 404 without a picture', function () {
         Connections::using(static fn() => asset_database());
         $api = new Api((new Machine())->environment, null, static fn(Grid $grid): GridConfig => asset_config());
         $calls = [];
@@ -1074,12 +1074,10 @@ describe('The pictures of what has none', function () {
             ->toBe(file_get_contents("$share/assets-no-person.png"))
             ->and($model->body())
             ->toBe($person->body())
-            ->and([$place->status, $place->body() === $nothing->body()])
-            ->toBe([404, true])
-            ->and([$profile->status, $profile->body() === $person->body()])
-            ->toBe([404, true])
-            ->and($none->body())
-            ->toBe($person->body())
+            ->and([$place->status, $place->headers['Content-Type'], $profile->status, $profile->headers['Content-Type']])
+            ->toBe([404, Problem::CONTENT_TYPE, 404, Problem::CONTENT_TYPE])
+            ->and($none->status)
+            ->toBe(404)
             ->and($calls)
             ->toBe([]);
     });

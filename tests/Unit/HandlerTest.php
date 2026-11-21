@@ -222,7 +222,7 @@ describe('The API handler', function () {
                 ->and($nothing->getStatusCode())
                 ->toBe(404)
                 ->and($nothing->getHeaderLine('Content-Type'))
-                ->toBe('image/png');
+                ->toBe(W4OS\Engine\Api\Problem::CONTENT_TYPE);
         },
     );
 });

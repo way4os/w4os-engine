@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 9b1504d
+  version: 9d5f24d
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -5274,7 +5274,8 @@ paths:
           name: default
           in: query
           required: false
-          description: 'What a picture that is not there stands for: `place` (the default), or `person`, a profile picture: the silhouette of a person instead of the picture of nothing. The id `c14a1985-c549-4485-8779-7103d74ef5e0` is that silhouette, found, as `201ce950-aa38-46d8-a8f1-4396e9d6be00` is the picture of nothing'
+          description: 'What a picture that is not there stands for, `place` or `person`: kept for the callers, a picture that is not there is a 404 without a picture now. The id `c14a1985-c549-4485-8779-7103d74ef5e0` is the silhouette of a person, found, as `201ce950-aa38-46d8-a8f1-4396e9d6be00` is the picture of nothing'
+          deprecated: true
           schema:
             type: string
             enum:
@@ -5296,12 +5297,11 @@ paths:
                 type: string
                 format: uri
         404:
-          description: 'There is no such asset, or it cannot be converted: the picture of nothing, or of a person (`default`)'
+          description: 'There is no such asset, or it cannot be converted: a problem, no picture, so that an img of a page fails and shows what the page puts in its place'
           content:
-            image/png:
+            application/problem+json:
               schema:
-                type: string
-                format: binary
+                $ref: '#/components/schemas/Problem'
       security: []
       x-access:
         level: null

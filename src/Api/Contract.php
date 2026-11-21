@@ -804,7 +804,8 @@ final class Contract
                     'name' => 'default',
                     'in' => 'query',
                     'required' => false,
-                    'description' => 'What a picture that is not there stands for: `place` (the default), or `person`, a profile picture: the silhouette of a person instead of the picture of nothing. The id `' . WebAssets::PERSON . '` is that silhouette, found, as `' . WebAssets::PLACEHOLDER . '` is the picture of nothing',
+                    'description' => 'What a picture that is not there stands for, `place` or `person`: kept for the callers, a picture that is not there is a 404 without a picture now. The id `' . WebAssets::PERSON . '` is the silhouette of a person, found, as `' . WebAssets::PLACEHOLDER . '` is the picture of nothing',
+                    'deprecated' => true,
                     'schema' => ['type' => 'string', 'enum' => array_keys(WebAssets::DEFAULTS)],
                 ],
             ],
@@ -818,8 +819,8 @@ final class Contract
                     'headers' => ['Location' => ['schema' => ['type' => 'string', 'format' => 'uri']]],
                 ],
                 '404' => [
-                    'description' => 'There is no such asset, or it cannot be converted: the picture of nothing, or of a person (`default`)',
-                    'content' => ['image/png' => ['schema' => ['type' => 'string', 'format' => 'binary']]],
+                    'description' => 'There is no such asset, or it cannot be converted: a problem, no picture, so that an img of a page fails and shows what the page puts in its place',
+                    'content' => [Problem::CONTENT_TYPE => ['schema' => ['$ref' => '#/components/schemas/Problem']]],
                 ],
             ],
         ];
