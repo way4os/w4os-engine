@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (links): the grid itself, given alone, lands on the region its own gatekeeper gives, as another grid does
 - change (links): a page asks a grid alone its landing region itself, within 2 s, and keeps it; tests never ask the network
 - change (links): the address to copy is host:port:Region without its point, as the map of the viewer takes it
 - new (guide): a grid alone lands on the region its gatekeeper gives, asked by the task and kept; Grid::place() links it

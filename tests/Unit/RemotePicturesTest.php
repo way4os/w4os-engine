@@ -122,6 +122,22 @@ describe('A grid alone', function () {
             ->toBe(Gatekeeper::TIMEOUT);
     });
 
+    test('this grid itself too: its own gatekeeper gives the region a visitor lands on', function () {
+        $world = remote_grid();
+        $grid = W4OS\Engine\Models\Grid::find((new Machine())->environment, 'demo');
+        $login = (string) $grid->loginUri();
+
+        expect($grid->place($login)->tpUri())
+            ->toBe("$login/Far")
+            ->and($world->asked)
+            ->toBe(['http://' . $login . ' link_region', 'http://' . $login . ' get_region'])
+            // A region of this grid named alone is not asked
+            ->and($grid->place('Welcome')->tpUri())
+            ->toBe("$login/Welcome")
+            ->and(count($world->asked))
+            ->toBe(2);
+    });
+
     test('whose gatekeeper does not answer has no link that needs a region, its address to copy only, asked again hours later', function () {
         $world = remote_grid();
         $world->down = true;

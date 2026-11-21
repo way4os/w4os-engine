@@ -849,14 +849,15 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     }
 
     /**
-     * Another grid alone (`host:port`, no region) at the region its gatekeeper lands on: a link needs a region. Kept by the task of
+     * A grid alone (`host:port`, no region; this grid itself too, whose files a site may not have) at the region its gatekeeper
+     * lands on: a link needs a region. Kept by the task of
      * the guide, else asked now, within a second or two, and kept (RemotePictures::resolveLanding()). Any other destination, or one
      * whose gatekeeper does not answer, as it is.
      */
     private function landing(string $destination): string
     {
         $at = \W4OS\Engine\Hypergrid\Destination::parse($destination);
-        if (($at['host'] ?? '') === '' || ($at['region'] ?? '') !== '' || \W4OS\Engine\Hypergrid\Destination::isHere($destination, $this->loginUrl())) {
+        if (($at['host'] ?? '') === '' || ($at['region'] ?? '') !== '') {
             return $destination;
         }
         $region = \W4OS\Engine\Services\RemotePictures::resolveLanding(
