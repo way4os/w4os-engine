@@ -4,6 +4,7 @@
 
 - fix (assets): a grid's pictures are read with its whole config, the database a site gives in Helpers.ini too
 - fix (guide): the popular places list the places not visited yet after the others, as w4os-wp and the viewers' search
+- change (texts): start_add_grid is Add the grid again, without its name, in every language
 - new (texts): home_all_news, the link under the last news of a site to its news page, in every language
 - new (urls): Url::build(), a site's link for the page shown: base, language prefix and kept arguments
 - change (texts): the Connect block's buttons in one mood per language; start_viewer removed
