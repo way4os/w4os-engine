@@ -10,37 +10,45 @@ final class Destination
     /**
      * secondlife://Region%20Name/x/y/z, a region of the grid the viewer is on: in a viewer, its login screen too (where it sets
      * the landing of the login), it shows the place before going (its picture, its description, teleport or show on the map).
-     * Tried (2026-11): it works everywhere in a viewer, the only form tried that works on its login screen.
+     * Tried (2026-11-18, Firestorm, a region of the grid the viewer was on): it works from a web browser, in the browser of the
+     * viewer (the splash page, the guide) and on its login screen.
      */
     public const LOCAL = 1;
     /**
      * secondlife://yourgrid.org:8002:Region%20Name/x/y/z (original HG format).
      *
-     * @deprecated failed in every place the viewers were tried (2026-11), hop:// won: still given for the callers of 2.x
-     *             (TPLINK_HG); before 3.0, dropped or answered with hop:// or secondlife:// (ROADMAP). Ask AUTO.
+     * @deprecated failed in every place it was tried (2026-11-18, Firestorm, a region of the grid the viewer was on): still given
+     *             for the callers of 2.x (TPLINK_HG); before 3.0, dropped or answered with hop:// or secondlife:// (ROADMAP). Ask AUTO.
      */
     public const HG = 2;
     /**
      * secondlife://http|!!yourgrid.org|8002%20Region/x/y/z (v3 HG format, Singularity).
      *
-     * @deprecated failed in every place the viewers were tried (2026-11), hop:// won: still given for the callers of 2.x
-     *             (TPLINK_V3HG); before 3.0, dropped or answered with hop:// or secondlife:// (ROADMAP). Ask AUTO.
+     * @deprecated failed in every place it was tried (2026-11-18, Firestorm, a region of the grid the viewer was on): still given
+     *             for the callers of 2.x (TPLINK_V3HG); before 3.0, dropped or answered with hop:// or secondlife:// (ROADMAP). Ask AUTO.
      */
     public const V3HG = 4;
     /**
      * hop://yourgrid.org:8002/Region%20Name/x/y/z, the region after a slash, always: the form the viewer writes itself (Firestorm,
      * in the chat after a teleport: LLSLURL::getSLURLString() of fsslurl.cpp escapes the region after the grid, and its tests read
      * it back), the one of the OpenSimulator wiki (`[hop://]<hg-host>:<hg-port>[/<region-name>][/x/y]`, Hypergrid), and the only
-     * one the URL handler of a system passes on (host:port/something). The link out of a viewer. Tried (2026-11): it works from a
-     * web browser and the chat of a viewer; the login screen of a viewer takes no hop:// link.
+     * one the URL handler of a system passes on (host:port/something). The link out of a viewer. Tried (2026-11-18, Firestorm, a
+     * region of the grid the viewer was on): it works from a web browser and in the chat of the viewer, not in the browser of the
+     * viewer (ERR_UNKNOWN_URL_SCHEME); the login screen takes no hop:// link. Tried (2026-11-21, Firestorm on another grid, the
+     * grid of the link not in its list of grids): from a web browser, `hop://host:port/Region` went to the region of that name of
+     * the grid the viewer was on, `hop://host:port` (no region) did nothing. Firestorm uses the grid of a hop:// link only when it
+     * has that grid's gatekeeper (its list of grids), else it asks its own grid for the region by its name (dispatchRegion() of
+     * llurldispatcher.cpp).
      */
     public const HOP = 8;
     /** yourgrid.org:8002:Region/x/y/z */
     public const TXT = 16;
     /**
      * secondlife:///app/teleport/yourgrid.org:8002:Region%20Name/x/y/z, the region after a colon: the teleport of the viewer to
-     * another grid, from its own browser and its login screen too (there it asks, then does nothing: no harm). Tried (2026-11):
-     * it works in the browser of a viewer, for another grid.
+     * another grid, from its own browser and its login screen too (there it asks, then does nothing: no harm). Tried (2026-11-18,
+     * Firestorm, a region of the grid the viewer was on): the colon form with %20 works in the browser of the viewer; with `+`
+     * for the spaces it failed everywhere. Not tried for another grid. From a web browser Firestorm blocks it, as it reads
+     * (`teleport` is a command for a click in a trusted page: llcommandhandler.cpp, dispatchUrl() of llappviewermacosx.cpp).
      */
     public const APPTP = 32;
     /**
@@ -66,8 +74,9 @@ final class Destination
     /**
      * secondlife://yourgrid.org:8002/secondlife/Region%20Name/x/y/z, the grid and then its region: a location of a grid, read by
      * the viewer as `secondlife://<Grid>/secondlife/<region>/<x>/<y>/<z>` (the parser of the links of Firestorm, fsslurl.cpp),
-     * for the grid it is on and for another one alike. Tried (2026-11): it works in a viewer, for the grid itself and for another
-     * grid, and on the login screen of a viewer, where it sets the landing of the login (dispatchRegion() of Firestorm). A region
+     * for the grid it is on and for another one alike. Tried (2026-11-18, Firestorm): it works in the viewer and on its login
+     * screen, where it sets the landing of the login, for a region of the grid the viewer was on; reported to work for a hypergrid
+     * destination too (which grid, and whether the viewer had it in its list of grids, was not noted). A region
      * without its grid is of the grid the viewer is on (`secondlife:///secondlife/Region`).
      */
     public const GRID = 2048;

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- doc (destinations): each link format says only what was seen in a viewer, where and towards which grid
 - new (texts): the visit from another grid naming grids an avatar may come from (hg_visit_text_examples), and the last two of a list of choices (list_or: A, B or C), in every language
 - new (texts): the block of a site for the visitors with an avatar on another grid (hg_visit_title, hg_visit_text, hg_visit_go), in every language
 - fix (assets): a grid's pictures are read with its whole config, the database a site gives in Helpers.ini too
