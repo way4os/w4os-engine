@@ -138,21 +138,46 @@ describe('A grid alone', function () {
             ->toBe(2);
     });
 
-    test('whose gatekeeper does not answer has no link that needs a region, its address to copy only, asked again hours later', function () {
+    test('whose gatekeeper does not answer has no link that needs a region, its address to copy only, asked again half an hour later', function () {
         $world = remote_grid();
         $world->down = true;
-        $grid = W4OS\Engine\Models\Grid::find((new Machine())->environment, 'demo');
+        $machine = new Machine();
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
 
         $place = $grid->place('far.example.net:8002');
         $asked = count($world->asked);
         $grid->place('far.example.net:8002');
+        $soon = count($world->asked);
+        // Answering again, asked again once the half hour is over (a gatekeeper slow once)
+        $world->down = false;
+        Gatekeeper::forget();
+        $machine->clock->now += RemotePictures::LANDING_RETRY + 1;
+        $later = $grid->place('far.example.net:8002');
 
         expect($place->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
             ->toBe('')
             ->and(array_column($place->tpLinks('browser'), 'label'))
             ->toBe(['link_menu_copy'])
+            ->and($soon)
+            ->toBe($asked)
+            ->and($later->tpUri())
+            ->toBe('far.example.net:8002/Far');
+    });
+
+    test('of the grid itself: its links land on its region, its address stays its login', function () {
+        $world = remote_grid();
+        $grid = W4OS\Engine\Models\Grid::find((new Machine())->environment, 'demo');
+        $login = (string) $grid->loginUri();
+        $place = $grid->place($login);
+
+        expect($grid->tpUri())
+            ->toBe($login)
+            ->and($grid->tpLinks('browser'))
+            ->toBe($place->tpLinks('browser'))
+            ->and($grid->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
+            ->toBe("hop://$login/Far")
             ->and(count($world->asked))
-            ->toBe($asked);
+            ->toBe(2);
     });
 
     test('of the guide is asked by the task too, and kept', function () {

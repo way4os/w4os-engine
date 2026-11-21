@@ -834,6 +834,14 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $this->loginUrl();
     }
 
+    /** Its links land on the region its gatekeeper gives (landing()), its address (tpUri()) staying its login. */
+    protected function tpTarget(): ?string
+    {
+        $uri = $this->tpUri();
+
+        return $uri === null || trim($uri) === '' ? $uri : $this->landing($uri);
+    }
+
     protected function tpFormats(): array
     {
         return \W4OS\Engine\Hypergrid\Destination::linkFormats($this->config());

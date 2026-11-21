@@ -95,16 +95,19 @@ final class RemotePictures
     /** Seconds a page waits for the gatekeeper of a grid alone (resolveLanding()). */
     public const PAGE_TIMEOUT = 2;
 
+    /** Seconds before the region of a grid alone that was not found is asked again: a gatekeeper slow once is asked soon. */
+    public const LANDING_RETRY = 1800;
+
     /**
      * The region a grid alone lands on, asked to its gatekeeper when it is time to (never asked, after a day when it answered, after
-     * a few hours when it did not) within $timeout seconds, and kept; the one kept when it does not answer, null when none is.
+     * half an hour when it did not: LANDING_RETRY) within $timeout seconds, and kept; the one kept when it does not answer, null when none is.
      */
     public static function resolveLanding(Cache $cache, string $grid, int $now, int $timeout = Gatekeeper::TIMEOUT): ?string
     {
         $key = self::landingKey($grid);
         $kept = $cache->get($key);
         $region = is_array($kept) && is_string($kept['region'] ?? null) && $kept['region'] !== '' ? $kept['region'] : null;
-        $due = is_array($kept) ? (int) ($kept['checked'] ?? 0) + ($region !== null && !($kept['failed'] ?? false) ? self::CHECK : self::RETRY) : 0;
+        $due = is_array($kept) ? (int) ($kept['checked'] ?? 0) + ($region !== null && !($kept['failed'] ?? false) ? self::CHECK : self::LANDING_RETRY) : 0;
         if ($due > $now) {
             return $region;
         }

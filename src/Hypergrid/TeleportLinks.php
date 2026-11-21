@@ -12,7 +12,7 @@ trait TeleportLinks
 {
     public function tpLink(?int $format = null, array $context = []): string|array|null
     {
-        $uri = $this->tpUri();
+        $uri = $this->tpTarget();
         if ($uri === null || trim($uri) === '') {
             return null;
         }
@@ -23,10 +23,16 @@ trait TeleportLinks
 
     public function tpLinks(?string $client = null, array $context = []): array
     {
-        $uri = $this->tpUri();
+        $uri = $this->tpTarget();
         $context = $client === null ? $context : ['client' => $client] + $context;
 
         return $uri === null || trim($uri) === '' ? [] : Destination::links($uri, $this->tpContext($context));
+    }
+
+    /** Where its links send a viewer: its address (tpUri()), unless it lands somewhere more precise (a grid on its region). */
+    protected function tpTarget(): ?string
+    {
+        return $this->tpUri();
     }
 
     /** A context of Destination with the login and the formats of its grid, unless it gives them. */

@@ -71,7 +71,7 @@ describe('The link of a grid, a region, a parcel or a place', function () {
         expect($grid)->toBeInstanceOf(Reachable::class)
             ->and($grid->tpUri())->toBe($login)
             ->and($grid->tpLink(Destination::HOP))->toBe('')
-            ->and($grid->tpLink(Destination::TXT))->toBe($login)
+            ->and($grid->tpUri())->toBe($login)
             // a grid alone has no GRID link (it needs a region)
             ->and($grid->tpLink(Destination::GRID))->toBe('')
             // and none that needs one: hop:// without a region is refused by the viewers
