@@ -45,7 +45,9 @@ describe('Podman integration', function () {
                 $podman->remove($name, true);
             }
         }
-    })->skip(fn() => getenv('PODMAN_INTEGRATION') !== '1', 'set PODMAN_INTEGRATION=1 to create a real Podman container');
+    })
+        ->skip(fn() => getenv('PODMAN_INTEGRATION') !== '1', 'set PODMAN_INTEGRATION=1 to create a real Podman container')
+        ->skip(fn() => podman_refused() !== null, (string) podman_refused());
 
     test('a Bash caller creates and starts a container through the engine command', function () {
         $name = podman_test_name('bash');
@@ -67,5 +69,7 @@ describe('Podman integration', function () {
         } finally {
             (new Podman(connection: podman_test_connection()))->remove($name, true);
         }
-    })->skip(fn() => getenv('PODMAN_INTEGRATION') !== '1', 'set PODMAN_INTEGRATION=1 to create a real Podman container');
+    })
+        ->skip(fn() => getenv('PODMAN_INTEGRATION') !== '1', 'set PODMAN_INTEGRATION=1 to create a real Podman container')
+        ->skip(fn() => podman_refused() !== null, (string) podman_refused());
 });

@@ -54,5 +54,7 @@ describe('A simulator imported in a container', function () {
             ->toContain('http_listener_port = 9250')
             ->and($result['region'])
             ->toBe($result['original']);
-    })->skip(fn() => getenv('PODMAN_INTEGRATION') !== '1', 'set PODMAN_INTEGRATION=1 to run the import in a Podman container');
+    })
+        ->skip(fn() => getenv('PODMAN_INTEGRATION') !== '1', 'set PODMAN_INTEGRATION=1 to run the import in a Podman container')
+        ->skip(fn() => podman_refused(true) !== null, (string) podman_refused(true));
 });

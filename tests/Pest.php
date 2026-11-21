@@ -70,3 +70,21 @@ function offline_names(): array
 }
 
 W4OS\Engine\Network\ServerNames::using(offline_names());
+
+/**
+ * Why a test may not start a container here, null when it may: never on macOS (its podman machine is too small), unless
+ * PODMAN_LOCAL=1 says so; a test that only talks to podman runs on another machine when CONTAINER_CONNECTION names one.
+ */
+function podman_refused(bool $mountsLocalFiles = false): ?string
+{
+    if (PHP_OS_FAMILY !== 'Darwin' || getenv('PODMAN_LOCAL') === '1') {
+        return null;
+    }
+    if (!$mountsLocalFiles && (string) getenv('CONTAINER_CONNECTION') !== '') {
+        return null;
+    }
+
+    return $mountsLocalFiles
+        ? 'it mounts files of this Mac: run it on Linux, or PODMAN_LOCAL=1'
+        : 'no container on this Mac: CONTAINER_CONNECTION names another machine, or PODMAN_LOCAL=1';
+}
