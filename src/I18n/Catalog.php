@@ -274,9 +274,11 @@ final class Catalog
         'copied' => 'Copied',
         'start_title' => 'Connect',
         'start_avatar' => 'Create your avatar',
-        'start_avatar_done' => 'Your avatar is %s.',
+        'start_avatar_done' => 'Signed in as %s',
         'start_add_grid' => 'Add the grid',
         'start_login' => 'Log in',
+        // The same button for an avatar that has been in the world already
+        'start_login_done' => 'Enjoy!',
         'start_done' => 'Done',
         // The link under the last news of a site, to its news page
         'home_all_news' => 'All news',

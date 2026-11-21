@@ -935,8 +935,8 @@ msgstr "Crea il tuo avatar"
 
 #, php-format
 msgctxt "start_avatar_done"
-msgid "Your avatar is %s."
-msgstr "Il tuo avatar è %s."
+msgid "Signed in as %s"
+msgstr "Accesso come %s"
 
 msgctxt "start_add_grid"
 msgid "Add the grid"
@@ -945,6 +945,10 @@ msgstr "Aggiungi la griglia"
 msgctxt "start_login"
 msgid "Log in"
 msgstr "Accedi"
+
+msgctxt "start_login_done"
+msgid "Enjoy!"
+msgstr "Buon divertimento!"
 
 msgctxt "start_done"
 msgid "Done"
@@ -4092,6 +4096,11 @@ msgstr ""
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Il database non è raggiungibile."
+
+#, php-format
+#~ msgctxt "start_avatar_done"
+#~ msgid "Your avatar is %s."
+#~ msgstr "Il tuo avatar è %s."
 
 #, php-format
 #~ msgctxt "start_add_grid"

@@ -774,7 +774,7 @@ msgstr ""
 
 #, php-format
 msgctxt "start_avatar_done"
-msgid "Your avatar is %s."
+msgid "Signed in as %s"
 msgstr ""
 
 msgctxt "start_add_grid"
@@ -783,6 +783,10 @@ msgstr ""
 
 msgctxt "start_login"
 msgid "Log in"
+msgstr ""
+
+msgctxt "start_login_done"
+msgid "Enjoy!"
 msgstr ""
 
 msgctxt "start_done"

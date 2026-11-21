@@ -940,8 +940,8 @@ msgstr "Créer votre avatar"
 
 #, php-format
 msgctxt "start_avatar_done"
-msgid "Your avatar is %s."
-msgstr "Votre avatar est %s."
+msgid "Signed in as %s"
+msgstr "Connecté comme %s"
 
 msgctxt "start_add_grid"
 msgid "Add the grid"
@@ -950,6 +950,10 @@ msgstr "Ajouter la grille"
 msgctxt "start_login"
 msgid "Log in"
 msgstr "Se connecter"
+
+msgctxt "start_login_done"
+msgid "Enjoy!"
+msgstr "Bon séjour !"
 
 msgctxt "start_done"
 msgid "Done"
@@ -4109,6 +4113,11 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#, php-format
+#~ msgctxt "start_avatar_done"
+#~ msgid "Your avatar is %s."
+#~ msgstr "Votre avatar est %s."
 
 #, php-format
 #~ msgctxt "start_add_grid"
