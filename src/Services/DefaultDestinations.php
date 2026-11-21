@@ -69,7 +69,8 @@ final class DefaultDestinations
     }
 
     /**
-     * The popular places, for their cards: the most visited first (their visits, `dwell`, above zero), with their picture (an
+     * The popular places, for their cards: the most visited first (their visits, `dwell`), the ones not visited yet after them, as the
+     * search of the viewers lists them, with their picture (an
      * asset UUID, null without one); of every grid the search serves, unless the guide was asked for one grid only.
      *
      * @return list<array{name:string,url:string,picture:?string,dwell:int}>
@@ -88,7 +89,7 @@ final class DefaultDestinations
                 '%s ORDER BY pop.dwell DESC, par.parcelname',
             'pop.gatekeeperURL',
             max(1, $limit),
-            'pop.dwell > 0' . ($sales ? ' AND sales.parcelUUID IS NULL' : ''),
+            $sales ? 'sales.parcelUUID IS NULL' : '',
         );
 
         return array_map(function (array $row): array {

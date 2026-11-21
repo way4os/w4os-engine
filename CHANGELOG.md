@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (guide): the popular places list the places not visited yet after the others, as w4os-wp and the viewers' search
 - new (urls): Url::build(), a site's link for the page shown: base, language prefix and kept arguments
 - change (texts): the Connect block's buttons in one mood per language; start_viewer removed
 - change (texts): start_viewer_note removed, the Connect block no longer shows it

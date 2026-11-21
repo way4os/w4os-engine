@@ -840,6 +840,15 @@ describe('The guide of a grid that has no list', function () {
         ]);
     });
 
+    test('lists a place not visited yet after the others, as the search of the viewers and w4os-wp do', function () {
+        $db = guide_database();
+        $db->exec("INSERT INTO popularplaces VALUES ('p2', 'Library', 0, 'info', 0, 'PG', 'http://grid.example.org:8002')");
+
+        $names = array_column((new W4OS\Engine\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002', 'http://grid.example.org:8002'))->popular(10), 'dwell', 'name');
+
+        expect($names)->toBe(['Rose garden' => 30, 'Market' => 10, 'Library' => 0]);
+    });
+
     test('leave out the places of the other grids and the land for sale unless asked, as w4os-wp 2.x does by default', function () {
         $db = guide_database();
         // The market is for sale
