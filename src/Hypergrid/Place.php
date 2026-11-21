@@ -18,6 +18,24 @@ final class Place implements Reachable
      */
     public function __construct(private readonly string $destination, private readonly ?string $login = null) {}
 
+    /**
+     * The place of a region on a grid, at a landing point if it has one, as the search and the profiles keep them: its grid (the
+     * grid it is shown for when none is given), its region, its point (`x/y/z`, `x,y,z` or `<x, y, z>`, Destination::position());
+     * null without a region or a grid.
+     *
+     * @param ?string $login the login of the grid it is shown for
+     */
+    public static function at(string $grid, string $region, string $landing = '', ?string $login = null): ?self
+    {
+        $grid = trim($grid) !== '' ? trim($grid) : trim((string) $login);
+        if (trim($region) === '' || $grid === '') {
+            return null;
+        }
+        $point = trim($landing) === '' ? '' : str_replace(',', '/', Destination::position($landing));
+
+        return new self(rtrim($grid, '/') . '/' . $region . ($point === '' ? '' : '/' . $point), $login);
+    }
+
     public function tpUri(): ?string
     {
         $uri = trim($this->destination) === '' ? '' : Destination::uri($this->destination, $this->login);

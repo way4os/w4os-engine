@@ -843,6 +843,15 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return new \W4OS\Engine\Hypergrid\Place($destination, $this->loginUrl());
     }
 
+    /**
+     * The place of a region at a landing point, of this grid or of the one a gatekeeper names (Place::at()): what the search and
+     * the profiles keep of a place; null without a region.
+     */
+    public function placeAt(string $region, string $landing = '', string $gatekeeper = ''): ?\W4OS\Engine\Hypergrid\Place
+    {
+        return \W4OS\Engine\Hypergrid\Place::at($gatekeeper, $region, $landing, $this->loginUrl());
+    }
+
     /** The address of a region of the grid, from where the grid says its login is: `host:port/Region Name[/x/y/z]`. */
     public function regionUri(string $region, string $position = ''): ?string
     {

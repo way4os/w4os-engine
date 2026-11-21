@@ -19,10 +19,12 @@ interface Reachable
     public function tpUri(): ?string;
 
     /**
-     * Its link in a format of Destination (AUTO without one: the link for where it is shown); null when it has no address.
+     * Its link in any format of Destination, the ones ruled out for the viewers too (HG, V3HG, LOCAL, APPTP, MAP...), AUTO without
+     * one (the link for where it is shown); several formats at once are one per line, or an array with Destination::AS_ARRAY;
+     * null when it has no address.
      *
      * @param array{agent?:?string,client?:string,login?:?string} $context where it is shown (Destination::format()); the login of
      *                                                                    its grid is the object's, unless the context gives one
      */
-    public function tpLink(?int $format = null, array $context = []): ?string;
+    public function tpLink(?int $format = null, array $context = []): string|array|null;
 }

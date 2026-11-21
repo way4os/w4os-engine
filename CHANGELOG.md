@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (destinations): Place::at() and Grid::placeAt(), a region at a landing point; tpLink() gives every format, arrays too
 - change (destinations): tpUri() and tpLink() on Grid, Region, Parcel and Place, the one way to a teleport link; Grid::link() removed
 - doc (destinations): each link format says only what was seen in a viewer, where and towards which grid
 - new (texts): the visit from another grid naming grids an avatar may come from (hg_visit_text_examples), and the last two of a list of choices (list_or: A, B or C), in every language

@@ -10,7 +10,7 @@ namespace W4OS\Engine\Hypergrid;
  */
 trait TeleportLinks
 {
-    public function tpLink(?int $format = null, array $context = []): ?string
+    public function tpLink(?int $format = null, array $context = []): string|array|null
     {
         $uri = $this->tpUri();
         if ($uri === null || trim($uri) === '') {
@@ -19,7 +19,9 @@ trait TeleportLinks
         $login = $this->tpLogin();
         $context += $login === null || $login === '' ? [] : ['login' => $login];
 
-        return (string) Destination::format($uri, $format ?? Destination::AUTO, context: $context);
+        $link = Destination::format($uri, $format ?? Destination::AUTO, context: $context);
+
+        return is_array($link) ? $link : (string) $link;
     }
 
     /** The login of the grid it is on, which tells AUTO a place of that grid from one of another; null when it is not known. */
