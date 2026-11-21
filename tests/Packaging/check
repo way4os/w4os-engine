@@ -64,6 +64,7 @@ previous() { # package, libraries
         mkdir -p $root/usr/share/$pkg/vendor/magicoli/$lib
         : >$root/usr/share/$pkg/vendor/magicoli/$lib/bundled.php
     done
+    : >$root/usr/share/$pkg/vendor/autoload.php
     printf "Package: $pkg\nVersion: 0.0.1\nArchitecture: all\nMaintainer: test <test@example.org>\nDescription: previous version, libraries bundled\n" >$root/DEBIAN/control
     dpkg-deb -b $root /tmp/previous-$pkg.deb >/dev/null
     dpkg -r $pkg >/dev/null 2>&1
@@ -103,6 +104,49 @@ a2enmod -q proxy_fcgi >/dev/null 2>&1; a2enconf -q opensim-api-demo >/dev/null 2
 /var/lib/dpkg/info/w4os-engine.postinst configure >/dev/null 2>&1
 "php-fpm$php" -D && apache2ctl start >/dev/null 2>&1; sleep 2
 check "the API made by opensim web <grid> api before w4os answers after the upgrade, on 127.0.0.1:8780" "! grep -qE \"/usr/share/opensim-engine|opensim-api\\.sock|^\\[opensim-api\\]\" /etc/apache2/conf-available/opensim-api-demo.conf /etc/php/$php/fpm/pool.d/opensim-api.conf && [ \"\$(curl -s -o /dev/null -w %{http_code} http://127.0.0.1:8780/api/forms/grid)\" = 401 ]"
+
+# The command line of before w4os, which links to /usr/share/opensim-engine, and the one of now, on w4os-engine: their command
+# works while the engine it links to is there
+cli() { # version, then "new" for the one of now
+    local root=/tmp/cli-$1 link=/usr/share/opensim-cli/vendor/magicoli/opensim-engine target=/usr/share/opensim-engine
+    rm -rf $root /tmp/w4os-cli
+    if [ "${2:-}" = new ]; then
+        link=/usr/share/w4os-cli/vendor/w4os/w4os-engine target=/usr/share/w4os-engine
+        mkdir -p /tmp/w4os-cli/DEBIAN $root/DEBIAN
+        printf "Package: w4os-cli\nVersion: $1\nArchitecture: all\nMaintainer: test <test@example.org>\nDescription: cli of now\nDepends: w4os-engine\nReplaces: opensim-cli (<< $1)\nBreaks: opensim-cli (<< $1)\n" >/tmp/w4os-cli/DEBIAN/control
+        printf "Package: opensim-cli\nVersion: $1\nArchitecture: all\nMaintainer: test <test@example.org>\nDescription: transitional\nDepends: w4os-cli (= $1)\n" >$root/DEBIAN/control
+        root=/tmp/w4os-cli
+    else
+        mkdir -p $root/DEBIAN
+        printf "Package: opensim-cli\nVersion: $1\nArchitecture: all\nMaintainer: test <test@example.org>\nDescription: cli of before w4os\nDepends: opensim-engine\n" >$root/DEBIAN/control
+    fi
+    mkdir -p $root/usr/bin $root$(dirname $link)
+    ln -s $target $root$link
+    printf "#!/bin/sh\n[ -f $link/vendor/autoload.php ]\n" >$root/usr/bin/opensim
+    chmod 755 $root/usr/bin/opensim
+    dpkg-deb -b $root /tmp/$(basename $root).deb >/dev/null
+    [ "${2:-}" != new ] || dpkg-deb -b /tmp/cli-$1 /tmp/opensim-cli-$1.deb >/dev/null
+}
+# Back to the engine of before w4os and its command line
+before_w4os() {
+    dpkg --purge opensim-cli w4os-cli w4os-engine opensim-engine >/dev/null 2>&1
+    previous opensim-engine opensim-rest-php
+    dpkg -i /tmp/cli-3.0.0~beta.4+48.g2a90112.deb >/dev/null 2>&1
+}
+# The command line works, or is not there: never installed and broken, nothing left half-configured
+cli_sound() { { [ ! -e /usr/bin/opensim ] || /usr/bin/opensim; } && [ -z "$(dpkg --audit)" ]; }
+cli 3.0.0~beta.4+48.g2a90112
+cli 3.0.0~beta.4+71.gb7f3e96 new
+check "w4os-engine breaks the command line and the helpers of before w4os" "dpkg-deb -f /dist/w4os-engine_*.deb Breaks | grep -q \"opensim-cli (<< 3.0.0~beta.4+70~)\" && dpkg-deb -f /dist/w4os-engine_*.deb Breaks | grep -q \"opensim-helpers (<< 3.0.0~beta.6+137~)\""
+before_w4os
+check "the command line of before w4os works with the engine of before" "dpkg-query -W -f=\"\\\${Version}\" opensim-cli | grep -qx 3.0.0~beta.4+48.g2a90112 && cli_sound"
+apt-get install -y -qq --no-remove /dist/opensim-engine_*.deb /dist/w4os-engine_*.deb >/dev/null 2>&1 && refused=0 || refused=1
+check "the engine alone, nothing removed: apt refuses, the command line of before still works" "[ \$refused = 1 ] && ! dpkg -s w4os-engine >/dev/null 2>&1 && cli_sound && /usr/bin/opensim"
+apt-get install -y -qq /dist/opensim-engine_*.deb /dist/w4os-engine_*.deb >/dev/null 2>&1 || true
+check "the engine alone: the command line of before is removed, never left broken" "dpkg -s w4os-engine >/dev/null 2>&1 && cli_sound"
+before_w4os
+apt-get install -y -qq /dist/opensim-engine_*.deb /dist/w4os-engine_*.deb /tmp/w4os-cli.deb /tmp/opensim-cli-3.0.0~beta.4+71.gb7f3e96.deb >/dev/null 2>&1
+check "the engine with the command line of now: both upgraded, the command works" "dpkg-query -W -f=\"\\\${Version}\" opensim-cli | grep -qx 3.0.0~beta.4+71.gb7f3e96 && dpkg -s w4os-cli >/dev/null 2>&1 && [ -e /usr/bin/opensim ] && cli_sound"
 
 mkdir /tmp/zip && cd /tmp/zip && unzip -q /dist/*.zip
 check "the zip has the engine and its vendor folder" "[ -f w4os-engine/src/Config/Layout.php ] && [ -f w4os-engine/vendor/autoload.php ]"

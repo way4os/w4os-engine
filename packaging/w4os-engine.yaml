@@ -69,6 +69,10 @@ scripts:
 deb:
   breaks:
     - opensim-engine (<< ${DEB_VERSION})
+    # The command line and the helpers of before w4os link to /usr/share/opensim-engine, empty now: they are upgraded with it
+    # (to w4os-cli, w4os-helpers), or apt refuses
+    - opensim-cli (<< 3.0.0~beta.4+70~)
+    - opensim-helpers (<< 3.0.0~beta.6+137~)
   # The OpenSimulator releases installed or removed, to update their profiles
   triggers:
     interest_noawait:
