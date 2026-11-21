@@ -143,6 +143,8 @@ describe('the catalog of the texts of the sites', function () {
             'models_pattern', 'offline', 'online', 'partner', 'port_web', 'profile_name', 'profile_tab_feed',
             'profile_tab_inworld', 'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online', 'setting_welcome',
             'settings_menu_grid', 'status', 'unit_mb',
+            // The web search: the words of the viewers, the same in this language
+            'web_search_name', 'web_search_region',
         ],
         'fr_FR' => [
             'actions', 'asset_animation', 'asset_image_jpeg', 'asset_image_tga', 'asset_mesh', 'asset_script', 'asset_texture',
@@ -152,6 +154,8 @@ describe('the catalog of the texts of the sites', function () {
             'flux_post', 'gloebit_production', 'group_avatars', 'group_console', 'group_services', 'health_ok', 'health_site', 'manage_title',
             'menu_admin', 'parcel_scripts', 'port_public', 'port_web', 'profile_tab_web', 'role_liaison', 'role_maintenance',
             'setting_guide_source', 'setting_welcome', 'shortcode_options', 'skill_architecture', 'total',
+            // The web search: the words of the viewers, the same in this language
+            'classified_category_service', 'classified_category_shopping', 'event_category_commercial', 'event_category_discussion', 'event_category_sports', 'place_category_shopping', 'web_search_date', 'web_search_land_type',
         ],
         'it_IT' => [
             'asset_mesh', 'asset_script', 'asset_texture', 'asset_texture_tga', 'column_file', 'column_presence_short',
@@ -160,6 +164,8 @@ describe('the catalog of the texts of the sites', function () {
             'offline', 'online', 'partner', 'password', 'password_title', 'port_web', 'profile_tab_account', 'profile_tab_feed',
             'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online', 'setting_directory', 'setting_welcome',
             'skill_scripting', 'unit_mb',
+            // The web search: the words of the viewers, the same in this language
+            'classified_category_shopping', 'place_category_shopping',
         ],
         'nl_NL' => [
             'asset_landmark', 'asset_link', 'asset_mesh', 'asset_object', 'asset_script', 'avatars_count', 'avatars_menu',

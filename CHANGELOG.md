@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (texts): the web search as the viewers have it, its kinds, fields, ratings and categories, in every language
 - new (search): SearchFilters, what a search asks (words, category, ratings, price, area, day), for the viewers and the web search
 - new (address): opensim address changes the addresses the databases keep too (accounts, search, picks), planned with their rows first
 - fix (simulators): a setting that stops a simulator of its core (Warp3DImageModule on 0.9.3) is not imported, and commented at an upgrade

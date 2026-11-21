@@ -2095,7 +2095,9 @@ msgctxt "setting_link_format_browser_help"
 msgid ""
 "hop:// is the format of OpenSimulator, secondlife:// may open a Second Life "
 "viewer."
-msgstr "hop:// est le format d'OpenSimulator, secondlife:// peut ouvrir un viewer Second Life."
+msgstr ""
+"hop:// est le format d'OpenSimulator, secondlife:// peut ouvrir un viewer "
+"Second Life."
 
 msgctxt "setting_link_format_viewer"
 msgid "Links in the viewer"
@@ -2140,6 +2142,267 @@ msgstr "Afficher sur la carte"
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Copier l'adresse"
+
+msgctxt "web_search_places"
+msgid "Places"
+msgstr "Lieux"
+
+msgctxt "web_search_land"
+msgid "Land for sale"
+msgstr "Terrains à vendre"
+
+msgctxt "web_search_events"
+msgid "Events"
+msgstr "Événements"
+
+msgctxt "web_search_classifieds"
+msgid "Classifieds"
+msgstr "Petites annonces"
+
+msgctxt "web_search_people"
+msgid "People"
+msgstr "Personnes"
+
+msgctxt "web_search_submit"
+msgid "Search"
+msgstr "Chercher"
+
+msgctxt "web_search_words"
+msgid "Words"
+msgstr "Mots"
+
+msgctxt "web_search_name"
+msgid "Name"
+msgstr "Nom"
+
+#, php-format
+msgctxt "web_search_min_letters"
+msgid "At least %d letters."
+msgstr "Au moins %d lettres."
+
+msgctxt "web_search_category"
+msgid "Category"
+msgstr "Catégorie"
+
+msgctxt "web_search_any_category"
+msgid "Any category"
+msgstr "Toutes les catégories"
+
+msgctxt "web_search_ratings"
+msgid "Ratings"
+msgstr "Classements"
+
+msgctxt "web_search_rating_general"
+msgid "General"
+msgstr "Général"
+
+msgctxt "web_search_rating_moderate"
+msgid "Moderate"
+msgstr "Modéré"
+
+msgctxt "web_search_rating_adult"
+msgid "Adult"
+msgstr "Adulte"
+
+msgctxt "web_search_land_type"
+msgid "Type"
+msgstr "Type"
+
+msgctxt "web_search_land_any"
+msgid "All"
+msgstr "Tous"
+
+msgctxt "web_search_land_mainland"
+msgid "Mainland"
+msgstr "Continent"
+
+msgctxt "web_search_land_estate"
+msgid "Estate"
+msgstr "Domaine"
+
+msgctxt "web_search_price_max"
+msgid "Price at most"
+msgstr "Prix maximum"
+
+msgctxt "web_search_area_min"
+msgid "Area at least"
+msgstr "Surface minimum"
+
+msgctxt "web_search_when"
+msgid "When"
+msgstr "Quand"
+
+msgctxt "web_search_upcoming"
+msgid "Current and upcoming"
+msgstr "En cours et à venir"
+
+msgctxt "web_search_day"
+msgid "On a day"
+msgstr "Un jour donné"
+
+msgctxt "web_search_previous_day"
+msgid "Previous day"
+msgstr "Jour précédent"
+
+msgctxt "web_search_next_day"
+msgid "Next day"
+msgstr "Jour suivant"
+
+msgctxt "web_search_nothing"
+msgid "Nothing found."
+msgstr "Rien trouvé."
+
+msgctxt "web_search_ask"
+msgid "Say what you look for, then search."
+msgstr "Dites ce que vous cherchez, puis lancez la recherche."
+
+msgctxt "web_search_price"
+msgid "Price"
+msgstr "Prix"
+
+msgctxt "web_search_area"
+msgid "Area"
+msgstr "Surface"
+
+msgctxt "web_search_traffic"
+msgid "Traffic"
+msgstr "Fréquentation"
+
+msgctxt "web_search_region"
+msgid "Region"
+msgstr "Région"
+
+msgctxt "web_search_date"
+msgid "Date"
+msgstr "Date"
+
+msgctxt "web_search_duration"
+msgid "Duration"
+msgstr "Durée"
+
+msgctxt "place_category_arts"
+msgid "Arts and Culture"
+msgstr "Arts et culture"
+
+msgctxt "place_category_business"
+msgid "Business"
+msgstr "Commerce"
+
+msgctxt "place_category_educational"
+msgid "Educational"
+msgstr "Éducation"
+
+msgctxt "place_category_gaming"
+msgid "Gaming"
+msgstr "Jeux"
+
+msgctxt "place_category_hangout"
+msgid "Hangout"
+msgstr "Lieu de rencontre"
+
+msgctxt "place_category_newcomer"
+msgid "Newcomer Friendly"
+msgstr "Accueil des nouveaux"
+
+msgctxt "place_category_parks"
+msgid "Parks and Nature"
+msgstr "Parcs et nature"
+
+msgctxt "place_category_residential"
+msgid "Residential"
+msgstr "Résidentiel"
+
+msgctxt "place_category_shopping"
+msgid "Shopping"
+msgstr "Shopping"
+
+msgctxt "place_category_other"
+msgid "Other"
+msgstr "Autre"
+
+msgctxt "place_category_rental"
+msgid "Rental"
+msgstr "Location"
+
+msgctxt "event_category_discussion"
+msgid "Discussion"
+msgstr "Discussion"
+
+msgctxt "event_category_sports"
+msgid "Sports"
+msgstr "Sports"
+
+msgctxt "event_category_live_music"
+msgid "Live Music"
+msgstr "Musique live"
+
+msgctxt "event_category_commercial"
+msgid "Commercial"
+msgstr "Commercial"
+
+msgctxt "event_category_nightlife"
+msgid "Nightlife/Entertainment"
+msgstr "Vie nocturne/Divertissement"
+
+msgctxt "event_category_games"
+msgid "Games/Contests"
+msgstr "Jeux/Concours"
+
+msgctxt "event_category_pageants"
+msgid "Pageants"
+msgstr "Concours de beauté"
+
+msgctxt "event_category_education"
+msgid "Education"
+msgstr "Éducation"
+
+msgctxt "event_category_arts"
+msgid "Arts and Culture"
+msgstr "Arts et culture"
+
+msgctxt "event_category_charity"
+msgid "Charity/Support Groups"
+msgstr "Bienfaisance/Groupes de soutien"
+
+msgctxt "event_category_miscellaneous"
+msgid "Miscellaneous"
+msgstr "Divers"
+
+msgctxt "classified_category_shopping"
+msgid "Shopping"
+msgstr "Shopping"
+
+msgctxt "classified_category_land_rental"
+msgid "Land Rental"
+msgstr "Location de terrain"
+
+msgctxt "classified_category_property_rental"
+msgid "Property Rental"
+msgstr "Location de bien"
+
+msgctxt "classified_category_attraction"
+msgid "Special Attraction"
+msgstr "Attraction spéciale"
+
+msgctxt "classified_category_new_products"
+msgid "New Products"
+msgstr "Nouveaux produits"
+
+msgctxt "classified_category_employment"
+msgid "Employment"
+msgstr "Emploi"
+
+msgctxt "classified_category_wanted"
+msgid "Wanted"
+msgstr "Recherche"
+
+msgctxt "classified_category_service"
+msgid "Service"
+msgstr "Service"
+
+msgctxt "classified_category_personal"
+msgid "Personal"
+msgstr "Personnel"
 
 msgctxt "tp_more"
 msgid "More ways to go there"

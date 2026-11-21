@@ -2087,7 +2087,8 @@ msgctxt "setting_link_format_browser_help"
 msgid ""
 "hop:// is the format of OpenSimulator, secondlife:// may open a Second Life "
 "viewer."
-msgstr "hop:// yw fformat OpenSimulator, gall secondlife:// agor viewer Second Life."
+msgstr ""
+"hop:// yw fformat OpenSimulator, gall secondlife:// agor viewer Second Life."
 
 msgctxt "setting_link_format_viewer"
 msgid "Links in the viewer"
@@ -2132,6 +2133,267 @@ msgstr "Dangos ar y map"
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Copïo'r cyfeiriad"
+
+msgctxt "web_search_places"
+msgid "Places"
+msgstr "Lleoedd"
+
+msgctxt "web_search_land"
+msgid "Land for sale"
+msgstr "Tir ar werth"
+
+msgctxt "web_search_events"
+msgid "Events"
+msgstr "Digwyddiadau"
+
+msgctxt "web_search_classifieds"
+msgid "Classifieds"
+msgstr "Hysbysebion"
+
+msgctxt "web_search_people"
+msgid "People"
+msgstr "Pobl"
+
+msgctxt "web_search_submit"
+msgid "Search"
+msgstr "Chwilio"
+
+msgctxt "web_search_words"
+msgid "Words"
+msgstr "Geiriau"
+
+msgctxt "web_search_name"
+msgid "Name"
+msgstr "Enw"
+
+#, php-format
+msgctxt "web_search_min_letters"
+msgid "At least %d letters."
+msgstr "O leiaf %d llythyren."
+
+msgctxt "web_search_category"
+msgid "Category"
+msgstr "Categori"
+
+msgctxt "web_search_any_category"
+msgid "Any category"
+msgstr "Pob categori"
+
+msgctxt "web_search_ratings"
+msgid "Ratings"
+msgstr "Graddfeydd"
+
+msgctxt "web_search_rating_general"
+msgid "General"
+msgstr "Cyffredinol"
+
+msgctxt "web_search_rating_moderate"
+msgid "Moderate"
+msgstr "Cymedrol"
+
+msgctxt "web_search_rating_adult"
+msgid "Adult"
+msgstr "Oedolion"
+
+msgctxt "web_search_land_type"
+msgid "Type"
+msgstr "Math"
+
+msgctxt "web_search_land_any"
+msgid "All"
+msgstr "Pob un"
+
+msgctxt "web_search_land_mainland"
+msgid "Mainland"
+msgstr "Tir mawr"
+
+msgctxt "web_search_land_estate"
+msgid "Estate"
+msgstr "Ystad"
+
+msgctxt "web_search_price_max"
+msgid "Price at most"
+msgstr "Pris uchaf"
+
+msgctxt "web_search_area_min"
+msgid "Area at least"
+msgstr "Arwynebedd lleiaf"
+
+msgctxt "web_search_when"
+msgid "When"
+msgstr "Pryd"
+
+msgctxt "web_search_upcoming"
+msgid "Current and upcoming"
+msgstr "Cyfredol ac i ddod"
+
+msgctxt "web_search_day"
+msgid "On a day"
+msgstr "Ar ddiwrnod"
+
+msgctxt "web_search_previous_day"
+msgid "Previous day"
+msgstr "Diwrnod blaenorol"
+
+msgctxt "web_search_next_day"
+msgid "Next day"
+msgstr "Diwrnod nesaf"
+
+msgctxt "web_search_nothing"
+msgid "Nothing found."
+msgstr "Dim wedi'i ganfod."
+
+msgctxt "web_search_ask"
+msgid "Say what you look for, then search."
+msgstr "Dywedwch beth rydych chi'n chwilio amdano, yna chwiliwch."
+
+msgctxt "web_search_price"
+msgid "Price"
+msgstr "Pris"
+
+msgctxt "web_search_area"
+msgid "Area"
+msgstr "Arwynebedd"
+
+msgctxt "web_search_traffic"
+msgid "Traffic"
+msgstr "Traffig"
+
+msgctxt "web_search_region"
+msgid "Region"
+msgstr "Rhanbarth"
+
+msgctxt "web_search_date"
+msgid "Date"
+msgstr "Dyddiad"
+
+msgctxt "web_search_duration"
+msgid "Duration"
+msgstr "Hyd"
+
+msgctxt "place_category_arts"
+msgid "Arts and Culture"
+msgstr "Celfyddydau a diwylliant"
+
+msgctxt "place_category_business"
+msgid "Business"
+msgstr "Busnes"
+
+msgctxt "place_category_educational"
+msgid "Educational"
+msgstr "Addysgol"
+
+msgctxt "place_category_gaming"
+msgid "Gaming"
+msgstr "Gemau"
+
+msgctxt "place_category_hangout"
+msgid "Hangout"
+msgstr "Man cyfarfod"
+
+msgctxt "place_category_newcomer"
+msgid "Newcomer Friendly"
+msgstr "Croesawgar i newydd-ddyfodiaid"
+
+msgctxt "place_category_parks"
+msgid "Parks and Nature"
+msgstr "Parciau a natur"
+
+msgctxt "place_category_residential"
+msgid "Residential"
+msgstr "Preswyl"
+
+msgctxt "place_category_shopping"
+msgid "Shopping"
+msgstr "Siopa"
+
+msgctxt "place_category_other"
+msgid "Other"
+msgstr "Arall"
+
+msgctxt "place_category_rental"
+msgid "Rental"
+msgstr "Rhentu"
+
+msgctxt "event_category_discussion"
+msgid "Discussion"
+msgstr "Trafodaeth"
+
+msgctxt "event_category_sports"
+msgid "Sports"
+msgstr "Chwaraeon"
+
+msgctxt "event_category_live_music"
+msgid "Live Music"
+msgstr "Cerddoriaeth fyw"
+
+msgctxt "event_category_commercial"
+msgid "Commercial"
+msgstr "Masnachol"
+
+msgctxt "event_category_nightlife"
+msgid "Nightlife/Entertainment"
+msgstr "Bywyd nos/Adloniant"
+
+msgctxt "event_category_games"
+msgid "Games/Contests"
+msgstr "Gemau/Cystadlaethau"
+
+msgctxt "event_category_pageants"
+msgid "Pageants"
+msgstr "Pasiantau"
+
+msgctxt "event_category_education"
+msgid "Education"
+msgstr "Addysg"
+
+msgctxt "event_category_arts"
+msgid "Arts and Culture"
+msgstr "Celfyddydau a diwylliant"
+
+msgctxt "event_category_charity"
+msgid "Charity/Support Groups"
+msgstr "Elusen/Grwpiau cymorth"
+
+msgctxt "event_category_miscellaneous"
+msgid "Miscellaneous"
+msgstr "Amrywiol"
+
+msgctxt "classified_category_shopping"
+msgid "Shopping"
+msgstr "Siopa"
+
+msgctxt "classified_category_land_rental"
+msgid "Land Rental"
+msgstr "Rhentu tir"
+
+msgctxt "classified_category_property_rental"
+msgid "Property Rental"
+msgstr "Rhentu eiddo"
+
+msgctxt "classified_category_attraction"
+msgid "Special Attraction"
+msgstr "Atyniad arbennig"
+
+msgctxt "classified_category_new_products"
+msgid "New Products"
+msgstr "Cynhyrchion newydd"
+
+msgctxt "classified_category_employment"
+msgid "Employment"
+msgstr "Cyflogaeth"
+
+msgctxt "classified_category_wanted"
+msgid "Wanted"
+msgstr "Yn eisiau"
+
+msgctxt "classified_category_service"
+msgid "Service"
+msgstr "Gwasanaeth"
+
+msgctxt "classified_category_personal"
+msgid "Personal"
+msgstr "Personol"
 
 msgctxt "tp_more"
 msgid "More ways to go there"

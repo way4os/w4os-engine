@@ -2083,7 +2083,9 @@ msgctxt "setting_link_format_browser_help"
 msgid ""
 "hop:// is the format of OpenSimulator, secondlife:// may open a Second Life "
 "viewer."
-msgstr "hop:// is het formaat van OpenSimulator, secondlife:// kan een Second Life-viewer openen."
+msgstr ""
+"hop:// is het formaat van OpenSimulator, secondlife:// kan een Second Life-"
+"viewer openen."
 
 msgctxt "setting_link_format_viewer"
 msgid "Links in the viewer"
@@ -2128,6 +2130,267 @@ msgstr "Op de kaart tonen"
 msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Adres kopiëren"
+
+msgctxt "web_search_places"
+msgid "Places"
+msgstr "Plaatsen"
+
+msgctxt "web_search_land"
+msgid "Land for sale"
+msgstr "Land te koop"
+
+msgctxt "web_search_events"
+msgid "Events"
+msgstr "Evenementen"
+
+msgctxt "web_search_classifieds"
+msgid "Classifieds"
+msgstr "Advertenties"
+
+msgctxt "web_search_people"
+msgid "People"
+msgstr "Personen"
+
+msgctxt "web_search_submit"
+msgid "Search"
+msgstr "Zoeken"
+
+msgctxt "web_search_words"
+msgid "Words"
+msgstr "Woorden"
+
+msgctxt "web_search_name"
+msgid "Name"
+msgstr "Naam"
+
+#, php-format
+msgctxt "web_search_min_letters"
+msgid "At least %d letters."
+msgstr "Minstens %d letters."
+
+msgctxt "web_search_category"
+msgid "Category"
+msgstr "Categorie"
+
+msgctxt "web_search_any_category"
+msgid "Any category"
+msgstr "Alle categorieën"
+
+msgctxt "web_search_ratings"
+msgid "Ratings"
+msgstr "Classificaties"
+
+msgctxt "web_search_rating_general"
+msgid "General"
+msgstr "Algemeen"
+
+msgctxt "web_search_rating_moderate"
+msgid "Moderate"
+msgstr "Gematigd"
+
+msgctxt "web_search_rating_adult"
+msgid "Adult"
+msgstr "Volwassen"
+
+msgctxt "web_search_land_type"
+msgid "Type"
+msgstr "Soort"
+
+msgctxt "web_search_land_any"
+msgid "All"
+msgstr "Alle"
+
+msgctxt "web_search_land_mainland"
+msgid "Mainland"
+msgstr "Vasteland"
+
+msgctxt "web_search_land_estate"
+msgid "Estate"
+msgstr "Landgoed"
+
+msgctxt "web_search_price_max"
+msgid "Price at most"
+msgstr "Maximale prijs"
+
+msgctxt "web_search_area_min"
+msgid "Area at least"
+msgstr "Minimale oppervlakte"
+
+msgctxt "web_search_when"
+msgid "When"
+msgstr "Wanneer"
+
+msgctxt "web_search_upcoming"
+msgid "Current and upcoming"
+msgstr "Lopend en komend"
+
+msgctxt "web_search_day"
+msgid "On a day"
+msgstr "Op een dag"
+
+msgctxt "web_search_previous_day"
+msgid "Previous day"
+msgstr "Vorige dag"
+
+msgctxt "web_search_next_day"
+msgid "Next day"
+msgstr "Volgende dag"
+
+msgctxt "web_search_nothing"
+msgid "Nothing found."
+msgstr "Niets gevonden."
+
+msgctxt "web_search_ask"
+msgid "Say what you look for, then search."
+msgstr "Geef aan wat u zoekt en zoek dan."
+
+msgctxt "web_search_price"
+msgid "Price"
+msgstr "Prijs"
+
+msgctxt "web_search_area"
+msgid "Area"
+msgstr "Oppervlakte"
+
+msgctxt "web_search_traffic"
+msgid "Traffic"
+msgstr "Bezoekers"
+
+msgctxt "web_search_region"
+msgid "Region"
+msgstr "Regio"
+
+msgctxt "web_search_date"
+msgid "Date"
+msgstr "Datum"
+
+msgctxt "web_search_duration"
+msgid "Duration"
+msgstr "Duur"
+
+msgctxt "place_category_arts"
+msgid "Arts and Culture"
+msgstr "Kunst en cultuur"
+
+msgctxt "place_category_business"
+msgid "Business"
+msgstr "Zaken"
+
+msgctxt "place_category_educational"
+msgid "Educational"
+msgstr "Educatief"
+
+msgctxt "place_category_gaming"
+msgid "Gaming"
+msgstr "Spellen"
+
+msgctxt "place_category_hangout"
+msgid "Hangout"
+msgstr "Ontmoetingsplek"
+
+msgctxt "place_category_newcomer"
+msgid "Newcomer Friendly"
+msgstr "Voor nieuwkomers"
+
+msgctxt "place_category_parks"
+msgid "Parks and Nature"
+msgstr "Parken en natuur"
+
+msgctxt "place_category_residential"
+msgid "Residential"
+msgstr "Woongebied"
+
+msgctxt "place_category_shopping"
+msgid "Shopping"
+msgstr "Winkelen"
+
+msgctxt "place_category_other"
+msgid "Other"
+msgstr "Overig"
+
+msgctxt "place_category_rental"
+msgid "Rental"
+msgstr "Verhuur"
+
+msgctxt "event_category_discussion"
+msgid "Discussion"
+msgstr "Discussie"
+
+msgctxt "event_category_sports"
+msgid "Sports"
+msgstr "Sport"
+
+msgctxt "event_category_live_music"
+msgid "Live Music"
+msgstr "Livemuziek"
+
+msgctxt "event_category_commercial"
+msgid "Commercial"
+msgstr "Commercieel"
+
+msgctxt "event_category_nightlife"
+msgid "Nightlife/Entertainment"
+msgstr "Nachtleven/Amusement"
+
+msgctxt "event_category_games"
+msgid "Games/Contests"
+msgstr "Spellen/Wedstrijden"
+
+msgctxt "event_category_pageants"
+msgid "Pageants"
+msgstr "Missverkiezingen"
+
+msgctxt "event_category_education"
+msgid "Education"
+msgstr "Onderwijs"
+
+msgctxt "event_category_arts"
+msgid "Arts and Culture"
+msgstr "Kunst en cultuur"
+
+msgctxt "event_category_charity"
+msgid "Charity/Support Groups"
+msgstr "Liefdadigheid/Steungroepen"
+
+msgctxt "event_category_miscellaneous"
+msgid "Miscellaneous"
+msgstr "Diversen"
+
+msgctxt "classified_category_shopping"
+msgid "Shopping"
+msgstr "Winkelen"
+
+msgctxt "classified_category_land_rental"
+msgid "Land Rental"
+msgstr "Grondverhuur"
+
+msgctxt "classified_category_property_rental"
+msgid "Property Rental"
+msgstr "Vastgoedverhuur"
+
+msgctxt "classified_category_attraction"
+msgid "Special Attraction"
+msgstr "Speciale attractie"
+
+msgctxt "classified_category_new_products"
+msgid "New Products"
+msgstr "Nieuwe producten"
+
+msgctxt "classified_category_employment"
+msgid "Employment"
+msgstr "Werk"
+
+msgctxt "classified_category_wanted"
+msgid "Wanted"
+msgstr "Gezocht"
+
+msgctxt "classified_category_service"
+msgid "Service"
+msgstr "Dienst"
+
+msgctxt "classified_category_personal"
+msgid "Personal"
+msgstr "Persoonlijk"
 
 msgctxt "tp_more"
 msgid "More ways to go there"

@@ -1880,6 +1880,267 @@ msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr ""
 
+msgctxt "web_search_places"
+msgid "Places"
+msgstr ""
+
+msgctxt "web_search_land"
+msgid "Land for sale"
+msgstr ""
+
+msgctxt "web_search_events"
+msgid "Events"
+msgstr ""
+
+msgctxt "web_search_classifieds"
+msgid "Classifieds"
+msgstr ""
+
+msgctxt "web_search_people"
+msgid "People"
+msgstr ""
+
+msgctxt "web_search_submit"
+msgid "Search"
+msgstr ""
+
+msgctxt "web_search_words"
+msgid "Words"
+msgstr ""
+
+msgctxt "web_search_name"
+msgid "Name"
+msgstr ""
+
+#, php-format
+msgctxt "web_search_min_letters"
+msgid "At least %d letters."
+msgstr ""
+
+msgctxt "web_search_category"
+msgid "Category"
+msgstr ""
+
+msgctxt "web_search_any_category"
+msgid "Any category"
+msgstr ""
+
+msgctxt "web_search_ratings"
+msgid "Ratings"
+msgstr ""
+
+msgctxt "web_search_rating_general"
+msgid "General"
+msgstr ""
+
+msgctxt "web_search_rating_moderate"
+msgid "Moderate"
+msgstr ""
+
+msgctxt "web_search_rating_adult"
+msgid "Adult"
+msgstr ""
+
+msgctxt "web_search_land_type"
+msgid "Type"
+msgstr ""
+
+msgctxt "web_search_land_any"
+msgid "All"
+msgstr ""
+
+msgctxt "web_search_land_mainland"
+msgid "Mainland"
+msgstr ""
+
+msgctxt "web_search_land_estate"
+msgid "Estate"
+msgstr ""
+
+msgctxt "web_search_price_max"
+msgid "Price at most"
+msgstr ""
+
+msgctxt "web_search_area_min"
+msgid "Area at least"
+msgstr ""
+
+msgctxt "web_search_when"
+msgid "When"
+msgstr ""
+
+msgctxt "web_search_upcoming"
+msgid "Current and upcoming"
+msgstr ""
+
+msgctxt "web_search_day"
+msgid "On a day"
+msgstr ""
+
+msgctxt "web_search_previous_day"
+msgid "Previous day"
+msgstr ""
+
+msgctxt "web_search_next_day"
+msgid "Next day"
+msgstr ""
+
+msgctxt "web_search_nothing"
+msgid "Nothing found."
+msgstr ""
+
+msgctxt "web_search_ask"
+msgid "Say what you look for, then search."
+msgstr ""
+
+msgctxt "web_search_price"
+msgid "Price"
+msgstr ""
+
+msgctxt "web_search_area"
+msgid "Area"
+msgstr ""
+
+msgctxt "web_search_traffic"
+msgid "Traffic"
+msgstr ""
+
+msgctxt "web_search_region"
+msgid "Region"
+msgstr ""
+
+msgctxt "web_search_date"
+msgid "Date"
+msgstr ""
+
+msgctxt "web_search_duration"
+msgid "Duration"
+msgstr ""
+
+msgctxt "place_category_arts"
+msgid "Arts and Culture"
+msgstr ""
+
+msgctxt "place_category_business"
+msgid "Business"
+msgstr ""
+
+msgctxt "place_category_educational"
+msgid "Educational"
+msgstr ""
+
+msgctxt "place_category_gaming"
+msgid "Gaming"
+msgstr ""
+
+msgctxt "place_category_hangout"
+msgid "Hangout"
+msgstr ""
+
+msgctxt "place_category_newcomer"
+msgid "Newcomer Friendly"
+msgstr ""
+
+msgctxt "place_category_parks"
+msgid "Parks and Nature"
+msgstr ""
+
+msgctxt "place_category_residential"
+msgid "Residential"
+msgstr ""
+
+msgctxt "place_category_shopping"
+msgid "Shopping"
+msgstr ""
+
+msgctxt "place_category_other"
+msgid "Other"
+msgstr ""
+
+msgctxt "place_category_rental"
+msgid "Rental"
+msgstr ""
+
+msgctxt "event_category_discussion"
+msgid "Discussion"
+msgstr ""
+
+msgctxt "event_category_sports"
+msgid "Sports"
+msgstr ""
+
+msgctxt "event_category_live_music"
+msgid "Live Music"
+msgstr ""
+
+msgctxt "event_category_commercial"
+msgid "Commercial"
+msgstr ""
+
+msgctxt "event_category_nightlife"
+msgid "Nightlife/Entertainment"
+msgstr ""
+
+msgctxt "event_category_games"
+msgid "Games/Contests"
+msgstr ""
+
+msgctxt "event_category_pageants"
+msgid "Pageants"
+msgstr ""
+
+msgctxt "event_category_education"
+msgid "Education"
+msgstr ""
+
+msgctxt "event_category_arts"
+msgid "Arts and Culture"
+msgstr ""
+
+msgctxt "event_category_charity"
+msgid "Charity/Support Groups"
+msgstr ""
+
+msgctxt "event_category_miscellaneous"
+msgid "Miscellaneous"
+msgstr ""
+
+msgctxt "classified_category_shopping"
+msgid "Shopping"
+msgstr ""
+
+msgctxt "classified_category_land_rental"
+msgid "Land Rental"
+msgstr ""
+
+msgctxt "classified_category_property_rental"
+msgid "Property Rental"
+msgstr ""
+
+msgctxt "classified_category_attraction"
+msgid "Special Attraction"
+msgstr ""
+
+msgctxt "classified_category_new_products"
+msgid "New Products"
+msgstr ""
+
+msgctxt "classified_category_employment"
+msgid "Employment"
+msgstr ""
+
+msgctxt "classified_category_wanted"
+msgid "Wanted"
+msgstr ""
+
+msgctxt "classified_category_service"
+msgid "Service"
+msgstr ""
+
+msgctxt "classified_category_personal"
+msgid "Personal"
+msgstr ""
+
 msgctxt "tp_more"
 msgid "More ways to go there"
 msgstr ""
