@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "08575f2",
+        "version": "5b34074",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8054,7 +8054,7 @@
                         {
                             "group": "grid",
                             "name": "loginUri",
-                            "type": "url",
+                            "type": "string",
                             "label": "setting_login",
                             "description": "setting_login_help"
                         },
@@ -10463,7 +10463,14 @@
                                                                 "string",
                                                                 "null"
                                                             ],
-                                                            "description": "The login address, as the grid says it"
+                                                            "description": "The login URI of the grid, `host:port` as people give it to a viewer and a site shows it, whatever form the grid says it in (`http://host:port/`, `hop://...`)"
+                                                        },
+                                                        "loginUrl": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ],
+                                                            "description": "The URL of its login service (`http://host:port`), for a tool that calls it; never shown as the login URI"
                                                         },
                                                         "uri": {
                                                             "type": [
@@ -11331,7 +11338,15 @@
                                                             "type": [
                                                                 "string",
                                                                 "null"
-                                                            ]
+                                                            ],
+                                                            "description": "The login URI of the grid, `host:port` as people give it to a viewer and a site shows it, whatever form the grid says it in (`http://host:port/`, `hop://...`)"
+                                                        },
+                                                        "loginUrl": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ],
+                                                            "description": "The URL of its login service, for a tool that calls it; never shown as the login URI"
                                                         },
                                                         "uri": {
                                                             "type": [

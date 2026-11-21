@@ -452,28 +452,56 @@ describe('A link made for where it is shown (AUTO)', function () {
     });
 });
 
+describe('The login URI of a grid', function () {
+    test('is host:port whatever form it is written in, the URL kept apart for the calls', function () {
+        $forms = ['ursull.magiiic.dev:8012', 'http://ursull.magiiic.dev:8012/', 'https://ursull.magiiic.dev:8012', 'hop://ursull.magiiic.dev:8012/Welcome/128/128/25', 'secondlife://ursull.magiiic.dev:8012/secondlife/Welcome/128/128/25', ' HTTP://ursull.magiiic.dev:8012 '];
+
+        expect(array_map(Destination::loginUri(...), $forms))
+            ->toBe(array_fill(0, count($forms), 'ursull.magiiic.dev:8012'))
+            ->and(Destination::loginUrl('hop://ursull.magiiic.dev:8012/Welcome'))
+            ->toBe('http://ursull.magiiic.dev:8012')
+            ->and(Destination::loginUrl('https://ursull.magiiic.dev:8012/'))
+            ->toBe('https://ursull.magiiic.dev:8012')
+            ->and(Destination::loginUri(''))
+            ->toBeNull();
+    });
+});
+
 describe('The links that add a grid to a viewer', function () {
     test('are the gridmanager command of Firestorm with the login URI encoded, in hop and secondlife forms', function () {
-        expect(Destination::addGrid('ursull.magiiic.dev:8012'))
+        expect(Destination::addGrid('http://ursull.magiiic.dev:8012/'))
             ->toBe([
-                'hop' => 'hop:///app/gridmanager/addgrid/http%3A%2F%2Fursull.magiiic.dev%3A8012',
-                'secondlife' => 'secondlife:///app/gridmanager/addgrid/http%3A%2F%2Fursull.magiiic.dev%3A8012',
+                'hop' => 'hop:///app/gridmanager/addgrid/ursull.magiiic.dev%3A8012',
+                'secondlife' => 'secondlife:///app/gridmanager/addgrid/ursull.magiiic.dev%3A8012',
             ])
+            ->and(Destination::addGrid('hop://ursull.magiiic.dev:8012/Welcome')['hop'])
+            ->toBe('hop:///app/gridmanager/addgrid/ursull.magiiic.dev%3A8012')
+            // A viewer takes http for a login URI without a scheme: https is said
             ->and(Destination::addGrid('https://grid.example.org/')['hop'])
             ->toBe('hop:///app/gridmanager/addgrid/https%3A%2F%2Fgrid.example.org')
             ->and(Destination::addGrid(''))
             ->toBeNull();
     });
 
-    test('are given with the info and the addresses of a grid, from its login URI', function () {
+    test('are given with the info and the addresses of a grid, which give its login URI as host:port', function () {
         $machine = new W4OS\Engine\Testing\Machine();
         $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
         $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $info = $router->get('/grids/demo/info')->document['data']['attributes'];
+        $addresses = $router->get('/grids/demo/addresses')->document['data']['attributes'];
 
-        expect($router->get('/grids/demo/info')->document['data']['attributes']['addGrid'])
+        expect($info['addGrid'])
             ->toBe(Destination::addGrid((string) $grid->loginUrl()))
-            ->and($router->get('/grids/demo/addresses')->document['data']['attributes']['addGrid']['secondlife'])
-            ->toStartWith('secondlife:///app/gridmanager/addgrid/http%3A%2F%2F')
+            ->and($info['login'])
+            ->toBe($grid->loginUri())
+            ->and($info['login'])
+            ->toMatch('/^[^\/:]+:\d+$/')
+            ->and($info['loginUrl'])
+            ->toBe($grid->loginUrl())
+            ->and($addresses['login'])
+            ->toBe($info['login'])
+            ->and($addresses['addGrid']['secondlife'])
+            ->toBe('secondlife:///app/gridmanager/addgrid/' . rawurlencode((string) $info['login']))
             ->and(W4OS\Engine\I18n\Catalog::MESSAGES['grid_add_to_viewer'])
             ->toBe('Add this grid to your viewer');
     });

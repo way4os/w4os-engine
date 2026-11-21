@@ -157,7 +157,7 @@ final class GridMonitor
             'grid' => $grid->nick(),
             'name' => $grid->name(),
             'level' => $level,
-            'login' => $grid->loginUrl(),
+            'login' => $grid->loginUri(),
             'instances' => $instances,
             'simulators' => $simulators,
             'regions' => $regions,

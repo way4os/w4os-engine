@@ -247,6 +247,8 @@ final class Destination
         if ($address === '') {
             return null;
         }
+        // A teleport link of the grid gives its login too: hop://host:port/..., secondlife://host:port/...
+        $address = (string) preg_replace('#^(?:hop|secondlife)://#i', 'http://', $address);
         $parts = parse_url(preg_match('#^https?://#i', $address) === 1 ? $address : 'http://' . $address);
         if ($parts === false || empty($parts['host'])) {
             return null;
@@ -390,6 +392,18 @@ final class Destination
         );
     }
 
+    /**
+     * The login URI of a grid, `host:port`, the form people give to a viewer and a site shows, from any form it is written in
+     * (`host:port`, `http://host:port/`, `https://...`, `hop://host:port/...`); null when it is no address. The URL the engine calls
+     * is loginUrl().
+     */
+    public static function loginUri(string $address): ?string
+    {
+        $parts = self::loginParts($address);
+
+        return $parts === null ? null : $parts['host'] . ($parts['port'] !== null ? ':' . $parts['port'] : '');
+    }
+
     /** The login URL of a grid from the address its people write, `scheme://host[:port]` as it gives them; null when it is no address. */
     public static function loginUrl(string $address): ?string
     {
@@ -402,18 +416,20 @@ final class Destination
 
     /**
      * The links that add a grid to the list of grids of a viewer and select it (`app/gridmanager/addgrid` of Firestorm, its login URI
-     * URL-encoded): `hop` the form OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one
+     * `host:port` URL-encoded, `https://` before it for a grid served over https): `hop` the form OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one
      * every system hands to the viewer. Null for an address that is not one of a grid.
      *
      * @return array{hop:string,secondlife:string}|null
      */
     public static function addGrid(string $login): ?array
     {
-        $url = self::loginUrl($login);
-        if ($url === null) {
+        $parts = self::loginParts($login);
+        if ($parts === null) {
             return null;
         }
-        $command = 'app/gridmanager/addgrid/' . rawurlencode($url);
+        // The login URI, the scheme only for a grid served over https: a viewer takes http for one without
+        $uri = ($parts['scheme'] === 'https' ? 'https://' : '') . self::loginUri($login);
+        $command = 'app/gridmanager/addgrid/' . rawurlencode($uri);
 
         return ['hop' => "hop:///$command", 'secondlife' => "secondlife:///$command"];
     }

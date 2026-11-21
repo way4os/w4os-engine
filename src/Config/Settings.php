@@ -39,7 +39,7 @@ final class Settings
     public const MASK = '********';
 
     /** The types of the settings. */
-    public const TYPES = ['text', 'url', 'hostname', 'integer', 'float', 'bool', 'select', 'checkboxes', 'email', 'password', 'avatar', 'connection-string'];
+    public const TYPES = ['text', 'url', 'login-uri', 'hostname', 'integer', 'float', 'bool', 'select', 'checkboxes', 'email', 'password', 'avatar', 'connection-string'];
 
     /** The instances, the role of their file in the config of a grid (GridConfig) and its name when the grid has none. */
     public const INSTANCES = [
@@ -76,7 +76,7 @@ final class Settings
                 'ConnectionString' => ['name' => 'database', 'type' => 'connection-string', 'label' => 'setting_database', 'secret' => true, 'admin' => 'grid'],
             ],
             'GridInfoService' => [
-                'login' => ['name' => 'loginUri', 'type' => 'url', 'label' => 'setting_login', 'info' => 'login', 'names' => ['login'], 'health' => 'address', 'admin' => 'grid'],
+                'login' => ['name' => 'loginUri', 'type' => 'login-uri', 'label' => 'setting_login', 'info' => 'login', 'names' => ['login'], 'health' => 'address', 'admin' => 'grid'],
                 'gatekeeper' => ['name' => 'gatekeeper', 'type' => 'url', 'label' => 'setting_gatekeeper', 'info' => 'gatekeeper', 'hypergrid' => true, 'names' => ['gatekeeper'], 'health' => 'address'],
                 'uas' => ['name' => 'userAgentService', 'type' => 'url', 'label' => 'setting_uas', 'info' => 'uas', 'hypergrid' => true, 'names' => ['user-agent']],
                 'gridname' => ['name' => 'gridName', 'type' => 'text', 'label' => 'setting_grid_name', 'info' => 'gridname', 'admin' => 'grid'],

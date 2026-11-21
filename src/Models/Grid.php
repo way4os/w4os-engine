@@ -725,6 +725,12 @@ final class Grid extends InstalledModel
         return $this->hostPort() !== null ? Destination::loginUrl((string) $this->hostPort()) : null;
     }
 
+    /** The login URI of the grid, `host:port` as people give it to a viewer (Destination::loginUri()); null when it has none. */
+    public function loginUri(): ?string
+    {
+        return ($login = $this->loginUrl()) !== null ? Destination::loginUri($login) : null;
+    }
+
     /**
      * The links that add the grid to a viewer (Destination::addGrid()), from its login URL; null when it has none.
      *

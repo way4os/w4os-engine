@@ -10,6 +10,7 @@ use W4OS\Engine\Config\IniEditor;
 use W4OS\Engine\Config\Settings;
 use W4OS\Engine\Exceptions\InvalidValue;
 use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\Hypergrid\Destination;
 use W4OS\Engine\Provisioning\Web\HelpersConfig;
 use W4OS\Engine\Text\Notice;
 use W4OS\Engine\Text\Uuid;
@@ -153,6 +154,8 @@ final class GridSettings
     private const FIELD_TYPES = [
         'text' => 'string',
         'hostname' => 'string',
+        // host:port, as a viewer takes it
+        'login-uri' => 'string',
         'float' => 'number',
         'bool' => 'boolean',
         'password' => 'secret',
@@ -990,6 +993,8 @@ final class GridSettings
             'integer' => is_numeric($said) ? (int) $said : $said,
             'float' => is_numeric($said) ? (float) $said : $said,
             'bool' => in_array(strtolower($said), ['true', '1', 'yes', 'on'], true),
+            // What OpenSimulator keeps as a URL is shown as the URI people give a viewer
+            'login-uri' => Destination::loginUri($said) ?? $said,
             default => $said,
         };
     }
@@ -1027,6 +1032,7 @@ final class GridSettings
         if ($value !== '') {
             match ($entry['type']) {
                 'url' => preg_match('#^https?://[^\s"<>/]+(/[^\s"<>]*)?$#i', $value) === 1 || $refuse("'$value' is not an address (https://...)"),
+                'login-uri' => preg_match('/^[a-z0-9.-]+(:\d+)?$/i', (string) Destination::loginUri($value)) === 1 || $refuse("'$value' is not the login URI of a grid (host:port)"),
                 'email' => filter_var($value, FILTER_VALIDATE_EMAIL) !== false || $refuse("'$value' is not an email address"),
                 'integer' => preg_match('/^-?\d+$/', $value) === 1 || $refuse("'$value' is not a whole number"),
                 'float' => is_numeric($value) || $refuse("'$value' is not a number"),
@@ -1037,7 +1043,7 @@ final class GridSettings
             "'$value' is not a choice (" . implode(', ', array_keys($entry['options'])) . ')',
         );
 
-        return self::quoted($value);
+        return self::quoted(self::kept($entry, $value));
     }
 
     /**
@@ -1074,6 +1080,17 @@ final class GridSettings
     }
 
     /**
+     * A value as the file keeps it: the login URI given in any form (host:port, http://, hop://) as the URL OpenSimulator says at
+     * get_grid_info and the viewers log in at (`http://host:port/`).
+     *
+     * @param array<string,mixed> $entry
+     */
+    private static function kept(array $entry, string $value): string
+    {
+        return $entry['type'] === 'login-uri' && $value !== '' && ($url = Destination::loginUrl($value)) !== null ? "$url/" : $value;
+    }
+
+    /**
      * The lines of a setting to write by hand, by key: its value as the file keeps it, a key or a password named, never given.
      *
      * @param array<string,mixed> $entry
@@ -1095,7 +1112,7 @@ final class GridSettings
             return [$entry['key'] => '(your key)'];
         }
 
-        return [$entry['key'] => is_array($value) ? implode(', ', array_map('strval', $value)) : (string) ($value ?? '')];
+        return [$entry['key'] => is_array($value) ? implode(', ', array_map('strval', $value)) : self::kept($entry, (string) ($value ?? ''))];
     }
 
     /**

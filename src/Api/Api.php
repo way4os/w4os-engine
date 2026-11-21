@@ -1422,7 +1422,8 @@ final class Api
                 'type' => 'addresses',
                 'id' => $found->nick(),
                 'attributes' => [
-                    'login' => $found->loginUrl(),
+                    'login' => $found->loginUri(),
+                    'loginUrl' => $found->loginUrl(),
                     'uri' => $found->uri(),
                     'logo' => $found->logoUrl(),
                     'addGrid' => $found->addGrid(),
@@ -1461,7 +1462,8 @@ final class Api
                 'id' => $found->nick(),
                 'attributes' => [
                     'live' => $found->gridInfoIsLive(),
-                    'login' => $found->loginUrl(),
+                    'login' => $found->loginUri(),
+                    'loginUrl' => $found->loginUrl(),
                     'uri' => $found->uri(),
                     'logo' => $found->logoUrl(),
                     'addGrid' => $found->addGrid(),

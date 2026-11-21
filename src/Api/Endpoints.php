@@ -204,7 +204,11 @@ final class Endpoints
                     'content' => $document('addresses', [
                         'login' => [
                             'type' => ['string', 'null'],
-                            'description' => 'The login address, as the grid says it',
+                            'description' => 'The login URI of the grid, `host:port` as people give it to a viewer and a site shows it, whatever form the grid says it in (`http://host:port/`, `hop://...`)',
+                        ],
+                        'loginUrl' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The URL of its login service (`http://host:port`), for a tool that calls it; never shown as the login URI',
                         ],
                         'uri' => ['type' => ['string', 'null'], 'description' => 'Its host and port'],
                         'logo' => [
@@ -444,7 +448,8 @@ final class Endpoints
                     'description' => 'The elements of the grid',
                     'content' => $document('info', [
                         'live' => ['type' => 'boolean'],
-                        'login' => ['type' => ['string', 'null']],
+                        'login' => ['type' => ['string', 'null'], 'description' => 'The login URI of the grid, `host:port` as people give it to a viewer and a site shows it, whatever form the grid says it in (`http://host:port/`, `hop://...`)'],
+                        'loginUrl' => ['type' => ['string', 'null'], 'description' => 'The URL of its login service, for a tool that calls it; never shown as the login URI'],
                         'uri' => ['type' => ['string', 'null']],
                         'logo' => [
                             'type' => ['string', 'null'],

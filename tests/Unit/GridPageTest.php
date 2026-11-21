@@ -112,3 +112,26 @@ describe('The page of the grid', function () {
             ->and($count(['models', 'nomail', 'hypergrid']))->toBe(['members' => 2, 'active_members' => 1, 'members_in_world' => 1, 'active_users' => 1, 'total_users' => 1]);
     });
 });
+
+describe('The login URI on the page of the grid', function () {
+    test('is shown as host:port, and written as the URL OpenSimulator says at get_grid_info, whatever form it is given in', function () {
+        [$machine, $router] = provided_grid();
+        $robust = $machine->grid . '/Robust.HG.ini';
+        $machine->write($robust, file_get_contents($robust) . "\n[GridInfoService]\n    login = \"http://play.example.org:8002/\"\n");
+        $read = static fn(): mixed => $router->get('/grids/demo/settings/grid')->document['data']['attributes']['loginUri'] ?? null;
+        $shown = $read();
+        $written = [];
+        foreach (['play.example.org:8012', 'http://play.example.org:8012/', 'hop://play.example.org:8012/Welcome/128/128/25'] as $given) {
+            $router->patch('/grids/demo/settings/grid', ['data' => ['type' => 'settings', 'id' => 'grid', 'attributes' => ['loginUri' => $given]]]);
+            $written[] = [ConfigReader::load($robust)['GridInfoService']['login'] ?? null, $read()];
+        }
+        $wrong = $router->patch('/grids/demo/settings/grid', ['data' => ['type' => 'settings', 'id' => 'grid', 'attributes' => ['loginUri' => 'not an address']]]);
+
+        expect($shown)
+            ->toBe('play.example.org:8002')
+            ->and($written)
+            ->toBe(array_fill(0, 3, ['http://play.example.org:8012/', 'play.example.org:8012']))
+            ->and($wrong->status)
+            ->toBe(400);
+    });
+});
