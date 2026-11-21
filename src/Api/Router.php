@@ -46,6 +46,7 @@ final class Router
         'GET /grids/{grid}/motd',
         'GET /grids/{grid}/addresses',
         'GET /grids/{grid}/info',
+        'GET /grids/{grid}/place',
         'GET /grids/{grid}/monitor',
         'GET /grids/{grid}/assets/{id}.{format}',
         'GET /grids/{grid}/search/register',
@@ -183,6 +184,7 @@ final class Router
                         'health',
                         'addresses',
                         'info',
+                        'place',
                         'monitor',
                         'sign-ins',
                         'password-resets',
@@ -244,6 +246,9 @@ final class Router
         } elseif ($grid !== null && $tail === ['addresses']) {
             $template = '/grids/{grid}/addresses';
             $routes = ['GET' => fn() => $this->api->addresses($grid)];
+        } elseif ($grid !== null && $tail === ['place']) {
+            $template = '/grids/{grid}/place';
+            $routes = ['GET' => fn() => $this->api->place($grid, $query)];
         } elseif ($grid !== null && $tail === ['info']) {
             $template = '/grids/{grid}/info';
             $routes = ['GET' => fn() => $this->api->info($grid)];

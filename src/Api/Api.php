@@ -1474,6 +1474,40 @@ final class Api
     }
 
     /**
+     * A destination as a site shows a link to it (Grid::place(): its address, then its links for a browser and for the viewer,
+     * each `format`, `link` and `label`, the one AUTO gives first, then the ones that fit, then the address to copy).
+     *
+     * @param array<string,mixed> $query `destination`: host:port/Region/x/y/z, host:port:Region, hop://... or a region of the grid
+     */
+    public function place(string $grid, array $query = []): Response
+    {
+        $destination = trim((string) ($query['destination'] ?? ''));
+        $instance = self::path('place', null, $grid) . '?' . http_build_query(['destination' => $destination]);
+        try {
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            $place = $found->place($destination);
+            $uri = $destination === '' ? null : $place->tpUri();
+            $uri ?? throw NotFound::for("destination '$destination'");
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        $links = static fn (array $links): array => array_map(static fn (int $format, array $link): array => ['format' => $format] + $link, array_keys($links), $links);
+
+        return Response::document([
+            'data' => [
+                'type' => 'place',
+                'id' => $uri,
+                'attributes' => [
+                    'tpUri' => $uri,
+                    'browser' => $links($place->tpLinks('browser')),
+                    'viewer' => $links($place->tpLinks('viewer')),
+                ],
+                'links' => ['self' => $instance],
+            ],
+        ]);
+    }
+
+    /**
      * What a grid says of itself (`get_grid_info`), every element it gave, the free ones included: as it said them when it was last
      * verified, else what its config says (`live` tells which).
      */

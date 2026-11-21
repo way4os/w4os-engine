@@ -535,4 +535,22 @@ describe('The links that add a grid to a viewer', function () {
             ->and(array_column($info['tpLinks'], 'link'))->toBe(array_column($links, 'link'))
             ->and(array_column($info['tpLinks'], 'label'))->toBe(array_column($links, 'label'));
     });
+
+    test('a destination asked of the API gives its address and its links for a browser and for the viewer, as the place of the grid makes them', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $destination = 'speculoos.world:8002:Grand Place/128/128/21';
+        $place = $grid->place($destination);
+        $answer = $router->get('/grids/demo/place', ['destination' => $destination]);
+        $attributes = $answer->document['data']['attributes'];
+
+        expect($attributes['tpUri'])->toBe($place->tpUri())
+            ->and(array_column($attributes['browser'], 'link'))->toBe(array_column($place->tpLinks('browser'), 'link'))
+            ->and(array_column($attributes['viewer'], 'link'))->toBe(array_column($place->tpLinks('viewer'), 'link'))
+            ->and(array_column($attributes['viewer'], 'format'))->toBe(array_keys($place->tpLinks('viewer')))
+            ->and(array_column($attributes['browser'], 'link'))->not->toBe(array_column($attributes['viewer'], 'link'))
+            ->and($router->get('/grids/demo/place', [])->status)->toBe(404)
+            ->and(in_array('GET /grids/{grid}/place', W4OS\Engine\Api\Router::PUBLIC, true))->toBeTrue();
+    });
 });
