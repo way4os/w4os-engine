@@ -24,6 +24,8 @@ use W4OS\Engine\Provisioning\Web\Snippets;
  *  - setup.json, the record of its setup: the old host and the old site;
  *  - the web-server files of its folder (web/): made again for the new site.
  *
+ * - its databases: the addresses they keep of it (GridAddressRows), the accounts' services, its search, its picks.
+ *
  * The master of the simulators (OpenSimGridDefaults.ini) follows Robust when they start. A connection string is never touched, nor a
  * comment. Plan (the default) says each line that would change; apply writes them, then the grid and its simulators restart.
  */
@@ -39,7 +41,7 @@ final class GridAddress
 
     /**
      * @param array{host?:?string,port?:int|string|null,site?:?string} $to what changes, the rest as it is
-     * @return array{from:array{host:string,port:int,site:string},to:array{host:string,port:int,site:string},changes:list<array{file:string,line:int,before:string,after:string}>,applied:bool}
+     * @return array{from:array{host:string,port:int,site:string},to:array{host:string,port:int,site:string},changes:list<array{file:string,line:int,before:string,after:string}>,rows:list<array{database:string,table:string,column:string,before:string,after:string,rows:int}>,applied:bool}
      * @throws InvalidValue for a host, a port or a site that cannot be one, or nothing to change
      */
     public function change(array $to, bool $apply = false): array
@@ -100,6 +102,8 @@ final class GridAddress
         foreach ($written as $file => $text) {
             array_push($changes, ...$this->lines($file, (string) $read($file), $text));
         }
+        // The addresses its databases keep: its accounts, its search, its picks (GridAddressRows)
+        $rows = $logins === [] ? [] : (new GridAddressRows($this->grid))->change($logins, $login, $from['host'], $new['host'], $apply);
         if ($apply) {
             foreach ($written as $file => $text) {
                 $this->save($file, $text);
@@ -115,7 +119,7 @@ final class GridAddress
             }
         }
 
-        return ['from' => $from, 'to' => $new, 'changes' => $changes, 'applied' => $apply];
+        return ['from' => $from, 'to' => $new, 'changes' => $changes, 'rows' => $rows, 'applied' => $apply];
     }
 
     /**

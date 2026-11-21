@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (address): opensim address changes the addresses the databases keep too (accounts, search, picks), planned with their rows first
 - fix (simulators): a setting that stops a simulator of its core (Warp3DImageModule on 0.9.3) is not imported, and commented at an upgrade
 - fix (import): a simulator moved into a grid with a master leaves the grid's options (search, data services, economy, Gloebit) to its pages
 - doc (api): a site in a rootless container reaches the engine API at 10.0.2.2, allow_host_loopback, never on the network

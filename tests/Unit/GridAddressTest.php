@@ -105,3 +105,50 @@ describe('The address of a grid', function () {
             ->and($router->post('/grids/nowhere/address', ['data' => ['type' => 'address', 'attributes' => ['host' => 'dev.example.org']]])->status)->toBe(404);
     });
 });
+
+describe('The address of a grid in its databases', function () {
+    afterEach(fn() => W4OS\Engine\Data\Connections::using(null));
+
+    test('is planned with the rows each column would change, then changed: its accounts, its search, its picks', function () {
+        [, $router] = address_grid();
+        $db = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $db->exec('CREATE TABLE UserAccounts (PrincipalID CHAR(36), ServiceURLs TEXT)');
+        $db->exec("INSERT INTO UserAccounts VALUES ('a', 'HomeURI=http://old.example.org:8002/ GatekeeperURI=http://old.example.org:8002/ InventoryServerURI= AssetServerURI='), ('b', 'HomeURI= InventoryServerURI=')");
+        $db->exec('CREATE TABLE parcels (parcelUUID CHAR(36), gatekeeperURL VARCHAR(255))');
+        $db->exec("INSERT INTO parcels VALUES ('p1', 'http://old.example.org:8002'), ('p2', 'http://far.example.org:8002'), ('p3', 'http://old.example.org:80020')");
+        $db->exec('CREATE TABLE regionsregister (regionUUID CHAR(36), regionname VARCHAR(255), url VARCHAR(255), gatekeeperURL VARCHAR(255))');
+        $db->exec("INSERT INTO regionsregister VALUES ('r1', 'Welcome', 'http://old.example.org:9010/', 'http://old.example.org:8002')");
+        $db->exec('CREATE TABLE hostsregister (host VARCHAR(255), port INT, gatekeeperURL VARCHAR(255))');
+        $db->exec("INSERT INTO hostsregister VALUES ('old.example.org', 9010, 'http://old.example.org:8002')");
+        $db->exec('CREATE TABLE userpicks (pickuuid CHAR(36), gatekeeper VARCHAR(255))');
+        $db->exec("INSERT INTO userpicks VALUES ('k1', 'http://old.example.org:8002')");
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
+        $values = static fn(): array => [
+            $db->query('SELECT ServiceURLs FROM UserAccounts ORDER BY PrincipalID')->fetchAll(PDO::FETCH_COLUMN),
+            $db->query('SELECT gatekeeperURL FROM parcels ORDER BY parcelUUID')->fetchAll(PDO::FETCH_COLUMN),
+            $db->query('SELECT url, gatekeeperURL FROM regionsregister')->fetch(PDO::FETCH_NUM),
+            $db->query('SELECT host, gatekeeperURL FROM hostsregister')->fetch(PDO::FETCH_NUM),
+            $db->query('SELECT gatekeeper FROM userpicks')->fetchColumn(),
+        ];
+        $before = $values();
+
+        $plan = address_post($router, ['host' => 'new.example.org'])->document['data']['attributes'];
+        $planned = $values();
+        address_post($router, ['host' => 'new.example.org', 'mode' => 'apply']);
+        $after = $values();
+        $rows = array_column($plan['rows'], 'rows', 'table');
+
+        expect($planned)->toBe($before)
+            ->and($rows)->toMatchArray(['UserAccounts' => 1, 'parcels' => 1, 'userpicks' => 1, 'hostsregister' => 1])
+            ->and(array_filter($plan['rows'], static fn(array $r): bool => $r['table'] === 'regionsregister'))->toHaveCount(2)
+            ->and(json_encode($plan['rows']))->not->toContain('secret')
+            ->and($after)->toBe([
+                ['HomeURI=http://new.example.org:8002/ GatekeeperURI=http://new.example.org:8002/ InventoryServerURI= AssetServerURI=', 'HomeURI= InventoryServerURI='],
+                // Another grid, or another port that only starts as the old one, left as they are
+                ['http://new.example.org:8002', 'http://far.example.org:8002', 'http://old.example.org:80020'],
+                ['http://new.example.org:9010/', 'http://new.example.org:8002'],
+                ['new.example.org', 'http://new.example.org:8002'],
+                'http://new.example.org:8002',
+            ]);
+    });
+});
