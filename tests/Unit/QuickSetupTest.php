@@ -255,7 +255,7 @@ describe('quick setup, what is wrong', function () {
             ->and($labels)
             ->toContain('Grid name', 'Login URI', 'Hypergrid', 'Grid database', 'Simulator', 'Region', 'Port', 'Avatar')
             ->and($rows[1])
-            ->toBe(['section' => 'grid', 'label' => 'Login URI', 'value' => 'http://login.example.org:8102'])
+            ->toBe(['section' => 'grid', 'label' => 'Login URI', 'value' => 'login.example.org:8102'])
             ->and(json_encode($rows))
             ->not->toContain('secret123');
     });
@@ -1028,9 +1028,9 @@ describe('quick setup, the scenario', function () {
         expect($done['action'])
             ->toBe('quit')
             ->and($done['message'])
-            ->toContain('Grid name:  Magic Grid', 'Login URI:  http://login.example.org:8102', 'Avatar:     Ada Love')
+            ->toContain('Grid name:  Magic Grid', 'Login URI:  login.example.org:8102', 'Avatar:     Ada Love')
             ->toContain('The grid and its simulator are running.')
-            ->toEndWith("Grid name:  Magic Grid\nLogin URI:  http://login.example.org:8102\nAvatar:     Ada Love")
+            ->toEndWith("Grid name:  Magic Grid\nLogin URI:  login.example.org:8102\nAvatar:     Ada Love")
             ->not->toContain('MoneyServer')
             ->not->toContain('chgrp');
         preg_match('/Written in (\S+)\./', $done['message'], $m);
@@ -1299,7 +1299,7 @@ describe('quick setup, the scenario', function () {
             ->and($done['action'])
             ->toBe('quit')
             ->and($done['message'])
-            ->toContain('Grid name:  Remote World', 'Login URI:  http://remote.example.org:8002')
+            ->toContain('Grid name:  Remote World', 'Login URI:  remote.example.org:8002')
             ->and(glob("{$machine->etc}/grids/remote/sims/*.ini"))
             ->toHaveCount(1);
     });

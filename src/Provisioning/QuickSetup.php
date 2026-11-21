@@ -1072,7 +1072,7 @@ final class QuickSetup
                 '',
                 sprintf('Grid name:  %s', $plan?->gridName ?? $grid?->name()),
                 sprintf(
-                    'Login URI:  http://%s:%d',
+                    'Login URI:  %s:%d',
                     $plan?->baseHostname ?? $grid?->baseHostname(),
                     $plan?->publicPort ?? $grid?->publicPort(),
                 ),
@@ -1463,7 +1463,7 @@ final class QuickSetup
                 : 'screen session';
 
         $add('grid', 'Grid', "{$grid->name()} ({$grid->nick()})" . ($preset !== '' ? " - preset $preset" : ''));
-        $add('grid', 'Login URI', "http://{$grid->baseHostname()}:{$grid->publicPort()}");
+        $add('grid', 'Login URI', "{$grid->baseHostname()}:{$grid->publicPort()}");
         $add('grid', 'Private port', (string) $grid->privatePort());
         $add('grid', 'Hypergrid', $grid->isHypergrid() ? 'yes' : 'no');
         $add('grid', 'Grid folder', $simulator->gridDir);
@@ -1542,7 +1542,7 @@ final class QuickSetup
         $database = static fn(string $name, string $host, string $user): string => "$name @ $host (user $user)";
 
         $add('grid', 'Grid name', "{$plan->gridName} ({$plan->gridNick})");
-        $add('grid', 'Login URI', "http://{$plan->baseHostname}:{$plan->publicPort}");
+        $add('grid', 'Login URI', "{$plan->baseHostname}:{$plan->publicPort}");
         $add(
             'grid',
             'Region spacing',
