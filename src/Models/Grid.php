@@ -1026,14 +1026,19 @@ final class Grid extends InstalledModel
         if ($this->isPlanned()) {
             return $this->info = [[], false];
         }
-        // What the grid said when it was verified, at the address it is known at; no other address is tried
-        $saved = (new GridInfoCache($this->environment))->saved($this->infoAddress());
+        // What the grid said when it was verified, at the address it is known at; no other address is tried. A grid on another
+        // machine, known by its address alone, is asked when nothing is kept of it
+        $cache = new GridInfoCache($this->environment);
+        $saved = $this->isRemote() ? $cache->known($this->infoAddress()) : $cache->saved($this->infoAddress());
         if ($saved !== null) {
             return $this->info = [$saved, true];
         }
         $controller = $this->isStandalone() ? ($this->simulators()[0] ?? null)?->controller() : $this->robust();
-        // A grid without its instance here (described by an application): the config it was given
-        $ini = $controller?->settings() ?? ($this->config()?->tree()[$this->isStandalone() ? 'OpenSim' : 'Robust'] ?? []);
+        // A grid without its instance here (described by an application): the config it was given, its [GridInfoService] where
+        // the application keeps it (Helpers.ini) when Robust's says none
+        $tree = $this->config()?->tree() ?? [];
+        $ini = $controller?->settings() ?? ($tree[$this->isStandalone() ? 'OpenSim' : 'Robust'] ?? []);
+        isset($ini['GridInfoService']) || !isset($tree['Helpers']['GridInfoService']) || ($ini['GridInfoService'] = $tree['Helpers']['GridInfoService']);
 
         return $this->info = [self::infoOf($ini), false];
     }

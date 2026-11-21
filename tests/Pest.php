@@ -88,3 +88,26 @@ function podman_refused(bool $mountsLocalFiles = false): ?string
         ? 'it mounts files of this Mac: run it on Linux, or PODMAN_LOCAL=1'
         : 'no container on this Mac: CONTAINER_CONNECTION names another machine, or PODMAN_LOCAL=1';
 }
+
+/** A machine whose grids answer what the test puts in `$answers` (address => body), counting the questions. */
+function grid_info_world(array &$answers, array &$asked): W4OS\Engine\Testing\Machine
+{
+    $machine = new W4OS\Engine\Testing\Machine();
+    $machine->environment = new W4OS\Engine\Runtime\Environment(
+        $machine->environment->layout,
+        $machine->environment->processes,
+        $machine->environment->launcher,
+        $machine->environment->consoles,
+        $machine->clock,
+        $machine->environment->reporter,
+        null,
+        $machine->environment->probe,
+        static function (string $url) use (&$answers, &$asked): ?string {
+            $asked[] = $url;
+
+            return $answers[$url] ?? null;
+        },
+    );
+
+    return $machine;
+}

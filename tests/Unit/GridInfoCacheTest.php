@@ -14,28 +14,6 @@ use W4OS\Engine\Models\Avatar;
 use W4OS\Engine\Network\GridInfoCache;
 use W4OS\Engine\Testing\Machine;
 
-/** A machine whose grids answer what the test puts in `$answers` (address => body), counting the questions. */
-function grid_info_world(array &$answers, array &$asked): Machine
-{
-    $machine = new Machine();
-    $machine->environment = new W4OS\Engine\Runtime\Environment(
-        $machine->environment->layout,
-        $machine->environment->processes,
-        $machine->environment->launcher,
-        $machine->environment->consoles,
-        $machine->clock,
-        $machine->environment->reporter,
-        null,
-        $machine->environment->probe,
-        static function (string $url) use (&$answers, &$asked): ?string {
-            $asked[] = $url;
-
-            return $answers[$url] ?? null;
-        },
-    );
-
-    return $machine;
-}
 
 const GRID_SAYS = '<gridinfo><gridname>Example</gridname><login>http://grid.example.org:8002/</login><mood>free</mood></gridinfo>';
 

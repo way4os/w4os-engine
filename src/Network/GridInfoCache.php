@@ -75,6 +75,22 @@ final class GridInfoCache
         return $said;
     }
 
+    /**
+     * What the grid said, kept, else asked now when it was not silent in the last ten minutes: for a grid known by its address alone,
+     * which nothing else verifies.
+     *
+     * @return ?array<string,string> what it said, null when nothing is kept and it does not answer
+     */
+    public function known(string $login): ?array
+    {
+        $asked = Destination::loginUrl($login);
+        if ($asked === null) {
+            return null;
+        }
+
+        return $this->saved($asked) ?? ($this->cache->has('grid-info-silent.' . $this->key($asked)) ? null : $this->verify($asked));
+    }
+
     /** @param array<string,string> $said */
     public function save(string $login, array $said): void
     {

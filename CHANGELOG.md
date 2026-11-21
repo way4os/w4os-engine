@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (grids): a remote grid known by its login URI alone asks its get_grid_info once, else reads what the site gave
 - fix (grids): a nick in capitals finds its grid; an invalid nick is a warning naming the right one, never an error
 - fix (port mapping): a start without port mapping keeps the regions' ExternalHostName
 - fix (packaging): the API command w4os-api is in /usr/bin, a link to the one of the engine; the packaging check calls it there
