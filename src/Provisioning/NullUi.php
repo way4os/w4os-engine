@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
  * An interface that asks nothing: the answers are the proposals. For the planning of a setup that nobody sees. What is said is kept,

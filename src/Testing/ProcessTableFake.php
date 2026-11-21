@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Testing;
+namespace W4OS\Engine\Testing;
 
-use OpenSim\Runtime\Process;
-use OpenSim\Runtime\ProcessTableInterface;
+use W4OS\Engine\Runtime\Process;
+use W4OS\Engine\Runtime\ProcessTableInterface;
 
 /**
  * The processes of a machine that has only the ones a test gives it.

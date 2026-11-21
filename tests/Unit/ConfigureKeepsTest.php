@@ -4,14 +4,14 @@
  * configured again: what the operator added stays.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Controllers\RobustController;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\SimulatorConfig;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Controllers\RobustController;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\SimulatorConfig;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 describe('A grid that is made', function () {
     /** A grid plan over a folder that has the Robust.HG.ini.example of a distribution. */

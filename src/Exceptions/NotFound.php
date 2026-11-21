@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Exceptions;
+namespace W4OS\Engine\Exceptions;
 
 /**
  * What is asked for is not there: a grid that is not known here, a resource that does not exist. `resource` names the kind of

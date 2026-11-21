@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Console;
+namespace W4OS\Engine\Console;
 
 /**
  * The console of an instance run in a screen session: it also has a screen to read and to attach to.

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Models\Simulator;
+use W4OS\Engine\Models\Simulator;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridConfig;
-use OpenSim\Controllers\OpenSimController;
-use OpenSim\Data\Stats;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\OpenSim;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Controllers\OpenSimController;
+use W4OS\Engine\Data\Stats;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\OpenSim;
 
 /**
  * The state of a grid at a glance: its Robust, its simulators (the ones of this machine and the ones that run elsewhere, which its
@@ -254,10 +254,10 @@ final class GridMonitor
     /** Whether the grid says the database of its grid service and it does not answer. */
     private static function databaseDown(?GridConfig $config): bool
     {
-        if ($config === null || \OpenSim\Data\Connections::key($config, 'GridService') === null) {
+        if ($config === null || \W4OS\Engine\Data\Connections::key($config, 'GridService') === null) {
             return false;
         }
-        $pdo = \OpenSim\Data\Connections::pdo($config, 'GridService');
+        $pdo = \W4OS\Engine\Data\Connections::pdo($config, 'GridService');
 
         return $pdo === null || !$pdo->connected;
     }

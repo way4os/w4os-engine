@@ -7,14 +7,14 @@ declare(strict_types=1);
  * and the password Robust keeps.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Cli;
-use OpenSim\Api\Router;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Provisioning\AccountWriter;
-use OpenSim\SignIn\DatabaseAuthenticator;
-use OpenSim\SignIn\SignInResult;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Cli;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Provisioning\AccountWriter;
+use W4OS\Engine\SignIn\DatabaseAuthenticator;
+use W4OS\Engine\SignIn\SignInResult;
 
 const ADA = '11111111-1111-1111-1111-111111111111';
 const CY = '33333333-3333-3333-3333-333333333333';
@@ -151,7 +151,7 @@ describe('The API, for the sign-in of an avatar', function () {
     test('tells an avatar that waits for the confirmation of its email from one a manager disabled', function () {
         $pdo = signin_database();
         avatars_in($pdo);
-        $pdo->exec('UPDATE UserAccounts SET UserFlags = ' . OpenSim\Models\Avatar::PENDING_FLAG . " WHERE PrincipalID = '" . CY . "'");
+        $pdo->exec('UPDATE UserAccounts SET UserFlags = ' . W4OS\Engine\Models\Avatar::PENDING_FLAG . " WHERE PrincipalID = '" . CY . "'");
 
         $waiting = (new DatabaseAuthenticator(avatar_grid()))->authenticate('Cy Gone', 'cy-secret');
         $answer = (new Router(machine_api(avatar_grid())))->post('/grids/demo/sign-ins', [
@@ -186,7 +186,7 @@ describe('The API, for the sign-in of an avatar', function () {
         $locked = new Router(
             machine_api(avatar_grid()),
             grid: 'demo',
-            authenticator: new OpenSim\Security\Locked(),
+            authenticator: new W4OS\Engine\Security\Locked(),
         );
         $open = new Router(machine_api(avatar_grid()), grid: 'demo');
         $body = ['data' => ['type' => 'sign-ins', 'attributes' => ['name' => 'Ada Love', 'password' => 'ada-secret']]];
@@ -217,7 +217,7 @@ describe('The API, for the sign-in of an avatar', function () {
 
 describe('The contract, for the sign-in of an avatar', function () {
     test('has the operation, closed, with the avatar it gives and the problems', function () {
-        $operation = OpenSim\Api\Contract::document()['paths']['/grids/{grid}/sign-ins']['post'] ?? [];
+        $operation = W4OS\Engine\Api\Contract::document()['paths']['/grids/{grid}/sign-ins']['post'] ?? [];
 
         expect($operation['operationId'] ?? null)
             ->toBe('signIn')

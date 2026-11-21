@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network\PortMapping;
+namespace W4OS\Engine\Network\PortMapping;
 
 use Magicoli\KickInside\Port;
 use Magicoli\KickInside\PortMapper;

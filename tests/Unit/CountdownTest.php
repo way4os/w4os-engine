@@ -6,8 +6,8 @@ declare(strict_types=1);
  * The countdown before a shutdown.
  */
 
-use OpenSim\Runtime\StopService;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Runtime\StopService;
+use W4OS\Engine\Testing\Machine;
 
 describe('countdown', function () {
     test('counts down to the shutdown, not to the next warning', function () {

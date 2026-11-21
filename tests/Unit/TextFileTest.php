@@ -5,7 +5,7 @@
  * brought to Unix ones wherever the kit reads or copies them.
  */
 
-use OpenSim\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\GridPlan;
 
 describe('Robust config with CRLF', function () {
     test('has none left', function () {

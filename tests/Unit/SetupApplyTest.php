@@ -7,11 +7,11 @@ declare(strict_types=1);
  * simulator that exists. Planned (nothing written), then applied.
  */
 
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Provisioning\SetupApply;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Provisioning\DatabaseService;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Provisioning\SetupApply;
+use W4OS\Engine\Testing\Machine;
 
 /** A file that adds the simulator North (two regions, the first of 512 meters, a fallback) and a region to alpha. */
 function setup_apply_file(array $first = []): array
@@ -90,7 +90,7 @@ describe('A setup file applied', function () {
 
     test('loads the regions of a running simulator through its console, which needs no restart', function () {
         $machine = new Machine();
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
         $machine->processes->add('dotnet OpenSim.dll -inifile=' . $grid->simulatorLink($grid->simulator('alpha')->slug()));
         $plan = SetupApply::prepare($machine->environment, ['grid' => ['nick' => 'demo'], 'simulators' => [['name' => 'alpha', 'regions' => [['name' => 'Alpha Two']]]]]);
 
@@ -163,7 +163,7 @@ describe('A setup file applied', function () {
 describe('The API, for a setup file', function () {
     test('plans the file it is given as text, and says what is wrong', function () {
         $machine = new Machine();
-        $api = new OpenSim\Api\Api($machine->environment);
+        $api = new W4OS\Engine\Api\Api($machine->environment);
 
         $plan = $api->setupFile(['text' => json_encode(setup_apply_file())]);
         $wrong = $api->setupFile(['setup' => setup_apply_file(['size' => 300]), 'mode' => 'apply']);

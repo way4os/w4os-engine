@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\I18n\Catalog;
 
 /**
  * What the list of a model shows, as the model tells it: its columns in their order, the filters and their values, what its search

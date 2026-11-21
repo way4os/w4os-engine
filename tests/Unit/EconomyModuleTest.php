@@ -8,12 +8,12 @@ declare(strict_types=1);
  * helpers use (`[Helpers] CurrencyProvider = podex`). Each shows its own settings.
  */
 
-use OpenSim\Config\Settings;
-use OpenSim\Economy\CurrencySettings;
-use OpenSim\Models\Grid;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Economy\CurrencySettings;
+use W4OS\Engine\Models\Grid;
 
 /** The PATCH of the economy page. */
-function economy_patch(OpenSim\Api\Router $router, array $attributes): OpenSim\Api\Response
+function economy_patch(W4OS\Engine\Api\Router $router, array $attributes): W4OS\Engine\Api\Response
 {
     return $router->patch('/grids/demo/settings/economy', ['data' => ['type' => 'settings', 'id' => 'economy', 'attributes' => $attributes]]);
 }
@@ -24,7 +24,7 @@ describe('The module of the economy', function () {
 
         expect($fields['economyModule'])->not->toHaveKey('readOnly')
             ->and(array_keys($fields['economyModule']['options']))->toBe(['BetaGridLikeMoneyModule', 'DTLNSLMoneyModule', 'Gloebit', 'Podex'])
-            ->and(OpenSim\I18n\Catalog::MESSAGES[$fields['economyModule']['options']['DTLNSLMoneyModule']])->toBe('Generic MoneyServer, for fake money or alternate providers.')
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES[$fields['economyModule']['options']['DTLNSLMoneyModule']])->toBe('Generic MoneyServer, for fake money or alternate providers.')
             ->and($fields['podexUrl']['condition']['economyModule'])->toBe(['Podex'])
             ->and($fields['moneyScriptKey']['condition']['economyModule'])->toBe(['DTLNSLMoneyModule', 'Podex'])
             ->and($fields['moneyDatabase']['condition']['economyModule'])->toBe(['DTLNSLMoneyModule', 'Podex'])
@@ -75,8 +75,8 @@ describe('The economy page', function () {
         expect($fields['currencySymbol'])->toMatchArray(['type' => 'string', 'label' => 'setting_currency_symbol'])
             ->and($fields['moneyBanker'])->toMatchArray(['condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule', 'Podex']]])
             ->and($fields['moneyBanker']['description'])->toBe(['money_banker_help', 'money_banker_podex_help'])
-            ->and(OpenSim\I18n\Catalog::MESSAGES[$fields['gloebitOwnerName']['label']])->toBe('Banker Name')
-            ->and(OpenSim\I18n\Catalog::MESSAGES[$fields['gloebitOwnerEmail']['label']])->toBe('Banker Email')
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES[$fields['gloebitOwnerName']['label']])->toBe('Banker Name')
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES[$fields['gloebitOwnerEmail']['label']])->toBe('Banker Email')
             ->and($fields['gloebitOwnerName']['description'] ?? [])->toBe(['gloebit_banker_help'])
             ->and($fields['moneyServerWarning'])->toMatchArray(['type' => 'note', 'condition' => ['provide' => [true], 'economyModule' => ['DTLNSLMoneyModule', 'Podex']]])
             ->and($free->document['data']['attributes'])->toMatchArray(['currencySymbol' => 'F$', 'moneyBanker' => '11111111-1111-1111-1111-111111111111'])

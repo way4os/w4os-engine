@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
 /**
  * The calls whose format OpenSimulator or the viewers fix, described for the contract: the methods of the search, the currency and the
@@ -383,7 +383,7 @@ final class Formats
      */
     public static function requestExample(string $method, array $fields): string
     {
-        return \OpenSim\Services\XmlRpc::request($method, [self::sample($fields)]);
+        return \W4OS\Engine\Services\XmlRpc::request($method, [self::sample($fields)]);
     }
 
     /**
@@ -395,8 +395,8 @@ final class Formats
     {
         $sample = self::sample($fields);
 
-        return \OpenSim\Services\XmlRpc::encode(
-            $rows ? \OpenSim\Services\XmlRpc::envelope(true, '', [$sample]) : $sample,
+        return \W4OS\Engine\Services\XmlRpc::encode(
+            $rows ? \W4OS\Engine\Services\XmlRpc::envelope(true, '', [$sample]) : $sample,
         );
     }
 

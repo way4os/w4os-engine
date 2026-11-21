@@ -6,7 +6,7 @@ declare(strict_types=1);
  * The steps of a simulator starting, read in its log.
  */
 
-use OpenSim\Runtime\StartupProgress;
+use W4OS\Engine\Runtime\StartupProgress;
 
 describe('steps of a start', function () {
     test('count the plugins of modules on the total the log announces', function () {

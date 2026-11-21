@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 /** What the engine shows of a log or a config, without the secrets they hold. */
 
-use OpenSim\Runtime\LogFile;
-use OpenSim\Text\Secrets;
+use W4OS\Engine\Runtime\LogFile;
+use W4OS\Engine\Text\Secrets;
 
 describe('Secrets', function () {
     test('are masked in what is shown: the secret of the data service, passwords, keys in addresses', function () {

@@ -7,11 +7,11 @@ declare(strict_types=1);
  * its config in etc/opensim.d with a shared include, its region in etc/grids/<grid>/sims/<sim>/regions. Planned, then applied.
  */
 
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Exceptions\NotFound;
-use OpenSim\Provisioning\Import\SimulatorImport;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\Provisioning\Import\SimulatorImport;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Testing\Machine;
 
 /** The install of opensim-debian, as on redoutable: its config in opensim.d, the grid's shared one included, one region. */
 function old_install(Machine $machine, string $sim = 'redoutable', string $region = 'Redoutable', string $uuid = '11111111-2222-4333-8444-555555555555', int $port = 9250, string $location = '1000,1000'): string
@@ -377,7 +377,7 @@ describe('Several simulators imported together', function () {
         $machine = new Machine();
         $a = old_install($machine, 'redoutable', 'Redoutable', '11111111-2222-4333-8444-555555555555');
         $b = old_install($machine, 'residences', 'Redoutable', '11111111-2222-4333-8444-555555555555');
-        $imports = OpenSim\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
+        $imports = W4OS\Engine\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
 
         expect(array_keys($imports->problems))
             ->toBe(['simulators.1'])
@@ -393,7 +393,7 @@ describe('Several simulators imported together', function () {
         $machine = new Machine();
         $a = old_install($machine, 'redoutable', 'Redoutable', '11111111-2222-4333-8444-555555555555', 9250, '1000,1000');
         $b = old_install($machine, 'residences', 'Residence', '99999999-2222-4333-8444-555555555555', 9260, '1001,1000');
-        $imports = OpenSim\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
+        $imports = W4OS\Engine\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
         $imports->apply($machine->environment, new NullUi(), fake_dump());
         $plan = $imports->document();
 
@@ -416,7 +416,7 @@ describe('Several simulators imported together', function () {
             $dumps[] = $db['name'];
             fake_dump()($db, $file);
         };
-        $imports = OpenSim\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
+        $imports = W4OS\Engine\Provisioning\Import\SimulatorImports::prepare($machine->environment, [['file' => $a], ['file' => $b]], 'demo');
         $imports->apply($machine->environment, new NullUi(), $dump);
         $archives = array_column(array_column($imports->document()['steps'], 'backup'), 'file');
         $held = array_map(static function (string $archive): array {
@@ -437,7 +437,7 @@ describe('Several simulators imported together', function () {
 describe('The API, for an import', function () {
     test('plans by default, applies when asked, and says why it refuses', function () {
         $machine = new Machine();
-        $api = new OpenSim\Api\Api($machine->environment, dumper: fake_dump());
+        $api = new W4OS\Engine\Api\Api($machine->environment, dumper: fake_dump());
         $source = old_install($machine);
 
         $plan = $api->import(['kind' => 'simulator', 'file' => $source, 'grid' => 'demo']);

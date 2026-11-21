@@ -15,7 +15,7 @@ function test_tmp(): string
  * The database the tests use, as `tests/.env` says it (`TEST_DATABASE=<PDO dsn>`); null when it says none, and the tests that need
  * one are skipped.
  */
-function test_pdo(): ?OpenSim\Data\OSPDO
+function test_pdo(): ?W4OS\Engine\Data\OSPDO
 {
     $file = __DIR__ . '/.env';
     $dsn = null;
@@ -24,7 +24,7 @@ function test_pdo(): ?OpenSim\Data\OSPDO
             $dsn = trim($m[1], '"\'');
         }
     }
-    $pdo = $dsn === null ? null : new OpenSim\Data\OSPDO($dsn);
+    $pdo = $dsn === null ? null : new W4OS\Engine\Data\OSPDO($dsn);
 
     return $pdo?->connected ? $pdo : null;
 }
@@ -35,17 +35,17 @@ function test_pdo(): ?OpenSim\Data\OSPDO
  *
  * @param ?array<string,mixed> $answers the answers that choose the options (see GridOptions::selection())
  */
-function robust_made(OpenSim\Provisioning\GridPlan $plan, ?array $answers = null): string
+function robust_made(W4OS\Engine\Provisioning\GridPlan $plan, ?array $answers = null): string
 {
     if ($plan->gridDir === '') {
         $plan->gridDir = $plan->etcDirectory = test_tmp() . '/robust-made-' . bin2hex(random_bytes(4));
     }
     is_dir($plan->gridDir) || mkdir($plan->gridDir, 0o755, true);
-    OpenSim\Config\IniEditor::load(
+    W4OS\Engine\Config\IniEditor::load(
         $plan->binDir . '/' . ($plan->enableHypergrid ? 'Robust.HG.ini.example' : 'Robust.ini.example'),
     )->save($plan->robustIni());
-    $options = new OpenSim\Provisioning\GridOptions(
-        OpenSim\Models\Grid::planned(OpenSim\Testing\EnvironmentFake::with(), $plan),
+    $options = new W4OS\Engine\Provisioning\GridOptions(
+        W4OS\Engine\Models\Grid::planned(W4OS\Engine\Testing\EnvironmentFake::with(), $plan),
         layered: true,
         extra: $plan->variables(),
     );
@@ -69,4 +69,4 @@ function offline_names(): array
     ];
 }
 
-OpenSim\Network\ServerNames::using(offline_names());
+W4OS\Engine\Network\ServerNames::using(offline_names());

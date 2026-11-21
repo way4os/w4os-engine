@@ -1,8 +1,8 @@
 <?php
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Region;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Region;
 
 /**
  * A region as the config of the simulators describes it: the same object as the one of the grid, what differs is what it can answer.
@@ -36,7 +36,7 @@ function region_config_grid(): array
 describe('regions of a simulator', function () {
     test('are the ones of the simulators asked, by the address the grid has of them, named as their files here say', function () {
         [, $config] = region_config_grid();
-        $pdo = new \OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $pdo = new \W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         $pdo->exec(
             'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, owner_uuid CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
         );
@@ -44,7 +44,7 @@ describe('regions of a simulator', function () {
             ('607c44e9-3d01-45eb-a07e-937dc72dbadb', 'Plaza', 307200, 307456, 'http://10.0.0.1:9000/', 0),
             ('aaaaaaaa-0000-0000-0000-000000000001', 'Welcome', 256000, 256000, 'http://10.0.0.2:9010/', 0),
             ('aaaaaaaa-0000-0000-0000-000000000002', 'Far', 0, 0, 'http://other.example.org:8002/', 512)");
-        \OpenSim\Data\Connections::using(static fn() => $pdo);
+        \W4OS\Engine\Data\Connections::using(static fn() => $pdo);
         try {
             $names = static fn(string $simulator) => array_column(
                 Region::all($config, ['filters' => ['simulator' => $simulator]])->array(),
@@ -73,7 +73,7 @@ describe('regions of a simulator', function () {
                 ->and(array_intersect_key(Region::find($config, 'Welcome')->detail(), ['local' => 1, 'enabled' => 1]))
                 ->toBe(['local' => false, 'enabled' => null]);
         } finally {
-            \OpenSim\Data\Connections::using(null);
+            \W4OS\Engine\Data\Connections::using(null);
         }
     });
 });

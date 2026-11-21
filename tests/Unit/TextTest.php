@@ -1,8 +1,8 @@
 <?php
 
-use OpenSim\Text\Encoding;
-use OpenSim\Text\Format;
-use OpenSim\Text\Identifier;
+use W4OS\Engine\Text\Encoding;
+use W4OS\Engine\Text\Format;
+use W4OS\Engine\Text\Identifier;
 
 describe('identifiers', function () {
     test('are lower case, accents out, one separator', function () {

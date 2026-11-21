@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\OpenSim;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\OpenSim;
 
 /**
  * Starting and restarting instances from the setup, in the process that runs it (the one that writes, as the user of the

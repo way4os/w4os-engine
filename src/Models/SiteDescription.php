@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Runtime\Environment;
-use OpenSim\Text\DestinationList;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Text\DestinationList;
 
 /**
  * What a site needs of a grid for its helpers, given by the engine of the machine that has its files: who the grid is, the
@@ -84,7 +84,7 @@ final class SiteDescription
         static $secrets = null;
         $secrets ??= array_fill_keys(array_map(
             static fn(array $entry): string => strtolower($entry['section'] . '.' . $entry['key']),
-            array_filter(\OpenSim\Config\Settings::entries(), static fn(array $entry): bool => ($entry['secret'] ?? false) && !isset($entry['parts']) && preg_match('/ConnectionString$/i', $entry['key']) !== 1),
+            array_filter(\W4OS\Engine\Config\Settings::entries(), static fn(array $entry): bool => ($entry['secret'] ?? false) && !isset($entry['parts']) && preg_match('/ConnectionString$/i', $entry['key']) !== 1),
         ), true);
 
         return isset($secrets[strtolower("$section.$key")]);

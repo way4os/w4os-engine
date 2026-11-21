@@ -6,7 +6,7 @@ declare(strict_types=1);
  * The UUIDs: the two keys that stand for nobody, and what counts as nothing.
  */
 
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Text\Uuid;
 
 describe('UUID', function () {
     test('has two keys for nobody, the global constant being the first', function () {

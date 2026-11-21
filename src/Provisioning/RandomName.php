@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 use Platoniq\RandomNameGenerator\Alliteration;
 

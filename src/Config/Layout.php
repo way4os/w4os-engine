@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
-use OpenSim\Runtime\Core;
+use W4OS\Engine\Runtime\Core;
 
 /**
- * Where an install keeps its files: the settings of `opensim.conf`, [Defaults] first and the profile it points to over them
+ * Where an install keeps its files: the settings of `w4os.conf`, [Defaults] first and the profile it points to over them
  * (or the one asked for). The folders of the install (etc, var, logs, cache, data, cores), the user the instances run as,
  * the modules enabled for the regions.
  *
@@ -20,15 +20,27 @@ use OpenSim\Runtime\Core;
 final class Layout
 {
     /** The name of the config file of the suite: the one place it is written, a rename is this one change */
-    public const FILE = 'opensim.conf';
+    public const FILE = 'w4os.conf';
 
     /** The folder of the system config of the suite */
-    public const SYSTEM_DIR = '/etc/opensim';
+    public const SYSTEM_DIR = '/etc/w4os';
 
-    /** @var list<string> where the config file is looked for, in this order ($HOME is the one of the caller) */
-    private const FILES = ['%HOME%/.config/opensim/' . self::FILE, '%HOME%/.' . self::FILE, self::SYSTEM_DIR . '/' . self::FILE];
+    /** The name the config of the suite had before w4os, in the folder of the grids (EtcRoot) */
+    public const LEGACY_FILE = 'opensim.conf';
 
-    /** The config file of the suite on the system: /etc/opensim/opensim.conf */
+    /**
+     * @var list<string> where the config file is looked for, in this order ($HOME is the one of the caller); the config of a
+     *      user from before w4os is read where it is, nothing moves it (the system one is moved by the package)
+     */
+    private const FILES = [
+        '%HOME%/.config/w4os/' . self::FILE,
+        '%HOME%/.' . self::FILE,
+        self::SYSTEM_DIR . '/' . self::FILE,
+        '%HOME%/.config/opensim/' . self::LEGACY_FILE,
+        '%HOME%/.' . self::LEGACY_FILE,
+    ];
+
+    /** The config file of the suite on the system: /etc/w4os/w4os.conf */
     public static function systemFile(): string
     {
         return self::SYSTEM_DIR . '/' . self::FILE;
@@ -62,7 +74,7 @@ final class Layout
     }
 
     /**
-     * The layout of the install: `opensim.conf` found in the usual places (or given), then the profile.
+     * The layout of the install: `w4os.conf` found in the usual places (or given), then the profile.
      *
      * @param ?string $file the config file, null to look for it
      * @param array<string,string> $defaults the values of an install by the book, for what the file does not say (EtcRoot, CoreRoot)
@@ -89,7 +101,7 @@ final class Layout
     }
 
     /**
-     * The settings of opensim.conf an environment may give as `OPENSIM_<NAME_IN_CAPITALS>` (`OPENSIM_ETC_ROOT` for EtcRoot).
+     * The settings of w4os.conf an environment may give as `OPENSIM_<NAME_IN_CAPITALS>` (`OPENSIM_ETC_ROOT` for EtcRoot).
      */
     public const ENVIRONMENT_KEYS = [
         'CoreRoot',
@@ -107,7 +119,7 @@ final class Layout
     ];
 
     /**
-     * The layout of a front-end: the OPENSIM_* variables of its environment, then opensim.conf, then the defaults of the system layout.
+     * The layout of a front-end: the OPENSIM_* variables of its environment, then w4os.conf, then the defaults of the system layout.
      *
      * @param ?array<string,mixed> $environment the variables of the environment, null for the ones of the process
      * @throws \RuntimeException when OPENSIM_CONF names a file that does not exist
@@ -131,13 +143,13 @@ final class Layout
         return new self($given + $layout->all(), $layout->file(), $layout->profile(), $layout->grids());
     }
 
-    /** The name a setting of opensim.conf has in an environment: EtcRoot is OPENSIM_ETC_ROOT. */
+    /** The name a setting of w4os.conf has in an environment: EtcRoot is OPENSIM_ETC_ROOT. */
     public static function environmentName(string $key): string
     {
         return 'OPENSIM_' . strtoupper((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $key));
     }
 
-    /** The first `opensim.conf` of the usual places, null when there is none. */
+    /** The first `w4os.conf` of the usual places, null when there is none. */
     public static function locate(): ?string
     {
         $home = (string) getenv('HOME');

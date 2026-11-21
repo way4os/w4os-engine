@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\AvatarModel;
-use OpenSim\Provisioning\AccountWriter;
-use OpenSim\Runtime\ClockInterface;
-use OpenSim\Services\MailerInterface;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\AvatarModel;
+use W4OS\Engine\Provisioning\AccountWriter;
+use W4OS\Engine\Runtime\ClockInterface;
+use W4OS\Engine\Services\MailerInterface;
 
 /**
  * What lets the people of a grid back in, from any site or the command line: a forgotten password and the confirmation of the email
@@ -65,7 +65,7 @@ final class AvatarAccess
      * @return list<array{avatar:Avatar,token:string,expires:int,link:?string,sent:bool,email:string}> none when the name or the email is nobody's
      * @throws \InvalidArgumentException for a link that is not a web address, an avatar without an email whose token is asked
      *         (`email-required`)
-     * @throws \OpenSim\Exceptions\ChannelUnavailable when the databases cannot be reached
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable when the databases cannot be reached
      */
     public function requestPasswordReset(string $login, ?string $link = null, bool $send = true): array
     {
@@ -132,7 +132,7 @@ final class AvatarAccess
      * @param array<string,mixed> $values `name` (or `firstName` and `lastName`), `email`, `password`, `model`, `reservedName`
      * @return array{registration:array<string,mixed>,id:string,name:string,token:string,expires:int,link:?string,sent:bool,email:string}
      * @throws InvalidValue for a value that is wrong, an email that is missing, a link that is not a web address
-     * @throws \OpenSim\Exceptions\ChannelUnavailable when the databases cannot be reached
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable when the databases cannot be reached
      */
     public function requestRegistration(array $values, ?string $link = null, bool $send = true): array
     {

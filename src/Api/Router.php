@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
-use OpenSim\Assets\ConverterInterface;
-use OpenSim\Models\Image;
-use OpenSim\Security\ApiKeys;
-use OpenSim\Security\Authenticator;
+use W4OS\Engine\Assets\ConverterInterface;
+use W4OS\Engine\Models\Image;
+use W4OS\Engine\Security\ApiKeys;
+use W4OS\Engine\Security\Authenticator;
 
 /**
  * The addresses of the API, without a transport: a method, a path, a query and a body in, an `Api\Response` out. The adapters are
@@ -252,7 +252,7 @@ final class Router
             $routes = ['GET' => fn() => $this->api->monitor($grid, $query)];
         } elseif ($grid !== null && $tail === ['health']) {
             $template = '/grids/{grid}/health';
-            $routes = ['GET' => fn() => $this->api->health($grid, \OpenSim\Result::isTrue($query['refresh'] ?? false))];
+            $routes = ['GET' => fn() => $this->api->health($grid, \W4OS\Engine\Result::isTrue($query['refresh'] ?? false))];
         } elseif ($grid !== null && count($tail) === 2 && $tail[0] === 'health') {
             $template = '/grids/{grid}/health/{check}';
             $routes = ['GET' => fn() => $this->api->healthCheck($grid, $tail[1])];

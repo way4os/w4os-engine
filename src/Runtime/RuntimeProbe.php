@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * Whether the machine can run a core: the runtime it needs (Mono, a .NET of the major it asks for or a newer one), the native

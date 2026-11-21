@@ -6,7 +6,7 @@ declare(strict_types=1);
  * What a list gives back: its items, the total before the pages, the pages and the forms an application takes it in.
  */
 
-use OpenSim\Data\Collection;
+use W4OS\Engine\Data\Collection;
 
 describe('A collection', function () {
     test('has a first, a last, a count, and none of them when it is empty', function () {

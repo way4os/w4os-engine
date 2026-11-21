@@ -8,12 +8,12 @@ declare(strict_types=1);
  * in Robust instances of their own (the assets, the profiles: Use default), the page of a profile, what the numbers leave out.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\Settings;
-use OpenSim\Data\OSPDO;
-use OpenSim\Data\Stats;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\GridSettings;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Data\Stats;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\GridSettings;
 
 /** A database of accounts: two people, a model, a console account without email; a visitor of another grid came this month. */
 function excluded_stats_database(): OSPDO
@@ -88,9 +88,9 @@ describe('The page of the grid', function () {
         $ini = ConfigReader::load($machine->grid . '/OpenSim.ini', expand: false);
 
         // Kept by the site as quotes only, as an empty value of a file
-        $store = new OpenSim\Config\ArraySettings();
+        $store = new W4OS\Engine\Config\ArraySettings();
         $store->set('AssetService', 'AssetServerURI', '""');
-        $kept = (new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment->withSettings($store))))->get('/grids/demo/settings/grid')->document['data']['attributes'];
+        $kept = (new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment->withSettings($store))))->get('/grids/demo/settings/grid')->document['data']['attributes'];
 
         expect([$read['assetServerUri'], $read['gridServerUri'], $read['profileServiceUrl']])->toBe([null, null, null])
             ->and($kept['assetServerUri'])->toBeNull()

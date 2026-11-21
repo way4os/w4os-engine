@@ -1,11 +1,11 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Models\Region;
+use W4OS\Engine\Models\Region;
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * Everything gathered to create (or reconfigure) one simulator of a grid,

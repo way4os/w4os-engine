@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Hypergrid\Destination;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Hypergrid\Destination;
 
 /**
  * The guide of a grid that has no list of its own: what the search already knows, the popular places and the places shown in
@@ -95,7 +95,7 @@ final class DefaultDestinations
             $picture = strtolower(trim((string) ($row['picture'] ?? '')));
 
             return $this->destination($row) + [
-                'picture' => $picture === '' || in_array($picture, \OpenSim\Text\Uuid::NULL_KEYS, true) ? null : $picture,
+                'picture' => $picture === '' || in_array($picture, \W4OS\Engine\Text\Uuid::NULL_KEYS, true) ? null : $picture,
                 'dwell' => (int) $row['dwell'],
             ];
         }, $rows);

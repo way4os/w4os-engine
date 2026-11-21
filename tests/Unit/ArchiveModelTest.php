@@ -7,9 +7,9 @@ declare(strict_types=1);
  * their names.
  */
 
-use OpenSim\Models\Archive;
-use OpenSim\Models\Grid;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Models\Archive;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Testing\Machine;
 
 /** The test machine with an inventory, two regions and a backup, and the first archive found. */
 function archive_machine(): Archive

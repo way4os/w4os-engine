@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Data\Listing;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridConfig;
-use OpenSim\I18n\Catalog;
-use OpenSim\Controllers\AbstractController;
-use OpenSim\Controllers\RobustController;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Services\DefaultDestinations;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\LocationFinder;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Network\GridInfoCache;
-use OpenSim\Text\DestinationList;
-use OpenSim\Runtime\Environment;
-use OpenSim\Result;
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Runtime\Outcome;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Controllers\AbstractController;
+use W4OS\Engine\Controllers\RobustController;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Services\DefaultDestinations;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\LocationFinder;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Network\GridInfoCache;
+use W4OS\Engine\Text\DestinationList;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Result;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Runtime\Outcome;
 
 /**
  * A grid: the folder `<etc>/grids/<nick>` that holds its Robust config, its description (`<nick>.conf`) and the configs of
@@ -131,7 +131,7 @@ final class Grid extends InstalledModel
             return null;
         }
         // What its helpers keep that OpenSimulator has no place for: in its section, never in a file of the install
-        $kept = $environment->settings ?? new \OpenSim\Config\InPlaceSettings((string) $environment->layout->file(), $nick);
+        $kept = $environment->settings ?? new \W4OS\Engine\Config\InPlaceSettings((string) $environment->layout->file(), $nick);
 
         return new self($environment->withSettings($kept), dirname($robust), null, [self::FOLDER, self::IN_PLACE], $nick);
     }
@@ -143,7 +143,7 @@ final class Grid extends InstalledModel
             return [];
         }
 
-        return \OpenSim\Config\InPlaceGrids::section((string) $this->environment->layout->file(), $this->placed)
+        return \W4OS\Engine\Config\InPlaceGrids::section((string) $this->environment->layout->file(), $this->placed)
             ?: ($this->environment->layout->grids()[$this->placed] ?? []);
     }
 
@@ -167,7 +167,7 @@ final class Grid extends InstalledModel
     private function placedConfig(): GridConfig
     {
         $files = ['Robust' => (string) ($this->placement()['RobustIni'] ?? '')];
-        foreach (\OpenSim\Config\InPlaceGrids::simulators((string) $this->placed, $this->placement()) as $simulator) {
+        foreach (\W4OS\Engine\Config\InPlaceGrids::simulators((string) $this->placed, $this->placement()) as $simulator) {
             $files['simulators/' . $simulator['name']] = $simulator['ini'];
         }
 
@@ -311,7 +311,7 @@ final class Grid extends InstalledModel
                 'name' => 'helpers',
                 'group' => 'network',
                 'type' => 'boolean',
-                'label' => _('Serve the economy and the search of the grid with opensim-helpers?'),
+                'label' => _('Serve the economy and the search of the grid with w4os-helpers?'),
             ],
             [
                 'name' => 'helpers_path',
@@ -377,13 +377,13 @@ final class Grid extends InstalledModel
                 'type' => 'select',
                 'label' => _('Search of the grid'),
                 'options' => [
-                    'internal' => _('Provided by this grid (opensim-helpers)'),
+                    'internal' => _('Provided by this grid (w4os-helpers)'),
                     'shared' => _('Shared provider (2do.directory)'),
                     'disabled' => _('No search'),
                 ],
                 'callback' => static fn(mixed $value, array $answers): ?string => $value === 'internal' &&
                 !($answers['helpers'] ?? true)
-                    ? _('The search of this grid is served by opensim-helpers.')
+                    ? _('The search of this grid is served by w4os-helpers.')
                     : null,
                 'enable' => $new,
             ],
@@ -401,7 +401,7 @@ final class Grid extends InstalledModel
                 ],
                 'callback' => static fn(mixed $value, array $answers): ?string => $value === 'helpers' &&
                 !($answers['helpers'] ?? true)
-                    ? _('The module V1 keeps its messages with opensim-helpers.')
+                    ? _('The module V1 keeps its messages with w4os-helpers.')
                     : null,
                 'enable' => $new,
             ],
@@ -743,7 +743,7 @@ final class Grid extends InstalledModel
         $login = $this->loginUrl();
         $parsed = Destination::parse($destination, $login);
         $here = Destination::isHere($destination, $login);
-        $said = $here ? null : (new \OpenSim\Network\GridInfoCache($this->environment, cache: \OpenSim\Data\Cache::for($this->environment, $config)))->saved((string) $parsed['gatekeeper']);
+        $said = $here ? null : (new \W4OS\Engine\Network\GridInfoCache($this->environment, cache: \W4OS\Engine\Data\Cache::for($this->environment, $config)))->saved((string) $parsed['gatekeeper']);
         $gridName = $here ? $this->name() : trim((string) ($said['gridname'] ?? ''));
 
         return [
@@ -763,7 +763,7 @@ final class Grid extends InstalledModel
      *
      * @return list<array{name:string,url:string,picture:?string,dwell:int,title:string,label:string,gridName:?string}> empty without a search
      */
-    public function popularPlaces(int $count = \OpenSim\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null, bool $hypergrid = false, bool $landSales = false): array
+    public function popularPlaces(int $count = \W4OS\Engine\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null, bool $hypergrid = false, bool $landSales = false): array
     {
         $config ??= $this->config();
         $search = self::searchDatabase($config, 'read the popular places');
@@ -771,7 +771,7 @@ final class Grid extends InstalledModel
             return [];
         }
         $own = $hypergrid ? null : (string) $this->loginUrl();
-        $places = (new \OpenSim\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri(), $own === '' ? null : $own))->popular($count, $landSales);
+        $places = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri(), $own === '' ? null : $own))->popular($count, $landSales);
 
         return array_map(fn(array $place): array => $place + $this->card($place['url'], $place['name'], $config), $places);
     }
@@ -779,16 +779,16 @@ final class Grid extends InstalledModel
     /**
      * The database of the search: null when the grid sets none, the reason it cannot be had when it sets one that does not answer.
      *
-     * @throws \OpenSim\Exceptions\ChannelUnavailable
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable
      */
-    private static function searchDatabase(?GridConfig $config, string $action): ?\OpenSim\Data\OSPDO
+    private static function searchDatabase(?GridConfig $config, string $action): ?\W4OS\Engine\Data\OSPDO
     {
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
         if ($search !== null || $config === null || Connections::key($config, Database::Search) === null) {
             return $search;
         }
 
-        throw \OpenSim\Exceptions\ChannelUnavailable::because($action, 'database-unreachable', [], Connections::reason($config, Database::Search));
+        throw \W4OS\Engine\Exceptions\ChannelUnavailable::because($action, 'database-unreachable', [], Connections::reason($config, Database::Search));
     }
 
     /**
@@ -831,7 +831,7 @@ final class Grid extends InstalledModel
             $this->in(self::FOLDER) && $this->directory !== '' && is_dir($this->directory) ? 'files' : null,
             // Its settings changed: in its files, or kept by the application
             ($this->in(self::FOLDER) && $this->directory !== '' && is_dir($this->directory)) || ($this->environment->settings?->writable() ?? false) ? 'settings' : null,
-            $config !== null && \OpenSim\Data\Connections::key($config, \OpenSim\Data\Database::Robust) !== null ? 'databases' : null,
+            $config !== null && \W4OS\Engine\Data\Connections::key($config, \W4OS\Engine\Data\Database::Robust) !== null ? 'databases' : null,
             $this->hostPort() !== null ? 'http' : null,
         ]));
     }
@@ -1133,8 +1133,8 @@ final class Grid extends InstalledModel
         $config ??= $this->config();
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
 
-        $cache = \OpenSim\Data\Cache::for($this->environment, $config);
-        $guide = (new \OpenSim\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
+        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
+        $guide = (new \W4OS\Engine\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
         // What the card of each destination shows: its title, its label, the name of its grid
         foreach ($guide as &$section) {
             foreach ($section['destinations'] as &$destination) {
@@ -1154,13 +1154,13 @@ final class Grid extends InstalledModel
     public function refreshGuidePictures(?GridConfig $config = null): int
     {
         $config ??= $this->config();
-        $pictures = new \OpenSim\Services\RemotePictures(
-            \OpenSim\Data\Cache::for($this->environment, $config),
-            $this->environment->http ?? \OpenSim\Network\GridInfoReader::get(...),
+        $pictures = new \W4OS\Engine\Services\RemotePictures(
+            \W4OS\Engine\Data\Cache::for($this->environment, $config),
+            $this->environment->http ?? \W4OS\Engine\Network\GridInfoReader::get(...),
             $config ?? new GridConfig(),
             (string) $this->loginUrl(),
             $this->environment->clock,
-            new \OpenSim\Network\GridInfoCache($this->environment, cache: \OpenSim\Data\Cache::for($this->environment, $config)),
+            new \W4OS\Engine\Network\GridInfoCache($this->environment, cache: \W4OS\Engine\Data\Cache::for($this->environment, $config)),
         );
 
         return $pictures->refresh($this->guide($config));
@@ -1493,19 +1493,19 @@ final class Grid extends InstalledModel
             }
 
             return $this->hasHelpers()
-                ? (new \OpenSim\Provisioning\Web\Services($this->helpersPath()))->url($this->webUrl(), $service)
+                ? (new \W4OS\Engine\Provisioning\Web\Services($this->helpersPath()))->url($this->webUrl(), $service)
                 : '';
         }
         // The site of the helpers: the one of their base when Helpers.ini gives it, else the web site of the grid
-        $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->helpersSource());
+        $configured = \W4OS\Engine\Provisioning\Web\HelpersConfig::configuredUrl($this->helpersSource());
         $webUrl = $configured !== ''
-            ? \OpenSim\Provisioning\Web\Services::originOf($configured)
-            : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource());
+            ? \W4OS\Engine\Provisioning\Web\Services::originOf($configured)
+            : \W4OS\Engine\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource());
         if ($webUrl === '') {
             return '';
         }
 
-        return \OpenSim\Provisioning\Web\HelpersConfig::services($this->helpersSource())->url($webUrl, $service);
+        return \W4OS\Engine\Provisioning\Web\HelpersConfig::services($this->helpersSource())->url($webUrl, $service);
     }
 
     /**
@@ -1705,9 +1705,9 @@ final class Grid extends InstalledModel
      * The estates of the grid: its own when its Robust serves them, else those of each simulator (see Estate::all() for the options).
      * A ban on the whole grid is a ban in each of them.
      *
-     * @throws \OpenSim\Exceptions\ChannelUnavailable when no database of estates can be reached
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable when no database of estates can be reached
      */
-    public function estates(array $options = []): \OpenSim\Data\Collection
+    public function estates(array $options = []): \W4OS\Engine\Data\Collection
     {
         return Estate::all($this->config() ?? new GridConfig(), $options);
     }
@@ -1890,7 +1890,7 @@ final class Grid extends InstalledModel
     /** The web site of the grid (`WebURL` of the `[Const]` of its Robust), without its last slash; null when it has none. */
     public function site(): ?string
     {
-        $site = rtrim(\OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource()) ?: $this->webUrl(), '/');
+        $site = rtrim(\W4OS\Engine\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource()) ?: $this->webUrl(), '/');
 
         return $site === '' ? null : $site;
     }
@@ -1909,19 +1909,19 @@ final class Grid extends InstalledModel
     {
         $base = $this->helpersUrl();
 
-        return $base !== null && trim($url) !== '' && \OpenSim\Provisioning\Web\Services::isUnder($url, $base);
+        return $base !== null && trim($url) !== '' && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $base);
     }
 
     /** @return array{0:?string,1:?string} the base of the helpers and where it comes from */
     private function helpersBase(): array
     {
         if (!$this->isPlanned()) {
-            $configured = \OpenSim\Provisioning\Web\HelpersConfig::configuredUrl($this->helpersSource());
+            $configured = \W4OS\Engine\Provisioning\Web\HelpersConfig::configuredUrl($this->helpersSource());
             if ($configured !== '') {
                 return [$configured, 'config'];
             }
         }
-        $web = $this->isPlanned() ? $this->webUrl() : \OpenSim\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource());
+        $web = $this->isPlanned() ? $this->webUrl() : \W4OS\Engine\Provisioning\Web\HelpersConfig::webUrl($this->helpersSource());
         if ($web === '') {
             return [null, null];
         }
@@ -1930,7 +1930,7 @@ final class Grid extends InstalledModel
         if ($economy === null || parse_url($economy, PHP_URL_HOST) !== parse_url($web, PHP_URL_HOST)) {
             return [null, null];
         }
-        $path = \OpenSim\Provisioning\Web\Services::pathOf($economy);
+        $path = \W4OS\Engine\Provisioning\Web\Services::pathOf($economy);
 
         return [rtrim($web, '/') . ($path === '/' ? '' : $path), 'economy'];
     }
@@ -2022,7 +2022,7 @@ final class Grid extends InstalledModel
         if ($this->placed !== null) {
             return array_map(
                 fn(array $simulator): Simulator => new Simulator($this->environment, $simulator['ini'], $simulator['name']),
-                \OpenSim\Config\InPlaceGrids::simulators($this->placed, $this->placement()),
+                \W4OS\Engine\Config\InPlaceGrids::simulators($this->placed, $this->placement()),
             );
         }
         $files = glob(GridConfig::simulatorsDirectory($this->directory) . '/*.ini') ?: [];
@@ -2046,7 +2046,7 @@ final class Grid extends InstalledModel
     public function simulatorNames(): array
     {
         if ($this->placed !== null) {
-            return array_column(\OpenSim\Config\InPlaceGrids::simulators($this->placed, $this->placement()), 'name');
+            return array_column(\W4OS\Engine\Config\InPlaceGrids::simulators($this->placed, $this->placement()), 'name');
         }
         $names = array_map(
             static fn(string $file): string => basename($file, '.ini'),

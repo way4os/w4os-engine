@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Text;
+namespace W4OS\Engine\Text;
 
 /**
  * The secrets a log or a config holds, masked in what is shown: the secret of the data service (DataSnapshot), the passwords of the

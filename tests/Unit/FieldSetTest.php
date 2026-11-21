@@ -6,7 +6,7 @@ declare(strict_types=1);
  * The fields of the forms, in the standard format: which are shown for some answers, what is wrong with the answers.
  */
 
-use OpenSim\Forms\FieldSet;
+use W4OS\Engine\Forms\FieldSet;
 
 describe('A set of fields', function () {
     test('needs a name for each field, and finds them by name and by screen', function () {
@@ -86,7 +86,7 @@ describe('A set of fields', function () {
     });
 
     test('takes the callbacks of the models as callables of classes', function () {
-        $fields = new FieldSet(OpenSim\Models\Grid::fields());
+        $fields = new FieldSet(W4OS\Engine\Models\Grid::fields());
 
         expect($fields->problems(['name' => 'N', 'spacing' => 99, 'public_port' => 'x', 'center' => 'nowhere']))
             ->toHaveKeys(['spacing', 'public_port', 'center'])

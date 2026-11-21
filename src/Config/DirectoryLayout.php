@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * The layouts an install of OpenSimulator can have, and the default folders of each.
@@ -37,7 +37,7 @@ final class DirectoryLayout
     }
 
     /**
-     * The folders of a layout, named as in opensim.conf: CoreRoot, CoreDirectory (when the version is known), EtcRoot, VarRoot,
+     * The folders of a layout, named as in w4os.conf: CoreRoot, CoreDirectory (when the version is known), EtcRoot, VarRoot,
      * LogsRoot, CacheRoot, DataRoot, BackupRoot.
      *
      * @param string $base the base directory of the bundled and flat layouts

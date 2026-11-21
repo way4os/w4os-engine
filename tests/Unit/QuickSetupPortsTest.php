@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use OpenSim\Provisioning\QuickSetup;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Provisioning\QuickSetup;
+use W4OS\Engine\Testing\Machine;
 
 function port_setup_answers(array $overrides = []): array
 {

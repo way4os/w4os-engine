@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Runtime\PendingReporterInterface;
+use W4OS\Engine\Runtime\PendingReporterInterface;
 
 /**
  * What the engine says while it starts or stops an instance, told through the interface of the setup, and kept to be read

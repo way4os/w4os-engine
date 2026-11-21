@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
-use OpenSim\Models\Avatar as AvatarModel;
-use OpenSim\Network\Http;
+use W4OS\Engine\Models\Avatar as AvatarModel;
+use W4OS\Engine\Network\Http;
 
 /**
  * Signs an avatar in with the account and authentication services of the private port of the Robust of its grid: looks the account

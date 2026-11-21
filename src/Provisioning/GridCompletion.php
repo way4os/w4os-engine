@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\GridFileService;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * What a package that is installed or upgraded adds to the grids of the machine, without the setup and without anybody: the files

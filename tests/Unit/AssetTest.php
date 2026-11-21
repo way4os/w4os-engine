@@ -7,18 +7,18 @@ declare(strict_types=1);
  * kept for a while. The databases are in memory (SQLite); the conversion is a fake, ImageMagick is not needed.
  */
 
-use OpenSim\Support\FileCache;
-use OpenSim\Assets\ConverterInterface;
-use OpenSim\Assets\WebAssets;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Asset;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Image;
-use OpenSim\Testing\ClockFake;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Support\FileCache;
+use W4OS\Engine\Assets\ConverterInterface;
+use W4OS\Engine\Assets\WebAssets;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Asset;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Image;
+use W4OS\Engine\Testing\ClockFake;
+use W4OS\Engine\Testing\Machine;
 
 const ASSET_TEXTURE = 'cb2052ae-d161-43e9-b11b-c834217823cd';
 const ASSET_NOTECARD = 'dddddddd-0000-4000-8000-000000000007';
@@ -343,8 +343,8 @@ describe('a cache of assets it cannot write', function () {
 
 describe('the health of a grid, for its cache of assets', function () {
     test('says whether the pictures and the state of the tasks can be kept, and where', function () {
-        $machine = new OpenSim\Testing\Machine();
-        $api = new OpenSim\Api\Api($machine->environment, null, static fn(Grid $grid): ?GridConfig => null);
+        $machine = new W4OS\Engine\Testing\Machine();
+        $api = new W4OS\Engine\Api\Api($machine->environment, null, static fn(Grid $grid): ?GridConfig => null);
         $row = static function () use ($api): array {
             // Checked now, not the last check kept
             $groups = $api->health('demo', refresh: true)->document['data']['attributes']['groups'];
@@ -372,7 +372,7 @@ describe('the Imagick converter', function () {
         $png = (string) base64_decode(
             'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
         );
-        $converter = new OpenSim\Assets\ImagickConverter();
+        $converter = new W4OS\Engine\Assets\ImagickConverter();
 
         expect(substr((string) $converter->convert($png, 'jpg'), 0, 3))
             ->toBe("\xFF\xD8\xFF")
@@ -397,7 +397,7 @@ describe('the Imagick converter, for real', function () {
     test(
         'resizes to a width, the height following, and a picture already in the format is converted all the same when it is resized',
         function () {
-            $converter = new OpenSim\Assets\ImagickConverter();
+            $converter = new W4OS\Engine\Assets\ImagickConverter();
             $size = static function (string $blob): array {
                 $image = new Imagick();
                 $image->readImageBlob($blob);
@@ -413,16 +413,16 @@ describe('the Imagick converter, for real', function () {
     )->skip(fn() => !extension_loaded('imagick'), 'imagick is missing');
 
     test('reads the JPEG 2000 of the grid', function () {
-        $converter = new OpenSim\Assets\ImagickConverter();
+        $converter = new W4OS\Engine\Assets\ImagickConverter();
         $jp2 = asset_picture('jp2');
 
         expect(substr((string) $converter->convert($jp2, 'png'), 1, 3))->toBe('PNG');
-    })->skip(fn() => !OpenSim\Assets\ImagickConverter::available(), 'imagick has no JPEG 2000');
+    })->skip(fn() => !W4OS\Engine\Assets\ImagickConverter::available(), 'imagick has no JPEG 2000');
 
     test('keeps a JPEG as it is unless it is resized', function () {
         $jpeg = asset_picture('jpeg');
         $calls = [];
-        $converter = new class ($calls) implements OpenSim\Assets\ConverterInterface {
+        $converter = new class ($calls) implements W4OS\Engine\Assets\ConverterInterface {
             public function __construct(private array &$calls) {}
 
             public function convert(string $data, string $format, ?int $width = null): ?string
@@ -432,7 +432,7 @@ describe('the Imagick converter, for real', function () {
                 return "converted:$format:$width";
             }
         };
-        $image = new OpenSim\Models\Image(new OpenSim\Config\GridConfig(), [
+        $image = new W4OS\Engine\Models\Image(new W4OS\Engine\Config\GridConfig(), [
             'id' => ASSET_JPEG,
             'assetType' => 19,
             'data' => $jpeg,

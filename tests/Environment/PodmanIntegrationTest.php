@@ -1,12 +1,12 @@
 <?php
 
-use OpenSim\Container\Podman;
+use W4OS\Engine\Container\Podman;
 
 function podman_test_name(string $caller): string
 {
     $host = preg_replace('/[^a-z0-9-]+/', '-', strtolower(gethostname() ?: 'host'));
 
-    return 'opensim-engine-test-' . trim((string) $host, '-') . '-' . $caller . '-' . bin2hex(random_bytes(4));
+    return 'w4os-engine-test-' . trim((string) $host, '-') . '-' . $caller . '-' . bin2hex(random_bytes(4));
 }
 
 function podman_test_image(): string

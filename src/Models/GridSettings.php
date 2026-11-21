@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\IniEditor;
-use OpenSim\Config\Settings;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Exceptions\NotFound;
-use OpenSim\Provisioning\Web\HelpersConfig;
-use OpenSim\Text\Notice;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\Provisioning\Web\HelpersConfig;
+use W4OS\Engine\Text\Notice;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * The settings of a grid a site shows and changes, by page, each a form (`x-form` of the contract): the settings of the registry
@@ -240,7 +240,7 @@ final class GridSettings
         $provide = self::PROVIDE[$page];
         $url = $values[$provide['setting']];
         $site = $this->grid->site();
-        $on = !is_string($url) || $url === '' || ($site !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $site));
+        $on = !is_string($url) || $url === '' || ($site !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $site));
         // The module V2 is Robust's: the helpers do not provide it
         $page === 'offline' && stripos((string) $values['offlineModule'], 'V2') !== false && ($on = false);
         // The path under its base, which ends with the slash: it never starts with one
@@ -411,7 +411,7 @@ final class GridSettings
             $where = $this->destination($entry);
             if (isset($where['reason'])) {
                 // Where it cannot be written: the same value is no change, another one is refused with its reason
-                $value == ($now[$name] ?? null) || throw \OpenSim\Exceptions\ChannelUnavailable::because("change $name of {$this->grid->nick()}", $where['reason']['code'], $where['reason']['params']);
+                $value == ($now[$name] ?? null) || throw \W4OS\Engine\Exceptions\ChannelUnavailable::because("change $name of {$this->grid->nick()}", $where['reason']['code'], $where['reason']['params']);
                 continue;
             }
             $writes[] = [$entry, $value, $where];
@@ -423,7 +423,7 @@ final class GridSettings
                 || (is_string($value) && trim($value) === ''));
             // A database in keys of its own (the money server) reads no other: the main database of the grid is written in them
             if ($default && isset($entry['parts'])) {
-                $main = \OpenSim\Data\Database::Robust->connection($this->config()) ?? throw InvalidValue::because('invalid-request', "the grid says no main database to use for {$entry['name']}");
+                $main = \W4OS\Engine\Data\Database::Robust->connection($this->config()) ?? throw InvalidValue::because('invalid-request', "the grid says no main database to use for {$entry['name']}");
                 $value = ['host' => $main->host ?: $main->source, 'port' => $main->port, 'database' => $main->database, 'user' => $main->user, 'password' => $main->password];
                 $default = false;
             }
@@ -757,7 +757,7 @@ final class GridSettings
         $url = $this->address($page);
         $site = $this->grid->site();
         $helpers = $this->grid->helpersUrl();
-        $under = static fn(?string $base): bool => $url !== null && $base !== null && \OpenSim\Provisioning\Web\Services::isUnder($url, $base);
+        $under = static fn(?string $base): bool => $url !== null && $base !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $base);
         $service = new Service($this->grid->environment(), $this->grid, $provide['service']);
 
         return ($fixed === [] ? [] : ['fixed' => $fixed]) + ['snippets' => $this->snippets($page)] + self::examples($page) + ['service' => [
@@ -916,7 +916,7 @@ final class GridSettings
     /** Where the helpers answer the service of a page, under the site: their base, and the page of the service. */
     private function defaultPath(string $page): string
     {
-        $base = rtrim(\OpenSim\Provisioning\Web\Services::pathOf((string) ($this->grid->helpersUrl() ?? '/helpers')), '/');
+        $base = rtrim(\W4OS\Engine\Provisioning\Web\Services::pathOf((string) ($this->grid->helpersUrl() ?? '/helpers')), '/');
         if (self::PROVIDE[$page]['prefix'] ?? false) {
             return "$base/";
         }
@@ -926,7 +926,7 @@ final class GridSettings
             return $url !== '' ? $this->pathOf($page, $url) : $default;
         }
 
-        return $url !== '' ? \OpenSim\Provisioning\Web\Services::pathOf($url) : "$base/$default";
+        return $url !== '' ? \W4OS\Engine\Provisioning\Web\Services::pathOf($url) : "$base/$default";
     }
 
     /**
@@ -1057,7 +1057,7 @@ final class GridSettings
             return null;
         }
         // The main database of the grid, its keys written for the money server: its default
-        $main = \OpenSim\Data\Database::Robust->connection($config);
+        $main = \W4OS\Engine\Data\Database::Robust->connection($config);
         if ($main !== null && $main->database === $said['database'] && $main->user === $said['user']
             && strcasecmp($main->host ?: $main->source, $said['host'] ?: 'localhost') === 0 && (int) ($main->port ?? 3306) === (int) ($said['port'] ?: 3306)) {
             return null;

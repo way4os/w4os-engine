@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Testing;
+namespace W4OS\Engine\Testing;
 
-use OpenSim\Runtime\ClockInterface;
+use W4OS\Engine\Runtime\ClockInterface;
 
 /**
  * A clock that does not wait: the time goes forward when something sleeps.

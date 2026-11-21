@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Interfaces;
+namespace W4OS\Engine\Interfaces;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Collection;
-use OpenSim\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
 
 /**
  * The models read in the databases of a grid (avatars, regions, parcels, estates): listed and found in the config of a grid, which

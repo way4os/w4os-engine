@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Models\Grid;
+use W4OS\Engine\Models\Grid;
 
 /**
  * Where a region can go in a grid: the free place nearest to the one asked, by

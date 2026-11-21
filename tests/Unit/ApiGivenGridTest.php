@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 /**
  * The API of a site that has the engine in its own folder: the grids are the ones the site gives (their settings, their databases
- * over the network), nothing read from the machine (no opensim.conf, no folder of a grid).
+ * over the network), nothing read from the machine (no w4os.conf, no folder of a grid).
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\Layout;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\Environment;
 
 describe('The API of a site', function () {
     test('serves the grids the site gives, read from nowhere on the machine', function () {

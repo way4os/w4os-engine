@@ -1,7 +1,7 @@
 <?php
 
 /**
- * opensim-profiles: what the packages do to opensim.conf when they are installed, upgraded or removed (the postinst scripts run it):
+ * opensim-profiles: what the packages do to w4os.conf when they are installed, upgraded or removed (the postinst scripts run it):
  *
  *   opensim-profiles.php [--conf FILE] [--cores FOLDER] [--default-modules "a b"]
  *
@@ -15,7 +15,7 @@ declare(strict_types=1);
 ini_set('display_errors', 'stderr');
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
-use OpenSim\Config\PackagedProfiles;
+use W4OS\Engine\Config\PackagedProfiles;
 
 foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
     if (is_file($autoload)) {
@@ -30,7 +30,7 @@ if (!class_exists(PackagedProfiles::class)) {
 }
 
 $options = getopt('', ['conf:', 'cores:', 'default-modules:']);
-$profiles = new PackagedProfiles($options['conf'] ?? \OpenSim\Config\Layout::systemFile(), $options['cores'] ?? '/usr/share/opensim');
+$profiles = new PackagedProfiles($options['conf'] ?? \W4OS\Engine\Config\Layout::systemFile(), $options['cores'] ?? '/usr/share/opensim');
 foreach ($profiles->update() as $note) {
     echo "opensim: $note\n";
 }

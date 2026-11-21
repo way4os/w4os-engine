@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
 /**
  * Signs an avatar in by sending the person to the grid, which asks for the password and sends them back. begin() gives the address

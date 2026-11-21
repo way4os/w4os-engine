@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Flux;
+namespace W4OS\Engine\Flux;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Provisioning\AccountWriter;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Provisioning\AccountWriter;
 
 /**
  * The stream of the avatars of a grid (w4os-flux, its first step): the posts each avatar writes on its profile, in the `avatar_posts`

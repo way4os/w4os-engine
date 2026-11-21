@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\IniEditor;
-use OpenSim\Config\TextFileService;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Config\TextFileService;
 
 /**
  * An option of a grid, as a folder of presets: the ini files it changes, with the structure of the folder of a grid, and `option.conf`,
@@ -38,7 +38,7 @@ use OpenSim\Config\TextFileService;
  * Requires = helpers, !standalone    what the grid must be or have: helpers, standalone, hypergrid, connector:<Name>, service:<name>
  * Uses = helpers                     what a grid made by the setup must have for the option to be of any use (helpers)
  * Modules = opensimsearch            modules of the install it needs (EnabledModules, the package of the core)
- * Paths = /var/lib/opensim/www        folders or files of the install it needs
+ * Paths = /var/lib/w4os/www        folders or files of the install it needs
  * PathNote = "..."                   what is told when one is not there
  * Asks = Gloebit/GLBKey              settings the administrator gives: told when they are missing
  * Note = "..."                       what is told of them ({keys})

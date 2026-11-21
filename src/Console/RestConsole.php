@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Console;
+namespace W4OS\Engine\Console;
 
 /**
  * The remote console of an instance (opensim-rest-php), reached at the local address whatever its config says: this is for

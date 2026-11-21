@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Assets;
+namespace W4OS\Engine\Assets;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Asset;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Image;
-use OpenSim\Network\GridInfoReader;
-use OpenSim\Provisioning\ResourceRegistry;
-use OpenSim\Support\FileCache;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Asset;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Image;
+use W4OS\Engine\Network\GridInfoReader;
+use W4OS\Engine\Provisioning\ResourceRegistry;
+use W4OS\Engine\Support\FileCache;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * The assets of a grid for the web: asked by their id, as a picture in the format of a page when they are images, whatever the type (texture, TGA, JPEG: the grid keeps
@@ -94,7 +94,7 @@ final class WebAssets
      */
     public static function external(Grid $grid): ?string
     {
-        $url = (new \OpenSim\Models\Service($grid->environment(), $grid, 'assets'))->url();
+        $url = (new \W4OS\Engine\Models\Service($grid->environment(), $grid, 'assets'))->url();
 
         return $url === null || trim($url) === '' || $grid->servedByHelpers($url) ? null : rtrim(trim($url), '/');
     }
@@ -220,7 +220,7 @@ final class WebAssets
      */
     private function remote(GridConfig $config, string $id): ?array
     {
-        $image = \OpenSim\Services\RemotePictures::image(\OpenSim\Data\Cache::for($this->grid->environment(), $config), $id);
+        $image = \W4OS\Engine\Services\RemotePictures::image(\W4OS\Engine\Data\Cache::for($this->grid->environment(), $config), $id);
 
         return $image === null ? null : ['data' => $image['data'], 'meta' => ['type' => $image['type'], 'name' => $image['name']]];
     }

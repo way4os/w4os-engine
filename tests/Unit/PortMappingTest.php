@@ -5,9 +5,9 @@
  * its config, with every port `opensim ports` lists.
  */
 
-use OpenSim\Network\PortMapping\PortMapperInterface;
-use OpenSim\Network\PortMapping\PortMappingService;
-use OpenSim\Network\PortMapping\UpnpcMapper;
+use W4OS\Engine\Network\PortMapping\PortMapperInterface;
+use W4OS\Engine\Network\PortMapping\PortMappingService;
+use W4OS\Engine\Network\PortMapping\UpnpcMapper;
 
 /** A module that records what it is asked, and can refuse a port. */
 final class FakeMapper implements PortMapperInterface

@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
  * The name proposed for a simulator: the one of the region it is made for, as the first simulator of a grid has the one of its

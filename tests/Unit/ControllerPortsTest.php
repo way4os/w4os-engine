@@ -6,9 +6,9 @@ declare(strict_types=1);
  * The ports a controller listens on, from its config and the descriptions of its regions.
  */
 
-use OpenSim\Controllers\OpenSimController;
-use OpenSim\Controllers\RobustController;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Controllers\OpenSimController;
+use W4OS\Engine\Controllers\RobustController;
+use W4OS\Engine\Testing\Machine;
 
 /** A config file in a temporary folder. */
 function instance_ports_file(string $name, string $text): string

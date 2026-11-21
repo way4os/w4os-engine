@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Health;
+namespace W4OS\Engine\Health;
 
-use OpenSim\Assets\WebAssets;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Cache;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\Web\SitePages;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Assets\WebAssets;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\Web\SitePages;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The health of a grid checked (Health): every address its config gives and what the grid says of itself, asked, the pages for
@@ -105,7 +105,7 @@ final class HealthCheck
             ['file' => 'pages', 'title' => '', 'rows' => Health::pages(Health::configured(SitePages::rows($grid), self::urls($config), static fn(string $url): bool => $grid->servedByHelpers($url)), $register)],
         ];
         // The web assets service needs JPEG 2000 here, unless the grid sets an external one
-        $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions(WebAssets::external($grid), \OpenSim\Config\Settings::where('assetsUrl', $config))];
+        $groups[] = ['file' => 'PHP', 'title' => '', 'rows' => Health::extensions(WebAssets::external($grid), \W4OS\Engine\Config\Settings::where('assetsUrl', $config))];
         $groups[] = [
             'file' => 'cache',
             'title' => '',

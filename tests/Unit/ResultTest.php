@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Result;
+use W4OS\Engine\Result;
 
 describe('answer of an operation', function () {
     test('is told a success or an error whatever form it takes, or neither', function (

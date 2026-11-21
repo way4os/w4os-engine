@@ -7,21 +7,21 @@ declare(strict_types=1);
  * link, then a new password) and the confirmation of the email of a new avatar (made inactive, activated by the link of its mail).
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Cli;
-use OpenSim\Api\Router;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\AccountWriter;
-use OpenSim\Services\MailerInterface;
-use OpenSim\SignIn\AvatarAccess;
-use OpenSim\SignIn\AvatarTokens;
-use OpenSim\SignIn\DatabaseAuthenticator;
-use OpenSim\Testing\ClockFake;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Cli;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\AccountWriter;
+use W4OS\Engine\Services\MailerInterface;
+use W4OS\Engine\SignIn\AvatarAccess;
+use W4OS\Engine\SignIn\AvatarTokens;
+use W4OS\Engine\SignIn\DatabaseAuthenticator;
+use W4OS\Engine\Testing\ClockFake;
+use W4OS\Engine\Testing\Machine;
 
 /** A mailer that keeps the mails, and refuses them when it is told to. */
 final class MailerFake implements MailerInterface
@@ -906,9 +906,9 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
             ])
             ->and($nobody->status)
             ->toBe(404)
-            ->and(OpenSim\Api\Router::PUBLIC)
+            ->and(W4OS\Engine\Api\Router::PUBLIC)
             ->not->toContain('GET /grids/{grid}/avatars/{id}/picks')
-            ->and(array_keys(OpenSim\Api\Contract::document()['paths']))
+            ->and(array_keys(W4OS\Engine\Api\Contract::document()['paths']))
             ->toContain('/grids/{grid}/avatars/{id}/picks', '/grids/{grid}/avatars/{id}/classifieds');
     });
 });
@@ -935,7 +935,7 @@ describe('The API, for the groups of an avatar', function () {
             ])
             ->and($router->get('/grids/demo/avatars/Nobody%20Here/groups')->status)
             ->toBe(404)
-            ->and(array_keys(OpenSim\Api\Contract::document()['paths']))
+            ->and(array_keys(W4OS\Engine\Api\Contract::document()['paths']))
             ->toContain('/grids/{grid}/avatars/{id}/groups');
     });
 });
@@ -1017,7 +1017,7 @@ describe('The API, for the role of an avatar', function () {
             ->and(Avatar::find(avatar_grid(), ADA)->detail())
             ->toMatchArray(['role' => 'resident', 'level' => 0, 'about' => 'Hello'])
             ->and(
-                OpenSim\Api\Contract::document()['paths']['/grids/{grid}/avatars/{id}']['patch']['requestBody']['content'][
+                W4OS\Engine\Api\Contract::document()['paths']['/grids/{grid}/avatars/{id}']['patch']['requestBody']['content'][
                     'application/vnd.api+json'
                 ]['schema']['properties']['data']['properties']['attributes']['properties'],
             )
@@ -1174,7 +1174,7 @@ describe('The problems of the access of the avatars', function () {
 
 describe('The contract, for the access of the avatars', function () {
     test('has the four operations, closed, and the confirmation of a new avatar', function () {
-        $paths = OpenSim\Api\Contract::document()['paths'];
+        $paths = W4OS\Engine\Api\Contract::document()['paths'];
         $operations = [];
         foreach (
             [

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Runtime\ClockInterface;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Runtime\ClockInterface;
 
 /**
  * The one-time tokens of the avatars of a grid (a forgotten password, the confirmation of an email), in the `avatar_tokens` table of

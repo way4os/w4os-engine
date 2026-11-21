@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * The processes of this machine, from ps.

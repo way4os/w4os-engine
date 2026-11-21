@@ -1,12 +1,12 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\Grid;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\Grid;
 
 /**
  * Makes the avatars of a list in a grid (see Avatar::create()), or tells what it would make: the names that

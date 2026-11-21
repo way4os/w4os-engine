@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 
 /**
- * What the packages of the releases (opensim-<version>, in /usr/share/opensim) do to opensim.conf when they come and go: one
+ * What the packages of the releases (opensim-<version>, in /usr/share/opensim) do to w4os.conf when they come and go: one
  * install profile per release, the first one the default, the profile of a release that was removed forgotten. The file is edited
  * in place, what the administrator wrote in it stays (comments, other settings).
  */

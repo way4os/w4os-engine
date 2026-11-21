@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Data\Listing;
-use OpenSim\Text\Uuid;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Forms\ItemForm;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Provisioning\Slug;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Text\Uuid;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Forms\ItemForm;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Provisioning\Slug;
 
 /**
  * A parcel: a part of a region with its own owner, name and rules, what the viewers call a place or land. It is a row of the `land`

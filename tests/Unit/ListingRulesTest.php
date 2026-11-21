@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use OpenSim\Api\Contract;
+use W4OS\Engine\Api\Contract;
 
 /**
  * What every list of the contract keeps to, whatever its model: the address under the name, the status last, one label for it, the
@@ -18,7 +18,7 @@ function contract_lists(): array
     );
 }
 
-afterEach(fn() => OpenSim\Data\Connections::using(null));
+afterEach(fn() => W4OS\Engine\Data\Connections::using(null));
 
 describe('Every list', function () {
     test('shows the address or the slug under the name, never in a column of its own', function () {
@@ -83,10 +83,10 @@ describe('Every list', function () {
             ->toBe([])
             ->and(array_column(contract_lists()['/grids']['columns'], 'type', 'name'))
             ->toHaveKey('status')
-            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['column_status'])
+            ->and(W4OS\Engine\I18n\Catalog::messages('fr_FR')['column_status'])
             ->toBe('Statut')
             // Every tone an indicator uses is one the contract describes
-            ->and(array_filter(OpenSim\Data\Listing::TONES, static fn(string $tone): bool => !str_contains(Contract::document()['info']['description'], "$tone ")))
+            ->and(array_filter(W4OS\Engine\Data\Listing::TONES, static fn(string $tone): bool => !str_contains(Contract::document()['info']['description'], "$tone ")))
             ->toBe([]);
     });
 
@@ -94,16 +94,16 @@ describe('Every list', function () {
         $missing = [];
         foreach (contract_lists() as $path => $list) {
             foreach ($list['actions'] ?? [] as $action) {
-                $key = OpenSim\I18n\Catalog::doneKey($action['name']);
-                isset(OpenSim\I18n\Catalog::MESSAGES[$key]) || ($missing[] = "$path: {$action['name']} ($key)");
+                $key = W4OS\Engine\I18n\Catalog::doneKey($action['name']);
+                isset(W4OS\Engine\I18n\Catalog::MESSAGES[$key]) || ($missing[] = "$path: {$action['name']} ($key)");
             }
         }
 
         expect($missing)
             ->toBe([])
-            ->and([OpenSim\I18n\Catalog::doneKey('estateUnban'), OpenSim\I18n\Catalog::doneKey('disable')])
+            ->and([W4OS\Engine\I18n\Catalog::doneKey('estateUnban'), W4OS\Engine\I18n\Catalog::doneKey('disable')])
             ->toBe(['manage_estate_unban', 'manage_disable'])
-            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['manage_estate_unban'])
+            ->and(W4OS\Engine\I18n\Catalog::messages('fr_FR')['manage_estate_unban'])
             ->toBe("%s n'est plus banni des domaines.");
     });
 
@@ -125,7 +125,7 @@ describe('Every list', function () {
             // An avatar is born, as the viewers say it
             ->and($avatars['created'])
             ->toBe('born')
-            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['born'])
+            ->and(W4OS\Engine\I18n\Catalog::messages('fr_FR')['born'])
             ->toBe('Né(e) le');
     });
 });
@@ -133,7 +133,7 @@ describe('Every list', function () {
 describe('The counts of a list', function () {
     test('are by filter and value, each counted with the search and the other filters, not its own', function () {
         avatars_in(avatar_database());
-        $counts = OpenSim\Models\Avatar::all(avatar_grid(), ['filters' => ['status' => 'active', 'role' => 'resident']])->counts();
+        $counts = W4OS\Engine\Models\Avatar::all(avatar_grid(), ['filters' => ['status' => 'active', 'role' => 'resident']])->counts();
 
         // Ada and Bob are active, Cy is not; among the active, Ada is a resident, Bob of the maintenance
         expect($counts['status'])
@@ -145,8 +145,8 @@ describe('The counts of a list', function () {
     });
 
     test('are given by the API with the list, and by the lists kept in memory', function () {
-        $machine = new OpenSim\Testing\Machine();
-        $api = new OpenSim\Api\Api($machine->environment);
+        $machine = new W4OS\Engine\Testing\Machine();
+        $api = new W4OS\Engine\Api\Api($machine->environment);
         $meta = $api->list('simulators', ['filter' => ['running' => 'yes']])->document['meta'];
 
         expect($meta['counts']['running'])
@@ -160,8 +160,8 @@ describe('The type of an avatar', function () {
     test('is a user, a model of the grid, or the account of its services, sorted and filtered so', function () {
         avatars_in(avatar_database());
         $config = avatar_grid("[Models]\n Match = \"uuid\"\n List = \"11111111-1111-1111-1111-111111111111\"\n");
-        $types = static fn(array $options = []): array => array_column(OpenSim\Models\Avatar::all($config, $options)->array(), 'type', 'name');
-        $columns = array_column(OpenSim\Models\Avatar::listing()->columns, null, 'name');
+        $types = static fn(array $options = []): array => array_column(W4OS\Engine\Models\Avatar::all($config, $options)->array(), 'type', 'name');
+        $columns = array_column(W4OS\Engine\Models\Avatar::listing()->columns, null, 'name');
 
         expect($types())
             ->toMatchArray(['Ada Love' => 'model', 'Bob Root' => 'user'])

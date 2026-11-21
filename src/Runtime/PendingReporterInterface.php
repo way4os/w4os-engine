@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * A reporter that can show what a wait is on right now, on a line that the next step replaces (a terminal), or not at all.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Text;
+namespace W4OS\Engine\Text;
 
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Network\Http;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Network\Http;
 
 /**
  * The destinations of a guide, written as lines "Name|Region URL" in a file or at a URL; a title (a name alone) starts a section,

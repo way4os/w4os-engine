@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * An OpenSimulator core installed in a folder (`<root>/<version>`, with its `bin`): the executables to run and the runtime

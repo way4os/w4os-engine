@@ -6,11 +6,11 @@ declare(strict_types=1);
  * The tasks that run now and then: due by their interval, never twice at once, told when they fail and not tried again in a loop.
  */
 
-use OpenSim\Scheduling\Scheduler;
-use OpenSim\Scheduling\Task;
-use OpenSim\Scheduling\TaskResult;
-use OpenSim\Testing\ClockFake;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Scheduling\Scheduler;
+use W4OS\Engine\Scheduling\Task;
+use W4OS\Engine\Scheduling\TaskResult;
+use W4OS\Engine\Testing\ClockFake;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /** A scheduler over a temporary folder and a clock that goes only where the test sends it. */
 function scheduler(?ClockFake &$clock = null, int $tickEvery = 60): Scheduler
@@ -84,13 +84,13 @@ describe('The tasks of several grids', function () {
     });
 
     test('of the search are named by the folder of their grid', function () {
-        $machine = new OpenSim\Testing\Machine();
-        $config = OpenSim\Config\GridConfig::fromFolder($machine->grid);
-        OpenSim\Data\Connections::using(static fn() => new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']));
-        $scheduler = OpenSim\Scheduling\Scheduler::for($machine->environment);
+        $machine = new W4OS\Engine\Testing\Machine();
+        $config = W4OS\Engine\Config\GridConfig::fromFolder($machine->grid);
+        W4OS\Engine\Data\Connections::using(static fn() => new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']));
+        $scheduler = W4OS\Engine\Scheduling\Scheduler::for($machine->environment);
 
-        OpenSim\Services\SearchTasks::add($scheduler, $machine->environment, $config);
-        OpenSim\Data\Connections::using(null);
+        W4OS\Engine\Services\SearchTasks::add($scheduler, $machine->environment, $config);
+        W4OS\Engine\Data\Connections::using(null);
 
         expect(array_column($scheduler->status(), 'id'))->toBe(['search-parse.demo', 'events-parse.demo', 'guide-pictures.demo', 'health.demo']);
     });

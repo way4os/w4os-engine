@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * The settings of the helpers of a grid in place that have no place of their own in OpenSimulator (the source of the guide, the

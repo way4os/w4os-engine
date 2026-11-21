@@ -1,6 +1,6 @@
 # Images
 
-The pictures the engine gives for what has none; `OpenSim\Assets\WebAssets` serves them, and the API at
+The pictures the engine gives for what has none; `W4OS\Engine\Assets\WebAssets` serves them, and the API at
 `/grids/{grid}/assets/{id}.{format}` (see `logos/` for the logos).
 
 - `assets-no-img.png` (256x256): the picture of nothing, for a place, a pick, a classified, a region. Its id is

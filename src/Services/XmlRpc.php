@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Api\Response;
+use W4OS\Engine\Api\Response;
 use PhpXmlRpc\Encoder;
 use PhpXmlRpc\Request;
 use PhpXmlRpc\Response as RpcResponse;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Container;
+namespace W4OS\Engine\Container;
 
 /** The result of a Podman command. */
 final class CommandResult

@@ -6,7 +6,7 @@ declare(strict_types=1);
  * The picture of a text, drawn with ImageMagick where the machine has it.
  */
 
-use OpenSim\Assets\ImagickTextRenderer;
+use W4OS\Engine\Assets\ImagickTextRenderer;
 
 describe('The text renderer', function () {
     test('draws a text as a square PNG, in a font the machine has or in the fallback', function () {

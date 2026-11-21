@@ -7,11 +7,11 @@ declare(strict_types=1);
  * the options of a grid its simulators miss laid again (the repair of the options), so that an upgrade needs nothing by hand.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridCompletion;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridCompletion;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Testing\Machine;
 
 describe('The completion of the grids at an upgrade', function () {
     test('lays again the options their simulators miss, once: a second run has nothing to do', function () {
@@ -38,7 +38,7 @@ describe('The completion of the grids at an upgrade', function () {
         file_put_contents($alpha, (string) file_get_contents($alpha) . "\n[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"https://elsewhere.example.org/offline.php\"\n");
 
         GridCompletion::run($machine->environment, $machine->etc);
-        $messaging = OpenSim\Config\ConfigReader::load($alpha, expand: false)['Messaging'] ?? [];
+        $messaging = W4OS\Engine\Config\ConfigReader::load($alpha, expand: false)['Messaging'] ?? [];
 
         expect($messaging)
             ->toBe(['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => 'https://elsewhere.example.org/offline.php'])
@@ -57,13 +57,13 @@ describe('The completion of the grids at an upgrade', function () {
         file_put_contents($original, "[MoneyServer]\n");
 
         GridCompletion::run($machine->environment, $machine->etc);
-        OpenSim\Provisioning\MoneyServerConfig::write($machine->grid, $original);
+        W4OS\Engine\Provisioning\MoneyServerConfig::write($machine->grid, $original);
         $files = [$alpha, $machine->grid . '/Helpers.ini', $machine->grid . '/MoneyServer.ini'];
         clearstatcache();
 
         expect(array_map(static fn(string $file): int => fileperms($file) & 0o777, $files))->toBe([0o640, 0o640, 0o640]);
         // The group is given when this user may give it (a member of the group of the web server, as the account of the instances is)
-        $gid = OpenSim\Config\GridFileService::webGroup();
+        $gid = W4OS\Engine\Config\GridFileService::webGroup();
         if ($gid !== null && in_array($gid, posix_getgroups(), true)) {
             expect(array_map(static fn(string $file): int => filegroup($file), $files))->toBe([$gid, $gid, $gid]);
         }

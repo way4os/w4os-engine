@@ -8,12 +8,12 @@ declare(strict_types=1);
  * The grids of provided_grid() of ProvideChoicesTest, address_patch() of ProvideAddressesTest.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Economy\CurrencySettings;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\AvatarModel;
-use OpenSim\Models\GridSettings;
-use OpenSim\Services\SearchTasks;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Economy\CurrencySettings;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\AvatarModel;
+use W4OS\Engine\Models\GridSettings;
+use W4OS\Engine\Services\SearchTasks;
 
 /** @return array<string,array<string,mixed>> the fields of every page of settings, by page and name, the parts of a database too */
 function field_hints(): array

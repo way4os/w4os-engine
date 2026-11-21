@@ -9,14 +9,14 @@ declare(strict_types=1);
  * reason, and the grid says which of its channels it has, for a site to hide what it cannot do.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Contract;
-use OpenSim\Api\Router;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\Layout;
-use OpenSim\Data\Connections;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\Environment;
 
 /** @return array{0:Router,1:string} the API of a site that describes the grid `far`, and the folder of the site */
 function site_api(): array
@@ -29,7 +29,7 @@ function site_api(): array
         'Robust' => ['DatabaseService' => ['ConnectionString' => 'Data Source=db.example.org;Database=robust;User ID=site;Password=pw;']],
         'Helpers' => ['Helpers' => ['AssetsURL' => 'https://assets.example.org/a']],
     ]));
-    $mailer = new class implements OpenSim\Services\MailerInterface {
+    $mailer = new class implements W4OS\Engine\Services\MailerInterface {
         public function send(string $to, string $subject, string $html, string $from): bool
         {
             return true;
@@ -100,7 +100,7 @@ describe('What a grid has, and what an operation needs', function () {
     test('a grid says what the engine reaches of it: its files, its databases, its answers over HTTP', function () {
         [$router] = site_api();
         $far = $router->get('/grids/far');
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $demo = (new Router(new Api($machine->environment)))->get('/grids/demo');
 
         expect($far->status)->toBe(200)
@@ -122,7 +122,7 @@ describe('What a grid has, and what an operation needs', function () {
             ->and($write->document['detail'])->toContain('no files')
             // Its reason as a notice, for a site to say it in its language
             ->and([$write->document['reason']['code'] ?? null, $repair->document['reason']['code'] ?? null])->toBe(['setting-no-files-unkept', 'options-no-files'])
-            ->and(OpenSim\I18n\Catalog::notice('fr_FR', 'options-no-files'))->not->toBe($repair->document['reason']['detail'])
+            ->and(W4OS\Engine\I18n\Catalog::notice('fr_FR', 'options-no-files'))->not->toBe($repair->document['reason']['detail'])
             ->and(is_file('/Helpers.ini'))->toBeFalse()
             ->and(glob("$site/{,*/,*/*/}*.ini", GLOB_BRACE))->toBe([]);
     });

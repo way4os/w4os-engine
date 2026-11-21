@@ -7,8 +7,8 @@ declare(strict_types=1);
  * field, what the whole page is about in its help (the sidebar). The tips are keys of the catalog, a few words, in every language.
  */
 
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\GridSettings;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\GridSettings;
 
 describe('The fields of the settings pages', function () {
     test('have a short tip where the label is not enough, in every language, the details apart', function () {

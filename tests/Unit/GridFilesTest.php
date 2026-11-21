@@ -6,8 +6,8 @@
  * region on port 1).
  */
 
-use OpenSim\Config\GridFileService;
-use OpenSim\Exceptions\SetupFailedException;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Exceptions\SetupFailedException;
 
 /** A file nobody but its owner and root reads, in a folder of its own. */
 function locked_file(string $text): string

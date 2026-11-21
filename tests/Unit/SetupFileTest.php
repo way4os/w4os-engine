@@ -6,8 +6,8 @@ declare(strict_types=1);
  * A setup in a file: what it says of a region, by the names of the fields of the model, and what the setup writes back of it.
  */
 
-use OpenSim\Provisioning\SetupFile;
-use OpenSim\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\SetupFile;
+use W4OS\Engine\Provisioning\SimulatorPlan;
 
 describe('A setup file', function () {
     test('gives the size of a region with its other answers, and keeps it when the setup writes it back', function () {

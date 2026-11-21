@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use OpenSim\Provisioning\RegionAdoption;
-use OpenSim\Provisioning\SimulatorConfig;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Provisioning\SimulatorProvisioner;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Provisioning\RegionAdoption;
+use W4OS\Engine\Provisioning\SimulatorConfig;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\SimulatorProvisioner;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Testing\Machine;
 
 function existing_region_ini(): string
 {
@@ -58,7 +58,7 @@ test('updates only adopted region networking and location', function () {
     $plan->regionLocation = '140,150';
     $plan->externalHost = 'region.example.test';
     $text = (new SimulatorConfig())->renderRegion($plan);
-    $values = OpenSim\Config\ConfigReader::parse($text)['Existing Garden'];
+    $values = W4OS\Engine\Config\ConfigReader::parse($text)['Existing Garden'];
     expect($values)->toMatchArray([
         'RegionUUID' => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
         'Location' => '140,150', 'InternalPort' => '9121',

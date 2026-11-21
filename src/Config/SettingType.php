@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * A type of setting that is more than a text: how its value, as a file says it, reads and is written back, how a form edits it, and

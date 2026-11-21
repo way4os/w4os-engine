@@ -7,12 +7,12 @@ declare(strict_types=1);
  * true when the grid says nothing): the form of the avatar shows it only then, a change ignores it otherwise, the API says it.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Contract;
-use OpenSim\Api\Router;
-use OpenSim\Config\GridConfig;
-use OpenSim\Models\Avatar;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Testing\Machine;
 
 const WEB_ADA = '11111111-1111-1111-1111-111111111111';
 
@@ -117,7 +117,7 @@ describe('The web address of a profile', function () {
             ->not->toContain('profileUrl')
             ->and($closed->writable())
             ->not->toContain('profileUrl')
-            ->and(array_diff($full->keys(), array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->and(array_diff($full->keys(), array_keys(W4OS\Engine\I18n\Catalog::MESSAGES)))
             ->toBe([]);
     });
 

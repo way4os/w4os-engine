@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Controllers\AbstractController;
-use OpenSim\Controllers\OpenSimController;
+use W4OS\Engine\Controllers\AbstractController;
+use W4OS\Engine\Controllers\OpenSimController;
 
 /**
  * How a simulator loads, shown while its start is waited for: what the process prints first, then the steps its log reports

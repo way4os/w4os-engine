@@ -1,12 +1,12 @@
 <?php
 
-namespace OpenSim\Health;
+namespace W4OS\Engine\Health;
 
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\I18n\Catalog;
 
-use OpenSim\Config\Settings;
-use OpenSim\Models\Avatar;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * Health checks of an OpenSimulator grid, for whoever serves it: the addresses its settings give and what each answers, what
@@ -23,7 +23,7 @@ use OpenSim\Config\GridConfig;
  * `cert`), and what is right for an address is what is expected of it: a page answers 2xx, an address that is not a page answers
  * 418 (a teapot), a service is called twice, with nothing (it must refuse) and with what it expects (it must answer 200).
  *
- * @package magicoli/opensim-engine
+ * @package w4os/w4os-engine
  * @license AGPLv3
  */
 
@@ -64,7 +64,7 @@ class Health
 
     /**
      * The pages and the caches a row can be, by `group/label`: the name of each in the catalog, `setting_<name>` and
-     * `setting_<name>_help` its description. The settings are the registry's (OpenSim\Config\Settings).
+     * `setting_<name>_help` its description. The settings are the registry's (W4OS\Engine\Config\Settings).
      */
     const ROWS = [
         'pages/helpers' => 'helpers',
@@ -96,7 +96,7 @@ class Health
      */
     public static function gridInfo($login)
     {
-        return \OpenSim\Network\GridInfoReader::read((string) $login);
+        return \W4OS\Engine\Network\GridInfoReader::read((string) $login);
     }
 
     /**
@@ -926,7 +926,7 @@ class Health
      */
     public static function writable($label, $folder)
     {
-        $good = (new \OpenSim\Support\FileCache($folder))->writable();
+        $good = (new \W4OS\Engine\Support\FileCache($folder))->writable();
         $user = function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : get_current_user();
         $exists = is_dir($folder);
 
@@ -951,7 +951,7 @@ class Health
      */
     public static function extensions($external = null, $setting = null)
     {
-        $setting ??= \OpenSim\Config\Settings::where('assetsUrl');
+        $setting ??= \W4OS\Engine\Config\Settings::where('assetsUrl');
 
         return [
             self::requirement('xmlrpc', function_exists('xmlrpc_encode'), self::say('health_for_xmlrpc')),
@@ -973,7 +973,7 @@ class Health
      */
     public static function jpeg2000($reads, $external, $setting = null)
     {
-        $setting ??= \OpenSim\Config\Settings::where('assetsUrl');
+        $setting ??= \W4OS\Engine\Config\Settings::where('assetsUrl');
         $where = $setting['file'] . ' · [' . $setting['section'] . '] · ' . $setting['key'];
         $row = ['label' => 'imagick JPEG 2000', 'kind' => 'requirement', 'installed' => $reads, 'version' => null, 'setting' => $setting];
         if ($reads) {
@@ -1130,7 +1130,7 @@ class Health
                 if ($key === null) {
                     continue;
                 }
-                $should = \OpenSim\Config\ConfigReader::replaceConstants(trim($settings[$key], " \""), $constants);
+                $should = \W4OS\Engine\Config\ConfigReader::replaceConstants(trim($settings[$key], " \""), $constants);
                 if ($value !== '' && rtrim($value, '/') === rtrim($should, '/')) {
                     continue;
                 }

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Assets;
+namespace W4OS\Engine\Assets;
 
-use OpenSim\Provisioning\ResourceRegistry;
+use W4OS\Engine\Provisioning\ResourceRegistry;
 
 /**
  * The logos the engine ships for every bridge (the Grav plugin, w4os, the helpers): the ones of w4os and of OpenSimulator, in

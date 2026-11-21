@@ -6,9 +6,9 @@ declare(strict_types=1);
  * A simulator is its config and the process that runs from it: what the config says is asked of the simulator.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Models\Simulator;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Testing\Machine;
 
 describe('simulator', function () {
     test('tells what its own config says: ports, console, database, estate', function () {
@@ -198,11 +198,11 @@ describe('simulator identity', function () {
 
 describe('the name of a simulator', function () {
     test('is the one given to it, without its grid, in capitals; its slug apart', function () {
-        expect(\OpenSim\Models\Simulator::displayNameOf('friendly_fowl.test_north', 'friendly_fowl'))
+        expect(\W4OS\Engine\Models\Simulator::displayNameOf('friendly_fowl.test_north', 'friendly_fowl'))
             ->toBe('Test North')
-            ->and(\OpenSim\Models\Simulator::displayNameOf('friendly_fowl.welcome'))
+            ->and(\W4OS\Engine\Models\Simulator::displayNameOf('friendly_fowl.welcome'))
             ->toBe('Welcome')
-            ->and(\OpenSim\Models\Simulator::displayNameOf('friendly_fowl_welcome', 'friendly_fowl'))
+            ->and(\W4OS\Engine\Models\Simulator::displayNameOf('friendly_fowl_welcome', 'friendly_fowl'))
             ->toBe('Welcome');
     });
 });

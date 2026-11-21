@@ -7,12 +7,12 @@ declare(strict_types=1);
  * parcel that holds a point. The databases are in memory (SQLite) with the tables of OpenSimulator.
  */
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Parcel;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Parcel;
 
 /** A grid with two simulators, each with its own database. */
 function parcel_config(bool $shared = false): GridConfig
@@ -242,7 +242,7 @@ describe('parcels', function () {
             ->and($names(['sort' => 'area']))
             ->toBe(['Kiosk', 'The Garden', 'Harbour Front'])
             ->and(fn() => $names(['sort' => 'nonsense']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
             ->and($names(['filters' => ['shown' => 'yes']]))
             ->toBe(['Harbour Front', 'The Garden'])
             ->and($names(['filters' => ['forSale' => 'yes']]))
@@ -332,12 +332,12 @@ describe('bitmap of a parcel', function () {
             ->and($landed->uri())
             ->toBe('play.example.org:8002/Quiet Harbour/64/27/600')
             ->and($landed->teleport())
-            ->toBe('hop://play.example.org:8002/Quiet' . \OpenSim\Hypergrid\Destination::SPACE . 'Harbour/64/27/600')
+            ->toBe('hop://play.example.org:8002/Quiet' . \W4OS\Engine\Hypergrid\Destination::SPACE . 'Harbour/64/27/600')
             ->and($computed->point())
             ->toBe([10, 2, 21])
             // A landing point at a height of zero: no height given, a little above the sea
             ->and($parcel(['UserLocationX' => 64, 'UserLocationY' => 27, 'UserLocationZ' => 0])->teleport())
-            ->toBe('hop://play.example.org:8002/Quiet' . \OpenSim\Hypergrid\Destination::SPACE . 'Harbour/64/27/21')
+            ->toBe('hop://play.example.org:8002/Quiet' . \W4OS\Engine\Hypergrid\Destination::SPACE . 'Harbour/64/27/21')
             ->and($computed->holds(10, 2))
             ->toBeTrue()
             ->and($parcel(['UserLocationZ' => 40])->point())
@@ -395,7 +395,7 @@ describe('The land for sale of the search', function () {
         $search->exec("CREATE TABLE parcelsales (regionUUID CHAR(36), parcelname VARCHAR(255), parcelUUID CHAR(36), area INT, saleprice INT, landingpoint VARCHAR(255), infoUUID CHAR(36) DEFAULT '00000000-0000-0000-0000-000000000000', dwell INT, parentestate INT DEFAULT 1, mature VARCHAR(10) DEFAULT 'PG', gatekeeperURL VARCHAR(255))");
         // What a snapshot left: a parcel no longer for sale, in a region of this grid
         $search->insert('parcelsales', ['regionUUID' => 'aaaaaaaa-0000-0000-0000-000000000001', 'parcelname' => 'Sold', 'parcelUUID' => 'p9', 'area' => 16, 'saleprice' => 1, 'landingpoint' => '1/1/1', 'dwell' => 0]);
-        $kept = OpenSim\Services\LandSales::sync(parcel_config(), $search);
+        $kept = W4OS\Engine\Services\LandSales::sync(parcel_config(), $search);
         $rows = $search->get_results('SELECT * FROM parcelsales', [], \PDO::FETCH_ASSOC);
 
         expect($kept)
@@ -446,9 +446,9 @@ describe('The parcels of a region page', function () {
             ->toMatchArray(['name' => 'name', 'picture' => 'snapshot', 'default' => 'place'])
             ->and(array_map(static fn(string $field): ?string => $fields[$field]['type'] ?? null, ['scripts', 'build', 'public']))
             ->toBe(['boolean', 'boolean', 'boolean'])
-            ->and(array_diff(array_column($fields, 'label'), array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->and(array_diff(array_column($fields, 'label'), array_keys(W4OS\Engine\I18n\Catalog::MESSAGES)))
             ->toBe([])
-            ->and(array_keys(OpenSim\Api\Contract::document()['components']['schemas']['Parcels']['properties']['attributes']['properties'] ?? []))
+            ->and(array_keys(W4OS\Engine\Api\Contract::document()['components']['schemas']['Parcels']['properties']['attributes']['properties'] ?? []))
             ->toContain('scripts', 'build', 'public');
     });
 });

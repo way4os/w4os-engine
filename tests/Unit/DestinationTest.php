@@ -4,9 +4,9 @@
  * search tables take.
  */
 
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Text\Encoding;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Text\Encoding;
+use W4OS\Engine\Text\Uuid;
 
 require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
@@ -282,12 +282,12 @@ describe('A destination of a guide', function () {
             return true;
         });
         try {
-            $grid = OpenSim\Hypergrid\Destination::format('wyldwoodbayou.com:8002', OpenSim\Hypergrid\Destination::HG);
-            $alone = OpenSim\Hypergrid\Destination::format('Welcome', OpenSim\Hypergrid\Destination::HG);
+            $grid = W4OS\Engine\Hypergrid\Destination::format('wyldwoodbayou.com:8002', W4OS\Engine\Hypergrid\Destination::HG);
+            $alone = W4OS\Engine\Hypergrid\Destination::format('Welcome', W4OS\Engine\Hypergrid\Destination::HG);
         } finally {
             restore_error_handler();
         }
-        $parsed = OpenSim\Hypergrid\Destination::parse('login.osgrid.org:RuthAndRoth');
+        $parsed = W4OS\Engine\Hypergrid\Destination::parse('login.osgrid.org:RuthAndRoth');
 
         expect($grid)
             ->toBe('secondlife://wyldwoodbayou.com:8002')
@@ -330,8 +330,8 @@ describe('The label of a destination, as a card shows it under its name', functi
         $answers = [];
         $asked = [];
         $machine = grid_info_world($answers, $asked);
-        (new OpenSim\Network\GridInfoCache($machine->environment))->save('http://speculoos.world:8002', ['gridname' => 'Speculoos World']);
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        (new W4OS\Engine\Network\GridInfoCache($machine->environment))->save('http://speculoos.world:8002', ['gridname' => 'Speculoos World']);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
 
         expect($grid->card('hop://speculoos.world:8002/Grand%20Place/128/128/25', 'Speculoos'))
             ->toBe(['title' => 'Grand Place', 'label' => 'speculoos.world:8002', 'gridName' => 'Speculoos World'])
@@ -345,7 +345,7 @@ describe('The label of a destination, as a card shows it under its name', functi
     });
 
     test('of the guide of a grid: its own places by their region and their point', function () {
-        $grid = OpenSim\Models\Grid::find((new OpenSim\Testing\Machine())->environment, 'demo');
+        $grid = W4OS\Engine\Models\Grid::find((new W4OS\Engine\Testing\Machine())->environment, 'demo');
         $login = (string) $grid->loginUrl();
 
         expect($grid->label(Destination::uri('Welcome/10/20/30', $login)))
@@ -407,7 +407,7 @@ describe('A link made for where it is shown (AUTO)', function () {
     });
 
     test('of a grid: its login tells its own places', function () {
-        $grid = OpenSim\Models\Grid::find((new OpenSim\Testing\Machine())->environment, 'demo');
+        $grid = W4OS\Engine\Models\Grid::find((new W4OS\Engine\Testing\Machine())->environment, 'demo');
         $login = (string) Destination::loginParts((string) $grid->loginUrl())['host'];
 
         expect($grid->link('Welcome/128/128/25', TP_VIEWER))

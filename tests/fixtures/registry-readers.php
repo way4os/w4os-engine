@@ -10,11 +10,11 @@ declare(strict_types=1);
  *     php tests/fixtures/registry-readers.php > tests/fixtures/registry-readers.json
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Health\Health;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Service;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Health\Health;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Service;
+use W4OS\Engine\Testing\Machine;
 
 /** @return array<string,mixed> */
 function registry_readers(): array

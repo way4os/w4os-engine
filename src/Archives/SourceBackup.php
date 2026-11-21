@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The backup of a simulator of another install (opensim-debian, a release), as it is before an import changes anything: a dump of

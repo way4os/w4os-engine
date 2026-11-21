@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Interfaces;
+namespace W4OS\Engine\Interfaces;
 
-use OpenSim\Data\Collection;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The models of the machine (grids, instances): listed and found in its environment, which says where the install is, its processes,

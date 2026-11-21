@@ -1,11 +1,11 @@
 <?php
 
-use OpenSim\Api\Api;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Simulator;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Testing\Machine;
 
 /**
  * The status of the simulators: enabled and running, the ways the engine reaches each, and the simulators of other machines that
@@ -49,7 +49,7 @@ describe('The list of the simulators', function () {
                 ['value' => 'unresponsive', 'label' => 'state_unresponsive', 'tone' => 'failed', 'icon' => 'play'],
                 ['value' => 'crashed', 'label' => 'state_crashed', 'tone' => 'failed', 'icon' => 'pause'],
             ])
-            ->and(OpenSim\Data\Listing::TONES)
+            ->and(W4OS\Engine\Data\Listing::TONES)
             ->toBe(['ok', 'off', 'warning', 'failed'])
             ->and($indicators['enabled']['actions'])
             ->toBe(['enable', 'disable'])
@@ -58,13 +58,13 @@ describe('The list of the simulators', function () {
             ->toBe(['configured' => 'connection_mysql', 'ok' => 'connection_mysql', 'failed' => 'connection_mysql_failed'])
             ->and(array_column($indicators['connections.mysql']['states'], 'tone', 'value'))
             ->toBe(['configured' => 'off', 'ok' => 'ok', 'failed' => 'failed'])
-            ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config'])
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES['connection_config'])
             ->toBe('OpenSim.ini')
-            ->and(OpenSim\I18n\Catalog::MESSAGES['connection_config_failed'])
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES['connection_config_failed'])
             ->toBe('OpenSim.ini unreadable')
             // The thing as it is named, the same in every language
             ->and(array_unique(array_map(
-                static fn(string $locale): string => OpenSim\I18n\Catalog::messages($locale)['connection_regions'] ?? '',
+                static fn(string $locale): string => W4OS\Engine\I18n\Catalog::messages($locale)['connection_regions'] ?? '',
                 ['en_US', 'cy_GB', 'de_DE', 'fr_FR', 'it_IT', 'nl_NL', 'pt_BR'],
             )))
             ->toBe(['Regions .ini'])
@@ -101,7 +101,7 @@ describe('The ways the engine reaches a simulator', function () {
     test('name its database by what it is: MySQL, or SQLite, a file read and never made by trying it', function () {
         $machine = new Machine();
         $file = $machine->root . '/data/beta.db';
-        $ini = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/beta.ini';
+        $ini = W4OS\Engine\Config\GridConfig::simulatorsDirectory($machine->grid) . '/beta.ini';
         file_put_contents($ini, (string) file_get_contents($ini) . "\n[DatabaseService]\nStorageProvider = \"OpenSim.Data.SQLite.dll\"\nConnectionString = \"URI=file:$file,version=3\"\n");
         $beta = Simulator::find($machine->environment, 'beta');
         $beta->probe();
@@ -191,7 +191,7 @@ describe('A simulator of another machine', function () {
 describe('The size and the load of a simulator', function () {
     test('are its regions, their area, and the cpu and memory of its process while it runs, read once for the list', function () {
         $machine = new Machine();
-        $regions = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha/regions';
+        $regions = W4OS\Engine\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha/regions';
         file_put_contents("$regions/Big.ini", "[Big]\nRegionUUID = 33333333-1111-4111-8111-111111111111\nSizeX = 512\nSizeY = 512\nInternalPort = 9003\n");
         file_put_contents("$regions/Off.ini.disabled", "[Off]\nRegionUUID = 44444444-1111-4111-8111-111111111111\n");
         // 50 % of one of the 4 CPUs of the machine; 400 MB of its 16 GB
@@ -231,9 +231,9 @@ describe('The size and the load of a simulator', function () {
 describe('The server of a simulator', function () {
     test('is the machine its address resolves to: its aliases and IPs one server, named by its reverse DNS, this one by its name', function () {
         $machine = new Machine();
-        OpenSim\Data\Cache::flush();
+        W4OS\Engine\Data\Cache::flush();
         $asked = [];
-        OpenSim\Network\ServerNames::using([
+        W4OS\Engine\Network\ServerNames::using([
             'addresses' => static function (string $host) use (&$asked): array {
                 $asked[] = $host;
 
@@ -251,8 +251,8 @@ describe('The server of a simulator', function () {
             $suzi = Simulator::all($machine->environment, ['filters' => ['server' => '203.0.113.7']])->items();
         } finally {
             Connections::using(null);
-            OpenSim\Network\ServerNames::using(offline_names());
-            OpenSim\Data\Cache::flush();
+            W4OS\Engine\Network\ServerNames::using(offline_names());
+            W4OS\Engine\Data\Cache::flush();
         }
         $here = (string) gethostname();
 
@@ -288,8 +288,8 @@ describe('The people in a simulator and its regions', function () {
         Connections::using(static fn() => $pdo);
         try {
             $simulators = array_column(array_map(static fn(Simulator $s): array => $s->detail(), Simulator::all($machine->environment)->items()), null, 'uri');
-            $regions = array_column(OpenSim\Models\Region::all(OpenSim\Config\GridConfig::fromFolder($machine->grid))->array(), null, 'name');
-            $stats = OpenSim\Data\Stats::of(OpenSim\Config\GridConfig::fromFolder($machine->grid));
+            $regions = array_column(W4OS\Engine\Models\Region::all(W4OS\Engine\Config\GridConfig::fromFolder($machine->grid))->array(), null, 'name');
+            $stats = W4OS\Engine\Data\Stats::of(W4OS\Engine\Config\GridConfig::fromFolder($machine->grid));
         } finally {
             Connections::using(null);
         }
@@ -309,8 +309,8 @@ describe('The people in a simulator and its regions', function () {
 
 describe('An area', function () {
     test('is shown in km², two decimals under 10, none above, as the grid status of w4os-wp', function () {
-        expect(array_map(static fn(int $m2): array => OpenSim\Text\Units::area($m2), [512, 65536, 16 * 65536, 152 * 65536, 400 * 65536]))
+        expect(array_map(static fn(int $m2): array => W4OS\Engine\Text\Units::area($m2), [512, 65536, 16 * 65536, 152 * 65536, 400 * 65536]))
             ->toBe([[0.000512, 'unit_km2', 2], [0.065536, 'unit_km2', 2], [1.048576, 'unit_km2', 2], [9.961472, 'unit_km2', 2], [26.2144, 'unit_km2', 0]])
-            ->and(OpenSim\I18n\Catalog::MESSAGES)->not->toHaveKey('unit_ha')->not->toHaveKey('unit_m2');
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES)->not->toHaveKey('unit_ha')->not->toHaveKey('unit_m2');
     });
 });

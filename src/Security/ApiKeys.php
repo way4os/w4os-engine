@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Security;
+namespace W4OS\Engine\Security;
 
-use OpenSim\Runtime\ClockInterface;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Runtime\ClockInterface;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The keys that open the API: global keys, each with a label, made and revoked on the machine (`opensim api-key create|list|revoke`).

@@ -7,11 +7,11 @@ declare(strict_types=1);
  * command line does: by the user that runs them only, a clean refusal for any other (the web server of a site).
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\Layout;
-use OpenSim\Runtime\InstanceAccess;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Runtime\InstanceAccess;
+use W4OS\Engine\Testing\Machine;
 
 /** A machine whose instances come up when they are started, and go when their console is told to shut down. */
 function control_machine(): Machine

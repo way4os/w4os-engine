@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Economy;
+namespace W4OS\Engine\Economy;
 
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * What a grid says of its currency: the economy module its simulators run, the key that ties a quote to its purchase, the rate, the

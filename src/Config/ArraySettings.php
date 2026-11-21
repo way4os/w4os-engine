@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * Settings an application gives as an array: read only when given so (Environment::system(settings: [...])), kept in memory when

@@ -6,12 +6,12 @@ declare(strict_types=1);
  * The services of a grid: served by its Robust, or declared for its simulators; a simulator answers for them as it reaches them.
  */
 
-use OpenSim\Data\Database;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Service;
-use OpenSim\Models\Simulator;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Service;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Testing\Machine;
 
 /** The grid `demo` of the test machine; its Robust serves the assets and the regions, on its private port. */
 function service_grid(Machine $machine): Grid

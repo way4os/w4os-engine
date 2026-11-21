@@ -7,11 +7,11 @@ declare(strict_types=1);
  * a French one writes a comma for a decimal point.
  */
 
-use OpenSim\Data\Connections;
-use OpenSim\Http\Locale;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\GridMonitor;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Http\Locale;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\GridMonitor;
 
 /** Run under a French locale for the numbers, the one before given back. */
 function under_french_numbers(Closure $run): mixed

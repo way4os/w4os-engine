@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Models\Avatar as AvatarModel;
-use OpenSim\Provisioning\AccountWriter;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Models\Avatar as AvatarModel;
+use W4OS\Engine\Provisioning\AccountWriter;
 
 /**
  * Signs an avatar of the grid in with the databases of its services: the account by its name ("First Last", "First.Last") or its

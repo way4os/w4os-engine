@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Console\ScreenConsole;
+use W4OS\Engine\Console\ScreenConsole;
 
 /**
  * Starts the instances on this machine: detached (nohup) when they have a remote console, in a screen session otherwise.

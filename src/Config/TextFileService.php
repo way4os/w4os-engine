@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * Text files that come from the OpenSim sources, brought to Unix line endings:

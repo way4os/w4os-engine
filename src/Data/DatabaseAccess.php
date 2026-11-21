@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
 /**
  * The access to the databases an application gives the engine (a site that has it in its own folder: its database server, its

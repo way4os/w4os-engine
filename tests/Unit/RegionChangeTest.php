@@ -8,13 +8,13 @@ declare(strict_types=1);
  * the flags, the simulator for the estate) when it can be reached, else to the database when that is safe.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Models\Region;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Console\InstanceConsoleService;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Models\Region;
 
 const CHANGE_WELCOME = 'aaaaaaaa-0000-4000-8000-000000000001';
 const CHANGE_GARDEN = 'aaaaaaaa-0000-4000-8000-000000000002';
@@ -116,7 +116,7 @@ describe('The roles of a region', function () {
         $garden = Region::find($config, 'Garden');
         $garden->update(['roles' => ['NoMove']]);
 
-        expect(\OpenSim\Config\ConfigReader::load($robust)['GridService'])
+        expect(\W4OS\Engine\Config\ConfigReader::load($robust)['GridService'])
             ->toMatchArray(['Region_Welcome' => 'Persistent, FallbackRegion'])
             ->not->toHaveKey('Region_Garden')
             ->and($welcome->reminders())
@@ -194,7 +194,7 @@ describe('Whether a region is enabled', function () {
         expect($refused?->reason)
             ->toBe('config-not-writable')
             // Forbidden to this process, not a wrong request
-            ->and(OpenSim\Api\Problem::from($refused)->status)
+            ->and(W4OS\Engine\Api\Problem::from($refused)->status)
             ->toBe(403)
             ->and($refused?->getMessage())
             ->toContain($folder)
@@ -230,12 +230,12 @@ describe('The owner of a region', function () {
 
     test('is never written in the database of a running simulator, seen running from the link it was started with', function () {
         [$config, $pdo] = change_grid();
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $sims = dirname((string) $config->file('simulators/demo.alpha'));
         @symlink("$sims/demo.alpha.ini", "$sims/started-as.ini");
         $machine->processes->add("dotnet OpenSim.dll -inifile=$sims/started-as.ini");
 
-        expect(OpenSim\Console\InstanceConsoleService::running("$sims/demo.alpha.ini", $machine->environment))->toBeTrue();
+        expect(W4OS\Engine\Console\InstanceConsoleService::running("$sims/demo.alpha.ini", $machine->environment))->toBeTrue();
     });
 
     test('is refused for a region whose estate has others (they would change owner too), and for someone the grid does not know', function () {
@@ -250,7 +250,7 @@ describe('The owner of a region', function () {
 
 describe('The API, for a region', function () {
     test('changes its roles and says what is left to do, and refuses its name with a code', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $pdo = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         $pdo->exec(
             'CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, owner_uuid CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))',
@@ -259,7 +259,7 @@ describe('The API, for a region', function () {
         Connections::using(static fn() => $pdo);
         $sent = [];
         change_consoles($sent, false);
-        $api = new OpenSim\Api\Api($machine->environment);
+        $api = new W4OS\Engine\Api\Api($machine->environment);
 
         $changed = $api->update('regions', CHANGE_WELCOME, ['roles' => ['FallbackRegion', 'Persistent']], 'demo');
         $named = $api->update('regions', CHANGE_WELCOME, ['name' => 'Hello'], 'demo');
@@ -295,7 +295,7 @@ describe('The estate of a region', function () {
         expect($pdo->get_var('SELECT EstateID FROM estate_map WHERE RegionID = :r', ['r' => CHANGE_WELCOME]))
             ->toBe(102)
             ->and(fn() => Region::find($config, 'Welcome')->update(['estate' => '999']))
-            ->toThrow(OpenSim\Exceptions\InvalidValue::class, 'estate');
+            ->toThrow(W4OS\Engine\Exceptions\InvalidValue::class, 'estate');
     });
 });
 
@@ -309,15 +309,15 @@ describe('A new estate', function () {
         $sent = [];
         change_consoles($sent, true);
         // The console makes it in the database, as OpenSimulator does
-        OpenSim\Console\InstanceConsoleService::sendThrough(static function (string $instance, string $lines) use (&$sent, $pdo): bool {
+        W4OS\Engine\Console\InstanceConsoleService::sendThrough(static function (string $instance, string $lines) use (&$sent, $pdo): bool {
             $sent[$instance][] = $lines;
             $pdo->exec("INSERT INTO estate_settings (EstateID, EstateName, EstateOwner) VALUES (103, 'By Console', '" . CHANGE_BOB . "')");
 
             return true;
         });
-        $console = OpenSim\Models\Estate::create($config, ['name' => 'By Console', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']);
+        $console = W4OS\Engine\Models\Estate::create($config, ['name' => 'By Console', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']);
         change_consoles($sent, false);
-        $written = OpenSim\Models\Estate::create($config, ['name' => 'Written', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']);
+        $written = W4OS\Engine\Models\Estate::create($config, ['name' => 'Written', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']);
         $row = $pdo->get_results("SELECT * FROM estate_settings WHERE EstateName = 'Written'", [], \PDO::FETCH_ASSOC)[0];
 
         expect($sent['demo.alpha'][0])
@@ -326,7 +326,7 @@ describe('A new estate', function () {
             ->toBe([103, CHANGE_BOB, 104])
             ->and(array_intersect_key($row, array_flip(['ParentEstateID', 'PublicAccess', 'AllowVoice', 'PricePerMeter', 'AllowDirectTeleport', 'AllowLandmark'])))
             ->toBe(['ParentEstateID' => 1, 'PublicAccess' => 1, 'AllowVoice' => 1, 'PricePerMeter' => 1, 'AllowDirectTeleport' => 1, 'AllowLandmark' => 1])
-            ->and(fn() => OpenSim\Models\Estate::create($config, ['name' => '', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']))
-            ->toThrow(OpenSim\Exceptions\InvalidValue::class);
+            ->and(fn() => W4OS\Engine\Models\Estate::create($config, ['name' => '', 'owner' => CHANGE_BOB, 'simulator' => 'demo.alpha']))
+            ->toThrow(W4OS\Engine\Exceptions\InvalidValue::class);
     });
 });

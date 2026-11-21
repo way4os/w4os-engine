@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Text;
+namespace W4OS\Engine\Text;
 
 /**
  * The unit an amount is shown in: an area in km², as the grid status of w4os-wp shows it. The unit is a key of the catalog

@@ -8,14 +8,14 @@ declare(strict_types=1);
  * here, as the database access an application gives (DatabaseAccess).
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\ArraySettings;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\Layout;
-use OpenSim\Economy\CurrencySettings;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\ArraySettings;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Economy\CurrencySettings;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\Environment;
 
 /** @return array{0:Environment,1:string} the environment of a site that keeps these settings, and its folder */
 function site_with_settings(array|ArraySettings|null $settings): array
@@ -55,7 +55,7 @@ describe('The settings an application keeps', function () {
         expect([$write->status, $key->status])->toBe([200, 200])
             ->and($kept->all())->toBe(['Helpers' => ['AssetsURL' => 'https://assets.example.org/a'], 'MoneyServer' => ['MoneyScriptAccessKey' => 'k3y']])
             ->and($read->document['data']['attributes']['assetsUrl'])->toBe('https://assets.example.org/a')
-            ->and($key->document['data']['attributes']['moneyScriptKey'])->toBe(OpenSim\Config\Settings::MASK)
+            ->and($key->document['data']['attributes']['moneyScriptKey'])->toBe(W4OS\Engine\Config\Settings::MASK)
             ->and(glob("$site/{,*/,*/*/}*.ini", GLOB_BRACE))->toBe([]);
     });
 

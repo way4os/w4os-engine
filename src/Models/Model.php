@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Interfaces\OpenSimModelInterface;
-use OpenSim\Data\OSPDO;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Interfaces\OpenSimModelInterface;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
 
 /**
  * What the models of the engine have in common: a record read from the databases or the files of a grid, and the defaults of what a

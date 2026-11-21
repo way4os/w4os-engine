@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
-use OpenSim\Runtime\Environment;
-use OpenSim\Security\ApiKeys;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Security\ApiKeys;
 
 /**
  * The API over HTTP on its own: what a web server hands to `public/index.php` of the engine (PHP-FPM, mod_php...) answered by the

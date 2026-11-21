@@ -8,16 +8,16 @@ declare(strict_types=1);
  */
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-use OpenSim\Api\Api;
-use OpenSim\Api\Handler;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Economy\Currency;
-use OpenSim\Economy\CurrencySettings;
-use OpenSim\Services\CurrencyServer;
-use OpenSim\Services\XmlRpc;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Handler;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Economy\Currency;
+use W4OS\Engine\Economy\CurrencySettings;
+use W4OS\Engine\Services\CurrencyServer;
+use W4OS\Engine\Services\XmlRpc;
+use W4OS\Engine\Testing\Machine;
 
 const MONEY_AGENT = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
 const MONEY_OTHER = 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb';
@@ -27,7 +27,7 @@ const MONEY_SECURE = 'eeeeeeee-5555-4555-8555-eeeeeeeeeeee';
 const MONEY_SECRET = 'region-secret';
 
 /** The databases of the grid and of the money: an avatar on a region of a simulator, another one who is not there. */
-function money_database(): OpenSim\Data\OSPDO
+function money_database(): W4OS\Engine\Data\OSPDO
 {
     $db = test_pdo();
     foreach (
@@ -64,7 +64,7 @@ function money_database(): OpenSim\Data\OSPDO
 }
 
 /** A currency over the database, the calls to the simulators being kept. */
-function money_currency(OpenSim\Data\OSPDO $db, array &$calls, array $settings = []): Currency
+function money_currency(W4OS\Engine\Data\OSPDO $db, array &$calls, array $settings = []): Currency
 {
     return new Currency(
         new CurrencySettings(
@@ -301,7 +301,7 @@ describe('The currency', function () {
 
 describe('The calls to the currency', function () {
     /** The server of the calls, over a currency, for a caller. */
-    function money_rpc(OpenSim\Data\OSPDO $db, array &$calls, array $settings = [], string $ip = '10.0.0.9'): array
+    function money_rpc(W4OS\Engine\Data\OSPDO $db, array &$calls, array $settings = [], string $ip = '10.0.0.9'): array
     {
         $server = new CurrencyServer(money_currency($db, $calls, $settings), $ip);
 
@@ -511,8 +511,8 @@ describe('The calls to the currency', function () {
         ])['data'];
 
         expect([$quote['success'] ?? null, $quote['confirm'] ?? null, $prepared['success'] ?? null])
-            ->toBe([true, md5(OpenSim\Economy\CurrencySettings::DEFAULT_KEY . '_10.0.0.9'), true])
-            ->and(OpenSim\Economy\CurrencySettings::DEFAULT_KEY)->toBe('1234567883789');
+            ->toBe([true, md5(W4OS\Engine\Economy\CurrencySettings::DEFAULT_KEY . '_10.0.0.9'), true])
+            ->and(W4OS\Engine\Economy\CurrencySettings::DEFAULT_KEY)->toBe('1234567883789');
     });
 
     test('are served by the handler at the addresses the viewers fix, for the address of who calls', function () {
@@ -528,7 +528,7 @@ describe('The calls to the currency', function () {
             $factory,
             '/api',
             grid: 'demo',
-            authenticator: new OpenSim\Security\OpenAccess(),
+            authenticator: new W4OS\Engine\Security\OpenAccess(),
         );
         $ask = static fn(string $path, string $body, string $ip = '10.0.0.9') => $handler->handle(
             $factory

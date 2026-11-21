@@ -7,13 +7,13 @@ declare(strict_types=1);
  * resource the problem names (`resource`: an avatar, a region, a grid...) when the catalog has one, in the words of w4os-wp.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Problem;
-use OpenSim\Api\Router;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Exceptions\NotFound;
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Problem;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\I18n\Catalog;
 
 afterEach(fn() => Connections::using(null));
 
@@ -65,7 +65,7 @@ describe('A problem of something not there', function () {
 
     test('through the API: the grid, the avatar, none for a kind of resource that is not one', function () {
         avatars_in(avatar_database());
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $config = avatar_grid();
         $router = new Router(new Api($machine->environment, config: static fn(): GridConfig => $config));
         $resource = static fn(string $path): ?string => $router->get($path)->document['resource'] ?? null;

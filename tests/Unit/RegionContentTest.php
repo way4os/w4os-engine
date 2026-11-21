@@ -7,15 +7,15 @@ declare(strict_types=1);
  * (the rows of `prims`) and their scripts (the items of `primitems` of the type LSL, 10), counted once for a list.
  */
 
-use OpenSim\Data\Connections;
-use OpenSim\Data\Stats;
-use OpenSim\Models\Parcel;
-use OpenSim\Models\Region;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Stats;
+use W4OS\Engine\Models\Parcel;
+use W4OS\Engine\Models\Region;
 
 const CONTENT_REGION = 'aaaaaaaa-0000-0000-0000-000000000001';
 
 /** A simulator database with three prims in a region, two of them with a script, one with a notecard. */
-function content_database(): OpenSim\Data\OSPDO
+function content_database(): W4OS\Engine\Data\OSPDO
 {
     $pdo = parcel_database([]);
     $pdo->exec('CREATE TABLE prims (UUID CHAR(36), RegionUUID CHAR(36))');
@@ -62,17 +62,17 @@ describe('The size of a region', function () {
         $columns = array_column(Region::listing()->columns, null, 'name');
 
         expect(array_column($columns['place']['parts'], 'type', 'name')['size'])->toBe('dimensions')
-            ->and(sprintf(OpenSim\I18n\Catalog::MESSAGES['unit_dimensions'], '256', '256'))->toBe('256 x 256')
-            ->and(sprintf(OpenSim\I18n\Catalog::messages('fr_FR', false)['unit_dimensions'] ?? '', '256', '256'))->toBe('256 x 256')
+            ->and(sprintf(W4OS\Engine\I18n\Catalog::MESSAGES['unit_dimensions'], '256', '256'))->toBe('256 x 256')
+            ->and(sprintf(W4OS\Engine\I18n\Catalog::messages('fr_FR', false)['unit_dimensions'] ?? '', '256', '256'))->toBe('256 x 256')
             // The size of a file is in bytes
-            ->and(array_column(OpenSim\Models\Asset::listing()->columns, null, 'name')['size']['type'])->toBe('size');
+            ->and(array_column(W4OS\Engine\Models\Asset::listing()->columns, null, 'name')['size']['type'])->toBe('size');
     });
 });
 
 describe('The columns of a list that hold several values', function () {
     test('give each with its label: the usage of a region, its location and size; the port on its page only', function () {
         $columns = array_column(Region::listing()->document()['columns'], null, 'name');
-        $simulators = array_column(OpenSim\Models\Simulator::listing()->document()['columns'], null, 'name');
+        $simulators = array_column(W4OS\Engine\Models\Simulator::listing()->document()['columns'], null, 'name');
         $csv = array_column(Region::columns(), 'name');
         $page = array_column(Region::itemForm()->document()['fields'] ?? [], null, 'name');
 
@@ -86,14 +86,14 @@ describe('The columns of a list that hold several values', function () {
             ->and($csv)->toContain('avatars')->toContain('prims')->toContain('location')->toContain('size')
             // On the page, its name and why: a port that needs only to be unique on its machine, not a public one
             ->and($page['internalPort'] ?? [])->toMatchArray(['label' => 'column_internal_port', 'description' => 'internal_port_help'])
-            ->and(OpenSim\I18n\Catalog::MESSAGES['column_internal_port'])->toBe('Internal Port')
-            ->and(OpenSim\I18n\Catalog::messages('fr_FR', false)['internal_port_help'] ?? '')->not->toBe('');
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES['column_internal_port'])->toBe('Internal Port')
+            ->and(W4OS\Engine\I18n\Catalog::messages('fr_FR', false)['internal_port_help'] ?? '')->not->toBe('');
     });
 
     test('read without their labels: the location and the size as they are, the usage folded as counted texts, 0 av., 3 prims', function () {
         $columns = array_column(Region::listing()->document()['columns'], null, 'name');
-        $simulators = array_column(OpenSim\Models\Simulator::listing()->document()['columns'], null, 'name');
-        $count = static fn(string $key, int $n, string $locale = 'en'): string => sprintf(OpenSim\I18n\Catalog::plural($locale, $key, $n), $n);
+        $simulators = array_column(W4OS\Engine\Models\Simulator::listing()->document()['columns'], null, 'name');
+        $count = static fn(string $key, int $n, string $locale = 'en'): string => sprintf(W4OS\Engine\I18n\Catalog::plural($locale, $key, $n), $n);
         $usage = array_intersect_key($columns, ['avatars' => 1, 'prims' => 1, 'scripts' => 1]);
 
         expect(array_column($columns['place']['parts'], 'bare', 'name'))->toBe(['location' => true, 'size' => true])

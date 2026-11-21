@@ -7,15 +7,15 @@ declare(strict_types=1);
  * searched, filtered by their author, sorted, paged, and deleted by the customer service and above.
  */
 
-use OpenSim\Api\Access;
-use OpenSim\Api\Api;
-use OpenSim\Api\Contract;
-use OpenSim\Api\Router;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Flux\Posts;
-use OpenSim\I18n\Catalog;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Access;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Flux\Posts;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Testing\Machine;
 
 const POSTS_ADA = '11111111-1111-4111-8111-111111111111';
 const POSTS_BOB = '22222222-2222-4222-8222-222222222222';
@@ -23,7 +23,7 @@ const POSTS_BOB = '22222222-2222-4222-8222-222222222222';
 /** @return array{0:Router,1:Posts,2:list<array<string,mixed>>} the API of a grid whose profiles hold three posts */
 function posts_grid(): array
 {
-    $pdo = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+    $pdo = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
     Connections::using(static fn() => $pdo);
     $machine = new Machine();
     $config = GridConfig::fromFolder($machine->grid);

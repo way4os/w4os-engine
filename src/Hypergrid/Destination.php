@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Hypergrid;
+namespace W4OS\Engine\Hypergrid;
 
 /**
  * A destination: a region and a position, as people write them (host:port:Region/x/y/z, hop://, secondlife://...), parsed into the parts, written back as the one canonical uri, or as the links each viewer takes.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Scheduling;
+namespace W4OS\Engine\Scheduling;
 
 /**
  * Something to do now and then: a name, how often, and what to do. What it does is the business of whoever adds it (the helpers

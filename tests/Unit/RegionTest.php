@@ -7,11 +7,11 @@ declare(strict_types=1);
  * one region, and the names of the flags in the config of Robust. The database is in memory (SQLite) with the tables of OpenSimulator.
  */
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Region;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Region;
 
 /** A grid folder whose Robust says its web address. */
 function region_config(): GridConfig
@@ -220,9 +220,9 @@ describe('Regions', function () {
             ->and($names(['status' => 'offline']))
             ->toBe(['Quiet Harbour'])
             ->and(fn() => $names(['flags' => 'RegionOnline']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and(fn() => $names(['status' => 'yes']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and(array_column($list->array(), 'name'))
             ->toBe(['Quiet Harbour', 'Welcome'])
             ->and($list->applied())
@@ -239,9 +239,9 @@ describe('Regions', function () {
             ->and($list->available()['flags'])
             ->toBe(['DefaultRegion', 'FallbackRegion', 'Persistent', 'Hyperlink', 'DefaultHGRegion'])
             ->and(fn() => $names(['flags' => 'DefaultRegion,Bogus']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'))
             ->and(fn() => $names(['online' => 'yes']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'));
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-unknown'));
     });
 
     test('are filtered by their size and counted by status and size, each value with the other filters asked', function () {
@@ -261,7 +261,7 @@ describe('Regions', function () {
             ->and($list([])->available()['size'])
             ->toBe([['value' => '256x256', 'label' => '256x256'], ['value' => '512x512', 'label' => '512x512']])
             ->and(fn() => $list(['size' => 'big']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'));
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('filter-value-unknown'));
     });
 
     test('are filtered by their owner, and give their hop address on the grid', function () {
@@ -280,7 +280,7 @@ describe('Regions', function () {
             ->and(Region::all($config, ['filters' => ['owner' => '11111111-1111-1111-1111-111111111111']])->applied())
             ->toBe(['owner' => '11111111-1111-1111-1111-111111111111'])
             ->and(Region::find($config, 'Quiet Harbour')->detail()['teleport'])
-            ->toBe('hop://play.example.org:8002/Quiet' . \OpenSim\Hypergrid\Destination::SPACE . 'Harbour')
+            ->toBe('hop://play.example.org:8002/Quiet' . \W4OS\Engine\Hypergrid\Destination::SPACE . 'Harbour')
             ->and($teleports)
             ->toBe([null]);
     });
@@ -305,9 +305,9 @@ describe('Regions', function () {
             ])
             ->and($owners($config))
             ->toBe(['Garden' => null, 'Quiet Harbour' => null, 'Welcome' => null])
-            ->and(\OpenSim\Models\Avatar::profilePage($profiled, 'Jean Dé'))
+            ->and(\W4OS\Engine\Models\Avatar::profilePage($profiled, 'Jean Dé'))
             ->toBe('http://play.example.org/helpers/profile/Jean.D%C3%A9')
-            ->and(\OpenSim\Models\Avatar::profilePage($profiled, 'Nobody'))
+            ->and(\W4OS\Engine\Models\Avatar::profilePage($profiled, 'Nobody'))
             ->toBeNull();
     });
 
@@ -386,7 +386,7 @@ describe('Regions', function () {
             ->not->toContain('online')
             ->and($listing->keys())
             ->toContain('state_enabled', 'offline')
-            ->and(array_diff($listing->keys(), array_keys(\OpenSim\I18n\Catalog::MESSAGES)))
+            ->and(array_diff($listing->keys(), array_keys(\W4OS\Engine\I18n\Catalog::MESSAGES)))
             ->toBe([])
             ->and(array_column(Region::columns(), 'label', 'name')['name'])
             ->toBe('Region Name');
@@ -410,7 +410,7 @@ describe('Regions', function () {
             ->and($names(['sort' => 'size desc']))
             ->toBe(['Garden', 'Welcome', 'Quiet Harbour'])
             ->and(fn() => $names(['sort' => '1; DROP TABLE regions']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('sort-unknown'))
             ->and($names(['perPage' => 2, 'page' => 2]))
             ->toBe(['Welcome'])
             ->and(Region::all($config, ['perPage' => 2])->total())
@@ -478,7 +478,7 @@ describe('Regions', function () {
             ->and(fn() => $welcome->disable())
             ->toThrow(ChannelUnavailable::class)
             ->and(fn() => $welcome->update(['name' => 'Home']))
-            ->toThrow(fn(\OpenSim\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('field-read-only'));
+            ->toThrow(fn(\W4OS\Engine\Exceptions\InvalidValue $e) => expect($e->reason)->toBe('field-read-only'));
     });
 
     test('cannot be listed nor found when the database cannot be reached', function () {
@@ -512,9 +512,9 @@ describe('region as the search engine knows it', function () {
         [$grid, $search] = region_search_databases(false);
         $asked = [];
         Connections::using(static function ($what) use ($grid, $search, &$asked): OSPDO {
-            $asked[] = $what instanceof OpenSim\Data\Database ? $what->value : $what;
+            $asked[] = $what instanceof W4OS\Engine\Data\Database ? $what->value : $what;
 
-            return $what === OpenSim\Data\Database::Search ? $search : $grid;
+            return $what === W4OS\Engine\Data\Database::Search ? $search : $grid;
         });
 
         $region = Region::inSearch(region_config(), 'aaaaaaaa-0000-0000-0000-000000000001');

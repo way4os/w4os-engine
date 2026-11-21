@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Controllers;
+namespace W4OS\Engine\Controllers;
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridFileService;
-use OpenSim\Data\Database;
-use OpenSim\Provisioning\SimulatorMaster;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Provisioning\SimulatorMaster;
 
 /**
  * What runs a simulator: OpenSim, launched with dotnet from the config of the simulator (`<name>.ini`), which runs one or

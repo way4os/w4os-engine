@@ -6,8 +6,8 @@ declare(strict_types=1);
  * The dump of a database: how a value is written in an INSERT, how a failure is told.
  */
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Archives\DatabaseDump;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Archives\DatabaseDump;
 
 describe('a value in an INSERT', function () {
     test('is NULL, a number as it is, text quoted, what is not text in hexadecimal', function () {

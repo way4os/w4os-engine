@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning\Import;
+namespace W4OS\Engine\Provisioning\Import;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\IniEditor;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Exceptions\NotFound;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\SimulatorMaster;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\SimulatorMaster;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The settings of a grid of another install brought into the OpenSim.ini of a grid of this machine: the ones of the sections of
@@ -241,7 +241,7 @@ final class GridSettingsImport
     private static function constantsKnown(Grid $grid, string $target, bool $layered = true): array
     {
         $known = ['datadirectory' => true, 'cachedirectory' => true, 'logsdirectory' => true];
-        $master = $layered ? (new \OpenSim\Provisioning\Presets([], dirname($grid->directory(), 2)))->options()['master'] ?? null : null;
+        $master = $layered ? (new \W4OS\Engine\Provisioning\Presets([], dirname($grid->directory(), 2)))->options()['master'] ?? null : null;
         foreach ($master?->settings('grid.ini', [], false) ?? [] as [$section, $key]) {
             strtolower($section) === 'const' && strtolower($key) !== 'weburl' && ($known[strtolower($key)] = true);
         }

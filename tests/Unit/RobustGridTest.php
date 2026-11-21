@@ -3,7 +3,7 @@
  * The answers of the grid service of a Robust to the requests about regions.
  */
 
-use OpenSim\Provisioning\RobustGrid;
+use W4OS\Engine\Provisioning\RobustGrid;
 
 describe('RobustGrid answers', function () {
     test('give the place of each region', function () {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * The databases of a grid the engine knows: where each is set, in which order OpenSimulator looks for it, and what it holds.

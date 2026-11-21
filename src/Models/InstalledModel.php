@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Data\Collection;
-use OpenSim\Data\Listing;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Interfaces\InstalledModelInterface;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Interfaces\InstalledModelInterface;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * What the models of the machine have in common (a grid, an instance): their records are folders and config files, and the

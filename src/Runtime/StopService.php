@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Controllers\AbstractController;
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Controllers\OpenSimController;
+use W4OS\Engine\Controllers\AbstractController;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Controllers\OpenSimController;
 
 /**
  * Stops an instance: the users of a simulator are warned and counted down to the shutdown (and the wait is cut short when nobody

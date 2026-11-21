@@ -7,10 +7,10 @@ declare(strict_types=1);
  * with `Standalone = true` in its description.
  */
 
-use OpenSim\Controllers\OpenSimController;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Service;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Controllers\OpenSimController;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Service;
+use W4OS\Engine\Testing\Machine;
 
 /** The test machine with a standalone `solo` beside the grid `demo`; the simulator `solo` is enabled when asked. */
 function standalone_machine(bool $hypergrid = false, bool $enabled = true): Machine

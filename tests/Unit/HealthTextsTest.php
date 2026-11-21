@@ -7,8 +7,8 @@ declare(strict_types=1);
  * the values of its texts (`texts`, by field), for a site to say them in its language (Health::translate()).
  */
 
-use OpenSim\Health\Health;
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\Health\Health;
+use W4OS\Engine\I18n\Catalog;
 
 describe('The texts of the health', function () {
     test('are sentences of the catalog, their key and their values given with each line', function () {

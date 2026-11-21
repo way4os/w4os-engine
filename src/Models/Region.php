@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\I18n\Catalog;
-use OpenSim\Forms\ItemForm;
-use OpenSim\Text\Uuid;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\GridFileService;
-use OpenSim\Config\IniEditor;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Data\Listing;
-use OpenSim\Data\OSPDO;
-use OpenSim\Data\Stats;
-use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Controllers\AbstractController;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Text\Notice;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Forms\ItemForm;
+use W4OS\Engine\Text\Uuid;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Data\Stats;
+use W4OS\Engine\Console\InstanceConsoleService;
+use W4OS\Engine\Controllers\AbstractController;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Text\Notice;
 
 /**
  * A region: a square of the map of a grid. It is one object wherever it is known from, with the same properties (name, slug,
@@ -1265,7 +1265,7 @@ final class Region extends Model
             $region->present = $here[strtolower((string) $region->uuid())] ?? ['members' => 0, 'visitors' => 0];
         }
         // What each holds, read once for them in the databases of the simulators
-        $content = \OpenSim\Data\Stats::content(Parcel::simulatorDatabases($config));
+        $content = \W4OS\Engine\Data\Stats::content(Parcel::simulatorDatabases($config));
         foreach ($content === [] ? [] : $regions as $region) {
             $region->content = $content[strtolower((string) $region->uuid())] ?? ['prims' => 0, 'scripts' => 0];
         }
@@ -1617,7 +1617,7 @@ final class Region extends Model
      */
     public static function flagNames(int $flags, bool $all = false): array
     {
-        return \OpenSim\Support\Bitmask::names($all ? $flags : $flags & self::ROLES, self::NAMES);
+        return \W4OS\Engine\Support\Bitmask::names($all ? $flags : $flags & self::ROLES, self::NAMES);
     }
 
     /**

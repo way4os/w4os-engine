@@ -1,6 +1,6 @@
 <?php
 /**
- * Makes the documentation of the API from its contract (OpenSim\Api\Contract): the OpenAPI document in JSON and YAML, a page that
+ * Makes the documentation of the API from its contract (W4OS\Engine\Api\Contract): the OpenAPI document in JSON and YAML, a page that
  * shows it (index.html, Redoc, loaded from a CDN, the document is in the page: it opens from the disk), and a page to try it
  * (try.html, Swagger UI: the address of the API, the API key to enter with Authorize, and the answers).
  *
@@ -10,7 +10,7 @@
  * To write the documentation, edit the descriptions in src/Api/Contract.php, then run it again.
  */
 
-use OpenSim\Api\Contract;
+use W4OS\Engine\Api\Contract;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -68,13 +68,13 @@ file_put_contents("$out/try.html", <<<HTML
             const spec = JSON.parse(document.getElementById('spec').textContent);
             const input = document.getElementById('server');
             let saved = '';
-            try { saved = localStorage.getItem('opensim-api-address') || ''; } catch (e) {}
+            try { saved = localStorage.getItem('w4os-api-address') || ''; } catch (e) {}
             input.value = saved || (location.protocol.indexOf('http') === 0 ? location.origin + '/api' : '');
             function load() {
                 const copy = JSON.parse(JSON.stringify(spec));
                 const address = input.value.replace(/\/+$/, '');
                 if (address) { copy.servers = [{ url: address, description: 'The API' }]; }
-                try { localStorage.setItem('opensim-api-address', input.value); } catch (e) {}
+                try { localStorage.setItem('w4os-api-address', input.value); } catch (e) {}
                 window.ui = SwaggerUIBundle({ spec: copy, dom_id: '#ui', persistAuthorization: true, tryItOutEnabled: true, deepLinking: false });
             }
             input.addEventListener('change', load);

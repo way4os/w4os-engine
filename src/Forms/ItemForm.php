@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Forms;
+namespace W4OS\Engine\Forms;
 
-use OpenSim\Data\Listing;
+use W4OS\Engine\Data\Listing;
 
 /**
  * What the page of one item of a model shows and lets change, as the model tells it: its fields in their order (the standard field

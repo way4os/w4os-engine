@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Provisioning\SqlRunner;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Provisioning\SqlRunner;
 
 /**
  * The dump of a MySQL or MariaDB database as SQL statements that make it again (tables, rows, views, triggers, routines, events),

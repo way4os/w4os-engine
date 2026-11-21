@@ -8,12 +8,12 @@ declare(strict_types=1);
  * in its simulators, without anybody editing a file.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridConfig;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\Import\GridSettingsImport;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\Import\GridSettingsImport;
+use W4OS\Engine\Testing\Machine;
 
 const GRID_SETTINGS = __DIR__ . '/../fixtures/grid-settings/OpenSim.ini';
 
@@ -41,7 +41,7 @@ describe('The settings of an old grid', function () {
     test('are read as OpenSimulator reads them: its includes, the last word of each, its quotes, its comments; its constants kept', function () {
         $machine = new Machine();
         // A grid of v3: the master of its simulators holds its OpenSim.ini
-        (new OpenSim\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
+        (new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
         $plan = GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo');
         $settings = $plan->settings();
         $gloebit = $plan->settings('Gloebit.ini');
@@ -123,7 +123,7 @@ describe('The settings of an old grid', function () {
     })->depends('are read as OpenSimulator reads them: its includes, the last word of each, its quotes, its comments; its constants kept');
 
     test('give the simulators the constants they use: the site of the grid in the master, as the OpenSim.ini of the grid defines it', function (Machine $machine) {
-        $master = (new OpenSim\Provisioning\SimulatorMaster($machine->environment))->render($machine->grid, $machine->core . '/bin');
+        $master = (new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment))->render($machine->grid, $machine->core . '/bin');
 
         expect(ConfigReader::parse($master)['Const']['WebURL'] ?? null)->toBe('https://web.example.org');
     })->depends('are planned without their secrets, and laid in the files of the grid without replacing what is there, once');
@@ -133,7 +133,7 @@ describe('The settings of an old grid', function () {
         $options = static fn() => new GridOptions(Grid::find($machine->environment, 'demo'));
         $alphaPath = GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
         // A grid of v3 as the setup made it: its master, its options recorded (the offline messages of Robust, the default)
-        $master = new OpenSim\Provisioning\SimulatorMaster($machine->environment);
+        $master = new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment);
         $master->ensure($machine->grid, $machine->core . '/bin');
         $conf = $machine->grid . '/demo.conf';
         file_put_contents($conf, (string) file_get_contents($conf) . "Options = \"profiles, offline-robust\"\n");
@@ -166,7 +166,7 @@ describe('The settings of an old grid', function () {
 
     test('change only by the choice of an operator: the offline messages of Robust (V2) enabled on the grid, in place of V1', function () {
         $machine = new Machine();
-        (new OpenSim\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
+        (new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
         GridSettingsImport::prepare($machine->environment, GRID_SETTINGS, 'demo')->apply();
         $options = static fn() => new GridOptions(Grid::find($machine->environment, 'demo'));
         $kept = $options()->repair(true);
@@ -174,7 +174,7 @@ describe('The settings of an old grid', function () {
 
         $changed = $options()->enable('offline-robust');
         $general = ConfigReader::load($machine->grid . '/OpenSim.ini', expand: false)['Messaging'] ?? [];
-        $made = ConfigReader::parse((new OpenSim\Provisioning\SimulatorMaster($machine->environment))->render($machine->grid, $machine->core . '/bin'));
+        $made = ConfigReader::parse((new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment))->render($machine->grid, $machine->core . '/bin'));
 
         expect($kept['applied'])
             ->not->toContain('offline-robust')
@@ -288,8 +288,8 @@ describe('The settings of an old grid', function () {
 
     test('are imported through the API, planned first, the secrets masked', function () {
         $machine = new Machine();
-        (new OpenSim\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        (new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
         $ask = static fn(string $mode) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'grid-settings', 'file' => GRID_SETTINGS, 'grid' => 'demo', 'mode' => $mode]]]);
 
         $plan = $ask('plan');

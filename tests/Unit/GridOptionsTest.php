@@ -7,13 +7,13 @@ declare(strict_types=1);
  * kit, the ones of the administrator, enabled at the setup or later, disabled the same way.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\OptionTemplate;
-use OpenSim\Provisioning\Presets;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\OptionTemplate;
+use W4OS\Engine\Provisioning\Presets;
+use W4OS\Engine\Testing\Machine;
 
 /** The options of the grid `demo` of a machine. */
 function demo_options(Machine $machine): GridOptions
@@ -299,7 +299,7 @@ describe('An option enabled', function () {
             ->and($server['files'])
             ->toBe([$machine->grid . '/web/demo.caddyfile'])
             ->and(file_get_contents($machine->grid . '/web/demo.caddyfile'))
-            ->toContain('@opensim_helpers path /helpers*', '/health*', 'root * /usr/share/opensim-helpers/public')
+            ->toContain('@opensim_helpers path /helpers*', '/health*', 'root * /usr/share/w4os-helpers/public')
             ->not->toContain('/search*')
             ->toContain('php_fastcgi unix//run/php/php-fpm.sock {', 'env OPENSIM_GRID demo')
             ->toContain("site block:\n#     import {$machine->grid}/web/demo.caddyfile");

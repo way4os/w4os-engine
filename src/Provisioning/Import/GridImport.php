@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning\Import;
+namespace W4OS\Engine\Provisioning\Import;
 
-use OpenSim\Archives\SourceBackup;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridFileService;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Models\Grid;
-use OpenSim\OpenSim;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\GridProvisioner;
-use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\Environment;
-use OpenSim\Text\Notice;
-use OpenSim\Text\Secrets;
+use W4OS\Engine\Archives\SourceBackup;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\OpenSim;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\GridProvisioner;
+use W4OS\Engine\Provisioning\UiInterface;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Text\Notice;
+use W4OS\Engine\Text\Secrets;
 
 /**
  * The grid of another install brought into this one, migrated: the same grid (its database, so its accounts and its regions, kept as
@@ -62,7 +62,7 @@ final class GridImport
         }
         $file = (string) realpath($file);
         // The core given, the one of the install, else its latest release
-        $core = rtrim($core ?? '', '/') ?: $environment->layout->coreDirectory() ?: (string) \OpenSim\Runtime\Core::latest($environment->layout->coreRoot())?->directory();
+        $core = rtrim($core ?? '', '/') ?: $environment->layout->coreDirectory() ?: (string) \W4OS\Engine\Runtime\Core::latest($environment->layout->coreRoot())?->directory();
         if ($core === '' || !is_dir("$core/bin")) {
             throw InvalidValue::because('invalid-request', "no core to run the grid with (a folder that has bin/): $core");
         }
@@ -70,7 +70,7 @@ final class GridImport
         $plan = RobustImporter::plan($raw, $file, $environment, $nick, $core);
         is_string($plan) && throw InvalidValue::because('invalid-request', $plan);
         // The options this install lays by default (its Robust config, its folders, its database...), as the setup of a grid does
-        $plan->options === [] && ($plan->options = (new \OpenSim\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables()))->selection([]));
+        $plan->options === [] && ($plan->options = (new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables()))->selection([]));
         $written || Grid::find($environment, $plan->gridNick) === null ||
             throw InvalidValue::because('invalid-request', "this install has the grid {$plan->gridNick} already: give another nick (nick)");
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Assets\ConverterInterface;
+use W4OS\Engine\Assets\ConverterInterface;
 
 /**
  * An image of the grid, whatever its type: a texture (the grid keeps it as JPEG 2000), a TGA, a JPEG. It is converted to an image a

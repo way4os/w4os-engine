@@ -6,7 +6,7 @@ declare(strict_types=1);
  * IniEditor: the config file of OpenSimulator edited without losing its comments, and without leaving two values for a key.
  */
 
-use OpenSim\Config\IniEditor;
+use W4OS\Engine\Config\IniEditor;
 
 describe('IniEditor set', function () {
     test('replaces the key a section has, not the commented example that comes before it', function () {

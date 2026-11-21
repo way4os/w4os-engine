@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
  * The accounts of a grid written directly in its database, the way Robust writes them when `create user` is typed in

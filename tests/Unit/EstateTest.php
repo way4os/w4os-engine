@@ -7,12 +7,12 @@ declare(strict_types=1);
  * managers, their ban list. The databases are in memory (SQLite) with the tables of OpenSimulator.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Estate;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Estate;
 
 const ESTATE_OWNER = '11111111-1111-1111-1111-111111111111';
 const ESTATE_BANNED = '99999999-9999-9999-9999-999999999999';
@@ -293,7 +293,7 @@ describe('ban list', function () {
 describe('region', function () {
     test('knows its estate', function () {
         $config = estate_world();
-        $region = OpenSim\Models\Region::fromSearch($config, [
+        $region = W4OS\Engine\Models\Region::fromSearch($config, [
             'regionname' => 'Far',
             'regionuuid' => 'bbbbbbbb-0000-0000-0000-000000000001',
         ]);
@@ -301,7 +301,7 @@ describe('region', function () {
         expect($region->estate()?->id())
             ->toBe('beta:101')
             ->and(
-                OpenSim\Models\Region::fromSearch($config, [
+                W4OS\Engine\Models\Region::fromSearch($config, [
                     'regionname' => 'Nowhere',
                     'regionuuid' => 'cccccccc-0000-0000-0000-000000000001',
                 ])->estate(),

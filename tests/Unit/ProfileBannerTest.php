@@ -1,8 +1,8 @@
 <?php
 
-use OpenSim\Api\Contract;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Avatar;
 
 describe('The banner of a profile', function () {
     test('is the picture, the name, the birth and the role of the avatar, as its form marks them (banner), on every tab', function () {

@@ -8,12 +8,12 @@ declare(strict_types=1);
  */
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-use OpenSim\Api\Api;
-use OpenSim\Api\Handler;
-use OpenSim\Data\Connections;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\GridMonitor;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Handler;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\GridMonitor;
+use W4OS\Engine\Testing\Machine;
 
 /** The test machine with its Robust and its simulator alpha running, beta down. */
 function monitor_machine(bool $robust = true): Machine
@@ -33,7 +33,7 @@ function monitor_machine(bool $robust = true): Machine
 }
 
 /** The regions of the grid, and the tables its numbers are counted in. */
-function monitor_database(): OpenSim\Data\OSPDO
+function monitor_database(): W4OS\Engine\Data\OSPDO
 {
     $db = region_database();
     $db->exec('ALTER TABLE UserAccounts ADD COLUMN active INT DEFAULT 1');
@@ -129,11 +129,11 @@ describe('The monitor of a grid', function () {
 
     test('says its level by a text of the catalog, in every language, never the keyword of the viewers', function () {
         $keys = array_map(GridMonitor::labelKey(...), [GridMonitor::OK, GridMonitor::DEGRADED, GridMonitor::DOWN, GridMonitor::UNKNOWN]);
-        $french = OpenSim\I18n\Catalog::messages('fr_FR');
+        $french = W4OS\Engine\I18n\Catalog::messages('fr_FR');
         $missing = [];
-        foreach (glob(OpenSim\I18n\Catalog::directory() . '/*.po') ?: [] as $file) {
+        foreach (glob(W4OS\Engine\I18n\Catalog::directory() . '/*.po') ?: [] as $file) {
             preg_match('/-([a-z]{2}_[A-Z]{2})\.po$/', $file, $m);
-            $texts = OpenSim\I18n\Catalog::messages($m[1], false);
+            $texts = W4OS\Engine\I18n\Catalog::messages($m[1], false);
             foreach (array_filter($keys) as $key) {
                 ($texts[$key] ?? '') === '' && ($missing[] = "$m[1] $key");
             }
@@ -141,7 +141,7 @@ describe('The monitor of a grid', function () {
 
         expect($keys)
             ->toBe(['online', 'degraded', 'offline', null])
-            ->and(array_intersect_key(OpenSim\I18n\Catalog::MESSAGES, array_flip(array_filter($keys))))
+            ->and(array_intersect_key(W4OS\Engine\I18n\Catalog::MESSAGES, array_flip(array_filter($keys))))
             ->toBe(['online' => 'Online', 'offline' => 'Offline', 'degraded' => 'Degraded'])
             ->and([$french['online'], $french['degraded'], $french['offline']])
             ->toBe(['En ligne', 'Dégradé', 'Hors ligne'])
@@ -175,7 +175,7 @@ describe('The monitor, the addresses and the info of a grid, in the API', functi
             $factory,
             $factory,
             '/api',
-            authenticator: new OpenSim\Security\OpenAccess(),
+            authenticator: new W4OS\Engine\Security\OpenAccess(),
         );
     }
 
@@ -251,15 +251,15 @@ describe('The monitor, the addresses and the info of a grid, in the API', functi
 describe('The addresses of a grid, each what it is', function () {
     test('say their use, the file, the section and the key they are set in, and their name and description in the catalog, file by file', function () {
         $machine = new Machine();
-        $router = new OpenSim\Api\Router(new Api($machine->environment));
+        $router = new W4OS\Engine\Api\Router(new Api($machine->environment));
         $services = $router->get('/grids/demo/addresses')->document['data']['attributes']['services'];
         // Each service as the grid would have it, whether it has it or not
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
         $by = [];
-        foreach (OpenSim\Models\Service::keys() as $key) {
-            $by[$key] = (new OpenSim\Models\Service($machine->environment, $grid, $key))->address();
+        foreach (W4OS\Engine\Models\Service::keys() as $key) {
+            $by[$key] = (new W4OS\Engine\Models\Service($machine->environment, $grid, $key))->address();
         }
-        $texts = OpenSim\I18n\Catalog::MESSAGES;
+        $texts = W4OS\Engine\I18n\Catalog::MESSAGES;
         $order = array_map(static fn(array $s): string => "{$s['file']} {$s['section']}", $services);
         $sorted = $order;
         usort($sorted, static fn(string $a, string $b): int => strcmp($a, $b));

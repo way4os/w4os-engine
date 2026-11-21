@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Network;
+namespace W4OS\Engine\Network;
 
 use Exception;
 

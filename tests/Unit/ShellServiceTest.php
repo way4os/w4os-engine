@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Runtime\ShellService;
+use W4OS\Engine\Runtime\ShellService;
 
 describe('output of the commands', function () {
     afterEach(fn() => ShellService::showOutputWith(null));

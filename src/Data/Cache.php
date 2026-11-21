@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Runtime\ClockInterface;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Runtime\ClockInterface;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * What takes a search to know (an answer of a grid, a row of a database, a file) is searched once for the session and kept in memory,

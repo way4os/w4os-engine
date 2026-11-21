@@ -1,13 +1,13 @@
 <?php
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Simulator;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\Environment;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * The backup of the administrator: what it takes to install a grid again as it is, on another machine or after a crash.
@@ -15,7 +15,7 @@ use OpenSim\Config\GridConfig;
  *
  *   manifest.json     what it is, when, of which host and install
  *   etc/              the configuration: the folder of the grid (its simulators, their regions, the web examples), the
- *                     links that enable them, opensim.conf
+ *                     links that enable them, w4os.conf
  *   var/              the persistent data: what the grid and its simulators keep in the data folder, without the archives
  *                     of the users (backups/iar and oar, with --archives) which are backups already
  *   db/               a dump of each database, of Robust and of the simulators
@@ -169,10 +169,12 @@ final class BackupService
                     $paths[] = substr($link, strlen($etc) + 1);
                 }
             }
-            if (is_file("$etc/" . \OpenSim\Config\Layout::FILE)) {
-                $paths[] = \OpenSim\Config\Layout::FILE;
-            }
             $this->append($tar, 'etc', $etc, $paths, $excludes);
+            // The config of the suite, wherever the install keeps it, next to the folder of the grid
+            $conf = $this->environment->layout->file();
+            if ($conf !== null && is_file($conf)) {
+                $this->append($tar, 'etc', dirname($conf), [basename($conf)], []);
+            }
 
             // The data: the folder of the grid, without the archives of the users unless asked
             $data = rtrim($grid->dataDirectory(), '/');

@@ -6,11 +6,11 @@ declare(strict_types=1);
  * From the answers about a region to what its simulator plan says: the name, the roles, the place, the port.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Provisioning\RegionPlanner;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Provisioning\RegionPlanner;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /** A grid of this machine at 8002 whose center is 100,100, with Hypergrid and no region yet. */
 function region_grid(array $set = []): Grid
@@ -319,7 +319,7 @@ describe('A region', function () {
     });
 
     test('has a size, 256 meters by default, a multiple of 256, and a place where all its squares are free', function () {
-        $plan = new OpenSim\Provisioning\SimulatorPlan();
+        $plan = new W4OS\Engine\Provisioning\SimulatorPlan();
         region_planner()->apply($plan, ['name' => 'Big Garden', 'size' => 512]);
         // 1000,1000 is taken: a region of 512 meters needs the four places from where it is
         $used = ['1001,1000' => true];
@@ -330,13 +330,13 @@ describe('A region', function () {
             ->toBe(512)
             ->and(region_planner()->problems(['size' => 300]))
             ->toHaveKey('size')
-            ->and(OpenSim\Models\Region::validateSize(1024))
+            ->and(W4OS\Engine\Models\Region::validateSize(1024))
             ->toBeNull()
-            ->and(OpenSim\Models\Region::validateSize(8448))
+            ->and(W4OS\Engine\Models\Region::validateSize(8448))
             ->not->toBeNull()
-            ->and(OpenSim\Provisioning\LocationFinder::nearestFree($used, 1000, 1000))
+            ->and(W4OS\Engine\Provisioning\LocationFinder::nearestFree($used, 1000, 1000))
             ->toBe([1000, 1000])
-            ->and(OpenSim\Provisioning\LocationFinder::nearestFree($used, 1000, 1000, 0, 2))
+            ->and(W4OS\Engine\Provisioning\LocationFinder::nearestFree($used, 1000, 1000, 0, 2))
             ->not->toBe([1000, 1000]);
     });
 

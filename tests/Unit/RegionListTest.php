@@ -7,11 +7,11 @@ declare(strict_types=1);
  * screens, the type of a region (RegionType of its file) in place of them on the others.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Region;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Region;
 
 const LIST_ADA = '11111111-1111-1111-1111-111111111111';
 const LIST_BOB = '22222222-2222-2222-2222-222222222222';

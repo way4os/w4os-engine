@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\IniEditor;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\Web\Services;
-use OpenSim\Provisioning\Web\Snippets;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\Web\Services;
+use W4OS\Engine\Provisioning\Web\Snippets;
 
 /**
  * The options of a grid (`opensim enable|disable <grid> <option>`, and the options of the setup): the presets that have an
@@ -228,7 +228,7 @@ final class GridOptions
     private function offline(): ?string
     {
         $robust = $this->grid->robustIni();
-        $url = $robust !== null && is_file($robust) ? trim((string) (\OpenSim\Config\ConfigReader::file($robust)['Messaging']['OfflineMessageURL'] ?? ''), " \t\"") : '';
+        $url = $robust !== null && is_file($robust) ? trim((string) (\W4OS\Engine\Config\ConfigReader::file($robust)['Messaging']['OfflineMessageURL'] ?? ''), " \t\"") : '';
         $helpers = $this->template('offline-helpers');
         if ($url !== '' && $helpers !== null && $this->unmet($helpers) === null) {
             return $helpers->name();
@@ -246,7 +246,7 @@ final class GridOptions
     private function off(): array
     {
         $path = $this->grid->directory() . '/' . basename($this->grid->directory()) . '.conf';
-        $text = is_file($path) ? (string) (\OpenSim\Config\ConfigReader::file($path)['Grid']['OptionsOff'] ?? '') : '';
+        $text = is_file($path) ? (string) (\W4OS\Engine\Config\ConfigReader::file($path)['Grid']['OptionsOff'] ?? '') : '';
 
         return array_values(array_filter(array_map('trim', explode(',', strtolower(trim($text, " \t\""))))));
     }
@@ -470,7 +470,7 @@ final class GridOptions
     {
         $said = [];
         foreach ($this->gridFiles() as $file) {
-            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($file, $this->gridConstants(), expand: false)) as $section => $keys) {
+            foreach (array_change_key_case(\W4OS\Engine\Config\ConfigReader::load($file, $this->gridConstants(), expand: false)) as $section => $keys) {
                 is_array($keys) && ($said[$section] = array_merge($said[$section] ?? [], array_change_key_case(array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys))));
             }
         }
@@ -641,7 +641,7 @@ final class GridOptions
         if (!$this->layered()) {
             return $settings;
         }
-        foreach ([\OpenSim\Config\ConfigReader::parse($this->layer()), \OpenSim\Config\ConfigReader::load($this->gridFiles(), $this->gridConstants(), expand: false)] as $layer) {
+        foreach ([\W4OS\Engine\Config\ConfigReader::parse($this->layer()), \W4OS\Engine\Config\ConfigReader::load($this->gridFiles(), $this->gridConstants(), expand: false)] as $layer) {
             $names = array_change_key_case(array_combine(array_keys($settings), array_keys($settings)));
             foreach ($layer as $section => $keys) {
                 $name = $names[strtolower((string) $section)] ?? $section;
@@ -673,7 +673,7 @@ final class GridOptions
             if (!is_file($source)) {
                 continue;
             }
-            foreach (array_change_key_case(\OpenSim\Config\ConfigReader::load($source, $this->gridConstants(), expand: false)) as $section => $keys) {
+            foreach (array_change_key_case(\W4OS\Engine\Config\ConfigReader::load($source, $this->gridConstants(), expand: false)) as $section => $keys) {
                 if (!in_array($section, $sections, true) || !is_array($keys)) {
                     continue;
                 }
@@ -1235,7 +1235,7 @@ final class GridOptions
         $core = basename($layout->coreDirectory());
         foreach ($option->modules() as $module) {
             if (!in_array($module, $layout->enabledModules(), true)) {
-                $notes[] = "the module $module is not in EnabledModules of opensim.conf, the simulators do not load it";
+                $notes[] = "the module $module is not in EnabledModules of w4os.conf, the simulators do not load it";
             }
             if ($core !== '' && !is_dir($layout->modulesRoot() . "/$core/$module")) {
                 $notes[] = "the module $module is not installed for $core (apt install opensim-$core-$module)";

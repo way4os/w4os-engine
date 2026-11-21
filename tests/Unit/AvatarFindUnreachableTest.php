@@ -1,9 +1,9 @@
 <?php
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Avatar;
 
 afterEach(fn() => Connections::using(null));
 

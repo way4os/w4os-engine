@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
  * Where the files an application ships are (the presets, the original MoneyServer.ini...): the application that uses the

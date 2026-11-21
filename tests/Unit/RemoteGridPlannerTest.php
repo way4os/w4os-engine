@@ -6,8 +6,8 @@ declare(strict_types=1);
  * Joining a grid whose Robust runs elsewhere: what a simulator is given of it, from an address or from a preset.
  */
 
-use OpenSim\Provisioning\RemoteGridPlanner;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Provisioning\RemoteGridPlanner;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /** A planner whose install is a temporary tree, the grid at that address telling what it is given. */
 function remote_planner(array $says = [], array $more = []): array
@@ -165,7 +165,7 @@ describe('A grid on another machine', function () {
             // A grid that says no nick gets the one of its name
             ->and($silent->plan(['address' => 'play.example.org:8002'])['grid']->nick())
             ->toBe('far_world')
-            ->and([\OpenSim\Provisioning\Slug::isNick('friendly_fowl'), \OpenSim\Provisioning\Slug::isNick('Friendly_Fowl'), \OpenSim\Provisioning\Slug::isNick('')])
+            ->and([\W4OS\Engine\Provisioning\Slug::isNick('friendly_fowl'), \W4OS\Engine\Provisioning\Slug::isNick('Friendly_Fowl'), \W4OS\Engine\Provisioning\Slug::isNick('')])
             ->toBe([true, false, false]);
     });
 

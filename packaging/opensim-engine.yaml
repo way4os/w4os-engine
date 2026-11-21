@@ -1,65 +1,24 @@
-# The framework-agnostic core of the OpenSimulator web tools, built by dev/build.sh (or apt-package) from
-# build/opensim-engine, prepared by packaging/build. ${VERSION} comes from build-tools.
-# The files and their vendor folder in /usr/share/opensim-engine; sibling packages are linked into vendor.
+# The name of the engine before w4os: an empty package that brings w4os-engine on an upgrade, dropped after one release.
 name: opensim-engine
 arch: all
 platform: linux
 version: ${VERSION}
 version_schema: semver
-section: php
+section: oldlibs
 priority: optional
 maintainer: Gudule Lapointe <gudule@speculoos.world>
 description: |-
-  OpenSimulator engine for PHP
-  Framework-agnostic PHP classes to talk to OpenSimulator and Robust
-  (database, economy, search, REST console, XML-RPC), used by the helpers
-  and by web applications. Installed in /usr/share/opensim-engine.
-homepage: https://github.com/GuduleLapointe/opensim-engine
+  transitional package for w4os-engine
+  The OpenSimulator engine for PHP is w4os-engine now. This empty package
+  brings it on an upgrade; it can be removed.
+homepage: https://github.com/way4os/w4os-engine
 license: AGPL-3.0-or-later
 
 depends:
-  - opensim-rest-php
-  - php-cli (>= 2:8.2)
-  - php-curl
-  - php-intl
-  - php-mbstring
-  - php-mysql
-  - php-xml
-  # The instances run in screen when they have no REST console; their processes are read with ps
-  - procps
-  - screen
-# What some features need, not the engine itself (a light install, --no-install-recommends, has the rest): the instances in
-# containers (podman, through container-tools), the pictures of the assets (JPEG 2000) and the text images
-recommends:
-  - container-tools
-  - php-imagick
+  - w4os-engine (= ${DEB_VERSION})
 
 contents:
-  - src: build/opensim-engine
-    dst: /usr/share/opensim-engine
-    type: tree
-  - src: /usr/share/opensim-rest-php
-    dst: /usr/share/opensim-engine/vendor/magicoli/opensim-rest-php
-    type: symlink
-  - src: /usr/share/container-tools
-    dst: /usr/share/opensim-engine/vendor/magicoli/container-tools
-    type: symlink
-  - src: packaging/opensim-engine.copyright
+  - src: packaging/w4os-engine.copyright
     dst: /usr/share/doc/opensim-engine/copyright
     file_info:
       mode: 0644
-  - src: packaging/opensim-engine.README.Debian
-    dst: /usr/share/doc/opensim-engine/README.Debian
-    file_info:
-      mode: 0644
-
-scripts:
-  preinstall: packaging/opensim-engine.preinst
-  postinstall: packaging/opensim-engine.postinst
-  postremove: packaging/opensim-engine.postrm
-
-deb:
-  # The OpenSimulator releases installed or removed, to update their profiles
-  triggers:
-    interest_noawait:
-      - /usr/share/opensim

@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Http;
+namespace W4OS\Engine\Http;
 
 use SimpleXMLElement;
 
@@ -34,7 +34,7 @@ final class Respond
         }
 
         if (php_sapi_name() !== 'cli' && !headers_sent()) {
-            $locale = \OpenSim\Http\Locale::negotiate();
+            $locale = \W4OS\Engine\Http\Locale::negotiate();
             header('HTTP/1.1 ' . $error_code . ' ' . preg_replace('/\s+/', ' ', trim((string) $error_message)));
             header('Content-Type: text/plain; charset=utf-8');
             header('Content-Language: ' . $locale);
@@ -59,7 +59,7 @@ final class Respond
                 # 	be identical for two simultaneous requests by different users in the same region,
                 #	although this is unlikely to happen)
 
-                $tmp_dir = \OpenSim\Support\Tmp::dir();
+                $tmp_dir = \W4OS\Engine\Support\Tmp::dir();
                 $cache = $tmp_dir . '/cache-' . self::$requestKey;
                 # Check if file exists and is not older than 5 seconds
                 if (file_exists($cache) && time() - filemtime($cache) < 1.5) {
@@ -96,7 +96,7 @@ final class Respond
     public static function xmlEnd($message = '', $error_code = null)
     {
         if ($error_code !== null && php_sapi_name() !== 'cli' && !headers_sent()) {
-            $locale = \OpenSim\Http\Locale::negotiate();
+            $locale = \W4OS\Engine\Http\Locale::negotiate();
             header('HTTP/1.1 ' . $error_code . ' ' . preg_replace('/\s+/', ' ', trim((string) $message)));
             header('Content-Type: text/xml; charset=utf-8');
             header('Content-Language: ' . $locale);
@@ -131,7 +131,7 @@ final class Respond
 
         // Add headers not sent yet, including UTF-8 and Content-Language
         if (php_sapi_name() !== 'cli' && !headers_sent()) {
-            $locale = \OpenSim\Http\Locale::negotiate();
+            $locale = \W4OS\Engine\Http\Locale::negotiate();
             header('HTTP/1.1 ' . $error_code . ' ' . $error_message);
             header('Content-Type: text/plain; charset=utf-8');
             header('Content-Language: ' . $locale);

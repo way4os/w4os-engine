@@ -7,15 +7,15 @@ declare(strict_types=1);
  * database of the OpenSim.ini of its grid, else the main database of the grid, whose localhost is the machine of Robust.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\Settings;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Simulator;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Testing\Machine;
 
 /** A machine whose grid has a main database on the machine of Robust, and the PATCH of its simulator alpha. */
 function simulator_page(): array

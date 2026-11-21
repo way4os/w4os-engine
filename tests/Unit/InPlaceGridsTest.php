@@ -7,11 +7,11 @@ declare(strict_types=1);
  * files are, and is the only thing written; the install stays as it was.
  */
 
-use OpenSim\Config\InPlaceGrids;
-use OpenSim\Config\Layout;
-use OpenSim\Models\Grid;
-use OpenSim\OpenSim;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\InPlaceGrids;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\OpenSim;
+use W4OS\Engine\Testing\Machine;
 
 /** A machine with an existing install beside it, registered in place: its Robust and one simulator, where they are. */
 function in_place_machine(bool $enabled = false): array
@@ -83,7 +83,7 @@ describe('A grid in place', function () {
 describe('The settings of the helpers of a grid in place', function () {
     test('go to its section of the config of the suite, never in a file of the install', function () {
         [$machine, $environment, $old, $conf] = in_place_machine();
-        $router = new \OpenSim\Api\Router(new \OpenSim\Api\Api($environment));
+        $router = new \W4OS\Engine\Api\Router(new \W4OS\Engine\Api\Api($environment));
 
         $changed = $router->patch('/grids/oldgrid/settings/guide', ['data' => ['type' => 'settings', 'id' => 'guide', 'attributes' => ['guideSource' => 'https://guide.example.org/list.txt']]]);
         $read = $router->get('/grids/oldgrid/settings/guide');
@@ -105,7 +105,7 @@ describe('A grid of an existing install, through the API', function () {
         $conf = $machine->etc . '/' . Layout::FILE;
         file_put_contents($conf, "[Defaults]\nEtcRoot = {$machine->etc}\n");
         $environment = $machine->environment->withLayout(Layout::load($conf, $machine->environment->layout->all()));
-        $router = new \OpenSim\Api\Router(new \OpenSim\Api\Api($environment));
+        $router = new \W4OS\Engine\Api\Router(new \W4OS\Engine\Api\Api($environment));
         $ask = static fn(array $more) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => $more + ['kind' => 'robust', 'file' => "$old/bin/Robust.HG.ini", 'inPlace' => true, 'simulators' => [['file' => "$old/bin/OpenSim.ini", 'name' => 'welcome']]]]]);
         $before = file_get_contents("$old/bin/Robust.HG.ini");
 

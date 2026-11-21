@@ -2,10 +2,10 @@
 
 /**
  * The constants the scripts of OpenSimulator and the helpers use as global ones, each one only when nobody defined it before (a
- * consumer may have its own). The values are the engine's: the formats of the links are those of OpenSim\Hypergrid\Destination.
+ * consumer may have its own). The values are the engine's: the formats of the links are those of W4OS\Engine\Hypergrid\Destination.
  */
 
-use OpenSim\Hypergrid\Destination;
+use W4OS\Engine\Hypergrid\Destination;
 
 foreach (
     [

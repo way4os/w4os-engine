@@ -7,11 +7,11 @@ declare(strict_types=1);
  * off, the whole address of the service and nothing else; on, the site read-only and the path under it.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\Settings;
-use OpenSim\Models\GridSettings;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Models\GridSettings;
+use W4OS\Engine\Testing\Machine;
 
 const PROVIDED_PAGES = ['economy', 'search', 'guide', 'offline', 'assets'];
 

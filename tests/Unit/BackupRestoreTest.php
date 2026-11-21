@@ -7,10 +7,10 @@ declare(strict_types=1);
  * databases made again from their dumps; refused when this machine has what it holds.
  */
 
-use OpenSim\Archives\BackupRestore;
-use OpenSim\Archives\BackupService;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Archives\BackupRestore;
+use W4OS\Engine\Archives\BackupService;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /** An install with the grid alpha (its Robust, two simulators), and its backup made. @return array{0:array<string,string>,1:string} */
 function restore_backup(?string $simulator = null, bool $central = false): array
@@ -116,12 +116,12 @@ describe('A backup restored', function () {
         $target = restore_target();
         mkdir("{$target['EtcRoot']}/grids/alpha", 0o755, true);
         copy("{$source['EtcRoot']}/grids/alpha/Robust.HG.ini", "{$target['EtcRoot']}/grids/alpha/Robust.HG.ini");
-        $estates = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $estates = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         $estates->exec('CREATE TABLE estate_settings (EstateID INTEGER PRIMARY KEY, EstateName VARCHAR(64))');
         $estates->exec('CREATE TABLE estate_map (RegionID CHAR(36) PRIMARY KEY, EstateID INT)');
         $estates->exec("INSERT INTO estate_settings VALUES (1, 'Alpha Estate')");
         $estates->exec("INSERT INTO estate_map VALUES ('11111111-0000-4000-8000-000000000001', 1)");
-        OpenSim\Data\Connections::using(static fn() => $estates);
+        W4OS\Engine\Data\Connections::using(static fn() => $estates);
         try {
             $restore = BackupRestore::prepare(EnvironmentFake::with($target), $file);
             $loaded = [];
@@ -130,7 +130,7 @@ describe('A backup restored', function () {
             });
             $plan = $restore->document();
         } finally {
-            OpenSim\Data\Connections::using(null);
+            W4OS\Engine\Data\Connections::using(null);
         }
 
         expect(array_column($plan['databases'], 'kept', 'name'))
@@ -146,14 +146,14 @@ describe('A backup restored', function () {
         $target = restore_target();
         mkdir("{$target['EtcRoot']}/grids/alpha", 0o755, true);
         copy("{$source['EtcRoot']}/grids/alpha/Robust.HG.ini", "{$target['EtcRoot']}/grids/alpha/Robust.HG.ini");
-        $estates = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $estates = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         $estates->exec('CREATE TABLE estate_settings (EstateID INTEGER PRIMARY KEY, EstateName VARCHAR(64))');
         $estates->exec('CREATE TABLE estate_map (RegionID CHAR(36) PRIMARY KEY, EstateID INT)');
-        OpenSim\Data\Connections::using(static fn() => $estates);
+        W4OS\Engine\Data\Connections::using(static fn() => $estates);
         try {
             $plan = BackupRestore::prepare(EnvironmentFake::with($target), $file)->document();
         } finally {
-            OpenSim\Data\Connections::using(null);
+            W4OS\Engine\Data\Connections::using(null);
         }
         $notice = array_column($plan['reminders'], null, 'code')['restore-estate-missing'] ?? null;
 
@@ -179,7 +179,7 @@ describe('A backup restored', function () {
 describe('The API, for the backups', function () {
     test('makes the backup of a grid, which the list of the archives then has', function () {
         [$profile] = restore_backup();
-        $api = new OpenSim\Api\Api(EnvironmentFake::with($profile), dumper: static function (array $db, string $file): void {
+        $api = new W4OS\Engine\Api\Api(EnvironmentFake::with($profile), dumper: static function (array $db, string $file): void {
             file_put_contents($file, gzencode("-- dump of {$db['name']}\n"));
         });
 
@@ -199,7 +199,7 @@ describe('The API, for the backups', function () {
     test('plans a restore by default, applies it when asked, refuses what is here already', function () {
         [, $file] = restore_backup();
         $target = restore_target();
-        $api = new OpenSim\Api\Api(EnvironmentFake::with($target), restoreLoader: static function (): void {});
+        $api = new W4OS\Engine\Api\Api(EnvironmentFake::with($target), restoreLoader: static function (): void {});
 
         $plan = $api->restore(['file' => $file]);
         $written = is_dir("{$target['EtcRoot']}/grids/alpha");
@@ -220,7 +220,7 @@ describe('The API, for the backups', function () {
 
     test('refuses to write a backup or a restore when this process is not the user of the instances', function () {
         [$profile, $file] = restore_backup();
-        $api = new OpenSim\Api\Api(EnvironmentFake::with(restore_target()), instanceAccess: static fn(): ?string => 'this process runs as www-data');
+        $api = new W4OS\Engine\Api\Api(EnvironmentFake::with(restore_target()), instanceAccess: static fn(): ?string => 'this process runs as www-data');
 
         expect($api->restore(['file' => $file, 'mode' => 'apply'])->document['code'])
             ->toBe('instance-user-required')

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use OpenSim\Provisioning\Slug;
+use W4OS\Engine\Provisioning\Slug;
 
 describe('slug of a name', function () {
     test('is kebab-case, the words kept apart', function (string $name, string $slug) {

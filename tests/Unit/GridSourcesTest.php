@@ -6,12 +6,12 @@ declare(strict_types=1);
  * A grid is one object whatever it is read from: its folder, a plan, a description, what it says of itself.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Network\GridInfoReader;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Runtime\Environment;
-use OpenSim\Testing\Machine;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Network\GridInfoReader;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Testing\Machine;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 describe('grid of this machine', function () {
     test('has what its files say: names, ports, database, folders, connectors', function () {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Hypergrid\Gatekeeper;
-use OpenSim\Network\Http;
-use OpenSim\Runtime\ClockInterface;
-use OpenSim\Text\Encoding;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Hypergrid\Gatekeeper;
+use W4OS\Engine\Network\Http;
+use W4OS\Engine\Runtime\ClockInterface;
+use W4OS\Engine\Text\Encoding;
 
 /**
  * Fills the events of the search from a HYPEvents calendar (`events.json` of a 2do directory, or any implementation of it): the

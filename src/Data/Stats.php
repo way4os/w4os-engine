@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * The numbers of a grid: its members, who is in world, its regions and its area. Each is counted in the database of its own
@@ -28,7 +28,7 @@ final class Stats
             static fn(string $service): ?OSPDO => Connections::pdo($config, $service),
             $now ?? time(),
             self::excluded($config),
-            \OpenSim\Models\AvatarModel::condition($config, 'u.'),
+            \W4OS\Engine\Models\AvatarModel::condition($config, 'u.'),
         );
     }
 

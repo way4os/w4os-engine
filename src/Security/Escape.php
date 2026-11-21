@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Security;
+namespace W4OS\Engine\Security;
 
 use Laminas\Escaper\Escaper;
 

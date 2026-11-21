@@ -6,7 +6,7 @@ declare(strict_types=1);
  * GridConfig::withDatabaseDefaults().
  */
 
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\GridConfig;
 
 const DB_DEFAULT = 'Data Source=localhost;Database=grid;User ID=opensim;Password=secret;Old Guids=true;';
 const DB_OTHER = 'Data Source=localhost;Database=profiles;User ID=opensim;Password=secret;Old Guids=true;';

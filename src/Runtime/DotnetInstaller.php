@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Provisioning\UiInterface;
+use W4OS\Engine\Provisioning\UiInterface;
 
 /**
  * Installs what OpenSimulator needs to run on this machine, when it is missing: the native library libgdiplus, which the regions

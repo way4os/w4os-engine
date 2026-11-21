@@ -7,7 +7,7 @@ declare(strict_types=1);
  * every language. The cards of a dashboard have their titles, the ones of the blocks of w4os-wp.
  */
 
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\I18n\Catalog;
 
 describe('The texts of the catalog', function () {
     test('call the people of the world avatars, never users', function () {

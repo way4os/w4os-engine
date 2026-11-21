@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Controllers\AbstractController;
+use W4OS\Engine\Controllers\AbstractController;
 
 /**
  * The instances of this machine and what they use: the enabled ones, running or not, and the totals of the OpenSimulator

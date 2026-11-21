@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Text;
+namespace W4OS\Engine\Text;
 
 /**
  * UUIDs.

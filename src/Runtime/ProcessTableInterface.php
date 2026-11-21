@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * The processes of the machine: the ones of the instances, and the signals sent to them.

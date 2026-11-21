@@ -7,11 +7,11 @@ declare(strict_types=1);
  * its password), applied to every database of a grid, each keeping its own name; never said.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\Layout;
-use OpenSim\Data\DatabaseAccess;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Data\DatabaseAccess;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\Environment;
 
 describe('The access to the databases a site gives', function () {
     test('replaces the host, the port and the credentials of a connection string, its database and the rest kept', function () {
@@ -61,7 +61,7 @@ describe('The access to the databases a site gives', function () {
 
 describe('The API of a site with its access to the databases', function () {
     test('reads the grids with it, the ones of a folder too', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $robust = $machine->grid . '/Robust.HG.ini';
         file_put_contents($robust, (string) file_get_contents($robust) . "\n[DatabaseService]\n    ConnectionString = \"Data Source=localhost;Database=robust;User ID=opensim;Password=old;\"\n");
         $environment = new Environment($machine->environment->layout, $machine->environment->processes, $machine->environment->launcher, $machine->environment->consoles, $machine->environment->clock, $machine->environment->reporter, databases: new DatabaseAccess('db.site.example', null, 'site', 's3cret'));

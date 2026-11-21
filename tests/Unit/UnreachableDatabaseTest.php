@@ -8,14 +8,14 @@ declare(strict_types=1);
  * Only a database the grid does not set at all is "none" where the engine has another way (the assets: the asset service).
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Asset;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\AvatarModel;
-use OpenSim\Models\Region;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Asset;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\AvatarModel;
+use W4OS\Engine\Models\Region;
 
 const ADA = '11111111-1111-1111-1111-111111111111';
 
@@ -24,7 +24,7 @@ function databases_down(string|Database ...$down): void
 {
     $pdo = avatar_database();
     $names = array_map(static fn(string|Database $what): string => $what instanceof Database ? $what->name : $what, $down);
-    Connections::using(static fn(string|Database $what): ?OpenSim\Data\OSPDO => in_array($what instanceof Database ? $what->name : $what, $names, true) ? null : $pdo);
+    Connections::using(static fn(string|Database $what): ?W4OS\Engine\Data\OSPDO => in_array($what instanceof Database ? $what->name : $what, $names, true) ? null : $pdo);
 }
 
 /** @return ?string the class of what a call throws, null when it throws nothing */
@@ -69,11 +69,11 @@ describe('A database that does not answer', function () {
     });
 
     test('is an error for the places of the guide, not a guide without places', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         // A list the guide cannot read: the places its search knows instead
         $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    GuideSource = missing.txt\n");
         databases_down(Database::Search);
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
         // A grid that sets no database of its search has a guide of none (the test machine); one that sets it, an error
         expect($grid->popularPlaces())->toBe([]);
 
@@ -84,11 +84,11 @@ describe('A database that does not answer', function () {
     });
 
     test('is a 503 through the API, not a 404', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         Connections::using(static fn() => null);
         // A grid that sets its database
         $config = avatar_grid();
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment, config: static fn(): GridConfig => $config));
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment, config: static fn(): GridConfig => $config));
 
         expect([
             $router->get('/grids/demo/avatars/' . ADA)->status,

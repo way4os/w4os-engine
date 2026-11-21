@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Controllers;
+namespace W4OS\Engine\Controllers;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridFileService;
-use OpenSim\Config\InstanceSettings;
-use OpenSim\Console\ConsoleInterface;
-use OpenSim\Data\Database;
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Interfaces\Enablable;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\Core;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\LogFile;
-use OpenSim\Runtime\Process;
-use OpenSim\Runtime\Outcome;
-use OpenSim\Runtime\StartService;
-use OpenSim\Runtime\StopService;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Config\InstanceSettings;
+use W4OS\Engine\Console\ConsoleInterface;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Interfaces\Enablable;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\Core;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\LogFile;
+use W4OS\Engine\Runtime\Process;
+use W4OS\Engine\Runtime\Outcome;
+use W4OS\Engine\Runtime\StartService;
+use W4OS\Engine\Runtime\StopService;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * What runs an OpenSimulator program, launched with dotnet from a config file: a Robust (RobustController), an OpenSim that runs a
@@ -261,7 +261,7 @@ abstract class AbstractController implements Enablable
             return Core::ofBin($bin);
         }
         // A grid in place runs with the core of its install, where it is
-        if (($owner = \OpenSim\Config\InPlaceGrids::owner($this->environment->layout, $this->ini)) !== null) {
+        if (($owner = \W4OS\Engine\Config\InPlaceGrids::owner($this->environment->layout, $this->ini)) !== null) {
             $core = trim((string) ($this->environment->layout->grids()[$owner['nick']]['CoreDirectory'] ?? ''));
             if ($core !== '') {
                 return Core::at($core);
@@ -320,15 +320,15 @@ abstract class AbstractController implements Enablable
     public function isEnabled(): bool
     {
         // A grid in place says it in its section of the config of the suite, nothing is linked
-        return \OpenSim\Config\InPlaceGrids::isEnabled($this->environment->layout, $this->ini)
+        return \W4OS\Engine\Config\InPlaceGrids::isEnabled($this->environment->layout, $this->ini)
             ?? (is_link($this->link()) || is_file($this->link()));
     }
 
     /** Link its config where the launcher finds it, so that it starts with the others. */
     public function enable(): bool
     {
-        if (\OpenSim\Config\InPlaceGrids::owner($this->environment->layout, $this->ini) !== null) {
-            return \OpenSim\Config\InPlaceGrids::setEnabled($this->environment->layout, $this->ini, true);
+        if (\W4OS\Engine\Config\InPlaceGrids::owner($this->environment->layout, $this->ini) !== null) {
+            return \W4OS\Engine\Config\InPlaceGrids::setEnabled($this->environment->layout, $this->ini, true);
         }
         $target = realpath($this->ini) ?: $this->ini;
         if (!is_file($target) || $target === $this->link()) {
@@ -348,7 +348,7 @@ abstract class AbstractController implements Enablable
     /** Stop it from starting with the others. A running instance is not stopped. */
     public function disable(): void
     {
-        if (\OpenSim\Config\InPlaceGrids::setEnabled($this->environment->layout, $this->ini, false)) {
+        if (\W4OS\Engine\Config\InPlaceGrids::setEnabled($this->environment->layout, $this->ini, false)) {
             return;
         }
         if (is_link($this->link()) || is_file($this->link())) {

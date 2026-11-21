@@ -8,8 +8,8 @@ declare(strict_types=1);
  * apart, at the bottom, as what it is. The lines of a file are named as such.
  */
 
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\GridSettings;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\GridSettings;
 
 describe('The page of the guide', function () {
     test('has the guide of 2do.directory as its source by default, the help of the field about what it takes only', function () {
@@ -34,10 +34,10 @@ describe('The page of the guide', function () {
 
 describe('The guide of a grid that sets no source', function () {
     test('has no destination: no source, no guide', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $machine->http['https://2do.directory/destinations/guide'] = "Hypergrid\nPlace|hg.example.org:8002/Place\n";
 
-        expect(OpenSim\Models\Grid::find($machine->environment, 'demo')->destinations())->toBe([]);
+        expect(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->destinations())->toBe([]);
     });
 
     test('gets the guide of 2do.directory when it is saved empty or switched on', function () {

@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSim\Network;
+namespace W4OS\Engine\Network;
 
-use OpenSim\Config\GridFileService;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The next free ports, shared by the setup and `opensim next port`: a port is
@@ -162,7 +162,7 @@ final class Ports
     private static function configFiles(string $etcRoot, string $dataRoot): array
     {
         $roots = [];
-        foreach (\OpenSim\Provisioning\ResourceRegistry::roots() as $base) {
+        foreach (\W4OS\Engine\Provisioning\ResourceRegistry::roots() as $base) {
             array_push($roots, "$base/etc", "$base/config");
         }
         $roots = array_filter([...$roots, $etcRoot, $dataRoot]);
@@ -204,7 +204,7 @@ final class Ports
     {
         return in_array(
             basename($path),
-            ['OpenSim.ini', 'OpenSimDefaults.ini', \OpenSim\Provisioning\SimulatorMaster::FILE],
+            ['OpenSim.ini', 'OpenSimDefaults.ini', \W4OS\Engine\Provisioning\SimulatorMaster::FILE],
             true,
         ) || str_contains($path, '/config-include/');
     }

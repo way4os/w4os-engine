@@ -1,15 +1,15 @@
 <?php
 
-namespace OpenSim\Provisioning\Import;
+namespace W4OS\Engine\Provisioning\Import;
 
-use OpenSim\Config\IniEditor;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * Ports the configuration of a Robust that was not made by the kit: what the setup asks is detected in its config

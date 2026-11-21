@@ -1,11 +1,11 @@
 <?php
 
-use OpenSim\Network\Ports;
-use OpenSim\Runtime\SystemProcessTable;
-use OpenSim\Runtime\Environment;
-use OpenSim\Testing\EnvironmentFake;
-use OpenSim\Testing\ProcessTableFake;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Network\Ports;
+use W4OS\Engine\Runtime\SystemProcessTable;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Testing\EnvironmentFake;
+use W4OS\Engine\Testing\ProcessTableFake;
+use W4OS\Engine\Testing\Machine;
 
 /** The ports of a machine whose install is empty, where nothing listens. */
 function ports_of(array $layout = [], array $listening = []): Ports
@@ -28,7 +28,7 @@ describe('Ports of the simulators', function () {
         $machine = new Machine();
         $machine->processes->listening = [8012, 9010];
         $environment = $machine->environment->onHostWithOccupiedPorts([8002, 9000]);
-        $grid = OpenSim\Provisioning\QuickSetup::plan($environment, [
+        $grid = W4OS\Engine\Provisioning\QuickSetup::plan($environment, [
             'type' => 'grid', 'name' => 'Remote grid', 'avatar' => 'Ada Love', 'password' => 'secret123', 'email' => 'ada@example.org',
         ]);
 
@@ -40,7 +40,7 @@ describe('Ports of the simulators', function () {
     test('rejects a manually selected port occupied on the destination host', function () {
         $machine = new Machine();
         $environment = $machine->environment->onHostWithOccupiedPorts([8102]);
-        $result = OpenSim\Provisioning\QuickSetup::plan($environment, [
+        $result = W4OS\Engine\Provisioning\QuickSetup::plan($environment, [
             'type' => 'grid', 'name' => 'Remote grid', 'login_uri' => 'login.example.org:8102',
             'avatar' => 'Ada Love', 'password' => 'secret123', 'email' => 'ada@example.org',
         ]);

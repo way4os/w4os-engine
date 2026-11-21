@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Provisioning\GridRegistry;
+use W4OS\Engine\Provisioning\GridRegistry;
 
 /**
  * The ports of the regions a grid knows, whatever machine serves them: the UDP port of a region, and the port of its HTTP

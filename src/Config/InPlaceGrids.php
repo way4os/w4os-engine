@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * The grids of an existing install the suite runs where they are: each its `[Grid <nick>]` section in the config of the suite
@@ -74,7 +74,7 @@ final class InPlaceGrids
         $entries = [];
         foreach ($simulators as $simulator) {
             $file = (string) (realpath((string) $simulator['file']) ?: $simulator['file']);
-            $short = \OpenSim\Provisioning\Slug::slug((string) (($simulator['name'] ?? '') ?: basename(dirname($file, basename(dirname($file)) === 'bin' ? 2 : 1))));
+            $short = \W4OS\Engine\Provisioning\Slug::slug((string) (($simulator['name'] ?? '') ?: basename(dirname($file, basename(dirname($file)) === 'bin' ? 2 : 1))));
             $entries[] = "$short:$file";
         }
 

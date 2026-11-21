@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Config\Layout;
+use W4OS\Engine\Config\Layout;
 
 /**
  * Who may start and stop the instances of this machine: the user that runs them (SystemUser of the install), whose screens, files and

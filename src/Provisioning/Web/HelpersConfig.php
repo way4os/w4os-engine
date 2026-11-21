@@ -1,13 +1,13 @@
 <?php
 
-namespace OpenSim\Provisioning\Web;
+namespace W4OS\Engine\Provisioning\Web;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\GridFileService;
-use OpenSim\Config\IniEditor;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Config\IniEditor;
 
 /**
- * The web side of a grid. opensim-helpers read the official settings of the grid (Robust.ini, OpenSim.ini, the ini of its
+ * The web side of a grid. w4os-helpers read the official settings of the grid (Robust.ini, OpenSim.ini, the ini of its
  * simulators) in their own format, one source of truth: the setup writes nothing of them in another file.
  *
  * `Helpers.ini`, in the folder of the grid, only holds what has no official place, in a section [Helpers] (the source of the

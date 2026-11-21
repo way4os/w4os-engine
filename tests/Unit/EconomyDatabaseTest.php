@@ -8,7 +8,7 @@ declare(strict_types=1);
  * simulator by default.
  */
 
-use OpenSim\Config\Settings;
+use W4OS\Engine\Config\Settings;
 
 describe('The money of a grid', function () {
     test('keeps its database where its module reads it: the [MySql] of the money server, the connection of Gloebit', function () {

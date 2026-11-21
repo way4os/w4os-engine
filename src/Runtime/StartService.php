@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Console\ScreenInterface;
-use OpenSim\Controllers\AbstractController;
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Controllers\OpenSimController;
+use W4OS\Engine\Console\ScreenInterface;
+use W4OS\Engine\Controllers\AbstractController;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Controllers\OpenSimController;
 
 /**
  * Starts an instance: checks that it can run, maps its ports, links the modules, launches it detached, then waits until it

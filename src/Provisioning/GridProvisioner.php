@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Exceptions\SetupFailedException;
-use OpenSim\Config\GridFileService;
-use OpenSim\Config\IniEditor;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\Web\HelpersConfig;
-use OpenSim\Provisioning\Web\Snippets;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\ShellService;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Exceptions\SetupFailedException;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\Web\HelpersConfig;
+use W4OS\Engine\Provisioning\Web\Snippets;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\ShellService;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * The writing of the part of a setup that makes things: the files, the accounts, the instances. Run as the system user of the

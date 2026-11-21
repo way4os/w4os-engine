@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Text\Secrets;
+use W4OS\Engine\Text\Secrets;
 
 /**
  * The log file of an instance, read from the point where a start began: what an earlier run wrote is not about this one.

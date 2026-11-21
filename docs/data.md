@@ -4,9 +4,9 @@ The engine reads a grid's data. An application (a CMS, a plugin, a command, the 
 never queries the databases of OpenSimulator itself.
 
 ```php
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Database;
-use OpenSim\Models\{Avatar, Parcel, Region};
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Models\{Avatar, Parcel, Region};
 
 $config = GridConfig::fromFolder('/etc/opensim/grids/mygrid');   // the files of the grid, as OpenSimulator reads them
 ```
@@ -137,7 +137,7 @@ A list that cannot be read (the database does not answer) throws `ChannelUnavail
 
 ## Databases
 
-`OpenSim\Data\Database` knows the databases a grid has and where each is set. The models use it; an application that needs a
+`W4OS\Engine\Data\Database` knows the databases a grid has and where each is set. The models use it; an application that needs a
 table of its own can too.
 
 | | where it is set (in this order) | holds |
@@ -162,7 +162,7 @@ Database::Simulator->tables();                         // what the engine knows 
 
 ## Connections and tests
 
-`OpenSim\Data\Connections` opens each database once (`Connections::pdo($config, Database::Robust)`). A test replaces them:
+`W4OS\Engine\Data\Connections` opens each database once (`Connections::pdo($config, Database::Robust)`). A test replaces them:
 `Connections::using(fn ($what, $simulator, $connection) => $pdo)`, with an SQLite `OSPDO` that has the tables of OpenSimulator.
 
 `OSPDO` is the engine's PDO: `new OSPDO($dsn, $user, $password, $options)` as PDO takes it, or `new OSPDO(['host' => ..., 'name' => ...,

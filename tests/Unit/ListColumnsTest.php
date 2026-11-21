@@ -9,11 +9,11 @@ declare(strict_types=1);
  * fixed.
  */
 
-use OpenSim\Api\Contract;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\Parcel;
-use OpenSim\Models\Region;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\Parcel;
+use W4OS\Engine\Models\Region;
 
 describe('The columns of the regions', function () {
     test('are the ones of w4os-wp in its order and its words, what the region holds after its presence, the address under the name and the status last', function () {

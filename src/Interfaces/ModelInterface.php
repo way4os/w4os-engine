@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Interfaces;
+namespace W4OS\Engine\Interfaces;
 
-use OpenSim\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
 
 /**
  * What every model of the engine offers, whatever it comes from (a table, a file, an instance), so that any application (the manager, a

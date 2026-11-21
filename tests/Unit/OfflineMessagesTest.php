@@ -8,11 +8,11 @@ declare(strict_types=1);
  */
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Services\MailerInterface;
-use OpenSim\Services\OfflineMessages;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Services\MailerInterface;
+use W4OS\Engine\Services\OfflineMessages;
+use W4OS\Engine\Testing\Machine;
 
 const OFFLINE_TO = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
 const OFFLINE_FROM = 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb';
@@ -215,13 +215,13 @@ describe('The offline messages', function () {
         );
         $sent = [];
         $factory = new Psr17Factory();
-        $handler = new OpenSim\Api\Handler(
-            new OpenSim\Api\Api((new Machine())->environment, mailer: offline_mailer($sent)),
+        $handler = new W4OS\Engine\Api\Handler(
+            new W4OS\Engine\Api\Api((new Machine())->environment, mailer: offline_mailer($sent)),
             $factory,
             $factory,
             '/api',
             grid: 'demo',
-            authenticator: new OpenSim\Security\OpenAccess(),
+            authenticator: new W4OS\Engine\Security\OpenAccess(),
         );
         $post = static fn(string $path, string $body) => $handler->handle(
             $factory->createServerRequest('POST', $path)->withBody($factory->createStream($body)),

@@ -7,9 +7,9 @@ declare(strict_types=1);
  * Robust.ini, the simulators for theirs), none for what the helpers and the site read at each request, none when nothing changed.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Testing\Machine;
 
 function restart_patch(Router $router, string $page, array $attributes)
 {

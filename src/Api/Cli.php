@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
 /**
  * The API on the command line: the words typed are a request, what comes back is printed. The same addresses and the same answers

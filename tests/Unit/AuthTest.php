@@ -8,13 +8,13 @@ declare(strict_types=1);
  */
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-use OpenSim\Api\Api;
-use OpenSim\Api\Contract;
-use OpenSim\Api\Handler;
-use OpenSim\Api\Router;
-use OpenSim\Security\ApiKeys;
-use OpenSim\Testing\ClockFake;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\Api\Handler;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Security\ApiKeys;
+use W4OS\Engine\Testing\ClockFake;
+use W4OS\Engine\Testing\Machine;
 
 /** The keys of a test install. */
 function auth_keys(?ClockFake $clock = null): ApiKeys
@@ -36,7 +36,7 @@ function auth_ask(
     string $method,
     string $path,
     ?string $key = null,
-): OpenSim\Api\Response|Psr\Http\Message\ResponseInterface {
+): W4OS\Engine\Api\Response|Psr\Http\Message\ResponseInterface {
     $factory = new Psr17Factory();
     $request = $factory->createServerRequest($method, $path);
     $key !== null && ($request = $request->withHeader('Authorization', "Bearer $key"));

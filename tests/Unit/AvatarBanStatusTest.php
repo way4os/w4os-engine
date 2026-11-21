@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use OpenSim\Api\Access;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Api\Access;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Models\Avatar;
 
 /**
  * The bans of an avatar: hard, on its account (it cannot log in, its name stays taken, its UUID kept), and in the lists of the
@@ -95,7 +95,7 @@ describe('A banned avatar', function () {
         avatars_in($pdo);
         $config = avatar_grid();
         Avatar::find($config, BANNED_ADA)->update(['banned' => true]);
-        $refused = (new OpenSim\SignIn\DatabaseAuthenticator($config))->authenticate('Ada Love', 'ada-secret');
+        $refused = (new W4OS\Engine\SignIn\DatabaseAuthenticator($config))->authenticate('Ada Love', 'ada-secret');
 
         // Robust refuses a UserLevel below MinLoginLevel (0); the API says the level it has once unbanned
         expect([ban_columns($pdo, BANNED_ADA)[0], Avatar::find($config, BANNED_ADA)->detail()['level']])
@@ -146,7 +146,7 @@ describe('The list of the avatars', function () {
             ->and(array_map(static fn(array $state): array => [$state['label'], $state['tone']], array_column($indicators['ban']['states'], null, 'value')))
             ->toBe(['hard' => ['state_grid_banned', 'failed'], 'estates' => ['state_estate_banned', 'warning']])
             // Not the words of the status beside it
-            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['state_grid_banned'])
+            ->and(W4OS\Engine\I18n\Catalog::messages('fr_FR')['state_grid_banned'])
             ->toBe('Banni de la grille')
             ->and($indicators['ban']['icon'])
             ->toBe('ban')

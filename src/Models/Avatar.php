@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Forms\ItemForm;
-use OpenSim\Result;
-use OpenSim\Text\Uuid;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Data\Listing;
-use OpenSim\I18n\Catalog;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Provisioning\AccountWriter;
-use OpenSim\Provisioning\GridAccounts;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Network\GridInfoCache;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\SystemClock;
-use OpenSim\SignIn\AvatarTokens;
-use OpenSim\Support\Bitmask;
+use W4OS\Engine\Forms\ItemForm;
+use W4OS\Engine\Result;
+use W4OS\Engine\Text\Uuid;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Provisioning\AccountWriter;
+use W4OS\Engine\Provisioning\GridAccounts;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Network\GridInfoCache;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Runtime\SystemClock;
+use W4OS\Engine\SignIn\AvatarTokens;
+use W4OS\Engine\Support\Bitmask;
 
 /**
  * An avatar of the grid: its account (UserAccounts of the user account service), where it was (GridUser of the grid user service)
@@ -339,7 +339,7 @@ final class Avatar extends Model
     {
         try {
             $estates = Estate::all($config)->items();
-        } catch (\OpenSim\Exceptions\ChannelUnavailable) {
+        } catch (\W4OS\Engine\Exceptions\ChannelUnavailable) {
             return [];
         }
         $banned = [];
@@ -406,7 +406,7 @@ final class Avatar extends Model
      */
     private static function ownedBy(GridConfig $config): array
     {
-        $counts = static function (?\OpenSim\Data\OSPDO $pdo, string $sql): ?array {
+        $counts = static function (?\W4OS\Engine\Data\OSPDO $pdo, string $sql): ?array {
             if ($pdo === null || empty($pdo->connected)) {
                 return null;
             }
@@ -1437,7 +1437,7 @@ final class Avatar extends Model
      * What this person left in the databases of the grid, each thing in the database of its service: the account, the visits, the
      * profile, the inventory, the assets they made, their objects in the regions.
      *
-     * @return list<array{table:string,database:?\OpenSim\Config\ConnectionString,rows:int,condition:string}> database null when the
+     * @return list<array{table:string,database:?\W4OS\Engine\Config\ConnectionString,rows:int,condition:string}> database null when the
      *         grid does not say where the table is
      */
     public function leftovers(): array
@@ -1465,7 +1465,7 @@ final class Avatar extends Model
     /**
      * The statements that delete what this person left, for whoever reviews them: nothing is run. Only where there is something.
      *
-     * @param ?list<array{table:string,database:?\OpenSim\Config\ConnectionString,rows:int,condition:string}> $leftovers what leftovers()
+     * @param ?list<array{table:string,database:?\W4OS\Engine\Config\ConnectionString,rows:int,condition:string}> $leftovers what leftovers()
      *        said, when it was asked already
      * @return list<string> the comments and the statements
      */
@@ -1518,7 +1518,7 @@ final class Avatar extends Model
 
     /**
      * @param Database|string|null $which
-     * @return array{table:string,database:?\OpenSim\Config\ConnectionString,rows:int,condition:string}
+     * @return array{table:string,database:?\W4OS\Engine\Config\ConnectionString,rows:int,condition:string}
      */
     private function leftover(string $table, Database|string|null $which, ?string $simulator, string $condition): array
     {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Network\Http;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Network\Http;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * Reads what the registered simulators tell (the data snapshot of their DataSnapshot module) into the tables of the search: the

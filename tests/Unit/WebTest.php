@@ -3,9 +3,9 @@
  * The web side of a grid: where its services are, its Helpers.ini, what the web server needs.
  */
 
-use OpenSim\Provisioning\Web\HelpersConfig;
-use OpenSim\Provisioning\Web\Services;
-use OpenSim\Provisioning\Web\Snippets;
+use W4OS\Engine\Provisioning\Web\HelpersConfig;
+use W4OS\Engine\Provisioning\Web\Services;
+use W4OS\Engine\Provisioning\Web\Snippets;
 
 /** Whether the file system holds two files whose names differ by the case only. */
 function web_test_fs_tells_cases(): bool
@@ -149,11 +149,11 @@ describe('Web server snippets', function () {
         mkdir($dir);
         file_put_contents("$dir/Robust.ini", "[Const]\nWebURL = \"https://grid.example.test\"\n");
 
-        $snippet = Snippets::render('caddy', 'test_grid', $dir, '/srv/opensim-helpers/html', '/run/php/test.sock');
+        $snippet = Snippets::render('caddy', 'test_grid', $dir, '/srv/w4os-helpers/html', '/run/php/test.sock');
 
         expect($snippet)
             ->toContain('grid.example.test')
-            ->toContain('/srv/opensim-helpers/html')
+            ->toContain('/srv/w4os-helpers/html')
             ->toContain('/run/php/test.sock')
             ->toContain('OPENSIM_GRID test_grid')
             ->not->toContain('{{');
@@ -167,19 +167,19 @@ describe('Web server snippets', function () {
 
 describe('The engine API for the sites of this machine', function () {
     test('runs as the user of the instances: a PHP-FPM pool of its own, its socket for the web server only', function () {
-        $pool = Snippets::pool('opensim', 'caddy', '/run/php/opensim-api.sock');
+        $pool = Snippets::pool('opensim', 'caddy', '/run/php/w4os-api.sock');
 
         expect($pool)
-            ->toContain('[opensim-api]', 'user = opensim', 'group = opensim', 'listen = /run/php/opensim-api.sock', 'listen.owner = opensim', 'listen.group = caddy', 'listen.mode = 0660')
+            ->toContain('[w4os-api]', 'user = opensim', 'group = opensim', 'listen = /run/php/w4os-api.sock', 'listen.owner = opensim', 'listen.group = caddy', 'listen.mode = 0660')
             ->not->toContain('{{');
     });
 
     test('is served on 127.0.0.1 only, its paths and no other, through that pool, by each web server', function () {
         foreach (Snippets::SERVERS as $server) {
-            $snippet = Snippets::api($server, 'test_grid', '/srv/opensim-helpers/html', '/run/php/opensim-api.sock', 8780);
+            $snippet = Snippets::api($server, 'test_grid', '/srv/w4os-helpers/html', '/run/php/w4os-api.sock', 8780);
 
             expect($snippet)
-                ->toContain('127.0.0.1', '8780', '/run/php/opensim-api.sock', '/srv/opensim-helpers/html', 'test_grid', '/api')
+                ->toContain('127.0.0.1', '8780', '/run/php/w4os-api.sock', '/srv/w4os-helpers/html', 'test_grid', '/api')
                 ->not->toContain('{{');
         }
         expect(fn() => Snippets::api('unknown', 'test_grid'))->toThrow(InvalidArgumentException::class);
@@ -196,11 +196,11 @@ describe('The engine API for the sites of this machine', function () {
             ->toBeTrue()
             ->and(Snippets::api('nginx', 'test_grid'))
             ->toContain(Snippets::engineRoot() . '/index.php')
-            ->not->toContain('opensim-helpers')
+            ->not->toContain('w4os-helpers')
             ->and(Snippets::helpersRoot())
-            ->toBe('/usr/share/opensim-helpers/public')
+            ->toBe('/usr/share/w4os-helpers/public')
             ->and(Snippets::render('nginx', 'test_grid', $dir))
-            ->toContain('/usr/share/opensim-helpers/public/index.php')
+            ->toContain('/usr/share/w4os-helpers/public/index.php')
             ->not->toContain('/html');
     });
 });

@@ -11,7 +11,7 @@
  * OpenSimulator does not read (extended attributes), this one writes plain ustar entries only.
  */
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
 use FilesystemIterator;
 use Generator;

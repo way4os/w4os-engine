@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Database), its switch only "Use default", what the default is said in its description. provided_fields() of ProvideChoicesTest.
  */
 
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\I18n\Catalog;
 
 describe('A field that may use the default', function () {
     test('has its own label, a switch that says Use default only, and what the default is in its description', function () {

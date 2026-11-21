@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * What an existing Robust or simulator config says now, in the names the planners use: the setup reads it to propose what is
@@ -54,7 +54,7 @@ final class InstanceSettings
         }
         $current['connectors'] = array_keys($ini['ServiceList'] ?? []);
         // The roles of the regions: Region_<Name> = "DefaultRegion, ..."
-        if (($flags = \OpenSim\Models\Region::rolesIn($text)) !== []) {
+        if (($flags = \W4OS\Engine\Models\Region::rolesIn($text)) !== []) {
             $current['regionFlags'] = $flags;
         }
         foreach (['estateName' => 'DefaultEstateName', 'estateOwner' => 'DefaultEstateOwnerName'] as $field => $key) {

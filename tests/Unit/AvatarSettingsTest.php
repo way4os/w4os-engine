@@ -8,11 +8,11 @@ declare(strict_types=1);
  * of AvatarTest.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\GridSettings;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\GridSettings;
 
 /** A grid named My Grid, with these lines in its Helpers.ini. */
 function avatar_settings_grid(string $helpers = ''): GridConfig

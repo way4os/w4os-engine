@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Hypergrid;
+namespace W4OS\Engine\Hypergrid;
 
 /**
  * What a gatekeeper tells of its regions (link_region, get_region), asked by XML-RPC, answers kept for the request.
@@ -140,7 +140,7 @@ final class Gatekeeper
     {
         $links = [];
         foreach ($places as $place) {
-            $region = is_string($place) && trim($place) !== '' ? \OpenSim\Hypergrid\Destination::parse($place) : null;
+            $region = is_string($place) && trim($place) !== '' ? \W4OS\Engine\Hypergrid\Destination::parse($place) : null;
             if (empty($region['gatekeeper']) || empty($region['region_uri']) || isset(self::$cache['link_region'][$region['region_uri']])) {
                 continue;
             }
@@ -153,7 +153,7 @@ final class Gatekeeper
         $regions = [];
         foreach ($links as $uri => [$gatekeeper]) {
             $uuid = self::$cache['link_region'][$uri]['uuid'] ?? null;
-            \OpenSim\Text\Uuid::isValid((string) $uuid) && !isset(self::$cache['get_region'][$uuid])
+            \W4OS\Engine\Text\Uuid::isValid((string) $uuid) && !isset(self::$cache['get_region'][$uuid])
                 && ($regions[$uuid] ??= [$gatekeeper, 'get_region', ['region_uuid' => (string) $uuid]]);
         }
         foreach (self::many($regions) as $uuid => $answer) {
@@ -273,14 +273,14 @@ final class Gatekeeper
             return [];
         }
         if (is_string($args)) {
-            $region_array = \OpenSim\Hypergrid\Destination::parse($args);
+            $region_array = \W4OS\Engine\Hypergrid\Destination::parse($args);
         } elseif (is_array($args)) {
             if (!empty($args['region_uri'])) {
                 $region_array = $args;
             } elseif ($args['host'] || $args['region']) {
                 $tryurl = join('/', [join(':', [$args['host'] ?? '', $args['port'] ?? '']), $args['region'] ?? '']);
 
-                $region_array = \OpenSim\Hypergrid\Destination::parse($tryurl);
+                $region_array = \W4OS\Engine\Hypergrid\Destination::parse($tryurl);
             }
         }
         if (!$region_array) {
@@ -346,16 +346,16 @@ final class Gatekeeper
                 'error' => 'Empty region',
             ];
         }
-        if (\OpenSim\Text\Uuid::isValid($region)) {
+        if (\W4OS\Engine\Text\Uuid::isValid($region)) {
             // Not implemented, UUID lookup would require a default gatekeeper
             return [
                 'errorCode' => 501,
                 'error' => 'UUID lookup not implemented',
             ];
         }
-        $region = \OpenSim\Hypergrid\Destination::parse($region);
+        $region = \W4OS\Engine\Hypergrid\Destination::parse($region);
         $link_region = self::linkRegion($region);
-        if (!\OpenSim\Text\Uuid::isValid($link_region['uuid'] ?? false)) {
+        if (!\W4OS\Engine\Text\Uuid::isValid($link_region['uuid'] ?? false)) {
             return [
                 'errorCode' => 400,
                 'error' => 'Invalid region UUID',
@@ -412,6 +412,6 @@ final class Gatekeeper
         //
         // handle or uuid are better indicators of a good result.
 
-        return (bool) \OpenSim\Text\Uuid::isValid($link_region['uuid'] ?? false);
+        return (bool) \W4OS\Engine\Text\Uuid::isValid($link_region['uuid'] ?? false);
     }
 }

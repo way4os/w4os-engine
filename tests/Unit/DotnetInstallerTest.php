@@ -7,8 +7,8 @@ declare(strict_types=1);
  * elsewhere, or the install script of Microsoft. The machine is a script of answers.
  */
 
-use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\DotnetInstaller;
+use W4OS\Engine\Provisioning\UiInterface;
+use W4OS\Engine\Runtime\DotnetInstaller;
 
 /** An interface that answers its questions from a list and keeps what it was told and asked. */
 final class DotnetUiFake implements UiInterface

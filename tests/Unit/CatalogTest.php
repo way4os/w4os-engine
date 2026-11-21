@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use OpenSim\Api\Problem;
-use OpenSim\I18n\Catalog;
-use OpenSim\I18n\PoFile;
+use W4OS\Engine\Api\Problem;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\I18n\PoFile;
 
 describe('the catalog of the texts of the sites', function () {
     test('has a text for every problem code of the API', function () {
@@ -26,9 +26,9 @@ describe('the catalog of the texts of the sites', function () {
 
     test('has a text for every status, every role, every want and every skill of an avatar', function () {
         $keys = [
-            ...array_map(Catalog::statusKey(...), OpenSim\Models\Avatar::STATUSES),
-            ...array_map(Catalog::roleKey(...), array_keys(OpenSim\Models\Avatar::ROLES)),
-            ...array_column([...OpenSim\Models\Avatar::profileFlags()['wants'], ...OpenSim\Models\Avatar::profileFlags()['skills']], 'key'),
+            ...array_map(Catalog::statusKey(...), W4OS\Engine\Models\Avatar::STATUSES),
+            ...array_map(Catalog::roleKey(...), array_keys(W4OS\Engine\Models\Avatar::ROLES)),
+            ...array_column([...W4OS\Engine\Models\Avatar::profileFlags()['wants'], ...W4OS\Engine\Models\Avatar::profileFlags()['skills']], 'key'),
         ];
 
         expect(array_diff($keys, array_keys(Catalog::MESSAGES)))
@@ -300,9 +300,9 @@ describe('The translations of the catalog', function () {
     test('are in their language: no line in another script, none left in English where the English is a sentence', function () {
         $foreign = '/[\x{0400}-\x{04FF}\x{0590}-\x{06FF}\x{3040}-\x{30FF}\x{3400}-\x{9FFF}\x{AC00}-\x{D7AF}]/u';
         $wrong = [];
-        foreach (OpenSim\I18n\Catalog::LOCALES as $locale) {
-            foreach (OpenSim\I18n\Catalog::messages($locale) as $key => $text) {
-                $english = OpenSim\I18n\Catalog::MESSAGES[$key] ?? '';
+        foreach (W4OS\Engine\I18n\Catalog::LOCALES as $locale) {
+            foreach (W4OS\Engine\I18n\Catalog::messages($locale) as $key => $text) {
+                $english = W4OS\Engine\I18n\Catalog::MESSAGES[$key] ?? '';
                 preg_match($foreign, $text) === 1 && ($wrong[] = "$locale $key: another script");
                 str_contains($text, "\n") && !str_contains($english, "\n") && ($wrong[] = "$locale $key: a line more");
                 $text === $english && str_word_count($english) > 6 && !preg_match('/OpenSim|Gloebit|Podex|DTL|github|\.com/', $english)

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Data\Cache;
-use OpenSim\Data\OSPDO;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Models\Region;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * The pictures of the destinations of a guide, the engine's to find, the sites' to show: the picture of the parcel of each

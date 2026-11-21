@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network;
+namespace W4OS\Engine\Network;
 
-use OpenSim\Data\Cache;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The machine a host stands for, however it is written: its aliases and its addresses are one server. Its key is the address it

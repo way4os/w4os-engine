@@ -6,7 +6,7 @@ declare(strict_types=1);
  * The values packed in a number: flags by their value, labels by their bit.
  */
 
-use OpenSim\Support\Bitmask;
+use W4OS\Engine\Support\Bitmask;
 
 describe('bitmask', function () {
     test('names the flags a number has, in the order of the list', function () {

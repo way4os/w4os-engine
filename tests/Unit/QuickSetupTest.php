@@ -6,18 +6,18 @@ declare(strict_types=1);
  * The quick setup: a few answers, the whole setup they stand for, and what is wrong with them by the name of the question.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\Layout;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\QuickSetup;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\InstanceControl;
-use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\Environment;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\QuickSetup;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\DatabaseService;
+use W4OS\Engine\Provisioning\InstanceControl;
+use W4OS\Engine\Provisioning\UiInterface;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Testing\Machine;
 
 /** The answers of a person who knows what they want. */
 function quick_answers(array $set = []): array
@@ -354,7 +354,7 @@ describe('quick setup, what is wrong', function () {
         );
 
         $answers = QuickSetup::plan($machine->environment, quick_answers());
-        $planner = \OpenSim\Provisioning\GridPlanner::forMachine($machine->environment);
+        $planner = \W4OS\Engine\Provisioning\GridPlanner::forMachine($machine->environment);
 
         expect($answers['valid'])
             ->toBeTrue()
@@ -1112,7 +1112,7 @@ describe('quick setup, the scenario', function () {
 
         expect($done)->toMatchArray([
             'action' => 'abort',
-            'error' => 'The OpenSim system layout is missing: install opensim-engine before running setup.',
+            'error' => 'The OpenSim system layout is missing: install w4os-engine before running setup.',
         ]);
     });
 

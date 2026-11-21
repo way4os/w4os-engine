@@ -7,13 +7,13 @@ declare(strict_types=1);
  * the one of w4os-wp (Match, MatchPattern, List of `[Models]`).
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridConfig;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\AvatarModel;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\AvatarModel;
+use W4OS\Engine\Testing\Machine;
 
 const MODEL_ONE = '11111111-1111-4111-8111-111111111111';
 const MODEL_TWO = '22222222-2222-4222-8222-222222222222';
@@ -80,7 +80,7 @@ describe('The rule of the avatar models', function () {
     });
 
     test('has its form in the contract, in the words of w4os-wp and their translations: Match as radios, the help in five points, the preview', function () {
-        $contract = OpenSim\Api\Contract::document();
+        $contract = W4OS\Engine\Api\Contract::document();
         $operations = $contract['paths']['/grids/{grid}/settings/models'];
         $form = $operations['get']['x-form'];
         $fields = array_column($form['fields'], null, 'name');

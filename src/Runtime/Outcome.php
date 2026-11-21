@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * What became of an instance a start or a stop was asked for, when it did not fail (see InstanceFailed).

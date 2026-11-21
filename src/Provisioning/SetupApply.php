@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Exceptions\NotFound;
-use OpenSim\Models\Grid;
-use OpenSim\Network\Ports;
-use OpenSim\Runtime\Environment;
-use OpenSim\Text\Notice;
+use W4OS\Engine\Console\InstanceConsoleService;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Network\Ports;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Text\Notice;
 
 /**
  * A setup file (SetupFile) applied to a grid of this machine, without a question: the simulators it names are made, or given the
@@ -246,7 +246,7 @@ final class SetupApply
     }
 
     /** The plan of a simulator of the grid that exists, which is given a region. */
-    private static function existing(Grid $grid, \OpenSim\Models\Simulator $simulator): SimulatorPlan
+    private static function existing(Grid $grid, \W4OS\Engine\Models\Simulator $simulator): SimulatorPlan
     {
         $plan = new SimulatorPlan();
         $plan->gridNick = $grid->nick();

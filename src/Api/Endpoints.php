@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
 /**
  * The endpoints of a grid that are not resources: what OpenSimulator and the viewers call in a format of their own (the search, the
@@ -105,8 +105,8 @@ final class Endpoints
             ],
         ];
         // The settings of a grid by group, each with its form, the same fields for its reading and its change
-        foreach (\OpenSim\Models\GridSettings::groups() as $group) {
-            $form = \OpenSim\Models\GridSettings::form($group);
+        foreach (\W4OS\Engine\Models\GridSettings::groups() as $group) {
+            $form = \W4OS\Engine\Models\GridSettings::form($group);
             $properties = [];
             foreach ($form['fields'] as $field) {
                 $properties[$field['name']] = match (true) {
@@ -126,7 +126,7 @@ final class Endpoints
                     'operationId' => "get{$name}Settings",
                     'tags' => ['Settings'],
                     'summary' => "The settings of the grid: $group",
-                    'description' => \OpenSim\Models\GridSettings::description($group),
+                    'description' => \W4OS\Engine\Models\GridSettings::description($group),
                     'parameters' => [Contract::gridParameter()],
                     'x-form' => $form,
                     'responses' => [
@@ -138,7 +138,7 @@ final class Endpoints
                     'operationId' => "update{$name}Settings",
                     'tags' => ['Settings'],
                     'summary' => "Change the settings of the grid: $group",
-                    'description' => 'The settings given, checked against their field (`invalid-request`): each is written in the file of the grid that says it already (Robust, OpenSim.ini, Helpers.ini, MoneyServer.ini), else in the file of its instance (the registry of the settings, `OpenSim\\Config\\Settings`). A value null is no change; a field `readOnly` is set by the options of the grid, refused here unless it is the value it has; a secret is given back as `********` when it is set, and `********` sent back keeps it. The answer is the settings now.',
+                    'description' => 'The settings given, checked against their field (`invalid-request`): each is written in the file of the grid that says it already (Robust, OpenSim.ini, Helpers.ini, MoneyServer.ini), else in the file of its instance (the registry of the settings, `W4OS\\Engine\\Config\\Settings`). A value null is no change; a field `readOnly` is set by the options of the grid, refused here unless it is the value it has; a secret is given back as `********` when it is set, and `********` sent back keeps it. The answer is the settings now.',
                     'parameters' => [Contract::gridParameter()],
                     'requestBody' => ['required' => true, 'content' => [Response::JSON_API => ['schema' => $body]]],
                     'responses' => [
@@ -153,7 +153,7 @@ final class Endpoints
             'operationId' => 'getSiteDescription',
             'tags' => ['Setup'],
             'summary' => 'The description of the grid for a site',
-            'description' => 'What a site needs of the grid for its helpers, from the files of this machine: `grid` who it is (`nick`, `name`, `baseHostname`, `publicPort`, `standalone`), `config` the settings its helpers read by file (Robust, OpenSim, Helpers, MoneyServer) and section (the addresses, the names of the databases as `Data Source=;Database=<name>;`, the settings of the helpers, the database of the money server by its name), `destinations` the text of its list of destinations when it is a file of this machine (its `GuideSource` then empty), `checkedAt` when it was read, for a site to keep it. Never a secret: no password, no key, no server of a database (the site reaches them with its own access, `Environment::system(databases:)`). The engine a site bundles makes its grid of it with `OpenSim\\Models\\SiteDescription::grid()`, never of a folder.',
+            'description' => 'What a site needs of the grid for its helpers, from the files of this machine: `grid` who it is (`nick`, `name`, `baseHostname`, `publicPort`, `standalone`), `config` the settings its helpers read by file (Robust, OpenSim, Helpers, MoneyServer) and section (the addresses, the names of the databases as `Data Source=;Database=<name>;`, the settings of the helpers, the database of the money server by its name), `destinations` the text of its list of destinations when it is a file of this machine (its `GuideSource` then empty), `checkedAt` when it was read, for a site to keep it. Never a secret: no password, no key, no server of a database (the site reaches them with its own access, `Environment::system(databases:)`). The engine a site bundles makes its grid of it with `W4OS\\Engine\\Models\\SiteDescription::grid()`, never of a folder.',
             'parameters' => [Contract::gridParameter()],
             'responses' => [
                 '200' => ['description' => 'The description of the grid'],
@@ -406,7 +406,7 @@ final class Endpoints
             ],
             // What a site shows to write one, and to delete one (its own stream, `self`)
             'x-form' => [
-                'fields' => [['name' => 'content', 'label' => 'post_label', 'type' => 'text', 'maxLength' => \OpenSim\Flux\Posts::MAX, 'required' => true, 'description' => 'post_help']],
+                'fields' => [['name' => 'content', 'label' => 'post_label', 'type' => 'text', 'maxLength' => \W4OS\Engine\Flux\Posts::MAX, 'required' => true, 'description' => 'post_help']],
                 'submit' => 'action_post',
                 'actions' => [['name' => 'deletePost', 'label' => 'action_delete_post', 'method' => 'DELETE', 'path' => '/grids/{grid}/avatars/{id}/posts/{post}', 'ask' => 'ask_delete_post']],
             ],
@@ -845,7 +845,7 @@ final class Endpoints
             'operationId' => 'getLayout',
             'tags' => ['System'],
             'summary' => 'System layout',
-            'description' => 'The resolved `opensim.conf` layout, the configured SystemUser identity, and the current process identity. This operator endpoint is protected by the API key.',
+            'description' => 'The resolved `w4os.conf` layout, the configured SystemUser identity, and the current process identity. This operator endpoint is protected by the API key.',
             'responses' => [
                 '200' => [
                     'description' => 'The resolved layout and identities',

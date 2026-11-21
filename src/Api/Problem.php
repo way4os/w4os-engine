@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Exceptions\NotFound;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Exceptions\NotFound;
 
 /**
  * What went wrong, told as RFC 9457 asks (`application/problem+json`): a status, a title, what happened, and where. The same
@@ -162,7 +162,7 @@ final class Problem
 
     private static function internal(\Throwable $error, ?string $instance): self
     {
-        error_log(sprintf('opensim-api: %s: %s (%s:%d)', $error::class, $error->getMessage(), $error->getFile(), $error->getLine()));
+        error_log(sprintf('w4os-api: %s: %s (%s:%d)', $error::class, $error->getMessage(), $error->getFile(), $error->getLine()));
 
         return new self(500, 'Internal error', '', 'about:blank', $instance);
     }

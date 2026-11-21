@@ -6,11 +6,11 @@ declare(strict_types=1);
  * The logos the engine ships for every bridge (w4os, OpenSimulator), and the logo of a grid, which is its own setting.
  */
 
-use OpenSim\Api\Router;
-use OpenSim\Api\Api;
-use OpenSim\Assets\Logos;
-use OpenSim\Models\Grid;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Assets\Logos;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Testing\Machine;
 
 describe('The logos of w4os and OpenSimulator', function () {
     test('are shipped by their file names, with a note of where they come from', function () {
@@ -33,7 +33,7 @@ describe('The logos of w4os and OpenSimulator', function () {
             ->not->toContain(null)
             ->and(Logos::file('w4os-icon-v1.png'))
             ->toBe(Logos::all()['w4os-icon-v1.png'])
-            ->and(Logos::file('../languages/opensim-engine.pot'))
+            ->and(Logos::file('../languages/w4os-engine.pot'))
             ->toBeNull()
             ->and(file_get_contents(Logos::directory() . '/README.md'))
             ->toContain('OpenSimulator');
@@ -55,7 +55,7 @@ describe('The logos of w4os and OpenSimulator', function () {
             ->toBe(404)
             ->and(Router::PUBLIC)
             ->toContain('GET /logos/{name}')
-            ->and(OpenSim\Api\Contract::document()['paths']['/logos/{name}']['get']['parameters'][0]['schema']['enum'])
+            ->and(W4OS\Engine\Api\Contract::document()['paths']['/logos/{name}']['get']['parameters'][0]['schema']['enum'])
             ->toBe(Logos::FILES);
     });
 });

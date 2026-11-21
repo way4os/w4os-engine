@@ -6,9 +6,9 @@ declare(strict_types=1);
  * The databases of a grid, from its config: where each is set, in which order, and what it falls back to.
  */
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Database;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Database;
 
 /** A grid folder: Robust with an asset service of its own, two simulators, the MoneyServer and the helpers. */
 function registry_grid(array $files = []): GridConfig

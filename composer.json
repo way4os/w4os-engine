@@ -1,5 +1,5 @@
 {
-    "name": "magicoli/opensim-engine",
+    "name": "w4os/w4os-engine",
     "description": "OpenSimulator Engine - Framework-agnostic core functionality for OpenSim grids",
     "type": "library",
     "license": "AGPL-3.0-or-later",
@@ -63,12 +63,12 @@
     ],
     "minimum-stability": "dev",
     "bin": [
-        "bin/opensim-api",
+        "bin/w4os-api",
         "bin/opensim-container.php"
     ],
     "autoload": {
         "psr-4": {
-            "OpenSim\\": "src/"
+            "W4OS\\Engine\\": "src/"
         },
         "files": [
             "includes/functions-gettext.php",

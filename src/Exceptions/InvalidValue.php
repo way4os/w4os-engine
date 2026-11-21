@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Exceptions;
+namespace W4OS\Engine\Exceptions;
 
 /**
  * A value that is refused, with the reason as a stable code (`name-taken`, `password-invalid`...) beside the English message: what

@@ -1,12 +1,12 @@
 <?php
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\Environment;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * Which grid, and which simulator or region of it, the words of a command name: `GRID`, `GRID SIM`, `GRID _SIM`,

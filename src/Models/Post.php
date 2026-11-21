@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Listing;
-use OpenSim\Flux\Posts;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Flux\Posts;
 
 /**
  * A post of the stream of an avatar (Flux), as the list of all the posts of the grid shows it: the admin list of w4os-wp's Flux (its

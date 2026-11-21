@@ -2,64 +2,64 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
-use OpenSim\Result;
-use OpenSim\Config\GridConfig;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Exceptions\NotFound;
-use OpenSim\Interfaces\ModelInterface;
-use OpenSim\Assets\ConverterInterface;
-use OpenSim\Assets\ImagickConverter;
-use OpenSim\Assets\ImagickTextRenderer;
-use OpenSim\Assets\Logos;
-use OpenSim\Assets\TextRendererInterface;
-use OpenSim\Assets\WebAssets;
-use OpenSim\Provisioning\Web\SitePages;
-use OpenSim\Models\Archive;
-use OpenSim\Models\Asset;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\AvatarModel;
-use OpenSim\Models\Estate;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Post;
-use OpenSim\Provisioning\QuickSetup;
-use OpenSim\Provisioning\SetupApply;
-use OpenSim\Provisioning\SetupFile;
-use OpenSim\Provisioning\Import\SimulatorImport;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Models\Parcel;
-use OpenSim\Models\Region;
-use OpenSim\Models\Service;
-use OpenSim\Models\Simulator;
-use OpenSim\Text\Notice;
-use OpenSim\OpenSim;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\InstanceAccess;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Economy\Currency;
-use OpenSim\Health\Health;
-use OpenSim\Health\HealthCheck;
-use OpenSim\Runtime\GridMonitor;
-use OpenSim\Economy\CurrencySettings;
-use OpenSim\Services\CurrencyServer;
-use OpenSim\Services\Failure;
-use OpenSim\Text\DestinationList;
-use OpenSim\Services\MailerInterface;
-use OpenSim\Services\OfflineMessages;
-use OpenSim\Services\PhpMailer;
-use OpenSim\Services\SearchParser;
-use OpenSim\Services\SearchQuery;
-use OpenSim\Services\SearchRegistry;
-use OpenSim\Services\SearchTables;
-use OpenSim\Services\XmlRpc;
-use OpenSim\Scheduling\Scheduler;
-use OpenSim\SignIn\AvatarAccess;
-use OpenSim\SignIn\DatabaseAuthenticator;
-use OpenSim\SignIn\SignInResult;
+use W4OS\Engine\Result;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\Interfaces\ModelInterface;
+use W4OS\Engine\Assets\ConverterInterface;
+use W4OS\Engine\Assets\ImagickConverter;
+use W4OS\Engine\Assets\ImagickTextRenderer;
+use W4OS\Engine\Assets\Logos;
+use W4OS\Engine\Assets\TextRendererInterface;
+use W4OS\Engine\Assets\WebAssets;
+use W4OS\Engine\Provisioning\Web\SitePages;
+use W4OS\Engine\Models\Archive;
+use W4OS\Engine\Models\Asset;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\AvatarModel;
+use W4OS\Engine\Models\Estate;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Post;
+use W4OS\Engine\Provisioning\QuickSetup;
+use W4OS\Engine\Provisioning\SetupApply;
+use W4OS\Engine\Provisioning\SetupFile;
+use W4OS\Engine\Provisioning\Import\SimulatorImport;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Models\Parcel;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Models\Service;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Text\Notice;
+use W4OS\Engine\OpenSim;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\InstanceAccess;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Economy\Currency;
+use W4OS\Engine\Health\Health;
+use W4OS\Engine\Health\HealthCheck;
+use W4OS\Engine\Runtime\GridMonitor;
+use W4OS\Engine\Economy\CurrencySettings;
+use W4OS\Engine\Services\CurrencyServer;
+use W4OS\Engine\Services\Failure;
+use W4OS\Engine\Text\DestinationList;
+use W4OS\Engine\Services\MailerInterface;
+use W4OS\Engine\Services\OfflineMessages;
+use W4OS\Engine\Services\PhpMailer;
+use W4OS\Engine\Services\SearchParser;
+use W4OS\Engine\Services\SearchQuery;
+use W4OS\Engine\Services\SearchRegistry;
+use W4OS\Engine\Services\SearchTables;
+use W4OS\Engine\Services\XmlRpc;
+use W4OS\Engine\Scheduling\Scheduler;
+use W4OS\Engine\SignIn\AvatarAccess;
+use W4OS\Engine\SignIn\DatabaseAuthenticator;
+use W4OS\Engine\SignIn\SignInResult;
 
 /**
  * What the machine offers as resources, listed, read and changed the way JSON:API says, the errors told as problems (RFC 9457). The
@@ -127,7 +127,7 @@ final class Api
      *        InstanceAccess::refusal())
      * @param ?\Closure(array{host:string,name:string,user:string,pass:string},string):void $dumper writes the dump of a database for a
      *        backup (default: DatabaseDump::write())
-     * @param ?\Closure(\OpenSim\Config\ConnectionString,string):void $restoreLoader makes a database again from a dump for a restore
+     * @param ?\Closure(\W4OS\Engine\Config\ConnectionString,string):void $restoreLoader makes a database again from a dump for a restore
      *        (default: BackupRestore's own)
      */
     public function __construct(
@@ -140,7 +140,7 @@ final class Api
         private readonly ?\Closure $dumper = null,
         private readonly ?\Closure $restoreLoader = null,
         ?\Closure $grids = null,
-        private readonly ?\OpenSim\Provisioning\AccountImporter $accounts = null,
+        private readonly ?\W4OS\Engine\Provisioning\AccountImporter $accounts = null,
     ) {
         // The grids it serves: the ones of this machine (their folder in EtcRoot), or the ones an application gives (a site that has
         // the engine in its own folder: the settings of a grid and its databases over the network, nothing read from the machine)
@@ -307,7 +307,7 @@ final class Api
             $rows = match ($kind) {
                 'picks' => $avatar->picks(),
                 'groups' => $avatar->groups(),
-                'posts' => \OpenSim\Flux\Posts::for($this->gridConfig($grid))->of((string) $avatar->uuid(), 1, 100),
+                'posts' => \W4OS\Engine\Flux\Posts::for($this->gridConfig($grid))->of((string) $avatar->uuid(), 1, 100),
                 default => $avatar->classifieds((int) $this->environment->clock->time()),
             };
         } catch (\Throwable $error) {
@@ -420,7 +420,7 @@ final class Api
                 $meta['reminders'] = $model->reminders();
             }
             // A simulator reads its own file at its start
-            if ($model instanceof \OpenSim\Models\Simulator && $attributes !== []) {
+            if ($model instanceof \W4OS\Engine\Models\Simulator && $attributes !== []) {
                 $meta['reminders'] = [Notice::of('restart-simulators', ['restart' => 'opensim restart ' . $model->name()])];
             }
             if ($email !== null) {
@@ -877,7 +877,7 @@ final class Api
         return new CurrencyServer(
             new Currency(
                 $settings,
-                static fn(string $service): ?\OpenSim\Data\OSPDO => Connections::pdo($config, $service),
+                static fn(string $service): ?\W4OS\Engine\Data\OSPDO => Connections::pdo($config, $service),
                 $money,
             ),
             $ip,
@@ -960,8 +960,8 @@ final class Api
         $instance = self::path('grids', $grid, null) . "/settings/$group";
         try {
             $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
-            in_array($group, \OpenSim\Models\GridSettings::groups(), true) || throw NotFound::for("settings called '$group'");
-            $settings = new \OpenSim\Models\GridSettings($found);
+            in_array($group, \W4OS\Engine\Models\GridSettings::groups(), true) || throw NotFound::for("settings called '$group'");
+            $settings = new \W4OS\Engine\Models\GridSettings($found);
             $values = $changes === null ? $settings->read($group) : $settings->write($group, $changes);
             $meta = $settings->meta($group);
             // What the change leaves to do: the restart of the instances that read what changed
@@ -986,7 +986,7 @@ final class Api
             in_array($mode, ['plan', 'apply'], true) || throw InvalidValue::because('invalid-request', "'$mode' is not a mode: plan or apply");
             $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             in_array('files', $found->access(), true) || throw ChannelUnavailable::because("repair the options of $grid", 'options-no-files');
-            $repair = (new \OpenSim\Provisioning\GridOptions($found))->repair($mode === 'apply');
+            $repair = (new \W4OS\Engine\Provisioning\GridOptions($found))->repair($mode === 'apply');
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1004,7 +1004,7 @@ final class Api
         try {
             $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             in_array('files', $found->access(), true) || throw ChannelUnavailable::because("describe $grid for a site", 'options-no-files');
-            $description = \OpenSim\Models\SiteDescription::of($found);
+            $description = \W4OS\Engine\Models\SiteDescription::of($found);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1027,7 +1027,7 @@ final class Api
             if ($avatar === null) {
                 return Response::problem(Problem::notFound("avatar called '$id'", $instance, 'avatars'));
             }
-            $post = \OpenSim\Flux\Posts::for($config)->add((string) $avatar->uuid(), $avatar->name(), (string) ($attributes['content'] ?? ''));
+            $post = \W4OS\Engine\Flux\Posts::for($config)->add((string) $avatar->uuid(), $avatar->name(), (string) ($attributes['content'] ?? ''));
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1042,7 +1042,7 @@ final class Api
         try {
             $config = $this->gridConfig($grid);
             $avatar = Avatar::find($config, $id);
-            $posts = \OpenSim\Flux\Posts::for($config);
+            $posts = \W4OS\Engine\Flux\Posts::for($config);
             $found = $avatar === null ? null : $posts->find($post);
             if ($found === null || $found['avatar'] !== strtolower((string) $avatar->uuid())) {
                 return Response::problem(Problem::notFound("post '$post' of the avatar '$id'", $instance, 'posts'));
@@ -1081,7 +1081,7 @@ final class Api
             }
             // The settings of a grid of another install, in the OpenSim.ini of a grid of this machine
             if ($kind === 'grid-settings') {
-                $settings = \OpenSim\Provisioning\Import\GridSettingsImport::prepare($this->environment, (string) ($attributes['file'] ?? ''), (string) ($attributes['grid'] ?? ''));
+                $settings = \W4OS\Engine\Provisioning\Import\GridSettingsImport::prepare($this->environment, (string) ($attributes['file'] ?? ''), (string) ($attributes['grid'] ?? ''));
                 $document = $settings->document();
                 $applied = $mode === 'apply' && $settings->apply();
 
@@ -1096,7 +1096,7 @@ final class Api
             }
             // Several simulators into one grid: planned together, checked between them, written in their order
             if (is_array($attributes['simulators'] ?? null)) {
-                $imports = \OpenSim\Provisioning\Import\SimulatorImports::prepare(
+                $imports = \W4OS\Engine\Provisioning\Import\SimulatorImports::prepare(
                     $this->environment,
                     array_values(array_filter($attributes['simulators'], 'is_array')),
                     (string) ($attributes['grid'] ?? ''),
@@ -1155,7 +1155,7 @@ final class Api
             return $this->registerInPlace($file, $nick, $simulators, $mode, Result::isTrue($attributes['forget'] ?? false), $instance);
         }
         // Switched once applied: the grid is here, written by the import
-        $planned = \OpenSim\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply');
+        $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply');
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
         $started = $switch ? $planned->switch($this->environment, new NullUi()) : [];
 
@@ -1179,21 +1179,21 @@ final class Api
     {
         is_file($file) && is_readable($file) || throw InvalidValue::because('invalid-request', "cannot read the Robust config: $file");
         $conf = (string) $this->environment->layout->file();
-        $conf !== '' || throw InvalidValue::because('invalid-request', 'this install has no ' . \OpenSim\Config\Layout::FILE . ' to register the grid in');
-        $raw = \OpenSim\Config\ConfigReader::load($file);
-        $nick ??= trim((string) ($raw['GridInfoService']['gridnick'] ?? ''), '"') ?: \OpenSim\Provisioning\Slug::nick(trim((string) ($raw['GridInfoService']['gridname'] ?? ''), '"'));
+        $conf !== '' || throw InvalidValue::because('invalid-request', 'this install has no ' . \W4OS\Engine\Config\Layout::FILE . ' to register the grid in');
+        $raw = \W4OS\Engine\Config\ConfigReader::load($file);
+        $nick ??= trim((string) ($raw['GridInfoService']['gridnick'] ?? ''), '"') ?: \W4OS\Engine\Provisioning\Slug::nick(trim((string) ($raw['GridInfoService']['gridname'] ?? ''), '"'));
         ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with nick");
-        $section = \OpenSim\Config\InPlaceGrids::sectionFor($file, $simulators);
-        $known = \OpenSim\Config\InPlaceGrids::section($conf, (string) $nick);
+        $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators);
+        $known = \W4OS\Engine\Config\InPlaceGrids::section($conf, (string) $nick);
         if ($forget) {
             $known !== [] || throw NotFound::for("grid in place called '$nick'", 'grids');
-            $mode === 'apply' && \OpenSim\Config\InPlaceGrids::forget($conf, (string) $nick);
+            $mode === 'apply' && \W4OS\Engine\Config\InPlaceGrids::forget($conf, (string) $nick);
         } else {
             $known === [] && is_dir(rtrim($this->environment->layout->etcRoot(), '/') . "/grids/$nick") &&
                 throw InvalidValue::because('invalid-request', "this install has the grid $nick already: give another nick (nick)");
             $known === [] || ($known['RobustIni'] ?? '') === $section['RobustIni'] ||
                 throw InvalidValue::because('invalid-request', "the grid $nick is registered in place from another Robust config already ({$known['RobustIni']})");
-            $mode === 'apply' && \OpenSim\Config\InPlaceGrids::set($conf, (string) $nick, $section);
+            $mode === 'apply' && \W4OS\Engine\Config\InPlaceGrids::set($conf, (string) $nick, $section);
         }
 
         return Response::document([
@@ -1232,18 +1232,18 @@ final class Api
         }
         $format = ($attributes['format'] ?? '') !== '' ? (string) $attributes['format'] : null;
         $format === null || in_array($format, ['csv', 'json', 'yaml'], true) || throw InvalidValue::because('invalid-request', "'$format' is not a format: csv, json or yaml");
-        $list = \OpenSim\Provisioning\AccountList::parse((string) ($attributes['text'] ?? ''), $format);
+        $list = \W4OS\Engine\Provisioning\AccountList::parse((string) ($attributes['text'] ?? ''), $format);
         $list['accounts'] !== [] || throw InvalidValue::because('invalid-request', 'nothing to make' . ($list['errors'] === [] ? '' : ': every line has a problem (' . implode('; ', $list['errors']) . ')'));
-        $done = ($this->accounts ?? \OpenSim\Provisioning\AccountImporter::forModels(fn(Grid $grid): ?GridConfig => ($this->config)($grid)))->run($target, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false));
-        $done['error'] === null || throw \OpenSim\Exceptions\ChannelUnavailable::for('import the accounts', $done['error'] . ': its server must be reachable from here and its user allowed to read it');
+        $done = ($this->accounts ?? \W4OS\Engine\Provisioning\AccountImporter::forModels(fn(Grid $grid): ?GridConfig => ($this->config)($grid)))->run($target, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false));
+        $done['error'] === null || throw \W4OS\Engine\Exceptions\ChannelUnavailable::for('import the accounts', $done['error'] . ': its server must be reachable from here and its user allowed to read it');
 
         $counts = [];
         $results = [];
         foreach ($done['results'] as $row) {
             $counts[$row['status']] = ($counts[$row['status']] ?? 0) + 1;
-            $made = $row['generated'] && $row['status'] === \OpenSim\Provisioning\AccountImporter::CREATED;
+            $made = $row['generated'] && $row['status'] === \W4OS\Engine\Provisioning\AccountImporter::CREATED;
             // A password is given back only when it was made here and its account exists
-            $results[] = ['first' => $row['first'], 'last' => $row['last'], 'email' => $row['email'], 'status' => $row['status'], 'detail' => $row['detail'], 'generated' => $row['generated'] && $row['status'] !== \OpenSim\Provisioning\AccountImporter::EXISTS]
+            $results[] = ['first' => $row['first'], 'last' => $row['last'], 'email' => $row['email'], 'status' => $row['status'], 'detail' => $row['detail'], 'generated' => $row['generated'] && $row['status'] !== \W4OS\Engine\Provisioning\AccountImporter::EXISTS]
                 + ($made ? ['password' => $row['password']] : []);
         }
         $applied = $mode === 'apply';
@@ -1253,7 +1253,7 @@ final class Api
                 'type' => 'imports',
                 'id' => $nick,
                 'attributes' => ['kind' => 'accounts', 'mode' => $mode, 'applied' => $applied, 'grid' => $nick, 'errors' => $list['errors'], 'counts' => $counts, 'results' => $results]
-                    + ($applied ? ['csv' => \OpenSim\Provisioning\AccountImporter::resultCsv(array_map(static fn(array $row): array => $row + ['password' => '', 'generated' => false], $results))] : []),
+                    + ($applied ? ['csv' => \W4OS\Engine\Provisioning\AccountImporter::resultCsv(array_map(static fn(array $row): array => $row + ['password' => '', 'generated' => false], $results))] : []),
             ],
             'links' => ['self' => $instance],
         ]);
@@ -1268,8 +1268,8 @@ final class Api
     private function importFlux(array $attributes, string $mode, string $instance): Response
     {
         $grid = (string) ($attributes['grid'] ?? '');
-        $site = \OpenSim\Flux\FluxImport::wordpress((string) ($attributes['file'] ?? ''));
-        $import = \OpenSim\Flux\FluxImport::prepare($this->gridConfig($grid), \OpenSim\Flux\FluxImport::connect($site), $site['prefix']);
+        $site = \W4OS\Engine\Flux\FluxImport::wordpress((string) ($attributes['file'] ?? ''));
+        $import = \W4OS\Engine\Flux\FluxImport::prepare($this->gridConfig($grid), \W4OS\Engine\Flux\FluxImport::connect($site), $site['prefix']);
         $document = $import->document();
         $mode === 'apply' && $import->apply();
 
@@ -1306,9 +1306,9 @@ final class Api
                 'archives' => Result::isTrue($attributes['archives'] ?? false),
                 'keep' => isset($attributes['keep']) ? (int) $attributes['keep'] : null,
             ], static fn($value): bool => $value !== null && $value !== false);
-            $files = (new \OpenSim\Archives\BackupService(
+            $files = (new \W4OS\Engine\Archives\BackupService(
                 $this->environment,
-                $this->dumper ?? \OpenSim\Archives\DatabaseDump::write(...),
+                $this->dumper ?? \W4OS\Engine\Archives\DatabaseDump::write(...),
                 static function (string $message): void {},
             ))->run($refs, $options);
             $made = null;
@@ -1316,7 +1316,7 @@ final class Api
                 $archive->file() === ($files[0] ?? '') && ($made = $archive);
             }
             $made ?? throw new \RuntimeException('the backup is made, but not where the archives are listed: ' . ($files[0] ?? ''));
-        } catch (NotFound|\OpenSim\Exceptions\ChannelUnavailable $error) {
+        } catch (NotFound|\W4OS\Engine\Exceptions\ChannelUnavailable $error) {
             return Response::problem(Problem::from($error, $instance));
         } catch (\RuntimeException $error) {
             return Response::problem(new Problem(503, 'Not available', $error->getMessage(), 'urn:opensim:problem:channel-unavailable', $instance));
@@ -1350,13 +1350,13 @@ final class Api
                 $file = Archive::find($this->environment, (string) $attributes['archive'])?->file() ??
                     throw NotFound::for("archive called '{$attributes['archive']}'");
             }
-            $restore = \OpenSim\Archives\BackupRestore::prepare($this->environment, $file);
+            $restore = \W4OS\Engine\Archives\BackupRestore::prepare($this->environment, $file);
             if ($mode === 'apply') {
                 $refusal = ($this->instanceAccess)($this->environment);
                 $refusal === null || throw InvalidValue::because('instance-user-required', $refusal);
                 $restore->apply($this->restoreLoader);
             }
-        } catch (NotFound|\OpenSim\Exceptions\ChannelUnavailable $error) {
+        } catch (NotFound|\W4OS\Engine\Exceptions\ChannelUnavailable $error) {
             return Response::problem(Problem::from($error, $instance));
         } catch (\RuntimeException $error) {
             // A file or a database that cannot be had: said, it is not a failure of the server
@@ -1591,7 +1591,7 @@ final class Api
     /**
      * The search database of a grid, with its tables.
      *
-     * @return array{0:\OpenSim\Data\OSPDO,1:string,2:GridConfig} the database, the table of the regions, the config of the grid
+     * @return array{0:\W4OS\Engine\Data\OSPDO,1:string,2:GridConfig} the database, the table of the regions, the config of the grid
      * @throws Failure 503 when the grid has no search database or it cannot be reached
      */
     private function searchDatabase(string $nick): array
@@ -1608,7 +1608,7 @@ final class Api
             self::$prepared[$key] = true;
         }
 
-        return [$db, \OpenSim\Models\Region::searchTable($db), $config];
+        return [$db, \W4OS\Engine\Models\Region::searchTable($db), $config];
     }
 
     /** Run a task now, whether it is due or not. */
@@ -1676,7 +1676,7 @@ final class Api
         }
         $rows = [];
         foreach ($results as $target => $result) {
-            $failed = $result instanceof \OpenSim\Exceptions\InstanceFailed;
+            $failed = $result instanceof \W4OS\Engine\Exceptions\InstanceFailed;
             $rows[] = [
                 'instance' => (string) $target,
                 'outcome' => $failed ? 'failed' : $result->value,

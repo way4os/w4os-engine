@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * The log4net config of an instance (`Robust.exe.config`, `<name>.LogConfig`): the file its appender writes.

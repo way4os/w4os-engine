@@ -10,4 +10,4 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-OpenSim\Api\Server::serve(OpenSim\OpenSim::environment());
+W4OS\Engine\Api\Server::serve(W4OS\Engine\OpenSim::environment());

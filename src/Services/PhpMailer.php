@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
 /**
  * Sends mail with the mail function of PHP: it needs a mail system on the machine (a local SMTP server, sendmail).

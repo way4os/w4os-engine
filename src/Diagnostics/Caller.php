@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Diagnostics;
+namespace W4OS\Engine\Diagnostics;
 
 use Error;
 

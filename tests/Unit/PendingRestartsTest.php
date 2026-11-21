@@ -3,8 +3,8 @@
  * What waits for an instance to restart.
  */
 
-use OpenSim\Provisioning\PendingRestarts;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Provisioning\PendingRestarts;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 describe('Pending restarts', function () {
     test('are kept one line each, once, and read back', function () {

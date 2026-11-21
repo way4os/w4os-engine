@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Runtime\ClockInterface;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Runtime\ClockInterface;
 
 /**
  * The simulators registered to the search (the table `hostsregister`): the ones whose snapshot is read now and then. A simulator

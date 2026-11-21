@@ -6,11 +6,11 @@ declare(strict_types=1);
  * What the machine needs to run a core: the runtime, the modules, the processes.
  */
 
-use OpenSim\Runtime\Core;
-use OpenSim\Runtime\ModuleLinker;
-use OpenSim\Runtime\Process;
-use OpenSim\Runtime\RuntimeProbe;
-use OpenSim\Runtime\SystemProcessTable;
+use W4OS\Engine\Runtime\Core;
+use W4OS\Engine\Runtime\ModuleLinker;
+use W4OS\Engine\Runtime\Process;
+use W4OS\Engine\Runtime\RuntimeProbe;
+use W4OS\Engine\Runtime\SystemProcessTable;
 
 /** A core that asks for .NET 8. */
 function probe_core(string $name = '0.9.3.0'): Core

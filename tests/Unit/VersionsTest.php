@@ -7,8 +7,8 @@ declare(strict_types=1);
  * being worked on), the cores of OpenSimulator, the runtimes.
  */
 
-use OpenSim\Support\Versions;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Support\Versions;
+use W4OS\Engine\Testing\Machine;
 
 describe('The version of a project', function () {
     test('is its git version in a clone, the one being worked on without git, unknown without anything', function () {
@@ -32,12 +32,12 @@ describe('The version of a project', function () {
 describe('The versions of a machine', function () {
     test('list the engine, rest-php, the cores and PHP', function () {
         $machine = new Machine();
-        $all = Versions::all($machine->environment, ['opensim-cli' => '3.0.0-test']);
+        $all = Versions::all($machine->environment, ['w4os-cli' => '3.0.0-test']);
 
         expect(array_key_first($all))
-            ->toBe('opensim-cli')
+            ->toBe('w4os-cli')
             ->and($all)
-            ->toHaveKeys(['opensim-cli', 'opensim-engine', 'opensim-rest-php', 'OpenSimulator 0.9.3.0', 'PHP'])
+            ->toHaveKeys(['w4os-cli', 'w4os-engine', 'opensim-rest-php', 'OpenSimulator 0.9.3.0', 'PHP'])
             ->and($all['PHP'])
             ->toBe(PHP_VERSION);
     });

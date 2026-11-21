@@ -6,11 +6,11 @@ declare(strict_types=1);
  * From the answers about a simulator to its plan: what is proposed, what follows, a simulator that exists, the owner of its estate.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Models\Simulator;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Provisioning\SimulatorPlanner;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\SimulatorPlanner;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /** A grid of this machine: demo, Robust at 8002, its database account known. */
 function sim_grid(array $set = []): Grid

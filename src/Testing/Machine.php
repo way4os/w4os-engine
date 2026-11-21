@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Testing;
+namespace W4OS\Engine\Testing;
 
-use OpenSim\Config\Layout;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\RuntimeProbe;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\RuntimeProbe;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * A machine that is a folder: an install with a core, a grid `demo` (its Robust, two simulators `alpha` and `beta`), the

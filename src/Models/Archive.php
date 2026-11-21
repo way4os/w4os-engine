@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Data\Listing;
-use OpenSim\Data\Collection;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The archives and the backups of the grids of the machine: the inventories (`iar`) and the regions (`oar`) the consoles of the
@@ -177,12 +177,12 @@ final class Archive extends InstalledModel
 
     public function enable(): bool
     {
-        throw \OpenSim\Exceptions\ChannelUnavailable::for('enable an archive');
+        throw \W4OS\Engine\Exceptions\ChannelUnavailable::for('enable an archive');
     }
 
     public function disable(): void
     {
-        throw \OpenSim\Exceptions\ChannelUnavailable::for('disable an archive');
+        throw \W4OS\Engine\Exceptions\ChannelUnavailable::for('disable an archive');
     }
 
     public function detail(): array

@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Container\Podman;
+use W4OS\Engine\Container\Podman;
 
 function podman_stub(): string
 {

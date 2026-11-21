@@ -1,11 +1,11 @@
 <?php
 
-use OpenSim\Archives\ArchiveRunner;
-use OpenSim\Archives\Archives;
-use OpenSim\Archives\BackupService;
-use OpenSim\Archives\OarBackup;
-use OpenSim\Archives\Instances;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Archives\ArchiveRunner;
+use W4OS\Engine\Archives\Archives;
+use W4OS\Engine\Archives\BackupService;
+use W4OS\Engine\Archives\OarBackup;
+use W4OS\Engine\Archives\Instances;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /**
  * An install with one grid, alpha, whose simulators sim1 (a region, Welcome) and sim2 (two regions) are enabled.
@@ -41,7 +41,8 @@ function archive_install(): array
     file_put_contents("$grid/sims/alpha_sim1/regions/Welcome.ini", "[Welcome]\nLocation = 1000,1000\n");
     file_put_contents("$grid/sims/alpha_sim2/regions/North.ini", "[North]\nLocation = 1000,1001\n");
     file_put_contents("$grid/sims/alpha_sim2/regions/South.ini", "[South]\nLocation = 1000,999\n");
-    file_put_contents("$etc/opensim.conf", "[Defaults]\nDefaultProfile = x\n");
+    mkdir("$root/w4os");
+    file_put_contents("$root/w4os/w4os.conf", "[Defaults]\nDefaultProfile = x\n");
     file_put_contents("$root/data/alpha/alpha_sim1/state", 'persistent');
     file_put_contents("$root/data/alpha/backups/oar/old.oar", 'archive of a user');
 
@@ -431,7 +432,7 @@ describe('opensim backup', function () {
         $profile = archive_install();
         $dumped = [];
         $backup = new BackupService(
-            EnvironmentFake::with($profile),
+            EnvironmentFake::with($profile, null, "{$profile['root']}/w4os/w4os.conf"),
             function (array $db, string $file) use (&$dumped): void {
                 $dumped[] = $db['name'];
                 file_put_contents($file, 'dump');
@@ -460,7 +461,7 @@ describe('opensim backup', function () {
             ->and($list)
             ->toContain('etc/robust.d/alpha.ini')
             ->and($list)
-            ->toContain('etc/opensim.conf')
+            ->toContain('etc/w4os.conf')
             ->and($list)
             ->toContain('var/alpha/alpha_sim1/state')
             ->and($list)

@@ -1,6 +1,6 @@
 <?php
 /**
- * Makes the gettext files of the texts of the websites of a grid (OpenSim\I18n\Catalog): the template (.pot) from
+ * Makes the gettext files of the texts of the websites of a grid (W4OS\Engine\I18n\Catalog): the template (.pot) from
  * Catalog::MESSAGES, and the translations (.po) of each language merged with it by msgmerge (gettext tools). A new text, or one
  * whose English changed, is to translate: msgmerge does not guess it from another (its guesses are other meanings, and the sites
  * get the fuzzy translations); the old one stays in the file, obsolete (#~), for the translator.
@@ -12,8 +12,8 @@
  * being the language (fr_FR). The first file given wins.
  */
 
-use OpenSim\I18n\Catalog;
-use OpenSim\I18n\PoFile;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\I18n\PoFile;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 

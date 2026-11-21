@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Testing;
+namespace W4OS\Engine\Testing;
 
-use OpenSim\Console\ScreenInterface;
+use W4OS\Engine\Console\ScreenInterface;
 
 /**
  * The console of an instance that answers what a test says.

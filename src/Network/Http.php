@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network;
+namespace W4OS\Engine\Network;
 
 /**
  * HTTP requests to the services of a grid: the body of the answer, null when there is none or its status is not 2xx.

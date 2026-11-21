@@ -7,8 +7,8 @@ declare(strict_types=1);
  * Robust.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
 
 /** A folder with files in it, in a temporary tree: name => content. */
 function reader_folder(array $files): string

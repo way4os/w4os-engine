@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\DirectoryLayout;
-use OpenSim\Config\Layout;
-use OpenSim\Runtime\Core;
-use OpenSim\Runtime\ShellService;
+use W4OS\Engine\Config\DirectoryLayout;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Runtime\Core;
+use W4OS\Engine\Runtime\ShellService;
 
 /**
  * The system layout of a machine that has none: the account the instances run as, the folders of the layout with their owner, and
- * `opensim.conf`. It needs root; a client that is not root runs it through sudo (`needed()` says whether to).
+ * `w4os.conf`. It needs root; a client that is not root runs it through sudo (`needed()` says whether to).
  */
 final class SystemLayout
 {
@@ -26,6 +26,7 @@ final class SystemLayout
      * @param ?\Closure(string):bool $userExists whether an account exists (default: the system's)
      * @param ?bool $root whether this process is root (default: it is when its user id is 0)
      * @param ?\Closure(string):array|false $groupInfo the members of a system group (default: the system's)
+     * @param ?string $conf the config file of the suite (default: the system one, Layout::systemFile())
      */
     public function __construct(
         private readonly UiInterface $ui,
@@ -33,6 +34,7 @@ final class SystemLayout
         private readonly ?\Closure $userExists = null,
         private readonly ?bool $root = null,
         private readonly ?\Closure $groupInfo = null,
+        private readonly ?string $conf = null,
     ) {}
 
     /** Whether the place of the grids cannot be written by whoever calls: the layout has to be made. */
@@ -47,7 +49,8 @@ final class SystemLayout
     }
 
     /**
-     * Make the account, the folders and `opensim.conf` (left as it is when it exists).
+     * Make the account, the folders and `w4os.conf` (left as it is when it exists; the `opensim.conf` of before w4os, in the
+     * folder of the grids, moved to its place as it is).
      *
      * @return bool whether the layout is there at the end
      */
@@ -58,6 +61,18 @@ final class SystemLayout
             $this->ui->error(_('Making the system layout needs root: run it with sudo.'));
 
             return false;
+        }
+        $conf = $this->conf ?? Layout::systemFile();
+        // The config of before w4os, in the folder of the grids, moved to its place first: its settings are the ones of the install
+        $legacy = rtrim($layout->etcRoot(), '/') . '/' . Layout::LEGACY_FILE;
+        if (!is_file($conf) && is_file($legacy)) {
+            if ((!is_dir(dirname($conf)) && !@mkdir(dirname($conf), 0o755, true)) || !@rename($legacy, $conf)) {
+                $this->ui->error(sprintf(_('Could not move %s to %s.'), $legacy, $conf));
+
+                return false;
+            }
+            $this->ui->note(sprintf(_('Moved %s to %s.'), $legacy, $conf));
+            $layout = Layout::load($conf, $layout->all());
         }
         $user = $layout->systemUser() !== '' ? $layout->systemUser() : self::USER;
         $home = $layout->varRoot();
@@ -75,7 +90,7 @@ final class SystemLayout
             }
         }
         $etc = $layout->etcRoot();
-        $folders = [$etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot()];
+        $folders = [dirname($conf), $etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot()];
         // The backup root is made when it is the default one; a chosen one (a mount) is the administrator's
         if (self::makesBackupRoot($layout)) {
             $folders[] = $layout->backupRoot();
@@ -98,7 +113,6 @@ final class SystemLayout
             $this->execute(sprintf('/usr/sbin/usermod -aG www-data %s', ShellService::arg($user)));
         }
 
-        $conf = "$etc/" . Layout::FILE;
         if (!is_file($conf)) {
             file_put_contents($conf, $this->conf($layout, $user));
             $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($user), ShellService::arg($conf)));
@@ -108,13 +122,13 @@ final class SystemLayout
         return true;
     }
 
-    /** Whether the layout makes its backup root: the default one, named by opensim.conf (as a new one is written) or not. */
+    /** Whether the layout makes its backup root: the default one, named by w4os.conf (as a new one is written) or not. */
     public static function makesBackupRoot(Layout $layout): bool
     {
         return $layout->get('BackupRoot') === '' || $layout->get('BackupRoot') === DirectoryLayout::roots(DirectoryLayout::SYSTEM)['BackupRoot'];
     }
 
-    /** The content of a new `opensim.conf`: the roots of the layout, the core of the packages when there is one, the account. */
+    /** The content of a new `w4os.conf`: the roots of the layout, the core of the packages when there is one, the account. */
     private function conf(Layout $layout, string $user): string
     {
         $roots = DirectoryLayout::roots(DirectoryLayout::SYSTEM);

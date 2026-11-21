@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use OpenSim\Archives\Oar;
-use OpenSim\Provisioning\ResourceRegistry;
+use W4OS\Engine\Archives\Oar;
+use W4OS\Engine\Provisioning\ResourceRegistry;
 
 test('the initialization object of a new region is in the engine and packs into an archive', function () {
     $dirs = ResourceRegistry::directories('share/ossl-scripts');

@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Data\Listing;
-use OpenSim\Text\Uuid;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Provisioning\Slug;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Text\Uuid;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Provisioning\Slug;
 
 /**
  * An estate: what a group of regions share, its owner, its managers, its rules, the list of those who may enter and the list of
@@ -81,8 +81,8 @@ final class Estate extends Model
         $central || $simulator !== '' || throw InvalidValue::because('invalid-request', 'the simulators keep their estates: say the one that holds it (simulator)');
         $action = "make the estate $name";
         $pdo = self::connect($config, Database::Estate, $central ? null : $simulator, $action);
-        if ($simulator === '' || !\OpenSim\Console\InstanceConsoleService::send($simulator, "estate create $owner $name")) {
-            $simulator !== '' && \OpenSim\Console\InstanceConsoleService::running((string) $config->file("simulators/$simulator")) &&
+        if ($simulator === '' || !\W4OS\Engine\Console\InstanceConsoleService::send($simulator, "estate create $owner $name")) {
+            $simulator !== '' && \W4OS\Engine\Console\InstanceConsoleService::running((string) $config->file("simulators/$simulator")) &&
                 throw ChannelUnavailable::for($action, "the simulator $simulator runs and its console cannot be reached");
             $number = max(100, (int) $pdo->get_var('SELECT MAX(EstateID) FROM estate_settings')) + 1;
             $pdo->insert('estate_settings', ['EstateID' => $number, 'EstateName' => $name, 'EstateOwner' => $owner] + self::NEW);

@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSim\Provisioning\Web;
+namespace W4OS\Engine\Provisioning\Web;
 
 /**
- * The web services of a grid, the scripts and the pages of opensim-helpers that answer them, and the address each has by default:
+ * The web services of a grid, the scripts and the pages of w4os-helpers that answer them, and the address each has by default:
  * `/helpers/<script>`, `/helpers/<page>`. The grid says otherwise in the official settings (the addresses of Robust.ini and OpenSim.ini: this is
  * where the helpers read them), `<base>` being the path of its economy, which the viewers complete with the name of the script.
  *

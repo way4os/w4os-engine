@@ -11,9 +11,9 @@ declare(strict_types=1);
 ini_set('display_errors', 'stderr');
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
-use OpenSim\Config\Layout;
-use OpenSim\Provisioning\GridCompletion;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Provisioning\GridCompletion;
+use W4OS\Engine\Runtime\Environment;
 
 foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
     if (is_file($autoload)) {

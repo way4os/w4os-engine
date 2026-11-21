@@ -7,13 +7,13 @@ declare(strict_types=1);
  * (XML-RPC) that read the result.
  */
 
-use OpenSim\Services\EventsParser;
-use OpenSim\Services\Failure;
-use OpenSim\Services\SearchParser;
-use OpenSim\Services\SearchQuery;
-use OpenSim\Services\SearchRegistry;
-use OpenSim\Services\XmlRpc;
-use OpenSim\Testing\ClockFake;
+use W4OS\Engine\Services\EventsParser;
+use W4OS\Engine\Services\Failure;
+use W4OS\Engine\Services\SearchParser;
+use W4OS\Engine\Services\SearchQuery;
+use W4OS\Engine\Services\SearchRegistry;
+use W4OS\Engine\Services\XmlRpc;
+use W4OS\Engine\Testing\ClockFake;
 use PhpXmlRpc\Encoder;
 use PhpXmlRpc\Request;
 
@@ -24,7 +24,7 @@ const SEARCH_INFO = '44444444-4444-4444-8444-444444444444';
 const SEARCH_GK = 'http://grid.example.org:8002';
 
 /** The tables of the search, as much as the code reads and writes, in the database the tests use. */
-function search_database(): OpenSim\Data\OSPDO
+function search_database(): W4OS\Engine\Data\OSPDO
 {
     $pdo = test_pdo();
     foreach (
@@ -245,13 +245,13 @@ describe('The registry of the search', function () {
 
 describe('The tasks of the search', function () {
     test('run alone whoever runs them: a lock of the database of the grid where it has one, as they are otherwise', function () {
-        $sqlite = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $sqlite = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
 
-        expect(OpenSim\Services\SearchTasks::exclusively($sqlite, 'search-parse', static fn(): string => '2 simulator(s) read'))
+        expect(W4OS\Engine\Services\SearchTasks::exclusively($sqlite, 'search-parse', static fn(): string => '2 simulator(s) read'))
             ->toBe('2 simulator(s) read')
-            ->and(OpenSim\Services\SearchTasks::lockName('search-parse', 'robust'))
+            ->and(W4OS\Engine\Services\SearchTasks::lockName('search-parse', 'robust'))
             ->toStartWith('opensim-search-parse-')
-            ->and(strlen(OpenSim\Services\SearchTasks::lockName('events-parse', str_repeat('x', 200))))
+            ->and(strlen(W4OS\Engine\Services\SearchTasks::lockName('events-parse', str_repeat('x', 200))))
             ->toBeLessThanOrEqual(64);
     });
 });
@@ -761,7 +761,7 @@ function rpc_xml(string $method, array $request): string
 
 describe('The guide of a grid that has no list', function () {
     /** The places of two grids in a search shared by both. */
-    function guide_database(): OpenSim\Data\OSPDO
+    function guide_database(): W4OS\Engine\Data\OSPDO
     {
         $db = search_database();
         $db->exec(
@@ -799,13 +799,13 @@ describe('The guide of a grid that has no list', function () {
         function () {
             $db = guide_database();
 
-            $ours = (new OpenSim\Services\DefaultDestinations(
+            $ours = (new W4OS\Engine\Services\DefaultDestinations(
                 $db,
                 'regionsregister',
                 'grid.example.org:8002',
                 'http://grid.example.org:8002',
             ))->lists();
-            $shared = (new OpenSim\Services\DefaultDestinations(
+            $shared = (new W4OS\Engine\Services\DefaultDestinations(
                 $db,
                 'regionsregister',
                 'grid.example.org:8002',
@@ -832,7 +832,7 @@ describe('The guide of a grid that has no list', function () {
         $db = guide_database();
         $db->exec("UPDATE parcels SET imageUUID = 'aaaaaaaa-0000-4000-8000-000000000001' WHERE parcelUUID = 'p1'");
 
-        $popular = (new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'))->popular(2);
+        $popular = (new W4OS\Engine\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'))->popular(2);
 
         expect($popular)->toBe([
             ['name' => 'Elsewhere', 'url' => 'other.example.org:8002/Far', 'picture' => null, 'dwell' => 50],
@@ -844,34 +844,34 @@ describe('The guide of a grid that has no list', function () {
         $db = guide_database();
         // The market is for sale
         $db->exec("INSERT INTO parcelsales VALUES ('r1', 'Market', 'p3', 512, 100, '10/10/30', 'info', 10, 1, 'PG', 'http://grid.example.org:8002')");
-        $names = static fn(OpenSim\Services\DefaultDestinations $guide, ?bool $sales = null): array => array_column($sales === null ? $guide->popular(10) : $guide->popular(10, $sales), 'name');
+        $names = static fn(W4OS\Engine\Services\DefaultDestinations $guide, ?bool $sales = null): array => array_column($sales === null ? $guide->popular(10) : $guide->popular(10, $sales), 'name');
 
-        expect($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002')))
+        expect($names(new W4OS\Engine\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002')))
             ->toBe(['Elsewhere', 'Rose garden'])
-            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'), true))
+            ->and($names(new W4OS\Engine\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'), true))
             ->toBe(['Elsewhere', 'Rose garden', 'Market'])
-            ->and($names(new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002', 'http://grid.example.org:8002/')))
+            ->and($names(new W4OS\Engine\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002', 'http://grid.example.org:8002/')))
             ->toBe(['Rose garden']);
 
-        $machine = new OpenSim\Testing\Machine();
-        OpenSim\Data\Connections::using(static fn() => $db);
+        $machine = new W4OS\Engine\Testing\Machine();
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
         $machine->write($machine->grid . '/Robust.HG.ini', (string) file_get_contents($machine->grid . '/Robust.HG.ini') . "\n[GridInfoService]\n    login = \"http://grid.example.org:8002/\"\n");
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
         $ours = array_column($grid->popularPlaces(10), 'name');
         $all = array_column($grid->popularPlaces(10, hypergrid: true, landSales: true), 'name');
-        OpenSim\Data\Connections::using(null);
+        W4OS\Engine\Data\Connections::using(null);
 
         expect([$ours, $all])->toBe([['Rose garden'], ['Elsewhere', 'Rose garden', 'Market']]);
     });
 
     test('of a grid: the popular places with the label of their address, as a card shows it', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $db = guide_database();
-        OpenSim\Data\Connections::using(static fn() => $db);
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
 
         $popular = $grid->popularPlaces(3, hypergrid: true);
-        OpenSim\Data\Connections::using(null);
+        W4OS\Engine\Data\Connections::using(null);
 
         // The grid of the search is another one than demo: its places are hypergrid, titled by their region
         expect(array_map(static fn(array $place): array => [$place['title'], $place['label'], $place['gridName']], $popular))->toBe([
@@ -895,7 +895,7 @@ describe('The guide of a grid that has no list', function () {
             $i <= 12 && $db->exec("INSERT INTO popularplaces VALUES ('p$i', 'Place $i', $i, 'info', 0, 'PG', '')");
         }
 
-        $lists = (new OpenSim\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'))->lists();
+        $lists = (new W4OS\Engine\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'))->lists();
 
         expect(count($lists['Popular places']))
             ->toBe(10)
@@ -908,12 +908,12 @@ describe('The guide of a grid that has no list', function () {
     });
 
     test('is nothing when the search knows nothing, or has no tables', function () {
-        $empty = (new OpenSim\Services\DefaultDestinations(
+        $empty = (new W4OS\Engine\Services\DefaultDestinations(
             search_database(),
             'regionsregister',
             'grid.example.org:8002',
         ))->lists();
-        $none = (new OpenSim\Services\DefaultDestinations(
+        $none = (new W4OS\Engine\Services\DefaultDestinations(
             test_pdo(),
             'regionsregister',
             'grid.example.org:8002',

@@ -7,27 +7,27 @@ declare(strict_types=1);
  * no other simulator can join it. What the setup plans and writes for it.
  */
 
-use OpenSim\Runtime\Outcome;
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Forms\FieldSet;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Simulator;
-use OpenSim\OpenSim;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\GridPlanner;
-use OpenSim\Provisioning\GridShared;
-use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Provisioning\SetupFile;
-use OpenSim\Provisioning\SimulatorConfig;
-use OpenSim\Provisioning\SimulatorMaster;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Provisioning\Web\HelpersConfig;
-use OpenSim\Provisioning\Web\Services;
-use OpenSim\Runtime\GridMonitor;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Runtime\Outcome;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Forms\FieldSet;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\OpenSim;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\GridPlanner;
+use W4OS\Engine\Provisioning\GridShared;
+use W4OS\Engine\Provisioning\DatabaseService;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Provisioning\SetupFile;
+use W4OS\Engine\Provisioning\SimulatorConfig;
+use W4OS\Engine\Provisioning\SimulatorMaster;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\Web\HelpersConfig;
+use W4OS\Engine\Provisioning\Web\Services;
+use W4OS\Engine\Runtime\GridMonitor;
+use W4OS\Engine\Testing\Machine;
 
 /** The folder of a standalone grid beside a core that has the files of a standalone, and its description. */
 function standalone_folder(bool $hypergrid = true): array
@@ -527,7 +527,7 @@ describe('The questions about a standalone', function () {
         $values = SetupFile::simulatorValues([
             'simulators' => [['external_host' => 'vonda.magiiic.com']],
         ], 0);
-        $plan = new \OpenSim\Provisioning\SimulatorPlan();
+        $plan = new \W4OS\Engine\Provisioning\SimulatorPlan();
         $plan->externalHost = 'vonda.magiiic.com';
 
         expect($values)->toMatchArray(['external_host' => 'vonda.magiiic.com']);
@@ -551,9 +551,9 @@ describe('The master of a standalone', function () {
 
 describe('The config of the simulator of a standalone', function () {
     /** The plan of a simulator of a standalone whose owner has no account yet. */
-    function standalone_simulator_plan(): \OpenSim\Provisioning\SimulatorPlan
+    function standalone_simulator_plan(): \W4OS\Engine\Provisioning\SimulatorPlan
     {
-        $plan = new \OpenSim\Provisioning\SimulatorPlan();
+        $plan = new \W4OS\Engine\Provisioning\SimulatorPlan();
         $plan->standalone = true;
         $plan->gridDir = test_tmp() . '/solosim-' . bin2hex(random_bytes(4));
         $plan->gridNick = 'solo';

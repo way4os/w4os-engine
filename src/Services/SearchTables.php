@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Models\Region;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Models\Region;
 
 /**
  * The tables of the search (the ones OpenSimSearch reads), in the search database of a grid: made when they are missing, brought up

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\I18n;
+namespace W4OS\Engine\I18n;
 
-use OpenSim\Api\Problem;
+use W4OS\Engine\Api\Problem;
 
 /**
  * The texts the websites of a grid show its people (registration, sign-in, account, lost password, email confirmation, avatars
@@ -16,7 +16,7 @@ use OpenSim\Api\Problem;
  *
  *     Catalog::messages('fr_FR');   // ['register_title' => 'Créer mon avatar', ...], the translated texts only
  *     Catalog::messages('en');      // the English texts
- *     Catalog::file('fr_FR');       // share/languages/opensim-engine-fr_FR.po
+ *     Catalog::file('fr_FR');       // share/languages/w4os-engine-fr_FR.po
  *     Catalog::statusKey('pending'); // status_pending; roleKey('god-like'): role_god_like, the texts of an avatar's status and role
  *     Catalog::plural('fr_FR', 'profile_age_days', 1); // '%d jour': a text that changes with a number, in the form of that number
  *
@@ -27,7 +27,7 @@ use OpenSim\Api\Problem;
  */
 final class Catalog
 {
-    public const DOMAIN = 'opensim-engine';
+    public const DOMAIN = 'w4os-engine';
 
     /** The language of the source texts. */
     public const SOURCE = 'en';
@@ -225,13 +225,13 @@ final class Catalog
         'economy_help_scripts' => 'Helper scripts allow communication between the money server and the grid: current balance update, currency cost estimation, land and object sales, payments...',
         'economy_help_module' => 'This plugin only provides the web helpers required by the money server module. A third-party module must be installed and configured on the simulator, for example:',
         'economy_help_modules' => 'Gloebit (gloebit.com), Podex (podex.info), DTL/NSL Money Server (nsl.tuis.ac.jp)',
-        'economy_help_binaries' => 'Ready to use binaries and example config files can be downloaded here: github.com/magicoli/opensim-helpers',
+        'economy_help_binaries' => 'Ready to use binaries and example config files can be downloaded here: github.com/way4os/w4os-helpers',
         'gloebit_configuration' => 'Gloebit Configuration',
         'gloebit_help_crash' => 'Gloebit module needs to be configured before restarting the region, otherwise it could crash the simulator.',
-        'gloebit_help_linux' => 'For Linux, see README-Gloebit.md (github.com/magicoli/opensim-helpers) to avoid certificate-related errors.',
+        'gloebit_help_linux' => 'For Linux, see README-Gloebit.md (github.com/way4os/w4os-helpers) to avoid certificate-related errors.',
         'gloebit_help_register' => 'Register an account or connect on gloebit.com and Follow instructions on dev.gloebit.com to setup an app for your grid/simulator.',
         'gloebit_help_config' => 'Add Gloebit configuration in OpenSim.ini.',
-        'gloebit_help_dll' => 'Download the latest dll in your OpenSimulator bin/ folder (rename it Gloebit.dll), from github.com/GuduleLapointe/opensim-debian or dev.gloebit.com',
+        'gloebit_help_dll' => 'Download the latest dll in your OpenSimulator bin/ folder (rename it Gloebit.dll), from github.com/way4os/opensim-kit or dev.gloebit.com',
         'money_script_access_key' => 'Money Script Access Key',
         'money_script_access_key_help' => 'Choose a unique access key and set it in MoneyServer.ini',
         'search_engine_url' => 'Search Engine URL',
@@ -252,7 +252,7 @@ final class Catalog
         'search_help_local' => 'Enable to use a local search engine, allowing only local results (recommended for private grids).',
         'search_help_external' => 'Disable to use an external search engine like 2do Directory, allowing results from both your grid and other public grids.',
         'search_help_module' => 'Search features require the installation of OpenSimSearch Module on OpenSimulator.',
-        'search_help_binary' => 'Ready to use OpenSimSearch.Modules.dll binary can be found here: github.com/magicoli/opensim-helpers',
+        'search_help_binary' => 'Ready to use OpenSimSearch.Modules.dll binary can be found here: github.com/way4os/w4os-helpers',
         'guide_url' => 'Destinations Guide URL',
         'guide_source_help_file' => 'A text file with a formatted list of destinations.',
         'guide_source_help_where' => 'The source can be an URL or the full path of a local file your web server can access.',
@@ -953,9 +953,9 @@ final class Catalog
         'notice_import_read_access' => 'The user that runs the import cannot read {paths}: give it read access to them (setfacl -R -m u:<user>:rX on the etc, var/data and var/cache of the older install) before applying, nothing is written until then.',
         'notice_import_stop_source' => 'The simulator that runs {regions} now keeps running until it is stopped: stop it and keep it from starting again (its cron, its screen) before this one starts, the database is the same.',
         'notice_import_no_region' => 'No region was found for {simulator} in {folder}, the folder its config names: check that it is the one it reads before applying, nothing of its regions would be copied.',
-        'notice_import_module_package' => 'The module {module} ({key} of [{section}]) is not installed for this core: the simulator would not load it. Install its package (apt install {package}) and add {name} to EnabledModules of opensim.conf, or leave the setting out.',
-        'notice_import_module_missing' => 'The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install: the simulator would not load it. Put a build of it for this core in {folder} and add {name} to EnabledModules of opensim.conf, or leave the setting out.',
-        'notice_import_module_found' => 'The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install, the older install has it in {file}: the simulator would not load it. Put a build of it for this core in {folder} (a module is built for a version of OpenSimulator: that file only if both cores are the same version) and add {name} to EnabledModules of opensim.conf, or leave the setting out.',
+        'notice_import_module_package' => 'The module {module} ({key} of [{section}]) is not installed for this core: the simulator would not load it. Install its package (apt install {package}) and add {name} to EnabledModules of w4os.conf, or leave the setting out.',
+        'notice_import_module_missing' => 'The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install: the simulator would not load it. Put a build of it for this core in {folder} and add {name} to EnabledModules of w4os.conf, or leave the setting out.',
+        'notice_import_module_found' => 'The module {module} ({key} of [{section}]) is in neither the core nor the modules of this install, the older install has it in {file}: the simulator would not load it. Put a build of it for this core in {folder} (a module is built for a version of OpenSimulator: that file only if both cores are the same version) and add {name} to EnabledModules of w4os.conf, or leave the setting out.',
         'notice_import_enable_start' => 'Then: {enable}, {start}.',
         'notice_restart_grid' => 'Grid restart is required: {restart}.',
         'notice_restart_simulators' => 'Simulator(s) restart is required: {restart}.',
@@ -1168,8 +1168,8 @@ final class Catalog
                 : PoFile::entry($key, $text, '', $flags);
         }
 
-        return "# The texts of the websites of a grid. Made from OpenSim\\I18n\\Catalog::MESSAGES by `composer translations`.\n"
-            . "# This file is distributed under the same license as opensim-engine (AGPL-3.0-or-later).\n"
+        return "# The texts of the websites of a grid. Made from W4OS\\Engine\\I18n\\Catalog::MESSAGES by `composer translations`.\n"
+            . "# This file is distributed under the same license as w4os-engine (AGPL-3.0-or-later).\n"
             . "#\n"
             . "#, fuzzy\n"
             . $header . "\n" . implode("\n", $entries);

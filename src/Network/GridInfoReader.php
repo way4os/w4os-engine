@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network;
+namespace W4OS\Engine\Network;
 
 /**
  * What a grid says of itself, as its running Robust says it: the elements of `/get_grid_info` (gridname, login, economy, search...),

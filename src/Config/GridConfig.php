@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * The configuration of an OpenSimulator environment, as a nested array that follows the structure of the ini files: whichever the
@@ -152,7 +152,7 @@ class GridConfig
      * file (a key that ends with ConnectionString: EstateConnectionString, MuteConnectionString...) on its server, as its user,
      * each keeping its database.
      */
-    public function withDatabaseAccess(\OpenSim\Data\DatabaseAccess $access): static
+    public function withDatabaseAccess(\W4OS\Engine\Data\DatabaseAccess $access): static
     {
         $apply = static function (array $ini) use ($access): array {
             foreach ($ini as $section => $keys) {

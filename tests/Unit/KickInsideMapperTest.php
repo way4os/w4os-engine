@@ -10,7 +10,7 @@ use Magicoli\KickInside\Gateway;
 use Magicoli\KickInside\Mapping;
 use Magicoli\KickInside\PortMapper;
 use Magicoli\KickInside\Protocol;
-use OpenSim\Network\PortMapping\KickInsideMapper;
+use W4OS\Engine\Network\PortMapping\KickInsideMapper;
 
 /** A router that keeps its mappings in memory. */
 final class FakeGateway implements Gateway

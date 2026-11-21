@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * The one reader of the ini files of OpenSimulator: sections, `key = value`, quotes around a value optional, `;` and `#`

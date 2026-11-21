@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Flux;
+namespace W4OS\Engine\Flux;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * The posts of the stream of w4os-wp (its `flux_post` posts, their author in `_avatar_uuid` and `_avatar_name`) brought into the
@@ -107,12 +107,12 @@ final class FluxImport
      * A connection to the database of a site, as wordpress() gives it.
      *
      * @param array{host:string,name:string,user:string,pass:string} $database
-     * @throws \OpenSim\Exceptions\ChannelUnavailable when it cannot be reached
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable when it cannot be reached
      */
     public static function connect(array $database): OSPDO
     {
         $pdo = new OSPDO(['host' => $database['host'], 'name' => $database['name'], 'user' => $database['user'], 'pass' => $database['pass'], 'log' => false]);
-        $pdo->connected || throw \OpenSim\Exceptions\ChannelUnavailable::for('read the posts of w4os-wp', 'its database cannot be reached');
+        $pdo->connected || throw \W4OS\Engine\Exceptions\ChannelUnavailable::for('read the posts of w4os-wp', 'its database cannot be reached');
 
         return $pdo;
     }

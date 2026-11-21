@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\ConnectionString;
+use W4OS\Engine\Config\ConnectionString;
 
 /**
  * Everything gathered to (re)configure one grid, before anything is written.

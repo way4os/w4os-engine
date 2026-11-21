@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Support;
+namespace W4OS\Engine\Support;
 
-use OpenSim\Runtime\ClockInterface;
+use W4OS\Engine\Runtime\ClockInterface;
 
 /**
  * A folder of files kept for a while: data, with what is known of it (the data of an asset as the grid gave it or converted, the answer of a grid). A file

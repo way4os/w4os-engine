@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Exceptions;
+namespace W4OS\Engine\Exceptions;
 
 /**
  * An instance that could not be started or stopped: the message says why, the reason in a word for a site (`port-taken`, else

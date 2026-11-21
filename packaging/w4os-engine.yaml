@@ -1,0 +1,69 @@
+# The framework-agnostic core of the OpenSimulator web tools, built by dev/build.sh (or apt-package) from
+# build/w4os-engine, prepared by packaging/build. ${VERSION} comes from build-tools.
+# The files and their vendor folder in /usr/share/w4os-engine; sibling packages are linked into vendor.
+name: w4os-engine
+arch: all
+platform: linux
+version: ${VERSION}
+version_schema: semver
+section: php
+priority: optional
+maintainer: Gudule Lapointe <gudule@speculoos.world>
+description: |-
+  OpenSimulator engine for PHP
+  Framework-agnostic PHP classes to talk to OpenSimulator and Robust
+  (database, economy, search, REST console, XML-RPC), used by the helpers
+  and by web applications. Installed in /usr/share/w4os-engine.
+homepage: https://github.com/way4os/w4os-engine
+license: AGPL-3.0-or-later
+
+depends:
+  - opensim-rest-php
+  - php-cli (>= 2:8.2)
+  - php-curl
+  - php-intl
+  - php-mbstring
+  - php-mysql
+  - php-xml
+  # The instances run in screen when they have no REST console; their processes are read with ps
+  - procps
+  - screen
+# The name of before w4os, an empty package now (opensim-engine.yaml)
+replaces:
+  - opensim-engine (<< ${DEB_VERSION})
+# What some features need, not the engine itself (a light install, --no-install-recommends, has the rest): the instances in
+# containers (podman, through container-tools), the pictures of the assets (JPEG 2000) and the text images
+recommends:
+  - container-tools
+  - php-imagick
+
+contents:
+  - src: build/w4os-engine
+    dst: /usr/share/w4os-engine
+    type: tree
+  - src: /usr/share/opensim-rest-php
+    dst: /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php
+    type: symlink
+  - src: /usr/share/container-tools
+    dst: /usr/share/w4os-engine/vendor/magicoli/container-tools
+    type: symlink
+  - src: packaging/w4os-engine.copyright
+    dst: /usr/share/doc/w4os-engine/copyright
+    file_info:
+      mode: 0644
+  - src: packaging/w4os-engine.README.Debian
+    dst: /usr/share/doc/w4os-engine/README.Debian
+    file_info:
+      mode: 0644
+
+scripts:
+  postinstall: packaging/w4os-engine.postinst
+  postremove: packaging/w4os-engine.postrm
+
+deb:
+  breaks:
+    - opensim-engine (<< ${DEB_VERSION})
+  # The OpenSimulator releases installed or removed, to update their profiles
+  triggers:
+    interest_noawait:
+      - /usr/share/opensim

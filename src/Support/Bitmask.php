@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Support;
+namespace W4OS\Engine\Support;
 
 /**
  * The values OpenSimulator packs in a number: the flags of a region, of a parcel, of an item, the wants and the skills of a profile. A

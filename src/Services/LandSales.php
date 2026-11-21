@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Models\Estate;
-use OpenSim\Models\Parcel;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Models\Estate;
+use W4OS\Engine\Models\Parcel;
 
 /**
  * The land for sale of the search (`parcelsales`), as Second Life lists it: every parcel for sale of the regions of the grid, shown

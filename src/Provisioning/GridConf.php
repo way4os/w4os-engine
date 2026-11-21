@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
- * Writes $EtcRoot/grids/<nick>/<nick>.conf — the grid-level config: opensim.conf
+ * Writes $EtcRoot/grids/<nick>/<nick>.conf — the grid-level config: w4os.conf
  * (core profile) values plus this grid's own. Everything common to the whole
  * grid, nothing instance-specific. The launcher reads this single file to know
  * the runtime/core and the grid's *Directory bases.

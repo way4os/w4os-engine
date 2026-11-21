@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Controllers;
+namespace W4OS\Engine\Controllers;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridFileService;
-use OpenSim\Data\Database;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Data\Database;
 
 /**
  * The Robust of a grid: the server of its services (login, users, inventory, assets, presence). A grid has one of its own on

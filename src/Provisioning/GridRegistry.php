@@ -1,12 +1,12 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\GridFileService;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Runtime\Environment;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * What the grid knows of its regions, from the database of its Robust: their
@@ -51,7 +51,7 @@ final class GridRegistry
     public function knownPorts(Environment $environment, ?Grid $grid = null): array
     {
         $infos = [];
-        foreach (\OpenSim\Archives\Instances::grids($environment->layout->etcRoot()) as $nick) {
+        foreach (\W4OS\Engine\Archives\Instances::grids($environment->layout->etcRoot()) as $nick) {
             if (($info = Grid::find($environment, $nick)) !== null) {
                 $infos[$nick] = $info;
             }

@@ -6,9 +6,9 @@ declare(strict_types=1);
  * The real users in the regions of a simulator, to know whether anybody is to be warned before it stops.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\UserCounter;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\UserCounter;
+use W4OS\Engine\Testing\Machine;
 
 const SHOW_USERS = [
     '2026-10-03 10:00:00,000 INFO  [SCENE]: Removing root agent 11111111-2222-3333-4444-555555555999 from Sim1',
@@ -24,7 +24,7 @@ const SHOW_USERS = [
 ];
 
 /** The simulator `alpha` of a machine whose regions answer on their HTTP port as told: UUID => agents. */
-function counted_simulator(Machine $machine, array $agents = []): OpenSim\Controllers\OpenSimController
+function counted_simulator(Machine $machine, array $agents = []): W4OS\Engine\Controllers\OpenSimController
 {
     foreach ($agents as $uuid => $count) {
         $machine->http["http://127.0.0.1:9000/monitorstats/$uuid"] =

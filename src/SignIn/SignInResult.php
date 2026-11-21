@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
 /**
  * The answer to a sign-in: granted with the avatar, refused (unknown avatar or wrong password, alike), or unavailable.

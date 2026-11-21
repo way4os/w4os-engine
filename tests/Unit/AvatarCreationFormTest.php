@@ -8,9 +8,9 @@ declare(strict_types=1);
  * the avatars (`create` of its `x-list`).
  */
 
-use OpenSim\Api\Access;
-use OpenSim\Api\Contract;
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\Api\Access;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\I18n\Catalog;
 
 /** @return array<string,mixed> the operation that makes an avatar */
 function creation_operation(): array

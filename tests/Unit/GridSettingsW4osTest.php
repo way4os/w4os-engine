@@ -8,11 +8,11 @@ declare(strict_types=1);
  * help of the page, the ini lines each shows, made by the engine for the grid (never a secret).
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\GridSettings;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\GridSettings;
+use W4OS\Engine\Testing\Machine;
 
 /** @return list<string> the names of the fields of a page, in their order */
 function page_fields(string $page): array

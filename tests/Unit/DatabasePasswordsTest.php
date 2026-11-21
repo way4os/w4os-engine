@@ -1,8 +1,8 @@
 <?php
 
-use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\DatabaseService;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\SimulatorPlan;
 
 describe('password of a database account, in a session', function () {
     test('plans made before it was entered take it, the other accounts keep theirs', function () {

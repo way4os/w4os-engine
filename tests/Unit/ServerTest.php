@@ -7,9 +7,9 @@ declare(strict_types=1);
  * keys of the install, no framework and no helpers.
  */
 
-use OpenSim\Api\Server;
-use OpenSim\Security\ApiKeys;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Server;
+use W4OS\Engine\Security\ApiKeys;
+use W4OS\Engine\Testing\Machine;
 
 describe('The entry point of the engine API', function () {
     test('answers /api/... with a key of the install, and refuses what is not public without one', function () {
@@ -49,7 +49,7 @@ describe('The entry point of the engine API', function () {
         $encoded = $ask('/api/simulators/' . rawurlencode($id));
         $queried = $ask("/api/simulators/$id?fields=uri");
 
-        [$cli] = (new OpenSim\Api\Cli(new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment))))->run(['GET', "/simulators/$id"]);
+        [$cli] = (new W4OS\Engine\Api\Cli(new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment))))->run(['GET', "/simulators/$id"]);
 
         expect([$raw->status, $raw->document['data']['id'] ?? null])
             ->toBe([200, $id])
@@ -64,6 +64,6 @@ describe('The entry point of the engine API', function () {
             ->toBeTrue()
             ->and((string) file_get_contents($entry))
             ->toContain('Server::serve(')
-            ->not->toContain('opensim-helpers');
+            ->not->toContain('w4os-helpers');
     });
 });

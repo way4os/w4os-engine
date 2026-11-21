@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Data\Listing;
-use OpenSim\Result;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Result;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * An asset of the grid: what its users and its regions keep in the asset service, a texture, a sound, a notecard, a script, an

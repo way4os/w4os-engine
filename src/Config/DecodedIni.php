@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * An ini file whose values may be JSON or .NET connection strings.

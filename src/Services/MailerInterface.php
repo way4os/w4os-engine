@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
 /**
  * Sends an email: the instant messages of an avatar who is not there, forwarded to their address.

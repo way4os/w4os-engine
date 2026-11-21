@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network\PortMapping;
+namespace W4OS\Engine\Network\PortMapping;
 
 /**
  * UPnP with the tools of miniupnpc: `upnpc` opens and closes the ports, `external-ip` gives the public address. The

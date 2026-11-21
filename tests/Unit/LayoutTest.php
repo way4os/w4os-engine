@@ -3,19 +3,19 @@
 declare(strict_types=1);
 
 /**
- * Where an install keeps its files, from opensim.conf.
+ * Where an install keeps its files, from w4os.conf.
  */
 
-use OpenSim\Config\Layout;
+use W4OS\Engine\Config\Layout;
 
-/** An opensim.conf in a temporary folder. */
+/** A w4os.conf in a temporary folder. */
 function layout_conf(string $text): string
 {
     $dir = sys_get_temp_dir() . '/layout-' . bin2hex(random_bytes(4));
     mkdir($dir);
-    file_put_contents("$dir/opensim.conf", $text);
+    file_put_contents("$dir/w4os.conf", $text);
 
-    return "$dir/opensim.conf";
+    return "$dir/w4os.conf";
 }
 
 describe('layout of an install', function () {
@@ -58,7 +58,7 @@ describe('layout of an install', function () {
     });
 
     test('is made of the defaults only when there is no file', function () {
-        $layout = Layout::load('/no/such/opensim.conf', ['EtcRoot' => '/opt/etc']);
+        $layout = Layout::load('/no/such/w4os.conf', ['EtcRoot' => '/opt/etc']);
 
         expect($layout->file())
             ->toBeNull()
@@ -96,7 +96,7 @@ describe('layout of an install', function () {
 });
 
 describe('layout a front-end works with', function () {
-    test('is what its environment says, then opensim.conf, then the defaults of an install by the book', function () {
+    test('is what its environment says, then w4os.conf, then the defaults of an install by the book', function () {
         $file = layout_conf("[Defaults]\nEtcRoot = /srv/etc\nVarRoot = /srv/var\n");
         $layout = Layout::resolve([
             'OPENSIM_CONF' => $file,
@@ -136,10 +136,10 @@ describe('layout a front-end works with', function () {
         },
     );
 
-    test('refuses an opensim.conf named in the environment that does not exist', function () {
-        expect(fn() => Layout::resolve(['OPENSIM_CONF' => '/nonexistent/opensim.conf']))->toThrow(
+    test('refuses a w4os.conf named in the environment that does not exist', function () {
+        expect(fn() => Layout::resolve(['OPENSIM_CONF' => '/nonexistent/w4os.conf']))->toThrow(
             RuntimeException::class,
-            '/nonexistent/opensim.conf',
+            '/nonexistent/w4os.conf',
         );
     });
 
@@ -155,7 +155,7 @@ describe('layout a front-end works with', function () {
 
 describe('layouts of an install', function () {
     test('put the folders where opensim setup proposes them', function () {
-        expect(OpenSim\Config\DirectoryLayout::roots('system', '', '0.9.3.0'))
+        expect(W4OS\Engine\Config\DirectoryLayout::roots('system', '', '0.9.3.0'))
             ->toBe([
                 'CoreRoot' => '/usr/local/share/opensim',
                 'CoreDirectory' => '/usr/local/share/opensim/0.9.3.0',
@@ -166,11 +166,11 @@ describe('layouts of an install', function () {
                 'DataRoot' => '/var/lib/opensim/data',
                 'BackupRoot' => '/var/backups/opensim',
             ])
-            ->and(OpenSim\Config\DirectoryLayout::roots('bundled', '/opt/opensim', '0.9.3.0')['DataRoot'])
+            ->and(W4OS\Engine\Config\DirectoryLayout::roots('bundled', '/opt/opensim', '0.9.3.0')['DataRoot'])
             ->toBe('/opt/opensim/var/data')
-            ->and(OpenSim\Config\DirectoryLayout::roots('flat', '/home/me', '0.9.3.0')['EtcRoot'])
+            ->and(W4OS\Engine\Config\DirectoryLayout::roots('flat', '/home/me', '0.9.3.0')['EtcRoot'])
             ->toBe('/home/me/opensim-0.9.3.0/bin')
-            ->and(OpenSim\Config\DirectoryLayout::roots('system'))
+            ->and(W4OS\Engine\Config\DirectoryLayout::roots('system'))
             ->not->toHaveKey('CoreDirectory');
     });
 
@@ -206,6 +206,28 @@ describe('The grids of an existing install, in the config of the suite', functio
             ->and($layout->get('RobustIni'))
             ->toBe('')
             ->and(Layout::FILE)
-            ->toBe('opensim.conf');
+            ->toBe('w4os.conf');
+    });
+});
+
+describe('The config of the suite', function () {
+    test('is found in the home of the user, then on the system; the one of a user from before w4os is still read', function () {
+        $home = test_tmp() . '/home-' . bin2hex(random_bytes(4));
+        mkdir("$home/.config/opensim", 0o755, true);
+        file_put_contents("$home/.config/opensim/opensim.conf", "[Defaults]\n");
+        $previous = getenv('HOME');
+        putenv("HOME=$home");
+        $legacy = Layout::locate();
+        mkdir("$home/.config/w4os", 0o755, true);
+        file_put_contents("$home/.config/w4os/w4os.conf", "[Defaults]\n");
+        $current = Layout::locate();
+        putenv($previous === false ? 'HOME' : "HOME=$previous");
+
+        expect($current)
+            ->toBe("$home/.config/w4os/w4os.conf")
+            ->and($legacy)
+            ->toBe(is_file(Layout::systemFile()) ? Layout::systemFile() : "$home/.config/opensim/opensim.conf")
+            ->and(Layout::systemFile())
+            ->toBe('/etc/w4os/w4os.conf');
     });
 });

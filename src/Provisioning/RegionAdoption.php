@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 use InvalidArgumentException;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\IniEditor;
-use OpenSim\Models\Grid;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Text\Uuid;
 
 /** An existing region's INI configuration, retained without creating a replacement region or owner. */
 final class RegionAdoption

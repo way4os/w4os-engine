@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\I18n\Catalog;
 
 /**
  * The registry of the settings of a grid: a table of conversion between a setting as the files of OpenSimulator say it (instance >
@@ -170,7 +170,7 @@ final class Settings
                 'GridStatusURL' => ['name' => 'gridStatusUrl', 'type' => 'url', 'label' => 'setting_grid_status', 'service' => 'grid-status'],
                 'GuideSource' => ['name' => 'guideSource', 'type' => 'text', 'label' => 'setting_guide_source', 'admin' => 'guide', 'default' => 'https://2do.directory/destinations/guide'],
                 'SearchConnectionString' => ['name' => 'searchDatabase', 'type' => 'connection-string', 'label' => 'setting_search_database', 'secret' => true, 'admin' => 'search', 'fallback' => 'db_use_default'],
-                'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => \OpenSim\Services\SearchTasks::EVENTS_SOURCE],
+                'HypEventsURL' => ['name' => 'eventsUrl', 'type' => 'url', 'label' => 'setting_events_url', 'admin' => 'search', 'default' => \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE],
                 // The search engine of another server, kept for when the helpers do not provide the search
                 'ExternalSearchURL' => ['name' => 'searchExternalUrl', 'type' => 'url', 'label' => 'search_engine_url', 'default' => 'http://2do.directory/helpers/query.php', 'admin' => 'search'],
                 'LogoURL' => ['name' => 'logoUrl', 'type' => 'url', 'label' => 'setting_logo_url'],
@@ -180,17 +180,17 @@ final class Settings
                 'CurrencyProvider' => ['name' => 'currencyProvider', 'type' => 'text', 'label' => 'setting_currency_provider'],
                 'CurrencyRatePer' => ['name' => 'currencyRatePer', 'type' => 'float', 'label' => 'setting_currency_rate_per', 'default' => 1000.0],
                 'GloebitConversionThreshold' => ['name' => 'gloebitThreshold', 'type' => 'float', 'label' => 'setting_gloebit_threshold', 'default' => 1.2],
-                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'default' => \OpenSim\Economy\CurrencySettings::PODEX_MESSAGE, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
+                'PodexMessage' => ['name' => 'podexMessage', 'type' => 'text', 'label' => 'setting_podex_message', 'default' => \W4OS\Engine\Economy\CurrencySettings::PODEX_MESSAGE, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
                 'PodexUrl' => ['name' => 'podexUrl', 'type' => 'text', 'label' => 'setting_podex_url', 'example' => 'secondlife://Podex Exchange/128/128/21', 'required' => true, 'admin' => 'economy', 'condition' => ['economyModule' => ['Podex']]],
             ],
             // What the numbers of the grid leave out (Stats::of())
             'Stats' => [
-                'Exclude' => ['name' => 'excludeFromStats', 'type' => 'checkboxes', 'label' => 'setting_exclude_from_stats', 'multiple' => true, 'options' => ['models' => 'exclude_models', 'nomail' => 'exclude_nomail', 'hypergrid' => 'exclude_hypergrid'], 'default' => \OpenSim\Data\Stats::EXCLUDED, 'admin' => 'grid'],
+                'Exclude' => ['name' => 'excludeFromStats', 'type' => 'checkboxes', 'label' => 'setting_exclude_from_stats', 'multiple' => true, 'options' => ['models' => 'exclude_models', 'nomail' => 'exclude_nomail', 'hypergrid' => 'exclude_hypergrid'], 'default' => \W4OS\Engine\Data\Stats::EXCLUDED, 'admin' => 'grid'],
             ],
             // Checked when an avatar is made (Avatar::check())
             'Avatars' => [
                 'AllowMultipleAvatars' => ['name' => 'allowMultipleAvatars', 'type' => 'bool', 'label' => 'setting_allow_multiple_avatars', 'default' => true, 'admin' => 'avatars'],
-                'ReservedNames' => ['name' => 'reservedNames', 'type' => 'text', 'label' => 'setting_reserved_names', 'multiple' => true, 'default' => \OpenSim\Models\Avatar::RESERVED_NAMES, 'admin' => 'avatars'],
+                'ReservedNames' => ['name' => 'reservedNames', 'type' => 'text', 'label' => 'setting_reserved_names', 'multiple' => true, 'default' => \W4OS\Engine\Models\Avatar::RESERVED_NAMES, 'admin' => 'avatars'],
             ],
             'Models' => [
                 'Match' => ['name' => 'match', 'type' => 'select', 'label' => 'models_match', 'widget' => 'radio', 'options' => ['first' => 'models_match_first', 'any' => 'models_match_any', 'last' => 'models_match_last', 'uuid' => 'models_match_uuid'], 'default' => 'any', 'admin' => 'models'],

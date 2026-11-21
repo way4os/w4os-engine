@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Controllers\AbstractController;
+use W4OS\Engine\Controllers\AbstractController;
 
 /**
  * The connectors a Robust loads, as their class names: what its ServerMain reads, the non-empty values of `[ServiceList]` and

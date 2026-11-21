@@ -4,8 +4,8 @@
  * settings named as the ini files name them.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Health\Health;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Health\Health;
 
 /** A web server that answers the code its path says: /200, /404, /500, /redirect (to /200), /redirect404 (to /404); /needs-data refuses (400) what has no data; /block/NAME shows the block NAME of the helpers, far in the page. */
 function code_server(int $workers = 1): array
@@ -888,7 +888,7 @@ describe('What an install needs', function () {
 
         expect($unset)
             ->toBe(['label' => 'DirectoryURL', 'kind' => 'address', 'level' => 'unset', 'reason' => 'health_unset'])
-            ->and(OpenSim\I18n\Catalog::MESSAGES['health_unset'] ?? null)
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES['health_unset'] ?? null)
             ->toBe('Not set: neither served nor tested.')
             ->and([Health::level($groups('unset', 'ok')), Health::level($groups('unset'))])
             ->toBe(['ok', 'none']);
@@ -897,7 +897,7 @@ describe('What an install needs', function () {
 
 describe('The health in the contract', function () {
     test('says each field of a row, the certificate too, and the level of all: an error first, then slow, then fine', function () {
-        $schema = OpenSim\Api\Contract::document()['paths']['/grids/{grid}/health']['get']['responses']['200']['content'][OpenSim\Api\Response::JSON_API]['schema'];
+        $schema = W4OS\Engine\Api\Contract::document()['paths']['/grids/{grid}/health']['get']['responses']['200']['content'][W4OS\Engine\Api\Response::JSON_API]['schema'];
         $attributes = $schema['properties']['data']['properties']['attributes']['properties'];
         $row = $attributes['groups']['items']['properties']['rows']['items']['properties'];
         $groups = static fn(string ...$levels): array => [['rows' => array_map(static fn(string $level): array => ['level' => $level], $levels)]];
@@ -942,9 +942,9 @@ describe('A row of the health', function () {
             // An application of its own: an address that does not answer, not the helpers of the grid
             ->and([$rows[4]['thirdParty'] ?? false, $rows[5]['thirdParty'] ?? false, $rows[6]['thirdParty'] ?? false])
             ->toBe([true, false, false])
-            ->and(array_diff($keys, array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->and(array_diff($keys, array_keys(W4OS\Engine\I18n\Catalog::MESSAGES)))
             ->toBe([])
-            ->and(OpenSim\I18n\Catalog::messages('fr_FR')['setting_search_service'] ?? '')
+            ->and(W4OS\Engine\I18n\Catalog::messages('fr_FR')['setting_search_service'] ?? '')
             ->not->toBe('');
     });
 });
@@ -984,8 +984,8 @@ describe('A wrong or missing address', function () {
     });
 
     test('is the one the options of the grid give: what they write in Robust and in OpenSim.ini', function () {
-        $machine = new OpenSim\Testing\Machine();
-        $expected = (new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo')))->expected();
+        $machine = new W4OS\Engine\Testing\Machine();
+        $expected = (new W4OS\Engine\Provisioning\GridOptions(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')))->expected();
 
         expect($expected['Robust']['LoginService']['DestinationGuide'] ?? null)
             ->toBe('"${Const|WebURL}/guide"')
@@ -998,12 +998,12 @@ describe('A wrong or missing address', function () {
 
 describe('The last check of the health', function () {
     test('is kept with its time and given again, checked anew on demand or by its task in the background', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $machine->clock->now = 1_800_000_000.0;
         // The search database of the grid, which keeps its cache
-        $search = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
-        OpenSim\Data\Connections::using(static fn() => $search);
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        $search = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        W4OS\Engine\Data\Connections::using(static fn() => $search);
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
         $attributes = static fn(array $query = []) => $router->get('/grids/demo/health', $query)->document['data']['attributes'];
 
         $first = $attributes();
@@ -1011,11 +1011,11 @@ describe('The last check of the health', function () {
         $kept = $attributes();
         $asked = $attributes(['refresh' => '1']);
         $machine->clock->now += 1000;
-        $scheduler = OpenSim\Scheduling\Scheduler::for($machine->environment);
-        OpenSim\Services\SearchTasks::add($scheduler, $machine->environment, OpenSim\Config\GridConfig::fromFolder($machine->grid));
+        $scheduler = W4OS\Engine\Scheduling\Scheduler::for($machine->environment);
+        W4OS\Engine\Services\SearchTasks::add($scheduler, $machine->environment, W4OS\Engine\Config\GridConfig::fromFolder($machine->grid));
         $scheduler->run('health.demo');
         $background = $attributes();
-        OpenSim\Data\Connections::using(null);
+        W4OS\Engine\Data\Connections::using(null);
 
         $lineTimes = static fn(array $check): array => array_values(array_unique(array_column(array_merge(...array_column($check['groups'], 'rows')), 'checkedAt')));
 
@@ -1053,11 +1053,11 @@ describe('The same address', function () {
 
 describe('The health, line by line', function () {
     test('lists every check at once with its id and the last result, then checks one on demand, which the list keeps', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $machine->clock->now = 1_800_000_000.0;
-        $search = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
-        OpenSim\Data\Connections::using(static fn() => $search);
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        $search = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        W4OS\Engine\Data\Connections::using(static fn() => $search);
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
 
         $list = $router->get('/grids/demo/health')->document['data']['attributes'];
         $rows = array_merge(...array_column($list['groups'], 'rows'));
@@ -1066,8 +1066,8 @@ describe('The health, line by line', function () {
         $one = $router->get('/grids/demo/health/' . $asked['id']);
         $kept = array_column(array_merge(...array_column($router->get('/grids/demo/health')->document['data']['attributes']['groups'], 'rows')), null, 'id')[$asked['id']];
         $unknown = $router->get('/grids/demo/health/nothing');
-        $operation = OpenSim\Api\Contract::document()['paths']['/grids/{grid}/health/{check}']['get'] ?? [];
-        OpenSim\Data\Connections::using(null);
+        $operation = W4OS\Engine\Api\Contract::document()['paths']['/grids/{grid}/health/{check}']['get'] ?? [];
+        W4OS\Engine\Data\Connections::using(null);
 
         expect(count(array_unique(array_column($rows, 'id'))))
             ->toBe(count($rows))
@@ -1109,8 +1109,8 @@ describe('A setting of the health', function () {
 
 describe('The words of the health', function () {
     test('are the ones of w4os-wp and its translations, where w4os-wp has them', function () {
-        $en = OpenSim\I18n\Catalog::MESSAGES;
-        $fr = OpenSim\I18n\Catalog::messages('fr_FR');
+        $en = W4OS\Engine\I18n\Catalog::MESSAGES;
+        $fr = W4OS\Engine\I18n\Catalog::messages('fr_FR');
 
         expect([$en['setting_welcome'], $en['setting_login'], $en['setting_destination_guide'], $en['setting_search_service'], $en['health_third_party']])
             ->toBe(['Splash', 'Login URI', 'Destinations Guide', 'Search Service', 'This service requires a separate web application.'])

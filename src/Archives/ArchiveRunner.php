@@ -1,13 +1,13 @@
 <?php
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
-use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\Environment;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Console\InstanceConsoleService;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * `opensim save|load iar|oar`: find the simulator, the region and the file, give the console of the simulator its command,

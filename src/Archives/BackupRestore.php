@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Data\OSPDO;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Runtime\Environment;
-use OpenSim\Text\Notice;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\DatabaseService;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Text\Notice;
 
 /**
  * A backup (BackupService: a grid, or one of its simulators) put back on this machine: what would be written and where (prepare(),
@@ -75,8 +75,8 @@ final class BackupRestore
                 foreach ($held->connections($simulator) as $connection) {
                     in_array($connection->database, $grid, true) && ($shared[] = $connection->database);
                 }
-                foreach (glob("$stage/etc/grids/{$manifest['grid']}/" . \OpenSim\Config\GridConfig::SIMULATORS . "/$simulator/regions/*.ini") ?: [] as $region) {
-                    foreach (\OpenSim\Config\ConfigReader::load($region, [], false) as $name => $settings) {
+                foreach (glob("$stage/etc/grids/{$manifest['grid']}/" . \W4OS\Engine\Config\GridConfig::SIMULATORS . "/$simulator/regions/*.ini") ?: [] as $region) {
+                    foreach (\W4OS\Engine\Config\ConfigReader::load($region, [], false) as $name => $settings) {
                         $uuid = strtolower(trim((string) ($settings['RegionUUID'] ?? ''), " \t\""));
                         $uuid === '' || ($uuids[$uuid] = (string) $name);
                     }
@@ -244,7 +244,7 @@ final class BackupRestore
         if ($simulator === null) {
             return false;
         }
-        $sims = "etc/grids/{$this->grid()}/" . \OpenSim\Config\GridConfig::SIMULATORS;
+        $sims = "etc/grids/{$this->grid()}/" . \W4OS\Engine\Config\GridConfig::SIMULATORS;
 
         return str_starts_with($entry, 'etc/grids/') &&
             $entry !== "$sims/$simulator.ini" &&
@@ -273,8 +273,8 @@ final class BackupRestore
         if ($this->regionUuids === []) {
             return [];
         }
-        $config = \OpenSim\Config\GridConfig::fromFolder($this->etc() . "/grids/{$this->grid()}");
-        $pdo = \OpenSim\Data\Connections::pdo($config, \OpenSim\Data\Database::Estate);
+        $config = \W4OS\Engine\Config\GridConfig::fromFolder($this->etc() . "/grids/{$this->grid()}");
+        $pdo = \W4OS\Engine\Data\Connections::pdo($config, \W4OS\Engine\Data\Database::Estate);
         if ($pdo === null || !$pdo->connected) {
             return null;
         }

@@ -8,8 +8,8 @@ declare(strict_types=1);
  * site asks it through the API.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Testing\Machine;
 
 describe('A grid an application describes', function () {
     test('reads no folder of the machine, even the one of its name', function () {

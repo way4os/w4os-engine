@@ -8,12 +8,12 @@ declare(strict_types=1);
  * Robust or the simulators read stays in their files: read-only here, with its reason and the lines to add by hand (`meta.fixed`).
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\ArraySettings;
-use OpenSim\Config\Settings;
-use OpenSim\Models\Grid;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\ArraySettings;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Testing\Machine;
 
 /** @return array{0:Router,1:ArraySettings,2:Machine} the API of the grid demo, the files of its folder read only, a store of the site */
 function readonly_grid(): array
@@ -31,8 +31,8 @@ function readonly_grid(): array
     return [new Router(new Api($machine->environment->withSettings($store))), $store, $machine];
 }
 
-/** @return OpenSim\Api\Response the PATCH of a page of settings */
-function patch_page(Router $router, string $grid, string $page, array $attributes): OpenSim\Api\Response
+/** @return W4OS\Engine\Api\Response the PATCH of a page of settings */
+function patch_page(Router $router, string $grid, string $page, array $attributes): W4OS\Engine\Api\Response
 {
     return $router->patch("/grids/$grid/settings/$page", ['data' => ['type' => 'settings', 'id' => $page, 'attributes' => $attributes]]);
 }
@@ -70,7 +70,7 @@ describe('A setting of a grid whose files this process cannot write', function (
             ->and($fixed['destinationGuide'])->toMatchArray(['file' => 'Robust.HG.ini', 'text' => "[LoginService]\n    DestinationGuide = https://play.example.org/guide"])
             ->and($fixed['destinationGuide']['reason'])->toBe($refused->document['reason'])
             ->and($fixed['destinationGuide']['reason']['detail'])->toContain('cannot write')
-            ->and(OpenSim\I18n\Catalog::notice('fr_FR', $fixed['destinationGuide']['reason']['code'], $fixed['destinationGuide']['reason']['params']))
+            ->and(W4OS\Engine\I18n\Catalog::notice('fr_FR', $fixed['destinationGuide']['reason']['code'], $fixed['destinationGuide']['reason']['params']))
             ->toContain('Robust.HG.ini')->not->toBe($fixed['destinationGuide']['reason']['detail'])
             // What the helpers read is not fixed: the application keeps it
             ->and(array_keys($economy))->not->toContain('currencyRate')->toContain('economyUrl');

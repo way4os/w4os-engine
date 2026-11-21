@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Config\Layout;
-use OpenSim\Console\ConsoleFactory;
-use OpenSim\Console\ConsoleFactoryInterface;
-use OpenSim\Network\PortMapping\PortMappingService;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Console\ConsoleFactory;
+use W4OS\Engine\Console\ConsoleFactoryInterface;
+use W4OS\Engine\Network\PortMapping\PortMappingService;
 
 /**
  * What the models need to act on the machine: where the install is, the processes, the launcher, the consoles, the clock, the
@@ -32,9 +32,9 @@ final class Environment
         /** @var ?list<int> occupied ports reported by the deployment host; replaces local config/socket discovery */
         public readonly ?array $occupiedPorts = null,
         /** The access to the databases an application gives (a site that has the engine in its own folder), for every grid */
-        public readonly ?\OpenSim\Data\DatabaseAccess $databases = null,
+        public readonly ?\W4OS\Engine\Data\DatabaseAccess $databases = null,
         /** The settings an application keeps for the engine (a site), read before the files of a grid, for every grid */
-        public readonly ?\OpenSim\Config\SettingsStore $settings = null,
+        public readonly ?\W4OS\Engine\Config\SettingsStore $settings = null,
     ) {}
 
     /** The same environment with another layout (the config of the suite read again). */
@@ -45,17 +45,17 @@ final class Environment
 
     /** The environment of this machine. */
     /**
-     * @param ?\OpenSim\Data\DatabaseAccess $databases the access to the databases an application gives, applied to every grid
+     * @param ?\W4OS\Engine\Data\DatabaseAccess $databases the access to the databases an application gives, applied to every grid
      *        (Grid::config()): its server, its user, its password; null for the ones each grid says
-     * @param array<string,array<string,string>>|\OpenSim\Config\SettingsStore|null $settings the settings the application keeps for every
+     * @param array<string,array<string,string>>|\W4OS\Engine\Config\SettingsStore|null $settings the settings the application keeps for every
      *        grid (section => key => value), read before its files: an array is read only, a store also keeps what the settings pages
      *        write for a grid without files
      */
     public static function system(
         Layout $layout,
         ?ReporterInterface $reporter = null,
-        ?\OpenSim\Data\DatabaseAccess $databases = null,
-        array|\OpenSim\Config\SettingsStore|null $settings = null,
+        ?\W4OS\Engine\Data\DatabaseAccess $databases = null,
+        array|\W4OS\Engine\Config\SettingsStore|null $settings = null,
     ): self {
         $reporter ??= new NullReporter();
 
@@ -73,12 +73,12 @@ final class Environment
                     : $reporter->info($message),
             ),
             databases: $databases,
-            settings: is_array($settings) ? new \OpenSim\Config\ArraySettings($settings, false) : $settings,
+            settings: is_array($settings) ? new \W4OS\Engine\Config\ArraySettings($settings, false) : $settings,
         );
     }
 
     /** The same environment with the settings an application keeps (SettingsStore). */
-    public function withSettings(?\OpenSim\Config\SettingsStore $settings): self
+    public function withSettings(?\W4OS\Engine\Config\SettingsStore $settings): self
     {
         return new self(
             $this->layout,

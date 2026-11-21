@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
-use OpenSim\Assets\ConverterInterface;
-use OpenSim\Security\Authenticator;
-use OpenSim\Security\Locked;
+use W4OS\Engine\Assets\ConverterInterface;
+use W4OS\Engine\Security\Authenticator;
+use W4OS\Engine\Security\Locked;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

@@ -7,18 +7,18 @@ declare(strict_types=1);
  * offline does not make what was kept less valid, and the grid they lead to is the one they say.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Cache;
-use OpenSim\Data\DatabaseCacheStore;
-use OpenSim\Models\Avatar;
-use OpenSim\Network\GridInfoCache;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Data\DatabaseCacheStore;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Network\GridInfoCache;
+use W4OS\Engine\Testing\Machine;
 
 /** A machine whose grids answer what the test puts in `$answers` (address => body), counting the questions. */
 function grid_info_world(array &$answers, array &$asked): Machine
 {
     $machine = new Machine();
-    $machine->environment = new OpenSim\Runtime\Environment(
+    $machine->environment = new W4OS\Engine\Runtime\Environment(
         $machine->environment->layout,
         $machine->environment->processes,
         $machine->environment->launcher,

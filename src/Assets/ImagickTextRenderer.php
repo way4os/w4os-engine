@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Assets;
+namespace W4OS\Engine\Assets;
 
 /**
  * Draws a text with ImageMagick (the extension `imagick`): the text centered on a 1024 pixels square, in the font, the size and the

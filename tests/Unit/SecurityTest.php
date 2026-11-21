@@ -1,7 +1,7 @@
 <?php
 
-use OpenSim\Security\Escape;
-use OpenSim\Security\Sanitize;
+use W4OS\Engine\Security\Escape;
+use W4OS\Engine\Security\Sanitize;
 
 describe('what goes out', function () {
     test('is escaped for the place it goes to', function () {

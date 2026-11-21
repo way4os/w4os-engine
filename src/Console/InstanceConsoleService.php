@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Console;
+namespace W4OS\Engine\Console;
 
-use OpenSim\OpenSim;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\SystemProcessTable;
+use W4OS\Engine\OpenSim;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\SystemProcessTable;
 
 /**
  * Asking a running instance from the code that sets things up (the accounts of a grid, its regions): whether it runs, and

@@ -1,11 +1,11 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\ShellService;
+use W4OS\Engine\Console\InstanceConsoleService;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\ShellService;
 
 /**
  * The user accounts of a grid, kept by its Robust: read from its database,

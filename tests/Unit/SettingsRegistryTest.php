@@ -3,17 +3,17 @@
 declare(strict_types=1);
 
 /**
- * The registry of the settings (OpenSim\Config\Settings): a table of conversion between the settings as the files of OpenSimulator
+ * The registry of the settings (W4OS\Engine\Config\Settings): a table of conversion between the settings as the files of OpenSimulator
  * say them (instance > section > key) and the clean name of the engine and the API, with what each is (type, label, default...).
  * The values stay in their own files: the registry says where.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\Settings;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Service;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Service;
+use W4OS\Engine\Testing\Machine;
 
 describe('The registry of the settings', function () {
     test('names each setting of the files twice: as OpenSimulator says it and as the engine does', function () {

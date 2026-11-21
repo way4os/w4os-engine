@@ -7,19 +7,19 @@ declare(strict_types=1);
  * environment of the machine.
  */
 
-use OpenSim\Data\Collection;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Interfaces\Enablable;
-use OpenSim\Interfaces\InstalledModelInterface;
-use OpenSim\Interfaces\ModelInterface;
-use OpenSim\Interfaces\OpenSimModelInterface;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\Estate;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Parcel;
-use OpenSim\Models\Region;
-use OpenSim\Models\Simulator;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Interfaces\Enablable;
+use W4OS\Engine\Interfaces\InstalledModelInterface;
+use W4OS\Engine\Interfaces\ModelInterface;
+use W4OS\Engine\Interfaces\OpenSimModelInterface;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\Estate;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Parcel;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Testing\Machine;
 
 /** A machine with the grid demo, and another grid called second whose simulator is not enabled. */
 function installed_machine(): Machine

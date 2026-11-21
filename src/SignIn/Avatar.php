@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
 /**
  * An avatar a grid recognised, as the grid describes it.

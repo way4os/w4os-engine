@@ -7,9 +7,9 @@ declare(strict_types=1);
  * BaseURL...), it is written as `${Const|Name}` and the rest, the form the line already had whenever only the path changes.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Testing\Machine;
 
 describe('An address written in a file of the grid', function () {
     test('under a constant of the grid, is written with the constant', function () {

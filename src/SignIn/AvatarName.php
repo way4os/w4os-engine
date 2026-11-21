@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
 /**
  * The name of an avatar as a person writes it: "First Last", "First.Last", a first name alone (its last name is Resident), and

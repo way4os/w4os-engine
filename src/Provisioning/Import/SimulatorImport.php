@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning\Import;
+namespace W4OS\Engine\Provisioning\Import;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\GridFileService;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Exceptions\NotFound;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Provisioning\SimulatorConfig;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Provisioning\SimulatorProvisioner;
-use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\Environment;
-use OpenSim\Archives\SourceBackup;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Text\Notice;
-use OpenSim\Text\Secrets;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Exceptions\NotFound;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Provisioning\SimulatorConfig;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\SimulatorProvisioner;
+use W4OS\Engine\Provisioning\UiInterface;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Archives\SourceBackup;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Text\Notice;
+use W4OS\Engine\Text\Secrets;
 
 /**
  * A simulator that runs with another install (its OpenSim.ini and its regions: the layout of opensim-debian, or of a release) moved
@@ -117,7 +117,7 @@ final class SimulatorImport
             $value = trim((string) $value, " \t\"");
             preg_match('/Directory$/i', (string) $key) === 1 && str_starts_with($value, '/') && ($roots[] = rtrim($value, '/'));
         }
-        $master = (new \OpenSim\Provisioning\Presets([], dirname($found->directory(), 2)))->options()['master'] ?? null;
+        $master = (new \W4OS\Engine\Provisioning\Presets([], dirname($found->directory(), 2)))->options()['master'] ?? null;
         $layout = $master === null ? [] : ConfigReader::expand(
             ['Const' => ['DataDirectory' => $plan->dataDirectory, 'CacheDirectory' => $plan->cacheDirectory]] + ConfigReader::parse($master->text('model.ini', [])),
         );
@@ -156,8 +156,8 @@ final class SimulatorImport
         $version = preg_match('/\d+(?:\.\d+)+/', $core, $m) === 1 ? $m[0] : $core;
         $modules = rtrim($environment->layout->modulesRoot(), '/');
         $packaged = array_merge([], ...array_values(array_map(
-            static fn(\OpenSim\Provisioning\OptionTemplate $option): array => $option->modules(),
-            (new \OpenSim\Provisioning\Presets([], $environment->layout->etcRoot()))->options(),
+            static fn(\W4OS\Engine\Provisioning\OptionTemplate $option): array => $option->modules(),
+            (new \W4OS\Engine\Provisioning\Presets([], $environment->layout->etcRoot()))->options(),
         )));
         $missing = [];
         foreach (self::missingModules($customizations, $exampleText, [$plan->binDir(), "$modules/$core", "$modules/$version"]) as $module) {

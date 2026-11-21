@@ -1,6 +1,6 @@
 # Logos
 
-The logos every bridge of the engine shows (the Grav plugin, w4os, the helpers): `OpenSim\Assets\Logos` gives their files, the API serves them at `/logos/{name}`. The logo of a grid is not here: it is its own setting, `LogoURL` in the `[Helpers]` section of `Helpers.ini` (`Grid::logoUrl()`, `logo` in `/grids/{grid}/info` and `/grids/{grid}/addresses`).
+The logos every bridge of the engine shows (the Grav plugin, w4os, the helpers): `W4OS\Engine\Assets\Logos` gives their files, the API serves them at `/logos/{name}`. The logo of a grid is not here: it is its own setting, `LogoURL` in the `[Helpers]` section of `Helpers.ini` (`Grid::logoUrl()`, `logo` in `/grids/{grid}/info` and `/grids/{grid}/addresses`).
 
 - `w4os-logo-v1-long.png` (1244x312), `w4os-logo-v1-long-300x75.png`: the long logo of w4os, for a footer.
 - `w4os-logo-v1-square.png` (960x960), `w4os-icon-v1.png` (256x256): the square logo and the icon of w4os.

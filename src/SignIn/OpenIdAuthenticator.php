@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
-use OpenSim\Network\Http;
+use W4OS\Engine\Network\Http;
 
 /**
  * Signs an avatar in with the OpenID 2.0 provider of the Robust of its grid (`OpenIdServerConnector`, public port): the grid asks

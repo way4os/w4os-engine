@@ -6,16 +6,16 @@ declare(strict_types=1);
  * From the answers about a grid to its plan: what is proposed, what follows what was changed, a grid that is changed, what is wrong.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Controllers\RobustController;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\GridPlanner;
-use OpenSim\Provisioning\RandomName;
-use OpenSim\Provisioning\Slug;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Controllers\RobustController;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\GridPlanner;
+use W4OS\Engine\Provisioning\RandomName;
+use W4OS\Engine\Provisioning\Slug;
 use Platoniq\RandomNameGenerator\Alliteration;
-use OpenSim\Runtime\Environment;
-use OpenSim\Testing\Machine;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Testing\Machine;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /** A planner for a machine called amy, with random things that are not: a counter. */
 function planner(array $more = []): GridPlanner

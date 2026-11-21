@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network\PortMapping;
+namespace W4OS\Engine\Network\PortMapping;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * The port mapping of the instances (Robust, simulators): their ports made reachable from outside before they start, closed

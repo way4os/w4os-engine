@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridConfig;
-use OpenSim\Provisioning\SqlRunner;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Provisioning\SqlRunner;
 
 /**
  * The connections the models read and write with: one OSPDO for each database, opened when it is first needed and kept.
@@ -21,7 +21,7 @@ final class Connections
     /** @var array<string,string> why a database could not be reached, by the key of its connection */
     private static array $failures = [];
 
-    /** @var ?\Closure(Database|string,?string,?\OpenSim\Config\ConnectionString):?OSPDO */
+    /** @var ?\Closure(Database|string,?string,?\W4OS\Engine\Config\ConnectionString):?OSPDO */
     private static ?\Closure $factory = null;
 
     /**
@@ -95,7 +95,7 @@ final class Connections
         GridConfig $config,
         Database|string $what,
         ?string $simulator,
-    ): ?\OpenSim\Config\ConnectionString {
+    ): ?\W4OS\Engine\Config\ConnectionString {
         return $what instanceof Database ? $what->connection($config, $simulator) : Database::service($config, $what);
     }
 }

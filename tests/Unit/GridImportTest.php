@@ -7,11 +7,11 @@ declare(strict_types=1);
  * this install makes one with the settings of the old one put back, written disabled, then switched once the old Robust is stopped.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\Import\GridImport;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\Import\GridImport;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Testing\Machine;
 
 /** A machine whose core has the example of Robust, and an old install beside it, with its Robust config. */
 function old_robust_install(): array
@@ -139,7 +139,7 @@ describe('The import of a grid', function () {
 
     test('goes through the API: kind robust, planned, applied, switched', function () {
         [$machine, $robust] = old_robust_install();
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment, dumper: grid_import_no_dump()));
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment, dumper: grid_import_no_dump()));
         $ask = static fn(array $more) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => $more + ['kind' => 'robust', 'file' => $robust]]]);
 
         $plan = $ask([]);
@@ -161,14 +161,14 @@ describe('The setup from an existing install', function () {
     test('asks its Robust config, shows the plan, then writes the grid disabled and says how to switch', function () {
         [$machine, $robust] = old_robust_install();
         $env = $machine->environment;
-        OpenSim\Provisioning\QuickSetup::through(['dumper' => grid_import_no_dump()]);
+        W4OS\Engine\Provisioning\QuickSetup::through(['dumper' => grid_import_no_dump()]);
 
-        $type = OpenSim\Provisioning\QuickSetup::next($env, []);
-        $form = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $type['state'], 'answers' => ['type' => 'existing']]);
-        $wrong = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $form['state'], 'answers' => ['robust_config' => '/nowhere/Robust.ini']]);
-        $review = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $form['state'], 'answers' => ['robust_config' => $robust]]);
-        $done = OpenSim\Provisioning\QuickSetup::next($env, ['state' => $review['state'], 'button' => 'next']);
-        OpenSim\Provisioning\QuickSetup::through();
+        $type = W4OS\Engine\Provisioning\QuickSetup::next($env, []);
+        $form = W4OS\Engine\Provisioning\QuickSetup::next($env, ['state' => $type['state'], 'answers' => ['type' => 'existing']]);
+        $wrong = W4OS\Engine\Provisioning\QuickSetup::next($env, ['state' => $form['state'], 'answers' => ['robust_config' => '/nowhere/Robust.ini']]);
+        $review = W4OS\Engine\Provisioning\QuickSetup::next($env, ['state' => $form['state'], 'answers' => ['robust_config' => $robust]]);
+        $done = W4OS\Engine\Provisioning\QuickSetup::next($env, ['state' => $review['state'], 'button' => 'next']);
+        W4OS\Engine\Provisioning\QuickSetup::through();
 
         expect(array_column($type['items'], 'key'))
             ->toContain('existing')

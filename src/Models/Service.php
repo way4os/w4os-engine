@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Config\Settings;
-use OpenSim\Data\Listing;
-use OpenSim\Config\GridConfig;
-use OpenSim\Controllers\AbstractController;
-use OpenSim\Controllers\RobustController;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Database;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Controllers\AbstractController;
+use W4OS\Engine\Controllers\RobustController;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * A service of a grid: what its simulators and its users ask for the assets, the inventories, the profiles, the logins. A service

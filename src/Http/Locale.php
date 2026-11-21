@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Http;
+namespace W4OS\Engine\Http;
 
 /**
  * The language of the answer: the one the request asks for.

@@ -1,6 +1,6 @@
 <?php
 
-use OpenSim\Archives\Rotation;
+use W4OS\Engine\Archives\Rotation;
 
 /**
  * `--keep N`: the N newest files of the series of a new archive or backup, the older ones removed.

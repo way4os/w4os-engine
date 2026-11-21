@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
-use OpenSim\Network\Http;
+use W4OS\Engine\Network\Http;
 use PhpXmlRpc\Encoder;
 use PhpXmlRpc\Request;
 use PhpXmlRpc\Response;
@@ -31,7 +31,7 @@ final class LoginServiceAuthenticator implements AvatarAuthenticator
     public function __construct(
         private readonly string $url,
         private readonly string $start = 'last',
-        private readonly string $channel = 'opensim-engine',
+        private readonly string $channel = 'w4os-engine',
         ?\Closure $post = null,
     ) {
         $this->post =

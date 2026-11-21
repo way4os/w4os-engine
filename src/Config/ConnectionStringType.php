@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * A connection string of OpenSimulator as a setting: its server, its port, its database, its user and its password, the other pairs

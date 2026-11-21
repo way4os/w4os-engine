@@ -7,19 +7,19 @@ declare(strict_types=1);
  * contract that says so: checked against the models.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Assets\WebAssets;
-use OpenSim\Api\Contract;
-use OpenSim\Api\Problem;
-use OpenSim\Api\Response;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Exceptions\ChannelUnavailable;
-use OpenSim\Models\Grid;
-use OpenSim\Scheduling\Scheduler;
-use OpenSim\Scheduling\Task;
-use OpenSim\Testing\ClockFake;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Assets\WebAssets;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\Api\Problem;
+use W4OS\Engine\Api\Response;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Scheduling\Scheduler;
+use W4OS\Engine\Scheduling\Task;
+use W4OS\Engine\Testing\ClockFake;
+use W4OS\Engine\Testing\Machine;
 
 /** An API over the test machine, the config of its grids being the one the test gives. */
 function machine_api(?GridConfig $config = null, ?Scheduler $scheduler = null): Api
@@ -41,8 +41,8 @@ describe('The API', function () {
     test('uses the current account when SystemUser is not configured', function () {
         $uid = posix_geteuid();
         $user = posix_getpwuid($uid);
-        $environment = OpenSim\Testing\EnvironmentFake::with();
-        $response = (new OpenSim\Api\Router(new Api($environment)))->get('/layout');
+        $environment = W4OS\Engine\Testing\EnvironmentFake::with();
+        $response = (new W4OS\Engine\Api\Router(new Api($environment)))->get('/layout');
 
         expect($response->document['data']['attributes']['systemUser'])
             ->toBe($user['name']);
@@ -53,13 +53,13 @@ describe('The API', function () {
         $gid = posix_getegid();
         $user = posix_getpwuid($uid);
         $group = posix_getgrgid($gid);
-        $environment = OpenSim\Testing\EnvironmentFake::with([
+        $environment = W4OS\Engine\Testing\EnvironmentFake::with([
             'SystemUser' => (string) $user['name'],
             'EtcRoot' => '/etc/opensim-test',
             'VarRoot' => '/var/lib/opensim-test',
             'LogsRoot' => '/var/log/opensim-test',
         ]);
-        $response = (new OpenSim\Api\Router(new Api($environment)))->get('/layout');
+        $response = (new W4OS\Engine\Api\Router(new Api($environment)))->get('/layout');
         $systemGroup = posix_getgrgid((int) $user['gid']);
 
         expect($response->status)
@@ -190,7 +190,7 @@ describe('The API', function () {
                     'title' => 'Not available',
                     'detail' => 'cannot read the avatars: no database',
                 ])
-                ->and(Problem::from(new \OpenSim\Exceptions\InstanceFailed('demo', 'demo exited while starting'))->toArray())
+                ->and(Problem::from(new \W4OS\Engine\Exceptions\InstanceFailed('demo', 'demo exited while starting'))->toArray())
                 ->toMatchArray([
                     'status' => 500,
                     'title' => 'Instance failed',
@@ -648,7 +648,7 @@ describe('The contract', function () {
             ->toBe([])
             ->and($keys)
             ->not->toBeEmpty()
-            ->and(array_values(array_diff(array_unique($keys), array_keys(\OpenSim\I18n\Catalog::MESSAGES))))
+            ->and(array_values(array_diff(array_unique($keys), array_keys(\W4OS\Engine\I18n\Catalog::MESSAGES))))
             ->toBe([]);
     });
 
@@ -669,7 +669,7 @@ describe('The contract', function () {
                 ($field['readOnly'] ?? false) || in_array($field['name'], $writable, true) || ($checks[] = "$type.{$field['name']} sent");
                 array_push($keys, ...array_values($field['options'] ?? []), ...(isset($field['description']) ? [$field['description']] : []));
             }
-            array_push($checks, ...array_diff($keys, array_keys(\OpenSim\I18n\Catalog::MESSAGES)));
+            array_push($checks, ...array_diff($keys, array_keys(\W4OS\Engine\I18n\Catalog::MESSAGES)));
         }
 
         expect($checks)
@@ -727,19 +727,19 @@ describe('The contract', function () {
             ->and(array_column(array_filter($region['fields'], static fn(array $f): bool => !($f['readOnly'] ?? false)), 'type', 'name'))
             ->toBe(['owner' => 'avatar', 'roles' => 'checkboxes', 'enabled' => 'boolean'])
             // Unknown (null) when this machine has no file of the region (local false): neither the field nor its actions are shown
-            ->and((new \OpenSim\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => false, 'enabled' => null]))
+            ->and((new \W4OS\Engine\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => false, 'enabled' => null]))
             ->toBeFalse()
-            ->and((new \OpenSim\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => true, 'enabled' => false]))
+            ->and((new \W4OS\Engine\Forms\FieldSet($region['fields']))->visible('enabled', ['local' => true, 'enabled' => false]))
             ->toBeTrue()
             ->and(array_column($region['actions'], 'when', 'name'))
             ->toBe([
                 'enable' => ['local' => [true], 'enabled' => [false]],
                 'disable' => ['local' => [true], 'enabled' => [true]],
             ])
-            ->and(\OpenSim\Models\Region::itemForm()->writable())
+            ->and(\W4OS\Engine\Models\Region::itemForm()->writable())
             ->toBe(['owner', 'roles', 'enabled'])
             // A parcel is only shown: it is changed in the viewer
-            ->and(\OpenSim\Models\Parcel::itemForm()->writable())
+            ->and(\W4OS\Engine\Models\Parcel::itemForm()->writable())
             ->toBe([])
             ->and(array_column($parcel['fields'], null, 'name')['uri'])
             ->toBe(['name' => 'uri', 'label' => 'column_uri', 'type' => 'link', 'group' => 'parcel', 'readOnly' => true, 'link' => 'teleport'])
@@ -775,9 +775,9 @@ describe('The contract', function () {
         parcels_in(parcel_databases());
         $details['parcels'] = first_attributes(machine_api(parcel_config())->list('parcels', [], grid: 'demo'));
         $details['estates'] = first_attributes(machine_api(estate_world())->list('estates', [], grid: 'demo'));
-        $profiles = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $profiles = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         Connections::using(static fn() => $profiles);
-        OpenSim\Flux\Posts::for(avatar_grid())->add('11111111-1111-4111-8111-111111111111', 'Ada Love', 'Hello');
+        W4OS\Engine\Flux\Posts::for(avatar_grid())->add('11111111-1111-4111-8111-111111111111', 'Ada Love', 'Hello');
         $details['posts'] = first_attributes(machine_api(avatar_grid())->list('posts', [], grid: 'demo'));
         Connections::using(static fn() => asset_database());
         $details['assets'] = first_attributes(machine_api(asset_config())->list('assets', [], grid: 'demo'));
@@ -938,19 +938,19 @@ describe('The documentation of the API', function () {
 describe('The endpoints of a fixed format', function () {
     test('describe the methods the services answer, no more and no fewer', function () {
         $db = test_pdo();
-        $money = new OpenSim\Economy\Currency(
-            new OpenSim\Economy\CurrencySettings(scriptKey: 'key'),
+        $money = new W4OS\Engine\Economy\Currency(
+            new W4OS\Engine\Economy\CurrencySettings(scriptKey: 'key'),
             static fn() => null,
         );
-        $server = new OpenSim\Services\CurrencyServer($money, '');
+        $server = new W4OS\Engine\Services\CurrencyServer($money, '');
 
-        expect(array_keys((new OpenSim\Services\SearchQuery($db, 'regionsregister'))->methods()))
-            ->toBe(array_keys(OpenSim\Api\Formats::SEARCH))
+        expect(array_keys((new W4OS\Engine\Services\SearchQuery($db, 'regionsregister'))->methods()))
+            ->toBe(array_keys(W4OS\Engine\Api\Formats::SEARCH))
             ->and(array_keys($server->currencyMethods()))
-            ->toBe(array_keys(OpenSim\Api\Formats::CURRENCY))
+            ->toBe(array_keys(W4OS\Engine\Api\Formats::CURRENCY))
             ->and(array_keys($server->landMethods()))
-            ->toBe(array_keys(OpenSim\Api\Formats::LAND))
-            ->and(array_keys(OpenSim\Api\Formats::OFFLINE))
+            ->toBe(array_keys(W4OS\Engine\Api\Formats::LAND))
+            ->and(array_keys(W4OS\Engine\Api\Formats::OFFLINE))
             ->toBe(['SaveMessage', 'RetrieveMessages']);
     })->skip(fn() => test_pdo() === null, 'TEST_DATABASE is not set in tests/.env');
 
@@ -960,7 +960,7 @@ describe('The endpoints of a fixed format', function () {
         $currency = $paths['/grids/{grid}/currency.php']['post'];
 
         expect(array_keys($query['requestBody']['content']['text/xml']['examples']))
-            ->toBe(array_keys(OpenSim\Api\Formats::SEARCH))
+            ->toBe(array_keys(W4OS\Engine\Api\Formats::SEARCH))
             ->and($query['description'])
             ->toContain('### `dir_places_query`', '| `text` | string |')
             ->and($query['requestBody']['content']['text/xml']['examples']['dir_places_query']['value'])
@@ -1018,10 +1018,10 @@ describe('The endpoints of a fixed format', function () {
 
 describe('The problems of the API', function () {
     test('each say a stable code, the ones the contract lists', function () {
-        $router = new OpenSim\Api\Router(machine_api(), authenticator: new OpenSim\Security\Locked());
-        $open = new OpenSim\Api\Router(machine_api());
+        $router = new W4OS\Engine\Api\Router(machine_api(), authenticator: new W4OS\Engine\Security\Locked());
+        $open = new W4OS\Engine\Api\Router(machine_api());
         $codes = [
-            'not-found' => Problem::from(OpenSim\Exceptions\NotFound::for('thing'))->toArray(),
+            'not-found' => Problem::from(W4OS\Engine\Exceptions\NotFound::for('thing'))->toArray(),
             'invalid-request' => Problem::from(new InvalidArgumentException('wrong'))->toArray(),
             'channel-unavailable' => Problem::from(ChannelUnavailable::for('do it'))->toArray(),
             'internal-error' => (static function (): array {
@@ -1033,7 +1033,7 @@ describe('The problems of the API', function () {
                     ini_set('error_log', (string) $log);
                 }
             })(),
-            'name-taken' => Problem::from(OpenSim\Exceptions\InvalidValue::because('name-taken', 'taken'))->toArray(),
+            'name-taken' => Problem::from(W4OS\Engine\Exceptions\InvalidValue::because('name-taken', 'taken'))->toArray(),
             'unauthorized' => $router->get('/grids')->document,
             'method-not-allowed' => $open->route('PUT', '/grids')->document,
             'invalid-document' => $open->post('/grids/demo/avatars', '{nope')->document,
@@ -1061,7 +1061,7 @@ describe('The pictures of what has none', function () {
 
         $nothing = $api->media('demo', WebAssets::PLACEHOLDER, 'jpg', asset_converter($calls));
         $person = $api->media('demo', WebAssets::PERSON, 'jpg', asset_converter($calls));
-        $model = $api->media('demo', OpenSim\Models\AvatarModel::PLACEHOLDER, 'jpg', asset_converter($calls));
+        $model = $api->media('demo', W4OS\Engine\Models\AvatarModel::PLACEHOLDER, 'jpg', asset_converter($calls));
         $place = $api->media('demo', $missing, 'jpg', asset_converter($calls));
         $profile = $api->media('demo', $missing, 'jpg', asset_converter($calls), null, 'person');
         $none = $api->media('demo', '00000000-0000-0000-0000-000000000000', 'jpg', asset_converter($calls), null, 'person');

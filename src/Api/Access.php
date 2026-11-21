@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Models\Avatar;
 
 /**
  * Who may do what through a site, by the user levels of OpenSimulator (Avatar::LEVELS): the lowest level a person needs for an

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Support;
+namespace W4OS\Engine\Support;
 
-use OpenSim\Runtime\Core;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Runtime\Core;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The versions of what matters on a machine, for `--version`: the projects of the family (the version of the package that installed
  * them, else their git version in a clone, else the version being worked on), the cores of OpenSimulator, the runtimes.
  *
  *     Versions::engine();                                      // "3.0.0~beta.14+12.g1a2b3c4"
- *     Versions::all($environment, ['opensim-cli' => $cli]);    // name => version, what was given first
+ *     Versions::all($environment, ['w4os-cli' => $cli]);    // name => version, what was given first
  */
 final class Versions
 {
@@ -40,7 +40,7 @@ final class Versions
     /** The version of the engine. */
     public static function engine(): string
     {
-        return self::of(dirname(__DIR__, 2), 'opensim-engine');
+        return self::of(dirname(__DIR__, 2), 'w4os-engine');
     }
 
     /**
@@ -52,11 +52,11 @@ final class Versions
      */
     public static function all(Environment $environment, array $first = []): array
     {
-        $versions = $first + ['opensim-engine' => self::engine()];
+        $versions = $first + ['w4os-engine' => self::engine()];
         if (class_exists(\OpenSim_Rest::class)) {
             $versions['opensim-rest-php'] = self::of(dirname((string) (new \ReflectionClass(\OpenSim_Rest::class))->getFileName()), 'opensim-rest-php');
         }
-        is_dir('/usr/share/opensim-helpers') && ($versions['opensim-helpers'] = self::of('/usr/share/opensim-helpers', 'opensim-helpers'));
+        is_dir('/usr/share/w4os-helpers') && ($versions['w4os-helpers'] = self::of('/usr/share/w4os-helpers', 'w4os-helpers'));
         foreach (['w4os-site', 'opensim-kit'] as $package) {
             ($version = self::package($package)) !== null && ($versions[$package] = $version);
         }

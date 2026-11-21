@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Assets;
+namespace W4OS\Engine\Assets;
 
 /**
  * Makes the picture of a text, the texture of a prim.

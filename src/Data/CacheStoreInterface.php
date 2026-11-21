@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
 /**
  * Where a Cache keeps what must outlive the request: a table of a database, a folder of files. A store never throws: what it cannot

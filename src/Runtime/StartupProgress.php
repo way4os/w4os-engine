@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * How a simulator loads, from its log: the plugins of modules it loads with a count, the database it brings up to date, then

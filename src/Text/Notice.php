@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Text;
+namespace W4OS\Engine\Text;
 
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\I18n\Catalog;
 
 /**
  * What the engine says outside its errors (a reminder, a note of a plan, a message of the API), the way it says a problem: a stable

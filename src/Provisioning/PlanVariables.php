@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
  * What a plan collected, as the variables the presets put in their files (see OptionTemplate): each property by its name in

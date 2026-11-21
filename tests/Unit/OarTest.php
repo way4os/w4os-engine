@@ -4,7 +4,7 @@
  */
 
 define('OPENSIM_ENGINE', true);
-use OpenSim\Archives\Oar;
+use W4OS\Engine\Archives\Oar;
 
 /** A folder laid out as the content of an archive. */
 function oar_source(): string

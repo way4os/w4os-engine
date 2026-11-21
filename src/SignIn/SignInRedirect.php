@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\SignIn;
+namespace W4OS\Engine\SignIn;
 
 /**
  * The address to send a person to, and the `state` (plain values) that complete() needs when they come back.

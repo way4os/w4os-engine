@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
  * What the grid service of a Robust tells of its regions, over HTTP: no database
@@ -94,7 +94,7 @@ final class RobustGrid
         }
         if (isset($document->result->uuid)) {
             $uuid = (string) $document->result->uuid;
-            return \OpenSim\Text\Uuid::isValid($uuid) ? $uuid : null;
+            return \W4OS\Engine\Text\Uuid::isValid($uuid) ? $uuid : null;
         }
         return in_array(strtolower(trim((string) $document->result)), ['null', 'false'], true) ? false : null;
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Container;
+namespace W4OS\Engine\Container;
 
 /** Runs Podman commands without passing through a shell. */
 final class Podman

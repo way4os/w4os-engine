@@ -40,6 +40,6 @@ describe('The registers of the search', function () {
             ->and($offLines)->toBe([])
             ->and([$on['include2do'], $on['registers']])->toBe([true, ['https://search.example.org/register.php']])
             ->and($live())->toHaveCount(1)
-            ->and(OpenSim\I18n\Catalog::MESSAGES['search_include_2do'])->toBe('Include 2do.directory');
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES['search_include_2do'])->toBe('Include 2do.directory');
     });
 });

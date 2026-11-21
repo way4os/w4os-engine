@@ -7,11 +7,11 @@ declare(strict_types=1);
  * or a list of UUIDs; "Default" by default), shown with their profile picture, whose outfit and appearance a new avatar gets.
  */
 
-use OpenSim\Api\Router;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\AvatarModel;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\AvatarModel;
 
 const RUTH = 'aaaaaaaa-0000-4000-8000-000000000001';
 const ROTH = 'aaaaaaaa-0000-4000-8000-000000000002';
@@ -114,11 +114,11 @@ describe('avatar models', function () {
             ->and($names(['pattern' => 'Jane']))
             ->toBe(['Jane Default'])
             ->and(fn() => $names(['match' => 'middle']))
-            ->toThrow(OpenSim\Exceptions\InvalidValue::class);
+            ->toThrow(W4OS\Engine\Exceptions\InvalidValue::class);
     });
 
     test('have the filters of the preview in the contract, a list that has no pages', function () {
-        $parameters = array_column(OpenSim\Api\Contract::document()['paths']['/grids/{grid}/avatar-models']['get']['parameters'], null, 'name');
+        $parameters = array_column(W4OS\Engine\Api\Contract::document()['paths']['/grids/{grid}/avatar-models']['get']['parameters'], null, 'name');
 
         expect(array_keys($parameters))
             ->toBe(['grid', 'filter[match]', 'filter[pattern]', 'filter[list]'])
@@ -320,7 +320,7 @@ describe('The API, for the avatar models', function () {
     });
 
     test('are in the contract: a list and a read, and the model of a new avatar', function () {
-        $paths = OpenSim\Api\Contract::document()['paths'];
+        $paths = W4OS\Engine\Api\Contract::document()['paths'];
 
         expect(array_keys($paths['/grids/{grid}/avatar-models']))
             ->toBe(['get'])

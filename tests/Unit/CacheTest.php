@@ -7,11 +7,11 @@ declare(strict_types=1);
  * search database, else files.
  */
 
-use OpenSim\Data\Cache;
-use OpenSim\Data\DatabaseCacheStore;
-use OpenSim\Data\FileCacheStore;
-use OpenSim\Data\OSPDO;
-use OpenSim\Testing\ClockFake;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Data\DatabaseCacheStore;
+use W4OS\Engine\Data\FileCacheStore;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Testing\ClockFake;
 
 /** A cache over a store of the kind, and the clock that tells it the time. */
 function cache_over(string $kind, ?OSPDO $pdo = null): array

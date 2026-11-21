@@ -7,11 +7,11 @@ declare(strict_types=1);
  * process started with sudo, and the database service on a server that cannot be reached.
  */
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Provisioning\SqlRunner;
-use OpenSim\Provisioning\UiInterface;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Provisioning\DatabaseService;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\SqlRunner;
+use W4OS\Engine\Provisioning\UiInterface;
 
 /** An interface that keeps what it is told and says no to every question. */
 function sql_ui(): UiInterface
@@ -240,7 +240,7 @@ describe('process started with sudo', function () {
         $script =
             'require ' .
             var_export(dirname(__DIR__, 2) . '/vendor/autoload.php', true) .
-            '; exit(OpenSim\\Provisioning\\SqlRunner::child());';
+            '; exit(W4OS\\Engine\\Provisioning\\SqlRunner::child());';
         $process = proc_open(
             [PHP_BINARY, '-r', $script],
             [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
@@ -279,7 +279,7 @@ describe('database service', function () {
     })->skip(fn() => !extension_loaded('pdo_mysql'), 'pdo_mysql is missing');
 
     test('gives no rows for a query that cannot be run', function () {
-        $db = OpenSim\Config\ConnectionString::for('127.0.0.1:1', 'grid', 'grid', 'secret');
+        $db = W4OS\Engine\Config\ConnectionString::for('127.0.0.1:1', 'grid', 'grid', 'secret');
 
         expect((new DatabaseService(sql_ui()))->query($db, 'SELECT 1'))->toBeNull();
     });

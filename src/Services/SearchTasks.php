@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Data\OSPDO;
-use OpenSim\Health\HealthCheck;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Runtime\Environment;
-use OpenSim\Scheduling\Scheduler;
-use OpenSim\Scheduling\Task;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Health\HealthCheck;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Scheduling\Scheduler;
+use W4OS\Engine\Scheduling\Task;
 
 /**
  * The tasks of the search of a grid: read the snapshots of the registered simulators (`search-parse`, once a minute: a host that is

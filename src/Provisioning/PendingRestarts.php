@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The instances that have to restart to take into account what the setup did, and why: a text

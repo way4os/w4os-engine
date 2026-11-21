@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Assets;
+namespace W4OS\Engine\Assets;
 
 /**
  * What turns the data of an asset into another format: the images of the grid (JPEG 2000) into what a page shows.

@@ -1,13 +1,13 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Exceptions\SetupFailedException;
-use OpenSim\Forms\FieldSet;
-use OpenSim\Models\Grid;
-use OpenSim\Result;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\ShellService;
+use W4OS\Engine\Exceptions\SetupFailedException;
+use W4OS\Engine\Forms\FieldSet;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Result;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\ShellService;
 
 /**
  * The quick setup: a few answers (the type, the name, the login address, the hypergrid, the avatar that owns it, its password and its email) and
@@ -954,7 +954,7 @@ final class QuickSetup
         if (SystemLayout::needed($environment->layout)) {
             return [
                 'action' => 'abort',
-                'error' => _('The OpenSim system layout is missing: install opensim-engine before running setup.'),
+                'error' => _('The OpenSim system layout is missing: install w4os-engine before running setup.'),
             ];
         }
         if (!is_dir($existing) || !is_writable($existing)) {
@@ -962,7 +962,7 @@ final class QuickSetup
                 'action' => 'abort',
                 'error' => sprintf(
                     _(
-                        'Cannot write in %s: run the setup as a user who can, or set EtcRoot in opensim.conf to a folder that can be written.',
+                        'Cannot write in %s: run the setup as a user who can, or set EtcRoot in w4os.conf to a folder that can be written.',
                     ),
                     $existing,
                 ),
@@ -1352,7 +1352,7 @@ final class QuickSetup
             $port = trim((string) ($answers['private_port'] ?? ''));
             if ($uri === '') {
                 $problems['login_uri'] = _('required');
-            } elseif (\OpenSim\Hypergrid\Destination::loginParts($uri) === null) {
+            } elseif (\W4OS\Engine\Hypergrid\Destination::loginParts($uri) === null) {
                 $problems['login_uri'] = _('invalid (host:port)');
             }
             $port !== '' && ($message = Grid::validatePort($port)) !== null && ($problems['private_port'] = $message);

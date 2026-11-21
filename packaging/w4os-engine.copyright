@@ -1,10 +1,10 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: opensim-engine
-Source: https://github.com/GuduleLapointe/opensim-engine
+Upstream-Name: w4os-engine
+Source: https://github.com/way4os/w4os-engine
 
 Files: *
 Copyright: 2015-2026 Olivier van Helden <olivier@van-helden.net>
            Gudule Lapointe <gudule@speculoos.world>
 License: AGPL-3.0-or-later
  On Debian systems, the full text of the GNU Affero General Public License
- is in /usr/share/opensim-engine/LICENSE.
+ is in /usr/share/w4os-engine/LICENSE.

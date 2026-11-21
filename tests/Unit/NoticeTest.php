@@ -7,8 +7,8 @@ declare(strict_types=1);
  * with the English text as its detail. The texts are in the catalog (`notice_<code>`, the values as {name}).
  */
 
-use OpenSim\I18n\Catalog;
-use OpenSim\Text\Notice;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Text\Notice;
 
 describe('A notice', function () {
     test('has a code, its values and the English text made of them', function () {

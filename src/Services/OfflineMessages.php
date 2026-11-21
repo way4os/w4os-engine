@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Api\Response;
-use OpenSim\Data\OSPDO;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Api\Response;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * The instant messages sent to avatars who are not there, kept until they come back (the service the module V1 of the simulators
@@ -210,7 +210,7 @@ final class OfflineMessages
                 '<hr>' .
                 "<p style='font-size:small'><b>" .
                 htmlspecialchars($this->gridName) .
-                '</b> Instant Messages mail forwarding by opensim-helpers.' .
+                '</b> Instant Messages mail forwarding by w4os-helpers.' .
                 '<br>Please log in-world to answer to this message. Emails to the sender address will not be processed.' .
                 '<br>To disable mail notifications, uncheck option "Send IM to mail" in your viewer preferences (tab "Chat" or "Communications").' .
                 '</p></body></html>',

@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Exceptions;
+namespace W4OS\Engine\Exceptions;
 
 /**
  * The setup cannot go on: what went wrong is already on screen, the program

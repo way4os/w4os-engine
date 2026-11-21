@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Economy;
+namespace W4OS\Engine\Economy;
 
-use OpenSim\Data\OSPDO;
-use OpenSim\Network\Http;
-use OpenSim\Services\XmlRpc;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Network\Http;
+use W4OS\Engine\Services\XmlRpc;
+use W4OS\Engine\Text\Uuid;
 use PDO;
 
 /**

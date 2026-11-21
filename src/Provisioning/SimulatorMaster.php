@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\IniEditor;
-use OpenSim\Config\InstanceSettings;
-use OpenSim\Config\TextFileService;
-use OpenSim\Models\Grid;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Config\InstanceSettings;
+use W4OS\Engine\Config\TextFileService;
+use W4OS\Engine\Models\Grid;
 
 /**
  * The master config of the simulators of a grid, `OpenSimGridDefaults.ini` in its folder, given to OpenSimulator with
@@ -33,8 +33,8 @@ use OpenSim\Models\Grid;
  */
 final class SimulatorMaster
 {
-    /** @param ?\OpenSim\Runtime\Environment $environment the machine, to know the options of the grid (none without it) */
-    public function __construct(private readonly ?\OpenSim\Runtime\Environment $environment = null) {}
+    /** @param ?\W4OS\Engine\Runtime\Environment $environment the machine, to know the options of the grid (none without it) */
+    public function __construct(private readonly ?\W4OS\Engine\Runtime\Environment $environment = null) {}
 
     public const FILE = 'OpenSimGridDefaults.ini';
 

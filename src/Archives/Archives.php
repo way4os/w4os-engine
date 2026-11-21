@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
 /**
  * The inventory and region archives (IAR, OAR) the console of a simulator saves and loads: what the options of

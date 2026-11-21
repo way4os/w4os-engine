@@ -4,8 +4,8 @@
  * include, the constants, the first file that says a setting.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\GridConfig;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridConfig;
 
 /**
  * A grid folder in a temporary tree.

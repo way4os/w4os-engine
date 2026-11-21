@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Exceptions\SetupFailedException;
-use OpenSim\Config\GridConfig;
-use OpenSim\Config\GridFileService;
-use OpenSim\Console\InstanceConsoleService;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Models\Simulator;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\ShellService;
+use W4OS\Engine\Exceptions\SetupFailedException;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Console\InstanceConsoleService;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\ShellService;
 
 /**
  * The writing of the part of a setup that makes things: the files, the accounts, the instances. Run as the system user of the
@@ -323,7 +323,7 @@ final class SimulatorProvisioner
         defined('OPENSIM_ENGINE') || define('OPENSIM_ENGINE', true);
         $archive = sys_get_temp_dir() . '/opensim-kit-fix-parcel-name-' . getmypid() . '.oar';
         try {
-            \OpenSim\Archives\Oar::pack($source, $archive);
+            \W4OS\Engine\Archives\Oar::pack($source, $archive);
         } catch (\RuntimeException $e) {
             $this->ui->warn($e->getMessage());
 

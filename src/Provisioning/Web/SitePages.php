@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning\Web;
+namespace W4OS\Engine\Provisioning\Web;
 
-use OpenSim\Config\IniEditor;
-use OpenSim\Models\Grid;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Models\Grid;
 
 /**
  * The pages of a grid for people (its search, its profiles, its destinations guide, its splash page, its status, its directory), and

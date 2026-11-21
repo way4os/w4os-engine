@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 
 /** The PATCH of a page of the demo grid. */
-function address_patch(OpenSim\Api\Router $router, string $page, array $attributes): OpenSim\Api\Response
+function address_patch(W4OS\Engine\Api\Router $router, string $page, array $attributes): W4OS\Engine\Api\Response
 {
     return $router->patch("/grids/demo/settings/$page", ['data' => ['type' => 'settings', 'id' => $page, 'attributes' => $attributes]]);
 }
@@ -64,8 +64,8 @@ describe('The address of a service', function () {
         $robust = file_get_contents($machine->grid . '/Robust.HG.ini');
 
         expect($fields['webSearchUrl'])->toMatchArray(['label' => 'web_search_url', 'tip' => 'tip_web_search', 'description' => ['web_search_help']])
-            ->and(OpenSim\I18n\Catalog::MESSAGES[$fields['path']['tip']])->toBe('Used directly by the simulators')
-            ->and(OpenSim\I18n\Catalog::MESSAGES['tip_web_search'])->toBe('User-facing search form')
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES[$fields['path']['tip']])->toBe('Used directly by the simulators')
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES['tip_web_search'])->toBe('User-facing search form')
             ->and($done->status)->toBe(200)
             ->and($robust)->toContain('[LoginService]')->toContain('SearchURL = "${Const|WebURL}/search/"')->toContain('search = "${Const|WebURL}/search/"');
     });

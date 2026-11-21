@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
-use OpenSim\Exceptions\SetupFailedException;
+use W4OS\Engine\Exceptions\SetupFailedException;
 
 /**
  * The files of the folder of a grid. Every ini file may hold a password (OpenSimulator is made so: the connection strings,
- * the keys of the modules), and the web server reads them (opensim-helpers read the official settings): so all of them are
+ * the keys of the modules), and the web server reads them (w4os-helpers read the official settings): so all of them are
  * readable by the owner and the group of the web server, nobody else.
  */
 final class GridFileService

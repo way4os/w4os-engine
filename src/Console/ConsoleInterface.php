@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Console;
+namespace W4OS\Engine\Console;
 
 /**
  * The console of a running instance: its remote (REST) console, or its screen session.

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Result;
-use OpenSim\Forms\FieldSet;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Network\Ports;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Result;
+use W4OS\Engine\Forms\FieldSet;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Network\Ports;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * From the answers about a region to what a simulator plan says of it. The answers are the fields of Region::fields(), by name.

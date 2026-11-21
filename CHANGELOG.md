@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (rename): the engine is w4os-engine: the namespace W4OS\Engine, the package w4os-engine in /usr/share/w4os-engine (opensim-engine an empty package that brings it), the API command w4os-api and its pool, the config of the suite /etc/w4os/w4os.conf (the /etc/opensim/opensim.conf of before moved there by the package), the site in /var/lib/w4os/www, the repository way4os/w4os-engine, the composer name w4os/w4os-engine
 - fix (texts): translations reviewed in every language: English or half-English labels translated, other meanings fixed (a harbour for a port, a lattice for the grid, two reversed search helps), one term per word (Welsh afatar, het grid, o grid, du), viewer and helpers kept in every language, never a watcher or an assistant; the catalog checks the texts left as the English ones and the known false friends
 - fix (texts): the texts of the posts, the caches and the services translated in every language (de, fr, cy, it, nl, pt-BR); the catalog checks that none is left
 - fix (in place): a grid in place runs with the core of its install (CoreDirectory of its section), not the one of the suite

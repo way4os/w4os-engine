@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network\PortMapping;
+namespace W4OS\Engine\Network\PortMapping;
 
 /**
  * A way to make the ports of an instance reachable from outside (a NAT router), named by `PortMappingModule` in the `[Grid]`

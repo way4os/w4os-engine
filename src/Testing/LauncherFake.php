@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Testing;
+namespace W4OS\Engine\Testing;
 
-use OpenSim\Runtime\LaunchSpec;
-use OpenSim\Runtime\LauncherInterface;
+use W4OS\Engine\Runtime\LaunchSpec;
+use W4OS\Engine\Runtime\LauncherInterface;
 
 /**
  * Launches nothing: the process appears in the table of the fake machine, and what the instance would write is written.

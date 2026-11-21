@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * A connection string of OpenSimulator (`Data Source=localhost;Database=opensim;User ID=opensim;Password=secret;Old Guids=true;`):

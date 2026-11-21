@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Forms;
+namespace W4OS\Engine\Forms;
 
-use OpenSim\Result;
+use W4OS\Engine\Result;
 
 /**
  * A set of field definitions, in the standard format every form of the project reads, whoever shows it (the terminal, a web

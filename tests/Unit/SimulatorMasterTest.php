@@ -7,15 +7,15 @@ declare(strict_types=1);
  * made again, that a simulator starts with it, and that a simulator with it says the same as one with a whole config.
  */
 
-use OpenSim\Config\ConfigReader;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\SimulatorConfig;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Provisioning\SimulatorMaster;
-use OpenSim\Runtime\Environment;
-use OpenSim\Testing\Machine;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\SimulatorConfig;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\SimulatorMaster;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Testing\Machine;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /** A machine whose core has its defaults and whose grid has decided something in its OpenSim.ini. */
 function master_machine(): Machine
@@ -340,7 +340,7 @@ describe('config of a simulator', function () {
         $machine = master_machine();
         $plan = master_plan($machine->grid, $machine->core);
         $whole = (new SimulatorConfig())->render($plan);
-        $general = new OpenSim\Config\IniEditor(OpenSim\Config\TextFileService::read($machine->grid . '/OpenSim.ini'));
+        $general = new W4OS\Engine\Config\IniEditor(W4OS\Engine\Config\TextFileService::read($machine->grid . '/OpenSim.ini'));
         $general->overlay($plan->optionsLayer);
         $general->save($machine->grid . '/OpenSim.ini');
         // The grid is the one the plan is for: the host and the ports of its Robust
@@ -348,7 +348,7 @@ describe('config of a simulator', function () {
             $machine->grid . '/Robust.HG.ini',
             file_get_contents($machine->grid . '/Robust.HG.ini') . "\n[Constants]\n",
         );
-        $robust = OpenSim\Config\IniEditor::load($machine->grid . '/Robust.HG.ini');
+        $robust = W4OS\Engine\Config\IniEditor::load($machine->grid . '/Robust.HG.ini');
         $robust->set('Const', 'BaseHostname', '"demo.example.org"');
         $robust->save($machine->grid . '/Robust.HG.ini');
         (new SimulatorMaster())->ensure($machine->grid, $machine->core . '/bin');
@@ -439,7 +439,7 @@ describe('grid made by the setup', function () {
     /** Run the part of the provisioning that makes the master, for a grid with helpers in a folder. */
     function master_provision(Machine $machine, bool $helpers = true): void
     {
-        $ui = new class implements OpenSim\Provisioning\UiInterface {
+        $ui = new class implements W4OS\Engine\Provisioning\UiInterface {
             public function intro(string $title): void {}
             public function note(string $message): void {}
             public function entity(string $name): string
@@ -482,7 +482,7 @@ describe('grid made by the setup', function () {
                 return $callback();
             }
         };
-        $plan = new OpenSim\Provisioning\GridPlan();
+        $plan = new W4OS\Engine\Provisioning\GridPlan();
         $plan->gridNick = 'demo';
         $plan->gridName = 'Demo World';
         $plan->gridDir = $plan->etcDirectory = $machine->grid;
@@ -496,7 +496,7 @@ describe('grid made by the setup', function () {
         // The options of a grid that is made: the ones that are on by default and that it can have
         $plan->options = (new GridOptions(Grid::planned($environment, $plan)))->selection(['offline' => 'helpers']);
 
-        $provisioner = new OpenSim\Provisioning\GridProvisioner($ui);
+        $provisioner = new W4OS\Engine\Provisioning\GridProvisioner($ui);
         $options = new ReflectionMethod($provisioner, 'applyOptions');
         $options->invoke($provisioner, $plan, $environment);
         $master = new ReflectionMethod($provisioner, 'writeMaster');
@@ -585,7 +585,7 @@ describe('offline messages of a grid', function () {
 
     test('are written in the config of a simulator for the module the grid uses', function () {
         $machine = master_machine();
-        $plan = new OpenSim\Provisioning\GridPlan();
+        $plan = new W4OS\Engine\Provisioning\GridPlan();
         $plan->gridNick = 'demo';
         $plan->gridName = 'Demo World';
         $plan->gridDir = $plan->etcDirectory = $machine->grid;
@@ -649,33 +649,33 @@ describe('The options a grid has by default', function () {
 
     test('come to a simulator made before, with its master made again when it starts; the ones it misses are said until then', function () {
         [$machine, $grid] = preset_machine();
-        $sims = OpenSim\Config\GridConfig::simulatorsDirectory($grid);
+        $sims = W4OS\Engine\Config\GridConfig::simulatorsDirectory($grid);
         $machine->write("$sims/osg.mine.ini", "[Network]\n    http_listener_port = 9100\n");
         // The master an older engine made, without the options
         $machine->write($grid . '/' . SimulatorMaster::FILE, (new SimulatorMaster())->render($grid, $machine->core . '/bin'));
-        $simulator = new OpenSim\Models\Simulator($machine->environment, "$sims/osg.mine.ini");
+        $simulator = new W4OS\Engine\Models\Simulator($machine->environment, "$sims/osg.mine.ini");
         $before = $simulator->missingOptions();
         $simulator->master($machine->core . '/bin');
 
         expect($before)
             ->toContain('profiles', 'groups-hypergrid')
-            ->and((new OpenSim\Models\Simulator($machine->environment, "$sims/osg.mine.ini"))->missingOptions())
+            ->and((new W4OS\Engine\Models\Simulator($machine->environment, "$sims/osg.mine.ini"))->missingOptions())
             ->toBe([]);
     });
 });
 
 describe('The repair of the options', function () {
     test('says the options of its grid each simulator misses, then lays them in their files, through the API too', function () {
-        $machine = new OpenSim\Testing\Machine();
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
-        $plan = (new OpenSim\Provisioning\GridOptions($grid))->repair(false);
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        $machine = new W4OS\Engine\Testing\Machine();
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $plan = (new W4OS\Engine\Provisioning\GridOptions($grid))->repair(false);
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
         $asked = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'options', 'attributes' => []]]);
         $applied = $router->post('/grids/demo/options/repair', ['data' => ['type' => 'options', 'attributes' => ['mode' => 'apply']]]);
-        $after = (new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo')))->repair(false);
+        $after = (new W4OS\Engine\Provisioning\GridOptions(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')))->repair(false);
         // The command line asks the same: opensim api POST /grids/demo/options/repair mode=apply
-        [$cli] = (new OpenSim\Api\Cli($router))->run(['POST', '/grids/demo/options/repair', 'mode=plan']);
-        $alpha = (string) file_get_contents(OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini');
+        [$cli] = (new W4OS\Engine\Api\Cli($router))->run(['POST', '/grids/demo/options/repair', 'mode=plan']);
+        $alpha = (string) file_get_contents(W4OS\Engine\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini');
 
         expect($plan['simulators']['alpha'] ?? [])
             ->toContain('profiles', 'groups-hypergrid')
@@ -692,13 +692,13 @@ describe('The repair of the options', function () {
 
 describe('The repair of the options, setting by setting', function () {
     test('lays again a setting of an option a simulator misses in a section it has: the include of the Gloebit.ini of the grid', function () {
-        $machine = new OpenSim\Testing\Machine();
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
-        (new OpenSim\Provisioning\GridOptions($grid))->enable('economy-gloebit');
-        $alpha = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        $machine = new W4OS\Engine\Testing\Machine();
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        (new W4OS\Engine\Provisioning\GridOptions($grid))->enable('economy-gloebit');
+        $alpha = W4OS\Engine\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
         // A simulator whose [Gloebit] does not include the file of the grid (made by hand, or by an older engine): "None"
         file_put_contents($alpha, (string) preg_replace('/^\s*Include-Gloebit\s*=.*$/m', 'Enabled = true', (string) file_get_contents($alpha)));
-        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+        $options = static fn() => new W4OS\Engine\Provisioning\GridOptions(W4OS\Engine\Models\Grid::find($machine->environment, 'demo'));
 
         $plan = $options()->repair(false);
         $applied = $options()->repair(true);
@@ -716,12 +716,12 @@ describe('The repair of the options, setting by setting', function () {
 
 describe('The repair of the options a grid uses without having recorded them', function () {
     test('lays the economy the OpenSim.ini of the grid names in the simulators that miss it, an option that is not met stays out', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $general = $machine->grid . '/OpenSim.ini';
         // A grid made before its options were recorded, or by hand: its OpenSim.ini says Gloebit, and the search
         file_put_contents($general, (is_file($general) ? (string) file_get_contents($general) : '') . "\n[Economy]\n    economymodule = Gloebit\n[Search]\n    Module = OpenSimSearch\n");
-        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
-        $alpha = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        $options = static fn() => new W4OS\Engine\Provisioning\GridOptions(W4OS\Engine\Models\Grid::find($machine->environment, 'demo'));
+        $alpha = W4OS\Engine\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
 
         $plan = $options()->repair(false);
         $applied = $options()->repair(true);
@@ -745,12 +745,12 @@ describe('The repair of the options a grid uses without having recorded them', f
 
 describe('The repair of the options, with the values of the grid', function () {
     test('gives a simulator the include of the Gloebit.ini of the grid, never a copy of its settings, which are never printed', function () {
-        $machine = new OpenSim\Testing\Machine();
+        $machine = new W4OS\Engine\Testing\Machine();
         $general = $machine->grid . '/OpenSim.ini';
         file_put_contents($general, (is_file($general) ? (string) file_get_contents($general) : '') . "\n[Gloebit]\n    Include-Gloebit = \"\${Const|EtcDirectory}/Gloebit.ini\"\n");
         file_put_contents($machine->grid . '/Gloebit.ini', "[Economy]\n    economymodule = Gloebit\n[Gloebit]\n    Enabled = true\n    GLBEnvironment = production\n    GLBKey = key-of-the-grid\n    GLBSecret = secret-of-the-grid\n");
-        $alpha = OpenSim\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
-        $options = static fn() => new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::find($machine->environment, 'demo'));
+        $alpha = W4OS\Engine\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        $options = static fn() => new W4OS\Engine\Provisioning\GridOptions(W4OS\Engine\Models\Grid::find($machine->environment, 'demo'));
 
         $plan = $options()->repair(false);
         $applied = $options()->repair(true);
@@ -776,9 +776,9 @@ describe('An option enabled on a grid that runs elsewhere', function () {
         $machine = master_machine();
         $grid = $machine->etc . '/grids/far';
         $machine->write("$grid/far.conf", "[Grid]\nRemote = true\nGridName = \"Far\"\nBaseHostname = far.example.org\nPublicPort = 8002\nPrivatePort = 8003\nHypergrid = true\nCoreDirectory = {$machine->core}\n");
-        $sims = OpenSim\Config\GridConfig::simulatorsDirectory($grid);
+        $sims = W4OS\Engine\Config\GridConfig::simulatorsDirectory($grid);
         $machine->write("$sims/far.one.ini", "[Network]\n    http_listener_port = 9200\n");
-        $result = (new OpenSim\Provisioning\GridOptions(OpenSim\Models\Grid::at($machine->environment, $grid)))->enable('groups');
+        $result = (new W4OS\Engine\Provisioning\GridOptions(W4OS\Engine\Models\Grid::at($machine->environment, $grid)))->enable('groups');
 
         expect([$result['error'], $result['robust']])
             ->toBe([null, false])

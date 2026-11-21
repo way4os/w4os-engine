@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Scheduling;
+namespace W4OS\Engine\Scheduling;
 
-use OpenSim\Runtime\ClockInterface;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Runtime\ClockInterface;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The tasks that have to run now and then, and who runs them when they are due. The consumers say what to schedule; this is the

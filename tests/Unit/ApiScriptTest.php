@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * bin/opensim-api: the API of the engine on the command line, run as a program.
+ * bin/w4os-api: the API of the engine on the command line, run as a program.
  */
 
 /** Run the script with these words in an empty home (or this one), and give the status, what it prints and what it says. */
@@ -11,13 +11,13 @@ function api_script(array $words, array $env = [], ?string $home = null): array
 {
     $home ??= test_tmp() . '/api-script-' . bin2hex(random_bytes(4));
     is_dir($home) || mkdir($home);
-    // Never the opensim.conf of the machine the tests run on (its user, its folders): an empty one, unless the test gives its own
+    // Never the w4os.conf of the machine the tests run on (its user, its folders): an empty one, unless the test gives its own
     if (!isset($env['OPENSIM_CONF'])) {
-        file_put_contents("$home/opensim.conf", "[Defaults]\n");
-        $env['OPENSIM_CONF'] = "$home/opensim.conf";
+        file_put_contents("$home/w4os.conf", "[Defaults]\n");
+        $env['OPENSIM_CONF'] = "$home/w4os.conf";
     }
     $process = proc_open(
-        [dirname(__DIR__, 2) . '/bin/opensim-api', ...$words],
+        [dirname(__DIR__, 2) . '/bin/w4os-api', ...$words],
         [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
         $pipes,
         $home,
@@ -29,7 +29,7 @@ function api_script(array $words, array $env = [], ?string $home = null): array
     return [proc_close($process), $out, $err];
 }
 
-describe('script opensim-api', function () {
+describe('script w4os-api', function () {
     test('gives the form of a grid as JSON, with the standalone and the conditions of its fields', function () {
         [$status, $out] = api_script(['GET', '/forms/grid']);
         $fields = array_column(json_decode($out, true)['data']['attributes']['fields'], null, 'name');
@@ -74,9 +74,9 @@ describe('script opensim-api', function () {
     });
 
     test('names the install it cannot read', function () {
-        [$status, , $error] = api_script(['GET', '/forms/grid'], ['OPENSIM_CONF' => '/nowhere/opensim.conf']);
+        [$status, , $error] = api_script(['GET', '/forms/grid'], ['OPENSIM_CONF' => '/nowhere/w4os.conf']);
 
-        expect($status)->toBe(2)->and($error)->toContain('opensim-api:');
+        expect($status)->toBe(2)->and($error)->toContain('w4os-api:');
     });
 
     test('reads ~/.opensimrc first: its PATH decides which php runs', function () {

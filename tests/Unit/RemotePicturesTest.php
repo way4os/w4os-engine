@@ -7,15 +7,15 @@ declare(strict_types=1);
  * simulator of the region, its asset service), kept, and read by the guide without asking anything.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Cache;
-use OpenSim\Data\FileCacheStore;
-use OpenSim\Hypergrid\Gatekeeper;
-use OpenSim\Services\DestinationPictures;
-use OpenSim\Services\RemotePictures;
-use OpenSim\Support\FileCache;
-use OpenSim\Testing\Machine;
-use OpenSim\Testing\ClockFake;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Data\FileCacheStore;
+use W4OS\Engine\Hypergrid\Gatekeeper;
+use W4OS\Engine\Services\DestinationPictures;
+use W4OS\Engine\Services\RemotePictures;
+use W4OS\Engine\Support\FileCache;
+use W4OS\Engine\Testing\Machine;
+use W4OS\Engine\Testing\ClockFake;
 
 const REMOTE_REGION = 'cccccccc-0000-4000-8000-000000000001';
 const REMOTE_BEACH = 'dddddddd-0000-4000-8000-000000000001';
@@ -179,7 +179,7 @@ describe('The pictures of the hypergrid destinations', function () {
         $world = remote_grid();
         $answers = ['http://far.example.net:8002/get_grid_info' => '<gridinfo><gridname>Far World</gridname></gridinfo>'];
         $asked = [];
-        $grids = new OpenSim\Network\GridInfoCache(grid_info_world($answers, $asked)->environment, cache: $world->cache);
+        $grids = new W4OS\Engine\Network\GridInfoCache(grid_info_world($answers, $asked)->environment, cache: $world->cache);
         $pictures = new RemotePictures($world->cache, static fn(string $url): ?string => null, new GridConfig(), 'http://grid.example.org:8002', $world->clock, $grids);
         $guide = ['Visit' => ['picture' => null, 'destinations' => [
             ['name' => 'Known', 'url' => 'far.example.net:8002/Far', 'picture' => REMOTE_HILL],
@@ -208,16 +208,16 @@ describe('The pictures of the hypergrid destinations', function () {
 
     test('are given by the pages of the grid as its own pictures, from the cache of the grid, without asking the other grid', function () {
         $machine = new Machine();
-        $grid = OpenSim\Models\Grid::find($machine->environment, 'demo');
-        $converter = new class implements OpenSim\Assets\ConverterInterface {
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $converter = new class implements W4OS\Engine\Assets\ConverterInterface {
             public function convert(string $data, string $format, ?int $width = null): ?string
             {
                 return "$format:$data";
             }
         };
-        RemotePictures::keep(OpenSim\Data\Cache::for($machine->environment, OpenSim\Config\GridConfig::fromFolder($machine->grid)), REMOTE_BEACH, 'JP2-BYTES', 0, 'Beach');
+        RemotePictures::keep(W4OS\Engine\Data\Cache::for($machine->environment, W4OS\Engine\Config\GridConfig::fromFolder($machine->grid)), REMOTE_BEACH, 'JP2-BYTES', 0, 'Beach');
         $asked = [];
-        $web = new OpenSim\Assets\WebAssets(
+        $web = new W4OS\Engine\Assets\WebAssets(
             $grid,
             new FileCache(test_tmp() . '/remote-web-' . bin2hex(random_bytes(4)) . '/images'),
             new FileCache(test_tmp() . '/remote-web-' . bin2hex(random_bytes(4)) . '/sources'),

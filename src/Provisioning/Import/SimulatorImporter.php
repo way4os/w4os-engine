@@ -1,16 +1,16 @@
 <?php
 
-namespace OpenSim\Provisioning\Import;
+namespace W4OS\Engine\Provisioning\Import;
 
-use OpenSim\Config\GridFileService;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Simulator;
-use OpenSim\Provisioning\GridOptions;
-use OpenSim\Provisioning\SimulatorMaster;
-use OpenSim\Provisioning\SimulatorPlan;
-use OpenSim\Provisioning\Slug;
+use W4OS\Engine\Config\GridFileService;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Provisioning\GridOptions;
+use W4OS\Engine\Provisioning\SimulatorMaster;
+use W4OS\Engine\Provisioning\SimulatorPlan;
+use W4OS\Engine\Provisioning\Slug;
 
 /**
  * Ports the configuration of a simulator of a grid (an OpenSim.ini with its includes, its regions folder) the way

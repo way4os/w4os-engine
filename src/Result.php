@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim;
+namespace W4OS\Engine;
 
 /**
  * The answer of an operation, whatever form it takes (a boolean, an exception, a structured array with `success`...): what to ask of it without knowing which, and the structured array the projects make.

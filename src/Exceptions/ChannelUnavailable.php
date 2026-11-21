@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Exceptions;
+namespace W4OS\Engine\Exceptions;
 
-use OpenSim\Text\Notice;
+use W4OS\Engine\Text\Notice;
 
 /**
  * A change that no channel can make now: the database cannot be reached, the simulator is stopped, the file cannot be written.

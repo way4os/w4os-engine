@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Prepares what the Debian package installs, in build/opensim-engine (build-tools stage). Run by apt-package from the
+# Prepares what the Debian package installs, in build/w4os-engine (build-tools stage). Run by apt-package from the
 # project root, or by dev/build.sh.
 
 set -e
 cd "$(dirname "$0")/.."
 
-vendor/bin/build-tools stage build/opensim-engine deb
+vendor/bin/build-tools stage build/w4os-engine deb

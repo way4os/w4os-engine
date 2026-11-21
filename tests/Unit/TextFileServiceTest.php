@@ -7,7 +7,7 @@ declare(strict_types=1);
  * copied.
  */
 
-use OpenSim\Config\TextFileService;
+use W4OS\Engine\Config\TextFileService;
 
 /** A folder of its own for a test. */
 function textfile_dir(): string

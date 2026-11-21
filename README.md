@@ -1,14 +1,14 @@
-# OpenSimulator Engine
+# w4os engine
 
-![Stable](https://img.shields.io/github/release/GuduleLapointe/opensim-engine?label=stable&color=green&include_prerelease)
-![GitHub Tag](https://img.shields.io/github/tag/GuduleLapointe/opensim-engine?label=latest&include_prereleases)
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/GuduleLapointe/opensim-engine/latest?label=dev)
+![Stable](https://img.shields.io/github/release/way4os/w4os-engine?label=stable&color=green&include_prerelease)
+![GitHub Tag](https://img.shields.io/github/tag/way4os/w4os-engine?label=latest&include_prereleases)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/way4os/w4os-engine/latest?label=dev)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-7884bf)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-552b55)](LICENSE)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/GuduleLapointe/opensim-engine/total)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/way4os/w4os-engine/total)
 [![Donate](https://img.shields.io/badge/-Donate-yellow)](https://magiiic.org/donate/)
 
-**Framework-agnostic PHP library for OpenSimulator grid management**
+**Framework-agnostic PHP library for OpenSimulator grid management, the core of w4os (Way for OpenSim)**
 
 ## ⚠️ Important Notice
 
@@ -20,9 +20,9 @@ The OpenSimulator Engine provides core functionality for managing OpenSim grids,
 
 **Don't install this directly!** Instead, choose a complete solution:
 
-- **[OpenSim CLI](https://github.com/GuduleLapointe/opensim-cli)** - Command-line tools to install and manage your grid or standalone simulator. Includes this engine, web helpers and admin tools.
+- **[w4os CLI](https://github.com/way4os/w4os-cli)** - Command-line tools to install and manage your grid or standalone simulator. Includes this engine, web helpers and admin tools.
 - **[W4OS WordPress Plugin](https://github.com/GuduleLapointe/w4os/)** - Complete WordPress integration for OpenSim grids. **Best for:** Complete integration in a WordPress website.
-- **[OpenSim Helpers](https://github.com/magicoli/opensim-helpers)** - Provides mainly helpers/ required by OpenSim grids to function properly, as well as minimal webui features. **Best for:** Separate helpers management, with minimal integration with the website.
+- **[w4os helpers](https://github.com/way4os/w4os-helpers)** - Provides mainly helpers/ required by OpenSim grids to function properly, as well as minimal webui features. **Best for:** Separate helpers management, with minimal integration with the website.
 
 ## Project History
 
@@ -72,9 +72,9 @@ Fully tested on:
 Everything the engine does on a machine goes through an `Environment`: where the install is (`Layout`), its processes, its launcher, its consoles, its clock. A front-end makes one, a test makes one with fakes.
 
 ```php
-use OpenSim\Config\Layout;
-use OpenSim\Models\{Grid, Simulator, Service};
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Models\{Grid, Simulator, Service};
+use W4OS\Engine\Runtime\Environment;
 
 $environment = Environment::system(Layout::resolve());      // the install of this machine
 $grid = Grid::find($environment, 'vonda');
@@ -89,55 +89,55 @@ A grid has one or several Robust instances, each serving some of its services; a
 
 | Namespace                                                                            | What it is                                                                                                                                                                                                                                      |
 | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OpenSim\Models`                                                                     | `Grid`, `Simulator`, `Service` (of the machine), `Avatar`, `Region`, `Parcel`, `Estate` (of a grid's databases)                                                                                                                                 |
-| `OpenSim\Controllers`                                                                | `RobustController`, `OpenSimController`: the processes that serve                                                                                                                                                                               |
-| `OpenSim\Runtime`                                                                    | `Environment`, `Core` (an OpenSimulator release), the process table, the launcher                                                                                                                                                               |
-| `OpenSim\Config`                                                                     | `Layout` (opensim.conf), `GridConfig` (the files of a grid), `ConfigReader`, `IniEditor`                                                                                                                                                        |
-| `OpenSim\Data`                                                                       | `Database` (the databases of a grid), `Connections`, `OSPDO`, `Collection`                                                                                                                                                                      |
-| `OpenSim\Provisioning`                                                               | planners and provisioners: they answer "what would this be" before "make it"                                                                                                                                                                    |
-| `OpenSim\Scheduling`                                                                 | `Scheduler`, `Task`: cron and pseudo cron                                                                                                                                                                                                       |
-| `OpenSim\Api`                                                                        | `Api`, `Contract`, `Problem`, `Handler`: the resources as JSON:API, the errors as RFC 9457, served as a PSR-15 handler; `Formats` and `Endpoints` describe what OpenSimulator and the viewers call; `Legacy` gives the old scripts the standard |
-| `OpenSim\Services`                                                                   | the services the helpers serve: the search (`SearchQuery`, `SearchRegistry`, `SearchParser`, `EventsParser`), the offline messages, the currency and the land tools, XML-RPC                                                                    |
-| `OpenSim\Archives`, `Health`, `Hypergrid`, `Network`, `Security`, `Forms`, `Testing` | archives, health checks, hypergrid links, ports, escaping, forms, fakes                                                                                                                                                                         |
+| `W4OS\Engine\Models`                                                                     | `Grid`, `Simulator`, `Service` (of the machine), `Avatar`, `Region`, `Parcel`, `Estate` (of a grid's databases)                                                                                                                                 |
+| `W4OS\Engine\Controllers`                                                                | `RobustController`, `OpenSimController`: the processes that serve                                                                                                                                                                               |
+| `W4OS\Engine\Runtime`                                                                    | `Environment`, `Core` (an OpenSimulator release), the process table, the launcher                                                                                                                                                               |
+| `W4OS\Engine\Config`                                                                     | `Layout` (w4os.conf), `GridConfig` (the files of a grid), `ConfigReader`, `IniEditor`                                                                                                                                                        |
+| `W4OS\Engine\Data`                                                                       | `Database` (the databases of a grid), `Connections`, `OSPDO`, `Collection`                                                                                                                                                                      |
+| `W4OS\Engine\Provisioning`                                                               | planners and provisioners: they answer "what would this be" before "make it"                                                                                                                                                                    |
+| `W4OS\Engine\Scheduling`                                                                 | `Scheduler`, `Task`: cron and pseudo cron                                                                                                                                                                                                       |
+| `W4OS\Engine\Api`                                                                        | `Api`, `Contract`, `Problem`, `Handler`: the resources as JSON:API, the errors as RFC 9457, served as a PSR-15 handler; `Formats` and `Endpoints` describe what OpenSimulator and the viewers call; `Legacy` gives the old scripts the standard |
+| `W4OS\Engine\Services`                                                                   | the services the helpers serve: the search (`SearchQuery`, `SearchRegistry`, `SearchParser`, `EventsParser`), the offline messages, the currency and the land tools, XML-RPC                                                                    |
+| `W4OS\Engine\Archives`, `Health`, `Hypergrid`, `Network`, `Security`, `Forms`, `Testing` | archives, health checks, hypergrid links, ports, escaping, forms, fakes                                                                                                                                                                         |
 
-`OpenSim\Testing\Machine` is a machine that is a folder (a grid `demo`, two simulators), `EnvironmentFake::with($layout)` an environment that touches nothing: the suite runs anywhere (`composer test`).
+`W4OS\Engine\Testing\Machine` is a machine that is a folder (a grid `demo`, two simulators), `EnvironmentFake::with($layout)` an environment that touches nothing: the suite runs anywhere (`composer test`).
 
 ## Developer Installation
 
 ### As Composer Package
 
 ```bash
-composer require magicoli/opensim-engine
+composer require w4os/w4os-engine
 ```
 
 ### As Git Submodule
 
 ```bash
-git submodule add https://github.com/magicoli/opensim-engine.git engine
+git submodule add https://github.com/way4os/w4os-engine.git engine
 ```
 
 ### Usage in Code
 
 ```php
-require 'vendor/autoload.php';   // PSR-4: OpenSim\ is src/; the gettext stand-in and the xmlrpc polyfill load by themselves
+require 'vendor/autoload.php';   // PSR-4: W4OS\Engine\ is src/; the gettext stand-in and the xmlrpc polyfill load by themselves
 ```
 
 ### On the command line
 
 The tasks (the search index, the events) run by cron or by pseudo cron, at the end of a visit of a site (`Scheduler::tick()`). Their state and their locks are kept in `TasksRoot` (`OPENSIM_TASKS_ROOT`), `cron` in the state folder of the install by default: a site run by the web server, which cannot write there, gives one of its own (a cache folder of the site). The health of a grid says whether it can be written (`cache`, `tasks`); a folder that cannot be is said once in the log, and no task runs. The tasks of the search also lock the search database of the grid, so that two runners with their own folders never read the same simulators at once.
 
-`bin/opensim-api` (`vendor/bin/opensim-api` for a project that has the engine) is the API on the command line, for the tools that are not PHP: `opensim-api GET /forms/grid`, `opensim-api --grid=demo GET /monitor format=text`. The install is the one of `opensim.conf` or of the `OPENSIM_*` variables. The script first reads the `.env` of the engine and `~/.opensimrc` (`lib/rc-helpers`, `read_rc`, for any script to source): bash files, run as they are, e.g. to set the `PATH` so that it is the php you want that runs.
+`bin/w4os-api` (`vendor/bin/w4os-api` for a project that has the engine) is the API on the command line, for the tools that are not PHP: `w4os-api GET /forms/grid`, `w4os-api --grid=demo GET /monitor format=text`. The install is the one of `w4os.conf` or of the `OPENSIM_*` variables. The script first reads the `.env` of the engine and `~/.opensimrc` (`lib/rc-helpers`, `read_rc`, for any script to source): bash files, run as they are, e.g. to set the `PATH` so that it is the php you want that runs.
 
-`OpenSim\Container\Podman` manages Podman containers without a shell. Pass a connection explicitly when targeting a remote Podman service; `bin/opensim-container.php` is the command-line adapter for Bash callers (`vendor/bin/opensim-container.php` when installed as a Composer dependency). Container integration tests are opt-in with `PODMAN_INTEGRATION=1`; `CONTAINER_CONNECTION` selects the Podman connection and `PODMAN_TEST_IMAGE` can select the test image.
+`W4OS\Engine\Container\Podman` manages Podman containers without a shell. Pass a connection explicitly when targeting a remote Podman service; `bin/opensim-container.php` is the command-line adapter for Bash callers (`vendor/bin/opensim-container.php` when installed as a Composer dependency). Container integration tests are opt-in with `PODMAN_INTEGRATION=1`; `CONTAINER_CONNECTION` selects the Podman connection and `PODMAN_TEST_IMAGE` can select the test image.
 
 ### The texts of the websites of a grid
 
-The texts a website of the grid shows its people (registration, sign-in, account, lost password, email confirmation, the avatars of the grid, and one per `code` of the problems of the API) are in gettext files, one source for every site (the Grav plugin, w4os): `share/languages/opensim-engine.pot` and `opensim-engine-<locale>.po` for cy_GB, de_DE, fr_FR, it_IT, nl_NL and pt_BR. The engine does not translate them: a site turns them into its own format.
+The texts a website of the grid shows its people (registration, sign-in, account, lost password, email confirmation, the avatars of the grid, and one per `code` of the problems of the API) are in gettext files, one source for every site (the Grav plugin, w4os): `share/languages/w4os-engine.pot` and `w4os-engine-<locale>.po` for cy_GB, de_DE, fr_FR, it_IT, nl_NL and pt_BR. The engine does not translate them: a site turns them into its own format.
 
 Each text has a stable key, the `msgctxt` of the files; the text of a problem code is `error_` and the code with `_` for `-`:
 
 ```php
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\I18n\Catalog;
 
 Catalog::messages('fr_FR');            // ['register_title' => 'Créer mon avatar', ...]: the translated texts only
 Catalog::messages('en');               // every text, in English (Catalog::MESSAGES): the fallback
@@ -175,5 +175,5 @@ AGPLv3 - See [LICENSE](LICENSE) file for details.
 ## Support
 
 - **End Users:** Get support from the parent project using this engine (W4OS, Helpers)
-- **Developers:** Create issues for bugs or feature requests https://github.com/magicoli/opensim-engine/issues
+- **Developers:** Create issues for bugs or feature requests https://github.com/way4os/w4os-engine/issues
 - **Documentation:** Check the parent project documentation first

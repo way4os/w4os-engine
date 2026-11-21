@@ -7,13 +7,13 @@ declare(strict_types=1);
  * model, it has no rule of its own.
  */
 
-use OpenSim\Forms\FieldSet;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Parcel;
-use OpenSim\Models\Region;
-use OpenSim\Models\Simulator;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Forms\FieldSet;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Parcel;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Text\Uuid;
 
 describe('Avatar', function () {
     test('has one name rule, for any use: two words of letters, digits and hyphens', function () {

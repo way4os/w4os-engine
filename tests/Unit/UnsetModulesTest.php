@@ -7,12 +7,12 @@ declare(strict_types=1);
  * (BetaGridLikeMoneyModule), no `Module` of [Search] is OpenSimSearch. The pages read it so, and their conditions match it.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\GridConfig;
-use OpenSim\Models\Grid;
-use OpenSim\Models\GridSettings;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\GridSettings;
+use W4OS\Engine\Testing\Machine;
 
 describe('A module the grid does not name', function () {
     test('is the default of OpenSimulator, and the fields it shows are shown', function () {
@@ -30,7 +30,7 @@ describe('A module the grid does not name', function () {
             ->and($fields['currencyRate']['condition']['economyModule'])->toContain($economy['economyModule'])
             // The key of the money server is a setting of the money server only
             ->and($fields['moneyScriptKey']['condition']['economyModule'])->toBe(['DTLNSLMoneyModule', 'Podex'])
-            ->and(OpenSim\Config\Settings::named('searchModule')['default'])->toBe('OpenSimSearch');
+            ->and(W4OS\Engine\Config\Settings::named('searchModule')['default'])->toBe('OpenSimSearch');
     });
 });
 

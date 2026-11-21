@@ -5,11 +5,11 @@
  * read back from it.
  */
 
-use OpenSim\Config\InstanceSettings;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Testing\EnvironmentFake;
+use W4OS\Engine\Config\InstanceSettings;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Testing\EnvironmentFake;
 
 /**
  * The Robust config a plan generates, from a minimal example.
@@ -186,7 +186,7 @@ describe('landing region of a grid', function () {
 
 describe('A name to propose', function () {
     test('is an alliteration the caller accepts', function () {
-        $name = \OpenSim\Provisioning\RandomName::make(static fn(string $v): ?string => Region::validateName($v));
+        $name = \W4OS\Engine\Provisioning\RandomName::make(static fn(string $v): ?string => Region::validateName($v));
 
         expect($name)->toMatch('/^(\S+) (\S+)$/');
         expect(Region::validateName($name))->toBeNull();
@@ -194,14 +194,14 @@ describe('A name to propose', function () {
     });
 
     test('is transliterated', function () {
-        expect(\OpenSim\Provisioning\Slug::ascii('Joyeux Noël'))->toBe('Joyeux Noel');
+        expect(\W4OS\Engine\Provisioning\Slug::ascii('Joyeux Noël'))->toBe('Joyeux Noel');
 
-        $name = \OpenSim\Provisioning\RandomName::make(static fn(string $v): ?string => null);
+        $name = \W4OS\Engine\Provisioning\RandomName::make(static fn(string $v): ?string => null);
         expect($name)->toMatch('/^[\x20-\x7e]+$/');
     });
 
     test('is empty when no name is accepted', function () {
-        expect(\OpenSim\Provisioning\RandomName::make(static fn(string $v): ?string => 'no'))->toBe('');
+        expect(\W4OS\Engine\Provisioning\RandomName::make(static fn(string $v): ?string => 'no'))->toBe('');
     });
 });
 

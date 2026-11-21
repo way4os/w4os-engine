@@ -8,8 +8,8 @@ declare(strict_types=1);
  * the posts of Flux.
  */
 
-use OpenSim\Api\Contract;
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\I18n\Catalog;
 
 /** @return array<string,mixed> the x-list of a list of a grid */
 function list_of(string $type): array

@@ -9,12 +9,12 @@ declare(strict_types=1);
  * in its file, as before.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\ConfigReader;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\GridSettings;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\GridSettings;
+use W4OS\Engine\Testing\Machine;
 
 /** @return array{0:Machine,1:Router} a grid whose web site is https://play.example.org, its helpers under /helpers */
 function provide_grid(string $more = ''): array

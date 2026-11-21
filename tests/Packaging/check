@@ -52,18 +52,21 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq >/dev/null
 apt-get install -y -qq unzip /deps/*.deb /dist/*.deb >/dev/null 2>&1
 
-check "the package is installed, it depends on opensim-rest-php" "dpkg -s opensim-engine | grep -q \"^Depends:.*opensim-rest-php\""
-check "its files are in /usr/share/opensim-engine" "[ -f /usr/share/opensim-engine/bootstrap.php ] && [ -f /usr/share/opensim-engine/vendor/autoload.php ]"
-check "rest-php comes from its own package, by a link" "[ -L /usr/share/opensim-engine/vendor/magicoli/opensim-rest-php ] && [ -f /usr/share/opensim-engine/vendor/magicoli/opensim-rest-php/class-rest.php ]"
-check "the engine loads, with its dependencies" "loads /usr/share/opensim-engine"
-check "it loads as an unprivileged user, it writes nothing" "runuser -u nobody -- php -r \"define(\\\"OPENSIM_ENGINE\\\", true); require \\\"/usr/share/opensim-engine/bootstrap.php\\\"; echo 1;\" | grep -q 1"
+check "the package is installed, it depends on opensim-rest-php" "dpkg -s w4os-engine | grep -q \"^Depends:.*opensim-rest-php\""
+check "its files are in /usr/share/w4os-engine" "[ -f /usr/share/w4os-engine/bootstrap.php ] && [ -f /usr/share/w4os-engine/vendor/autoload.php ]"
+check "rest-php comes from its own package, by a link" "[ -L /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php ] && [ -f /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php/class-rest.php ]"
+check "the engine loads, with its dependencies" "loads /usr/share/w4os-engine"
+check "it loads as an unprivileged user, it writes nothing" "runuser -u nobody -- php -r \"define(\\\"OPENSIM_ENGINE\\\", true); require \\\"/usr/share/w4os-engine/bootstrap.php\\\"; echo 1;\" | grep -q 1"
+# The upgrade from the name of before w4os, from a version that bundled rest-php
+dpkg -r opensim-engine w4os-engine >/dev/null 2>&1
 previous opensim-engine opensim-rest-php
-dpkg -i /dist/opensim-engine_*.deb >/dev/null 2>&1
-check "an upgrade from a version that bundled rest-php leaves a link, not an empty folder" "[ -L /usr/share/opensim-engine/vendor/magicoli/opensim-rest-php ] && loads /usr/share/opensim-engine"
+dpkg -i /dist/w4os-engine_*.deb /dist/opensim-engine_*.deb >/dev/null 2>&1
+check "an upgrade from opensim-engine brings w4os-engine, the old name an empty package" "dpkg -s w4os-engine >/dev/null && dpkg -s opensim-engine | grep -q \"^Depends:.*w4os-engine\" && [ ! -e /usr/share/opensim-engine ]"
+check "the engine loads after the upgrade, rest-php by a link" "[ -L /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php ] && loads /usr/share/w4os-engine"
 
 mkdir /tmp/zip && cd /tmp/zip && unzip -q /dist/*.zip
-check "the zip has the engine and its vendor folder" "[ -f opensim-engine/bootstrap.php ] && [ -f opensim-engine/vendor/autoload.php ]"
-check "the zip has rest-php in its vendor folder, as files" "[ ! -L opensim-engine/vendor/magicoli/opensim-rest-php ] && [ -f opensim-engine/vendor/magicoli/opensim-rest-php/class-rest.php ]"
-check "the zip has no composer.lock, no tests of the engine" "[ ! -e opensim-engine/composer.lock ] && [ ! -e opensim-engine/tests ]"
-check "the engine loads from the zip" "loads /tmp/zip/opensim-engine"
+check "the zip has the engine and its vendor folder" "[ -f w4os-engine/bootstrap.php ] && [ -f w4os-engine/vendor/autoload.php ]"
+check "the zip has rest-php in its vendor folder, as files" "[ ! -L w4os-engine/vendor/magicoli/opensim-rest-php ] && [ -f w4os-engine/vendor/magicoli/opensim-rest-php/class-rest.php ]"
+check "the zip has no composer.lock, no tests of the engine" "[ ! -e w4os-engine/composer.lock ] && [ ! -e w4os-engine/tests ]"
+check "the engine loads from the zip" "loads /tmp/zip/w4os-engine"
 exit $status'

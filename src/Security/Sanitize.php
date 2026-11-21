@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Security;
+namespace W4OS\Engine\Security;
 
 /**
  * What comes in is made safe before it is used: filters for the simple values, tags and attributes taken out of the HTML.

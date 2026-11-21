@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Result;
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Result;
+use W4OS\Engine\Models\Avatar;
 use Symfony\Component\Yaml\Yaml;
 
 /**

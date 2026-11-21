@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Result;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Forms\FieldSet;
-use OpenSim\Runtime\Core;
-use OpenSim\Models\Grid;
-use OpenSim\Network\Ports;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Provisioning\Web\HelpersConfig;
-use OpenSim\Provisioning\Web\Services;
-use OpenSim\Provisioning\Web\Snippets;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\ShellService;
+use W4OS\Engine\Result;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Forms\FieldSet;
+use W4OS\Engine\Runtime\Core;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Network\Ports;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Provisioning\Web\HelpersConfig;
+use W4OS\Engine\Provisioning\Web\Services;
+use W4OS\Engine\Provisioning\Web\Snippets;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\ShellService;
 
 /**
  * From the answers about a grid to its plan. The answers are the fields of Grid::fields(), by name, from whoever asked them (the
@@ -268,7 +268,7 @@ final class GridPlanner
     private function knownPassword(string $host, string $user): ?string
     {
         $environment = $this->environment();
-        foreach (\OpenSim\Archives\Instances::grids($environment->layout->etcRoot()) as $nick) {
+        foreach (\W4OS\Engine\Archives\Instances::grids($environment->layout->etcRoot()) as $nick) {
             $grid = Grid::find($environment, $nick);
             $password = $grid?->databasePassword() ?? '';
             if (

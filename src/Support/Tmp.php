@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Support;
+namespace W4OS\Engine\Support;
 
 /**
  * A folder the script can write in.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
-use OpenSim\Text\Uuid;
-use OpenSim\Controllers\OpenSimController;
+use W4OS\Engine\Text\Uuid;
+use W4OS\Engine\Controllers\OpenSimController;
 
 /**
  * The real users in the regions of a simulator, to know whether anybody is to be warned before it stops.
@@ -76,7 +76,7 @@ final class UserCounter
     private function console(OpenSimController $simulator): ?int
     {
         $console = $simulator->console();
-        if ($console instanceof \OpenSim\Console\RestConsole) {
+        if ($console instanceof \W4OS\Engine\Console\RestConsole) {
             $out = $console->lines(['change region root', 'show users']);
         } elseif ($console->available()) {
             // The console is in one region (the last one that came up): this one makes it see all of them

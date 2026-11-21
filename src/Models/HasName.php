@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Provisioning\Slug;
+use W4OS\Engine\Provisioning\Slug;
 
 /**
  * The name of a model that has a rule for it: the same methods whatever the model. The model gives its rule in the constant NAME:

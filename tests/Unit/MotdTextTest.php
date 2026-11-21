@@ -8,10 +8,10 @@ declare(strict_types=1);
  * Robust replaces. A message the grid sets is its own, the name or the word for a visitor in it.
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Grid;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Testing\Machine;
 
 describe('The message of the day', function () {
     test('is one sentence of the catalog in the language asked, the grid and the visitor in it', function () {

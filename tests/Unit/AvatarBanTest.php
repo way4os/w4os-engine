@@ -7,10 +7,10 @@ declare(strict_types=1);
  * the databases of the grid, each thing in the database of its service. The databases are in memory (SQLite).
  */
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Models\Avatar;
 
 const WHO_ADA = '11111111-1111-1111-1111-111111111111';
 const WHO_ZED = '99999999-8888-7777-6666-000000000000';

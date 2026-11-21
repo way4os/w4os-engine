@@ -7,13 +7,13 @@ declare(strict_types=1);
  * chooses it. A grid with one database for all is the usual case, and the same code.
  */
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Data\Database;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\AccountImporter;
-use OpenSim\Provisioning\AccountWriter;
-use OpenSim\Provisioning\DatabaseService;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\AccountImporter;
+use W4OS\Engine\Provisioning\AccountWriter;
+use W4OS\Engine\Provisioning\DatabaseService;
+use W4OS\Engine\Testing\Machine;
 
 /** The connection string of a database called $name. */
 function routing_db(string $name): string

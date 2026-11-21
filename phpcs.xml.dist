@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<ruleset name="opensim-engine PHP compatibility">
+<ruleset name="w4os-engine PHP compatibility">
     <description>The PHP versions the code supports. The range comes from composer.json, given by tests/Environment/PhpCompatibilityTest.php.</description>
 
     <rule ref="PHPCompatibility">
-        <!-- xmlrpc_*() were removed from PHP 8.0, the web helpers need them: opensim-helpers loads includes/xmlrpc-polyfill.php, built on phpxmlrpc/phpxmlrpc -->
+        <!-- xmlrpc_*() were removed from PHP 8.0, the web helpers need them: w4os-helpers loads includes/xmlrpc-polyfill.php, built on phpxmlrpc/phpxmlrpc -->
         <exclude name="PHPCompatibility.FunctionUse.RemovedFunctions.xmlrpc_encodeRemoved"/>
         <exclude name="PHPCompatibility.FunctionUse.RemovedFunctions.xmlrpc_decodeRemoved"/>
         <exclude name="PHPCompatibility.FunctionUse.RemovedFunctions.xmlrpc_encode_requestRemoved"/>

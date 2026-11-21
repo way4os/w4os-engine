@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
 use Exception;
 use PDO;
@@ -26,7 +26,7 @@ use Throwable;
  *
  * A connection that fails does not throw: $connected is false and $error says why.
  *
- * @package magicoli/opensim-engine
+ * @package w4os/w4os-engine
  * @since 3.0.0
  */
 class OSPDO extends PDO
@@ -300,7 +300,7 @@ class OSPDO extends PDO
             return $connectionstring;
         }
         if (in_array($provider, ['OpenSim.Data.SQLite.dll', 'sqlite'], true)) {
-            $database = \OpenSim\Config\ConnectionString::parse($connectionstring);
+            $database = \W4OS\Engine\Config\ConnectionString::parse($connectionstring);
             if ($database?->driver !== 'sqlite') {
                 return [];
             }
@@ -314,7 +314,7 @@ class OSPDO extends PDO
                 'ConnectionString' => $connectionstring,
             ];
         }
-        $creds = \OpenSim\Config\ConnectionString::pairs($connectionstring);
+        $creds = \W4OS\Engine\Config\ConnectionString::pairs($connectionstring);
         if (preg_match('/:[0-9]+$/', $creds['Data Source'] ?? '')) {
             $host = explode(':', $creds['Data Source']);
             $creds['Data Source'] = $host[0];

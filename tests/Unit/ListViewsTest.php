@@ -7,10 +7,10 @@ declare(strict_types=1);
  * in their order, each value with the label of its filter and its count in `meta.counts`.
  */
 
-use OpenSim\Api\Contract;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\Avatar;
-use OpenSim\Models\Region;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\Avatar;
+use W4OS\Engine\Models\Region;
 
 describe('The views of a list', function () {
     test('are the ones of w4os-wp for the avatars, in its order and its words: the type, active, online', function () {

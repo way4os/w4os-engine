@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
 /**
  * What the old scripts of the helpers took, given to the standard endpoints, so that a script is a few lines and the signs, the boards

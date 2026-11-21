@@ -1,11 +1,11 @@
 #!/bin/sh
-# postrm of opensim-engine: on purge, removes the cache and the owner the postinst gave to the folders of the layout (the folders
+# postrm of w4os-engine: on purge, removes the cache and the owner the postinst gave to the folders of the layout (the folders
 # themselves are kept while they hold config, data or logs). Config, data, logs, backups and the account are kept.
 set -e
 
 if [ "$1" = "purge" ]; then
     rm -rf /var/cache/opensim
-    for dir in /etc/opensim /etc/opensim/grids /etc/opensim/presets /etc/opensim/opensim.d /etc/opensim/robust.d \
+    for dir in /etc/w4os /etc/opensim /etc/opensim/grids /etc/opensim/presets /etc/opensim/opensim.d /etc/opensim/robust.d \
         /var/lib/opensim /var/lib/opensim/data /var/log/opensim /var/cache/opensim /var/backups/opensim; do
         if dpkg-statoverride --list "$dir" >/dev/null 2>&1; then
             dpkg-statoverride --remove "$dir"

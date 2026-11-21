@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\I18n;
+namespace W4OS\Engine\I18n;
 
 /**
  * Reads and writes the entries of a gettext file (.po, .pot): the context, the text, its translation, and whether it is fuzzy; for

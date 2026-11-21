@@ -7,11 +7,11 @@ declare(strict_types=1);
  * made for an account given none, and given back only once it is made.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\AccountImporter;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\AccountImporter;
+use W4OS\Engine\Testing\Machine;
 
 /** A router whose grid has the avatar Jane Doe, and makes the others, but Bad Luck. */
 function accounts_router(Machine $machine, array &$made): Router
@@ -143,7 +143,7 @@ describe('The accounts of a list, into a grid this install does not manage', fun
         file_put_contents($robust, "[GridInfoService]\n    gridnick = \"faraway\"\n[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=faraway;User ID=u;Password=p;\"\n");
         $seen = [];
         $importer = new AccountImporter(
-            static function (?Grid $grid, ?OpenSim\Config\GridConfig $config = null) use (&$seen): array {
+            static function (?Grid $grid, ?W4OS\Engine\Config\GridConfig $config = null) use (&$seen): array {
                 $seen[] = $config?->file('Robust');
 
                 return ['Jane Doe'];

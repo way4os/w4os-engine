@@ -4,7 +4,7 @@
  * The name proposed for a simulator: the one of its region, a random one when that does not fit.
  */
 
-use OpenSim\Provisioning\SimulatorName;
+use W4OS\Engine\Provisioning\SimulatorName;
 
 describe('name proposed for a simulator', function () {
     $fine = static fn(string $v): ?string => null;

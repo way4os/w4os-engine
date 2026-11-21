@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
 /**
  * A Cache store in the `oshelpers_cache` table of a database: the one the helpers keep their answers in, with the same columns and

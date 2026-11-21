@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Result;
-use OpenSim\Data\OSPDO;
-use OpenSim\Runtime\ClockInterface;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Result;
+use W4OS\Engine\Data\OSPDO;
+use W4OS\Engine\Runtime\ClockInterface;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * The questions of the search module of the simulators and of the viewers (OpenSimSearch): places, popular places, land for sale,

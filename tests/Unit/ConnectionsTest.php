@@ -6,11 +6,11 @@ declare(strict_types=1);
  * Whether credentials connect, and why not.
  */
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Database;
-use OpenSim\Data\Connections;
-use OpenSim\Data\OSPDO;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\OSPDO;
 
 describe('credentials', function () {
     test('connect, or say what is missing or what the server answers', function () {

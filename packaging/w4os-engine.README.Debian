@@ -1,20 +1,21 @@
-opensim-engine on Debian
-========================
+w4os-engine on Debian
+=====================
 
 The system layout
 -----------------
 
 Installing the package makes the account the instances run as (opensim), the folders of the layout, owned by it
-through dpkg-statoverride (an administrator's own override is kept), and /etc/opensim/opensim.conf, left as it is
-once written:
+through dpkg-statoverride (an administrator's own override is kept), and /etc/w4os/w4os.conf, left as it is
+once written (the /etc/opensim/opensim.conf of before w4os is moved there, as it is):
 
-  /etc/opensim          config: opensim.conf, the grids (grids/<grid>), the enabled instances (robust.d, opensim.d)
+  /etc/w4os             the config of the suite, w4os.conf
+  /etc/opensim          the config of OpenSimulator: the grids (grids/<grid>), the enabled instances (robust.d, opensim.d)
   /var/lib/opensim      data, and the home of the account
   /var/log/opensim      logs
   /var/cache/opensim    cache
   /var/backups/opensim  backups
 
-Each OpenSimulator release installed in /usr/share/opensim gets an install profile in opensim.conf, added and
+Each OpenSimulator release installed in /usr/share/opensim gets an install profile in w4os.conf, added and
 removed with it; the latest one is the default.
 
 The files of a grid

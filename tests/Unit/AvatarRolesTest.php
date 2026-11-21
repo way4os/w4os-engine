@@ -7,8 +7,8 @@ declare(strict_types=1);
  * services as roles of their own, as w4os-wp; each says how many estates, regions and parcels it owns.
  */
 
-use OpenSim\Data\Connections;
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Models\Avatar;
 
 afterEach(fn() => Connections::using(null));
 
@@ -28,7 +28,7 @@ describe('The avatars of a list', function () {
             'Ada Love' => 'resident', 'Bob Root' => 'maintenance', 'Default Ruth' => 'model', "$first $last" => 'service-account',
         ])
             ->and($column['shownRole'])->toMatchArray(['label' => 'role', 'type' => 'role', 'sort' => 'level'])
-            ->and(OpenSim\I18n\Catalog::MESSAGES[OpenSim\I18n\Catalog::roleKey('service-account')])->toBe('Service Account');
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES[W4OS\Engine\I18n\Catalog::roleKey('service-account')])->toBe('Service Account');
     });
 
     test('say how many estates, regions and parcels each owns', function () {
@@ -43,7 +43,7 @@ describe('The avatars of a list', function () {
         $dir = dirname(avatar_grid()->files()[0]);
         mkdir("$dir/sims", 0o755, true);
         file_put_contents("$dir/sims/alpha.ini", "[DatabaseService]\n ConnectionString = \"Data Source=localhost;Database=alpha;User ID=os;Password=pw;\"\n");
-        $config = OpenSim\Config\GridConfig::fromFolder($dir);
+        $config = W4OS\Engine\Config\GridConfig::fromFolder($dir);
 
         $rows = array_column(Avatar::all($config)->array(), null, 'name');
         $column = array_column(Avatar::listing()->columns, null, 'name');

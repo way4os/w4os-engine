@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Scheduling;
+namespace W4OS\Engine\Scheduling;
 
 /**
  * What came of a task asked to run.

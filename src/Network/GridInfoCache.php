@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Network;
+namespace W4OS\Engine\Network;
 
-use OpenSim\Data\Cache;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * What the grids said of themselves at `/get_grid_info` when they were verified, kept. What a grid says is the truth about it,

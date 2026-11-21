@@ -9,7 +9,7 @@ Nothing else is needed: no sudo, no folder the web server may write.
 
 ## How the API is served
 
-The engine has its own entry point, `public/index.php` (`/usr/share/opensim-engine/public` with the package): a web server hands it
+The engine has its own entry point, `public/index.php` (`/usr/share/w4os-engine/public` with the package): a web server hands it
 the requests, `Api\Server` answers `/api/...` with the Router, with the keys of the install (`opensim api-key create|list|revoke`,
 `Authorization: Bearer`). It needs no framework and no helpers: the engine can be installed alone. `OPENSIM_GRID` names the grid of
 the short paths (`/api/avatars`), `OPENSIM_API_BASE` another base than `/api`.
@@ -37,14 +37,14 @@ helpers, a plugin, a site) never exposes it, proxies it or passes it through, an
 
 `opensim web GRID api caddy|nginx|apache` prints the two pieces:
 
-1. a PHP-FPM pool, `opensim-api`, run as the user of the instances (`opensim`), its socket `/run/php/opensim-api.sock` reached by
+1. a PHP-FPM pool, `w4os-api`, run as the user of the instances (`opensim`), its socket `/run/php/w4os-api.sock` reached by
    the group of the web server only (`--web-group`, `www-data` by default, `caddy` for Caddy):
 
    ```bash
    opensim web friendly_fowl api caddy > /tmp/api.txt
    ```
 
-   The first part goes to `/etc/php/<version>/fpm/pool.d/opensim-api.conf`, then `systemctl reload php<version>-fpm`.
+   The first part goes to `/etc/php/<version>/fpm/pool.d/w4os-api.conf`, then `systemctl reload php<version>-fpm`.
 
 2. a listener on `127.0.0.1:8780` (`--port`) that serves the paths of the API and nothing else, through that pool, to the entry
    point of the engine (`--docroot` for another one): a site block

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Data\OSPDO;
+use W4OS\Engine\Data\OSPDO;
 
 /**
  * Runs SQL statements through OSPDO and reports them as the MySQL client did, which the callers read: an exit code, the rows
@@ -164,7 +164,7 @@ final class SqlRunner
             var_export(dirname(__DIR__) . '/Data/OSPDO.php', true) .
             '; require ' .
             var_export(__FILE__, true) .
-            '; exit(OpenSim\\Provisioning\\SqlRunner::child());';
+            '; exit(W4OS\\Engine\\Provisioning\\SqlRunner::child());';
         $process = @proc_open(
             ['sudo', '-n', PHP_BINARY, '-d', 'display_errors=0', '-r', $script],
             [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],

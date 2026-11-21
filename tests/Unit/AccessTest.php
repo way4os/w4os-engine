@@ -8,9 +8,9 @@ declare(strict_types=1);
  * the viewers). The levels are the six of OpenSimulator, GOD_MAINTENANCE never needed.
  */
 
-use OpenSim\Api\Access;
-use OpenSim\Api\Contract;
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Api\Access;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\Models\Avatar;
 
 describe('The access to the API', function () {
     test('gives every operation of the contract an access: a level of OpenSimulator, never 250, or none for what anybody may', function () {
@@ -81,7 +81,7 @@ describe('The access to the API', function () {
 
 describe('The list of the simulators', function () {
     test('offers to start, stop and restart a simulator, at its instance, asking first when it sends avatars away', function () {
-        $actions = array_column(OpenSim\Api\Contract::document()['paths']['/simulators']['get']['x-list']['actions'], null, 'name');
+        $actions = array_column(W4OS\Engine\Api\Contract::document()['paths']['/simulators']['get']['x-list']['actions'], null, 'name');
 
         expect(array_map(static fn(array $a): array => [$a['method'], $a['path'], $a['when'] ?? null], array_intersect_key($actions, array_flip(['start', 'stop', 'restart']))))
             ->toBe([
@@ -91,7 +91,7 @@ describe('The list of the simulators', function () {
             ])
             ->and([$actions['stop']['ask'] ?? null, $actions['restart']['ask'] ?? null, $actions['start']['ask'] ?? null])
             ->toBe(['ask_stop_instance', 'ask_restart_instance', null])
-            ->and(array_diff(array_filter(array_merge(array_column($actions, 'label'), array_column($actions, 'ask'))), array_keys(OpenSim\I18n\Catalog::MESSAGES)))
+            ->and(array_diff(array_filter(array_merge(array_column($actions, 'label'), array_column($actions, 'ask'))), array_keys(W4OS\Engine\I18n\Catalog::MESSAGES)))
             ->toBe([])
             // The operations they call need a god, as the contract says
             ->and(Access::level('startInstance'))

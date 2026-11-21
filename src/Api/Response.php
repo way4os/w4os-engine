@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Api;
+namespace W4OS\Engine\Api;
 
 /**
  * The answer of the API in the terms of no framework: a status, headers, a body. An adapter (PSR-7, a script, the command line)

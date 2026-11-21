@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Result;
-use OpenSim\Forms\FieldSet;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Models\Grid;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Result;
+use W4OS\Engine\Forms\FieldSet;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * From the answers about a grid whose Robust runs elsewhere to the description a simulator joins it with. The answers are the

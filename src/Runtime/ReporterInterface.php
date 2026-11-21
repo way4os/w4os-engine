@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Runtime;
+namespace W4OS\Engine\Runtime;
 
 /**
  * What the engine says while it works: the front-end shows it (a command line prints it, the administration keeps it).

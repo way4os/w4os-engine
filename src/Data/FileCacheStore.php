@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
 /** A Cache store in a folder: a file for each key, with the time it is valid until. */
 final class FileCacheStore implements CacheStoreInterface

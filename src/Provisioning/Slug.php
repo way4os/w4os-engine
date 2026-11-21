@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
 /**
  * The names derived from a display name. Lower case letters and digits, the words kept apart so that "The Rapist" (the_rapist) is

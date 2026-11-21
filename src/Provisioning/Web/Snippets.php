@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSim\Provisioning\Web;
+namespace W4OS\Engine\Provisioning\Web;
 
-use OpenSim\Provisioning\Presets;
+use W4OS\Engine\Provisioning\Presets;
 
 /**
  * What a web server needs to serve the site of a grid: the document root of the site, where what exists is
@@ -17,7 +17,7 @@ final class Snippets
     public const SERVERS = ['caddy', 'nginx', 'apache'];
 
     /** Where the helpers are installed. */
-    public const WEBROOT = '/usr/share/opensim-helpers';
+    public const WEBROOT = '/usr/share/w4os-helpers';
 
     /** The entry point of the helpers when their preset does not say it (webroot-helpers). */
     private const HELPERS_PUBLIC = self::WEBROOT . '/public';
@@ -67,7 +67,7 @@ final class Snippets
     }
 
     /** Where the engine API for the sites of this machine is reached by default: its socket, its port on 127.0.0.1. */
-    public const API_SOCKET = '/run/php/opensim-api.sock';
+    public const API_SOCKET = '/run/php/w4os-api.sock';
     public const API_PORT = 8780;
 
     /** The files of the API for the sites of this machine, by web server (the preset `engine-api`). */
@@ -85,7 +85,7 @@ final class Snippets
      */
     public static function pool(string $systemUser, string $webGroup = 'www-data', string $socket = self::API_SOCKET): string
     {
-        return self::apiPreset()->text('api/opensim-api.conf', [
+        return self::apiPreset()->text('api/w4os-api.conf', [
             'system_user' => $systemUser,
             'web_group' => $webGroup,
             'php_socket' => $socket,
@@ -117,7 +117,7 @@ final class Snippets
         ]) . "\n";
     }
 
-    private static function apiPreset(): \OpenSim\Provisioning\OptionTemplate
+    private static function apiPreset(): \W4OS\Engine\Provisioning\OptionTemplate
     {
         return (new Presets())->options()['engine-api'] ?? throw new \RuntimeException('the preset engine-api is not installed');
     }

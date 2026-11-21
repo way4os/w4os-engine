@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
 /**
  * The old archives and backups, `--keep N`: the files that have the name of a new one but for its stamp

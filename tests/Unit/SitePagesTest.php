@@ -7,11 +7,11 @@ declare(strict_types=1);
  * other is the site's. The base is HelpersURL of Helpers.ini, else the economy, else WebURL/helpers.
  */
 
-use OpenSim\Config\IniEditor;
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\Web\Services;
-use OpenSim\Provisioning\Web\SitePages;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\Web\Services;
+use W4OS\Engine\Provisioning\Web\SitePages;
+use W4OS\Engine\Testing\Machine;
 
 /**
  * The grid of a test machine with a web site, what its Robust says of its addresses and what its Helpers.ini says.
@@ -185,7 +185,7 @@ describe('The addresses of a grid, for the pages', function () {
             "[GridInfoService]\n    search = \"https://demo.example.org/search\"\n    welcome = \"https://demo.example.org/helperz/welcome\"",
             'HelpersURL = "https://demo.example.org/helperz"',
         );
-        $router = new OpenSim\Api\Router(new OpenSim\Api\Api($machine->environment));
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment));
 
         $attributes = $router->get('/grids/demo/addresses')->document['data']['attributes'];
 

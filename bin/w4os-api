@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# opensim-api: the API of the engine on the command line (see opensim-api.php). The .env of the engine and ~/.opensimrc are read first
+# w4os-api: the API of the engine on the command line (see w4os-api.php). The .env of the engine and ~/.opensimrc are read first
 # (see lib/rc-helpers), so the php it runs is the one they set the PATH for.
 
 self="${BASH_SOURCE[0]}"
@@ -13,4 +13,4 @@ dir="$(cd "$(dirname "$self")" && pwd -P)"
 source "$dir/../lib/rc-helpers"
 read_rc "$dir/.."
 
-exec php "$dir/opensim-api.php" "$@"
+exec php "$dir/w4os-api.php" "$@"

@@ -1,12 +1,12 @@
 <?php
 
-namespace OpenSim\Archives;
+namespace W4OS\Engine\Archives;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Region;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * The scheduled backup of the regions: the OAR of every enabled region of the simulators that run, in the backup root, one folder

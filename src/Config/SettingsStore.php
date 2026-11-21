@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Config;
+namespace W4OS\Engine\Config;
 
 /**
  * The settings an application keeps for the engine it bundles (a site): read before the files of a grid (Grid::config()), and where

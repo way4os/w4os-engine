@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Assets;
+namespace W4OS\Engine\Assets;
 
 /**
  * Converts images with ImageMagick (the extension `imagick`, with its JPEG 2000 delegate for the textures of the grid).

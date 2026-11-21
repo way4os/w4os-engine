@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace OpenSim;
+namespace W4OS\Engine;
 
-use OpenSim\Config\Layout;
-use OpenSim\Models\Grid;
-use OpenSim\Models\Simulator;
-use OpenSim\Controllers\AbstractController;
-use OpenSim\Controllers\OpenSimController;
-use OpenSim\Controllers\RobustController;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\ReporterInterface;
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Runtime\Outcome;
-use OpenSim\Runtime\Status;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Models\Simulator;
+use W4OS\Engine\Controllers\AbstractController;
+use W4OS\Engine\Controllers\OpenSimController;
+use W4OS\Engine\Controllers\RobustController;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\ReporterInterface;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Runtime\Outcome;
+use W4OS\Engine\Runtime\Status;
 
 /**
  * The entry point of the front-ends (the command line, the administration, WordPress): what they ask of this machine, by the
@@ -151,14 +151,14 @@ final class OpenSim
         }
         // The grids in place, enabled in their section of the config of the suite: run from their own files
         foreach ($environment->layout->grids() as $nick => $section) {
-            $section = \OpenSim\Config\InPlaceGrids::section((string) $environment->layout->file(), (string) $nick) ?: $section;
+            $section = \W4OS\Engine\Config\InPlaceGrids::section((string) $environment->layout->file(), (string) $nick) ?: $section;
             $robust = $section['RobustIni'] ?? '';
-            if ($robust !== '' && \OpenSim\Config\InPlaceGrids::robustEnabled($section) && !isset($seen[realpath($robust) ?: $robust])) {
+            if ($robust !== '' && \W4OS\Engine\Config\InPlaceGrids::robustEnabled($section) && !isset($seen[realpath($robust) ?: $robust])) {
                 $seen[realpath($robust) ?: $robust] = true;
                 array_unshift($instances, new RobustController($environment, $robust, (string) $nick));
             }
-            foreach (\OpenSim\Config\InPlaceGrids::simulators((string) $nick, $section) as $simulator) {
-                if (in_array($simulator['short'], \OpenSim\Config\InPlaceGrids::enabledSimulators($section), true) && !isset($seen[realpath($simulator['ini']) ?: $simulator['ini']])) {
+            foreach (\W4OS\Engine\Config\InPlaceGrids::simulators((string) $nick, $section) as $simulator) {
+                if (in_array($simulator['short'], \W4OS\Engine\Config\InPlaceGrids::enabledSimulators($section), true) && !isset($seen[realpath($simulator['ini']) ?: $simulator['ini']])) {
                     $seen[realpath($simulator['ini']) ?: $simulator['ini']] = true;
                     $instances[] = new OpenSimController($environment, $simulator['ini'], $simulator['name']);
                 }

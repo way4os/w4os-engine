@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Testing;
+namespace W4OS\Engine\Testing;
 
-use OpenSim\Runtime\ReporterInterface;
+use W4OS\Engine\Runtime\ReporterInterface;
 
 /**
  * Keeps what the engine says, by kind.

@@ -8,15 +8,15 @@ declare(strict_types=1);
  * and not changed here, the secrets never said.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Router;
-use OpenSim\Config\ConfigReader;
-use OpenSim\Config\Settings;
-use OpenSim\I18n\Catalog;
-use OpenSim\Models\GridSettings;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\I18n\Catalog;
+use W4OS\Engine\Models\GridSettings;
+use W4OS\Engine\Testing\Machine;
 
-/** @return array{0:Machine,1:Closure(string,array<string,mixed>):OpenSim\Api\Response,2:Closure(string):OpenSim\Api\Response} */
+/** @return array{0:Machine,1:Closure(string,array<string,mixed>):W4OS\Engine\Api\Response,2:Closure(string):W4OS\Engine\Api\Response} */
 function settings_pages(): array
 {
     $machine = new Machine();

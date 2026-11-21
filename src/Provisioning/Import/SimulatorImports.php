@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Provisioning\Import;
+namespace W4OS\Engine\Provisioning\Import;
 
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Models\Region;
-use OpenSim\Provisioning\UiInterface;
-use OpenSim\Runtime\Environment;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Models\Region;
+use W4OS\Engine\Provisioning\UiInterface;
+use W4OS\Engine\Runtime\Environment;
 
 /**
  * Several simulators of older installs moved into one grid of this machine, planned together (SimulatorImport for each, against
@@ -30,9 +30,9 @@ final class SimulatorImports
      * What the imports would do, checked each against the grid, then between them; nothing written.
      *
      * @param list<array{file:string,name?:?string,core?:?string,scripts?:bool}> $simulators
-     * @param ?\OpenSim\Models\Grid $planned the grid they join when it is not written yet (GridImport)
+     * @param ?\W4OS\Engine\Models\Grid $planned the grid they join when it is not written yet (GridImport)
      */
-    public static function prepare(Environment $environment, array $simulators, string $grid, ?\OpenSim\Models\Grid $planned = null): self
+    public static function prepare(Environment $environment, array $simulators, string $grid, ?\W4OS\Engine\Models\Grid $planned = null): self
     {
         $simulators !== [] || throw InvalidValue::because('invalid-request', 'no simulator to import (simulators)');
         $imports = [];
@@ -45,10 +45,10 @@ final class SimulatorImports
                     $grid,
                     ($simulator['name'] ?? '') !== '' ? (string) $simulator['name'] : null,
                     ($simulator['core'] ?? '') !== '' ? (string) $simulator['core'] : null,
-                    !\OpenSim\Result::isFalse($simulator['scripts'] ?? true),
+                    !\W4OS\Engine\Result::isFalse($simulator['scripts'] ?? true),
                     $planned,
                 );
-            } catch (\OpenSim\Exceptions\NotFound $error) {
+            } catch (\W4OS\Engine\Exceptions\NotFound $error) {
                 throw $error;
             } catch (\InvalidArgumentException $error) {
                 $problems["simulators.$i"] = $error->getMessage();
@@ -123,7 +123,7 @@ final class SimulatorImports
                 $this->problems,
             )));
         }
-        $dump ??= \OpenSim\Archives\DatabaseDump::write(...);
+        $dump ??= \W4OS\Engine\Archives\DatabaseDump::write(...);
         // A database several of them name (the estates, a module of the grid) is dumped once, each backup keeping a copy of it
         $cache = sys_get_temp_dir() . '/opensim-dumps-' . bin2hex(random_bytes(6));
         mkdir($cache, 0o700);

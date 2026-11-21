@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Cache;
-use OpenSim\Hypergrid\Destination;
-use OpenSim\Hypergrid\Gatekeeper;
-use OpenSim\Models\Asset;
-use OpenSim\Network\GridInfoCache;
-use OpenSim\Runtime\ClockInterface;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Cache;
+use W4OS\Engine\Hypergrid\Destination;
+use W4OS\Engine\Hypergrid\Gatekeeper;
+use W4OS\Engine\Models\Asset;
+use W4OS\Engine\Network\GridInfoCache;
+use W4OS\Engine\Runtime\ClockInterface;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * The pictures of the hypergrid destinations of a guide that the search has none of, asked to their own grid: its gatekeeper gives

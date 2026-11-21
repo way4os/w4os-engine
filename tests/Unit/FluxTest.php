@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use OpenSim\Api\Access;
-use OpenSim\Flux\FluxImport;
-use OpenSim\Flux\Posts;
+use W4OS\Engine\Api\Access;
+use W4OS\Engine\Flux\FluxImport;
+use W4OS\Engine\Flux\Posts;
 
 /**
  * The stream of an avatar (w4os-flux, its first step): its posts, kept by the engine in the database of the profiles, listed newest
@@ -65,18 +65,18 @@ describe('The posts of an avatar', function () {
 
 describe('The form of a post', function () {
     test('is described by the operation that makes one (x-form): its text, its length, the action that deletes one, their texts in the catalog', function () {
-        $form = OpenSim\Api\Contract::document()['paths']['/grids/{grid}/avatars/{id}/posts']['post']['x-form'] ?? null;
+        $form = W4OS\Engine\Api\Contract::document()['paths']['/grids/{grid}/avatars/{id}/posts']['post']['x-form'] ?? null;
         $field = $form['fields'][0] ?? [];
         $delete = array_column($form['actions'] ?? [], null, 'name')['deletePost'] ?? [];
 
-        expect($field)->toMatchArray(['name' => 'content', 'type' => 'text', 'maxLength' => OpenSim\Flux\Posts::MAX, 'required' => true])
+        expect($field)->toMatchArray(['name' => 'content', 'type' => 'text', 'maxLength' => W4OS\Engine\Flux\Posts::MAX, 'required' => true])
             ->and($form['submit'] ?? null)->toBe('action_post')
             ->and($delete)->toMatchArray(['method' => 'DELETE', 'path' => '/grids/{grid}/avatars/{id}/posts/{post}', 'ask' => 'ask_delete_post'])
             // The operation of the action is one of the contract
-            ->and(OpenSim\Api\Contract::document()['paths'][$delete['path']]['delete']['operationId'] ?? null)->toBe('deleteAvatarPost');
-        foreach ([$field['label'], $field['description'], $form['submit'], $delete['label'], $delete['ask'], OpenSim\I18n\Catalog::doneKey('post'), OpenSim\I18n\Catalog::doneKey('deletePost')] as $key) {
-            expect(OpenSim\I18n\Catalog::MESSAGES)->toHaveKey($key)
-                ->and(OpenSim\I18n\Catalog::messages('fr_FR'))->toHaveKey($key);
+            ->and(W4OS\Engine\Api\Contract::document()['paths'][$delete['path']]['delete']['operationId'] ?? null)->toBe('deleteAvatarPost');
+        foreach ([$field['label'], $field['description'], $form['submit'], $delete['label'], $delete['ask'], W4OS\Engine\I18n\Catalog::doneKey('post'), W4OS\Engine\I18n\Catalog::doneKey('deletePost')] as $key) {
+            expect(W4OS\Engine\I18n\Catalog::MESSAGES)->toHaveKey($key)
+                ->and(W4OS\Engine\I18n\Catalog::messages('fr_FR'))->toHaveKey($key);
         }
     });
 });
@@ -85,7 +85,7 @@ describe('The posts of w4os-wp', function () {
     test('are brought in from its database, planned first, once each', function () {
         $pdo = avatar_database();
         avatars_in($pdo);
-        $wp = new OpenSim\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $wp = new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
         $wp->exec('CREATE TABLE wp_posts (ID INTEGER PRIMARY KEY, post_type VARCHAR(20), post_status VARCHAR(20), post_content TEXT, post_date_gmt VARCHAR(19))');
         $wp->exec('CREATE TABLE wp_postmeta (meta_id INTEGER PRIMARY KEY, post_id INT, meta_key VARCHAR(255), meta_value TEXT)');
         $wp->exec("INSERT INTO wp_posts VALUES (7, 'flux_post', 'publish', '<p>Old news</p>', '2025-03-01 10:00:00'), (8, 'flux_post', 'draft', 'Not yet', '2025-03-02 10:00:00'), (9, 'post', 'publish', 'A page', '2025-03-03 10:00:00'), (10, 'flux_post', 'publish', 'Nobody', '2025-03-04 10:00:00')");

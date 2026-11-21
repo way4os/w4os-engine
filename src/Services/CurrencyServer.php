@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Services;
+namespace W4OS\Engine\Services;
 
-use OpenSim\Economy\Currency;
+use W4OS\Engine\Economy\Currency;
 
 /**
  * What the viewers and the simulators ask of the currency of a grid (XML-RPC, `currency.php` of its economy) and of the land

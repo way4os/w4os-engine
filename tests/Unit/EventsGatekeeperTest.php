@@ -8,9 +8,9 @@ declare(strict_types=1);
  * keep a request waiting for minutes.
  */
 
-use OpenSim\Hypergrid\Gatekeeper;
-use OpenSim\Services\EventsParser;
-use OpenSim\Testing\ClockFake;
+use W4OS\Engine\Hypergrid\Gatekeeper;
+use W4OS\Engine\Services\EventsParser;
+use W4OS\Engine\Testing\ClockFake;
 
 const EVENT_WELCOME = '11111111-1111-4111-8111-111111111111';
 const EVENT_PLAZA = '22222222-2222-4222-8222-222222222222';

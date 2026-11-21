@@ -6,9 +6,9 @@
  * etc/grids/<grid>/sims/<sim>/regions), imported into the grid of a test machine, planned then applied. Says what happened in JSON.
  */
 
-use OpenSim\Provisioning\Import\SimulatorImport;
-use OpenSim\Provisioning\NullUi;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Provisioning\Import\SimulatorImport;
+use W4OS\Engine\Provisioning\NullUi;
+use W4OS\Engine\Testing\Machine;
 
 require dirname(__DIR__, 3) . '/vendor/autoload.php';
 

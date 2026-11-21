@@ -7,7 +7,7 @@ declare(strict_types=1);
  * shortcodes of a site.
  */
 
-use OpenSim\I18n\Catalog;
+use W4OS\Engine\I18n\Catalog;
 
 const BLOCK_TEXTS = [
     'block_grid_info_help', 'block_grid_status_help', 'block_popular_places_help', 'block_motd_help', 'block_destination_guide_help',

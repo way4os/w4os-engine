@@ -7,13 +7,13 @@ declare(strict_types=1);
  * fakes of a machine that is a folder.
  */
 
-use OpenSim\Exceptions\InstanceFailed;
-use OpenSim\Models\Grid;
-use OpenSim\OpenSim;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\Outcome;
-use OpenSim\Runtime\RuntimeProbe;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Exceptions\InstanceFailed;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\OpenSim;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\Outcome;
+use W4OS\Engine\Runtime\RuntimeProbe;
+use W4OS\Engine\Testing\Machine;
 
 /** The lines a Robust of the machine writes when it loads its two services. */
 function robust_ready(Machine $machine): void

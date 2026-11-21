@@ -9,7 +9,7 @@ if (!is_file($autoload)) {
 }
 require $autoload;
 
-use OpenSim\Container\Podman;
+use W4OS\Engine\Container\Podman;
 
 $arguments = array_slice($_SERVER['argv'], 1);
 $connection = getenv('CONTAINER_CONNECTION') ?: null;
@@ -40,7 +40,7 @@ fwrite(STDOUT, $result->stdout);
 fwrite(STDERR, $result->stderr);
 exit($result->status);
 
-function create(Podman $podman, array $arguments): ?OpenSim\Container\CommandResult
+function create(Podman $podman, array $arguments): ?W4OS\Engine\Container\CommandResult
 {
     $name = $image = $memory = null;
     $labels = [];
@@ -71,7 +71,7 @@ function create(Podman $podman, array $arguments): ?OpenSim\Container\CommandRes
     return $podman->create($name, $image, $labels, $memory, $arguments);
 }
 
-function execute(Podman $podman, array $arguments): ?OpenSim\Container\CommandResult
+function execute(Podman $podman, array $arguments): ?W4OS\Engine\Container\CommandResult
 {
     $interactive = ($arguments[0] ?? '') === '--tty';
     $interactive && array_shift($arguments);
@@ -95,7 +95,7 @@ function execute(Podman $podman, array $arguments): ?OpenSim\Container\CommandRe
     return $podman->exec($name, $arguments, $input === false ? null : $input);
 }
 
-function remove(Podman $podman, array $arguments): ?OpenSim\Container\CommandResult
+function remove(Podman $podman, array $arguments): ?W4OS\Engine\Container\CommandResult
 {
     $force = ($arguments[0] ?? '') === '--force';
     if ($force) {

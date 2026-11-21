@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\ConnectionString;
-use OpenSim\Runtime\ShellService;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Runtime\ShellService;
 
 /**
  * The database of a grid: OpenSim cannot run without it, so the setup checks

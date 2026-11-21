@@ -9,13 +9,13 @@ declare(strict_types=1);
  * grid of it (SiteDescription::grid()), never of a folder.
  */
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Contract;
-use OpenSim\Api\Router;
-use OpenSim\Config\Layout;
-use OpenSim\Models\SiteDescription;
-use OpenSim\Runtime\Environment;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Contract;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Models\SiteDescription;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Testing\Machine;
 
 describe('The description of a grid for a site', function () {
     test('gives what its helpers need, never a secret', function () {
@@ -69,7 +69,7 @@ describe('The grid a site makes of a description', function () {
         $machine = new Machine();
         $machine->write($machine->grid . '/Robust.HG.ini', file_get_contents($machine->grid . '/Robust.HG.ini')
             . "\n[GridInfoService]\n    gridname = \"Friendly Fowl\"\n    gridnick = \"demo\"\n    login = \"http://localhost:8002/\"\n    economy = \"https://play.example.org/helpers/\"\n    welcome = \"https://play.example.org/welcome\"\n    register = \"https://play.example.org/register\"\n");
-        $folder = OpenSim\Models\Grid::find($machine->environment, 'demo');
+        $folder = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
         $site = test_tmp() . '/site-description-info-' . bin2hex(random_bytes(4));
         mkdir($site);
         $environment = Environment::system(new Layout(['EtcRoot' => "$site/etc", 'CacheRoot' => "$site/cache", 'StateRoot' => "$site/state"]));
@@ -97,9 +97,9 @@ describe('The get_grid_info of a grid a site makes of a description', function (
         mkdir($site);
         $environment = Environment::system(new Layout(['EtcRoot' => "$site/etc", 'CacheRoot' => "$site/cache", 'StateRoot' => "$site/state"]));
 
-        $described = SiteDescription::grid($environment, SiteDescription::of(OpenSim\Models\Grid::find($machine->environment, 'demo')));
+        $described = SiteDescription::grid($environment, SiteDescription::of(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')));
 
         expect($described->gridInfo())->toBe($robust)
-            ->and(OpenSim\Models\Grid::find($machine->environment, 'demo')->gridInfo())->toBe($robust);
+            ->and(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->gridInfo())->toBe($robust);
     });
 });

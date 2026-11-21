@@ -6,9 +6,9 @@ declare(strict_types=1);
  * Signing an avatar in with its grid: the avatar name, the private port of Robust, the login service, OpenID.
  */
 
-use OpenSim\SignIn\AvatarName;
-use OpenSim\SignIn\PrivateServiceAuthenticator;
-use OpenSim\SignIn\SignInResult;
+use W4OS\Engine\SignIn\AvatarName;
+use W4OS\Engine\SignIn\PrivateServiceAuthenticator;
+use W4OS\Engine\SignIn\SignInResult;
 
 const SIGNIN_ID = '11111111-2222-3333-4444-555555555555';
 
@@ -206,7 +206,7 @@ describe('login service of a grid', function () {
             'session_id' => 'abc',
             'sim_ip' => '127.0.0.1',
         ]);
-        $signIn = new OpenSim\SignIn\LoginServiceAuthenticator(
+        $signIn = new W4OS\Engine\SignIn\LoginServiceAuthenticator(
             'http://grid.test:8002/',
             'last',
             'test',
@@ -229,7 +229,7 @@ describe('login service of a grid', function () {
 
     test('calls login_to_simulator as a viewer does, with the MD5 of the password', function () {
         $sent = [];
-        $signIn = new OpenSim\SignIn\LoginServiceAuthenticator('http://grid.test:8002/', 'home', 'test', function (
+        $signIn = new W4OS\Engine\SignIn\LoginServiceAuthenticator('http://grid.test:8002/', 'home', 'test', function (
             string $url,
             string $call,
         ) use (&$sent): string {
@@ -271,7 +271,7 @@ describe('login service of a grid', function () {
             'message' =>
                 'Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.',
         ]);
-        $signIn = new OpenSim\SignIn\LoginServiceAuthenticator(
+        $signIn = new W4OS\Engine\SignIn\LoginServiceAuthenticator(
             'http://grid.test:8002/',
             post: fn(string $url, string $call): string => $answer,
         );
@@ -285,7 +285,7 @@ describe('login service of a grid', function () {
             'reason' => 'key',
             'message' => 'Error connecting to the desired location. Try connecting to another region.',
         ]);
-        $result = (new OpenSim\SignIn\LoginServiceAuthenticator(
+        $result = (new W4OS\Engine\SignIn\LoginServiceAuthenticator(
             'http://grid.test:8002/',
             post: fn(string $url, string $call): string => $answer,
         ))->authenticate('Gudule Lapointe', 'secret');
@@ -299,7 +299,7 @@ describe('login service of a grid', function () {
     test('says the grid is unavailable when it does not answer, or not as a grid', function () {
         $fault = (new PhpXmlRpc\Response(0, 1, 'no such method'))->serialize();
         foreach ([null, '', '<html>not xml', $fault, signin_login_answer(['hello' => 'world'])] as $answer) {
-            $signIn = new OpenSim\SignIn\LoginServiceAuthenticator(
+            $signIn = new W4OS\Engine\SignIn\LoginServiceAuthenticator(
                 'http://grid.test:8002/',
                 post: fn(string $url, string $call): ?string => $answer,
             );
@@ -310,7 +310,7 @@ describe('login service of a grid', function () {
 
     test('refuses a name that is not one and an empty password, without asking the grid', function () {
         $asked = false;
-        $signIn = new OpenSim\SignIn\LoginServiceAuthenticator(
+        $signIn = new W4OS\Engine\SignIn\LoginServiceAuthenticator(
             'http://grid.test:8002/',
             post: function () use (&$asked): ?string {
                 $asked = true;
@@ -335,8 +335,8 @@ const SIGNIN_OPENID_RETURN = 'https://manager.test/login/grid?token=abc';
 function signin_openid(
     array &$posts = [],
     ?string $verification = "ns:http://specs.openid.net/auth/2.0\nis_valid:true\n",
-): OpenSim\SignIn\OpenIdAuthenticator {
-    return new OpenSim\SignIn\OpenIdAuthenticator(
+): W4OS\Engine\SignIn\OpenIdAuthenticator {
+    return new W4OS\Engine\SignIn\OpenIdAuthenticator(
         'http://grid.test:8002/',
         get: fn(string $url): ?string => $url === 'http://grid.test:8002/users/Gudule_Lapointe'
             ? SIGNIN_OPENID_PAGE
@@ -350,7 +350,7 @@ function signin_openid(
 }
 
 /** What the grid sends the person back with when the password was right, for the redirect that was made. */
-function signin_openid_assertion(OpenSim\SignIn\SignInRedirect $redirect, array $changes = []): string
+function signin_openid_assertion(W4OS\Engine\SignIn\SignInRedirect $redirect, array $changes = []): string
 {
     $fields = [
         'openid.ns' => 'http://specs.openid.net/auth/2.0',
@@ -372,7 +372,7 @@ describe('OpenID provider of a grid', function () {
     test('sends the person to the grid to give their password there', function () {
         $redirect = signin_openid()->begin('Gudule Lapointe', SIGNIN_OPENID_RETURN);
 
-        expect($redirect)->toBeInstanceOf(OpenSim\SignIn\SignInRedirect::class);
+        expect($redirect)->toBeInstanceOf(W4OS\Engine\SignIn\SignInRedirect::class);
         parse_str((string) parse_url($redirect->url, PHP_URL_QUERY), $query);
 
         expect($redirect->url)
@@ -406,11 +406,11 @@ describe('OpenID provider of a grid', function () {
     );
 
     test('says the grid is unavailable when it does not answer, or has no OpenID provider', function () {
-        $silent = new OpenSim\SignIn\OpenIdAuthenticator(
+        $silent = new W4OS\Engine\SignIn\OpenIdAuthenticator(
             'http://grid.test:8002',
             get: fn(string $url): ?string => null,
         );
-        $nothing = new OpenSim\SignIn\OpenIdAuthenticator(
+        $nothing = new W4OS\Engine\SignIn\OpenIdAuthenticator(
             'http://grid.test:8002',
             get: fn(string $url): ?string => '<html><body>Hello</body></html>',
         );
@@ -427,7 +427,7 @@ describe('OpenID provider of a grid', function () {
         $redirect = $signIn->begin('Gudule Lapointe', SIGNIN_OPENID_RETURN);
         $assertion = signin_openid_assertion($redirect);
 
-        $result = $signIn->complete(OpenSim\SignIn\SignInRedirect::resume($redirect->state), $assertion);
+        $result = $signIn->complete(W4OS\Engine\SignIn\SignInRedirect::resume($redirect->state), $assertion);
 
         expect($result->status)
             ->toBe(SignInResult::GRANTED)

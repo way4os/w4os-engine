@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Testing;
+namespace W4OS\Engine\Testing;
 
-use OpenSim\Console\ConsoleFactoryInterface;
-use OpenSim\Console\ConsoleInterface;
-use OpenSim\Console\ScreenInterface;
-use OpenSim\Controllers\AbstractController;
+use W4OS\Engine\Console\ConsoleFactoryInterface;
+use W4OS\Engine\Console\ConsoleInterface;
+use W4OS\Engine\Console\ScreenInterface;
+use W4OS\Engine\Controllers\AbstractController;
 
 /**
  * One fake console per instance.

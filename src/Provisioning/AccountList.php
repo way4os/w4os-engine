@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Models\Avatar;
+use W4OS\Engine\Models\Avatar;
 
 /**
  * A list of accounts to make, given as CSV (first, last, email, password, with or without a header line) or

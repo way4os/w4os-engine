@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Security;
+namespace W4OS\Engine\Security;
 
 /**
  * Decides whether the caller of the API may use what is not public: the key it presents (`Authorization: Bearer <key>`).

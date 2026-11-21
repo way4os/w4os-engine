@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Interfaces;
+namespace W4OS\Engine\Interfaces;
 
 /**
  * What can be enabled and disabled: a grid and its simulators (their config is linked where the launcher finds it), a region (its
@@ -15,10 +15,10 @@ interface Enablable
 
     /**
      * @return bool whether it is enabled now
-     * @throws \OpenSim\Exceptions\ChannelUnavailable when nothing can do it
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable when nothing can do it
      */
     public function enable(): bool;
 
-    /** @throws \OpenSim\Exceptions\ChannelUnavailable when nothing can do it */
+    /** @throws \W4OS\Engine\Exceptions\ChannelUnavailable when nothing can do it */
     public function disable(): void;
 }

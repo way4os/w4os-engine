@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Data;
+namespace W4OS\Engine\Data;
 
-use OpenSim\Interfaces\OpenSimModelInterface;
+use W4OS\Engine\Interfaces\OpenSimModelInterface;
 
 /**
  * What a list of the engine gives back: its items, and what a consumer needs to show them (the total before the pages, the pages,

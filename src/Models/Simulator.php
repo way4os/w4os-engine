@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Data\Listing;
-use OpenSim\Config\IniEditor;
-use OpenSim\Config\Settings;
-use OpenSim\Exceptions\InvalidValue;
-use OpenSim\Forms\ItemForm;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Config\ConnectionString;
-use OpenSim\Console\ConsoleInterface;
-use OpenSim\Controllers\OpenSimController;
-use OpenSim\Data\Collection;
-use OpenSim\Runtime\Core;
-use OpenSim\Runtime\Environment;
-use OpenSim\Runtime\LogFile;
-use OpenSim\Runtime\Process;
-use OpenSim\Runtime\Outcome;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Config\Settings;
+use W4OS\Engine\Exceptions\InvalidValue;
+use W4OS\Engine\Forms\ItemForm;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Config\ConnectionString;
+use W4OS\Engine\Console\ConsoleInterface;
+use W4OS\Engine\Controllers\OpenSimController;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Runtime\Core;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Runtime\LogFile;
+use W4OS\Engine\Runtime\Process;
+use W4OS\Engine\Runtime\Outcome;
 
 /**
  * A simulator: what runs one or several regions of a grid, with the config it is made of (its `<name>.ini`). Its identity, its
@@ -206,12 +206,12 @@ final class Simulator extends InstalledModel
     }
 
     /** Whether a MySQL database answers with the credentials of a connection string. */
-    private static function reaches(?\OpenSim\Config\ConnectionString $connection): bool
+    private static function reaches(?\W4OS\Engine\Config\ConnectionString $connection): bool
     {
         if ($connection === null) {
             return false;
         }
-        $pdo = new \OpenSim\Data\OSPDO(['host' => $connection->source, 'name' => $connection->database, 'user' => $connection->user, 'pass' => $connection->password, 'log' => false]);
+        $pdo = new \W4OS\Engine\Data\OSPDO(['host' => $connection->source, 'name' => $connection->database, 'user' => $connection->user, 'pass' => $connection->password, 'log' => false]);
 
         return $pdo->connected;
     }
@@ -409,9 +409,9 @@ final class Simulator extends InstalledModel
             $all = [...$here, ...self::ofOthers($environment, $grid, $here)];
             // Who is in the regions of the grid, read once for its simulators
             $directory = $grid->directory();
-            $config = $directory !== '' && is_dir($directory) ? \OpenSim\Config\GridConfig::fromFolder($directory, ['Helpers' => 'Helpers.ini']) : null;
-            $present = $config === null ? null : \OpenSim\Data\Stats::presence(static fn(string $service): ?\OpenSim\Data\OSPDO => \OpenSim\Data\Connections::pdo($config, $service));
-            $content = $config === null ? null : \OpenSim\Data\Stats::content(Parcel::simulatorDatabases($config));
+            $config = $directory !== '' && is_dir($directory) ? \W4OS\Engine\Config\GridConfig::fromFolder($directory, ['Helpers' => 'Helpers.ini']) : null;
+            $present = $config === null ? null : \W4OS\Engine\Data\Stats::presence(static fn(string $service): ?\W4OS\Engine\Data\OSPDO => \W4OS\Engine\Data\Connections::pdo($config, $service));
+            $content = $config === null ? null : \W4OS\Engine\Data\Stats::content(Parcel::simulatorDatabases($config));
             foreach ($all as $simulator) {
                 $simulator->present = $present;
                 $simulator->content = $content;
@@ -467,7 +467,7 @@ final class Simulator extends InstalledModel
         $uri = (string) $this->uri();
         $host = $uri === '' ? '' : (string) parse_url("http://$uri", PHP_URL_HOST);
 
-        return $this->server ??= \OpenSim\Network\ServerNames::of($this->environment, $host);
+        return $this->server ??= \W4OS\Engine\Network\ServerNames::of($this->environment, $host);
     }
 
     /**
@@ -485,8 +485,8 @@ final class Simulator extends InstalledModel
         }
         $local = array_map('strtolower', array_filter(array_map(static fn(self $simulator): ?string => $simulator->uri(), $here)));
         try {
-            $servers = Region::elsewhere(\OpenSim\Config\GridConfig::fromFolder($directory, ['Helpers' => 'Helpers.ini']));
-        } catch (\OpenSim\Exceptions\ChannelUnavailable) {
+            $servers = Region::elsewhere(\W4OS\Engine\Config\GridConfig::fromFolder($directory, ['Helpers' => 'Helpers.ini']));
+        } catch (\W4OS\Engine\Exceptions\ChannelUnavailable) {
             return [];
         }
 
@@ -750,7 +750,7 @@ final class Simulator extends InstalledModel
         if ($opensim !== null) {
             return $opensim;
         }
-        $main = \OpenSim\Data\Database::Robust->connection($config);
+        $main = \W4OS\Engine\Data\Database::Robust->connection($config);
         $host = (string) (parse_url((string) $grid->loginUrl(), PHP_URL_HOST) ?: $grid->baseHostname());
 
         return $main === null || $grid->robust() !== null || $host === '' ? $main : self::onRobustHost($main, $host);
@@ -880,7 +880,7 @@ final class Simulator extends InstalledModel
     /** Its controller, for what only a simulator of this machine does. */
     private function here(string $what): OpenSimController
     {
-        $this->elsewhere === null || throw \OpenSim\Exceptions\ChannelUnavailable::for("$what the simulator {$this->elsewhere['uri']}, which runs on another machine");
+        $this->elsewhere === null || throw \W4OS\Engine\Exceptions\ChannelUnavailable::for("$what the simulator {$this->elsewhere['uri']}, which runs on another machine");
 
         return $this->controller;
     }
@@ -895,7 +895,7 @@ final class Simulator extends InstalledModel
     {
         $grid = $this->grid();
 
-        return $this->elsewhere !== null || $grid === null ? [] : (new \OpenSim\Provisioning\GridOptions($grid))->missingIn($this->settings());
+        return $this->elsewhere !== null || $grid === null ? [] : (new \W4OS\Engine\Provisioning\GridOptions($grid))->missingIn($this->settings());
     }
 
     /**
@@ -1079,7 +1079,7 @@ final class Simulator extends InstalledModel
     }
 
     /** A database it connects to, as OpenSimulator chooses it from its config (see Controller::connection()). */
-    public function connection(\OpenSim\Data\Database|string $which): ?ConnectionString
+    public function connection(\W4OS\Engine\Data\Database|string $which): ?ConnectionString
     {
         return $this->controller->connection($which);
     }

@@ -3,13 +3,13 @@
  * The accounts made from a list, directly in the database of a grid.
  */
 
-use OpenSim\Models\Grid;
-use OpenSim\Provisioning\AccountImporter;
-use OpenSim\Provisioning\AccountList;
-use OpenSim\Provisioning\AccountWriter;
-use OpenSim\Provisioning\GridPlan;
-use OpenSim\Testing\EnvironmentFake;
-use OpenSim\Exceptions\ChannelUnavailable;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\AccountImporter;
+use W4OS\Engine\Provisioning\AccountList;
+use W4OS\Engine\Provisioning\AccountWriter;
+use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Testing\EnvironmentFake;
+use W4OS\Engine\Exceptions\ChannelUnavailable;
 
 /** A writer with ids, a time and a salt that follow one another, so the statements can be compared. */
 function accounts_writer(): AccountWriter
@@ -94,7 +94,7 @@ describe('statements of an account', function () {
     });
 
     test('moves the home Robust gives from the sea floor, and no other', function () {
-        $sql = OpenSim\Provisioning\GridAccounts::raiseHomeSql('11111111-2222-3333-4444-555555555555');
+        $sql = W4OS\Engine\Provisioning\GridAccounts::raiseHomeSql('11111111-2222-3333-4444-555555555555');
 
         expect($sql)->toBe(
             "UPDATE GridUser SET HomePosition = '<128,128,22>' WHERE UserID = '11111111-2222-3333-4444-555555555555' AND HomePosition = '<128,128,0>'",
@@ -102,13 +102,13 @@ describe('statements of an account', function () {
     });
 
     test('gives the first account the level of an administrator', function () {
-        expect(OpenSim\Provisioning\GridAccounts::levelSql('Jane', 'Doe', OpenSim\Provisioning\GridAccounts::FIRST_LEVEL))->toBe(
+        expect(W4OS\Engine\Provisioning\GridAccounts::levelSql('Jane', 'Doe', W4OS\Engine\Provisioning\GridAccounts::FIRST_LEVEL))->toBe(
             "UPDATE UserAccounts SET UserLevel = 200 WHERE FirstName = 'Jane' AND LastName = 'Doe'",
         );
     });
 
     test('publishes the first account: a new profile is public ("show in search")', function () {
-        expect(OpenSim\Provisioning\GridAccounts::publishSql('Jane', 'Doe'))->toBe(
+        expect(W4OS\Engine\Provisioning\GridAccounts::publishSql('Jane', 'Doe'))->toBe(
             "UPDATE UserAccounts SET UserFlags = UserFlags | 1 WHERE FirstName = 'Jane' AND LastName = 'Doe'",
         );
     });

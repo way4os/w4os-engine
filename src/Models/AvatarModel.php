@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Models;
+namespace W4OS\Engine\Models;
 
-use OpenSim\Assets\WebAssets;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Collection;
-use OpenSim\Data\Connections;
-use OpenSim\Data\Database;
-use OpenSim\Provisioning\Slug;
-use OpenSim\Text\Uuid;
+use W4OS\Engine\Assets\WebAssets;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Collection;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Data\Database;
+use W4OS\Engine\Provisioning\Slug;
+use W4OS\Engine\Text\Uuid;
 
 /**
  * An avatar model: an avatar of the grid whose outfit and appearance a new avatar gets, shown with its profile picture. The models are
@@ -95,7 +95,7 @@ final class AvatarModel extends Model
      *
      * @return array{name:string,appearance:list<array{0:string,1:string}>,items:array<string,array<string,mixed>>} no appearance
      *         when the model never entered a region
-     * @throws \OpenSim\Exceptions\ChannelUnavailable when the databases of the appearances or the inventories cannot be reached
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable when the databases of the appearances or the inventories cannot be reached
      */
     public function outfit(): array
     {
@@ -147,7 +147,7 @@ final class AvatarModel extends Model
     /**
      * The models of the grid, in the order of their names; the list is whole.
      *
-     * @throws \OpenSim\Exceptions\ChannelUnavailable when the database of the accounts cannot be reached
+     * @throws \W4OS\Engine\Exceptions\ChannelUnavailable when the database of the accounts cannot be reached
      */
     public static function all(GridConfig $config, array $options = []): Collection
     {
@@ -181,12 +181,12 @@ final class AvatarModel extends Model
      *
      * @param array<string,string> $asked
      * @return array{0:string,1:string,2:list<string>} the match, the pattern, the list of UUIDs
-     * @throws \OpenSim\Exceptions\InvalidValue for a match asked that is not one
+     * @throws \W4OS\Engine\Exceptions\InvalidValue for a match asked that is not one
      */
     public static function rule(GridConfig $config, array $asked = []): array
     {
         if (isset($asked['match']) && !in_array(strtolower(trim($asked['match'])), self::MATCHES, true)) {
-            throw \OpenSim\Exceptions\InvalidValue::because('filter-value-unknown', "'{$asked['match']}' is not a match of the models (" . implode(', ', self::MATCHES) . ')');
+            throw \W4OS\Engine\Exceptions\InvalidValue::because('filter-value-unknown', "'{$asked['match']}' is not a match of the models (" . implode(', ', self::MATCHES) . ')');
         }
         $match = strtolower(trim((string) ($asked['match'] ?? ($config->find('Models', 'Match') ?? 'any'))));
         in_array($match, self::MATCHES, true) || ($match = 'any');

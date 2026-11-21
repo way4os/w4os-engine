@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace OpenSim\Console;
+namespace W4OS\Engine\Console;
 
-use OpenSim\Controllers\AbstractController;
+use W4OS\Engine\Controllers\AbstractController;
 
 /**
  * Gives the console of an instance.

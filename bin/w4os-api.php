@@ -1,15 +1,15 @@
 <?php
 
 /**
- * opensim-api: the API of the engine on the command line (run by the script opensim-api), the same addresses and answers as the web (see the contract, docs/api/).
+ * w4os-api: the API of the engine on the command line (run by the script w4os-api), the same addresses and answers as the web (see the contract, docs/api/).
  *
- *   opensim-api [GET|POST|PATCH|DELETE] PATH [key=value...] [--data=JSON|@FILE|-] [--grid=NICK]
+ *   w4os-api [GET|POST|PATCH|DELETE] PATH [key=value...] [--data=JSON|@FILE|-] [--grid=NICK]
  *
- *   opensim-api GET /forms/grid
- *   opensim-api --grid=demo GET /monitor format=text
- *   opensim-api --version [-v]          the version of the engine; with -v, of everything that matters here
+ *   w4os-api GET /forms/grid
+ *   w4os-api --grid=demo GET /monitor format=text
+ *   w4os-api --version [-v]          the version of the engine; with -v, of everything that matters here
  *
- * The install is the one of opensim.conf (or the OPENSIM_* variables). The status is 0 for a success, 1 for a problem, 2 for a command
+ * The install is the one of w4os.conf (or the OPENSIM_* variables). The status is 0 for a success, 1 for a problem, 2 for a command
  * that is not understood.
  */
 
@@ -20,12 +20,12 @@ declare(strict_types=1);
 ini_set('display_errors', 'stderr');
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
-use OpenSim\Api\Api;
-use OpenSim\Api\Cli;
-use OpenSim\Api\Router;
-use OpenSim\Config\Layout;
-use OpenSim\Runtime\Environment;
-use OpenSim\Scheduling\Scheduler;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Cli;
+use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\Layout;
+use W4OS\Engine\Runtime\Environment;
+use W4OS\Engine\Scheduling\Scheduler;
 
 foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
     if (is_file($autoload)) {
@@ -35,7 +35,7 @@ foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php
     }
 }
 if (!class_exists(Router::class)) {
-    fwrite(STDERR, "opensim-api: the autoload of the engine is not found (composer install)\n");
+    fwrite(STDERR, "w4os-api: the autoload of the engine is not found (composer install)\n");
     exit(2);
 }
 
@@ -43,16 +43,16 @@ $args = array_slice($_SERVER['argv'], 1);
 // The version of the engine; with -v, of everything that matters on this machine
 if (in_array('--version', $args, true) || in_array('-V', $args, true)) {
     if (array_intersect(['-v', '--verbose'], $args) === []) {
-        echo 'opensim-engine ' . \OpenSim\Support\Versions::engine() . "\n";
+        echo 'w4os-engine ' . \W4OS\Engine\Support\Versions::engine() . "\n";
         exit(0);
     }
     try {
         $environment = Environment::system(Layout::resolve());
     } catch (\RuntimeException $e) {
-        fwrite(STDERR, 'opensim-api: ' . $e->getMessage() . "\n");
+        fwrite(STDERR, 'w4os-api: ' . $e->getMessage() . "\n");
         exit(2);
     }
-    foreach (\OpenSim\Support\Versions::all($environment) as $name => $version) {
+    foreach (\W4OS\Engine\Support\Versions::all($environment) as $name => $version) {
         printf("%-24s %s\n", $name, $version);
     }
     exit(0);
@@ -68,7 +68,7 @@ foreach ($args as $index => $arg) {
 try {
     $environment = Environment::system(Layout::resolve());
 } catch (\RuntimeException $e) {
-    fwrite(STDERR, 'opensim-api: ' . $e->getMessage() . "\n");
+    fwrite(STDERR, 'w4os-api: ' . $e->getMessage() . "\n");
     exit(2);
 }
 $router = new Router(new Api($environment, Scheduler::for($environment)), grid: $grid);

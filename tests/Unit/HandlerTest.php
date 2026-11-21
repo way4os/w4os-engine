@@ -8,16 +8,16 @@ declare(strict_types=1);
  */
 
 use Nyholm\Psr7\Factory\Psr17Factory;
-use OpenSim\Api\Api;
-use OpenSim\Api\Handler;
-use OpenSim\Assets\TextRendererInterface;
-use OpenSim\Config\GridConfig;
-use OpenSim\Data\Connections;
-use OpenSim\Models\Grid;
-use OpenSim\Scheduling\Scheduler;
-use OpenSim\Scheduling\Task;
-use OpenSim\Testing\ClockFake;
-use OpenSim\Testing\Machine;
+use W4OS\Engine\Api\Api;
+use W4OS\Engine\Api\Handler;
+use W4OS\Engine\Assets\TextRendererInterface;
+use W4OS\Engine\Config\GridConfig;
+use W4OS\Engine\Data\Connections;
+use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Scheduling\Scheduler;
+use W4OS\Engine\Scheduling\Task;
+use W4OS\Engine\Testing\ClockFake;
+use W4OS\Engine\Testing\Machine;
 use Psr\Http\Message\ResponseInterface;
 
 /** A handler over the test machine, mounted under `/api`. */
@@ -44,7 +44,7 @@ function api_handler(
         '/api',
         asset_converter($calls),
         $grid,
-        new OpenSim\Security\OpenAccess(),
+        new W4OS\Engine\Security\OpenAccess(),
     );
 }
 
@@ -406,7 +406,7 @@ describe('The API handler, for the images of a text', function () {
 describe('The API handler, for the search', function () {
     test('registers a simulator, and reads its snapshot once the answer is sent', function () {
         $db = search_database();
-        Connections::using(static fn($what) => $what === OpenSim\Data\Database::Search ? $db : null);
+        Connections::using(static fn($what) => $what === W4OS\Engine\Data\Database::Search ? $db : null);
         $machine = new Machine();
         $machine->http['http://sim.example.org:9000/?method=collector'] = search_snapshot();
         $handler = api_handler(machine: $machine);
@@ -449,7 +449,7 @@ describe('The API handler, for the search', function () {
         'refuses a registration that does not say which simulator, which service, or that has no search database',
         function () {
             $db = search_database();
-            Connections::using(static fn($what) => $what === OpenSim\Data\Database::Search ? $db : null);
+            Connections::using(static fn($what) => $what === W4OS\Engine\Data\Database::Search ? $db : null);
             $handler = api_handler();
 
             $noPort = api_ask($handler, 'GET', '/api/grids/demo/search/register?host=sim.example.org&service=online');
@@ -483,7 +483,7 @@ describe('The API handler, for the search', function () {
 
     test('answers the questions of the viewers in XML-RPC, for the grid the gk argument says', function () {
         [$db] = searched();
-        Connections::using(static fn($what) => $what === OpenSim\Data\Database::Search ? $db : null);
+        Connections::using(static fn($what) => $what === W4OS\Engine\Data\Database::Search ? $db : null);
         $handler = api_handler(grid: 'demo');
         $ask = static function (string $gk) use ($handler): ResponseInterface {
             $factory = new Psr17Factory();
@@ -519,7 +519,7 @@ describe('The API handler, for the default guide', function () {
         $db = guide_database();
         $machine = new Machine();
         $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\n    GuideSource = missing.txt\n");
-        $gatekeeper = OpenSim\Hypergrid\Destination::loginUrl(
+        $gatekeeper = W4OS\Engine\Hypergrid\Destination::loginUrl(
             (string) Grid::find($machine->environment, 'demo')->uri(),
         );
         $db->exec(
@@ -528,7 +528,7 @@ describe('The API handler, for the default guide', function () {
         $db->exec(
             "UPDATE popularplaces SET gatekeeperURL = '$gatekeeper' WHERE gatekeeperURL = 'http://grid.example.org:8002'",
         );
-        Connections::using(static fn($what) => $what === OpenSim\Data\Database::Search ? $db : null);
+        Connections::using(static fn($what) => $what === W4OS\Engine\Data\Database::Search ? $db : null);
         $handler = api_handler(machine: $machine);
 
         $list = json_decode((string) api_ask($handler, 'GET', '/api/grids/demo/destinations')->getBody(), true);
@@ -558,13 +558,13 @@ describe('The old scripts', function () {
         $drawn = [];
         $api = new Api((new Machine())->environment, texts: text_renderer($drawn));
 
-        $plain = OpenSim\Api\Legacy::textgen($api, [
+        $plain = W4OS\Engine\Api\Legacy::textgen($api, [
             'string' => 'Hello%20World',
             'fontsize' => '60',
             'textcolor' => 'red',
             'backgroundcolor' => 'blue',
         ]);
-        $quoted = OpenSim\Api\Legacy::textgen($api, [
+        $quoted = W4OS\Engine\Api\Legacy::textgen($api, [
             'string' => "It\\'s",
             'font' => 'DejaVu-Sans',
             'size' => '90',
@@ -572,8 +572,8 @@ describe('The old scripts', function () {
             'background' => 'white',
             'download' => '1',
         ]);
-        $inpage = OpenSim\Api\Legacy::textgen($api, ['string' => 'A', 'download' => '1', 'inpage' => '1']);
-        $default = OpenSim\Api\Legacy::textgen($api, []);
+        $inpage = W4OS\Engine\Api\Legacy::textgen($api, ['string' => 'A', 'download' => '1', 'inpage' => '1']);
+        $default = W4OS\Engine\Api\Legacy::textgen($api, []);
 
         expect($plain->body())
             ->toBe('png:Hello World')
@@ -593,8 +593,8 @@ describe('The old scripts', function () {
         $drawn = [];
         $api = new Api((new Machine())->environment, texts: text_renderer($drawn));
 
-        $json = OpenSim\Api\Legacy::textgen($api, ['json' => '']);
-        $list = OpenSim\Api\Legacy::textgen($api, ['list' => '1']);
+        $json = W4OS\Engine\Api\Legacy::textgen($api, ['json' => '']);
+        $list = W4OS\Engine\Api\Legacy::textgen($api, ['list' => '1']);
 
         expect($json->headers['Content-Type'])
             ->toBe('application/json')
@@ -629,7 +629,7 @@ describe('The API handler, for the health of a grid', function () {
 
 describe('The API on the command line and as a library', function () {
     test('the router answers like the handler, and the library calls it without HTTP', function () {
-        $router = new OpenSim\Api\Router(new Api((new Machine())->environment));
+        $router = new W4OS\Engine\Api\Router(new Api((new Machine())->environment));
 
         $one = $router->get('/simulators/alpha');
         $changed = $router->patch('/simulators/alpha', [
@@ -650,7 +650,7 @@ describe('The API on the command line and as a library', function () {
     });
 
     test('opensim api: words are a request, JSON is printed, the status says how it went', function () {
-        $cli = new OpenSim\Api\Cli(new OpenSim\Api\Router(new Api((new Machine())->environment)));
+        $cli = new W4OS\Engine\Api\Cli(new W4OS\Engine\Api\Router(new Api((new Machine())->environment)));
 
         [$status, $out, $err] = $cli->run(['GET', '/services', 'filter[served]=yes', 'page[size]=1']);
         [$patched, $json] = $cli->run(['PATCH', '/simulators/alpha', 'enabled=false']);
@@ -687,7 +687,7 @@ describe('The API on the command line and as a library', function () {
 
     test('opensim api: the monitor as the lines of opensim status, a file as the body', function () {
         $machine = new Machine();
-        $cli = new OpenSim\Api\Cli(new OpenSim\Api\Router(new Api($machine->environment)));
+        $cli = new W4OS\Engine\Api\Cli(new W4OS\Engine\Api\Router(new Api($machine->environment)));
         $file = $machine->write(
             $machine->root . '/call.json',
             '{"data":{"type":"simulators","attributes":{"enabled":true}}}',

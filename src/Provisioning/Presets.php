@@ -1,11 +1,11 @@
 <?php
 
-namespace OpenSim\Provisioning;
+namespace W4OS\Engine\Provisioning;
 
-use OpenSim\Config\GridFileService;
+use W4OS\Engine\Config\GridFileService;
 
-use OpenSim\Config\IniEditor;
-use OpenSim\Config\TextFileService;
+use W4OS\Engine\Config\IniEditor;
+use W4OS\Engine\Config\TextFileService;
 
 /**
  * The presets of the grids a simulator can join: for each grid, a folder with the structure of the folder of a grid
