@@ -265,24 +265,21 @@ final class Catalog
         'dashboard_grid_status' => 'Grid Status',
         // The link of the grid info that adds the grid to the viewer (addGrid of the info of a grid)
         'grid_add_to_viewer' => 'Add this grid to your viewer',
-        // The button that adds a grid to the viewer (%1$s its name), and the getting-started block of a site (%s the name of the grid, of the avatar for start_avatar_done)
+        // The button that adds a grid to the viewer (%1$s its name), and the Connect block of a site: its steps (start_avatar and start_login
+        // the buttons; %s the name of the grid in start_add_grid, the link to Firestorm in start_viewer_note, the avatar in start_avatar_done)
         'viewer_add_grid' => 'Add %1$s to your viewer',
         'viewer_add_grid_other' => 'Other link',
         'viewer_login_uri_by_hand' => 'Or add it in the grid manager of your viewer with its login URI:',
         'copy' => 'Copy',
         'copied' => 'Copied',
-        'start_title' => 'Getting started',
+        'start_title' => 'Connect',
         'start_avatar' => 'Create your avatar',
-        'start_avatar_text' => 'Choose its name and its look. The name is for good: it cannot be changed later.',
         'start_avatar_done' => 'Your avatar is %s.',
-        'start_viewer' => 'Add the grid to your viewer',
-        'start_viewer_text' => 'The viewer is the program that opens the virtual world. Install one made for OpenSimulator, such as Firestorm (its OpenSim version), then add %s to it.',
-        'start_viewer_get' => 'Get Firestorm',
-        'start_viewer_others' => 'Other viewers',
+        'start_viewer' => 'Add the grid',
+        'start_add_grid' => 'Add %s',
+        'start_viewer_note' => 'No viewer yet? Get %s, or any viewer for OpenSim.',
         'start_login' => 'Log in',
-        'start_login_text' => 'In the viewer, choose %s in the list of grids, then log in with the name of your avatar and its password.',
         'start_done' => 'Done',
-        'start_next' => 'Next step',
         'total' => 'Total',
         // The tips of the fields of the settings pages, under their label: a few words
         'tip_models_match' => 'How a model is recognised',
