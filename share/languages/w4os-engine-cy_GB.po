@@ -2083,6 +2083,12 @@ msgctxt "setting_link_format_browser"
 msgid "Links in a web browser"
 msgstr "Dolenni mewn porwr gwe"
 
+msgctxt "setting_link_format_browser_help"
+msgid ""
+"hop:// is the format of OpenSimulator, secondlife:// may open a Second Life "
+"viewer."
+msgstr "hop:// yw fformat OpenSimulator, gall secondlife:// agor viewer Second Life."
+
 msgctxt "setting_link_format_viewer"
 msgid "Links in the viewer"
 msgstr "Dolenni yn y viewer"

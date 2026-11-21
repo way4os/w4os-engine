@@ -52,7 +52,7 @@ describe('The page of the grid', function () {
                 'Links in a web browser', 'Links in the viewer',
             ])
             // The link of the places, GRID by default in both (the only one seen working in every place tried, 2026-11)
-            ->and([$fields['linkFormatBrowser']['default'], $fields['linkFormatViewer']['default']])->toBe(['GRID', 'GRID'])
+            ->and([$fields['linkFormatBrowser']['default'], $fields['linkFormatViewer']['default']])->toBe(['HOP', 'GRID'])
             ->and($fields['consolePass']['type'])->toBe('secret')
             // What Robust URI is, not the text of the grid service
             ->and($en($fields['gridServerUri']['description']))->toBe('The private address of Robust, which the simulators call for the services of the grid.')

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (links): hop:// first in a web browser by default, the scheme of OpenSimulator (secondlife:// may open a Second Life viewer)
 - change (links): HOP_APPTP out of tpLinks(), seen doing nothing from a browser; the hop:///app/ formats for the chat only
 - change (links): HOP_MAP out of tpLinks(), seen working in the chat only; MAP seen working in the chat too
 - new (links): HOP_APPTP and HOP_MAP, teleport and map through hop:///app/, on trial in tpLinks() for both clients

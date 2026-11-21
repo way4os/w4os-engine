@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "745372f",
+        "version": "7048e34",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -8190,12 +8190,13 @@
                             "type": "select",
                             "label": "setting_link_format_browser",
                             "options": {
-                                "GRID": "link_format_grid",
                                 "HOP": "link_format_hop",
+                                "GRID": "link_format_grid",
                                 "APPTP": "link_format_apptp",
                                 "LOCAL": "link_format_local"
                             },
-                            "default": "GRID"
+                            "default": "HOP",
+                            "description": "setting_link_format_browser_help"
                         },
                         {
                             "group": "links",
@@ -8353,8 +8354,8 @@
                                                     "linkFormatBrowser": {
                                                         "type": "string",
                                                         "enum": [
-                                                            "GRID",
                                                             "HOP",
+                                                            "GRID",
                                                             "APPTP",
                                                             "LOCAL"
                                                         ]

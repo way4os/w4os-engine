@@ -58,7 +58,7 @@ describe('The link of a grid, a region, a parcel or a place', function () {
             ->and($parcel->tpLink(Destination::GRID))->toBe("secondlife://play.example.org:8002/secondlife/Quiet{$space}Harbour/64/27/30")
             // AUTO: the link for where it is shown, a viewer or a browser
             ->and($parcel->tpLink(context: ['client' => 'viewer']))->toBe($parcel->tpLink(Destination::GRID))
-            ->and($parcel->tpLink(context: ['client' => 'browser']))->toBe($parcel->tpLink(Destination::GRID))
+            ->and($parcel->tpLink(context: ['client' => 'browser']))->toBe($parcel->tpLink(Destination::HOP))
             // The commands through hop:, asked of the object only (the chat): in no link of a page
             ->and($parcel->tpLink(Destination::HOP_APPTP))->toStartWith('hop:///app/teleport/play.example.org:8002:Quiet')
             ->and($place->tpLink(Destination::HOP_MAP))->toStartWith('hop:///app/worldmap/far.example.org:8002:Far')
@@ -91,9 +91,10 @@ describe('The links of a place for a client', function () {
     test('give the one of AUTO first, then the other ones that fit, then the address to copy', function () {
         $here = new Place('Welcome/128/128/25', 'http://play.example.org:8002');
         $there = new Place('far.example.org:8002/Far Away/1/2/3', 'http://play.example.org:8002');
-        $hop = new Place('Welcome/128/128/25', 'http://play.example.org:8002', ['browser' => Destination::HOP, 'viewer' => Destination::LOCAL]);
+        $hop = new Place('Welcome/128/128/25', 'http://play.example.org:8002', ['browser' => Destination::GRID, 'viewer' => Destination::LOCAL]);
 
-        expect(array_keys($here->tpLinks('browser')))->toBe([Destination::GRID, Destination::HOP, Destination::LSL])
+        // In a web browser hop:// first, the scheme of OpenSimulator
+        expect(array_keys($here->tpLinks('browser')))->toBe([Destination::HOP, Destination::GRID, Destination::LSL])
             ->and(array_keys($here->tpLinks('viewer')))->toBe([Destination::GRID, Destination::APPTP, Destination::MAP, Destination::LSL])
             // What each does, for a site to show it
             ->and(array_column($here->tpLinks('viewer'), 'action'))->toBe(['teleport', 'teleport', 'map', 'copy'])
@@ -103,13 +104,13 @@ describe('The links of a place for a client', function () {
             ->and($there->tpLink(Destination::MAP))->toStartWith('secondlife:///app/worldmap/far.example.org:8002:Far')
             ->and(array_key_exists(Destination::MAP, $here->tpLinks('browser')))->toBeFalse()
             ->and($here->tpLinks('browser'))->toBe([
-                Destination::GRID => ['link' => $here->tpLink(Destination::GRID), 'label' => 'link_menu_grid', 'action' => 'teleport'],
                 Destination::HOP => ['link' => $here->tpLink(Destination::HOP), 'label' => 'link_menu_hop', 'action' => 'teleport'],
+                Destination::GRID => ['link' => $here->tpLink(Destination::GRID), 'label' => 'link_menu_grid', 'action' => 'teleport'],
                 // The address to copy, without its point: the search of the map takes the region alone
                 Destination::LSL => ['link' => (new Place('Welcome', 'http://play.example.org:8002'))->tpLink(Destination::LSL), 'label' => 'link_menu_copy', 'action' => 'copy'],
             ])
             // the format its grid chooses comes first, then the other ones in their order; LOCAL for its own places only
-            ->and(array_keys($hop->tpLinks('browser')))->toBe([Destination::HOP, Destination::GRID, Destination::LSL])
+            ->and(array_keys($hop->tpLinks('browser')))->toBe([Destination::GRID, Destination::HOP, Destination::LSL])
             ->and(array_keys($hop->tpLinks('viewer')))->toBe([Destination::LOCAL, Destination::APPTP, Destination::GRID, Destination::MAP, Destination::LSL])
             ->and(array_keys((new Place('far.example.org:8002/Far Away', 'http://play.example.org:8002', ['viewer' => Destination::LOCAL]))->tpLinks('viewer')))
             ->toBe([Destination::GRID, Destination::APPTP, Destination::MAP, Destination::LSL])

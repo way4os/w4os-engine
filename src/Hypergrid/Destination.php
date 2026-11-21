@@ -132,9 +132,9 @@ final class Destination
     /**
      * The link for where it is shown (the `context` of format()), so that no site tells it again: in a viewer (told by the user
      * agent of the request, isViewer(); any page, its login screen too) or in a web browser, the format the grid chooses for each
-     * (LinkFormatViewer, LinkFormatBrowser of its settings, linkFormats()), else AUTO_LINKS: GRID for both, the one format seen
-     * working everywhere it was tried, towards the grid itself and towards other grids (see GRID). LOCAL is for the grid itself
-     * only: a destination of another grid gets AUTO_LINKS. A Reachable gives it
+     * (LinkFormatViewer, LinkFormatBrowser of its settings, linkFormats()), else AUTO_LINKS: HOP in a web browser, the scheme
+     * of OpenSimulator (secondlife:// may open a viewer of Second Life), GRID in the viewer, whose browser does not open hop:
+     * (see HOP, GRID). LOCAL is for the grid itself only: a destination of another grid gets AUTO_LINKS. A Reachable gives it
      * (tpLink()), with the login and the settings of its grid.
      */
     public const AUTO = 512;
@@ -152,14 +152,14 @@ final class Destination
      */
     public const AUTO_LINKS = [
         'viewer' => ['local' => self::GRID, 'other' => self::GRID],
-        'web' => ['local' => self::GRID, 'other' => self::GRID],
+        'web' => ['local' => self::HOP, 'other' => self::HOP],
     ];
 
     /**
      * The links worth offering beside the one of AUTO, in that order, by the class of the client (Destination::links()): in a web
-     * browser hop:// (the hypergrid link the viewers read, from the source), then GRID; in the viewer the teleport of its own
-     * browser (APPTP, seen there, through the search of the map), then GRID, then the place on its map (MAP: the viewer only, a
-     * web browser cannot open it). GRID stays second until a grid the viewer does not know is tried. The commands through
+     * browser hop:// (the scheme of OpenSimulator: secondlife:// may open a viewer of Second Life), then GRID; in the viewer the
+     * teleport of its own browser (APPTP, seen there, through the search of the map), then GRID, then the place on its map (MAP:
+     * the viewer only, a web browser cannot open it). The commands through
      * hop:///app/ (HOP_APPTP, HOP_MAP) are in none: tried, they work nowhere a page is seen.
      */
     public const LINKS = ['browser' => [self::HOP, self::GRID], 'viewer' => [self::APPTP, self::GRID, self::MAP]];

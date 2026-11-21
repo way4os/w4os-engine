@@ -573,6 +573,7 @@ final class Catalog
         // The link a page gives a destination, in a web browser and in the viewer, and the formats it can be
         'group_links' => 'Links to the places',
         'setting_link_format_browser' => 'Links in a web browser',
+        'setting_link_format_browser_help' => 'hop:// is the format of OpenSimulator, secondlife:// may open a Second Life viewer.',
         'setting_link_format_viewer' => 'Links in the viewer',
         'link_format_grid' => 'Location with its grid (secondlife://grid/secondlife/Region)',
         'link_format_hop' => 'Hypergrid link (hop://)',

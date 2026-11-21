@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 745372f
+  version: '7048e34'
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -5762,11 +5762,12 @@ paths:
             type: select
             label: setting_link_format_browser
             options:
-              GRID: link_format_grid
               HOP: link_format_hop
+              GRID: link_format_grid
               APPTP: link_format_apptp
               LOCAL: link_format_local
-            default: GRID
+            default: HOP
+            description: setting_link_format_browser_help
           -
             group: links
             name: linkFormatViewer
@@ -5838,7 +5839,7 @@ paths:
                       const: grid
                     attributes:
                       type: object
-                      properties: { loginUri: { type: string }, gridName: { type: string }, gridNick: { type: string }, gridServerUri: { type: string }, database: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string } }, nullable: true }, consoleUser: { type: string }, consolePass: { type: string }, consolePort: { type: integer }, assetServerUri: { type: string }, profileServiceUrl: { type: string }, webProfileUrl: { type: string }, excludeFromStats: { type: array, items: { type: string } }, linkFormatBrowser: { type: string, enum: [GRID, HOP, APPTP, LOCAL] }, linkFormatViewer: { type: string, enum: [GRID, HOP, APPTP, LOCAL] } }
+                      properties: { loginUri: { type: string }, gridName: { type: string }, gridNick: { type: string }, gridServerUri: { type: string }, database: { type: object, properties: { host: { type: string }, port: { type: integer }, database: { type: string }, user: { type: string }, password: { type: string } }, nullable: true }, consoleUser: { type: string }, consolePass: { type: string }, consolePort: { type: integer }, assetServerUri: { type: string }, profileServiceUrl: { type: string }, webProfileUrl: { type: string }, excludeFromStats: { type: array, items: { type: string } }, linkFormatBrowser: { type: string, enum: [HOP, GRID, APPTP, LOCAL] }, linkFormatViewer: { type: string, enum: [GRID, HOP, APPTP, LOCAL] } }
       responses:
         200:
           description: 'The settings now'

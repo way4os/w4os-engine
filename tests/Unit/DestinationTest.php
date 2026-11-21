@@ -397,22 +397,22 @@ describe('A link made for where it is shown (AUTO)', function () {
             ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
     });
 
-    test('out of a viewer: the location with its grid by default, the format the grid chooses otherwise', function () use ($login, $here, $there) {
-        $hop = ['formats' => ['browser' => Destination::HOP]];
+    test('out of a viewer: hop:// by default (the scheme of OpenSimulator), the format the grid chooses otherwise', function () use ($login, $here, $there) {
+        $grid = ['formats' => ['browser' => Destination::GRID]];
 
         expect(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login]))
-            ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
-            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login]))
-            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30')
-            ->and(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login] + $hop))
             ->toBe('hop://dev.w4os.org:8012/Welcome/128/128/25')
-            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login] + $hop))
+            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login]))
             ->toBe('hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/10/20/30')
+            ->and(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login] + $grid))
+            ->toBe('secondlife://dev.w4os.org:8012/secondlife/Welcome/128/128/25')
+            ->and(Destination::format($there, Destination::AUTO, context: ['agent' => TP_BROWSER, 'login' => $login] + $grid))
+            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30')
             // LOCAL names a region of the grid the viewer is on: another grid keeps the default
             ->and(Destination::format($here, Destination::AUTO, context: ['agent' => '', 'login' => $login, 'formats' => ['browser' => Destination::LOCAL]]))
             ->toBe('secondlife://Welcome/128/128/25')
             ->and(Destination::format($there, Destination::AUTO, context: ['agent' => '', 'login' => $login, 'formats' => ['browser' => Destination::LOCAL]]))
-            ->toBe('secondlife://hg.example.org:8002/secondlife/My' . Destination::SPACE . 'Region/10/20/30');
+            ->toBe('hop://hg.example.org:8002/My' . Destination::SPACE . 'Region/10/20/30');
     });
 
     test('follow the rules of AUTO_LINKS, the one place they are written', function () use ($login, $here, $there) {

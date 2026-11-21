@@ -2061,6 +2061,12 @@ msgctxt "setting_link_format_browser"
 msgid "Links in a web browser"
 msgstr "Links em um navegador web"
 
+msgctxt "setting_link_format_browser_help"
+msgid ""
+"hop:// is the format of OpenSimulator, secondlife:// may open a Second Life "
+"viewer."
+msgstr "hop:// é o formato do OpenSimulator, secondlife:// pode abrir um viewer do Second Life."
+
 msgctxt "setting_link_format_viewer"
 msgid "Links in the viewer"
 msgstr "Links no viewer"
