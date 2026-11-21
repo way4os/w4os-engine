@@ -13,5 +13,5 @@
 /dev
 /packaging
 /phpcs.xml.dist
-/phpunit.xml
+/phpunit.xml.dist
 /tests

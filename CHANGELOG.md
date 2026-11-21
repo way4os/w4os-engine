@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (git): .gitignore is the projects' template (macOS, editors, AI files, config, generated content, data) with this project's own rules after it; phpunit.xml is phpunit.xml.dist (a local phpunit.xml overrides it), .phpactor.json no longer tracked
 - fix (packaging): w4os-engine breaks the opensim-cli and opensim-helpers of before w4os, which link to the emptied /usr/share/opensim-engine: apt upgrades them with it (to w4os-cli, w4os-helpers) or refuses, never a command line left broken; the packaging check installs the engine over a command line of before, alone and with the one of now
 - fix (xml-rpc): xmlrpc_server_call_method() of the library standing for the extension returns the answer and prints nothing, as the extension does (it printed it and returned true); what a method prints goes out as it is
 - change (login URI): the quick setup shows the login URI as host:port, in its review and when it is done
