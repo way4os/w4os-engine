@@ -943,10 +943,9 @@ msgctxt "start_avatar_done"
 msgid "Your avatar is %s."
 msgstr "Dein Avatar ist %s."
 
-#, php-format
 msgctxt "start_add_grid"
-msgid "Add %s to your viewer"
-msgstr "%s zum Viewer hinzufügen"
+msgid "Add the grid"
+msgstr "Grid hinzufügen"
 
 msgctxt "start_login"
 msgid "Log in"
@@ -4028,6 +4027,11 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#, php-format
+#~ msgctxt "start_add_grid"
+#~ msgid "Add %s to your viewer"
+#~ msgstr "%s zum Viewer hinzufügen"
 
 #~ msgctxt "start_viewer"
 #~ msgid "Add the grid"

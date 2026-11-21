@@ -938,10 +938,9 @@ msgctxt "start_avatar_done"
 msgid "Your avatar is %s."
 msgstr "Il tuo avatar è %s."
 
-#, php-format
 msgctxt "start_add_grid"
-msgid "Add %s to your viewer"
-msgstr "Aggiungi %s al viewer"
+msgid "Add the grid"
+msgstr "Aggiungi la griglia"
 
 msgctxt "start_login"
 msgid "Log in"
@@ -4013,6 +4012,11 @@ msgstr ""
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Il database non è raggiungibile."
+
+#, php-format
+#~ msgctxt "start_add_grid"
+#~ msgid "Add %s to your viewer"
+#~ msgstr "Aggiungi %s al viewer"
 
 #~ msgctxt "start_viewer"
 #~ msgid "Add the grid"

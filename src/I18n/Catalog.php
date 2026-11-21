@@ -266,7 +266,7 @@ final class Catalog
         // The link of the grid info that adds the grid to the viewer (addGrid of the info of a grid)
         'grid_add_to_viewer' => 'Add this grid to your viewer',
         // The button that adds a grid to the viewer (%1$s its name), and the Connect block of a site: its steps, a button each in the same
-        // mood (start_avatar, start_add_grid with %s the name of the grid, start_login); %s the avatar in start_avatar_done
+        // mood (start_avatar, start_add_grid, start_login); %s the avatar in start_avatar_done
         'viewer_add_grid' => 'Add %1$s to your viewer',
         'viewer_add_grid_other' => 'Other link',
         'viewer_login_uri_by_hand' => 'Or add it in the grid manager of your viewer with its login URI:',
@@ -275,7 +275,7 @@ final class Catalog
         'start_title' => 'Connect',
         'start_avatar' => 'Create your avatar',
         'start_avatar_done' => 'Your avatar is %s.',
-        'start_add_grid' => 'Add %s to your viewer',
+        'start_add_grid' => 'Add the grid',
         'start_login' => 'Log in',
         'start_done' => 'Done',
         // The link under the last news of a site, to its news page

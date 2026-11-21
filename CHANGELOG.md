@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (texts): the button that adds the grid in the Connect block says Add the grid again, without the name of the grid (start_add_grid), in every language
 - new (texts): home_all_news, the link under the last news of a site to its news page, in every language
 - new (urls): Url::build(), a site's link for the page shown: base, language prefix and kept arguments
 - change (texts): the Connect block's buttons in one mood per language; start_viewer removed
