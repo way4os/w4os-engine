@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (xml-rpc): xmlrpc_server_call_method() of the library standing for the extension returns the answer and prints nothing, as the extension does (it printed it and returned true); what a method prints goes out as it is
 - change (login URI): the login URI is host:port wherever the engine shows or gives it (login of the info, the addresses and the monitor of a grid, loginUri of the page of the grid, addGrid), from any form it is written in (host:port, http://, https://, hop://, secondlife://); the URL apart as loginUrl, for what calls the grid; Robust keeps the URL viewers log in at (http://host:port/)
 - new (texts): the button that adds a grid to the viewer (viewer_add_grid, as w4os-wp says it, its other link, the login URI by hand, copy, copied) and the getting-started block of a site (start_*), in every language
 - new (viewer links): the links that add a grid to a viewer (Firestorm app/gridmanager/addgrid, its login URI encoded), hop and secondlife, in the info and the addresses of a grid (addGrid, Destination::addGrid(), Grid::addGrid()); its text grid_add_to_viewer in every language

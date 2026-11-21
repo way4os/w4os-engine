@@ -212,7 +212,7 @@ function xmlrpc_is_fault($arg)
  * @param string $request The XML request
  * @param mixed $user_data User data
  * @param array $output_options (unused in this implementation)
- * @return mixed The response
+ * @return string|false The response document, printed by nobody: like the extension, what a method prints goes out as it is
  */
 function xmlrpc_server_call_method($server, $request, $user_data, $output_options = [])
 {
@@ -222,14 +222,7 @@ function xmlrpc_server_call_method($server, $request, $user_data, $output_option
 
     xmlrpc_server_user_data($user_data);
 
-    // As the extension leaves the printing to the methods, what a method prints is the answer, one document: the one of the
-    // library is printed for a method that prints nothing and returns its answer
-    ob_start();
-    $response = $server->service($request, true);
-    $printed = ob_get_clean();
-    echo $printed !== '' ? $printed : $response;
-
-    return true;
+    return $server->service($request, true);
 }
 
 /**
