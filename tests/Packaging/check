@@ -93,6 +93,17 @@ check "the web configs of the API name the paths, the socket and the pool of w4o
 check "an upgrade from opensim-engine brings w4os-engine, the old name an empty package" "dpkg-query -W -f=\"\\\${db:Status-Abbrev}\\n\" w4os-engine opensim-engine | grep -c ^ii | grep -qx 2 && dpkg -s opensim-engine | grep -q \"^Depends:.*w4os-engine\" && [ ! -e /usr/share/opensim-engine ]"
 check "the engine loads after the upgrade, rest-php by a link" "[ -L /usr/share/w4os-engine/vendor/magicoli/opensim-rest-php ] && loads /usr/share/w4os-engine"
 
+# The engine API served as opensim web <grid> api made it before w4os, by Apache and its pool: it answers after the upgrade
+apt-get install -y -qq apache2 php-fpm curl >/dev/null 2>&1
+php=$(php -r "echo PHP_MAJOR_VERSION . \".\" . PHP_MINOR_VERSION;")
+snippet() { php -r "require \"/usr/share/w4os-engine/vendor/autoload.php\"; echo W4OS\\Engine\\Provisioning\\Web\\Snippets::$1;" | sed -e "s#/usr/share/w4os-engine#/usr/share/opensim-engine#g" -e "s#w4os-api#opensim-api#g"; }
+snippet "pool(\"opensim\")" >/etc/php/$php/fpm/pool.d/opensim-api.conf
+snippet "api(\"apache\", \"demo\")" >/etc/apache2/conf-available/opensim-api-demo.conf
+a2enmod -q proxy_fcgi >/dev/null 2>&1; a2enconf -q opensim-api-demo >/dev/null 2>&1
+/var/lib/dpkg/info/w4os-engine.postinst configure >/dev/null 2>&1
+"php-fpm$php" -D && apache2ctl start >/dev/null 2>&1; sleep 2
+check "the API made by opensim web <grid> api before w4os answers after the upgrade, on 127.0.0.1:8780" "! grep -qE \"/usr/share/opensim-engine|opensim-api\\.sock|^\\[opensim-api\\]\" /etc/apache2/conf-available/opensim-api-demo.conf /etc/php/$php/fpm/pool.d/opensim-api.conf && [ \"\$(curl -s -o /dev/null -w %{http_code} http://127.0.0.1:8780/api/forms/grid)\" = 401 ]"
+
 mkdir /tmp/zip && cd /tmp/zip && unzip -q /dist/*.zip
 check "the zip has the engine and its vendor folder" "[ -f w4os-engine/src/Config/Layout.php ] && [ -f w4os-engine/vendor/autoload.php ]"
 check "the zip has rest-php in its vendor folder, as files" "[ ! -L w4os-engine/vendor/magicoli/opensim-rest-php ] && [ -f w4os-engine/vendor/magicoli/opensim-rest-php/class-rest.php ]"
