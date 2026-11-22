@@ -78,9 +78,11 @@ describe('The link of a grid, a region, a parcel or a place', function () {
             ->and($grid->tpUri())->toBe($login)
             // a grid alone has no GRID link (it needs a region)
             ->and($grid->tpLink(Destination::GRID))->toBe('')
-            // and none that needs one: hop:// without a region is refused by the viewers
-            ->and(array_column($grid->tpLinks('viewer'), 'link'))->toBe([$grid->tpLink(Destination::APPTP), $grid->tpLink(Destination::MAP), $login])
-            ->and(array_column($grid->tpLinks('browser'), 'label'))->toBe(['link_menu_copy'])
+            // and none that needs one: hop:// without a region is refused by the viewers; adding the grid first, its login to copy
+            ->and(array_column($grid->tpLinks('viewer'), 'link'))->toBe([$grid->addGrid()['secondlife'], $grid->tpLink(Destination::APPTP), $grid->tpLink(Destination::MAP), $login])
+            ->and(array_column($grid->tpLinks('browser'), 'label'))->toBe(['link_menu_addgrid', 'link_menu_copy'])
+            ->and(array_column($grid->tpLinks('browser'), 'action'))->toBe(['addgrid', 'copy'])
+            ->and($grid->tpLinks('browser')[Destination::ADDGRID]['link'])->toBe($grid->addGrid()['hop'])
             ->and($grid->tpLink(Destination::LSL))->toBe($login)
             ->and($grid->place('Welcome/128/128/25')->tpUri())->toBe("$login/Welcome/128/128/25")
             ->and($grid->place('Welcome/128/128/25')->tpLink(Destination::HOP))->toBe("hop://$login/Welcome/128/128/25");
@@ -117,6 +119,28 @@ describe('The links of a place for a client', function () {
             ->and($there->tpLinks('browser')[Destination::LSL]['link'])->toBe('far.example.org:8002:Far Away')
             ->and($there->tpLink(Destination::LSL))->toBe('far.example.org:8002:Far Away/1/2/3')
             ->and((new Place(''))->tpLinks('browser'))->toBe([]);
+    });
+
+    test('of a grid alone, its login URI, add it to the viewer first and copy its login URI exactly, a place of it neither', function () {
+        $grid = W4OS\Engine\Models\Grid::find((new W4OS\Engine\Testing\Machine())->environment, 'demo');
+        $other = $grid->place(' other.example.org:8002 ');
+        $region = $grid->place('other.example.org:8002/Far Away/1/2/3');
+
+        expect(array_column($other->tpLinks('browser'), 'action'))->toContain('addgrid', 'copy')
+            ->and(array_key_first($other->tpLinks('browser')))->toBe(Destination::ADDGRID)
+            ->and($other->tpLinks('browser')[Destination::ADDGRID]['link'])->toBe(Destination::addGrid('other.example.org:8002')['hop'])
+            ->and($other->tpLinks('viewer')[Destination::ADDGRID]['link'])->toBe(Destination::addGrid('other.example.org:8002')['secondlife'])
+            ->and($other->tpLinks('browser')[Destination::LSL]['link'])->toBe('other.example.org:8002')
+            ->and(array_column($region->tpLinks('browser'), 'action'))->not->toContain('addgrid');
+    });
+
+    test('of a grid alone are the ones the API gives for its login URI (/grids/{grid}/place), for both clients', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $place = (new W4OS\Engine\Api\Api($machine->environment))->place('demo', ['destination' => 'other.example.org:8002'])->document['data']['attributes'];
+
+        expect($place['browser'][0])->toBe(['format' => Destination::ADDGRID] + W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->place('other.example.org:8002')->tpLinks('browser')[Destination::ADDGRID])
+            ->and($place['viewer'][0]['action'])->toBe('addgrid')
+            ->and(end($place['browser'])['link'])->toBe('other.example.org:8002');
     });
 });
 

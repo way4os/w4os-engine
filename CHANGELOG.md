@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (links): a grid alone, its login URI, adds itself to the viewer first (addgrid) and copies its exact address
 - fix (search): the picture of a place, a lot or an ad heads its page; the account of a person says its role
 - change (groups): their members a table field, as w4os-views shows them; the rules of the translations in DEVELOPERS.md
 - fix (texts): the search button in French is the verb of the viewer, Rechercher

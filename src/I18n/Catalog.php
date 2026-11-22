@@ -588,6 +588,7 @@ final class Catalog
         'link_menu_local' => 'Teleport (this grid)',
         'link_menu_map' => 'Show on the map',
         'link_menu_copy' => 'Copy the address',
+        'link_menu_addgrid' => 'Add the grid',
         // The web search, its kinds as the viewers have them, their fields and their categories
         'web_search_places' => 'Places',
         'web_search_land' => 'Land Sales',

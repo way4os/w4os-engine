@@ -17,7 +17,8 @@ final class Place implements Reachable
      * @param ?string $login the login of the grid it is shown for: a region named alone is of that grid
      */
     /** @param array{browser?:int,viewer?:int} $formats the formats its grid chooses for AUTO (Destination::linkFormats()) */
-    public function __construct(private readonly string $destination, private readonly ?string $login = null, private readonly array $formats = []) {}
+    /** @param ?string $grid the login URI of the grid it is, for a grid alone (its links offer to add it to the viewer) */
+    public function __construct(private readonly string $destination, private readonly ?string $login = null, private readonly array $formats = [], private readonly ?string $grid = null) {}
 
     /**
      * The place of a region on a grid, at a landing point if it has one, as the search and the profiles keep them: its grid (the
@@ -48,6 +49,11 @@ final class Place implements Reachable
     protected function tpLogin(): ?string
     {
         return $this->login;
+    }
+
+    protected function tpGrid(): ?string
+    {
+        return $this->grid;
     }
 
     protected function tpFormats(): array

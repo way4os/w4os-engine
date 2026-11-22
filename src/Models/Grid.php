@@ -847,13 +847,23 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return \W4OS\Engine\Hypergrid\Destination::linkFormats($this->config());
     }
 
+    /** A grid is a grid alone: its links offer to add it to the viewer. */
+    protected function tpGrid(): ?string
+    {
+        return $this->loginUrl();
+    }
+
     /**
      * A destination of this grid or another one (host:port/Region/x/y/z, host:port:Region, hop://..., a region of the grid by its
      * name), as a place whose link is asked of it: `$grid->place($url)->tpLink(Destination::AUTO, ['client' => 'viewer'])`.
      */
     public function place(string $destination): \W4OS\Engine\Hypergrid\Place
     {
-        return new \W4OS\Engine\Hypergrid\Place($this->landing($destination), $this->loginUrl(), $this->tpFormats());
+        // A grid alone (host:port): its links offer to add it to the viewer too
+        $at = \W4OS\Engine\Hypergrid\Destination::parse($destination);
+        $grid = ($at['host'] ?? '') !== '' && ($at['region'] ?? '') === '' ? \W4OS\Engine\Hypergrid\Destination::loginUri($destination) : null;
+
+        return new \W4OS\Engine\Hypergrid\Place($this->landing($destination), $this->loginUrl(), $this->tpFormats(), $grid);
     }
 
     /**

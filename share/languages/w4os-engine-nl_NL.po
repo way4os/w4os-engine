@@ -2135,6 +2135,10 @@ msgctxt "link_menu_copy"
 msgid "Copy the address"
 msgstr "Adres kopiëren"
 
+msgctxt "link_menu_addgrid"
+msgid "Add the grid"
+msgstr "Grid toevoegen"
+
 msgctxt "web_search_places"
 msgid "Places"
 msgstr "Plaatsen"

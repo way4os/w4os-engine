@@ -26,7 +26,15 @@ trait TeleportLinks
         $uri = $this->tpTarget();
         $context = $client === null ? $context : ['client' => $client] + $context;
 
-        return $uri === null || trim($uri) === '' ? [] : Destination::links($uri, $this->tpContext($context));
+        $grid = $this->tpGrid();
+
+        return $uri === null || trim($uri) === '' ? [] : Destination::links($uri, $this->tpContext($context + ($grid === null ? [] : ['grid' => $grid])));
+    }
+
+    /** Its login URI when it is a grid alone, which its links offer to add to the viewer (Destination::ADDGRID); null otherwise. */
+    protected function tpGrid(): ?string
+    {
+        return null;
     }
 
     /** Where its links send a viewer: its address (tpUri()), unless it lands somewhere more precise (a grid on its region). */

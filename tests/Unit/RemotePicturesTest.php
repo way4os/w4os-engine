@@ -138,7 +138,7 @@ describe('A grid alone', function () {
             ->toBe(2);
     });
 
-    test('whose gatekeeper does not answer has no link that needs a region, its address to copy only, asked again half an hour later', function () {
+    test('whose gatekeeper does not answer has no link that needs a region, only adding it and its address to copy, asked again half an hour later', function () {
         $world = remote_grid();
         $world->down = true;
         $machine = new Machine();
@@ -156,8 +156,9 @@ describe('A grid alone', function () {
 
         expect($place->tpLink(W4OS\Engine\Hypergrid\Destination::HOP))
             ->toBe('')
+            // Adding the grid to the viewer, then its address to copy
             ->and(array_column($place->tpLinks('browser'), 'label'))
-            ->toBe(['link_menu_copy'])
+            ->toBe(['link_menu_addgrid', 'link_menu_copy'])
             ->and($soon)
             ->toBe($asked)
             ->and($later->tpUri())

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 0bd9632
+  version: 7d847b3
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -8963,7 +8963,7 @@ paths:
           required: true
           schema:
             type: string
-          description: 'host:port/Region/x/y/z, host:port:Region, hop://... or a region of the grid by its name'
+          description: 'host:port/Region/x/y/z, host:port:Region, hop://... or a region of the grid by its name; a grid alone (host:port, its login URI) adds itself to the viewer first (`addgrid`), its login URI the address to copy'
       responses:
         200:
           description: 'Its address and its links'
@@ -8977,7 +8977,7 @@ paths:
                     properties:
                       type: { const: place }
                       id: { type: string }
-                      attributes: { type: object, properties: { tpUri: { type: string }, browser: { type: array, items: { type: object, properties: { format: { type: integer }, link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy] } } } }, viewer: { type: array, items: { type: object, properties: { format: { type: integer }, link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy] } } } } } }
+                      attributes: { type: object, properties: { tpUri: { type: string }, browser: { type: array, items: { type: object, properties: { format: { type: integer }, link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy, addgrid] } } } }, viewer: { type: array, items: { type: object, properties: { format: { type: integer }, link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy, addgrid] } } } } } }
         404:
           description: 'The grid is not known here, or the destination is none'
           content:
@@ -9366,7 +9366,7 @@ paths:
                     properties:
                       type: { const: info }
                       id: { type: string }
-                      attributes: { type: object, properties: { live: { type: boolean }, login: { type: [string, 'null'], description: 'The login URI of the grid, `host:port` as people give it to a viewer and a site shows it, whatever form the grid says it in (`http://host:port/`, `hop://...`)' }, loginUrl: { type: [string, 'null'], description: 'The URL of its login service, for a tool that calls it; never shown as the login URI' }, uri: { type: [string, 'null'] }, logo: { type: [string, 'null'], description: 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), null when it has none' }, addGrid: { type: [object, 'null'], description: 'The links that add the grid to the list of a viewer and select it (Firestorm `app/gridmanager/addgrid`, the login URI URL-encoded): `hop` the one OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one every system hands to the viewer. A site shows both, as "Add this grid to your viewer". Null without a login URI', properties: { hop: { type: string }, secondlife: { type: string } } }, tpUri: { type: [string, 'null'], description: 'The address of the grid as a destination (`tpUri()` of the grid: its login URI, `host:port`), null when it is not known' }, tpLinks: { type: array, description: "The teleport links of the grid for a browser (`tpLinks('browser')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link`, `label` (the key of the catalog naming it in a menu) and `action` (what it does: teleport, map, copy); a grid alone may have no link a browser opens, only its address", items: { type: object, properties: { format: { type: integer }, link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy] } } } }, elements: { type: object, additionalProperties: { type: string } } } }
+                      attributes: { type: object, properties: { live: { type: boolean }, login: { type: [string, 'null'], description: 'The login URI of the grid, `host:port` as people give it to a viewer and a site shows it, whatever form the grid says it in (`http://host:port/`, `hop://...`)' }, loginUrl: { type: [string, 'null'], description: 'The URL of its login service, for a tool that calls it; never shown as the login URI' }, uri: { type: [string, 'null'] }, logo: { type: [string, 'null'], description: 'The address of the logo of the grid (`LogoURL` of `[Helpers]`), null when it has none' }, addGrid: { type: [object, 'null'], description: 'The links that add the grid to the list of a viewer and select it (Firestorm `app/gridmanager/addgrid`, the login URI URL-encoded): `hop` the one OpenSimWorld gives, opened by Windows and macOS, the viewer running or not; `secondlife` the one every system hands to the viewer. A site shows both, as "Add this grid to your viewer". Null without a login URI', properties: { hop: { type: string }, secondlife: { type: string } } }, tpUri: { type: [string, 'null'], description: 'The address of the grid as a destination (`tpUri()` of the grid: its login URI, `host:port`), null when it is not known' }, tpLinks: { type: array, description: "The teleport links of the grid for a browser (`tpLinks('browser')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link`, `label` (the key of the catalog naming it in a menu) and `action` (what it does: teleport, map, copy, addgrid); a grid alone adds itself to the viewer first (addgrid), its login URI the address to copy", items: { type: object, properties: { format: { type: integer }, link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy, addgrid] } } } }, elements: { type: object, additionalProperties: { type: string } } } }
         404:
           description: 'The grid is not known here'
           content:

@@ -130,6 +130,12 @@ final class Destination
      */
     public const HOP_MAP = 16384;
     /**
+     * The link that adds a grid to the list of grids of the viewer and selects it (addGrid(): hop:///app/gridmanager/addgrid/... in a
+     * web browser, secondlife:///app/gridmanager/addgrid/... in the viewer's own), for a grid alone, its login URI: in links() only,
+     * the first of them (action `addgrid`), with its login URI as the address to copy.
+     */
+    public const ADDGRID = 32768;
+    /**
      * The link for where it is shown (the `context` of format()), so that no site tells it again: in a viewer (told by the user
      * agent of the request, isViewer(); any page, its login screen too) or in a web browser, the format the grid chooses for each
      * (LinkFormatViewer, LinkFormatBrowser of its settings, linkFormats()), else AUTO_LINKS: HOP in a web browser, the scheme
@@ -175,9 +181,10 @@ final class Destination
         self::LOCAL => 'link_menu_local',
         self::MAP => 'link_menu_map',
         self::LSL => 'link_menu_copy',
+        self::ADDGRID => 'link_menu_addgrid',
     ];
 
-    /** What each link of links() does, for a site to show it (its icon, its place in a menu): teleport, map, copy. */
+    /** What each link of links() does, for a site to show it (its icon, its place in a menu): teleport, map, copy, addgrid. */
     public const LINK_ACTIONS = [
         self::GRID => 'teleport',
         self::HOP => 'teleport',
@@ -185,6 +192,7 @@ final class Destination
         self::LOCAL => 'teleport',
         self::MAP => 'map',
         self::LSL => 'copy',
+        self::ADDGRID => 'addgrid',
     ];
 
     /** The formats a grid may choose for AUTO, by the names its settings give (LinkFormatBrowser, LinkFormatViewer). */
@@ -495,7 +503,7 @@ final class Destination
      * The links of a destination where it is shown, the one AUTO gives first and then the other ones that fit that client
      * (LINKS), by format; LSL last, its address to copy into the search of the map of the viewer, without its point (the search
      * takes `host:port:Region` alone). Each with the key of the catalog naming it in a menu (LINK_LABELS) and what it does
-     * (LINK_ACTIONS: teleport, map, copy). A destination of another grid has no LOCAL one, a grid alone none that needs a
+     * (LINK_ACTIONS: teleport, map, copy, addgrid). A destination of another grid has no LOCAL one, a grid alone none that needs a
      * region (REGION_LINKS).
      *
      * @param  array{agent?:?string,client?:string,login?:?string,formats?:array{browser?:int,viewer?:int}} $context as format()
@@ -516,6 +524,13 @@ final class Destination
             // The address to copy without its point: the search of the map of the viewer takes host:port:Region alone
             $link = (string) self::format($format === self::LSL ? (string) $parsed['region_uri'] : self::autoUri($parsed, $format), $format);
             $link === '' || ($links[$format] = ['link' => $link, 'label' => self::LINK_LABELS[$format] ?? '', 'action' => self::LINK_ACTIONS[$format] ?? 'teleport']);
+        }
+        // A grid alone (its login URI, `grid` of the context): adding it first, its login URI exactly as the address to copy
+        $add = trim((string) ($context['grid'] ?? '')) === '' ? null : self::addGrid((string) $context['grid']);
+        if ($add !== null) {
+            $copy = ['link' => (string) self::loginUri((string) $context['grid']), 'label' => self::LINK_LABELS[self::LSL], 'action' => self::LINK_ACTIONS[self::LSL]];
+            $links = [self::ADDGRID => ['link' => $add[self::contextClient($context) === 'viewer' ? 'secondlife' : 'hop'], 'label' => self::LINK_LABELS[self::ADDGRID], 'action' => 'addgrid']]
+                + array_diff_key($links, [self::LSL => 1]) + [self::LSL => $copy];
         }
 
         return $links;

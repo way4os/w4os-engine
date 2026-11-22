@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "0bd9632",
+        "version": "7d847b3",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -12992,7 +12992,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "host:port/Region/x/y/z, host:port:Region, hop://... or a region of the grid by its name"
+                        "description": "host:port/Region/x/y/z, host:port:Region, hop://... or a region of the grid by its name; a grid alone (host:port, its login URI) adds itself to the viewer first (`addgrid`), its login URI the address to copy"
                     }
                 ],
                 "responses": {
@@ -13037,7 +13037,8 @@
                                                                         "enum": [
                                                                             "teleport",
                                                                             "map",
-                                                                            "copy"
+                                                                            "copy",
+                                                                            "addgrid"
                                                                         ]
                                                                     }
                                                                 }
@@ -13062,7 +13063,8 @@
                                                                         "enum": [
                                                                             "teleport",
                                                                             "map",
-                                                                            "copy"
+                                                                            "copy",
+                                                                            "addgrid"
                                                                         ]
                                                                     }
                                                                 }
@@ -14061,7 +14063,7 @@
                                                         },
                                                         "tpLinks": {
                                                             "type": "array",
-                                                            "description": "The teleport links of the grid for a browser (`tpLinks('browser')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link`, `label` (the key of the catalog naming it in a menu) and `action` (what it does: teleport, map, copy); a grid alone may have no link a browser opens, only its address",
+                                                            "description": "The teleport links of the grid for a browser (`tpLinks('browser')` of the grid): the one AUTO gives first, then the other ones that fit a browser, then its address to copy, each `format` (a Destination format), `link`, `label` (the key of the catalog naming it in a menu) and `action` (what it does: teleport, map, copy, addgrid); a grid alone adds itself to the viewer first (addgrid), its login URI the address to copy",
                                                             "items": {
                                                                 "type": "object",
                                                                 "properties": {
@@ -14079,7 +14081,8 @@
                                                                         "enum": [
                                                                             "teleport",
                                                                             "map",
-                                                                            "copy"
+                                                                            "copy",
+                                                                            "addgrid"
                                                                         ]
                                                                     }
                                                                 }
