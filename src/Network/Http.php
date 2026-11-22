@@ -71,7 +71,8 @@ final class Http
     }
 
     /**
-     * A text at an address: a text/* answer only, of `$max` bytes at most (a longer one is cut off and refused).
+     * A text at an address: a text/* answer, or one that says no type (a plain file some servers send without one, the guide of
+     * 2do.directory), of `$max` bytes at most (a longer one is cut off and refused); any other type is refused.
      */
     public static function text(string $url, int $max, int $timeout = 5): ?string
     {
@@ -95,7 +96,7 @@ final class Http
         $done = curl_exec($handle);
         $type = strtolower((string) curl_getinfo($handle, CURLINFO_CONTENT_TYPE));
 
-        return $done !== false && strlen($body) <= $max && str_starts_with($type, 'text/') ? self::answer($handle, $body) : null;
+        return $done !== false && strlen($body) <= $max && ($type === '' || str_starts_with($type, 'text/')) ? self::answer($handle, $body) : null;
     }
 
     private static function answer(\CurlHandle $handle, string|bool $body): ?string

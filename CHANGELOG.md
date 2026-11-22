@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (guide): a source served without a type is read as text (the guide of 2do.directory)
 - change (guide): a grid that sets no source has the guide of 2do.directory, the default of the setting
 - change (texts): the informal register, tu in French and ti in Welsh, as in the other languages
 - new (xml-rpc): XmlRpc::fault(), a fault the simulators only log, never an alert to the avatar
