@@ -613,7 +613,7 @@ final class Catalog
         'web_search_day' => 'Date',
         'web_search_previous_day' => 'Go back a day',
         'web_search_next_day' => 'Go forward a day',
-        'web_search_nothing' => 'None found.',
+        'web_search_nothing' => 'No results',
         'web_search_price' => 'Price',
         'web_search_area' => 'Area',
         'web_search_traffic' => 'Traffic',

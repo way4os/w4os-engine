@@ -2237,8 +2237,8 @@ msgid "Go forward a day"
 msgstr "Volgende dag"
 
 msgctxt "web_search_nothing"
-msgid "None found."
-msgstr "Niets gevonden."
+msgid "No results"
+msgstr "Geen resultaten"
 
 msgctxt "web_search_price"
 msgid "Price"

@@ -2240,8 +2240,8 @@ msgid "Go forward a day"
 msgstr "Diwrnod nesaf"
 
 msgctxt "web_search_nothing"
-msgid "None found."
-msgstr "Dim wedi'i ganfod."
+msgid "No results"
+msgstr "Dim canlyniadau"
 
 msgctxt "web_search_price"
 msgid "Price"

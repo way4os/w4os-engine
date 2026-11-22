@@ -2243,8 +2243,8 @@ msgid "Go forward a day"
 msgstr "Einen Tag vor"
 
 msgctxt "web_search_nothing"
-msgid "None found."
-msgstr "Nichts gefunden."
+msgid "No results"
+msgstr "Keine Ergebnisse"
 
 msgctxt "web_search_price"
 msgid "Price"

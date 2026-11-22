@@ -1986,7 +1986,7 @@ msgid "Go forward a day"
 msgstr ""
 
 msgctxt "web_search_nothing"
-msgid "None found."
+msgid "No results"
 msgstr ""
 
 msgctxt "web_search_price"

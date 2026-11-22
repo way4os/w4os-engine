@@ -2249,8 +2249,8 @@ msgid "Go forward a day"
 msgstr "Avance d'un jour"
 
 msgctxt "web_search_nothing"
-msgid "None found."
-msgstr "Pas de résultats."
+msgid "No results"
+msgstr "Aucun résultat"
 
 msgctxt "web_search_price"
 msgid "Price"
