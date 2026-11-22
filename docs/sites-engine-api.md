@@ -29,6 +29,10 @@ helpers, a plugin, a site) never exposes it, proxies it or passes it through, an
 
 - a bridge that calls the engine in its own process for its own work (a page, an action of its admin) uses the Router as a library,
   and checks the level of the person with `Api\Access` (or `x-access`);
+  the level of the person is the one the engine gives the avatar (`accessLevel`, in its resource and at sign-in): its user level,
+  except for the owner of the grid (`owner`: the owner of its first estate, the lowest EstateID), who gets at least a god's (200)
+  whatever its user level, as OpenSimulator makes the owner of a region its god (`region_owner_is_god`); its user level is never
+  changed. A later version gives it only while the grid has no god, through a list of administrators (opensim-kit ROADMAP, 3.1);
 - a bridge that answers a request of the web with the engine (the services of the viewers, the pictures of the grid) gives the
   Router a locked authenticator (`new Router($api, authenticator: new Locked())`, or `Api\Handler` with `Locked`): the engine then
   answers only what it says is public, whatever the request brings.
