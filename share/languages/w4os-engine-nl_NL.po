@@ -2332,6 +2332,82 @@ msgctxt "web_search_previous"
 msgid "Back"
 msgstr "Vorige"
 
+msgctxt "web_search_groups"
+msgid "Groups"
+msgstr "Groepen"
+
+msgctxt "web_search_members"
+msgid "Members"
+msgstr "Leden"
+
+msgctxt "web_search_key"
+msgid "Key"
+msgstr "Sleutel"
+
+msgctxt "web_search_born"
+msgid "Birthdate"
+msgstr "Geboortedatum"
+
+msgctxt "web_search_account"
+msgid "Account"
+msgstr "Account"
+
+msgctxt "web_search_partner"
+msgid "Partner"
+msgstr "Partner"
+
+msgctxt "web_search_about"
+msgid "About"
+msgstr "Info"
+
+msgctxt "web_search_show_profile"
+msgid "Open Profile"
+msgstr "Profiel tonen"
+
+msgctxt "web_search_group_key"
+msgid "Group Key"
+msgstr "Groepssleutel"
+
+msgctxt "web_search_founder"
+msgid "Founded by"
+msgstr "Opgericht door"
+
+msgctxt "web_search_charter"
+msgid "Group Charter"
+msgstr "Groepshandvest"
+
+msgctxt "web_search_member"
+msgid "Member"
+msgstr "Lid"
+
+msgctxt "web_search_title"
+msgid "Title"
+msgstr "Titel"
+
+msgctxt "web_search_status"
+msgid "Status"
+msgstr "Status"
+
+msgctxt "web_search_online"
+msgid "Online"
+msgstr "Online"
+
+msgctxt "web_search_open_enrollment"
+msgid "Anyone can join"
+msgstr "Iedereen kan lid worden"
+
+msgctxt "web_search_join_fee"
+msgid "Cost to join"
+msgstr "Kosten om lid te worden"
+
+msgctxt "web_search_content_general"
+msgid "General Content"
+msgstr "Algemene inhoud"
+
+msgctxt "web_search_content_moderate"
+msgid "Moderate Content"
+msgstr "Gematigde inhoud"
+
 msgctxt "place_category_arts"
 msgid "Arts & Culture"
 msgstr "Kunst en cultuur"

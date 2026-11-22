@@ -2344,6 +2344,82 @@ msgctxt "web_search_previous"
 msgid "Back"
 msgstr "Précédent"
 
+msgctxt "web_search_groups"
+msgid "Groups"
+msgstr "Groupes"
+
+msgctxt "web_search_members"
+msgid "Members"
+msgstr "Membres"
+
+msgctxt "web_search_key"
+msgid "Key"
+msgstr "Clé"
+
+msgctxt "web_search_born"
+msgid "Birthdate"
+msgstr "Date de naissance"
+
+msgctxt "web_search_account"
+msgid "Account"
+msgstr "Compte"
+
+msgctxt "web_search_partner"
+msgid "Partner"
+msgstr "Partenaire"
+
+msgctxt "web_search_about"
+msgid "About"
+msgstr "Info"
+
+msgctxt "web_search_show_profile"
+msgid "Open Profile"
+msgstr "Afficher le profil"
+
+msgctxt "web_search_group_key"
+msgid "Group Key"
+msgstr "UUID du groupe"
+
+msgctxt "web_search_founder"
+msgid "Founded by"
+msgstr "Fondateur/trice"
+
+msgctxt "web_search_charter"
+msgid "Group Charter"
+msgstr "Charte du groupe"
+
+msgctxt "web_search_member"
+msgid "Member"
+msgstr "Membre"
+
+msgctxt "web_search_title"
+msgid "Title"
+msgstr "Titre"
+
+msgctxt "web_search_status"
+msgid "Status"
+msgstr "Statut"
+
+msgctxt "web_search_online"
+msgid "Online"
+msgstr "En ligne"
+
+msgctxt "web_search_open_enrollment"
+msgid "Anyone can join"
+msgstr "Tout le monde peut adhérer"
+
+msgctxt "web_search_join_fee"
+msgid "Cost to join"
+msgstr "Frais d'adhésion"
+
+msgctxt "web_search_content_general"
+msgid "General Content"
+msgstr "Contenu général"
+
+msgctxt "web_search_content_moderate"
+msgid "Moderate Content"
+msgstr "Contenu modéré"
+
 msgctxt "place_category_arts"
 msgid "Arts & Culture"
 msgstr "Arts & Culture"

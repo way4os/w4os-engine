@@ -2314,6 +2314,82 @@ msgctxt "web_search_previous"
 msgid "Back"
 msgstr "Voltar"
 
+msgctxt "web_search_groups"
+msgid "Groups"
+msgstr "Grupos"
+
+msgctxt "web_search_members"
+msgid "Members"
+msgstr "Membros"
+
+msgctxt "web_search_key"
+msgid "Key"
+msgstr "UUID"
+
+msgctxt "web_search_born"
+msgid "Birthdate"
+msgstr "Data de nascimento"
+
+msgctxt "web_search_account"
+msgid "Account"
+msgstr "Conta"
+
+msgctxt "web_search_partner"
+msgid "Partner"
+msgstr "Parceiro"
+
+msgctxt "web_search_about"
+msgid "About"
+msgstr "Sobre"
+
+msgctxt "web_search_show_profile"
+msgid "Open Profile"
+msgstr "Abrir perfil"
+
+msgctxt "web_search_group_key"
+msgid "Group Key"
+msgstr "UUID do grupo"
+
+msgctxt "web_search_founder"
+msgid "Founded by"
+msgstr "Fundador"
+
+msgctxt "web_search_charter"
+msgid "Group Charter"
+msgstr "Carta do grupo"
+
+msgctxt "web_search_member"
+msgid "Member"
+msgstr "Membro"
+
+msgctxt "web_search_title"
+msgid "Title"
+msgstr "Título"
+
+msgctxt "web_search_status"
+msgid "Status"
+msgstr "Status"
+
+msgctxt "web_search_online"
+msgid "Online"
+msgstr "Conectado"
+
+msgctxt "web_search_open_enrollment"
+msgid "Anyone can join"
+msgstr "Qualquer pessoa pode entrar"
+
+msgctxt "web_search_join_fee"
+msgid "Cost to join"
+msgstr "Cobrar taxa de entrada"
+
+msgctxt "web_search_content_general"
+msgid "General Content"
+msgstr "Conteúdo geral"
+
+msgctxt "web_search_content_moderate"
+msgid "Moderate Content"
+msgstr "Conteúdo moderado"
+
 msgctxt "place_category_arts"
 msgid "Arts & Culture"
 msgstr "Arte e cultura"

@@ -2081,6 +2081,82 @@ msgctxt "web_search_previous"
 msgid "Back"
 msgstr ""
 
+msgctxt "web_search_groups"
+msgid "Groups"
+msgstr ""
+
+msgctxt "web_search_members"
+msgid "Members"
+msgstr ""
+
+msgctxt "web_search_key"
+msgid "Key"
+msgstr ""
+
+msgctxt "web_search_born"
+msgid "Birthdate"
+msgstr ""
+
+msgctxt "web_search_account"
+msgid "Account"
+msgstr ""
+
+msgctxt "web_search_partner"
+msgid "Partner"
+msgstr ""
+
+msgctxt "web_search_about"
+msgid "About"
+msgstr ""
+
+msgctxt "web_search_show_profile"
+msgid "Open Profile"
+msgstr ""
+
+msgctxt "web_search_group_key"
+msgid "Group Key"
+msgstr ""
+
+msgctxt "web_search_founder"
+msgid "Founded by"
+msgstr ""
+
+msgctxt "web_search_charter"
+msgid "Group Charter"
+msgstr ""
+
+msgctxt "web_search_member"
+msgid "Member"
+msgstr ""
+
+msgctxt "web_search_title"
+msgid "Title"
+msgstr ""
+
+msgctxt "web_search_status"
+msgid "Status"
+msgstr ""
+
+msgctxt "web_search_online"
+msgid "Online"
+msgstr ""
+
+msgctxt "web_search_open_enrollment"
+msgid "Anyone can join"
+msgstr ""
+
+msgctxt "web_search_join_fee"
+msgid "Cost to join"
+msgstr ""
+
+msgctxt "web_search_content_general"
+msgid "General Content"
+msgstr ""
+
+msgctxt "web_search_content_moderate"
+msgid "Moderate Content"
+msgstr ""
+
 msgctxt "place_category_arts"
 msgid "Arts & Culture"
 msgstr ""

@@ -134,6 +134,8 @@ describe('the catalog of the texts of the sites', function () {
         ],
         'cy_GB' => [
             'column_grid', 'column_map', 'column_prims', 'label_value', 'role_model', 'settings_menu_grid', 'unit_mb',
+            // The web search: the words of the viewers, the same in this language
+            'web_search_partner',
         ],
         'de_DE' => [
             'asset_animation', 'asset_link', 'asset_material', 'asset_mesh', 'asset_sound', 'asset_sound_wav', 'column_estates',
@@ -146,6 +148,7 @@ describe('the catalog of the texts of the sites', function () {
             // The web search: the words of the viewers, the same in this language
             'classified_category_shopping', 'place_category_shopping', 'web_search_events', 'web_search_name', 'web_search_rating_adult', 'web_search_region',
             'web_search_traffic',
+            'web_search_online', 'web_search_partner', 'web_search_status',
         ],
         'fr_FR' => [
             'actions', 'asset_animation', 'asset_image_jpeg', 'asset_image_tga', 'asset_mesh', 'asset_script', 'asset_texture',
@@ -169,6 +172,7 @@ describe('the catalog of the texts of the sites', function () {
             // The web search: the words of the viewers, the same in this language
             'classified_category_shopping', 'place_category_shopping',
             'web_search_no',
+            'web_search_account', 'web_search_online', 'web_search_partner',
         ],
         'nl_NL' => [
             'asset_landmark', 'asset_link', 'asset_mesh', 'asset_object', 'asset_script', 'avatars_count', 'avatars_menu',
@@ -180,6 +184,8 @@ describe('the catalog of the texts of the sites', function () {
             'profile_tab_feed', 'profile_tab_inworld', 'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online',
             'role_god', 'role_model', 'setting_welcome', 'settings_menu_grid', 'simulators_count', 'simulators_title',
             'skill_scripting', 'status', 'unit_mb',
+            // The web search: the words of the viewers, the same in this language
+            'web_search_account', 'web_search_online', 'web_search_partner', 'web_search_status',
         ],
         'pt_BR' => [
             'asset_link', 'asset_material', 'asset_mesh', 'asset_script', 'column_grid', 'column_presence_short', 'column_prims',
@@ -189,6 +195,7 @@ describe('the catalog of the texts of the sites', function () {
             'region_flag_region_online', 'settings_menu_grid', 'skill_scripting', 'status', 'total', 'unit_mb',
             // The web search: the words of the viewers, the same in this language
             'web_search_name', 'web_search_traffic',
+            'web_search_status',
         ],
         ];
         foreach (Catalog::LOCALES as $locale) {
