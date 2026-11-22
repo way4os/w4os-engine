@@ -40,6 +40,18 @@ describe('The owner of a grid', function () {
             ->and($ada?->detail())->toMatchArray(['owner' => true, 'level' => 0, 'accessLevel' => Avatar::GOD_FULL, 'isGod' => false]);
     });
 
+    test('is read from the database of its Robust on a grid whose simulators are not known (the description a site works with)', function () {
+        $pdo = avatar_database();
+        $pdo->exec('CREATE TABLE estate_settings (EstateID INT, EstateName VARCHAR(64), EstateOwner CHAR(36))');
+        $pdo->exec("INSERT INTO estate_settings VALUES (101, 'Ada estate', '11111111-1111-1111-1111-111111111111')");
+        Connections::using(static fn() => $pdo);
+        $config = avatar_grid();
+        $ada = Avatar::find($config, '11111111-1111-1111-1111-111111111111');
+
+        expect($config->tree()['simulators'] ?? [])->toBe([])
+            ->and([$ada?->isOwner(), $ada?->accessLevel(), $ada?->level()])->toBe([true, Avatar::GOD_FULL, 0]);
+    });
+
     test('is nobody on a grid whose estates cannot be read: each its own level', function () {
         $rows = array_column(Avatar::all(owned_grid(avatar_database(), ''))->array(), null, 'name');
 

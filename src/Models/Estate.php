@@ -535,6 +535,16 @@ final class Estate extends Model
 
             return;
         }
+        // A grid whose simulators are not known here (the description a site works with): its estates in the database of its Robust,
+        // when they are there (the callers check the tables)
+        if (($config->tree()['simulators'] ?? []) === []) {
+            $pdo = Connections::pdo($config, 'EstateService');
+            if ($pdo !== null) {
+                yield [null, $pdo];
+            }
+
+            return;
+        }
         $seen = [];
         foreach (array_keys($config->tree()['simulators'] ?? []) as $simulator) {
             $key = Connections::key($config, Database::Estate, (string) $simulator);
@@ -557,6 +567,9 @@ final class Estate extends Model
      */
     private static function rowsIn(OSPDO $pdo, ?string $simulator, string $where = '', array $params = []): array
     {
+        if (!$pdo->table_exists('estate_settings')) {
+            return [];
+        }
         $rows = $pdo->get_results("SELECT * FROM estate_settings$where", $params, \PDO::FETCH_ASSOC);
         if ($rows === []) {
             return [];
