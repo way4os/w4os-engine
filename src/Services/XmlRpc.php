@@ -146,6 +146,17 @@ final class XmlRpc
     }
 
     /**
+     * A fault of XML-RPC (`<methodResponse><fault>`, its `faultCode` and its `faultString`): what a caller only logs, where an
+     * answer with `success` false is said to the avatar (the search module of the simulators turns its `errorMessage` into an alert).
+     */
+    public static function fault(int $code, string $message): string
+    {
+        return '<?xml version="1.0" encoding="utf-8" ?>' . "\n<methodResponse>\n<fault>\n"
+            . (new Encoder())->encode(['faultCode' => $code, 'faultString' => $message])->serialize()
+            . "</fault>\n</methodResponse>\n";
+    }
+
+    /**
      * The shortest answers, the ones the search gives when it has nothing to say: `true`, or an error.
      */
     public static function plain(bool $success, string $message = ''): string
