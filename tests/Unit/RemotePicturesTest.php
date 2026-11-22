@@ -116,6 +116,15 @@ describe('A grid alone', function () {
             ->toBe('hop://far.example.net:8002/Far')
             ->and($again->tpUri())
             ->toBe('far.example.net:8002/Far')
+            // A login URI still adds its grid first and copies its exact address, its teleports landing on the region
+            ->and(array_key_first($place->tpLinks('browser')))
+            ->toBe(W4OS\Engine\Hypergrid\Destination::ADDGRID)
+            ->and($place->tpLinks('browser')[W4OS\Engine\Hypergrid\Destination::LSL]['link'])
+            ->toBe('far.example.net:8002')
+            ->and(array_key_first($grid->place('http://far.example.net:8002/')->tpLinks('viewer')))
+            ->toBe(W4OS\Engine\Hypergrid\Destination::ADDGRID)
+            ->and($grid->place('http://far.example.net:8002/')->tpLinks('viewer')[W4OS\Engine\Hypergrid\Destination::LSL]['link'])
+            ->toBe('far.example.net:8002')
             ->and($world->asked)
             ->toBe([])
             ->and(W4OS\Engine\Hypergrid\Gatekeeper::$timeout)
@@ -129,6 +138,11 @@ describe('A grid alone', function () {
 
         expect($grid->place($login)->tpUri())
             ->toBe("$login/Far")
+            // Its login URI adds it and copies its exact address, whatever region it lands on
+            ->and(array_key_first($grid->place($login)->tpLinks('browser')))
+            ->toBe(W4OS\Engine\Hypergrid\Destination::ADDGRID)
+            ->and($grid->place("http://$login/")->tpLinks('browser')[W4OS\Engine\Hypergrid\Destination::LSL]['link'])
+            ->toBe($login)
             ->and($world->asked)
             ->toBe(['http://' . $login . ' link_region', 'http://' . $login . ' get_region'])
             // A region of this grid named alone is not asked
