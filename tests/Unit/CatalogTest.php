@@ -92,6 +92,12 @@ describe('the catalog of the texts of the sites', function () {
             ->toBe(['en', ...Catalog::LOCALES]);
     });
 
+    test('names the search of the grid as a page and an entry of a menu by a noun, its buttons by a verb', function () {
+        expect(Catalog::messages('fr')['search_title'])->toBe('Recherche')
+            ->and(Catalog::messages('fr')['search'])->toBe('Chercher')
+            ->and(Catalog::messages('de')['search_title'])->toBe('Suche')->and(Catalog::messages('de')['search'])->toBe('Suchen');
+    });
+
     test('names a teleport of a menu by what it does, then its format, never a link to copy', function () {
         $teleports = ['link_menu_grid', 'link_menu_hop', 'link_menu_apptp', 'link_menu_local'];
         $french = Catalog::messages('fr');

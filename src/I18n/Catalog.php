@@ -434,6 +434,8 @@ final class Catalog
         'manage_title' => 'Avatars',
         'search_avatars' => 'Name or email',
         'search' => 'Search',
+        // The search of the grid as a page and an entry of a menu (a noun; search is the verb of its buttons)
+        'search_title' => 'Search',
         'no_avatars' => 'No result',
         // How many avatars the list has (a text that changes with the number)
         'avatars_count' => '%d avatars',
