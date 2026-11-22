@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (search): the kinds of the viewers' search as models, listed and read at /grids/{grid}/search/{kind}
 - update (texts): No results, the web search that found nothing, in every language
 - new (texts): the groups and the people of the web search, in the words of the viewers, in every language
 - new (groups): Group, the groups the search of the viewers finds, what anyone sees of them and their visible members

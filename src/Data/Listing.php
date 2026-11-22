@@ -24,7 +24,8 @@ final class Listing
 {
     /**
      * How a column shows its value:
-     * - `text`, `email`, `number`: as it is;
+     * - `text`, `email`: as it is;
+     * - `number`: as it is, with its `decimals` (none by default) and its `unit` (m², min) when it has them;
      * - `date`: a Unix time, shown as a day;
      * - `datetime`: a Unix time, shown with its time (when it was created, last seen);
      * - `boolean`: yes or no;
@@ -35,6 +36,9 @@ final class Listing
      * - `size`: a size in bytes, or width x height in meters;
      * - `status`, `role`: a word of the API, whose text is its key in the catalog (`status_` or `role_` and the word, - as _);
      * - `list`: a list of words;
+     * - `records`: a small table of records (the members of a group), its `parts` its columns, each the attribute, the key of its
+     *   label, its type and more (`link`: the attribute of its address; `online` and `onlineLabel`: the attribute that, when true,
+     *   shows that text instead of the value);
      * - `indicators`: icons in one column, one for each of its `indicators` (indicator()), each showing the state of an attribute
      *   of the row and, when it carries actions, the button that changes it.
      */
@@ -58,6 +62,7 @@ final class Listing
         'usage',
         'dimensions',
         'group',
+        'records',
     ];
 
     /**

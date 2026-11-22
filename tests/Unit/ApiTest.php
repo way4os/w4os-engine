@@ -449,6 +449,12 @@ describe('The contract', function () {
                     'Regions',
                     'Parcels',
                     'Posts',
+                    'SearchPeople',
+                    'SearchGroups',
+                    'SearchPlaces',
+                    'SearchLand',
+                    'SearchEvents',
+                    'SearchClassifieds',
                     'Estates',
                     'Assets',
                     'Destinations',
@@ -492,6 +498,8 @@ describe('The contract', function () {
             foreach ($operations as $operation) {
                 if (isset($operation['x-list'])) {
                     $listing = $operation['x-list'];
+                    // Its type: its path under the grid (`search/places`)
+                    $type = (string) preg_replace('#^(/grids/\{grid\})?/#', '', $path);
                     // What it shows and asks of a row is an attribute of the resource
                     // An indicators column shows the attributes of its indicators (the first part of a dotted path), its actions are
                     // actions of the list
@@ -506,7 +514,7 @@ describe('The contract', function () {
                         foreach ($indicators as $indicator) {
                             array_push($keys, $indicator['label'], ...array_column($indicator['states'], 'label'));
                             array_push($unknown, ...array_map(
-                                static fn(string $name): string => basename($path) . ".action:$name",
+                                static fn(string $name): string => $type . ".action:$name",
                                 array_diff($indicator['actions'] ?? [], array_column($listing['actions'], 'name')),
                             ));
                         }
@@ -514,8 +522,8 @@ describe('The contract', function () {
                     foreach ($listing['actions'] as $action) {
                         array_push($named, ...array_keys($action['when'] ?? []), ...$action['requires'] ?? []);
                     }
-                    $attributes = array_keys(Contract::attributes(basename($path)));
-                    array_push($unknown, ...array_map(static fn(string $name): string => basename($path) . ".$name", array_diff($named, $attributes)));
+                    $attributes = array_keys(Contract::attributes($type));
+                    array_push($unknown, ...array_map(static fn(string $name): string => $type . ".$name", array_diff($named, $attributes)));
                     array_push(
                         $keys,
                         ...array_column($listing['columns'], 'label'),
@@ -637,6 +645,12 @@ describe('The contract', function () {
                 '/grids/{grid}/posts',
                 '/grids/{grid}/estates',
                 '/grids/{grid}/assets',
+                '/grids/{grid}/search/people',
+                '/grids/{grid}/search/groups',
+                '/grids/{grid}/search/places',
+                '/grids/{grid}/search/land',
+                '/grids/{grid}/search/events',
+                '/grids/{grid}/search/classifieds',
             ])
             ->and($paths['/grids']['get']['x-list']['actions'][0]['path'])
             ->toBe('/grids/{id}')
@@ -781,6 +795,14 @@ describe('The contract', function () {
         $details['posts'] = first_attributes(machine_api(avatar_grid())->list('posts', [], grid: 'demo'));
         Connections::using(static fn() => asset_database());
         $details['assets'] = first_attributes(machine_api(asset_config())->list('assets', [], grid: 'demo'));
+        // The search: its places, land, events and classifieds, its groups (asked by their id: with their members), its people
+        [$searched] = search_models();
+        foreach (['search/places', 'search/land', 'search/events', 'search/classifieds'] as $kind) {
+            $details[$kind] = first_attributes(machine_api($searched)->list($kind, [], grid: 'demo'));
+        }
+        $details['search/groups'] = machine_api(group_grid())->get('search/groups', 'g1', 'demo')->document['data']['attributes'];
+        Connections::using(static fn() => avatar_creation_database());
+        $details['search/people'] = W4OS\Engine\Models\SearchPerson::all(avatar_grid())->items()[0]->detail();
         $scheduler = new Scheduler(test_tmp() . '/api-cron-' . bin2hex(random_bytes(4)), new ClockFake());
         $scheduler->add(new Task('count', 60, fn() => null));
         $details['tasks'] = first_attributes(machine_api(scheduler: $scheduler)->list('tasks'));

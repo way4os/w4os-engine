@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: '7048e34'
+  version: a0569a0
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -66,6 +66,24 @@ tags:
   -
     name: Posts
     description: "What every avatar posted on its profile (Flux), for the admin list of the posts of w4os-wp's Flux: the post, its Author, its date, the newest first. An avatar writes and deletes its own under its profile (`/grids/{grid}/avatars/{id}/posts`); the customer service and above delete any here."
+  -
+    name: Search/people
+    description: 'The People tab of the search of the viewers: the avatars who published their profile (show in search), active, not the accounts of the services, by the words of their name; what anyone sees of them only, never their email.'
+  -
+    name: Search/groups
+    description: 'The Groups tab of the search of the viewers, as OpenSimulator finds them (GroupsService::FindGroups): shown in the search, of this grid, with members, by the words of their name; what anyone sees of them. A group asked by its id gives its members too (`roster`): the ones of a role that shows its members (MemberVisible).'
+  -
+    name: Search/places
+    description: 'The Places tab of the search of the viewers (the parcels shown in the search): by the words of their name or description (3 letters at least), a category (`filter[category]`), the ratings (`filter[rating]`, several separated by commas); the most visited first. The same terms as the search of the viewers (query.php).'
+  -
+    name: Search/land
+    description: 'The Land Sales tab of the search of the viewers: of a type (`filter[type]`: mainland, estate), a price at most (`filter[price]`), an area at least (`filter[area]`), the ratings; the cheapest by square meter first.'
+  -
+    name: Search/events
+    description: 'The Events tab of the search of the viewers: in progress and to come (`filter[day]` u, the default) or of a day (a number of days from today, in the time of the server), a category, the ratings, the words of their name or description; the soonest first.'
+  -
+    name: Search/classifieds
+    description: 'The Classifieds tab of the search of the viewers: not expired, a category, the ratings, the words of their name or description; the dearest first.'
   -
     name: Estates
     description: 'The estates of the grid when its Robust serves them, else the ones of each simulator. A new estate is made by the console of its simulator when it runs (`estate create`), else in its database with the settings OpenSimulator gives a new one; a region goes to another estate by its `estate` (PATCH of the region).'
@@ -149,6 +167,12 @@ x-tagGroups:
       - Regions
       - Parcels
       - Posts
+      - Search/people
+      - Search/groups
+      - Search/places
+      - Search/land
+      - Search/events
+      - Search/classifieds
       - Estates
       - Assets
       - Destinations
@@ -4342,6 +4366,1710 @@ paths:
         self: false
         needs:
           - databases
+  '/grids/{grid}/search/people':
+    get:
+      operationId: listSearchPeople
+      tags:
+        - Search/people
+      summary: 'List search/people'
+      description: 'The people of the search of a grid, searched, filtered, sorted and paged.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+          description: 'Looks in name'
+        -
+          name: sort
+          in: query
+          description: 'A column, `-` before it for the descending order'
+          schema:
+            type: string
+            enum:
+              - name
+              - '-name'
+        -
+          name: 'page[number]'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        -
+          name: 'page[size]'
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        200:
+          description: 'A page of the search/people'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchPeople'
+                  meta:
+                    type: object
+        400:
+          description: 'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What the list is read from is not available'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: web_search_name
+            type: text
+            sort: name
+            picture: picture
+            default: person
+            link: profilePage
+            bare: false
+            priority: 1
+        sort:
+          default: name
+          values:
+            - name
+          descending: '-'
+        search:
+          - name
+        filters: []
+        actions: []
+        title: web_search_people
+        empty: web_search_nothing
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/people/{id}':
+    get:
+      operationId: getSearchPeople
+      tags:
+        - Search/people
+      summary: 'Get search/people'
+      description: 'One of the search/people by its id.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The resource'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SearchPeople'
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-form:
+        groups:
+          -
+            name: person
+            label: web_search_people
+        fields:
+          -
+            name: picture
+            label: profile_picture
+            type: picture
+            group: person
+            readOnly: true
+            default: person
+          -
+            name: name
+            label: web_search_name
+            type: text
+            group: person
+            readOnly: true
+          -
+            name: id
+            label: web_search_key
+            type: text
+            group: person
+            readOnly: true
+          -
+            name: born
+            label: web_search_born
+            type: date
+            group: person
+            readOnly: true
+            age: true
+          -
+            name: account
+            label: web_search_account
+            type: role
+            group: person
+            readOnly: true
+          -
+            name: partnerName
+            label: web_search_partner
+            type: link
+            group: person
+            readOnly: true
+            link: partnerPage
+            empty: web_search_none
+          -
+            name: about
+            label: web_search_about
+            type: text
+            group: person
+            readOnly: true
+          -
+            name: groups
+            label: web_search_groups
+            type: list
+            group: person
+            readOnly: true
+            empty: web_search_none
+          -
+            name: profilePage
+            label: web_search_show_profile
+            type: link
+            group: person
+            readOnly: true
+            action: true
+        actions: []
+        header:
+          title: name
+          picture: picture
+          default: person
+          indicators: []
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/groups':
+    get:
+      operationId: listSearchGroups
+      tags:
+        - Search/groups
+      summary: 'List search/groups'
+      description: 'The groups of the search of a grid, searched, filtered, sorted and paged.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+          description: 'Looks in name'
+        -
+          name: sort
+          in: query
+          description: 'A column, `-` before it for the descending order'
+          schema:
+            type: string
+            enum:
+              - name
+              - members
+              - '-name'
+              - '-members'
+        -
+          name: 'page[number]'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        -
+          name: 'page[size]'
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        200:
+          description: 'A page of the search/groups'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchGroups'
+                  meta:
+                    type: object
+        400:
+          description: 'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What the list is read from is not available'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: web_search_name
+            type: text
+            sort: name
+            picture: picture
+            default: group
+            bare: false
+            priority: 1
+          -
+            name: members
+            label: web_search_members
+            type: number
+            sort: members
+            bare: false
+            priority: 2
+        sort:
+          default: name
+          values:
+            - name
+            - members
+          descending: '-'
+        search:
+          - name
+        filters: []
+        actions: []
+        title: web_search_groups
+        empty: web_search_nothing
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/groups/{id}':
+    get:
+      operationId: getSearchGroup
+      tags:
+        - Search/groups
+      summary: 'Get search/group'
+      description: 'One of the search/groups by its id.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The resource'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SearchGroups'
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-form:
+        groups:
+          -
+            name: group
+            label: web_search_groups
+        fields:
+          -
+            name: picture
+            label: profile_picture
+            type: picture
+            group: group
+            readOnly: true
+            default: group
+          -
+            name: name
+            label: web_search_name
+            type: text
+            group: group
+            readOnly: true
+          -
+            name: id
+            label: web_search_group_key
+            type: text
+            group: group
+            readOnly: true
+          -
+            name: founderName
+            label: web_search_founder
+            type: link
+            group: group
+            readOnly: true
+            link: founderPage
+            empty: web_search_none
+          -
+            name: charter
+            label: web_search_charter
+            type: text
+            group: group
+            readOnly: true
+          -
+            name: roster
+            label: web_search_members
+            type: records
+            group: group
+            readOnly: true
+            parts:
+              -
+                - name
+                - web_search_member
+                - link
+                -
+                  link: page
+              -
+                - title
+                - web_search_title
+                - text
+              -
+                - login
+                - web_search_status
+                - date
+                -
+                  online: online
+                  onlineLabel: web_search_online
+          -
+            name: open
+            label: web_search_open_enrollment
+            type: boolean
+            group: group
+            readOnly: true
+          -
+            name: fee
+            label: web_search_join_fee
+            type: number
+            group: group
+            readOnly: true
+          -
+            name: rating
+            label: web_search_content_type
+            type: select
+            group: group
+            readOnly: true
+            options:
+              general: web_search_content_general
+              moderate: web_search_content_moderate
+        actions: []
+        header:
+          title: name
+          picture: picture
+          default: group
+          indicators: []
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/places':
+    get:
+      operationId: listSearchPlaces
+      tags:
+        - Search/places
+      summary: 'List search/places'
+      description: 'The places of the search of a grid, searched, filtered, sorted and paged.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+          description: 'Looks in name, description'
+        -
+          name: sort
+          in: query
+          description: 'A column, `-` before it for the descending order'
+          schema:
+            type: string
+            enum:
+              - name
+              - traffic
+              - '-name'
+              - '-traffic'
+        -
+          name: 'page[number]'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        -
+          name: 'page[size]'
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        -
+          name: 'filter[category]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - '0'
+              - '3'
+              - '4'
+              - '5'
+              - '6'
+              - '7'
+              - '8'
+              - '9'
+              - '10'
+              - '11'
+              - '13'
+              - '14'
+        -
+          name: 'filter[rating]'
+          in: query
+          schema:
+            type: string
+          description: 'One or more of general, moderate, adult, separated by commas: what has any of them'
+      responses:
+        200:
+          description: 'A page of the search/places'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchPlaces'
+                  meta:
+                    type: object
+        400:
+          description: 'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What the list is read from is not available'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: web_search_name
+            type: text
+            sort: name
+            bare: false
+            priority: 1
+          -
+            name: traffic
+            label: web_search_traffic
+            type: number
+            sort: traffic
+            bare: false
+            priority: 2
+        sort:
+          default: '-traffic'
+          values:
+            - name
+            - traffic
+          descending: '-'
+        search:
+          - name
+          - description
+        filters:
+          -
+            name: category
+            label: web_search_category
+            values:
+              -
+                value: '0'
+                label: web_search_any_category
+              -
+                value: '3'
+                label: place_category_arts
+              -
+                value: '4'
+                label: place_category_business
+              -
+                value: '5'
+                label: place_category_educational
+              -
+                value: '6'
+                label: place_category_gaming
+              -
+                value: '7'
+                label: place_category_hangout
+              -
+                value: '8'
+                label: place_category_newcomer
+              -
+                value: '9'
+                label: place_category_parks
+              -
+                value: '10'
+                label: place_category_residential
+              -
+                value: '11'
+                label: place_category_shopping
+              -
+                value: '13'
+                label: place_category_other
+              -
+                value: '14'
+                label: place_category_rental
+          -
+            name: rating
+            label: web_search_ratings
+            values:
+              -
+                value: general
+                label: web_search_rating_general
+              -
+                value: moderate
+                label: web_search_rating_moderate
+              -
+                value: adult
+                label: web_search_rating_adult
+            multiple: true
+        actions: []
+        title: web_search_places
+        empty: web_search_nothing
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/places/{id}':
+    get:
+      operationId: getSearchPlace
+      tags:
+        - Search/places
+      summary: 'Get search/place'
+      description: 'One of the search/places by its id.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The resource'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SearchPlaces'
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-form:
+        groups:
+          -
+            name: place
+            label: web_search_places
+        fields:
+          -
+            name: picture
+            label: profile_picture
+            type: picture
+            group: place
+            readOnly: true
+            default: place
+          -
+            name: name
+            label: web_search_name
+            type: text
+            group: place
+            readOnly: true
+          -
+            name: region
+            label: web_search_region
+            type: text
+            group: place
+            readOnly: true
+          -
+            name: area
+            label: web_search_area
+            type: number
+            group: place
+            readOnly: true
+            unit: m²
+          -
+            name: traffic
+            label: web_search_traffic
+            type: number
+            group: place
+            readOnly: true
+          -
+            name: rating
+            label: web_search_rating
+            type: select
+            group: place
+            readOnly: true
+            options:
+              general: web_search_rating_general
+              moderate: web_search_rating_moderate
+              adult: web_search_rating_adult
+          -
+            name: description
+            label: web_search_description
+            type: text
+            group: place
+            readOnly: true
+        actions: []
+        header:
+          title: name
+          indicators: []
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/land':
+    get:
+      operationId: listSearchLand
+      tags:
+        - Search/land
+      summary: 'List search/land'
+      description: 'The land for sale of the search of a grid, searched, filtered, sorted and paged.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+        -
+          name: sort
+          in: query
+          description: 'A column, `-` before it for the descending order'
+          schema:
+            type: string
+            enum:
+              - name
+              - type
+              - price
+              - area
+              - pricePerMeter
+              - '-name'
+              - '-type'
+              - '-price'
+              - '-area'
+              - '-pricePerMeter'
+        -
+          name: 'page[number]'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        -
+          name: 'page[size]'
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        -
+          name: 'filter[type]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - any
+              - mainland
+              - estate
+        -
+          name: 'filter[price]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[area]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[rating]'
+          in: query
+          schema:
+            type: string
+          description: 'One or more of general, moderate, adult, separated by commas: what has any of them'
+      responses:
+        200:
+          description: 'A page of the search/land'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchLand'
+                  meta:
+                    type: object
+        400:
+          description: 'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What the list is read from is not available'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: web_search_name
+            type: text
+            sort: name
+            bare: false
+            priority: 1
+          -
+            name: type
+            label: web_search_land_type
+            type: list
+            sort: type
+            values:
+              -
+                value: mainland
+                label: web_search_land_mainland
+              -
+                value: estate
+                label: web_search_land_estate
+            bare: false
+            priority: 2
+          -
+            name: price
+            label: web_search_price
+            type: number
+            sort: price
+            bare: false
+            priority: 2
+          -
+            name: area
+            label: web_search_area
+            type: number
+            sort: area
+            unit: m²
+            bare: false
+            priority: 2
+          -
+            name: pricePerMeter
+            label: web_search_price_m2
+            type: number
+            sort: pricePerMeter
+            decimals: 2
+            bare: false
+            priority: 2
+        sort:
+          default: pricePerMeter
+          values:
+            - name
+            - type
+            - price
+            - area
+            - pricePerMeter
+          descending: '-'
+        search: []
+        filters:
+          -
+            name: type
+            label: web_search_land_type
+            values:
+              -
+                value: any
+                label: web_search_land_any
+              -
+                value: mainland
+                label: web_search_land_mainland
+              -
+                value: estate
+                label: web_search_land_estate
+          -
+            name: price
+            label: web_search_price_max
+            format: integer
+          -
+            name: area
+            label: web_search_area_min
+            format: integer
+          -
+            name: rating
+            label: web_search_ratings
+            values:
+              -
+                value: general
+                label: web_search_rating_general
+              -
+                value: moderate
+                label: web_search_rating_moderate
+              -
+                value: adult
+                label: web_search_rating_adult
+            multiple: true
+        actions: []
+        title: web_search_land
+        empty: web_search_nothing
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/land/{id}':
+    get:
+      operationId: getSearchLand
+      tags:
+        - Search/land
+      summary: 'Get search/land'
+      description: 'One of the search/land by its id.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The resource'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SearchLand'
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-form:
+        groups:
+          -
+            name: land
+            label: web_search_land
+        fields:
+          -
+            name: picture
+            label: profile_picture
+            type: picture
+            group: land
+            readOnly: true
+            default: place
+          -
+            name: name
+            label: web_search_name
+            type: text
+            group: land
+            readOnly: true
+          -
+            name: region
+            label: web_search_region
+            type: text
+            group: land
+            readOnly: true
+          -
+            name: type
+            label: web_search_land_type
+            type: select
+            group: land
+            readOnly: true
+            options:
+              mainland: web_search_land_mainland
+              estate: web_search_land_estate
+          -
+            name: price
+            label: web_search_price
+            type: number
+            group: land
+            readOnly: true
+          -
+            name: area
+            label: web_search_area
+            type: number
+            group: land
+            readOnly: true
+            unit: m²
+          -
+            name: traffic
+            label: web_search_traffic
+            type: number
+            group: land
+            readOnly: true
+          -
+            name: rating
+            label: web_search_rating
+            type: select
+            group: land
+            readOnly: true
+            options:
+              general: web_search_rating_general
+              moderate: web_search_rating_moderate
+              adult: web_search_rating_adult
+          -
+            name: description
+            label: web_search_description
+            type: text
+            group: land
+            readOnly: true
+        actions: []
+        header:
+          title: name
+          indicators: []
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/events':
+    get:
+      operationId: listSearchEvents
+      tags:
+        - Search/events
+      summary: 'List search/events'
+      description: 'The events of the search of a grid, searched, filtered, sorted and paged.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+          description: 'Looks in name, description'
+        -
+          name: sort
+          in: query
+          description: 'A column, `-` before it for the descending order'
+          schema:
+            type: string
+            enum:
+              - name
+              - date
+              - '-name'
+              - '-date'
+        -
+          name: 'page[number]'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        -
+          name: 'page[size]'
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        -
+          name: 'filter[day]'
+          in: query
+          schema:
+            type: string
+        -
+          name: 'filter[category]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - '0'
+              - '18'
+              - '19'
+              - '20'
+              - '22'
+              - '23'
+              - '24'
+              - '25'
+              - '26'
+              - '27'
+              - '28'
+              - '29'
+        -
+          name: 'filter[rating]'
+          in: query
+          schema:
+            type: string
+          description: 'One or more of general, moderate, adult, separated by commas: what has any of them'
+      responses:
+        200:
+          description: 'A page of the search/events'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchEvents'
+                  meta:
+                    type: object
+        400:
+          description: 'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What the list is read from is not available'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: web_search_name
+            type: text
+            sort: name
+            bare: false
+            priority: 1
+          -
+            name: date
+            label: web_search_time
+            type: datetime
+            sort: date
+            bare: false
+            priority: 2
+        sort:
+          default: date
+          values:
+            - name
+            - date
+          descending: '-'
+        search:
+          - name
+          - description
+        filters:
+          -
+            name: day
+            label: web_search_when
+            format: string
+          -
+            name: category
+            label: web_search_category
+            values:
+              -
+                value: '0'
+                label: web_search_any_category
+              -
+                value: '18'
+                label: event_category_discussion
+              -
+                value: '19'
+                label: event_category_sports
+              -
+                value: '20'
+                label: event_category_live_music
+              -
+                value: '22'
+                label: event_category_commercial
+              -
+                value: '23'
+                label: event_category_nightlife
+              -
+                value: '24'
+                label: event_category_games
+              -
+                value: '25'
+                label: event_category_pageants
+              -
+                value: '26'
+                label: event_category_education
+              -
+                value: '27'
+                label: event_category_arts
+              -
+                value: '28'
+                label: event_category_charity
+              -
+                value: '29'
+                label: event_category_miscellaneous
+          -
+            name: rating
+            label: web_search_ratings
+            values:
+              -
+                value: general
+                label: web_search_rating_general
+              -
+                value: moderate
+                label: web_search_rating_moderate
+              -
+                value: adult
+                label: web_search_rating_adult
+            multiple: true
+        actions: []
+        title: web_search_events
+        empty: web_search_nothing
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/events/{id}':
+    get:
+      operationId: getSearchEvent
+      tags:
+        - Search/events
+      summary: 'Get search/event'
+      description: 'One of the search/events by its id.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The resource'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SearchEvents'
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-form:
+        groups:
+          -
+            name: event
+            label: web_search_events
+        fields:
+          -
+            name: name
+            label: web_search_name
+            type: text
+            group: event
+            readOnly: true
+          -
+            name: category
+            label: web_search_land_type
+            type: select
+            group: event
+            readOnly: true
+            options:
+              18: event_category_discussion
+              19: event_category_sports
+              20: event_category_live_music
+              22: event_category_commercial
+              23: event_category_nightlife
+              24: event_category_games
+              25: event_category_pageants
+              26: event_category_education
+              27: event_category_arts
+              28: event_category_charity
+              29: event_category_miscellaneous
+          -
+            name: adult
+            label: web_search_adult_content
+            type: boolean
+            group: event
+            readOnly: true
+          -
+            name: date
+            label: web_search_date
+            type: datetime
+            group: event
+            readOnly: true
+          -
+            name: duration
+            label: web_search_duration
+            type: number
+            group: event
+            readOnly: true
+            unit: min
+          -
+            name: organizerName
+            label: web_search_organizer
+            type: text
+            group: event
+            readOnly: true
+          -
+            name: location
+            label: web_search_location
+            type: text
+            group: event
+            readOnly: true
+          -
+            name: coverCharge
+            label: web_search_entry_fee
+            type: number
+            group: event
+            readOnly: true
+            empty: web_search_none
+          -
+            name: description
+            label: web_search_description
+            type: text
+            group: event
+            readOnly: true
+        actions: []
+        header:
+          title: name
+          indicators: []
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/classifieds':
+    get:
+      operationId: listSearchClassifieds
+      tags:
+        - Search/classifieds
+      summary: 'List search/classifieds'
+      description: 'The classifieds of the search of a grid, searched, filtered, sorted and paged.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+          description: 'Looks in name, description'
+        -
+          name: sort
+          in: query
+          description: 'A column, `-` before it for the descending order'
+          schema:
+            type: string
+            enum:
+              - name
+              - price
+              - '-name'
+              - '-price'
+        -
+          name: 'page[number]'
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        -
+          name: 'page[size]'
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        -
+          name: 'filter[category]'
+          in: query
+          schema:
+            type: string
+            enum:
+              - '0'
+              - '1'
+              - '2'
+              - '3'
+              - '4'
+              - '5'
+              - '6'
+              - '7'
+              - '8'
+              - '9'
+        -
+          name: 'filter[rating]'
+          in: query
+          schema:
+            type: string
+          description: 'One or more of general, moderate, adult, separated by commas: what has any of them'
+      responses:
+        200:
+          description: 'A page of the search/classifieds'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchClassifieds'
+                  meta:
+                    type: object
+        400:
+          description: 'A filter, a value of a filter or a sort the list does not take (`filter-unknown`, `filter-value-unknown`, `sort-unknown`): the detail names the ones it takes'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: 'The grid is not known here'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What the list is read from is not available'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-list:
+        columns:
+          -
+            name: name
+            label: web_search_name
+            type: text
+            sort: name
+            bare: false
+            priority: 1
+          -
+            name: price
+            label: web_search_price
+            type: number
+            sort: price
+            bare: false
+            priority: 2
+        sort:
+          default: '-price'
+          values:
+            - name
+            - price
+          descending: '-'
+        search:
+          - name
+          - description
+        filters:
+          -
+            name: category
+            label: web_search_category
+            values:
+              -
+                value: '0'
+                label: web_search_any_category
+              -
+                value: '1'
+                label: classified_category_shopping
+              -
+                value: '2'
+                label: classified_category_land_rental
+              -
+                value: '3'
+                label: classified_category_property_rental
+              -
+                value: '4'
+                label: classified_category_attraction
+              -
+                value: '5'
+                label: classified_category_new_products
+              -
+                value: '6'
+                label: classified_category_employment
+              -
+                value: '7'
+                label: classified_category_wanted
+              -
+                value: '8'
+                label: classified_category_service
+              -
+                value: '9'
+                label: classified_category_personal
+          -
+            name: rating
+            label: web_search_ratings
+            values:
+              -
+                value: general
+                label: web_search_rating_general
+              -
+                value: moderate
+                label: web_search_rating_moderate
+              -
+                value: adult
+                label: web_search_rating_adult
+            multiple: true
+        actions: []
+        title: web_search_classifieds
+        empty: web_search_nothing
+      security: []
+      x-access:
+        level: null
+        self: false
+  '/grids/{grid}/search/classifieds/{id}':
+    get:
+      operationId: getSearchClassified
+      tags:
+        - Search/classifieds
+      summary: 'Get search/classified'
+      description: 'One of the search/classifieds by its id.'
+      parameters:
+        -
+          name: grid
+          in: path
+          required: true
+          description: 'The nick of the grid'
+          schema:
+            type: string
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'The resource'
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SearchClassifieds'
+        404:
+          description: 'There is none with this id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        503:
+          description: 'What it is read from is not available: a database that does not answer is never an item that is not there'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      x-form:
+        groups:
+          -
+            name: classified
+            label: web_search_classifieds
+        fields:
+          -
+            name: picture
+            label: profile_picture
+            type: picture
+            group: classified
+            readOnly: true
+            default: place
+          -
+            name: name
+            label: web_search_name
+            type: text
+            group: classified
+            readOnly: true
+          -
+            name: location
+            label: web_search_location
+            type: text
+            group: classified
+            readOnly: true
+          -
+            name: rating
+            label: web_search_content_type
+            type: select
+            group: classified
+            readOnly: true
+            options:
+              general: web_search_rating_general
+              moderate: web_search_rating_moderate
+              adult: web_search_rating_adult
+          -
+            name: category
+            label: web_search_category
+            type: select
+            group: classified
+            readOnly: true
+            options:
+              1: classified_category_shopping
+              2: classified_category_land_rental
+              3: classified_category_property_rental
+              4: classified_category_attraction
+              5: classified_category_new_products
+              6: classified_category_employment
+              7: classified_category_wanted
+              8: classified_category_service
+              9: classified_category_personal
+          -
+            name: created
+            label: web_search_creation_date
+            type: date
+            group: classified
+            readOnly: true
+          -
+            name: price
+            label: web_search_listing_cost
+            type: number
+            group: classified
+            readOnly: true
+          -
+            name: description
+            label: web_search_description
+            type: text
+            group: classified
+            readOnly: true
+        actions: []
+        header:
+          title: name
+          indicators: []
+      security: []
+      x-access:
+        level: null
+        self: false
   '/grids/{grid}/estates':
     get:
       operationId: listEstates
@@ -11514,6 +13242,347 @@ components:
             source:
               type: string
               description: 'Where it was brought from (`w4os-wp:<ID>`), empty for a post written here'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    SearchPeople:
+      type: object
+      description: 'The people of the search of a grid'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          const: search/people
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            picture:
+              type:
+                - string
+                - 'null'
+              description: 'The picture of their profile (an asset UUID)'
+            born:
+              type:
+                - integer
+                - 'null'
+              description: 'Unix time of the creation of the account'
+            account:
+              type: string
+              description: 'Their role, a word of the API (`role_<word>` of the catalog)'
+            partner:
+              type:
+                - string
+                - 'null'
+              description: 'The UUID of their partner'
+            partnerName:
+              type:
+                - string
+                - 'null'
+            partnerPage:
+              type:
+                - string
+                - 'null'
+              description: 'The web profile of their partner, where the grid has one'
+            about:
+              type: string
+            groups:
+              type: array
+              description: 'The names of the groups they show in their profile'
+            profilePage:
+              type:
+                - string
+                - 'null'
+              description: 'Their web profile, where the grid has one'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    SearchGroups:
+      type: object
+      description: 'The groups of the search of a grid'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          const: search/groups
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            charter:
+              type: string
+            picture:
+              type:
+                - string
+                - 'null'
+              description: 'Its insignia (an asset UUID)'
+            founder:
+              type:
+                - string
+                - 'null'
+              description: 'The UUID of its founder'
+            founderName:
+              type:
+                - string
+                - 'null'
+            founderPage:
+              type:
+                - string
+                - 'null'
+              description: 'The web profile of its founder, where the grid has one'
+            members:
+              type: integer
+              description: 'How many members it has'
+            open:
+              type: boolean
+              description: 'Anyone can join'
+            fee:
+              type: integer
+              description: 'The fee to join'
+            rating:
+              type: string
+              description: 'Its content: general or moderate'
+            roster:
+              type: array
+              description: 'Its members a role shows, by name (a group asked by its id): `id`, `name`, `title`, `online`, `login` (Unix time, null unknown), `page` their web profile'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    SearchPlaces:
+      type: object
+      description: 'The places of the search of a grid'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          const: search/places
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            picture:
+              type:
+                - string
+                - 'null'
+              description: 'Its snapshot (an asset UUID)'
+            region:
+              type: string
+            area:
+              type:
+                - integer
+                - 'null'
+              description: 'Square meters'
+            traffic:
+              type: integer
+              description: 'Its dwell'
+            rating:
+              type: string
+              description: "Its rating: general, moderate, adult ('' unknown)"
+            category:
+              type: string
+              description: "Its category, a number of the viewers ('' none)"
+            uri:
+              type:
+                - string
+                - 'null'
+              description: 'Where it is: `host:port/Region Name/x/y/z`, on the grid of its gatekeeper; null without a region'
+            links:
+              type: object
+              description: 'Its links, asked of it (tpLinks()), for each client (`browser`, `viewer`): by format, each its `link`, the key of its `label` in the catalog and its `action` (teleport, map, copy)'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    SearchLand:
+      type: object
+      description: 'The land for sale of the search of a grid'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          const: search/land
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            picture:
+              type:
+                - string
+                - 'null'
+              description: 'The snapshot of its parcel (an asset UUID)'
+            region:
+              type: string
+            type:
+              type: string
+              description: 'mainland or estate'
+            price:
+              type: integer
+            area:
+              type: integer
+              description: 'Square meters'
+            pricePerMeter:
+              type:
+                - number
+                - 'null'
+              description: 'Its price by square meter, two decimals'
+            traffic:
+              type: integer
+            rating:
+              type: string
+              description: "Its rating: general, moderate, adult ('' unknown)"
+            uri:
+              type:
+                - string
+                - 'null'
+              description: 'Where it is: `host:port/Region Name/x/y/z`, on the grid of its gatekeeper; null without a region'
+            links:
+              type: object
+              description: 'Its links, asked of it (tpLinks()), for each client (`browser`, `viewer`): by format, each its `link`, the key of its `label` in the catalog and its `action` (teleport, map, copy)'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    SearchEvents:
+      type: object
+      description: 'The events of the search of a grid'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          const: search/events
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            date:
+              type: integer
+              description: 'Unix time of its start'
+            duration:
+              type: integer
+              description: Minutes
+            category:
+              type: string
+              description: "Its category, a number of the viewers ('' none)"
+            rating:
+              type: string
+              description: "Its rating: general, moderate, adult ('' unknown)"
+            adult:
+              type: boolean
+              description: 'Adult content'
+            organizer:
+              type:
+                - string
+                - 'null'
+              description: 'The UUID of its organizer, null for none (the events of a calendar)'
+            organizerName:
+              type: string
+            location:
+              type: string
+              description: 'Its region as kept, with its grid for one of another grid'
+            coverCharge:
+              type:
+                - integer
+                - 'null'
+              description: 'The fee to enter it, null for none'
+            uri:
+              type:
+                - string
+                - 'null'
+              description: 'Where it is: `host:port/Region Name/x/y/z`, on the grid of its gatekeeper; null without a region'
+            links:
+              type: object
+              description: 'Its links, asked of it (tpLinks()), for each client (`browser`, `viewer`): by format, each its `link`, the key of its `label` in the catalog and its `action` (teleport, map, copy)'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    SearchClassifieds:
+      type: object
+      description: 'The classifieds of the search of a grid'
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          const: search/classifieds
+        id:
+          type: string
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            picture:
+              type:
+                - string
+                - 'null'
+              description: 'Its snapshot (an asset UUID)'
+            category:
+              type: string
+              description: "Its category, a number of the viewers ('' none)"
+            rating:
+              type: string
+              description: "Its rating: general, moderate, adult ('' unknown)"
+            location:
+              type: string
+              description: 'Its parcel, its region and its point, as the viewers say it'
+            created:
+              type: integer
+              description: 'Unix time'
+            price:
+              type: integer
+              description: 'What it costs to list'
+            uri:
+              type:
+                - string
+                - 'null'
+              description: 'Where it is: `host:port/Region Name/x/y/z`, on the grid of its gatekeeper; null without a region'
+            links:
+              type: object
+              description: 'Its links, asked of it (tpLinks()), for each client (`browser`, `viewer`): by format, each its `link`, the key of its `label` in the catalog and its `action` (teleport, map, copy)'
         links:
           type: object
           properties:

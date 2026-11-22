@@ -55,6 +55,18 @@ final class Router
         'POST /grids/{grid}/offline-messages/RetrieveMessages',
         'POST /grids/{grid}/currency.php',
         'POST /grids/{grid}/landtool.php',
+        'GET /grids/{grid}/search/people',
+        'GET /grids/{grid}/search/people/{id}',
+        'GET /grids/{grid}/search/groups',
+        'GET /grids/{grid}/search/groups/{id}',
+        'GET /grids/{grid}/search/places',
+        'GET /grids/{grid}/search/places/{id}',
+        'GET /grids/{grid}/search/land',
+        'GET /grids/{grid}/search/land/{id}',
+        'GET /grids/{grid}/search/events',
+        'GET /grids/{grid}/search/events/{id}',
+        'GET /grids/{grid}/search/classifieds',
+        'GET /grids/{grid}/search/classifieds/{id}',
     ];
 
     /**
@@ -227,6 +239,12 @@ final class Router
         } elseif ($grid !== null && $tail === ['search', 'register']) {
             $template = '/grids/{grid}/search/register';
             $routes = ['GET' => fn() => $this->api->register($grid, $query)];
+        } elseif ($grid !== null && ($tail[0] ?? '') === 'search' && in_array(count($tail), [2, 3], true) && isset(Api::GRID_RESOURCES['search/' . $tail[1]])) {
+            // The search as the viewers have it: a kind, one of its results
+            $type = 'search/' . $tail[1];
+            $id = $tail[2] ?? null;
+            $template = "/grids/{grid}/$type" . ($id === null ? '' : '/{id}');
+            $routes = ['GET' => fn() => $id === null ? $this->api->list($type, $query, $grid) : $this->api->get($type, $id, $grid)];
         } elseif ($grid !== null && $tail === ['search', 'query']) {
             $template = '/grids/{grid}/search/query';
             $routes = ['POST' => fn() => $this->api->searchQuery($grid, $body, $query)];

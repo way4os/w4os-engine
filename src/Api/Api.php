@@ -95,6 +95,13 @@ final class Api
         'estates' => Estate::class,
         'assets' => Asset::class,
         'posts' => Post::class,
+        // The search as the viewers have it, read by anybody: `/grids/{grid}/search/{kind}`
+        'search/people' => \W4OS\Engine\Models\SearchPerson::class,
+        'search/groups' => \W4OS\Engine\Models\Group::class,
+        'search/places' => \W4OS\Engine\Models\SearchPlace::class,
+        'search/land' => \W4OS\Engine\Models\LandSale::class,
+        'search/events' => \W4OS\Engine\Models\Event::class,
+        'search/classifieds' => \W4OS\Engine\Models\Classified::class,
     ];
 
     /** Seconds a simulator that registers is given to load its regions before its snapshot is read. */

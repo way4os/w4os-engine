@@ -93,7 +93,7 @@ final class Access
     private const NEEDS = [
         'avatars' => 'databases', 'avatar-models' => 'databases', 'regions' => 'databases', 'parcels' => 'databases',
         'estates' => 'databases', 'posts' => 'databases', 'sign-ins' => 'databases', 'password-resets' => 'databases',
-        'email-confirmations' => 'databases', 'options' => 'files', 'site-description' => 'files',
+        'email-confirmations' => 'databases', 'options' => 'files', 'site-description' => 'files', 'search' => 'databases',
         'address' => 'files',
     ];
 

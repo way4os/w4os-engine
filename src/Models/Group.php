@@ -7,6 +7,8 @@ namespace W4OS\Engine\Models;
 use W4OS\Engine\Config\GridConfig;
 use W4OS\Engine\Data\Collection;
 use W4OS\Engine\Data\Database;
+use W4OS\Engine\Data\Listing;
+use W4OS\Engine\Forms\ItemForm;
 use W4OS\Engine\Data\OSPDO;
 use W4OS\Engine\Text\Uuid;
 
@@ -27,6 +29,11 @@ final class Group extends Model
     private const SORTS = ['name' => 'g.Name', 'members' => 'members'];
 
     private const TABLES = ['os_groups_groups', 'os_groups_membership', 'os_groups_roles'];
+
+    public static function type(): string
+    {
+        return 'search/groups';
+    }
 
     public function id(): string
     {
@@ -49,7 +56,9 @@ final class Group extends Model
     }
 
     /**
-     * @return array{id:string,name:string,charter:string,picture:?string,founder:?string,members:int,open:bool,fee:int,mature:bool}
+     * What anyone sees of it: its members the ones a role shows, read for a group asked by its id (find()) only (`roster`).
+     *
+     * @return array<string,mixed>
      */
     public function detail(): array
     {
@@ -62,12 +71,24 @@ final class Group extends Model
             'charter' => trim((string) ($this->row['Charter'] ?? '')),
             'picture' => $picture === '' || Uuid::isNullKey($picture) ? null : $picture,
             'founder' => $founder === '' || Uuid::isNullKey($founder) ? null : $founder,
+            'founderName' => $this->founder()?->name(),
+            'founderPage' => ($name = $this->founder()?->name()) === null ? null : Avatar::profilePage($this->config, $name),
             'members' => (int) ($this->row['members'] ?? 0),
             // OpenEnrollment is kept as text: 1 or True
             'open' => in_array(strtolower(trim((string) ($this->row['OpenEnrollment'] ?? ''))), ['1', 'true'], true),
             'fee' => (int) ($this->row['MembershipFee'] ?? 0),
-            'mature' => (int) ($this->row['MaturePublish'] ?? 0) === 1,
-        ];
+            'rating' => (int) ($this->row['MaturePublish'] ?? 0) === 1 ? 'moderate' : 'general',
+        ] + (empty($this->row['found']) ? [] : ['roster' => array_map(fn(array $m): array => $m + [
+            'page' => Avatar::profilePage($this->config, $m['name']),
+        ], $this->members())]);
+    }
+
+    /** Its founder, null when it has none or the grid does not know them. */
+    private function founder(): ?Avatar
+    {
+        $founder = trim((string) ($this->row['FounderID'] ?? ''));
+
+        return $founder === '' || Uuid::isNullKey($founder) ? null : Avatar::find($this->config, $founder);
     }
 
     /**
@@ -116,6 +137,7 @@ final class Group extends Model
      */
     public static function all(GridConfig $config, array $options = []): Collection
     {
+        self::listing()->check($options);
         [$sort, $direction] = array_pad(preg_split('/\s+/', trim((string) ($options['sort'] ?? 'name'))) ?: [], 2, 'asc');
         isset(self::SORTS[$sort]) || ($sort = 'name');
         $direction = strtolower((string) $direction) === 'desc' ? 'desc' : 'asc';
@@ -152,7 +174,47 @@ final class Group extends Model
             \PDO::FETCH_ASSOC,
         );
 
-        return is_array($row) ? new self($config, $row) : null;
+        return is_array($row) ? new self($config, ['found' => true] + $row) : null;
+    }
+
+    /** The list of the Groups tab of the viewers: the name, the members. */
+    public static function listing(): Listing
+    {
+        return new Listing(
+            [
+                Listing::column('name', 'web_search_name', sort: 'name', more: ['picture' => 'picture', 'default' => 'group']),
+                Listing::column('members', 'web_search_members', 'number', 'members'),
+            ],
+            search: ['name'],
+            texts: ['title' => 'web_search_groups', 'empty' => 'web_search_nothing'],
+        );
+    }
+
+    /**
+     * What the viewers show of a group to who is not a member: its key, its founder, its insignia, its charter, its members (a small
+     * table: their name, the title they wear, in the world or the day they last came), who can join, the fee, its content rating.
+     */
+    public static function itemForm(): ItemForm
+    {
+        return new ItemForm(
+            [
+                ItemForm::shown('picture', 'profile_picture', 'picture', 'group', ['default' => 'group']),
+                ItemForm::shown('name', 'web_search_name', 'text', 'group'),
+                ItemForm::shown('id', 'web_search_group_key', 'text', 'group'),
+                ItemForm::shown('founderName', 'web_search_founder', 'link', 'group', ['link' => 'founderPage', 'empty' => 'web_search_none']),
+                ItemForm::shown('charter', 'web_search_charter', 'text', 'group'),
+                ItemForm::shown('roster', 'web_search_members', 'records', 'group', ['parts' => [
+                    ['name', 'web_search_member', 'link', ['link' => 'page']],
+                    ['title', 'web_search_title', 'text'],
+                    // In the world (the text of `onlineLabel`), else the day they last came
+                    ['login', 'web_search_status', 'date', ['online' => 'online', 'onlineLabel' => 'web_search_online']],
+                ]]),
+                ItemForm::shown('open', 'web_search_open_enrollment', 'boolean', 'group'),
+                ItemForm::shown('fee', 'web_search_join_fee', 'number', 'group'),
+                ItemForm::shown('rating', 'web_search_content_type', 'select', 'group', ['options' => ['general' => 'web_search_content_general', 'moderate' => 'web_search_content_moderate']]),
+            ],
+            [ItemForm::group('group', 'web_search_groups')],
+        );
     }
 
     /** The database of the groups, null when the grid has none. */

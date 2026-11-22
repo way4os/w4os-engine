@@ -77,10 +77,12 @@ describe('The groups the search finds', function () {
     test('say what anyone sees of them: charter, insignia, founder, who can join, the fee, the content rating', function () {
         $detail = Group::find(group_grid(), 'g1')->detail();
 
-        expect($detail)->toBe([
+        expect(array_diff_key($detail, ['roster' => 1]))->toBe([
             'id' => 'g1', 'name' => 'Builders', 'charter' => 'We build', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002',
-            'founder' => '11111111-1111-1111-1111-111111111111', 'members' => 3, 'open' => true, 'fee' => 10, 'mature' => true,
-        ])->and(Group::find(group_grid(), 'g2')->detail()['picture'])->toBeNull();
+            'founder' => '11111111-1111-1111-1111-111111111111', 'founderName' => 'Ada Love', 'founderPage' => null, 'members' => 3, 'open' => true, 'fee' => 10, 'rating' => 'moderate',
+        ])->and(array_column($detail['roster'], 'name'))->toBe(['Ada Love', 'Bob Root'])
+            ->and(Group::find(group_grid(), 'g2')->detail()['picture'])->toBeNull()
+            ->and(Group::all(group_grid(), ['search' => 'builders'])->items()[0]->detail())->not->toHaveKey('roster');
     });
 
     test('show the members of the roles that show them, with their title and whether they are in the world', function () {
