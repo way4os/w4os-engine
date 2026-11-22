@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (addresses): the addresses a grid advertised before, old and new by service, given at /grids/{grid}/addresses (previous)
 - fix (api): Server::hold() and release() send the answer and free the client before what follows, with or without FPM
 - new (pictures): a place, parcel, region, group or result without a picture has the image of its title (Pictured, TitleImage)
 - fix (tasks): a grid with no folder (a site's, from its description) has the tasks of its guide pictures and its health

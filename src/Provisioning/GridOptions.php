@@ -581,6 +581,12 @@ final class GridOptions
      */
     public function repair(bool $apply): array
     {
+        return $apply ? \W4OS\Engine\Models\AddressHistory::around($this->grid, fn(): array => $this->repaired(true)) : $this->repaired(false);
+    }
+
+    /** @return array<string,mixed> see repair() */
+    private function repaired(bool $apply): array
+    {
         $missing = [];
         $merged = [];
         foreach ($this->grid->simulators() as $simulator) {

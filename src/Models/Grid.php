@@ -1101,6 +1101,16 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         if ($saved !== null) {
             return $this->info = [$saved, true];
         }
+        return $this->info = [$this->configuredInfo(), false];
+    }
+
+    /**
+     * What its config makes it say at get_grid_info, never what it said when it was verified (gridInfo()): what it advertises now.
+     *
+     * @return array<string,string>
+     */
+    public function configuredInfo(): array
+    {
         $controller = $this->isStandalone() ? ($this->simulators()[0] ?? null)?->controller() : $this->robust();
         // A grid without its instance here (described by an application): the config it was given, its [GridInfoService] where
         // the application keeps it (Helpers.ini) when Robust's says none
@@ -1108,7 +1118,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         $ini = $controller?->settings() ?? ($tree[$this->isStandalone() ? 'OpenSim' : 'Robust'] ?? []);
         isset($ini['GridInfoService']) || !isset($tree['Helpers']['GridInfoService']) || ($ini['GridInfoService'] = $tree['Helpers']['GridInfoService']);
 
-        return $this->info = [self::infoOf($ini), false];
+        return self::infoOf($ini);
     }
 
     /**

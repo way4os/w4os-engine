@@ -46,6 +46,13 @@ final class GridAddress
      */
     public function change(array $to, bool $apply = false): array
     {
+        // What it advertised before is kept: the viewers ask the old addresses until they read the info of the grid again
+        return $apply ? \W4OS\Engine\Models\AddressHistory::around($this->grid, fn(): array => $this->changed($to, true)) : $this->changed($to, false);
+    }
+
+    /** @return array<string,mixed> see change() */
+    private function changed(array $to, bool $apply): array
+    {
         $directory = $this->grid->directory();
         $robust = $this->grid->robustIni() ?? throw InvalidValue::because('invalid-request', "the grid {$this->grid->nick()} has no Robust config on this machine");
         $from = ['host' => $this->grid->baseHostname(), 'port' => $this->grid->publicPort(), 'site' => rtrim((string) $this->grid->site(), '/')];

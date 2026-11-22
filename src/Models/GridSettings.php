@@ -408,6 +408,13 @@ final class GridSettings
      */
     public function write(string $page, array $values): array
     {
+        // What it advertised before is kept (AddressHistory): a page of its site may have moved
+        return AddressHistory::around($this->grid, fn(): array => $this->written($page, $values));
+    }
+
+    /** @return array<string,mixed> see write() */
+    private function written(string $page, array $values): array
+    {
         $entries = array_column(self::entries($page), null, 'name');
         // Provide switched on, before it becomes the address
         $switchedOn = filter_var($values['provide'] ?? false, FILTER_VALIDATE_BOOLEAN);

@@ -300,6 +300,21 @@ final class Endpoints
                             'description' => 'Where each comes from',
                             'additionalProperties' => ['type' => ['string', 'null']],
                         ],
+                        'previous' => [
+                            'type' => 'array',
+                            'description' => 'The addresses the grid advertised before at `get_grid_info` (AddressHistory), that the viewers keep until they read the info of the grid again: a site answers them still. Only the ones that changed, an address once: what it advertised before it came to this install (`source` `import`: read from the report of its import, `date` null, `new` what it advertises now), then each change of the engine (`source` `change`: its address, its settings, the repair of its options, `date` when). `service` is the key of get_grid_info (login, welcome, about, register, help, password, web_profile_url, search, economy, message...)',
+                            'items' => [
+                                'type' => 'object',
+                                'required' => ['service', 'old', 'new', 'date', 'source'],
+                                'properties' => [
+                                    'service' => ['type' => 'string'],
+                                    'old' => ['type' => 'string', 'format' => 'uri'],
+                                    'new' => ['type' => 'string', 'format' => 'uri'],
+                                    'date' => ['type' => ['string', 'null'], 'format' => 'date-time'],
+                                    'source' => ['type' => 'string', 'enum' => ['import', 'change']],
+                                ],
+                            ],
+                        ],
                     ]),
                 ],
                 '404' => Contract::problem('The grid is not known here'),

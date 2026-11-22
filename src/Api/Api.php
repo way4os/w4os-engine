@@ -1477,6 +1477,8 @@ final class Api
                     'services' => $services,
                     'sources' => $sources,
                     'servedBy' => $servedBy,
+                    // The addresses it advertised before, for a site to answer them still
+                    'previous' => \W4OS\Engine\Models\AddressHistory::pairs($found),
                 ],
                 'links' => ['self' => $instance],
             ],
