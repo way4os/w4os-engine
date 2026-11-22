@@ -189,7 +189,7 @@ describe('the catalog of the texts of the sites', function () {
             'manage_title', 'offline', 'online', 'parcel_scripts', 'partner', 'port_web', 'profile_tab_account',
             'profile_tab_feed', 'profile_tab_inworld', 'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online',
             'role_god', 'role_model', 'setting_welcome', 'settings_menu_grid', 'simulators_count', 'simulators_title',
-            'skill_scripting', 'status', 'unit_mb',
+            'skill_scripting', 'start_login', 'status', 'unit_mb',
             // The web search: the words of the viewers, the same in this language
             'web_search_account', 'web_search_online', 'web_search_partner', 'web_search_status',
         ],

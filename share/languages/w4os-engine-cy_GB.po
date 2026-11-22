@@ -924,7 +924,7 @@ msgstr "Cysylltu"
 
 msgctxt "start_avatar"
 msgid "Create your avatar"
-msgstr "Creu eich afatar"
+msgstr "Crëwch eich afatar"
 
 #, php-format
 msgctxt "start_avatar_done"
@@ -933,11 +933,11 @@ msgstr "Wedi mewngofnodi fel %s"
 
 msgctxt "start_add_grid"
 msgid "Add the grid"
-msgstr "Ychwanegu'r grid"
+msgstr "Ychwanegwch y grid"
 
 msgctxt "start_login"
 msgid "Log in"
-msgstr "Mewngofnodi"
+msgstr "Mewngofnodwch"
 
 msgctxt "start_login_done"
 msgid "Enjoy!"
