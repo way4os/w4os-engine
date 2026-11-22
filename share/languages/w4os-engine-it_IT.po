@@ -1557,6 +1557,10 @@ msgctxt "search"
 msgid "Search"
 msgstr "Cerca"
 
+msgctxt "search_title"
+msgid "Search"
+msgstr "Ricerca"
+
 msgctxt "no_avatars"
 msgid "No result"
 msgstr "Nessun risultato"
