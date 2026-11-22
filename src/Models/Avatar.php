@@ -134,6 +134,9 @@ final class Avatar extends Model
     /** @var ?array{estates:?array<string,int>,regions:?array<string,int>,parcels:?array<string,int>} what the avatars own, read once for a list */
     private ?array $owned = null;
 
+    /** The owner of the grid (Estate::firstOwner()), read once for a list; false while not read. */
+    private string|false|null $gridOwner = false;
+
     /** What the name of an account may have besides letters and digits. */
     private const NAME_PUNCTUATION = '-';
 
@@ -441,6 +444,29 @@ final class Avatar extends Model
         ];
     }
 
+    /**
+     * Whether it is the owner of the grid, the owner of its first estate (Estate::firstOwner()): an administrator of its sites
+     * whatever its user level, as OpenSimulator makes it the god of its regions (region_owner_is_god).
+     */
+    public function isOwner(): bool
+    {
+        if ($this->gridOwner === false) {
+            $this->gridOwner = Estate::firstOwner($this->config);
+        }
+        $id = strtolower((string) ($this->row['PrincipalID'] ?? ''));
+
+        return $this->gridOwner !== null && $id !== '' && $this->gridOwner === $id;
+    }
+
+    /**
+     * The level its access is decided by (the levels of the contract, Access): its user level, a god's for the owner of the grid
+     * (isOwner()) whose level is below; its user level stays as it is.
+     */
+    public function accessLevel(): int
+    {
+        return $this->isOwner() ? max($this->level(), self::GOD_FULL) : $this->level();
+    }
+
     /** The role of the avatar, by its level (ROLES). */
     public function role(): string
     {
@@ -742,6 +768,9 @@ final class Avatar extends Model
             'created' => isset($row['Created']) ? (int) $row['Created'] : null,
             'level' => $this->level(),
             'isGod' => $this->isGod(),
+            // The owner of the grid, and the level its access is decided by (its user level above stays as it is)
+            'owner' => $this->isOwner(),
+            'accessLevel' => $this->accessLevel(),
             'role' => $this->role(),
             // The role a list shows: a model and the account of the services as roles of their own, as w4os-wp
             'shownRole' => match ($this->type()) {
@@ -1613,10 +1642,12 @@ final class Avatar extends Model
         $lists = $rows === [] ? [] : self::estateBanLists($config);
         // What they own, read once for the list
         $owned = $rows === [] ? null : self::ownedBy($config);
-        $avatars = array_map(static function (array $row) use ($config, $lists, $owned): self {
+        $owner = $rows === [] ? null : Estate::firstOwner($config);
+        $avatars = array_map(static function (array $row) use ($config, $lists, $owned, $owner): self {
             $avatar = new self($config, $row);
             $avatar->estateBanned = $lists;
             $avatar->owned = $owned;
+            $avatar->gridOwner = $owner;
 
             return $avatar;
         }, $rows);

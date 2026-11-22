@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "5c567c4",
+        "version": "654f743",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -18382,6 +18382,14 @@
                             },
                             "isGod": {
                                 "type": "boolean"
+                            },
+                            "owner": {
+                                "type": "boolean",
+                                "description": "The owner of the grid, the owner of its first estate (the lowest EstateID): an administrator of its sites whatever its level, as OpenSimulator makes it the god of its regions"
+                            },
+                            "accessLevel": {
+                                "type": "integer",
+                                "description": "The level its access is decided by (the levels of x-access): its level, 200 for the owner of the grid whose level is below"
                             },
                             "published": {
                                 "type": "boolean",

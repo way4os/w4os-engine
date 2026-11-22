@@ -226,6 +226,8 @@ final class Contract
                 'created' => ['integer?', 'When the account was made (Unix time)'],
                 'level' => ['integer', 'The user level, 200 and over are gods; the one it has back when it is active again (a sort by level sorts by it, so by role)'],
                 'isGod' => ['boolean', ''],
+                'owner' => ['boolean', 'The owner of the grid, the owner of its first estate (the lowest EstateID): an administrator of its sites whatever its level, as OpenSimulator makes it the god of its regions'],
+                'accessLevel' => ['integer', 'The level its access is decided by (the levels of x-access): its level, 200 for the owner of the grid whose level is below'],
                 'published' => [
                     'boolean',
                     'Its profile is published: the box "show in search" of the viewer (the first bit of UserFlags); the web profile and the search of people show only these',

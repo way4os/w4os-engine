@@ -504,6 +504,27 @@ final class Estate extends Model
         return $counts;
     }
 
+    /**
+     * The owner of the grid: the owner of its first estate (the lowest EstateID of its estate databases), the one OpenSimulator makes
+     * the god of its regions (region_owner_is_god); null when none can be read.
+     */
+    public static function firstOwner(GridConfig $config): ?string
+    {
+        $first = null;
+        foreach (self::databases($config) as [, $pdo]) {
+            if (!$pdo->table_exists('estate_settings')) {
+                continue;
+            }
+            $statement = $pdo->prepareAndExecute('SELECT EstateID, EstateOwner FROM estate_settings ORDER BY EstateID LIMIT 1', []);
+            $row = $statement ? $statement->fetch(\PDO::FETCH_NUM) : false;
+            if ($row !== false && ($first === null || (int) $row[0] < $first[0])) {
+                $first = [(int) $row[0], strtolower((string) $row[1])];
+            }
+        }
+
+        return $first === null || !Uuid::isValid($first[1]) || Uuid::isNullKey($first[1]) ? null : $first[1];
+    }
+
     private static function databases(GridConfig $config): \Generator
     {
         if (Database::Estate->scopeIn($config) === Database::GRID) {
