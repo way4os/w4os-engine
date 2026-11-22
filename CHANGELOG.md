@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (texts): the search button in French is the verb of the viewer, Rechercher
 - new (search): the kinds of the viewers' search as models, listed and read at /grids/{grid}/search/{kind}
 - update (texts): No results, the web search that found nothing, in every language
 - new (texts): the groups and the people of the web search, in the words of the viewers, in every language

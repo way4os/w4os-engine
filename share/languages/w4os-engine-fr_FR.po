@@ -2169,7 +2169,7 @@ msgstr "Personnes"
 
 msgctxt "web_search_submit"
 msgid "Search"
-msgstr "Recherche"
+msgstr "Rechercher"
 
 msgctxt "web_search_words"
 msgid "Enter search terms"
