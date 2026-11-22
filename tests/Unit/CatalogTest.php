@@ -234,6 +234,18 @@ describe('the catalog of the texts of the sites', function () {
         }
     });
 
+    test('speaks to a visitor informally, a meeting place, not a bank: tu in French, ti in Welsh', function () {
+        // The formal register: vous and its possessives; chi, eich and its contractions ('ch: i'ch, o'ch, a'ch), gennych, ydych
+        $formal = [
+            'fr_FR' => '/\\b(vous|votre|vos)\\b/iu',
+            'cy_GB' => "/\\b(chi|chwi|eich|gennych|ydych|atoch)\\b|['’]ch\\b/iu",
+        ];
+        foreach ($formal as $locale => $pattern) {
+            $found = array_filter(Catalog::messages($locale), fn(string $text) => preg_match($pattern, $text) === 1);
+            expect($found)->toBe([], $locale);
+        }
+    });
+
     test('says viewer and helpers in every language, as OpenSimulator does', function () {
         foreach (['viewer', 'helper'] as $term) {
             foreach (Catalog::LOCALES as $locale) {
