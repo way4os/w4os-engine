@@ -784,13 +784,13 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
 
     /**
      * The popular places of the search of the grid, for their cards: the most visited first, of every grid the search serves, with
-     * their address (`url`), their picture (an asset UUID, null without one), their visits (`dwell`) and what their card shows
+     * their address (`url`), their picture (an asset UUID, else the image of their title: TitleImage), their visits (`dwell`) and what their card shows
      * (card(): `title`, `label`, `gridName`).
      *
      * The options of w4os-wp 2.x and its defaults: the places of this grid only, unless `$hypergrid`; the land for sale left out,
      * unless `$landSales`.
      *
-     * @return list<array{name:string,url:string,picture:?string,dwell:int,title:string,label:string,gridName:?string}> empty without a search
+     * @return list<array{name:string,url:string,picture:string,dwell:int,title:string,label:string,gridName:?string}> empty without a search
      */
     public function popularPlaces(int $count = \W4OS\Engine\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null, bool $hypergrid = false, bool $landSales = false): array
     {
@@ -802,7 +802,11 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         $own = $hypergrid ? null : (string) $this->loginUrl();
         $places = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri(), $own === '' ? null : $own))->popular($count, $landSales);
 
-        return array_map(fn(array $place): array => $place + $this->card($place['url'], $place['name'], $config), $places);
+        return array_map(function (array $place) use ($config): array {
+            $place += $this->card($place['url'], $place['name'], $config);
+
+            return ['picture' => \W4OS\Engine\Assets\TitleImage::pick($place['picture'], (string) ($place['title'] ?? $place['name']))] + $place;
+        }, $places);
     }
 
     /**
@@ -1217,10 +1221,10 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
 
     /**
      * The guide of the grid with its pictures, the engine's to find (DestinationPictures): each section with the picture of its first
-     * destination that has one, each destination with the picture of its parcel; null where none is known (a site shows its
-     * placeholder).
+     * destination that has one, each destination with the picture of its parcel; the image of its title where none is known
+     * (TitleImage).
      *
-     * @return array<string,array{picture:?string,destinations:list<array{name:string,url:string,picture:?string}>}>
+     * @return array<string,array{picture:string,destinations:list<array{name:string,url:string,picture:string}>}>
      */
     public function guide(?GridConfig $config = null): array
     {
@@ -1229,12 +1233,16 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
 
         $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
         $guide = (new \W4OS\Engine\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
-        // What the card of each destination shows: its title, its label, the name of its grid
-        foreach ($guide as &$section) {
+        // What the card of each destination shows: its title, its label, the name of its grid; its picture, else the image of its title
+        foreach ($guide as $name => &$section) {
             foreach ($section['destinations'] as &$destination) {
                 $destination += $this->card($destination['url'], $destination['name'], $config);
+                $destination['picture'] = \W4OS\Engine\Assets\TitleImage::pick($destination['picture'], (string) ($destination['title'] ?? $destination['name']));
             }
+            unset($destination);
+            $section['picture'] = \W4OS\Engine\Assets\TitleImage::pick($section['picture'], (string) $name);
         }
+        unset($section);
 
         return $guide;
     }

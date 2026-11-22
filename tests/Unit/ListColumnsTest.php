@@ -54,7 +54,7 @@ describe('A column that repeats a filter', function () {
             ->toBe('region');
     });
 
-    test('shows the picture of a parcel beside its name', function () {
-        expect(Parcel::listing()->document()['columns'][0])->toMatchArray(['picture' => 'snapshot', 'default' => 'place']);
+    test('shows the picture of a parcel beside its name: its snapshot, else the image of its name', function () {
+        expect(Parcel::listing()->document()['columns'][0])->toMatchArray(['picture' => 'picture', 'default' => 'place']);
     });
 });

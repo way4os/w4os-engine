@@ -443,7 +443,7 @@ describe('The parcels of a region page', function () {
         $fields = array_column(Parcel::itemForm()->fields, null, 'name');
 
         expect($name)
-            ->toMatchArray(['name' => 'name', 'picture' => 'snapshot', 'default' => 'place'])
+            ->toMatchArray(['name' => 'name', 'picture' => 'picture', 'default' => 'place'])
             ->and(array_map(static fn(string $field): ?string => $fields[$field]['type'] ?? null, ['scripts', 'build', 'public']))
             ->toBe(['boolean', 'boolean', 'boolean'])
             ->and(array_diff(array_column($fields, 'label'), array_keys(W4OS\Engine\I18n\Catalog::MESSAGES)))

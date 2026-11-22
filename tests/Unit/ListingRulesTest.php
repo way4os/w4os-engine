@@ -187,7 +187,7 @@ describe('The page of an item', function () {
             ->and(array_column($avatar['indicators'], 'name'))
             ->toBe(['accountState', 'ban'])
             ->and(array_diff_key($region, ['indicators' => 1]))
-            ->toBe(['title' => 'name', 'picture' => 'mapImage', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport'])
+            ->toBe(['title' => 'name', 'picture' => 'picture', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport'])
             ->and(array_column($region['indicators'], 'name'))
             ->toBe(['enabled', 'online']);
     });

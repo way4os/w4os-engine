@@ -606,14 +606,12 @@ final class Avatar extends Model
             'id' => (string) $row['GroupID'],
             'name' => (string) $row['Name'],
             'title' => trim((string) ($row['Title'] ?? '')) === '' ? null : (string) $row['Title'],
-            'picture' => trim((string) ($row['InsigniaID'] ?? '')) === '' || Uuid::isNullKey($row['InsigniaID'])
-                ? null
-                : (string) $row['InsigniaID'],
+            'picture' => \W4OS\Engine\Assets\TitleImage::pick((string) ($row['InsigniaID'] ?? ''), (string) $row['Name']),
         ], is_array($rows) ? $rows : []);
     }
 
     /**
-     * What the viewer shows of a pick or a classified, added to its row: `picture` (the UUID of its snapshot, null without one),
+     * What the viewer shows of a pick or a classified, added to its row: `picture` (the UUID of its snapshot, else the image of its name: TitleImage),
      * `parcel`, `region`, `position` (x, y, z in the region: its global position less the corner of the region, the rest of the
      * division by 256 for a region the grid does not have) and `teleport` (hop://, to the grid of its gatekeeper).
      *
@@ -639,7 +637,8 @@ final class Avatar extends Model
         }
 
         return $row + [
-            'picture' => Uuid::isNullKey($picture) ? null : $picture,
+            // Its snapshot, else the image of its name
+            'picture' => \W4OS\Engine\Assets\TitleImage::pick($picture, (string) ($row['name'] ?? $parcel)),
             'parcel' => $text($parcel),
             'region' => $region,
             'position' => $position,

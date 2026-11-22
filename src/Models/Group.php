@@ -20,8 +20,17 @@ use W4OS\Engine\Text\Uuid;
  * group of another grid), with members; the members shown are the ones of a role that shows its members (MemberVisible), as
  * OpenSimulator shows them to who is not a member.
  */
-final class Group extends Model
+final class Group extends Model implements \W4OS\Engine\Assets\Pictured
 {
+    use \W4OS\Engine\Assets\Pictures;
+
+    protected function pictureAsset(): ?string
+    {
+        $asset = trim((string) ($this->row['InsigniaID'] ?? ''));
+
+        return $asset === '' || \W4OS\Engine\Text\Uuid::isNullKey($asset) ? null : $asset;
+    }
+
     /** The power of a role that shows its members to who is not a member (GroupPowers.MemberVisible). */
     public const MEMBER_VISIBLE = 1 << 47;
 
@@ -62,14 +71,13 @@ final class Group extends Model
      */
     public function detail(): array
     {
-        $picture = trim((string) ($this->row['InsigniaID'] ?? ''));
         $founder = trim((string) ($this->row['FounderID'] ?? ''));
 
         return [
             'id' => $this->id(),
             'name' => $this->name(),
             'charter' => trim((string) ($this->row['Charter'] ?? '')),
-            'picture' => $picture === '' || Uuid::isNullKey($picture) ? null : $picture,
+            'picture' => $this->picture(),
             'founder' => $founder === '' || Uuid::isNullKey($founder) ? null : $founder,
             'founderName' => $this->founder()?->name(),
             'founderPage' => ($name = $this->founder()?->name()) === null ? null : Avatar::profilePage($this->config, $name),

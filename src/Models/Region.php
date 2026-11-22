@@ -46,9 +46,18 @@ use W4OS\Engine\Text\Notice;
  * The flags are those of the regions table, named as in OpenSimulator (opensimulator.org/wiki/Regions_(database_table)). The ones a
  * region can be given are its roles; in the config of Robust they are written by name (see roles() and flagNames()).
  */
-final class Region extends Model implements Reachable
+final class Region extends Model implements Reachable, \W4OS\Engine\Assets\Pictured
 {
     use TeleportLinks;
+    use \W4OS\Engine\Assets\Pictures;
+
+    protected function pictureAsset(): ?string
+    {
+        $asset = trim((string) ($this->row['regionMapTexture'] ?? ''));
+
+        return $asset === '' || \W4OS\Engine\Text\Uuid::isNullKey($asset) ? null : $asset;
+    }
+
 
     use HasName;
 
@@ -409,6 +418,8 @@ final class Region extends Model implements Reachable
             'lastSeen' => ((int) ($row['last_seen'] ?? 0)) ?: null,
             'access' => isset($row['access']) ? (int) $row['access'] : null,
             'mapImage' => $row['regionMapTexture'] ?? null,
+            // Its map, else the image of its name (Pictured)
+            'picture' => $this->picture(),
             // The people in it, members of the grid and visitors of other grids, never a NPC (null when it is not known)
             'avatars' => $this->present === null ? null : $this->present['members'] + $this->present['visitors'],
             'members' => $this->present['members'] ?? null,
@@ -1458,7 +1469,7 @@ final class Region extends Model implements Reachable
                 // The columns of w4os-wp in its order and its words, its address under its name and its status last (the control of
                 // w4os-wp in it); the location after the size, the flags before the status
                 // Its address (host:port/name) under its name, linked to the teleport there
-                Listing::column('name', 'column_region_name', sort: 'name', more: ['picture' => 'mapImage', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
+                Listing::column('name', 'column_region_name', sort: 'name', more: ['picture' => 'picture', 'default' => 'place', 'subtitle' => ['uri'], 'subtitleLink' => 'teleport']),
                 Listing::column('ownerName', 'column_owner', 'link', 'owner', ['link' => 'ownerProfile', 'mirrors' => 'owner']),
                 // Its type, as its file says it (RegionType)
                 Listing::column('type', 'column_type', sort: 'type', more: ['mirrors' => 'type']),

@@ -39,6 +39,11 @@ final class Classified extends SearchResult
         return $point === null ? '' : implode('/', $point);
     }
 
+    protected static function pictureColumn(): ?string
+    {
+        return 'snapshotuuid';
+    }
+
     public function detail(): array
     {
         $flags = (int) ($this->row['classifiedflags'] ?? 0);
@@ -49,7 +54,7 @@ final class Classified extends SearchResult
             'id' => $this->id(),
             'name' => $this->name(),
             'description' => trim((string) ($this->row['description'] ?? '')),
-            'picture' => self::picture($this->row['snapshotuuid'] ?? null),
+            'picture' => $this->picture(),
             'category' => isset(SearchFilters::CLASSIFIED_CATEGORIES[$category]) ? (string) $category : '',
             'rating' => match (true) { ($flags & 64) !== 0 => 'adult', ($flags & 8) !== 0 => 'moderate', default => 'general' },
             // Where it is, as the viewers say it: its parcel, its region, its point

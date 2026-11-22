@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (pictures): a place, parcel, region, group or result without a picture has the image of its title (Pictured, TitleImage)
 - fix (tasks): a grid with no folder (a site's, from its description) has the tasks of its guide pictures and its health
 - fix (guide): a source served without a type is read as text (the guide of 2do.directory)
 - change (guide): a grid that sets no source has the guide of 2do.directory, the default of the setting

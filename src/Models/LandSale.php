@@ -41,6 +41,11 @@ final class LandSale extends SearchResult
         return (string) ($this->row['landingpoint'] ?? '');
     }
 
+    protected static function pictureColumn(): ?string
+    {
+        return 'picture';
+    }
+
     public function detail(): array
     {
         $area = (int) ($this->row['area'] ?? 0);
@@ -50,7 +55,7 @@ final class LandSale extends SearchResult
             'id' => $this->id(),
             'name' => $this->name(),
             'description' => trim((string) ($this->row['about'] ?? '')),
-            'picture' => self::picture($this->row['picture'] ?? null),
+            'picture' => $this->picture(),
             'region' => $this->region(),
             'type' => (int) ($this->row['parentestate'] ?? 0) === 1 ? 'mainland' : 'estate',
             'price' => $price,

@@ -27,9 +27,18 @@ use W4OS\Engine\Provisioning\Slug;
  * The flags are the parcel flags of OpenSimulator, named as the constants of LSL (llGetParcelFlags) without their PARCEL_FLAG_
  * prefix; FOR_SALE and SHOW_DIRECTORY (shown in the search) are those of the protocol, which LSL has no constant for.
  */
-final class Parcel extends Model implements Reachable
+final class Parcel extends Model implements Reachable, \W4OS\Engine\Assets\Pictured
 {
     use TeleportLinks;
+    use \W4OS\Engine\Assets\Pictures;
+
+    protected function pictureAsset(): ?string
+    {
+        $asset = trim((string) ($this->row['SnapshotUUID'] ?? ''));
+
+        return $asset === '' || \W4OS\Engine\Text\Uuid::isNullKey($asset) ? null : $asset;
+    }
+
 
     /** The name of a parcel, in bytes: what the land panel of the viewers takes (the database holds 255). */
     private const NAME_BYTES = 63;
@@ -322,6 +331,8 @@ final class Parcel extends Model implements Reachable
                 (float) ($row['UserLocationZ'] ?? 0),
             ],
             'snapshot' => $row['SnapshotUUID'] ?? null,
+            // Its snapshot, else the image of its name (Pictured)
+            'picture' => $this->picture(),
             'music' => $row['MusicURL'] ?? null,
             'media' => $row['MediaURL'] ?? null,
         ];
@@ -448,7 +459,7 @@ final class Parcel extends Model implements Reachable
         return new Listing(
             [
                 // Its URI under its name, linked to the teleport there, beside its picture
-                Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri'], 'subtitleLink' => 'teleport', 'picture' => 'snapshot', 'default' => 'place']),
+                Listing::column('name', 'column_name', sort: 'name', more: ['subtitle' => ['uri'], 'subtitleLink' => 'teleport', 'picture' => 'picture', 'default' => 'place']),
                 // Repeats the filter of a parent: left out when the list is of one region, one owner
                 Listing::column('regionName', 'column_region', more: ['mirrors' => 'region']),
                 Listing::column('ownerName', 'column_owner', more: ['mirrors' => 'owner']),

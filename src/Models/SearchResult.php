@@ -26,9 +26,10 @@ use W4OS\Engine\Text\Uuid;
  * criteria are the filters of its list: the words are its `search`; `rating` the ratings asked (general, moderate, adult, several
  * at once), none for every one.
  */
-abstract class SearchResult extends Model implements Reachable
+abstract class SearchResult extends Model implements Reachable, \W4OS\Engine\Assets\Pictured
 {
     use TeleportLinks;
+    use \W4OS\Engine\Assets\Pictures;
 
     /** The ratings a search asks when it asks none: the ones of a viewer that has not changed them, as its search window opens. */
     public const RATINGS = ['general', 'moderate', 'adult'];
@@ -202,8 +203,22 @@ abstract class SearchResult extends Model implements Reachable
         };
     }
 
+    /** Its own picture, none unless the kind of result keeps one (pictureColumn()). */
+    protected function pictureAsset(): ?string
+    {
+        $column = static::pictureColumn();
+
+        return $column === null ? null : self::asset($this->row[$column] ?? null);
+    }
+
+    /** The column of the row that keeps the UUID of its picture, null when the kind of result has none. */
+    protected static function pictureColumn(): ?string
+    {
+        return null;
+    }
+
     /** A picture of a row, null when it has none (empty, the null UUID). */
-    protected static function picture(mixed $uuid): ?string
+    protected static function asset(mixed $uuid): ?string
     {
         $uuid = trim((string) $uuid);
 

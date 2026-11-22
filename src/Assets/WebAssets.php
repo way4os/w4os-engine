@@ -53,6 +53,7 @@ final class WebAssets
      * @param ?\Closure(string):?string $http the body of an address, null when it does not answer (default: curl)
      * @param ?string $placeholder the file of the picture of nothing (default: a transparent pixel)
      * @param ?string $person the file of the picture of a person who has none (default: the picture of nothing)
+     * @param ?TextRendererInterface $texts draws the images of the titles (TitleImage; default: ImageMagick)
      */
     public function __construct(
         private readonly Grid $grid,
@@ -62,6 +63,7 @@ final class WebAssets
         private readonly ?\Closure $http = null,
         private readonly ?string $placeholder = null,
         private readonly ?string $person = null,
+        private readonly ?TextRendererInterface $texts = null,
     ) {}
 
     /** The cache folder of the assets of a grid of this machine. */
@@ -143,6 +145,9 @@ final class WebAssets
         $id = strtolower($id);
         $width = $width !== null && $width > 0 ? $width : null;
         $name = $width !== null ? "$id-$width.$format" : "$id.$format";
+        if (($title = TitleImage::title($id)) !== null) {
+            return $this->titled($name, $title, $format, $width, $of);
+        }
         if (!Uuid::isValid($id)) {
             return $this->nothing($of);
         }
@@ -237,6 +242,26 @@ final class WebAssets
         $class = Asset::TYPES[$row['assetType']][2] ?? Asset::class;
 
         return new $class($config, $row);
+    }
+
+    /**
+     * The image of a title (TitleImage), drawn once and kept as the pictures converted are: a square of the side of the snapshots,
+     * or of the width asked.
+     *
+     * @return array{data:string,mime:string,found:bool}
+     */
+    private function titled(string $name, string $title, string $format, ?int $width, string $of): array
+    {
+        if (($done = $this->converted->get($name)) !== null) {
+            return ['data' => $done['data'], 'mime' => Image::FORMATS[$format], 'found' => true];
+        }
+        $image = ($this->texts ?? new ImagickTextRenderer())->fit($title, $width ?? TitleImage::SIDE, TitleImage::COLOR, TitleImage::BACKGROUND, $format);
+        if ($image === null) {
+            return $this->nothing($of);
+        }
+        $this->converted->put($name, $image, ['mime' => Image::FORMATS[$format]]);
+
+        return ['data' => $image, 'mime' => Image::FORMATS[$format], 'found' => true];
     }
 
     /** @return array{data:string,mime:string,found:bool} the picture of a missing place, or person */

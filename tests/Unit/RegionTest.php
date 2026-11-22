@@ -363,9 +363,9 @@ describe('Regions', function () {
             ->toBe($listing->filters[1]['values'])
             ->and(array_column($listing->columns[9]['values'], 'value'))
             ->toBe(array_values(array_diff(Region::NAMES, ['RegionOnline'])))
-            // The map tile of the region beside its name, as the picture of an avatar
+            // The map tile of the region beside its name, else the image of its name (Pictured)
             ->and(array_intersect_key($listing->columns[0], ['picture' => 1, 'default' => 1]))
-            ->toBe(['picture' => 'mapImage', 'default' => 'place'])
+            ->toBe(['picture' => 'picture', 'default' => 'place'])
             ->and($listing->filters[2])
             ->toBe(['name' => 'owner', 'label' => 'column_owner', 'format' => 'uuid', 'dynamic' => true])
             ->and(array_column($listing->actions, 'body', 'name'))

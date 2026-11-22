@@ -571,7 +571,7 @@ describe('groups of an avatar', function () {
 
         expect(Avatar::find(avatar_grid(), 'Ada Love')->groups())
             ->toBe([
-                ['id' => 'g2', 'name' => 'Artists', 'title' => null, 'picture' => null],
+                ['id' => 'g2', 'name' => 'Artists', 'title' => null, 'picture' => W4OS\Engine\Assets\TitleImage::id('Artists')],
                 ['id' => 'g1', 'name' => 'Builders', 'title' => 'Chief Builder', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002'],
             ])
             ->and(array_column(Avatar::find(avatar_grid(), 'Bob Root')->groups(), 'name'))
@@ -629,7 +629,8 @@ describe('picks and the classifieds of an avatar', function () {
             ])
             ->and($shown($picks['k3']))
             ->toBe([
-                'picture' => null,
+                // No snapshot: the image of its name
+                'picture' => W4OS\Engine\Assets\TitleImage::id('Alpha pick'),
                 'parcel' => null,
                 'region' => 'Harbour',
                 'position' => [244, 20, 30],
@@ -639,7 +640,7 @@ describe('picks and the classifieds of an avatar', function () {
             ->toBe('<256010,256020,30>')
             ->and($shown($ada->classifieds(1_750_000_000)[0]))
             ->toBe([
-                'picture' => null,
+                'picture' => W4OS\Engine\Assets\TitleImage::id('Roses for sale'),
                 'parcel' => 'The Garden',
                 'region' => 'Welcome',
                 'position' => [356, 200, 22],

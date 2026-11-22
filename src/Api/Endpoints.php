@@ -333,8 +333,8 @@ final class Endpoints
             'schema' => ['type' => 'string'],
         ];
         $picture = [
-            'type' => ['string', 'null'],
-            'description' => 'The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one',
+            'type' => 'string',
+            'description' => 'The UUID of the asset of its picture, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)',
         ];
         // What the viewer shows of a pick and of a classified
         $place = [
@@ -411,8 +411,8 @@ final class Endpoints
                             'description' => 'The title the avatar wears in the group (the one of its role), null without one',
                         ],
                         'picture' => [
-                            'type' => ['string', 'null'],
-                            'description' => 'The UUID of the asset of the insignia of the group (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one',
+                            'type' => 'string',
+                            'description' => 'The UUID of the asset of the insignia of the group, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)',
                         ],
                     ]),
                 ],

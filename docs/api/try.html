@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "654f743",
+        "version": "6b1d2c2",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -4523,7 +4523,7 @@
                             "label": "column_region_name",
                             "type": "text",
                             "sort": "name",
-                            "picture": "mapImage",
+                            "picture": "picture",
                             "default": "place",
                             "subtitle": [
                                 "uri"
@@ -5215,7 +5215,7 @@
                     ],
                     "header": {
                         "title": "name",
-                        "picture": "mapImage",
+                        "picture": "picture",
                         "default": "place",
                         "subtitle": [
                             "uri"
@@ -5555,7 +5555,7 @@
                                 "uri"
                             ],
                             "subtitleLink": "teleport",
-                            "picture": "snapshot",
+                            "picture": "picture",
                             "default": "place",
                             "bare": false,
                             "priority": 1
@@ -5846,7 +5846,7 @@
                             "uri"
                         ],
                         "subtitleLink": "teleport",
-                        "picture": "snapshot",
+                        "picture": "picture",
                         "default": "place",
                         "indicators": []
                     }
@@ -9824,7 +9824,7 @@
                     "Assets"
                 ],
                 "summary": "Asset as a picture",
-                "description": "An asset as a page shows it: an image of any type as a picture in the format asked.",
+                "description": "An asset as a page shows it: an image of any type as a picture in the format asked. The id may be the one of the image of a title (`title-` and the title in hexadecimal: the picture of a place that has none, as the engine gives it), drawn here: a square as the snapshots, the title as large as it fits in the middle, its words whole.",
                 "parameters": [
                     {
                         "name": "grid",
@@ -13378,11 +13378,8 @@
                                                                 "description": "The gatekeeper of the grid of its region, as the viewer wrote it"
                                                             },
                                                             "picture": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ],
-                                                                "description": "The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one"
+                                                                "type": "string",
+                                                                "description": "The UUID of the asset of its picture, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)"
                                                             }
                                                         }
                                                     }
@@ -13503,11 +13500,8 @@
                                                                 "description": "The link a viewer follows to go there (hop://host:port/Region%20Name/x/y/z)"
                                                             },
                                                             "picture": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ],
-                                                                "description": "The UUID of the asset of its picture (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one"
+                                                                "type": "string",
+                                                                "description": "The UUID of the asset of its picture, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)"
                                                             },
                                                             "created": {
                                                                 "type": "integer",
@@ -13609,11 +13603,8 @@
                                                                 "description": "The title the avatar wears in the group (the one of its role), null without one"
                                                             },
                                                             "picture": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ],
-                                                                "description": "The UUID of the asset of the insignia of the group (`/grids/{grid}/assets/{picture}.jpg` shows it), null without one"
+                                                                "type": "string",
+                                                                "description": "The UUID of the asset of the insignia of the group, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)"
                                                             }
                                                         }
                                                     }
@@ -18827,6 +18818,10 @@
                                 ],
                                 "description": "The UUID of its map tile"
                             },
+                            "picture": {
+                                "type": "string",
+                                "description": "Its picture: its map tile, else the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)"
+                            },
                             "avatars": {
                                 "type": [
                                     "integer",
@@ -19065,6 +19060,10 @@
                                     "string",
                                     "null"
                                 ]
+                            },
+                            "picture": {
+                                "type": "string",
+                                "description": "Its picture: its snapshot, else the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)"
                             },
                             "music": {
                                 "type": [
@@ -19916,18 +19915,12 @@
                                 "description": "The name its grid gives itself (`gridname` of its grid info, as the scheduler last asked it), null when it is not known"
                             },
                             "picture": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "description": "The picture of its parcel (an asset UUID), as the search knows it: by the name of the destination, else its landing point, else the only parcel of its region; null when none is known"
+                                "type": "string",
+                                "description": "The picture of its parcel (an asset UUID), as the search knows it: by the name of the destination, else its landing point, else the only parcel of its region; else the image of its title (`title-…`), shown at the same address"
                             },
                             "sectionPicture": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "description": "The picture of its section (`category`): the first of its destinations that has one; null when none has (the site shows its placeholder)"
+                                "type": "string",
+                                "description": "The picture of its section (`category`): the first of its destinations that has one, else the image of the name of the section"
                             }
                         }
                     },

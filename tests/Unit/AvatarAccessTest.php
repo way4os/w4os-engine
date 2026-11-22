@@ -886,7 +886,8 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
                 'position' => [10, 20, 30],
                 'teleport' => 'hop://play.example.org:8002/Welcome/10/20/30',
                 'gatekeeper' => null,
-                'picture' => null,
+                // No snapshot: the image of its name
+                'picture' => W4OS\Engine\Assets\TitleImage::id('The Garden'),
             ])
             ->and(array_column($classifieds->document['data'], 'id'))
             ->toBe(['c1'])
@@ -900,7 +901,7 @@ describe('The API, for the picks and the classifieds of an avatar', function () 
                 'parcel' => 'The Garden',
                 'position' => null,
                 'teleport' => 'hop://play.example.org:8002/Welcome',
-                'picture' => null,
+                'picture' => W4OS\Engine\Assets\TitleImage::id('Roses for sale'),
                 'created' => 1700000000,
                 'expires' => 1900000000,
             ])
@@ -926,7 +927,7 @@ describe('The API, for the groups of an avatar', function () {
             ->toBe(200)
             ->and($groups->document['data'])
             ->toBe([
-                ['type' => 'groups', 'id' => 'g2', 'attributes' => ['name' => 'Artists', 'title' => null, 'picture' => null]],
+                ['type' => 'groups', 'id' => 'g2', 'attributes' => ['name' => 'Artists', 'title' => null, 'picture' => W4OS\Engine\Assets\TitleImage::id('Artists')]],
                 [
                     'type' => 'groups',
                     'id' => 'g1',

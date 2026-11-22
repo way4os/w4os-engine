@@ -81,7 +81,7 @@ describe('The groups the search finds', function () {
             'id' => 'g1', 'name' => 'Builders', 'charter' => 'We build', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002',
             'founder' => '11111111-1111-1111-1111-111111111111', 'founderName' => 'Ada Love', 'founderPage' => null, 'members' => 3, 'open' => true, 'fee' => 10, 'rating' => 'moderate',
         ])->and(array_column($detail['roster'], 'name'))->toBe(['Ada Love', 'Bob Root'])
-            ->and(Group::find(group_grid(), 'g2')->detail()['picture'])->toBeNull()
+            ->and(Group::find(group_grid(), 'g2')->detail()['picture'])->toBe(W4OS\Engine\Assets\TitleImage::id('Garden builders'))
             ->and(Group::all(group_grid(), ['search' => 'builders'])->items()[0]->detail())->not->toHaveKey('roster');
     });
 

@@ -41,6 +41,11 @@ final class SearchPlace extends SearchResult
         return (string) ($this->row['landingpoint'] ?? '');
     }
 
+    protected static function pictureColumn(): ?string
+    {
+        return 'imageUUID';
+    }
+
     public function detail(): array
     {
         $category = (int) ($this->row['searchcategory'] ?? 0);
@@ -49,7 +54,7 @@ final class SearchPlace extends SearchResult
             'id' => $this->id(),
             'name' => $this->name(),
             'description' => trim((string) ($this->row['description'] ?? '')),
-            'picture' => self::picture($this->row['imageUUID'] ?? null),
+            'picture' => $this->picture(),
             'region' => $this->region(),
             'area' => isset($this->row['area']) ? (int) $this->row['area'] : null,
             'traffic' => (int) ($this->row['dwell'] ?? 0),
