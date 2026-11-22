@@ -936,7 +936,7 @@ msgstr "Connexion"
 
 msgctxt "start_avatar"
 msgid "Create your avatar"
-msgstr "Créer votre avatar"
+msgstr "Créez votre avatar"
 
 #, php-format
 msgctxt "start_avatar_done"
@@ -945,11 +945,11 @@ msgstr "Connecté comme %s"
 
 msgctxt "start_add_grid"
 msgid "Add the grid"
-msgstr "Ajouter la grille"
+msgstr "Ajoutez la grille"
 
 msgctxt "start_login"
 msgid "Log in"
-msgstr "Se connecter"
+msgstr "Connectez-vous"
 
 msgctxt "start_login_done"
 msgid "Enjoy!"
