@@ -22,6 +22,7 @@ use W4OS\Engine\Scheduling\Task;
  * asked, RemotePictures), and check its health (`health`, every 15 minutes, HealthCheck: a page shows the last check at once).
  *
  *     SearchTasks::add($scheduler, $environment, $config);
+ *     SearchTasks::add($scheduler, $grid->environment(), $grid->config(), $grid);   // a grid with no folder
  */
 final class SearchTasks
 {
@@ -106,15 +107,19 @@ final class SearchTasks
      * Add the tasks that the grid can run: the ones of the search need its search database. Each is the grid's own (its state, its
      * lock): an install that serves several grids reads each on its own schedule.
      *
-     * @param ?string $grid the nick of the grid, else the name of the folder of its config
+     * @param Grid|string|null $grid the grid (one with no folder too: the one a site makes of its description), or its nick; else the
+     *        name of the folder of its config
      */
-    public static function add(Scheduler $scheduler, Environment $environment, GridConfig $config, ?string $grid = null): void
+    public static function add(Scheduler $scheduler, Environment $environment, GridConfig $config, Grid|string|null $grid = null): void
     {
         $db = Connections::pdo($config, Database::Search);
         if ($db === null || !$db->connected) {
             return;
         }
-        $scope = (string) preg_replace('/[^A-Za-z0-9_-]/', '_', $grid ?? self::gridOf($config));
+        $folder = self::folderOf($config);
+        // The grid itself for the tasks that need it, else the one of the folder of its config
+        $at = $grid instanceof Grid ? static fn(): Grid => $grid : ($folder !== '' && is_dir($folder) ? static fn(): Grid => Grid::at($environment, $folder) : null);
+        $scope = (string) preg_replace('/[^A-Za-z0-9_-]/', '_', $grid instanceof Grid ? $grid->nick() : ($grid ?? self::gridOf($config)));
         $regions = Region::searchTable($db);
         $scheduler->add(
             new Task(
@@ -148,13 +153,12 @@ final class SearchTasks
                 $scope,
             ),
         );
-        $folder = self::folderOf($config);
-        $folder !== '' && is_dir($folder) && $scheduler->add(
+        $at !== null && $scheduler->add(
             new Task(
                 'guide-pictures',
                 self::PICTURES_EVERY,
-                static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($environment, $config, $folder): string {
-                    $found = Grid::at($environment, $folder)->refreshGuidePictures($config);
+                static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($config, $at): string {
+                    $found = $at()->refreshGuidePictures($config);
 
                     return "$found picture(s) of hypergrid destinations found";
                 }),
@@ -163,12 +167,12 @@ final class SearchTasks
             ),
         );
         // The health of the grid, checked in the background: a page shows the last check at once
-        $folder !== '' && is_dir($folder) && $scheduler->add(
+        $at !== null && $scheduler->add(
             new Task(
                 'health',
                 HealthCheck::EVERY,
-                static function () use ($environment, $config, $folder, $scheduler): string {
-                    $check = HealthCheck::refresh($environment, Grid::at($environment, $folder), $config, $scheduler->directory());
+                static function () use ($environment, $config, $at, $scheduler): string {
+                    $check = HealthCheck::refresh($environment, $at(), $config, $scheduler->directory());
 
                     return "health checked: {$check['level']}";
                 },
