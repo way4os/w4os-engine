@@ -21,7 +21,7 @@ The OpenSimulator Engine provides core functionality for managing OpenSim grids,
 **Don't install this directly!** Instead, choose a complete solution:
 
 - **[w4os CLI](https://github.com/way4os/w4os-cli)** - Command-line tools to install and manage your grid or standalone simulator. Includes this engine, web helpers and admin tools.
-- **[W4OS WordPress Plugin](https://github.com/GuduleLapointe/w4os/)** - Complete WordPress integration for OpenSim grids. **Best for:** Complete integration in a WordPress website.
+- **[W4OS WordPress Plugin](https://github.com/way4os/w4os-wp/)** - Complete WordPress integration for OpenSim grids. **Best for:** Complete integration in a WordPress website.
 - **[w4os helpers](https://github.com/way4os/w4os-helpers)** - Provides mainly helpers/ required by OpenSim grids to function properly, as well as minimal webui features. **Best for:** Separate helpers management, with minimal integration with the website.
 
 ## Project History
