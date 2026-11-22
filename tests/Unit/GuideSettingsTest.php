@@ -33,11 +33,13 @@ describe('The page of the guide', function () {
 });
 
 describe('The guide of a grid that sets no source', function () {
-    test('has no destination: no source, no guide', function () {
+    test('has the guide of 2do.directory, the default of its source', function () {
         $machine = new W4OS\Engine\Testing\Machine();
         $machine->http['https://2do.directory/destinations/guide'] = "Hypergrid\nPlace|hg.example.org:8002/Place\n";
+        $guide = W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->destinations();
 
-        expect(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->destinations())->toBe([]);
+        expect(array_keys($guide))->toBe(['Hypergrid'])
+            ->and(array_column($guide['Hypergrid'], 'name'))->toBe(['Place']);
     });
 
     test('gets the guide of 2do.directory when it is saved empty or switched on', function () {

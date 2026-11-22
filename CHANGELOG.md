@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (guide): a grid that sets no source has the guide of 2do.directory, the default of the setting
 - change (texts): the informal register, tu in French and ti in Welsh, as in the other languages
 - new (xml-rpc): XmlRpc::fault(), a fault the simulators only log, never an alert to the avatar
 - new (links): a grid alone, its login URI, adds itself to the viewer first (addgrid) and copies its exact address

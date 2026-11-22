@@ -1175,8 +1175,8 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
 
     /**
      * The destinations of the guide of the grid, by category: the file or the URL `GuideSource` of `[Helpers]` gives, "Name|Region URL"
-     * lines; none when it gives none. When the list cannot be read, the places its search knows: the popular places and the places
-     * shown in search, ten of each.
+     * lines; the guide of 2do.directory when it gives none (the default of the setting). When the list cannot be read, the places its
+     * search knows: the popular places and the places shown in search, ten of each.
      *
      * @param ?GridConfig $config the config of the grid, to find its search database (default: its folder)
      * @param bool $layout for the boards: the place in its own column and their layout hints kept (DestinationList::parse())
@@ -1184,12 +1184,10 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
      */
     public function destinations(?GridConfig $config = null, bool $layout = false): array
     {
-        // The text a description gives (SiteDescription), else the list its source gives; no source, no guide
+        // The text a description gives (SiteDescription), else the list its source gives, the default one when it gives none
         $text = $this->get('destinationsText');
-        $source = $this->setting('Helpers', 'GuideSource');
-        if (!(is_string($text) && $text !== '') && ($source === null || trim($source) === '')) {
-            return [];
-        }
+        $source = trim((string) $this->setting('Helpers', 'GuideSource'));
+        $source === '' && ($source = (string) \W4OS\Engine\Config\Settings::named('guideSource')['default']);
         $listed = DestinationList::parse(
             is_string($text) && $text !== '' ? $text : (string) DestinationList::read(
                 $source,
