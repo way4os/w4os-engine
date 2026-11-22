@@ -144,7 +144,8 @@ describe('the catalog of the texts of the sites', function () {
             'profile_tab_inworld', 'profile_tab_web', 'region_flag_hyperlink', 'region_flag_region_online', 'setting_welcome',
             'settings_menu_grid', 'status', 'unit_mb',
             // The web search: the words of the viewers, the same in this language
-            'web_search_name', 'web_search_region',
+            'classified_category_shopping', 'place_category_shopping', 'web_search_events', 'web_search_name', 'web_search_rating_adult', 'web_search_region',
+            'web_search_traffic',
         ],
         'fr_FR' => [
             'actions', 'asset_animation', 'asset_image_jpeg', 'asset_image_tga', 'asset_mesh', 'asset_script', 'asset_texture',
@@ -155,8 +156,8 @@ describe('the catalog of the texts of the sites', function () {
             'menu_admin', 'parcel_scripts', 'port_public', 'port_web', 'profile_tab_web', 'role_liaison', 'role_maintenance',
             'setting_guide_source', 'setting_welcome', 'shortcode_options', 'skill_architecture', 'total',
             // The web search: the words of the viewers, the same in this language
-            'classified_category_service', 'classified_category_shopping', 'event_category_commercial', 'event_category_discussion', 'event_category_sports', 'place_category_shopping', 'web_search_date', 'web_search_land_type',
-            'web_search_description',
+            'classified_category_service', 'event_category_discussion', 'event_category_sports', 'place_category_arts', 'place_category_shopping', 'web_search_date',
+            'web_search_day', 'web_search_description', 'web_search_land_type',
         ],
         'it_IT' => [
             'asset_mesh', 'asset_script', 'asset_texture', 'asset_texture_tga', 'column_file', 'column_presence_short',
@@ -186,6 +187,8 @@ describe('the catalog of the texts of the sites', function () {
             'count_scripts', 'email', 'filter_local', 'gloebit_sandbox', 'group_console', 'health_ok', 'health_site',
             'kind_backup', 'label_value', 'offline', 'online', 'parcel_scripts', 'port_web', 'profile_tab_feed', 'profile_tab_web',
             'region_flag_region_online', 'settings_menu_grid', 'skill_scripting', 'status', 'total', 'unit_mb',
+            // The web search: the words of the viewers, the same in this language
+            'web_search_name', 'web_search_traffic',
         ],
         ];
         foreach (Catalog::LOCALES as $locale) {

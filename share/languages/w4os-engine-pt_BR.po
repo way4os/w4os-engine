@@ -2118,8 +2118,8 @@ msgid "Places"
 msgstr "Lugares"
 
 msgctxt "web_search_land"
-msgid "Land for sale"
-msgstr "Terrenos à venda"
+msgid "Land Sales"
+msgstr "Vendas de terreno"
 
 msgctxt "web_search_events"
 msgid "Events"
@@ -2138,12 +2138,12 @@ msgid "Search"
 msgstr "Buscar"
 
 msgctxt "web_search_words"
-msgid "Words"
-msgstr "Palavras"
+msgid "Enter search terms"
+msgstr "Digite os termos de busca"
 
 msgctxt "web_search_name"
 msgid "Name"
-msgstr "Nome"
+msgstr "Name"
 
 #, php-format
 msgctxt "web_search_min_letters"
@@ -2155,7 +2155,7 @@ msgid "Category"
 msgstr "Categoria"
 
 msgctxt "web_search_any_category"
-msgid "Any category"
+msgid "Any Category"
 msgstr "Todas as categorias"
 
 msgctxt "web_search_ratings"
@@ -2179,52 +2179,48 @@ msgid "Type"
 msgstr "Tipo"
 
 msgctxt "web_search_land_any"
-msgid "All"
-msgstr "Todos"
+msgid "All Types"
+msgstr "Todos os tipos"
 
 msgctxt "web_search_land_mainland"
-msgid "Mainland"
-msgstr "Continente"
+msgid "For Sale - Mainland"
+msgstr "Venda no continente"
 
 msgctxt "web_search_land_estate"
-msgid "Estate"
-msgstr "Propriedade"
+msgid "For Sale - Estate"
+msgstr "Venda em região estate"
 
 msgctxt "web_search_price_max"
-msgid "Price at most"
-msgstr "Preço máximo"
+msgid "Price ≤"
+msgstr "Preço ≤"
 
 msgctxt "web_search_area_min"
-msgid "Area at least"
-msgstr "Área mínima"
+msgid "Area ≥"
+msgstr "Área ≥"
 
 msgctxt "web_search_when"
 msgid "When"
 msgstr "Quando"
 
 msgctxt "web_search_upcoming"
-msgid "Current and upcoming"
-msgstr "Em curso e futuros"
+msgid "In-Progress & Upcoming"
+msgstr "Em andamento e em breve"
 
 msgctxt "web_search_day"
-msgid "On a day"
-msgstr "Num dia"
+msgid "Date"
+msgstr "Data"
 
 msgctxt "web_search_previous_day"
-msgid "Previous day"
-msgstr "Dia anterior"
+msgid "Go back a day"
+msgstr "Voltar um dia"
 
 msgctxt "web_search_next_day"
-msgid "Next day"
-msgstr "Dia seguinte"
+msgid "Go forward a day"
+msgstr "Avançar um dia"
 
 msgctxt "web_search_nothing"
-msgid "Nothing found."
+msgid "None found."
 msgstr "Nada encontrado."
-
-msgctxt "web_search_ask"
-msgid "Say what you look for, then search."
-msgstr "Diga o que procura e depois busque."
 
 msgctxt "web_search_price"
 msgid "Price"
@@ -2236,7 +2232,7 @@ msgstr "Área"
 
 msgctxt "web_search_traffic"
 msgid "Traffic"
-msgstr "Tráfego"
+msgstr "Traffic"
 
 msgctxt "web_search_region"
 msgid "Region"
@@ -2247,8 +2243,8 @@ msgid "Date"
 msgstr "Data"
 
 msgctxt "web_search_duration"
-msgid "Duration"
-msgstr "Duração"
+msgid "Event Duration"
+msgstr "Duração do evento"
 
 msgctxt "web_search_sort"
 msgid "Sort by"
@@ -2263,8 +2259,8 @@ msgid "Time"
 msgstr "Hora"
 
 msgctxt "web_search_adult_content"
-msgid "Adult content"
-msgstr "Conteúdo adulto"
+msgid "Mature Content"
+msgstr "Conteúdo moderado"
 
 msgctxt "web_search_yes"
 msgid "Yes"
@@ -2275,7 +2271,7 @@ msgid "No"
 msgstr "Não"
 
 msgctxt "web_search_organizer"
-msgid "Organizer"
+msgid "Run By"
 msgstr "Organizador"
 
 msgctxt "web_search_location"
@@ -2283,19 +2279,19 @@ msgid "Location"
 msgstr "Local"
 
 msgctxt "web_search_entry_fee"
-msgid "Entry fee"
-msgstr "Entrada"
+msgid "Cover Charge"
+msgstr "Taxa de entrada"
 
 msgctxt "web_search_none"
-msgid "None"
-msgstr "Nenhum"
+msgid "none"
+msgstr "nenhum"
 
 msgctxt "web_search_description"
 msgid "Description"
 msgstr "Descrição"
 
 msgctxt "web_search_content_type"
-msgid "Content type"
+msgid "Content Type"
 msgstr "Tipo de conteúdo"
 
 msgctxt "web_search_creation_date"
@@ -2303,8 +2299,8 @@ msgid "Creation date"
 msgstr "Data de criação"
 
 msgctxt "web_search_listing_cost"
-msgid "Listing cost"
-msgstr "Custo do anúncio"
+msgid "Price for listing"
+msgstr "Preço do anúncio"
 
 msgctxt "web_search_rating"
 msgid "Rating"
@@ -2312,14 +2308,14 @@ msgstr "Classificação"
 
 msgctxt "web_search_next"
 msgid "Next"
-msgstr "Próximos"
+msgstr "Avançar"
 
 msgctxt "web_search_previous"
-msgid "Previous"
-msgstr "Anteriores"
+msgid "Back"
+msgstr "Voltar"
 
 msgctxt "place_category_arts"
-msgid "Arts and Culture"
+msgid "Arts & Culture"
 msgstr "Arte e cultura"
 
 msgctxt "place_category_business"
@@ -2328,7 +2324,7 @@ msgstr "Negócios"
 
 msgctxt "place_category_educational"
 msgid "Educational"
-msgstr "Educativo"
+msgstr "Educação"
 
 msgctxt "place_category_gaming"
 msgid "Gaming"
@@ -2340,10 +2336,10 @@ msgstr "Ponto de encontro"
 
 msgctxt "place_category_newcomer"
 msgid "Newcomer Friendly"
-msgstr "Para novatos"
+msgstr "Amigável para iniciantes"
 
 msgctxt "place_category_parks"
-msgid "Parks and Nature"
+msgid "Parks & Nature"
 msgstr "Parques e natureza"
 
 msgctxt "place_category_residential"
@@ -2356,7 +2352,7 @@ msgstr "Compras"
 
 msgctxt "place_category_other"
 msgid "Other"
-msgstr "Outro"
+msgstr "Outros"
 
 msgctxt "place_category_rental"
 msgid "Rental"
@@ -2384,7 +2380,7 @@ msgstr "Vida noturna/Entretenimento"
 
 msgctxt "event_category_games"
 msgid "Games/Contests"
-msgstr "Jogos/Concursos"
+msgstr "Jogos/Competições"
 
 msgctxt "event_category_pageants"
 msgid "Pageants"
@@ -2400,11 +2396,11 @@ msgstr "Arte e cultura"
 
 msgctxt "event_category_charity"
 msgid "Charity/Support Groups"
-msgstr "Caridade/Grupos de apoio"
+msgstr "Grupos de caridade/suporte"
 
 msgctxt "event_category_miscellaneous"
 msgid "Miscellaneous"
-msgstr "Diversos"
+msgstr "Outros"
 
 msgctxt "classified_category_shopping"
 msgid "Shopping"
@@ -2420,11 +2416,11 @@ msgstr "Aluguel de imóvel"
 
 msgctxt "classified_category_attraction"
 msgid "Special Attraction"
-msgstr "Atração especial"
+msgstr "Atrações especiais"
 
 msgctxt "classified_category_new_products"
 msgid "New Products"
-msgstr "Novos produtos"
+msgstr "Produtos novos"
 
 msgctxt "classified_category_employment"
 msgid "Employment"
@@ -2436,7 +2432,7 @@ msgstr "Procura-se"
 
 msgctxt "classified_category_service"
 msgid "Service"
-msgstr "Serviço"
+msgstr "Serviços"
 
 msgctxt "classified_category_personal"
 msgid "Personal"

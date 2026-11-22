@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- update (texts): the web search in the words of the viewers (Firestorm), in each language it has; no obvious instruction
 - new (texts): Next and Previous, the pages of the results of the web search, in every language
 - new (texts): the columns and the details of the web search, as the viewers show them, in every language
 - fix (search): the viewers no longer list a classified that has expired, as the web search

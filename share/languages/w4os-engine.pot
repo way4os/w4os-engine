@@ -1885,7 +1885,7 @@ msgid "Places"
 msgstr ""
 
 msgctxt "web_search_land"
-msgid "Land for sale"
+msgid "Land Sales"
 msgstr ""
 
 msgctxt "web_search_events"
@@ -1905,7 +1905,7 @@ msgid "Search"
 msgstr ""
 
 msgctxt "web_search_words"
-msgid "Words"
+msgid "Enter search terms"
 msgstr ""
 
 msgctxt "web_search_name"
@@ -1922,7 +1922,7 @@ msgid "Category"
 msgstr ""
 
 msgctxt "web_search_any_category"
-msgid "Any category"
+msgid "Any Category"
 msgstr ""
 
 msgctxt "web_search_ratings"
@@ -1946,23 +1946,23 @@ msgid "Type"
 msgstr ""
 
 msgctxt "web_search_land_any"
-msgid "All"
+msgid "All Types"
 msgstr ""
 
 msgctxt "web_search_land_mainland"
-msgid "Mainland"
+msgid "For Sale - Mainland"
 msgstr ""
 
 msgctxt "web_search_land_estate"
-msgid "Estate"
+msgid "For Sale - Estate"
 msgstr ""
 
 msgctxt "web_search_price_max"
-msgid "Price at most"
+msgid "Price ≤"
 msgstr ""
 
 msgctxt "web_search_area_min"
-msgid "Area at least"
+msgid "Area ≥"
 msgstr ""
 
 msgctxt "web_search_when"
@@ -1970,27 +1970,23 @@ msgid "When"
 msgstr ""
 
 msgctxt "web_search_upcoming"
-msgid "Current and upcoming"
+msgid "In-Progress & Upcoming"
 msgstr ""
 
 msgctxt "web_search_day"
-msgid "On a day"
+msgid "Date"
 msgstr ""
 
 msgctxt "web_search_previous_day"
-msgid "Previous day"
+msgid "Go back a day"
 msgstr ""
 
 msgctxt "web_search_next_day"
-msgid "Next day"
+msgid "Go forward a day"
 msgstr ""
 
 msgctxt "web_search_nothing"
-msgid "Nothing found."
-msgstr ""
-
-msgctxt "web_search_ask"
-msgid "Say what you look for, then search."
+msgid "None found."
 msgstr ""
 
 msgctxt "web_search_price"
@@ -2014,7 +2010,7 @@ msgid "Date"
 msgstr ""
 
 msgctxt "web_search_duration"
-msgid "Duration"
+msgid "Event Duration"
 msgstr ""
 
 msgctxt "web_search_sort"
@@ -2030,7 +2026,7 @@ msgid "Time"
 msgstr ""
 
 msgctxt "web_search_adult_content"
-msgid "Adult content"
+msgid "Mature Content"
 msgstr ""
 
 msgctxt "web_search_yes"
@@ -2042,7 +2038,7 @@ msgid "No"
 msgstr ""
 
 msgctxt "web_search_organizer"
-msgid "Organizer"
+msgid "Run By"
 msgstr ""
 
 msgctxt "web_search_location"
@@ -2050,11 +2046,11 @@ msgid "Location"
 msgstr ""
 
 msgctxt "web_search_entry_fee"
-msgid "Entry fee"
+msgid "Cover Charge"
 msgstr ""
 
 msgctxt "web_search_none"
-msgid "None"
+msgid "none"
 msgstr ""
 
 msgctxt "web_search_description"
@@ -2062,7 +2058,7 @@ msgid "Description"
 msgstr ""
 
 msgctxt "web_search_content_type"
-msgid "Content type"
+msgid "Content Type"
 msgstr ""
 
 msgctxt "web_search_creation_date"
@@ -2070,7 +2066,7 @@ msgid "Creation date"
 msgstr ""
 
 msgctxt "web_search_listing_cost"
-msgid "Listing cost"
+msgid "Price for listing"
 msgstr ""
 
 msgctxt "web_search_rating"
@@ -2082,11 +2078,11 @@ msgid "Next"
 msgstr ""
 
 msgctxt "web_search_previous"
-msgid "Previous"
+msgid "Back"
 msgstr ""
 
 msgctxt "place_category_arts"
-msgid "Arts and Culture"
+msgid "Arts & Culture"
 msgstr ""
 
 msgctxt "place_category_business"
@@ -2110,7 +2106,7 @@ msgid "Newcomer Friendly"
 msgstr ""
 
 msgctxt "place_category_parks"
-msgid "Parks and Nature"
+msgid "Parks & Nature"
 msgstr ""
 
 msgctxt "place_category_residential"
