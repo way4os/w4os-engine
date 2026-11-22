@@ -660,6 +660,8 @@ class Health
                 if ($result !== null && !isset($row['level']) && !isset($row['skip'])) {
                     $verdict += self::expectation($row);
                     $location = !empty($row['stay']) ? $result['redirect'] : $result['effective'];
+                    // The redirections of the same site on the way (a slash taken away) lead where it sends to, as the other rows follow theirs
+                    !empty($row['stay']) && ($row['leadsTo'] ?? '') !== '' && $location !== '' && ($location = self::onSite((string) ($row['probe'] ?? $row['url']), $location, $timeout));
                     $asked = (string) ($row['probe'] ?? $row['url']);
                     $location !== '' && rtrim($location, '/') !== rtrim($asked, '/') && ($verdict['location'] = $location);
                     // A page that does not show the block it must is wrong, whatever it answers
@@ -690,6 +692,29 @@ class Health
         }
 
         return $groups;
+    }
+
+    /**
+     * Where a redirection of an address leads, its next ones followed while they stay on the site of the address (its scheme, host
+     * and port), a few at most: the last address of that site, or the first one of another.
+     */
+    private static function onSite(string $asked, string $location, float $timeout): string
+    {
+        $site = static fn(string $url): string => strtolower((string) parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . ':' . (parse_url($url, PHP_URL_PORT) ?? ''));
+        if ($site($location) !== $site($asked)) {
+            return $location;
+        }
+        for ($hop = 0; $hop < 5; ++$hop) {
+            $handle = self::handle(['url' => $location, 'stay' => true], $timeout);
+            curl_exec($handle);
+            $next = (string) curl_getinfo($handle, CURLINFO_REDIRECT_URL);
+            if ($next === '' || $site($next) !== $site($asked)) {
+                return $next !== '' ? $next : $location;
+            }
+            $location = $next;
+        }
+
+        return $location;
     }
 
     /**

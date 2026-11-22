@@ -18,6 +18,9 @@ function code_server(int $workers = 1): array
         if ($path === "redirect") { header("Location: /200", true, 308); return; }
         if ($path === "to-register") { header("Location: http://" . $_SERVER["HTTP_HOST"] . "/register?return=profile", true, 302); return; }
         if ($path === "elsewhere") { header("Location: /200", true, 302); return; }
+        if ($path === "profile-slash") { header("Location: /profile-chain", true, 301); return; }
+        if ($path === "profile-chain") { header("Location: /to-register", true, 301); return; }
+        if (str_starts_with($path, "chain-away")) { header("Location: /elsewhere", true, 301); return; }
         if ($path === "redirect404") { header("Location: /404", true, 308); return; }
         if ($path === "get_grid_info") { header("Content-Type: text/xml"); echo "<gridinfo><gridname>Alpha</gridname><login>http://play.example.org:8002/</login></gridinfo>"; return; }
         if ($path === "busy") { $f = __DIR__ . "/busy"; $h = fopen($f, "c+"); flock($h, LOCK_EX); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h) ?: "0 0") + [0, 0]); $now++; $max = max($max, $now); ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); usleep(300000); flock($h, LOCK_EX); rewind($h); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h)) + [0, 0]); $now--; ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); return; }
@@ -313,10 +316,17 @@ describe('The profile the grid tells', function () {
         ])), null, 'file')['get_grid_info']['rows'];
         $site = array_column($ask($url('to-register/[AGENT_NAME]'), false), null, 'label')['web_profile_url'];
         $helpers = array_column($ask($url('418/[AGENT_NAME]'), true), null, 'label')['web_profile_url'];
+        // The redirections of the site on the way (a slash taken away), the registration at the end
+        $chain = array_column($ask($url('profile-slash/[AGENT_NAME]'), false), null, 'label')['web_profile_url'];
+        $away = array_column($ask($url('chain-away/[AGENT_NAME]'), false), null, 'label')['web_profile_url'];
         proc_terminate($process);
 
         expect($site)
             ->toMatchArray(['level' => 'ok', 'status' => '302', 'expectedStatus' => '3xx', 'expectedLocation' => $url('register')])
+            ->and($chain)
+            ->toMatchArray(['level' => 'ok', 'status' => '301', 'expectedLocation' => $url('register'), 'location' => $url('register?return=profile')])
+            ->and($away)
+            ->toMatchArray(['level' => 'error', 'location' => $url('200')])
             ->and($helpers)
             ->toMatchArray(['level' => 'ok', 'status' => '418']);
     });
