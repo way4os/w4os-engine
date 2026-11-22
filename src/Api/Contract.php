@@ -529,7 +529,7 @@ final class Contract
                 'open' => ['boolean', 'Anyone can join'],
                 'fee' => ['integer', 'The fee to join'],
                 'rating' => ['string', 'Its content: general or moderate'],
-                'roster' => ['array', 'Its members a role shows, by name (a group asked by its id): `id`, `name`, `title`, `online`, `login` (Unix time, null unknown), `page` their web profile'],
+                'roster' => ['array', 'Its members a role shows, by name (a group asked by its id): `id`, `name`, `title`, `online`, `login` (Unix time, null unknown), `status` (`online`, else the day they last came, YYYY-MM-DD), `page` their web profile'],
             ],
             'writable' => [],
         ],

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (groups): their members a table field, as w4os-views shows them; the rules of the translations in DEVELOPERS.md
 - fix (texts): the search button in French is the verb of the viewer, Rechercher
 - new (search): the kinds of the viewers' search as models, listed and read at /grids/{grid}/search/{kind}
 - update (texts): No results, the web search that found nothing, in every language

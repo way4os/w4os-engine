@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: a0569a0
+  version: 74185fc
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -4781,27 +4781,27 @@ paths:
           -
             name: roster
             label: web_search_members
-            type: records
+            type: table
             group: group
             readOnly: true
-            parts:
+            columns:
               -
-                - name
-                - web_search_member
-                - link
-                -
-                  link: page
+                name: name
+                label: web_search_member
+                type: link
+                link: page
               -
-                - title
-                - web_search_title
-                - text
+                name: title
+                label: web_search_title
+                type: text
               -
-                - login
-                - web_search_status
-                - date
-                -
-                  online: online
-                  onlineLabel: web_search_online
+                name: status
+                label: web_search_status
+                type: text
+                values:
+                  -
+                    value: online
+                    label: web_search_online
           -
             name: open
             label: web_search_open_enrollment
@@ -13358,7 +13358,7 @@ components:
               description: 'Its content: general or moderate'
             roster:
               type: array
-              description: 'Its members a role shows, by name (a group asked by its id): `id`, `name`, `title`, `online`, `login` (Unix time, null unknown), `page` their web profile'
+              description: 'Its members a role shows, by name (a group asked by its id): `id`, `name`, `title`, `online`, `login` (Unix time, null unknown), `status` (`online`, else the day they last came, YYYY-MM-DD), `page` their web profile'
         links:
           type: object
           properties:

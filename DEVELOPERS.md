@@ -50,6 +50,11 @@ The addresses are in the contract (`docs/api/`), with the format OpenSimulator a
 
 ## Translations
 
+- A text is a key with its English default (the key is its `msgctxt` in the `.po` files), never raw English: one English word can take two translations (`search`, the verb of a button; `search_title`, the noun of a page).
+- The bridges (the helpers, the plugin, w4os-wp) take every text they share from this catalog by its key, and define only their own.
+- A text that mirrors the viewer takes the viewer's own wording, from Firestorm's `indra/newview/skins/default/xui/<lang>/`.
+- A page or a catalog is translated as a whole with the glossary of its language below, never string by string.
+
 The texts of the websites of a grid are written in English in `W4OS\Engine\I18n\Catalog::MESSAGES`, each with its key; the bridges know them by these keys, so a key does not change. `composer translations` (gettext tools: `msgmerge`) makes `share/languages/w4os-engine.pot` from it and merges every `.po` with it: a new text, or one whose English changed, is left to translate (Poedit, Weblate), its old translation kept obsolete (`#~`) in the file: msgmerge guesses nothing, its guesses are other meanings. A translation marked fuzzy by hand is given to the sites, unless they ask `fuzzy: false`. A test fails when the .pot is not the one of `MESSAGES`, when a problem code of `Problem::CODES` has no text, or when a text is not translated (or fuzzy) in a language: a new text lands translated in every language of `Catalog::LOCALES` (with English, the seven of the suite: en, de, fr, cy, it, nl, pt-BR). A translation left as the English text is listed in the test as reviewed (a name, a file, a format, or the same word in that language), and the words of another meaning met before (Hafen for a port, raster or grade for the grid, an assistant for the helpers, visualiseur for the viewer) are refused; a text that says viewer or helpers says them in every language.
 
 A new language is an entry of `Catalog::LOCALES`, then `composer translations`. `--seed` fills the texts not translated yet from other gettext files with the same English text, word for word (no guess): the .po files were seeded from w4os and the helpers this way (then the other translations of the Grav plugin; every translation is to be reviewed, in the context of the sites):

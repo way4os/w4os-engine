@@ -80,6 +80,7 @@ final class Group extends Model
             'rating' => (int) ($this->row['MaturePublish'] ?? 0) === 1 ? 'moderate' : 'general',
         ] + (empty($this->row['found']) ? [] : ['roster' => array_map(fn(array $m): array => $m + [
             'page' => Avatar::profilePage($this->config, $m['name']),
+            'status' => $m['online'] ? 'online' : ($m['login'] === null ? '' : gmdate('Y-m-d', $m['login'])),
         ], $this->members())]);
     }
 
@@ -203,11 +204,11 @@ final class Group extends Model
                 ItemForm::shown('id', 'web_search_group_key', 'text', 'group'),
                 ItemForm::shown('founderName', 'web_search_founder', 'link', 'group', ['link' => 'founderPage', 'empty' => 'web_search_none']),
                 ItemForm::shown('charter', 'web_search_charter', 'text', 'group'),
-                ItemForm::shown('roster', 'web_search_members', 'records', 'group', ['parts' => [
-                    ['name', 'web_search_member', 'link', ['link' => 'page']],
-                    ['title', 'web_search_title', 'text'],
-                    // In the world (the text of `onlineLabel`), else the day they last came
-                    ['login', 'web_search_status', 'date', ['online' => 'online', 'onlineLabel' => 'web_search_online']],
+                ItemForm::shown('roster', 'web_search_members', 'table', 'group', ['columns' => [
+                    Listing::column('name', 'web_search_member', 'link', more: ['link' => 'page']),
+                    Listing::column('title', 'web_search_title'),
+                    // In the world, else the day they last came, as the viewers show it
+                    Listing::column('status', 'web_search_status', more: ['values' => Listing::values(['online' => 'web_search_online'])]),
                 ]]),
                 ItemForm::shown('open', 'web_search_open_enrollment', 'boolean', 'group'),
                 ItemForm::shown('fee', 'web_search_join_fee', 'number', 'group'),

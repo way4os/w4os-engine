@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "a0569a0",
+        "version": "74185fc",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -6747,32 +6747,32 @@
                         {
                             "name": "roster",
                             "label": "web_search_members",
-                            "type": "records",
+                            "type": "table",
                             "group": "group",
                             "readOnly": true,
-                            "parts": [
-                                [
-                                    "name",
-                                    "web_search_member",
-                                    "link",
-                                    {
-                                        "link": "page"
-                                    }
-                                ],
-                                [
-                                    "title",
-                                    "web_search_title",
-                                    "text"
-                                ],
-                                [
-                                    "login",
-                                    "web_search_status",
-                                    "date",
-                                    {
-                                        "online": "online",
-                                        "onlineLabel": "web_search_online"
-                                    }
-                                ]
+                            "columns": [
+                                {
+                                    "name": "name",
+                                    "label": "web_search_member",
+                                    "type": "link",
+                                    "link": "page"
+                                },
+                                {
+                                    "name": "title",
+                                    "label": "web_search_title",
+                                    "type": "text"
+                                },
+                                {
+                                    "name": "status",
+                                    "label": "web_search_status",
+                                    "type": "text",
+                                    "values": [
+                                        {
+                                            "value": "online",
+                                            "label": "web_search_online"
+                                        }
+                                    ]
+                                }
                             ]
                         },
                         {
@@ -19252,7 +19252,7 @@
                             },
                             "roster": {
                                 "type": "array",
-                                "description": "Its members a role shows, by name (a group asked by its id): `id`, `name`, `title`, `online`, `login` (Unix time, null unknown), `page` their web profile"
+                                "description": "Its members a role shows, by name (a group asked by its id): `id`, `name`, `title`, `online`, `login` (Unix time, null unknown), `status` (`online`, else the day they last came, YYYY-MM-DD), `page` their web profile"
                             }
                         }
                     },
