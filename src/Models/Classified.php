@@ -90,7 +90,8 @@ final class Classified extends SearchResult
     {
         return new Listing(
             [
-                Listing::column('name', 'web_search_name', sort: 'name'),
+                // Its picture beside its name, the head of its page
+                Listing::column('name', 'web_search_name', sort: 'name', more: ['picture' => 'picture', 'default' => 'place']),
                 Listing::column('price', 'web_search_price', 'number', 'price'),
             ],
             [self::categoryFilter(SearchFilters::CLASSIFIED_CATEGORIES, 'classified_category'), self::ratingFilter()],

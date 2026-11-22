@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "74185fc",
+        "version": "0bd9632",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -6430,7 +6430,33 @@
                             "label": "web_search_account",
                             "type": "role",
                             "group": "person",
-                            "readOnly": true
+                            "readOnly": true,
+                            "values": [
+                                {
+                                    "value": "resident",
+                                    "label": "role_resident"
+                                },
+                                {
+                                    "value": "god-like",
+                                    "label": "role_god_like"
+                                },
+                                {
+                                    "value": "customer-service",
+                                    "label": "role_customer_service"
+                                },
+                                {
+                                    "value": "liaison",
+                                    "label": "role_liaison"
+                                },
+                                {
+                                    "value": "god",
+                                    "label": "role_god"
+                                },
+                                {
+                                    "value": "maintenance",
+                                    "label": "role_maintenance"
+                                }
+                            ]
                         },
                         {
                             "name": "partnerName",
@@ -6962,6 +6988,8 @@
                             "label": "web_search_name",
                             "type": "text",
                             "sort": "name",
+                            "picture": "picture",
+                            "default": "place",
                             "bare": false,
                             "priority": 1
                         },
@@ -7204,6 +7232,8 @@
                     "actions": [],
                     "header": {
                         "title": "name",
+                        "picture": "picture",
+                        "default": "place",
                         "indicators": []
                     }
                 },
@@ -7370,6 +7400,8 @@
                             "label": "web_search_name",
                             "type": "text",
                             "sort": "name",
+                            "picture": "picture",
+                            "default": "place",
                             "bare": false,
                             "priority": 1
                         },
@@ -7640,6 +7672,8 @@
                     "actions": [],
                     "header": {
                         "title": "name",
+                        "picture": "picture",
+                        "default": "place",
                         "indicators": []
                     }
                 },
@@ -8226,6 +8260,8 @@
                             "label": "web_search_name",
                             "type": "text",
                             "sort": "name",
+                            "picture": "picture",
+                            "default": "place",
                             "bare": false,
                             "priority": 1
                         },
@@ -8477,6 +8513,8 @@
                     "actions": [],
                     "header": {
                         "title": "name",
+                        "picture": "picture",
+                        "default": "place",
                         "indicators": []
                     }
                 },

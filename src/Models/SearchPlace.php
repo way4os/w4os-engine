@@ -89,7 +89,8 @@ final class SearchPlace extends SearchResult
     {
         return new Listing(
             [
-                Listing::column('name', 'web_search_name', sort: 'name'),
+                // Its picture beside its name, the head of its page
+                Listing::column('name', 'web_search_name', sort: 'name', more: ['picture' => 'picture', 'default' => 'place']),
                 Listing::column('traffic', 'web_search_traffic', 'number', 'traffic'),
             ],
             [self::categoryFilter(SearchFilters::PLACE_CATEGORIES, 'place_category'), self::ratingFilter()],

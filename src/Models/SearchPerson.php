@@ -8,6 +8,7 @@ use W4OS\Engine\Config\GridConfig;
 use W4OS\Engine\Data\Collection;
 use W4OS\Engine\Data\Listing;
 use W4OS\Engine\Forms\ItemForm;
+use W4OS\Engine\I18n\Catalog;
 
 /**
  * A person of the search, as the People tab of the viewers finds and shows them to anyone: an avatar of the grid who published
@@ -119,7 +120,7 @@ final class SearchPerson extends Model
                 ItemForm::shown('name', 'web_search_name', 'text', 'person'),
                 ItemForm::shown('id', 'web_search_key', 'text', 'person'),
                 ItemForm::shown('born', 'web_search_born', 'date', 'person', ['age' => true]),
-                ItemForm::shown('account', 'web_search_account', 'role', 'person'),
+                ItemForm::shown('account', 'web_search_account', 'role', 'person', ['values' => Listing::values(array_combine(array_keys(Avatar::ROLES), array_map(Catalog::roleKey(...), array_keys(Avatar::ROLES))))]),
                 ItemForm::shown('partnerName', 'web_search_partner', 'link', 'person', ['link' => 'partnerPage', 'empty' => 'web_search_none']),
                 ItemForm::shown('about', 'web_search_about', 'text', 'person'),
                 ItemForm::shown('groups', 'web_search_groups', 'list', 'person', ['empty' => 'web_search_none']),
