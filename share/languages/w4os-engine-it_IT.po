@@ -2331,6 +2331,14 @@ msgctxt "web_search_rating"
 msgid "Rating"
 msgstr "Classificazione"
 
+msgctxt "web_search_next"
+msgid "Next"
+msgstr "Successivi"
+
+msgctxt "web_search_previous"
+msgid "Previous"
+msgstr "Precedenti"
+
 msgctxt "place_category_arts"
 msgid "Arts and Culture"
 msgstr "Arte e cultura"

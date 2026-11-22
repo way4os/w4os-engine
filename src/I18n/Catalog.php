@@ -636,6 +636,8 @@ final class Catalog
         'web_search_creation_date' => 'Creation date',
         'web_search_listing_cost' => 'Listing cost',
         'web_search_rating' => 'Rating',
+        'web_search_next' => 'Next',
+        'web_search_previous' => 'Previous',
         'place_category_arts' => 'Arts and Culture',
         'place_category_business' => 'Business',
         'place_category_educational' => 'Educational',

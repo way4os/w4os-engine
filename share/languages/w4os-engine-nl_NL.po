@@ -2328,6 +2328,14 @@ msgctxt "web_search_rating"
 msgid "Rating"
 msgstr "Classificatie"
 
+msgctxt "web_search_next"
+msgid "Next"
+msgstr "Volgende"
+
+msgctxt "web_search_previous"
+msgid "Previous"
+msgstr "Vorige"
+
 msgctxt "place_category_arts"
 msgid "Arts and Culture"
 msgstr "Kunst en cultuur"
