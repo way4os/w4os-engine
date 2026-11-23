@@ -3007,6 +3007,11 @@ msgid "missing: %s"
 msgstr ""
 
 #, php-format
+msgctxt "health_module_unconfigured"
+msgid "%s installed but not configured, off: %s to set"
+msgstr ""
+
+#, php-format
 msgctxt "health_matches_grid_info"
 msgid "matches %s of get_grid_info"
 msgstr ""

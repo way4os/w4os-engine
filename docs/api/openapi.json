@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "c0ca345",
+        "version": "aef1c26",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -14486,7 +14486,7 @@
                                                         },
                                                         "kind": {
                                                             "type": "string",
-                                                            "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`)",
+                                                            "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`), `module` (a module enabled for the install that a simulator does not set up, kept off at its start: `module`, `missing`, `fix`)",
                                                             "enum": [
                                                                 "address",
                                                                 "value",
@@ -14494,7 +14494,8 @@
                                                                 "requirement",
                                                                 "folder",
                                                                 "file",
-                                                                "option"
+                                                                "option",
+                                                                "module"
                                                             ]
                                                         },
                                                         "reason": {
@@ -14542,11 +14543,15 @@
                                                         },
                                                         "missing": {
                                                             "type": "array",
-                                                            "description": "The options of the grid the simulator misses (an option)"
+                                                            "description": "The options of the grid the simulator misses (an option), the settings it misses (\"[Gloebit] GLBKey\", a module)"
+                                                        },
+                                                        "module": {
+                                                            "type": "string",
+                                                            "description": "The module (a module): gloebit"
                                                         },
                                                         "fix": {
                                                             "type": "string",
-                                                            "description": "The operation that repairs it (an option): `POST /grids/{grid}/options/repair`"
+                                                            "description": "The operation that repairs it: `POST /grids/{grid}/options/repair` (an option), `PATCH /grids/{grid}/settings/economy` (Gloebit)"
                                                         },
                                                         "display": {
                                                             "type": "string",
@@ -14750,7 +14755,7 @@
                                                                                 },
                                                                                 "kind": {
                                                                                     "type": "string",
-                                                                                    "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`)",
+                                                                                    "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`), `module` (a module enabled for the install that a simulator does not set up, kept off at its start: `module`, `missing`, `fix`)",
                                                                                     "enum": [
                                                                                         "address",
                                                                                         "value",
@@ -14758,7 +14763,8 @@
                                                                                         "requirement",
                                                                                         "folder",
                                                                                         "file",
-                                                                                        "option"
+                                                                                        "option",
+                                                                                        "module"
                                                                                     ]
                                                                                 },
                                                                                 "reason": {
@@ -14806,11 +14812,15 @@
                                                                                 },
                                                                                 "missing": {
                                                                                     "type": "array",
-                                                                                    "description": "The options of the grid the simulator misses (an option)"
+                                                                                    "description": "The options of the grid the simulator misses (an option), the settings it misses (\"[Gloebit] GLBKey\", a module)"
+                                                                                },
+                                                                                "module": {
+                                                                                    "type": "string",
+                                                                                    "description": "The module (a module): gloebit"
                                                                                 },
                                                                                 "fix": {
                                                                                     "type": "string",
-                                                                                    "description": "The operation that repairs it (an option): `POST /grids/{grid}/options/repair`"
+                                                                                    "description": "The operation that repairs it: `POST /grids/{grid}/options/repair` (an option), `PATCH /grids/{grid}/settings/economy` (Gloebit)"
                                                                                 },
                                                                                 "display": {
                                                                                     "type": "string",

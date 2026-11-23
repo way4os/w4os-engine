@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (health): a module installed but not configured (Gloebit without its key) is a line of the grid's health, with its fix
 - fix (modules): Gloebit stays off for a simulator without GLBKey and GLBSecret, said at its start; it no longer kills it
 - fix (migrate): a simulator runs on the core of this install: the old [Launch] (BinDir, its names) is translated, never copied
 - fix (migrate): a data folder the plan cannot see into is said (run it as root), never taken for absent

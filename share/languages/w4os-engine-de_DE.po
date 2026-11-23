@@ -3382,6 +3382,11 @@ msgid "missing: %s"
 msgstr "fehlen: %s"
 
 #, php-format
+msgctxt "health_module_unconfigured"
+msgid "%s installed but not configured, off: %s to set"
+msgstr "%s installiert, aber nicht eingerichtet, aus: %s einzustellen"
+
+#, php-format
 msgctxt "health_matches_grid_info"
 msgid "matches %s of get_grid_info"
 msgstr "entspricht %s von get_grid_info"
@@ -4443,7 +4448,11 @@ msgid ""
 "{region} is out of {simulator}: its region file is {file} now (named back, "
 "the region is back). What it holds stays in the database of {simulator}. "
 "Give it to another simulator with: {command}"
-msgstr "{region} ist aus {simulator} herausgenommen: ihre Regionsdatei ist jetzt {file} (zurückbenannt, ist die Region wieder da). Was sie enthält, bleibt in der Datenbank von {simulator}. Einem anderen Simulator gibst du sie mit: {command}"
+msgstr ""
+"{region} ist aus {simulator} herausgenommen: ihre Regionsdatei ist jetzt "
+"{file} (zurückbenannt, ist die Region wieder da). Was sie enthält, bleibt in "
+"der Datenbank von {simulator}. Einem anderen Simulator gibst du sie mit: "
+"{command}"
 
 msgctxt "notice_install_account"
 msgid ""

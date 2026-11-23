@@ -132,6 +132,22 @@ final class HealthCheck
             },
             $grid->simulators(),
         )];
+        // The modules enabled for the install that a simulator does not set up: kept off at its start (Gloebit without its key)
+        $modules = $grid->environment()->layout->enabledModules();
+        $off = [];
+        foreach ($grid->simulators() as $simulator) {
+            foreach (\W4OS\Engine\Runtime\ModuleLinker::unconfigured($modules, \W4OS\Engine\Config\ConfigReader::expand($simulator->settings())) as $module => $missing) {
+                $off[] = [
+                    'label' => $simulator->slug(),
+                    'kind' => 'module',
+                    'module' => $module,
+                    'missing' => $missing,
+                    'level' => 'error',
+                    'status' => Health::say('health_module_unconfigured', [$module, implode(', ', $missing)]),
+                ] + (strtolower($module) === 'gloebit' ? ['fix' => 'PATCH /grids/{grid}/settings/economy'] : []);
+            }
+        }
+        $off === [] || ($groups[] = ['file' => 'modules', 'title' => '', 'rows' => $off]);
         $files = Health::files($config?->files() ?? []);
         $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
         // Each line its id: its file, its section, its setting, how it is asked

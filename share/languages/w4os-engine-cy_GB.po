@@ -3373,6 +3373,11 @@ msgid "missing: %s"
 msgstr "ar goll: %s"
 
 #, php-format
+msgctxt "health_module_unconfigured"
+msgid "%s installed but not configured, off: %s to set"
+msgstr "%s wedi'i osod ond heb ei ffurfweddu, i ffwrdd: %s i'w gosod"
+
+#, php-format
 msgctxt "health_matches_grid_info"
 msgid "matches %s of get_grid_info"
 msgstr "yn cyfateb i %s get_grid_info"
@@ -4440,7 +4445,10 @@ msgid ""
 "{region} is out of {simulator}: its region file is {file} now (named back, "
 "the region is back). What it holds stays in the database of {simulator}. "
 "Give it to another simulator with: {command}"
-msgstr "Mae {region} allan o {simulator}: ei ffeil rhanbarth yw {file} nawr (wedi'i hailenwi'n ôl, mae'r rhanbarth yn ôl). Mae'r hyn sydd ynddi'n aros yng nghronfa ddata {simulator}. Rhowch hi i efelychydd arall gyda: {command}"
+msgstr ""
+"Mae {region} allan o {simulator}: ei ffeil rhanbarth yw {file} nawr (wedi'i "
+"hailenwi'n ôl, mae'r rhanbarth yn ôl). Mae'r hyn sydd ynddi'n aros yng "
+"nghronfa ddata {simulator}. Rhowch hi i efelychydd arall gyda: {command}"
 
 msgctxt "notice_install_account"
 msgid ""
