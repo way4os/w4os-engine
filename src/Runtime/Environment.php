@@ -62,7 +62,8 @@ final class Environment
         return new self(
             $layout,
             new SystemProcessTable(),
-            new SystemLauncher(),
+            // Through the launch master of opensim.service when it runs: the instances are the service's, whoever starts them
+            new MasterLauncher(LaunchMaster::socket(), new SystemLauncher(), static fn(string $message) => $reporter->info($message)),
             new ConsoleFactory(),
             new SystemClock(),
             $reporter,
