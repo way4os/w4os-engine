@@ -51,6 +51,7 @@ final class SimulatorPlanner
             'current' => null, // the simulator, when it exists: its settings are the ones proposed
             'sibling' => null, // another simulator of the grid, whose database account is proposed
             'accounts' => null, // the accounts of the grid, null when they are not known here
+            'hasAccount' => null, // Closure(string $name): ?bool, whether a grid on another machine has the account (default: asks it)
             'nextPort' => null, // Closure(int $min): int, the first free port from there (default: Ports::next)
             'random' => null, // Closure(int $length, bool $letters): string (default: random_int)
         ];
@@ -290,6 +291,18 @@ final class SimulatorPlanner
             Grid::at($grid->environment(), $grid->directory())->simulatorNames() !== []
         ) {
             $problems['name'] = _('A standalone has one simulator, and it has it.');
+        }
+        // The owner of the estate is an account of the grid: a simulator whose owner it has not asks for it without end
+        $owner = trim((string) ($values['estate_owner'] ?? ''));
+        if (!isset($problems['estate_owner']) && $grid->isRemote() && $this->context['accounts'] === null && $owner !== '' && $owner !== '+') {
+            $has = $this->context['hasAccount'] !== null
+                ? ($this->context['hasAccount'])($owner)
+                : RobustGrid::hasAccount($grid->baseHostname(), $grid->privatePort(), $owner);
+            $has === false && ($problems['estate_owner'] = sprintf(
+                _('The grid %s has no avatar called %s: give the name of an avatar of the grid (made there first), the owner of the estate.'),
+                $grid->name(),
+                $owner,
+            ));
         }
 
         return $problems;

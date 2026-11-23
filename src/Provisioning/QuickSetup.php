@@ -1419,7 +1419,7 @@ final class QuickSetup
         if ($takeOver && ($owner = self::registeredOwner($grid, $region)) !== '') {
             $answers['avatar'] = $owner;
         }
-        $simulators = SimulatorPlanner::forGrid($grid, $database, $ui, null, $region);
+        $simulators = SimulatorPlanner::forGrid($grid, $database, $ui, null, $region)->with(array_intersect_key(self::$region, ['hasAccount' => 1]));
         $owner =
             ['estate_owner' => trim((string) ($answers['avatar'] ?? ''))] +
             array_intersect_key(

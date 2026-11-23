@@ -107,6 +107,25 @@ final class RobustGrid
         return is_string($body) && trim($body) === 'OK';
     }
 
+    /** Whether the grid has an account of this name (First Last): null when it does not answer. */
+    public static function hasAccount(string $host, int $port, string $name): ?bool
+    {
+        [$first, $last] = array_pad(preg_split('/\s+/', trim($name), 2) ?: [], 2, '');
+        $xml = self::ask($host, $port, ['METHOD' => 'getaccount', 'ScopeID' => self::NO_SCOPE, 'FirstName' => $first, 'LastName' => $last], 'accounts');
+        if ($xml === null) {
+            return null;
+        }
+        $previous = libxml_use_internal_errors(true);
+        $document = simplexml_load_string($xml);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        if ($document === false || !isset($document->result)) {
+            return null;
+        }
+
+        return \W4OS\Engine\Text\Uuid::isValid(trim((string) ($document->result->PrincipalID ?? '')));
+    }
+
     /** The name (First Last) of an account of the grid: false when it has none, null when it does not answer. */
     public static function accountName(string $host, int $port, string $uuid): string|false|null
     {

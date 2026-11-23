@@ -602,6 +602,7 @@ function quick_doubles(array $set = []): void
             'region' => [
                 'remoteHas' => static fn(string $name): ?bool => false,
                 'freePlace' => static fn(int $x, int $y, ?string $ignored): array => [$x, $y, true],
+                'hasAccount' => static fn(string $name): ?bool => true,
             ],
         ],
     );
@@ -1304,6 +1305,25 @@ describe('quick setup, the scenario', function () {
             ->toContain('Grid name:  Remote World', 'Login URI:  remote.example.org:8002')
             ->and(glob("{$machine->etc}/grids/remote/sims/*.ini"))
             ->toHaveCount(1);
+    });
+
+    test('asks again for an avatar the joined grid does not have: its simulator would ask for it without end', function () {
+        $machine = new Machine();
+        quick_core($machine);
+        quick_doubles(['region' => [
+            'remoteHas' => static fn(string $name): ?bool => false,
+            'freePlace' => static fn(int $x, int $y, ?string $ignored): array => [$x, $y, true],
+            'hasAccount' => static fn(string $name): ?bool => $name === 'Ada Love',
+        ]]);
+        $form = quick_until($machine, 'form', 'simulator');
+        $answers = ['login_uri' => 'remote.example.org:8002', 'private_port' => '', 'name' => 'Plaza'];
+        $unknown = quick_step($machine, $form, ['avatar' => 'Nobody Here'] + $answers);
+        $known = quick_step($machine, $form, ['avatar' => 'Ada Love'] + $answers);
+        quick_doubles();
+
+        expect($unknown['kind'])->toBe('form')
+            ->and($unknown['notice'])->toContain('Avatar name', 'The grid Remote World has no avatar called Nobody Here')
+            ->and($known['kind'])->toBe('review');
     });
 
     test('takes over a region the joined grid has already: its UUID, place and size, its owner the owner of the estate', function () {

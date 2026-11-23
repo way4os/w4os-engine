@@ -104,7 +104,7 @@ final class SetupApply
                 if ($own !== '' && trim((string) ($simulator['estate']['name'] ?? '')) === '') {
                     $answers['estate_name'] = "$own Estate";
                 }
-                $planner = $planner->with(['block' => self::block($grid, [...$foreign, ...$taken['ports']])]);
+                $planner = $planner->with(['block' => self::block($grid, [...$foreign, ...$taken['ports']])] + array_intersect_key(self::$robust, ['hasAccount' => 1]));
                 foreach ($planner->problems($answers) as $field => $message) {
                     $problems["simulators.$i.$field"] = $message;
                 }
