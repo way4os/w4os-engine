@@ -921,7 +921,7 @@ describe('The health in the contract', function () {
             ->and($row['level']['enum'])
             ->toBe(['ok', 'slow', 'error', 'unset', 'none'])
             ->and($row['kind']['enum'])
-            ->toBe(['address', 'value', 'secret', 'requirement', 'folder', 'file', 'option'])
+            ->toBe(['address', 'value', 'secret', 'requirement', 'folder', 'file', 'option', 'module'])
             ->and([Health::level($groups('ok', 'slow', 'error')), Health::level($groups('ok', 'slow')), Health::level($groups('ok', 'none')), Health::level($groups('none'))])
             ->toBe(['error', 'slow', 'ok', 'none']);
     });
