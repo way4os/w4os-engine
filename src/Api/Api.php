@@ -1208,9 +1208,11 @@ final class Api
         // Its grid moves into the layout of this install, its data with it: the account of this install runs it
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
         $results = $switch ? $planned->switch($this->environment, new NullUi()) : [];
-        $started = array_keys(array_filter($results, static fn($result): bool => !$result instanceof \W4OS\Engine\Exceptions\InstanceFailed));
+        $started = array_keys(array_filter($results, static fn($result): bool => $result instanceof \W4OS\Engine\Runtime\Outcome && $result !== \W4OS\Engine\Runtime\Outcome::Starting));
+        // Up and running, not answering yet when the delay was over, or failed with the error of its log
+        $starting = array_keys(array_filter($results, static fn($result): bool => $result === \W4OS\Engine\Runtime\Outcome::Starting));
         $failed = array_map(static fn(\W4OS\Engine\Exceptions\InstanceFailed $failure): string => $failure->getMessage(), array_filter($results, static fn($result): bool => $result instanceof \W4OS\Engine\Exceptions\InstanceFailed));
-        $document = $planned->document() + ($switch ? ['failed' => $failed] : []);
+        $document = $planned->document() + ($switch ? ['starting' => $starting, 'failed' => $failed] : []);
 
         return Response::document([
             'data' => [

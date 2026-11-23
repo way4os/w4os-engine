@@ -266,6 +266,27 @@ describe('Starting a simulator', function () {
             ->and(is_link("$addins/Gloebit.dll"))->toBeTrue();
     });
 
+    test('that waits at its console for an answer nothing gives is stopped and says why, never left waiting', function () {
+        $machine = new Machine();
+        $machine->launcher->behavior = function ($spec) use ($machine): void {
+            file_put_contents($machine->root . '/logs/alpha.log', "2026-11-23 22:53:18,163 ERROR [SCENE]: Region Plaza failed to load estate settings. Using defaults\n[LOAD REGIONS PLUGIN]: Done.\n", FILE_APPEND);
+            // What it prints on its console, the colors of the terminal in it
+            file_put_contents($spec->output, "Estate My Estate has no owner set.\n\e[6nEstate owner first name [Test]: ");
+        };
+        $failed = null;
+        try {
+            Grid::find($machine->environment, 'demo')->simulator('alpha')->start();
+        } catch (InstanceFailed $e) {
+            $failed = $e;
+        }
+
+        expect($failed?->reason)->toBe('console-prompt')
+            ->and($failed?->getMessage())->toContain('Estate owner first name [Test]', 'DefaultEstateOwnerName', 'failed to load estate settings')
+            ->and(Grid::find($machine->environment, 'demo')->simulator('alpha')->isRunning())->toBeFalse()
+            // Its wait is the delay at most, not minutes more
+            ->and($machine->clock->total())->toBeLessThan(10.0);
+    });
+
     test('is not started when its http port is taken: another simulator, the one of an older install, listens on it', function () {
         $machine = new Machine();
         $simulator = Grid::find($machine->environment, 'demo')->simulator('alpha');

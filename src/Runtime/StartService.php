@@ -27,6 +27,12 @@ final class StartService
     /** What a simulator says when a region could not be made: it stops loading, and runs on with no region up. */
     private const ABORTED = '/^.*(?:aborting startup|Registration of region with grid failed).*$/m';
 
+    /**
+     * What a simulator asks on its console that nothing answers: the owner of an estate that has none. Under the service no one reads
+     * its console; with a remote console, the questions of a first start (QUESTIONS) are not answered either.
+     */
+    private const PROMPTS = ['has no owner set', 'Estate owner first name', 'Estate owner last name'];
+
     /** What a region says once it is up: registered with its grid, then ready (scripts started). */
     public const REGION_UP = '/\[GRID SERVICE\]: Region (.+?) \([0-9a-f-]{36}.*registered at|\[RegionReady\]: Region "(.+?)" is ready/';
 
@@ -264,11 +270,14 @@ final class StartService
             }
         } else {
             $progress = new StartProgress($env, $instance, $log, $mark, $output);
-            // 5 when it asks for the owner of its estate without end, 6 when it gave up a region
-            $stuck = static function () use ($log, $mark): int {
+            // 5 when it asks for the owner of its estate without end, 6 when it gave up a region, 7 when it waits at its console for
+            // an answer nothing gives (its first output says it, never its log)
+            $prompts = '/' . implode('|', [...array_map(static fn(string $p): string => preg_quote($p, '/'), self::PROMPTS), ...($remote ? self::QUESTIONS : [])]) . '/';
+            $stuck = static function () use ($log, $mark, $output, $prompts): int {
                 $since = $log->since($mark);
+                $said = is_file($output) ? (string) file_get_contents($output) : '';
 
-                return preg_match(self::OWNER_LOOP, $since) === 1 ? 5 : (preg_match(self::ABORTED, $since) === 1 ? 6 : 0);
+                return preg_match(self::OWNER_LOOP, $since) === 1 ? 5 : (preg_match(self::ABORTED, $since) === 1 ? 6 : (preg_match($prompts, $said) === 1 ? 7 : 0));
             };
             $code = $remote
                 ? $this->waitLog($instance, $log, $mark, $progress, $stuck)
@@ -305,6 +314,19 @@ final class StartService
                     "Its log: {$log->path()}",
                     'region-failed',
                 );
+            case 7:
+                $this->abandon($instance);
+                $said = (string) preg_replace('/\e\[[0-9;]*[A-Za-z]/', '', is_file($output) ? (string) file_get_contents($output) : '');
+                // What it asked: the last lines of its output
+                $asked = implode(' ', array_slice(array_values(array_filter(array_map('trim', explode("\n", $said)), 'strlen')), -2));
+                $this->fail(
+                    $name,
+                    "$name stopped: it waited at its console for an answer nothing gives under the service ("
+                    . ($asked !== '' ? $asked : 'a question of a first start') . '). Its estate could not be read, or has no owner: check its estate service and its grid, or name its owner in [Estates] (DefaultEstateOwnerName) of ' . $instance->ini()
+                    . $this->errors($log, $mark),
+                    "Its log: {$log->path()}, its output: $output",
+                    'console-prompt',
+                );
             case 5:
                 $this->abandon($instance);
                 $owner = $instance instanceof OpenSimController ? (string) $instance->estateOwner() : '';
@@ -339,7 +361,7 @@ final class StartService
     {
         $env = $this->environment;
         $console = $remote ? null : $env->consoles->screen($instance->name());
-        for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
+        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             if (($code = $stuck()) !== 0) {
                 return $code;
             }
@@ -412,7 +434,7 @@ final class StartService
         $failed = [];
         $quiet = 0;
         $since = 0;
-        for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
+        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             $content = $log->since($mark);
             $before = $reported;
             foreach (array_keys($pending) as $class) {
@@ -453,7 +475,7 @@ final class StartService
      */
     private function waitLog(AbstractController $instance, LogFile $log, int $mark, StartProgress $progress, ?\Closure $stuck = null): int
     {
-        for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
+        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             if ($stuck !== null && ($code = $stuck()) !== 0) {
                 return $code;
             }
@@ -517,7 +539,7 @@ final class StartService
         StartProgress $progress,
         ?\Closure $stuck = null,
     ): array {
-        for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
+        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             if ($stuck !== null && ($code = $stuck()) !== 0) {
                 return [$code, ''];
             }
