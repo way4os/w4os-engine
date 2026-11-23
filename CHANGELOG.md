@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (migrate): a simulator runs on the core of this install: the old [Launch] (BinDir, its names) is translated, never copied
 - fix (migrate): a data folder the plan cannot see into is said (run it as root), never taken for absent
 - fix (migrate): the data folders of an install launched as its folder of config (kimbe.red) are found and moved
 - fix (migrate): the constants of the old config its kept settings use are written; an unresolved ${...} is refused

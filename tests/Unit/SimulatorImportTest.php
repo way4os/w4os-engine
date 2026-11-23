@@ -139,6 +139,27 @@ describe('A simulator imported', function () {
             ->toBe([]);
     });
 
+    test('runs on the core of this install, whatever executable and folders the [Launch] of the old one names', function () {
+        $machine = new Machine();
+        $source = old_install($machine);
+        // opensim-debian: an executable of mono, the folder of its core from its launcher, a kept setting that uses it
+        $text = str_replace("[Launch]\n", "[Launch]\nExecutable = OpenSim.exe\n", file_get_contents($source));
+        $text = str_replace("[Const]\n", "[Const]\nBinDirectory = \"\${Launch|BinDir}\"\n", $text);
+        file_put_contents($source, $text . "[AssetService]\nAssetLoaderArgs = \"\${Const|BinDirectory}/assets/AssetSets.xml\"\n");
+        $import = SimulatorImport::prepare($machine->environment, $source, 'demo');
+        $import->apply($machine->environment, new NullUi(), fake_dump());
+        $config = (string) file_get_contents($import->document()['config']);
+        $simulator = new \W4OS\Engine\Controllers\OpenSimController($machine->environment, $import->document()['config']);
+
+        expect($config)->not->toContain('${Launch|')
+            ->and($config)->not->toContain('OpenSim.exe')
+            ->and($simulator->core()?->bin())->toBe($machine->core . '/bin')
+            ->and($simulator->core()?->executable('OpenSim'))->toBe('OpenSim.dll')
+            // What the kept setting uses is the folder of the core it runs on now
+            ->and($config)->toContain('BinDirectory = "' . $machine->core . '/bin"')
+            ->and(\W4OS\Engine\Provisioning\Import\RobustImporter::unresolved($simulator->files()))->toBe([]);
+    });
+
     test('is refused when the grid has it, or one of its regions, already', function () {
         $machine = new Machine();
         SimulatorImport::prepare($machine->environment, old_install($machine), 'demo')->apply($machine->environment, new NullUi(), fake_dump());

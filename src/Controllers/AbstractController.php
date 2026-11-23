@@ -257,7 +257,9 @@ abstract class AbstractController implements Enablable
         $bin = '';
         foreach (['BinDirectory', 'BinDir'] as $name) {
             foreach (self::LAUNCH_SECTIONS as $section) {
-                $bin = trim((string) ($own[$section][$name] ?? '')) ?: $bin;
+                // A reference its config does not resolve (the launcher's) names no core
+                $value = trim((string) ($own[$section][$name] ?? ''), " \t\"");
+                $bin = $value !== '' && !str_contains($value, '${') ? $value : $bin;
             }
             if ($bin !== '') {
                 break;

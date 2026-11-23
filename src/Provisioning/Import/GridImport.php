@@ -195,7 +195,8 @@ final class GridImport
             $plan->enable = false;
             $plan->start = false;
             (new GridProvisioner($ui))->apply($plan, $environment);
-            file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations, $this->constants));
+            $launch = ['BinDir' => $plan->binDir, 'MachineName' => $plan->gridNick];
+            file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations, $this->constants, [], $launch));
             file_put_contents($this->reportPath(), $this->report());
             $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
             $this->data->apply($ui, $brought);

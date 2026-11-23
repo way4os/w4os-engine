@@ -295,7 +295,11 @@ final class SimulatorImport
             }
             $ui->note(sprintf(_('Copied the state of the scripts to %s'), $this->scriptsDirectory()));
         }
-        $text = RobustImporter::inject((string) file_get_contents($plan->iniPath()), $this->customizations, $this->constants);
+        // The constants the master of the grid gives every simulator are its own
+        $master = \W4OS\Engine\Provisioning\SimulatorMaster::path($plan->gridDir);
+        $defined = array_keys(is_file($master) ? (ConfigReader::load($master, [], false)['Const'] ?? []) : []);
+        $launch = ['BinDir' => $plan->binDir(), 'SimName' => $plan->slug, 'MachineName' => $plan->slug];
+        $text = RobustImporter::inject((string) file_get_contents($plan->iniPath()), $this->customizations, $this->constants, $defined, $launch);
         file_put_contents($plan->iniPath(), $text);
         file_put_contents($this->reportPath(), $this->report());
         $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));

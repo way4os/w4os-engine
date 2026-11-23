@@ -228,12 +228,16 @@ final class RobustImporter
 
     /**
      * Put the customizations into the config the kit wrote, in place, with the constants they use that it does not define: each as
-     * the original defines it ($constants, its [Const] as written), and the ones that definition uses in turn.
+     * the original defines it ($constants, its [Const] as written), and the ones that definition uses in turn. A constant the rest of
+     * the config defines ($defined: the master of a simulator) is left to it. What the original gets from its launcher ([Launch]: the
+     * folder of its core, its name) is the one of this install ($launch); a constant that needs another is not brought.
      *
      * @param list<array{section:string,key:string,value:string,unknown:bool,path?:bool}> $customizations
      * @param array<string,string> $constants the [Const] of the original, as written
+     * @param list<string> $defined the constants the files read with this one define already
+     * @param array<string,string> $launch what [Launch] is here: BinDir (the bin of the core it runs on), SimName, MachineName
      */
-    public static function inject(string $text, array $customizations, array $constants = []): string
+    public static function inject(string $text, array $customizations, array $constants = [], array $defined = [], array $launch = []): string
     {
         $ini = new IniEditor($text);
         $quoted = static fn(string $value): string => preg_match('/^(-?\d+(\.\d+)?|true|false)$/i', $value) === 1 ? $value : '"' . $value . '"';
@@ -244,8 +248,11 @@ final class RobustImporter
         while ($pending !== []) {
             preg_match_all('/\$\{Const\|([^}]+)\}/', (string) array_shift($pending), $used);
             foreach ($used[1] as $name) {
-                if ($ini->get('Const', $name) === null && isset($constants[$name])) {
-                    $value = trim($constants[$name], " \t\"");
+                if ($ini->get('Const', $name) === null && isset($constants[$name]) && !in_array($name, $defined, true)) {
+                    $value = (string) preg_replace_callback('/\$\{Launch\|([^}]+)\}/', static fn(array $m): string => $launch[$m[1]] ?? $m[0], trim($constants[$name], " \t\""));
+                    if (str_contains($value, '${Launch|')) {
+                        continue;
+                    }
                     $ini->set('Const', $name, $quoted($value));
                     $pending[] = $value;
                 }
