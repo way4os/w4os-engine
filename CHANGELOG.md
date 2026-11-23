@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (in place): a simulator is named by its ini without the grid's nick (w4osdemogrid_welcome: welcome), else its first region
 - fix (api): the engine API of a grid listens on a port of its block (8005 for 8002), kept with it; a served one is kept
 - new (import): a migration moves the data folders of the old install into the layout (copyData copies), named, never measured; moved back on failure
 - fix (import): a migration never keeps a place in the old install nor takes its owner

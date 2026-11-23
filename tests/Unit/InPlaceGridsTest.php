@@ -207,3 +207,24 @@ describe('A grid of an existing install registered in place', function () {
             ->and($reminders[1]['params'])->not->toHaveKey('command');
     })->skip(fn() => posix_geteuid() === 0, 'root writes everywhere');
 });
+
+describe('A simulator of an install in place', function () {
+    test('is named by its file without the nick of its grid, by its first region for an OpenSim.ini, else by its folder', function () {
+        $dir = test_tmp() . '/in-place-names-' . bin2hex(random_bytes(4));
+        mkdir("$dir/sims", 0o755, true);
+        mkdir("$dir/old/bin/Regions", 0o755, true);
+        mkdir("$dir/bare/bin", 0o755, true);
+        file_put_contents("$dir/sims/w4osdemogrid_welcome.ini", "[Network]\nhttp_listener_port = 3410\n");
+        file_put_contents("$dir/old/bin/OpenSim.ini", "[Startup]\nregionload_regionsdir = \"Regions\"\n");
+        file_put_contents("$dir/old/bin/Regions/Plaza.ini", "[Grand Plaza]\nLocation = 1000,1000\n");
+        file_put_contents("$dir/bare/bin/OpenSim.ini", "[Network]\nhttp_listener_port = 9000\n");
+
+        expect(InPlaceGrids::simulatorName("$dir/sims/w4osdemogrid_welcome.ini", 'w4osdemogrid'))->toBe('welcome')
+            ->and(InPlaceGrids::simulatorName("$dir/sims/w4osdemogrid_welcome.ini", 'W4osDemoGrid'))->toBe('welcome')
+            ->and(InPlaceGrids::simulatorName("$dir/sims/w4osdemogrid_welcome.ini"))->toBe('w4osdemogrid_welcome')
+            ->and(InPlaceGrids::simulatorName("$dir/old/bin/OpenSim.ini", 'oldgrid'))->toBe('Grand Plaza')
+            ->and(InPlaceGrids::simulatorName("$dir/bare/bin/OpenSim.ini"))->toBe('bare')
+            ->and(InPlaceGrids::sectionFor("$dir/old/bin/OpenSim.ini", [['file' => "$dir/sims/w4osdemogrid_welcome.ini"]], null, 'w4osdemogrid')['Simulators'])
+            ->toBe("welcome:$dir/sims/w4osdemogrid_welcome.ini");
+    });
+});

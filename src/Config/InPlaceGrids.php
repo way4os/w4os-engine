@@ -61,13 +61,38 @@ final class InPlaceGrids
     }
 
     /**
+     * The name of a simulator of an install, by its config: the name of its file without the nick of its grid before it
+     * (w4osdemogrid_welcome.ini: welcome), else, for an OpenSim.ini, the name of its first region, else its folder.
+     */
+    public static function simulatorName(string $file, string $nick = ''): string
+    {
+        $base = basename($file, '.ini');
+        if ($base !== '' && strcasecmp($base, 'OpenSim') !== 0) {
+            $short = $nick !== '' ? (string) preg_replace('/^' . preg_quote($nick, '/') . '[_.-]+/i', '', $base) : $base;
+
+            return $short !== '' ? $short : $base;
+        }
+        $regions = trim((string) (ConfigReader::expand(ConfigReader::load($file))['Startup']['regionload_regionsdir'] ?? ''), '"');
+        $regions = $regions === '' || str_starts_with($regions, '/') ? $regions : dirname($file) . "/$regions";
+        foreach ($regions !== '' ? (glob(rtrim($regions, '/') . '/*.ini') ?: []) : [] as $region) {
+            $name = (string) array_key_first(ConfigReader::file($region));
+            if (trim($name) !== '') {
+                return trim($name);
+            }
+        }
+
+        return basename(dirname($file, basename(dirname($file)) === 'bin' ? 2 : 1));
+    }
+
+    /**
      * The section that registers an existing install in place: its Robust config, its core (the folder above its bin), its
      * simulators (`short:ini`), disabled.
      *
      * @param list<array{file:string,name?:?string}> $simulators
+     * @param string $nick the nick of the grid, which the names of the files of its simulators may begin with
      * @return array<string,string>
      */
-    public static function sectionFor(string $robustIni, array $simulators, ?string $core = null): array
+    public static function sectionFor(string $robustIni, array $simulators, ?string $core = null, string $nick = ''): array
     {
         $robustIni = (string) (realpath($robustIni) ?: $robustIni);
         // The core: the one asked, else the one its config runs from ([Launch] BinDir, [Const] BinDirectory), else its folder
@@ -77,7 +102,7 @@ final class InPlaceGrids
         $entries = [];
         foreach ($simulators as $simulator) {
             $file = (string) (realpath((string) $simulator['file']) ?: $simulator['file']);
-            $short = \W4OS\Engine\Provisioning\Slug::slug((string) (($simulator['name'] ?? '') ?: basename(dirname($file, basename(dirname($file)) === 'bin' ? 2 : 1))));
+            $short = \W4OS\Engine\Provisioning\Slug::slug((string) (($simulator['name'] ?? '') ?: self::simulatorName($file, $nick)));
             $entries[] = "$short:$file";
         }
 

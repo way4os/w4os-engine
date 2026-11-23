@@ -1273,7 +1273,7 @@ final class Api
         // The nick of its config made a nick here, as for a migration
         $nick ??= \W4OS\Engine\Provisioning\Import\RobustImporter::defaultNick($raw);
         ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with --nick (nick)");
-        $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators, $core);
+        $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators, $core, (string) $nick);
         $known = \W4OS\Engine\Config\InPlaceGrids::section($conf, (string) $nick);
         // Its instances run as the owner of its files, its site served as it is: the suite takes their accounts, not its defaults
         [$owner, $accounts] = $forget ? ['', []] : $this->installAccounts($conf, $file);
