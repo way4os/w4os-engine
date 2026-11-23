@@ -51,11 +51,10 @@ final class OpenSim
     ): array {
         $environment ??= self::environment();
         $results = [];
-        foreach (self::resolve($environment, $targets, $results, $simulators) as $instance) {
-            $results[$instance->name()] = self::attempt(static fn(): Outcome => $instance->start());
-        }
+        $instances = self::resolve($environment, $targets, $results, $simulators);
 
-        return $results;
+        // The Robusts in turn, then the simulators launched together: the time of the start is the one of the slowest
+        return $results + (new \W4OS\Engine\Runtime\StartService($environment))->all($instances);
     }
 
     /**

@@ -2316,18 +2316,14 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     public function start(bool $simulators = false): array
     {
         $results = [];
-        $serving = false;
-        foreach ($this->instances($simulators) as $instance) {
-            try {
-                $results[$instance->name()] = $instance->start();
-                $serving = $serving || $instance instanceof RobustController || $this->isStandalone();
-            } catch (InstanceFailed $failed) {
-                $results[$instance->name()] = $failed;
-                if ($instance instanceof RobustController) {
-                    break;
-                }
-            }
-        }
+        $instances = $this->instances($simulators);
+        $robust = array_values(array_filter($instances, static fn(AbstractController $instance): bool => $instance instanceof RobustController));
+        $start = new \W4OS\Engine\Runtime\StartService($this->environment);
+        $results = $start->all($robust);
+        $failed = array_filter($results, static fn($result): bool => $result instanceof InstanceFailed) !== [];
+        // Its simulators launched together, once its Robust is up
+        $failed || ($results += $start->all(array_values(array_filter($instances, static fn(AbstractController $instance): bool => !$instance instanceof RobustController))));
+        $serving = !$failed && array_filter($results, static fn($result): bool => !$result instanceof InstanceFailed) !== [] && ($robust !== [] || $this->isStandalone());
         // What the grid says is what it says since it started: verified now, kept
         $serving && $this->refreshInfo();
 

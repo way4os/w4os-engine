@@ -45,9 +45,75 @@ final class StartService
         'Name of estate to join',
     ];
 
+    /** When the instance waited for was launched: its delays count from it. */
+    private ?float $from = null;
+
     public function __construct(private readonly Environment $environment) {}
 
+    /**
+     * Start an instance and wait for it to be ready (launch(), then await()).
+     *
+     * @throws \W4OS\Engine\Exceptions\InstanceFailed
+     */
     public function start(AbstractController $instance): Outcome
+    {
+        $launched = $this->launch($instance);
+
+        return $launched instanceof Launched ? $this->await($launched) : $launched;
+    }
+
+    /**
+     * Start instances: the ones that are not simulators each in turn (a Robust is up before its simulators), then the simulators all
+     * launched before any is waited for, each wait ending at its delay from its launch: the time of a start is the one of the slowest,
+     * never their sum. Each result kept, a failure is never the end of the others.
+     *
+     * @param list<AbstractController> $instances
+     * @return array<string,Outcome|\W4OS\Engine\Exceptions\InstanceFailed> what became of each, by its name
+     */
+    public function all(array $instances): array
+    {
+        $results = [];
+        $launched = [];
+        foreach ($instances as $instance) {
+            try {
+                if (!$instance instanceof OpenSimController) {
+                    $results[$instance->name()] = $this->start($instance);
+                    continue;
+                }
+                $result = $this->launch($instance);
+                $result instanceof Launched ? ($launched[$instance->name()] = $result) : ($results[$instance->name()] = $result);
+            } catch (InstanceFailed $failed) {
+                $results[$instance->name()] = $failed;
+            }
+        }
+        foreach ($launched as $name => $one) {
+            try {
+                $results[$name] = $this->await($one);
+            } catch (InstanceFailed $failed) {
+                $results[$name] = $failed;
+            }
+        }
+
+        return $results;
+    }
+
+    /** Wait for an instance launched to be ready, its delays counted from its launch. */
+    public function await(Launched $launched): Outcome
+    {
+        $this->from = $launched->at;
+        try {
+            return $this->wait($launched->instance, $launched->base, $launched->log, $launched->mark, $launched->output, $launched->remote);
+        } finally {
+            $this->from = null;
+        }
+    }
+
+    /**
+     * Check that an instance can run, then launch it, detached, without waiting for it to be ready: Running when it runs already.
+     *
+     * @throws \W4OS\Engine\Exceptions\InstanceFailed
+     */
+    public function launch(AbstractController $instance): Outcome|Launched
     {
         $env = $this->environment;
         $name = $instance->name();
@@ -242,7 +308,7 @@ final class StartService
             $this->fail($name, "$name failed to start: the process exited immediately", "Its output: $output");
         }
 
-        return $this->wait($instance, $base, $log, $mark, $output, $remote !== null);
+        return new Launched($instance, $base, $log, $mark, $output, $remote !== null, $env->clock->time() - 1);
     }
 
     /** Wait for the instance to be ready, and tell how it went. */
@@ -361,7 +427,7 @@ final class StartService
     {
         $env = $this->environment;
         $console = $remote ? null : $env->consoles->screen($instance->name());
-        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
+        for ($tick = 0, $deadline = ($this->from ?? $this->environment->clock->time()) + 2 * self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             if (($code = $stuck()) !== 0) {
                 return $code;
             }
@@ -434,7 +500,7 @@ final class StartService
         $failed = [];
         $quiet = 0;
         $since = 0;
-        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
+        for ($tick = 0, $deadline = ($this->from ?? $this->environment->clock->time()) + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             $content = $log->since($mark);
             $before = $reported;
             foreach (array_keys($pending) as $class) {
@@ -475,7 +541,7 @@ final class StartService
      */
     private function waitLog(AbstractController $instance, LogFile $log, int $mark, StartProgress $progress, ?\Closure $stuck = null): int
     {
-        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
+        for ($tick = 0, $deadline = ($this->from ?? $this->environment->clock->time()) + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             if ($stuck !== null && ($code = $stuck()) !== 0) {
                 return $code;
             }
@@ -539,7 +605,7 @@ final class StartService
         StartProgress $progress,
         ?\Closure $stuck = null,
     ): array {
-        for ($tick = 0, $deadline = $this->environment->clock->time() + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
+        for ($tick = 0, $deadline = ($this->from ?? $this->environment->clock->time()) + self::TIMEOUT; $this->environment->clock->time() < $deadline; $tick++) {
             if ($stuck !== null && ($code = $stuck()) !== 0) {
                 return [$code, ''];
             }

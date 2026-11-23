@@ -287,6 +287,22 @@ describe('Starting a simulator', function () {
             ->and($machine->clock->total())->toBeLessThan(10.0);
     });
 
+    test('are launched together: the time of a start is the one of the slowest, each one that does not come up named', function () {
+        $machine = new Machine();
+        // Their regions loaded, never up
+        $machine->launcher->behavior = function ($spec) use ($machine): void {
+            file_put_contents($machine->root . "/logs/{$spec->name}.log", "[LOAD REGIONS PLUGIN]: Done.\n", FILE_APPEND);
+        };
+
+        $results = OpenSim::start(['alpha', 'beta'], $machine->environment);
+
+        expect(array_keys($results))->toBe(['alpha', 'beta'])
+            ->and($results['alpha'])->toBe(Outcome::Starting)
+            ->and($results['beta'])->toBe(Outcome::Starting)
+            // One wait, not one after the other
+            ->and($machine->clock->total())->toBeLessThan(2 * 120 + 30.0);
+    });
+
     test('is not started when its http port is taken: another simulator, the one of an older install, listens on it', function () {
         $machine = new Machine();
         $simulator = Grid::find($machine->environment, 'demo')->simulator('alpha');
