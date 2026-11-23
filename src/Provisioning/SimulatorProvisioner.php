@@ -257,6 +257,10 @@ final class SimulatorProvisioner
      */
     private function initRegion(SimulatorPlan $plan, Environment $environment): void
     {
+        // A region the grid has, taken over, has its own content: it gets nothing more
+        if ($plan->regionTakenOver) {
+            return;
+        }
         $archive = $this->initArchive();
         if ($archive === null || Region::validateName($plan->regionName) !== null) {
             return;

@@ -61,6 +61,72 @@ final class RobustGrid
         return self::uuidOf(self::ask($host, $port, ['METHOD' => 'get_region_by_name', 'SCOPEID' => self::NO_SCOPE, 'NAME' => $name]));
     }
 
+    /** The flag of a region whose simulator registered it and has not left the grid since (RegionFlags.RegionOnline). */
+    public const ONLINE = 4;
+
+    /**
+     * What the grid keeps of a region of this name: its UUID and name, its place (in blocks) and size, its owner, the simulator that
+     * registered it last and its flags.
+     *
+     * @return array{uuid:string,name:string,location:string,size:int,owner:string,server:string,flags:int}|false|null false when
+     *         the grid has none, null when it does not answer
+     */
+    public static function region(string $host, int $port, string $name): array|false|null
+    {
+        return self::recordOf(self::ask($host, $port, ['METHOD' => 'get_region_by_name', 'SCOPEID' => self::NO_SCOPE, 'NAME' => $name]));
+    }
+
+    /** The region an answer of get_region_by_name describes: false when it describes none, null when it is not an answer. */
+    public static function recordOf(?string $xml): array|false|null
+    {
+        $uuid = self::uuidOf($xml);
+        if (!is_string($uuid)) {
+            return $uuid;
+        }
+        $region = simplexml_load_string((string) $xml)->result;
+
+        return [
+            'uuid' => $uuid,
+            'name' => trim((string) $region->regionName),
+            'location' => intdiv((int) $region->locX, 256) . ',' . intdiv((int) $region->locY, 256),
+            'size' => max(256, (int) ($region->sizeX ?? 256)),
+            'owner' => \W4OS\Engine\Text\Uuid::isValid((string) ($region->owner_uuid ?? '')) ? (string) $region->owner_uuid : '',
+            'server' => trim((string) ($region->serverURI ?? '')),
+            'flags' => (int) ($region->flags ?? 0),
+        ];
+    }
+
+    /** Whether a simulator answers at this address (the serverURI a region was registered from). */
+    public static function serving(string $server, int $timeout = 3): bool
+    {
+        if (!preg_match('#^https?://#', $server)) {
+            return false;
+        }
+        $context = stream_context_create(['http' => ['timeout' => $timeout, 'ignore_errors' => true]]);
+        $body = @file_get_contents(rtrim($server, '/') . '/simstatus/', false, $context);
+
+        return is_string($body) && trim($body) === 'OK';
+    }
+
+    /** The name (First Last) of an account of the grid: false when it has none, null when it does not answer. */
+    public static function accountName(string $host, int $port, string $uuid): string|false|null
+    {
+        $xml = self::ask($host, $port, ['METHOD' => 'getaccount', 'ScopeID' => self::NO_SCOPE, 'UserID' => $uuid], 'accounts');
+        if ($xml === null) {
+            return null;
+        }
+        $previous = libxml_use_internal_errors(true);
+        $document = simplexml_load_string($xml);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        if ($document === false || !isset($document->result)) {
+            return null;
+        }
+        $name = trim(trim((string) ($document->result->FirstName ?? '')) . ' ' . trim((string) ($document->result->LastName ?? '')));
+
+        return $name !== '' ? $name : false;
+    }
+
     /** The name registered for an existing UUID: false if absent, null if the grid cannot be checked. */
     public static function regionName(string $host, int $port, string $uuid): string|false|null
     {
@@ -144,7 +210,7 @@ final class RobustGrid
     }
 
     /** The answer of the grid service to a request, null when it does not answer. */
-    private static function ask(string $host, int $port, array $fields): ?string
+    private static function ask(string $host, int $port, array $fields, string $service = 'grid'): ?string
     {
         $context = stream_context_create([
             'http' => [
@@ -155,7 +221,7 @@ final class RobustGrid
                 'ignore_errors' => true,
             ],
         ]);
-        $body = @file_get_contents("http://$host:$port/grid", false, $context);
+        $body = @file_get_contents("http://$host:$port/$service", false, $context);
 
         return $body === false || $body === '' ? null : $body;
     }

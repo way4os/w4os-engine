@@ -54,3 +54,28 @@ test('reads the name registered for a UUID', function () {
         ->and(RobustGrid::nameOf('<ServerResponse><result>null</result></ServerResponse>'))->toBeFalse()
         ->and(RobustGrid::nameOf(null))->toBeNull();
 });
+
+describe('RobustGrid region record', function () {
+    test('is what the grid keeps of a region: UUID, name, place in blocks, size, owner, the simulator that registered it, flags', function () {
+        $xml = '<?xml version="1.0"?><ServerResponse><result type="List"><uuid>f38edb72-7eb7-4561-a1bd-5741675b41e3</uuid>'
+            . '<locX>2051072</locX><locY>2051328</locY><sizeX>512</sizeX><sizeY>512</sizeY><regionName>Welcome</regionName><flags>1045</flags>'
+            . '<serverIP>192.168.8.69</serverIP><serverHttpPort>9010</serverHttpPort><serverURI>http://192.168.8.69:9010/</serverURI>'
+            . '<serverPort>9011</serverPort><owner_uuid>a98c9275-c218-4910-a890-2864ab98a183</owner_uuid><Token></Token></result></ServerResponse>';
+
+        expect(RobustGrid::recordOf($xml))->toBe([
+            'uuid' => 'f38edb72-7eb7-4561-a1bd-5741675b41e3',
+            'name' => 'Welcome',
+            'location' => '8012,8013',
+            'size' => 512,
+            'owner' => 'a98c9275-c218-4910-a890-2864ab98a183',
+            'server' => 'http://192.168.8.69:9010/',
+            'flags' => 1045,
+        ])
+            ->and(RobustGrid::recordOf('<?xml version="1.0"?><ServerResponse><result>null</result></ServerResponse>'))->toBeFalse()
+            ->and(RobustGrid::recordOf(null))->toBeNull();
+    });
+
+    test('says no simulator answers at an address that is not one', function () {
+        expect(RobustGrid::serving('not an address'))->toBeFalse();
+    });
+});

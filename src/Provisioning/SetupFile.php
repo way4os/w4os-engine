@@ -20,7 +20,8 @@ use Symfony\Component\Yaml\Yaml;
  *                email (optional): the account that owns the estate
  *   simulators:  a list of: name, http_port, console, estate: name, owner, database: driver (mysql|sqlite), host, name, user, password,
  *                regions: a list of: name, location (x,y), size (meters, 256 by default), port, roles (DefaultRegion, DefaultHGRegion, FallbackRegion,
- *                or default, default_hg, fallback); an adopted region also retains its uuid and original INI text in source
+ *                or default, default_hg, fallback), existing (true: the region of this name the grid has, taken over with its UUID,
+ *                place and size); an adopted region also retains its uuid and original INI text in source
  *   users:       a list of: first, last, email (optional), password (made when empty) or password_hash
  *                and password_salt (written as they are)
  *
@@ -85,6 +86,7 @@ final class SetupFile
         'size' => 'simulators.$i.regions.$j.size',
         'port' => 'simulators.$i.regions.$j.port',
         'roles' => 'simulators.$i.regions.$j.roles',
+        'existing' => 'simulators.$i.regions.$j.existing',
     ];
 
     /**

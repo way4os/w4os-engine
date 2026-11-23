@@ -9,6 +9,7 @@ use W4OS\Engine\Exceptions\InvalidValue;
 use W4OS\Engine\Exceptions\NotFound;
 use W4OS\Engine\Models\Grid;
 use W4OS\Engine\Network\Ports;
+use W4OS\Engine\Result;
 use W4OS\Engine\Runtime\Environment;
 use W4OS\Engine\Text\Notice;
 
@@ -90,7 +91,12 @@ final class SetupApply
                 $plan->start = InstanceConsoleService::running($grid->simulatorLink($found->slug()), $environment);
             } else {
                 $planner = SimulatorPlanner::forGrid($grid, $database, $ui, null, $regions[0]['name'] ?? null);
-                $answers = SetupFile::simulatorValues($data, $i) + $planner->ownerAnswers(SetupFile::owner($data, $i));
+                $owner = SetupFile::owner($data, $i);
+                // A simulator made for a region the grid has, taken over: its estate is the one of the owner of the region
+                if ($owner['name'] === '' && Result::isTrue($regions[0]['existing'] ?? false)) {
+                    $owner['name'] = self::ownerOf($grid, (string) ($regions[0]['name'] ?? ''));
+                }
+                $answers = SetupFile::simulatorValues($data, $i) + $planner->ownerAnswers($owner);
                 // A region joins the estate of the name its simulator gives (DefaultEstateName), whoever owns it: a simulator that
                 // names its owner has an estate of that owner, unless it names the estate
                 $own = trim((string) ($simulator['estate']['owner'] ?? ''));
@@ -118,7 +124,7 @@ final class SetupApply
             foreach ($regions as $j => $_) {
                 $regionPlan = $j === 0 && !$exists ? $plan : self::regionOf($plan);
                 $values = SetupFile::regionValues($data, $i, $j);
-                $planner = RegionPlanner::forSimulator($regionPlan, $grid, $database, context: [
+                $planner = RegionPlanner::forSimulator($regionPlan, $grid, $database, context: array_intersect_key(self::$robust, ['registered' => 1, 'serving' => 1]) + [
                     'taken' => $taken['names'],
                     'known' => $taken['places'],
                     'ports' => $taken['ports'],
@@ -170,7 +176,7 @@ final class SetupApply
                     'roles' => $plan->regionRoles,
                     'port' => $plan->regionPort,
                     'file' => $plan->regionIni(),
-                ];
+                ] + ($plan->regionTakenOver ? ['existing' => true, 'uuid' => $plan->regionUuid] : []);
                 $writes[] = $plan->regionIni();
             }
             $steps[] = $step;
@@ -238,6 +244,28 @@ final class SetupApply
             (new SimulatorProvisioner($ui))->apply($plan, $this->environment);
         }
     }
+
+    /** The name of the owner the grid keeps for a region, '' when it has none or does not answer. */
+    private static function ownerOf(Grid $grid, string $region): string
+    {
+        $registered = isset(self::$robust['registered']) ? (self::$robust['registered'])($region) : RegionPlanner::registeredIn($grid, $region);
+        if (!is_array($registered) || $registered['owner'] === '') {
+            return '';
+        }
+        $name = isset(self::$robust['accountName'])
+            ? (self::$robust['accountName'])($registered['owner'])
+            : RobustGrid::accountName($grid->isRemote() ? $grid->baseHostname() : '127.0.0.1', $grid->privatePort(), $registered['owner']);
+
+        return is_string($name) ? $name : '';
+    }
+
+    /**
+     * What the Robust of the grid answers, for the tests (default: it is asked): registered (what it keeps of a region, by name),
+     * serving (whether a simulator answers at an address), accountName (the name of an account, by UUID).
+     *
+     * @var array{registered?:\Closure,serving?:\Closure,accountName?:\Closure}
+     */
+    public static array $robust = [];
 
     /** The first block of ten ports of a simulator of the grid that none of these takes. */
     private static function block(Grid $grid, array $ports): int

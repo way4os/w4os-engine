@@ -90,6 +90,8 @@ final class SimulatorPlan
     /** Original configuration of an adopted region; its data and ownership are not initialized again. */
     public string $existingRegionConfig = '';
     public bool $createRegion = true;
+    /** A region the grid has, taken over: its UUID, name, place and size are the ones the grid keeps. */
+    public bool $regionTakenOver = false;
     public string $regionName = '';
     public string $regionUuid = '';
     public string $regionLocation = '';

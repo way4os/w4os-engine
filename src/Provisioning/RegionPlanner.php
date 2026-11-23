@@ -27,6 +27,9 @@ final class RegionPlanner
     /** @var array<string,string> */
     private array $made = [];
 
+    /** @var array<string,array<string,mixed>|false|null> what the grid said of the regions asked, by lower case name */
+    private array $registry = [];
+
     private function __construct(array $context)
     {
         $this->context = $context + self::context();
@@ -53,6 +56,9 @@ final class RegionPlanner
             'known' => [], // places taken, "x,y" => true
             'ports' => [], // ports used by the regions the grid knows
             'remoteHas' => null, // Closure(string $name): ?bool, whether the Robust of a remote grid has the name (default: asks it)
+            'files' => [], // lower case names of the regions the simulators of this machine describe
+            'registered' => null, // Closure(string $name): array|false|null, what the grid keeps of a region (default: RobustGrid::region())
+            'serving' => null, // Closure(string $server): bool, whether a simulator answers at an address (default: RobustGrid::serving())
             'freePlace' => null, // Closure(int $x, int $y, ?string $ignored, int $span): array{0:int,1:int,2:bool}, the nearest free place and whether the grid answered
             'randomName' => null, // Closure(Closure $problem): string
             'uuid' => null, // Closure(): string
@@ -88,6 +94,7 @@ final class RegionPlanner
             'first' => (glob("{$plan->regionsDir()}/*.ini*") ?: []) === [],
             'httpPort' => $plan->httpPort,
             'taken' => $registry->names($grid),
+            'files' => GridRegistry::fileNames($grid->directory()),
             'known' => $registry->locations($grid),
             'ports' => $registry->ports($grid) ?? [],
         ]);
@@ -142,7 +149,10 @@ final class RegionPlanner
         ]);
         foreach ($fields as &$field) {
             if ($field['name'] === 'name') {
-                $field['callback'] = fn(mixed $value): ?string => $this->nameProblem((string) $value);
+                $field['callback'] = fn(mixed $value, array $values = []): ?string => $this->nameProblem(
+                    (string) $value,
+                    Result::isTrue($values['existing'] ?? false),
+                );
             }
         }
 
@@ -161,13 +171,15 @@ final class RegionPlanner
         $simulator = (string) ($answers['simulator'] ?? '+');
         $httpPort =
             $simulator !== '+' && $c['portOfSimulator'] !== null ? $c['portOfSimulator']($simulator) : $c['httpPort'];
-        $problem = fn(string $name): ?string => $this->nameProblem($name);
+        $existing = Result::isTrue($answers['existing'] ?? false);
+        $problem = fn(string $name): ?string => $this->nameProblem($name, $existing);
         // What is not answered is worked out, and only then (the place of a region of a grid on another machine is asked to it)
         $size = (int) ($answers['size'] ?? Region::SIZE);
         $place = fn(): string => implode(',', array_slice($this->freePlace(...[...$this->center(), null, self::span($size)]), 0, 2));
 
         return [
             'create' => Result::isTrue($answers['create'] ?? true),
+            'existing' => $existing,
             'name' => trim((string) ($answers['name'] ?? $this->defaultName($problem))),
             // Checked at first: the default region and the one of the visitors, when the grid has none yet (and not the fallback)
             'roles' => array_values((array) ($answers['roles'] ?? $this->missingRoles())),
@@ -250,6 +262,18 @@ final class RegionPlanner
             return;
         }
         $plan->createRegion = true;
+        // A region the grid has, taken over: its UUID, name, place and size are the ones the grid keeps
+        if ($v['existing'] && is_array($region = $this->registered($v['name']))) {
+            $plan->regionTakenOver = true;
+            $plan->regionName = $region['name'];
+            $plan->regionRoles = [];
+            $plan->regionUuid = $region['uuid'];
+            $plan->regionLocation = $region['location'];
+            $plan->regionSize = $region['size'];
+            $plan->regionPort = $v['port'];
+
+            return;
+        }
         $plan->regionName = Slug::ascii($v['name']);
         $plan->regionRoles = $v['roles'];
         $plan->regionUuid = $this->context['uuid'] !== null ? $this->context['uuid']() : self::uuid();
@@ -264,28 +288,84 @@ final class RegionPlanner
         return max(1, intdiv($size + Region::SIZE - 1, Region::SIZE));
     }
 
-    /** Why a name is refused, null when it is fine: not valid, or a region of the grid has it (a name is unique in a grid). */
-    private function nameProblem(string $name): ?string
+    /**
+     * Why a name is refused, null when it is fine: not valid, or a region of the grid has it (a name is unique in a grid). A region
+     * the grid has and no simulator of this machine describes can be taken over ($existing): it is then the one refused when the
+     * grid has none of this name, or when the simulator that registered it still answers.
+     */
+    private function nameProblem(string $name, bool $existing = false): ?string
     {
         $name = Slug::ascii($name);
         if (($problem = Region::validateName($name)) !== null) {
             return $problem;
         }
-        $grid = $this->context['grid'];
-        if (isset($this->context['taken'][strtolower(trim($name))])) {
+        $key = strtolower(trim($name));
+        if (isset($this->context['files'][$key])) {
             return 'The grid has a region of this name already.';
         }
-        if ($grid?->isRemote() === true) {
-            $has =
-                $this->context['remoteHas'] !== null
-                    ? $this->context['remoteHas'](trim($name))
-                    : RobustGrid::hasRegion($grid->baseHostname(), $grid->privatePort(), trim($name));
-            if ($has === true) {
-                return 'The grid has a region of this name already.';
+        if ($existing) {
+            $region = $this->registered(trim($name));
+            if ($region === null) {
+                return 'The grid does not answer: the region it has of this name cannot be taken over.';
             }
+            if ($region === false) {
+                return 'The grid has no region of this name to take over.';
+            }
+            if (($region['flags'] & RobustGrid::ONLINE) !== 0 && $region['server'] !== '' && $this->serving($region['server'])) {
+                return sprintf(
+                    'The region %s is still run by the simulator at %s, which answers: stop it there (or take the region out of it) before taking it over here.',
+                    $region['name'],
+                    $region['server'],
+                );
+            }
+
+            return null;
+        }
+        $grid = $this->context['grid'];
+        $taken = isset($this->context['taken'][$key]);
+        if (!$taken && $grid?->isRemote() === true) {
+            $taken =
+                ($this->context['remoteHas'] !== null
+                    ? $this->context['remoteHas'](trim($name))
+                    : RobustGrid::hasRegion($grid->baseHostname(), $grid->privatePort(), trim($name))) === true;
         }
 
-        return null;
+        return $taken
+            ? 'The grid has a region of this name already: to run it on this machine, take it over (its UUID, place and owner kept).'
+            : null;
+    }
+
+    /**
+     * What the grid keeps of a region of this name, asked once.
+     *
+     * @return array{uuid:string,name:string,location:string,size:int,owner:string,server:string,flags:int}|false|null
+     */
+    public function registered(string $name): array|false|null
+    {
+        $key = strtolower(trim($name));
+        if (!array_key_exists($key, $this->registry)) {
+            $this->registry[$key] =
+                $this->context['registered'] !== null
+                    ? $this->context['registered']($name)
+                    : self::registeredIn($this->context['grid'], $name);
+        }
+
+        return $this->registry[$key];
+    }
+
+    /** What the Robust of a grid keeps of a region of this name, asked on its private port (on this machine for a grid of its own). */
+    public static function registeredIn(?Grid $grid, string $name): array|false|null
+    {
+        if ($grid === null) {
+            return null;
+        }
+
+        return RobustGrid::region($grid->isRemote() ? $grid->baseHostname() : '127.0.0.1', $grid->privatePort(), $name);
+    }
+
+    private function serving(string $server): bool
+    {
+        return $this->context['serving'] !== null ? (bool) $this->context['serving']($server) : RobustGrid::serving($server);
     }
 
     /** @return array{0:int,1:int} */

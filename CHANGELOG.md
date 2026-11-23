@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (regions): a region the grid has already is taken over (existing), its UUID, place, size and owner kept, refused while it runs elsewhere
 - fix (health): the signed-out profile follows the redirections of its site to the registration
 - new (addresses): the addresses a grid advertised before, old and new by service, given at /grids/{grid}/addresses (previous)
 - fix (api): Server::hold() and release() send the answer and free the client before what follows, with or without FPM

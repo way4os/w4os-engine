@@ -893,7 +893,7 @@ final class QuickSetup
      * grid says of itself (Closure(string $host, int $port): array<string,string>), and what the planner of a region of a grid on
      * another machine asks it (the context of RegionPlanner: remoteHas, freePlace, registeredUuid, registeredName).
      *
-     * @param array{database?:?\Closure,account?:?\Closure,says?:?\Closure,region?:array<string,mixed>} $doubles none: the real work
+     * @param array{database?:?\Closure,account?:?\Closure,says?:?\Closure,region?:array<string,mixed>,dumper?:?\Closure} $doubles none: the real work
      */
     public static function through(array $doubles = []): void
     {
@@ -1185,6 +1185,7 @@ final class QuickSetup
                 ],
                 'preset_hypergrid' => [_('Hypergrid'), false, true, $said['hypergrid'] ?? true ? 'yes' : 'no'],
                 'name' => [$adoptionFields !== [] ? _('Simulator name') : _('Region name'), false, false, $region_name],
+            ] + ($adoptionFields === [] ? ['existing' => [_('Take over the region of this name the grid has already (yes or no)'), false, false, 'no']] : []) + [
                 'avatar' => [_('Avatar name'), false, false, $avatar_name],
             ] + $adoptionFields + self::databaseDriverField($kind) + self::portFields($adoptionFields !== []);
         }
@@ -1193,6 +1194,7 @@ final class QuickSetup
                 'login_uri' => [_('Login URI of the grid'), false, false, null],
                 'private_port' => [_('Grid private port'), false, false, null],
                 'name' => [$adoptionFields !== [] ? _('Simulator name') : _('Region name'), false, false, $region_name],
+            ] + ($adoptionFields === [] ? ['existing' => [_('Take over the region of this name the grid has already (yes or no)'), false, false, 'no']] : []) + [
                 'avatar' => [_('Avatar name'), false, false, $avatar_name],
             ] + $adoptionFields + self::databaseDriverField($kind) + self::portFields($adoptionFields !== []);
         }
@@ -1208,6 +1210,20 @@ final class QuickSetup
             'private_port' => [_('Grid private port'), false, false, null],
             'grid_console_port' => [_('Grid console port'), false, false, null],
         ]) + self::databaseDriverField($kind) + self::portFields(standalone: $kind === 'standalone');
+    }
+
+    /** The name of the owner the grid keeps for a region, '' when it has none or does not answer. */
+    private static function registeredOwner(Grid $grid, string $region): string
+    {
+        $registered = isset(self::$region['registered']) ? (self::$region['registered'])($region) : RegionPlanner::registeredIn($grid, $region);
+        if (!is_array($registered) || $registered['owner'] === '') {
+            return '';
+        }
+        $name = isset(self::$region['accountName'])
+            ? (self::$region['accountName'])($registered['owner'])
+            : RobustGrid::accountName($grid->baseHostname(), $grid->privatePort(), $registered['owner']);
+
+        return is_string($name) ? $name : '';
     }
 
     /** SQLite is a simulator option; for a standalone it is also the grid's only database. */
@@ -1381,6 +1397,11 @@ final class QuickSetup
         $ui = new NullUi();
         $database = new DatabaseService($ui);
         $region = trim((string) ($answers['name'] ?? '')) !== '' ? trim((string) $answers['name']) : 'Welcome';
+        // A region the grid has, taken over: the estate is the one of its owner in the grid
+        $takeOver = trim((string) ($answers['existing_region'] ?? '')) === '' && Result::isTrue($answers['existing'] ?? false);
+        if ($takeOver && ($owner = self::registeredOwner($grid, $region)) !== '') {
+            $answers['avatar'] = $owner;
+        }
         $simulators = SimulatorPlanner::forGrid($grid, $database, $ui, null, $region);
         $owner =
             ['estate_owner' => trim((string) ($answers['avatar'] ?? ''))] +
@@ -1423,7 +1444,7 @@ final class QuickSetup
                 defaultName: $region,
                 context: self::$region,
             );
-            $regionAnswers = is_array($answers['setup'] ?? null) ? SetupFile::regionValues($answers['setup'], 0, 0) : ['name' => $region];
+            $regionAnswers = is_array($answers['setup'] ?? null) ? SetupFile::regionValues($answers['setup'], 0, 0) : ['name' => $region] + ($takeOver ? ['existing' => true] : []);
             $regionAnswers += self::portValues($answers, ['port' => 'region_port']);
             self::review(
                 $regions->fields(),
@@ -1479,6 +1500,7 @@ final class QuickSetup
         $add('simulator', 'Estate owner', $simulator->estateOwner . ' (an account of the grid)');
         $add('simulator', 'Simulator config', $simulator->iniPath());
         $add('region', 'Region', $simulator->regionName);
+        $simulator->regionTakenOver && $add('region', 'Taken over', sprintf(_('the region the grid has (UUID %s), with its place and size'), $simulator->regionUuid));
         $add('region', 'Location', $simulator->regionLocation);
         $add('region', 'Port', (string) $simulator->regionPort);
         $add('owner', 'Avatar', $simulator->estateOwner);
@@ -1604,6 +1626,7 @@ final class QuickSetup
         $add('simulator', 'Simulator config', $simulator->iniPath());
 
         $add('region', 'Region', $simulator->regionName);
+        $simulator->regionTakenOver && $add('region', 'Taken over', sprintf(_('the region the grid has (UUID %s), with its place and size'), $simulator->regionUuid));
         $add('region', 'Location', $simulator->regionLocation);
         $add('region', 'Port', (string) $simulator->regionPort);
         $simulator->regionRoles !== [] && $add('region', 'Roles', implode(', ', $simulator->regionRoles));

@@ -224,7 +224,7 @@ describe('A region', function () {
             expect($planner->problems())
                 ->toBe([])
                 ->and($planner->problems(['name' => 'Garden']))
-                ->toBe(['name' => 'The grid has a region of this name already.'])
+                ->toBe(['name' => 'The grid has a region of this name already: to run it on this machine, take it over (its UUID, place and owner kept).'])
                 ->and($planner->problems(['name' => 'Not valid!']))
                 ->toHaveKey('name')
                 ->and($planner->problems(['location' => 'middle', 'port' => 'abc']))
@@ -344,7 +344,9 @@ describe('A region', function () {
         $fields = region_planner()->fixed()->fields();
 
         expect($fields->names())
-            ->toBe(['create', 'name', 'roles', 'location', 'size', 'simulator', 'port'])
+            ->toBe(['create', 'existing', 'name', 'roles', 'location', 'size', 'simulator', 'port'])
+            ->and($fields->visible('existing', []))
+            ->toBeFalse()
             ->and($fields->visible('name', []))
             ->toBeFalse()
             ->and($fields->visible('size', []))
@@ -357,5 +359,52 @@ describe('A region', function () {
             ->toBeTrue()
             ->and($fields->visible('port', []))
             ->toBeTrue();
+    });
+});
+
+describe('A region the grid has, taken over', function () {
+    /** What the grid keeps of Old Garden: at 1000,1001, 512 meters, registered from a simulator at old.example.org that left. */
+    $record = static fn(array $set = []): array => $set + [
+        'uuid' => '11111111-2222-3333-4444-555555555555',
+        'name' => 'Old Garden',
+        'location' => '1000,1001',
+        'size' => 512,
+        'owner' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        'server' => 'http://old.example.org:9000/',
+        'flags' => 16,
+    ];
+    $planner = static fn(array|false|null $region, bool $serving = false, array $more = []): RegionPlanner => region_planner($more + [
+        'taken' => ['old garden' => true],
+        'registered' => static fn(string $name): array|false|null => strcasecmp($name, 'Old Garden') === 0 ? $region : false,
+        'serving' => static fn(string $server): bool => $serving,
+    ]);
+
+    test('keeps its UUID, name, place and size, and has no other role than the ones the grid gives it by name', function () use ($record, $planner) {
+        $plan = new SimulatorPlan();
+        $taker = $planner($record());
+        $taker->apply($plan, ['name' => 'old garden', 'existing' => true]);
+
+        expect($taker->problems(['name' => 'old garden', 'existing' => true]))->toBe([])
+            ->and([$plan->regionTakenOver, $plan->regionUuid, $plan->regionName, $plan->regionLocation, $plan->regionSize, $plan->regionRoles])
+            ->toBe([true, '11111111-2222-3333-4444-555555555555', 'Old Garden', '1000,1001', 512, []])
+            ->and($plan->regionPort)->toBe(9001);
+    });
+
+    test('is one whose simulator went without leaving the grid (it crashed): the flag online, nobody answering', function () use ($record, $planner) {
+        expect($planner($record(['flags' => 16 | 4]))->problems(['name' => 'Old Garden', 'existing' => true]))->toBe([]);
+    });
+
+    test('is refused while the simulator that registered it answers, when the grid has none of the name, or when it does not answer', function () use ($record, $planner) {
+        expect($planner($record(['flags' => 4]), serving: true)->problems(['name' => 'Old Garden', 'existing' => true]))
+            ->toBe(['name' => 'The region Old Garden is still run by the simulator at http://old.example.org:9000/, which answers: stop it there (or take the region out of it) before taking it over here.'])
+            ->and($planner(false)->problems(['name' => 'Old Garden', 'existing' => true]))
+            ->toBe(['name' => 'The grid has no region of this name to take over.'])
+            ->and($planner(null)->problems(['name' => 'Old Garden', 'existing' => true]))
+            ->toBe(['name' => 'The grid does not answer: the region it has of this name cannot be taken over.']);
+    });
+
+    test('is not one a simulator of this machine describes: that one is there already', function () use ($record, $planner) {
+        expect($planner($record(), more: ['files' => ['old garden' => true]])->problems(['name' => 'Old Garden', 'existing' => true]))
+            ->toBe(['name' => 'The grid has a region of this name already.']);
     });
 });

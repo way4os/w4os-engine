@@ -1258,7 +1258,7 @@ describe('quick setup, the scenario', function () {
         expect($form['title'])
             ->toBe('Speculoos')
             ->and(array_column($form['fields'], 'readonly', 'name'))
-            ->toBe(['preset_grid' => true, 'preset_login' => true, 'preset_hypergrid' => true, 'name' => false, 'avatar' => false, 'database_driver' => false, 'http_port' => false, 'console_port' => false, 'region_port' => false])
+            ->toBe(['preset_grid' => true, 'preset_login' => true, 'preset_hypergrid' => true, 'name' => false, 'existing' => false, 'avatar' => false, 'database_driver' => false, 'http_port' => false, 'console_port' => false, 'region_port' => false])
             ->and(array_column($form['fields'], 'value', 'name')['name'])
             ->toBe('Welcome');
         $wrong = quick_step($machine, $form, ['name' => 'Plaza', 'avatar' => 'Ada']);
@@ -1293,7 +1293,7 @@ describe('quick setup, the scenario', function () {
         expect($form['title'])
             ->toBe('Simulator (join other grid)')
             ->and(array_column($form['fields'], 'name'))
-            ->toBe(['login_uri', 'private_port', 'name', 'avatar', 'database_driver', 'http_port', 'console_port', 'region_port'])
+            ->toBe(['login_uri', 'private_port', 'name', 'existing', 'avatar', 'database_driver', 'http_port', 'console_port', 'region_port'])
             ->and($missing['notice'])
             ->toBe('Error: Login URI of the grid required')
             ->and(array_column($review['rows'], 'value', 'label')['Grid'])
@@ -1304,6 +1304,35 @@ describe('quick setup, the scenario', function () {
             ->toContain('Grid name:  Remote World', 'Login URI:  remote.example.org:8002')
             ->and(glob("{$machine->etc}/grids/remote/sims/*.ini"))
             ->toHaveCount(1);
+    });
+
+    test('takes over a region the joined grid has already: its UUID, place and size, its owner the owner of the estate', function () {
+        $machine = new Machine();
+        quick_core($machine);
+        quick_doubles(['region' => [
+            'remoteHas' => static fn(string $name): ?bool => $name === 'Old Plaza',
+            'freePlace' => static fn(int $x, int $y, ?string $ignored): array => [$x, $y, true],
+            'registered' => static fn(string $name): array|false => $name === 'Old Plaza' ? [
+                'uuid' => '11111111-2222-3333-4444-555555555555', 'name' => 'Old Plaza', 'location' => '1300,1301', 'size' => 512,
+                'owner' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', 'server' => 'http://old.example.org:9000/', 'flags' => 16,
+            ] : false,
+            'serving' => static fn(string $server): bool => false,
+            'accountName' => static fn(string $uuid): string => 'Bob Root',
+        ]]);
+        $form = quick_until($machine, 'form', 'simulator');
+        $answers = ['login_uri' => 'remote.example.org:8002', 'private_port' => '', 'name' => 'Old Plaza', 'avatar' => 'Ada Love'];
+        $refused = quick_step($machine, $form, $answers);
+        $review = quick_step($machine, $form, ['existing' => 'yes'] + $answers);
+        quick_step($machine, $review);
+        quick_doubles();
+        $rows = array_column($review['rows'], 'value', 'label');
+
+        expect($refused['kind'])->toBe('form')
+            ->and($review['kind'])->toBe('review')
+            ->and([$rows['Region'], $rows['Location'], $rows['Estate owner']])->toBe(['Old Plaza', '1300,1301', 'Bob Root (an account of the grid)'])
+            ->and($rows['Taken over'])->toContain('11111111-2222-3333-4444-555555555555')
+            ->and(file_get_contents("{$machine->etc}/grids/remote/sims/remote.old_plaza/regions/OldPlaza.ini"))
+            ->toContain('RegionUUID = 11111111-2222-3333-4444-555555555555', 'Location = 1300,1301', 'SizeX = 512');
     });
 
     test('is asked and answered through the API like the other operations', function () {

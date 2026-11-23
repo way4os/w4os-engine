@@ -100,6 +100,33 @@ describe('A setup file applied', function () {
             ->toBe([]);
     });
 
+    test('takes over a region the grid has: a simulator made for it, its UUID, place, size and owner kept, written as it is', function () {
+        $machine = new Machine();
+        SetupApply::$robust = [
+            'registered' => static fn(string $name): array|false => strcasecmp($name, 'Old Garden') === 0 ? [
+                'uuid' => '11111111-2222-3333-4444-555555555555', 'name' => 'Old Garden', 'location' => '1300,1300', 'size' => 512,
+                'owner' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', 'server' => 'http://old.example.org:9000/', 'flags' => 16,
+            ] : false,
+            'serving' => static fn(string $server): bool => false,
+            'accountName' => static fn(string $uuid): string => 'Bob Root',
+        ];
+        $setup = SetupApply::prepare($machine->environment, [
+            'grid' => ['nick' => 'demo'],
+            'simulators' => [['name' => 'Moved', 'database' => ['user' => 'opensim', 'password' => 'secret'], 'regions' => [['name' => 'old garden', 'existing' => true]]]],
+        ]);
+        $setup->apply(new NullUi(), static fn(): int => DatabaseService::OK);
+        SetupApply::$robust = [];
+        $plan = $setup->document();
+        $region = $plan['steps'][0]['region'];
+
+        expect($plan['problems'])->toBe([])
+            ->and([$region['name'], $region['location'], $region['size'], $region['existing'], $region['uuid']])
+            ->toBe(['Old Garden', '1300,1300', 512, true, '11111111-2222-3333-4444-555555555555'])
+            ->and($setup->steps[0]['plan']->estateOwner)->toBe('Bob Root')
+            ->and(file_get_contents($region['file']))
+            ->toContain('[Old Garden]', 'RegionUUID = 11111111-2222-3333-4444-555555555555', 'Location = 1300,1300', 'SizeX = 512');
+    });
+
     test('is written: the database of the new simulator first, then its files and the regions', function () {
         $machine = new Machine();
         $setup = SetupApply::prepare($machine->environment, setup_apply_file());

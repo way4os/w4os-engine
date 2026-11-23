@@ -1764,6 +1764,15 @@ final class Region extends Model implements Reachable, \W4OS\Engine\Assets\Pictu
                 'enable' => $optional,
             ],
             [
+                'name' => 'existing',
+                'group' => 'region',
+                'type' => 'boolean',
+                'default' => false,
+                'label' => _('Take over a region the grid has already (restored or moved here: its UUID, place and owner kept)'),
+                'condition' => $made,
+                'enable' => !$fixed,
+            ],
+            [
                 'name' => 'name',
                 'group' => 'region',
                 'type' => 'string',
