@@ -153,10 +153,13 @@ final class StartService
             $account,
         );
         if ($refused !== []) {
-            $owners = implode(', ', array_unique($refused));
+            $quoted = static fn(array $paths): string => implode(' ', array_map('escapeshellarg', $paths));
+            $theirs = array_keys(array_filter($refused, static fn(string $owner): bool => $owner === $account));
+            $others = array_keys(array_diff_key($refused, array_flip($theirs)));
             $this->fail(
                 $name,
-                "$name cannot start: $account, the account it runs as, cannot write in " . implode(' ', array_keys($refused)) . " (owned by $owners). Give them to it: sudo chown -R $account: " . implode(' ', array_map('escapeshellarg', array_keys($refused))),
+                "$name cannot start: $account, the account it runs as, cannot write in " . implode(' ', array_keys($refused)) . ' (owned by ' . implode(', ', array_unique($refused)) . '). Fix it with: '
+                . implode(' && ', array_filter([$others === [] ? '' : "sudo chown -R $account: " . $quoted($others), $theirs === [] ? '' : 'sudo chmod -R u+w ' . $quoted($theirs)])),
                 reason: 'unwritable',
             );
         }

@@ -219,7 +219,7 @@ describe('Starting a simulator', function () {
         chmod($tiles, 0o755);
 
         expect($failed?->reason)->toBe('unwritable')
-            ->and($failed?->getMessage())->toContain($tiles, 'sudo chown -R')
+            ->and($failed?->getMessage())->toContain($tiles, 'sudo chmod -R u+w')
             ->and($machine->launcher->launched)->toBe([]);
     })->skip(fn() => posix_geteuid() === 0, 'root writes everywhere');
 
