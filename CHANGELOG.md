@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (start): the estate owner loop is caught after the region is made too, where OpenSim starts it
 - fix (setup): a simulator joining a grid of another machine needs an avatar of that grid as estate owner, asked again otherwise
 - fix (start): a simulator whose estate owner the grid has not is stopped at once and says why, its log filled no more
 - fix (http): Robust, simulators and gatekeepers asked through curl, not PHP streams that waited 2 s more on each answer

@@ -147,6 +147,9 @@ describe('Starting a simulator', function () {
         $machine->startLog(
             'alpha',
             '[REGION LOADER FILE SYSTEM]: Loaded config for region Plaza',
+            // What it says before it makes the region, and of the region before its estate: never taken for a region that is up
+            '[LOAD REGIONS PLUGIN]: Done.',
+            '[RegionReady]: Enabled for region Plaza',
             '[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first at the grid',
         );
         $failed = null;

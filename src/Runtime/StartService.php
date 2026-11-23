@@ -229,10 +229,11 @@ final class StartService
             $code = $remote
                 ? $this->waitLog($instance, $log, $mark, $progress, $stuck)
                 : $this->waitConsole($instance, $progress, $stuck);
-            // The regions are loaded before the physics and the scripts start: a region that cannot run them ends within seconds
+            // The regions are loaded before the physics and the scripts start: a region that cannot run them ends within seconds, and
+            // one without an estate asks for its owner once its region is made
             if ($code === 0) {
                 $env->clock->sleep(5);
-                $code = $instance->isRunning() ? 0 : 3;
+                $code = $stuck() ? 5 : ($instance->isRunning() ? 0 : 3);
             }
             $progress->finish();
         }
@@ -328,11 +329,11 @@ final class StartService
     private function waitLog(AbstractController $instance, LogFile $log, int $mark, StartProgress $progress, ?\Closure $stuck = null): int
     {
         for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
-            if (preg_match('/RegionReady|LOAD REGIONS PLUGIN\]: Done/', $log->since($mark))) {
-                return 0;
-            }
             if ($stuck !== null && $stuck()) {
                 return 5;
+            }
+            if (preg_match('/RegionReady|LOAD REGIONS PLUGIN\]: Done/', $log->since($mark))) {
+                return 0;
             }
             $progress->show();
             if (!$instance->isRunning()) {
