@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (config): the files written by IniEditor, w4os.conf among them, end with a line break
 - fix (start): the estate owner loop is caught after the region is made too, where OpenSim starts it
 - fix (setup): a simulator joining a grid of another machine needs an avatar of that grid as estate owner, asked again otherwise
 - fix (start): a simulator whose estate owner the grid has not is stopped at once and says why, its log filled no more

@@ -378,6 +378,8 @@ final class IniEditor
         if (!is_dir(dirname($path))) {
             @mkdir(dirname($path), 0o755, true);
         }
-        file_put_contents($path, $this->toString());
+        // A text file ends with a line break
+        $text = $this->toString();
+        file_put_contents($path, $text === '' || str_ends_with($text, "\n") ? $text : "$text\n");
     }
 }
