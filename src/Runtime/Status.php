@@ -66,6 +66,27 @@ final class Status
         return $names;
     }
 
+    /**
+     * The modules enabled that the config of a simulator does not set up, kept off at its start (ModuleLinker::unconfigured()).
+     *
+     * @param list<string> $modules the modules enabled
+     * @return array<string,list<string>> module => the simulators it is off for
+     */
+    public function unconfigured(array $modules): array
+    {
+        $off = [];
+        foreach ($this->instances as $instance) {
+            if (!$instance instanceof \W4OS\Engine\Controllers\OpenSimController) {
+                continue;
+            }
+            foreach (array_keys(\W4OS\Engine\Runtime\ModuleLinker::unconfigured($modules, \W4OS\Engine\Config\ConfigReader::expand($instance->settings()))) as $module) {
+                $off[$module][] = $instance->name();
+            }
+        }
+
+        return $off;
+    }
+
     /** @return array{cpu:float,memory:float,rss:int} */
     public function totals(): array
     {

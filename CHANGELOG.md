@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (modules): Gloebit stays off for a simulator without GLBKey and GLBSecret, said at its start; it no longer kills it
 - fix (migrate): a simulator runs on the core of this install: the old [Launch] (BinDir, its names) is translated, never copied
 - fix (migrate): a data folder the plan cannot see into is said (run it as root), never taken for absent
 - fix (migrate): the data folders of an install launched as its folder of config (kimbe.red) are found and moved

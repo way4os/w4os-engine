@@ -18,6 +18,33 @@ namespace W4OS\Engine\Runtime;
 final class ModuleLinker
 {
     /**
+     * The settings a module needs to run, by section: without them it is never linked (Gloebit without its key stores a user with no
+     * key on the first arrival, and the simulator dies).
+     */
+    public const REQUIRED = ['gloebit' => ['Gloebit' => ['GLBKey', 'GLBSecret']]];
+
+    /**
+     * The modules enabled that the config of an instance does not set up, with the settings each misses.
+     *
+     * @param list<string> $modules the modules enabled
+     * @param array<string,array<string,string>> $settings the config of the instance, its references replaced
+     * @return array<string,list<string>> module => its settings missing ("[Gloebit] GLBKey")
+     */
+    public static function unconfigured(array $modules, array $settings): array
+    {
+        $missing = [];
+        foreach ($modules as $module) {
+            foreach (self::REQUIRED[strtolower($module)] ?? [] as $section => $keys) {
+                foreach ($keys as $key) {
+                    trim((string) ($settings[$section][$key] ?? ''), " \t\"") !== '' || $missing[$module][] = "[$section] $key";
+                }
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
      * @param list<string> $modules the modules enabled
      * @param string $root where the modules are, by core
      * @param ?string $configs the ConfigDirectory of the instance, where the modules find their own config

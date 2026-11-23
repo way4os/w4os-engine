@@ -120,11 +120,20 @@ final class StartService
             $configs === '' || str_starts_with($configs, "/") || $env->reporter->info(
                 "$name: ConfigDirectory of [Startup] is \"$configs\", a folder of the core: the add-ins cannot write their config there (opensim enable or the master give one of the simulator)",
             );
+            // A module enabled that its config does not set up stays off: it would stop the simulator
+            $modules = $env->layout->enabledModules();
+            foreach (ModuleLinker::unconfigured($modules, \W4OS\Engine\Config\ConfigReader::expand($instance->settings())) as $module => $missing) {
+                $grid = $instance->grid()?->nick() ?? 'GRID';
+                $env->reporter->error("$name: the module $module is installed but not configured (" . implode(', ', $missing) . "): it stays off."
+                    . (strtolower($module) === 'gloebit' ? " Set them (opensim settings $grid economy --set gloebitKey=KEY --set gloebitSecret=SECRET)," : ' Set them,')
+                    . " then opensim restart $name");
+                $modules = array_values(array_diff($modules, [$module]));
+            }
             foreach (
                 ModuleLinker::sync(
                     "$registry/addins",
                     $core,
-                    $env->layout->enabledModules(),
+                    $modules,
                     $env->layout->modulesRoot(),
                     str_starts_with($configs, '/') ? $configs : null,
                 )
