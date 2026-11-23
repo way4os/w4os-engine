@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace W4OS\Engine\Provisioning;
 
+use W4OS\Engine\Archives\ArchiveRunner;
 use W4OS\Engine\Exceptions\SetupFailedException;
 use W4OS\Engine\Config\GridConfig;
 use W4OS\Engine\Config\GridFileService;
@@ -257,8 +258,13 @@ final class SimulatorProvisioner
      */
     private function initRegion(SimulatorPlan $plan, Environment $environment): void
     {
-        // A region the grid has, taken over, has its own content: it gets nothing more
-        if ($plan->regionTakenOver) {
+        if ($plan->regionArchive !== '') {
+            $this->loadArchive($plan, $environment);
+
+            return;
+        }
+        // A region that comes with its own content (a database made from its dump, or one the grid has, taken over) gets nothing more
+        if ($plan->regionDump !== '' || $plan->regionTakenOver) {
             return;
         }
         $archive = $this->initArchive();
@@ -310,6 +316,29 @@ final class SimulatorProvisioner
      * The archive of the initialization object: the one the package has, else (a checkout of the
      * repository) made from its sources, which the simulator, running as another user, must read.
      */
+    /** The archive of the region (OAR) loaded into it, all it holds in place of what the region has, and the end of it waited for. */
+    private function loadArchive(SimulatorPlan $plan, Environment $environment): void
+    {
+        $runner = new ArchiveRunner(
+            $environment,
+            static fn(string $instance, string $lines): bool => InstanceConsoleService::send($instance, $lines),
+            static fn(string $ini): bool => InstanceConsoleService::running($ini),
+            fn(string $message) => $this->ui->note($message),
+        );
+        [$code] = $runner->run('load', ['oar', $plan->gridNick, $plan->slug, "--region={$plan->regionName}", $plan->regionArchive]);
+        if ($code !== 0) {
+            $this->failed($plan, sprintf(
+                _('The region %s runs, but its archive %s was not loaded. Try again: opensim load oar %s %s --region="%s" %s'),
+                $plan->regionName,
+                $plan->regionArchive,
+                $plan->gridNick,
+                $plan->slug,
+                $plan->regionName,
+                $plan->regionArchive,
+            ));
+        }
+    }
+
     private function initArchive(): ?string
     {
         $source = null;

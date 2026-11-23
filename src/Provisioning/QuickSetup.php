@@ -417,7 +417,7 @@ final class QuickSetup
                 }
                 $type = strtolower(trim((string) ($given['type'] ?? ($answers['type'] ?? ''))));
                 $answers['type'] = $type;
-                $answers = array_replace($answers, array_intersect_key($given, array_flip(['hostname', 'login_uri'])));
+                $answers = array_replace($answers, array_intersect_key($given, array_flip(['hostname', 'login_uri', 'oar', 'dump'])));
                 if (isset($given['existing_region'])) {
                     $answers['existing_region'] = (string) $given['existing_region'];
                     if ($answers['existing_region'] !== '') {
@@ -893,7 +893,7 @@ final class QuickSetup
      * grid says of itself (Closure(string $host, int $port): array<string,string>), and what the planner of a region of a grid on
      * another machine asks it (the context of RegionPlanner: remoteHas, freePlace, registeredUuid, registeredName).
      *
-     * @param array{database?:?\Closure,account?:?\Closure,says?:?\Closure,region?:array<string,mixed>,dumper?:?\Closure} $doubles none: the real work
+     * @param array{database?:?\Closure,account?:?\Closure,says?:?\Closure,region?:array<string,mixed>,dumper?:?\Closure,loader?:?\Closure} $doubles none: the real work
      */
     public static function through(array $doubles = []): void
     {
@@ -902,7 +902,11 @@ final class QuickSetup
         self::$says = $doubles['says'] ?? null;
         self::$region = $doubles['region'] ?? [];
         self::$dumper = $doubles['dumper'] ?? null;
+        self::$loader = $doubles['loader'] ?? null;
     }
+
+    /** How the database of a simulator is made from a dump (null: DatabaseDump::intoEmpty()). */
+    private static ?\Closure $loader = null;
 
     /** The dump of a database for the backup of an import (null: DatabaseDump::write()). */
     private static ?\Closure $dumper = null;
@@ -998,6 +1002,19 @@ final class QuickSetup
             }
 
             return self::screenDatabase($db, $answers, $said);
+        }
+
+        // The database of the simulator made from the dump of the one its region comes from
+        if ($simulator->regionDump !== '') {
+            try {
+                (self::$loader ?? static fn(SimulatorPlan $made): int => \W4OS\Engine\Archives\DatabaseDump::intoEmpty(
+                    ['host' => $made->dbHost, 'name' => $made->dbName, 'user' => $made->dbUser, 'pass' => $made->dbPass],
+                    $made->regionDump,
+                ))($simulator);
+            } catch (\RuntimeException $error) {
+                return ['action' => 'abort', 'error' => sprintf(_('The database %s cannot be made from %s: %s'), $simulator->dbName, $simulator->regionDump, $error->getMessage())];
+            }
+            $ui->note(sprintf(_('Database %s made from %s.'), $simulator->dbName, $simulator->regionDump));
         }
 
         // What the commands say (a log, the owners) is kept, never printed: the answer of the API is a document
@@ -1456,6 +1473,20 @@ final class QuickSetup
             );
             $regions->apply($simulator, $regionAnswers);
         }
+        // What the first region is loaded with: its archive once it runs, or the dump the new database is made from
+        foreach (['oar' => 'regionArchive', 'dump' => 'regionDump'] as $answer => $field) {
+            $file = trim((string) ($answers[$answer] ?? ''));
+            if ($file !== '' && (!is_file($file) || !is_readable($file))) {
+                $problems[$answer] = sprintf(_('cannot read %s'), $file);
+            } elseif ($file !== '' && $existingRegion !== '') {
+                $problems[$answer] = _('an adopted region keeps its own database: load its archive with opensim load oar once it runs');
+            } else {
+                $simulator->$field = $file;
+            }
+        }
+        if ($simulator->regionArchive !== '' && $simulator->regionDump !== '') {
+            $problems['oar'] = _('an archive (oar) or the dump of a database, not both');
+        }
 
         return [
             'problems' => $problems,
@@ -1501,6 +1532,8 @@ final class QuickSetup
         $add('simulator', 'Simulator config', $simulator->iniPath());
         $add('region', 'Region', $simulator->regionName);
         $simulator->regionTakenOver && $add('region', 'Taken over', sprintf(_('the region the grid has (UUID %s), with its place and size'), $simulator->regionUuid));
+        $simulator->regionArchive !== '' && $add('region', 'Archive', sprintf(_('%s, loaded once it runs'), $simulator->regionArchive));
+        $simulator->regionDump !== '' && $add('region', 'Database from', $simulator->regionDump);
         $add('region', 'Location', $simulator->regionLocation);
         $add('region', 'Port', (string) $simulator->regionPort);
         $add('owner', 'Avatar', $simulator->estateOwner);
@@ -1627,6 +1660,8 @@ final class QuickSetup
 
         $add('region', 'Region', $simulator->regionName);
         $simulator->regionTakenOver && $add('region', 'Taken over', sprintf(_('the region the grid has (UUID %s), with its place and size'), $simulator->regionUuid));
+        $simulator->regionArchive !== '' && $add('region', 'Archive', sprintf(_('%s, loaded once it runs'), $simulator->regionArchive));
+        $simulator->regionDump !== '' && $add('region', 'Database from', $simulator->regionDump);
         $add('region', 'Location', $simulator->regionLocation);
         $add('region', 'Port', (string) $simulator->regionPort);
         $simulator->regionRoles !== [] && $add('region', 'Roles', implode(', ', $simulator->regionRoles));

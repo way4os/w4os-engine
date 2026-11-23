@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (regions): a region added is loaded with its archive (oar) once it runs, or a new simulator's database made from a dump
 - new (regions): a region the grid has already is taken over (existing), its UUID, place, size and owner kept, refused while it runs elsewhere
 - fix (health): the signed-out profile follows the redirections of its site to the registration
 - new (addresses): the addresses a grid advertised before, old and new by service, given at /grids/{grid}/addresses (previous)

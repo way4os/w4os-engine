@@ -247,6 +247,22 @@ final class DatabaseDump
     }
 
     /**
+     * Make a database that has no table from a dump (of write(), or of mysqldump): nothing of a database that has some is replaced.
+     *
+     * @param array{host:string,name:string,user:string,pass:string} $db
+     * @return int the statements run
+     * @throws \RuntimeException when it cannot be reached, has tables, or a statement fails
+     */
+    public static function intoEmpty(array $db, string $file): int
+    {
+        $pdo = self::connect($db);
+        $pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN) === [] ||
+            throw new \RuntimeException("the database {$db['name']} @ {$db['host']} has tables: it is not replaced");
+
+        return self::load($pdo, $file);
+    }
+
+    /**
      * @param array{host:string,name:string,user:string,pass:string} $db
      * @throws \RuntimeException
      */

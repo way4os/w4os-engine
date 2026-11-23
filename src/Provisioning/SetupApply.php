@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace W4OS\Engine\Provisioning;
 
+use W4OS\Engine\Archives\DatabaseDump;
 use W4OS\Engine\Console\InstanceConsoleService;
 use W4OS\Engine\Exceptions\InvalidValue;
 use W4OS\Engine\Exceptions\NotFound;
@@ -133,6 +134,16 @@ final class SetupApply
                     $problems["simulators.$i.regions.$j.$field"] = $message;
                 }
                 $planner->apply($regionPlan, $values);
+                foreach (self::content($regions[$j] ?? [], $j === 0 && !$exists) as $field => $value) {
+                    str_starts_with($value, '!')
+                        ? ($problems["simulators.$i.regions.$j.$field"] = substr($value, 1))
+                        : ($regionPlan->{$field === 'oar' ? 'regionArchive' : 'regionDump'} = $value);
+                }
+                // What the region is loaded with is loaded once it runs: its simulator starts
+                if ($regionPlan->regionArchive !== '' || $regionPlan->regionDump !== '') {
+                    $regionPlan->start = true;
+                    $plan->start = true;
+                }
                 $taken['names'][strtolower($regionPlan->regionName)] = true;
                 [$x, $y] = LocationFinder::parse($regionPlan->regionLocation) ?? [0, 0];
                 $span = max(1, intdiv($regionPlan->regionSize, 256));
@@ -176,7 +187,8 @@ final class SetupApply
                     'roles' => $plan->regionRoles,
                     'port' => $plan->regionPort,
                     'file' => $plan->regionIni(),
-                ] + ($plan->regionTakenOver ? ['existing' => true, 'uuid' => $plan->regionUuid] : []);
+                ] + ($plan->regionTakenOver ? ['existing' => true, 'uuid' => $plan->regionUuid] : [])
+                    + array_filter(['oar' => $plan->regionArchive, 'dump' => $plan->regionDump]);
                 $writes[] = $plan->regionIni();
             }
             $steps[] = $step;
@@ -187,7 +199,7 @@ final class SetupApply
         foreach ($this->steps as ['kind' => $kind, 'plan' => $plan]) {
             $start = ['slug' => $plan->slug, 'command' => "opensim start {$plan->slug}"];
             if ($kind === 'simulator') {
-                $reminders[$plan->slug] = Notice::of('start-simulator', $start);
+                $plan->start || ($reminders[$plan->slug] = Notice::of('start-simulator', $start));
             } elseif (!$plan->start) {
                 $reminders[$plan->slug] ??= Notice::of('start-simulator-regions', $start);
             }
@@ -214,9 +226,10 @@ final class SetupApply
      * Write what the file stands for, in order: the database of a new simulator first (made when it is missing), then its files.
      *
      * @param ?\Closure(GridPlan, UiInterface):int $database how a database is checked and made (default: DatabaseService::ensure())
-     * @throws InvalidValue when the file has problems, or a database cannot be had
+     * @param ?\Closure(SimulatorPlan):void $load how the database of a new simulator is made from a dump (default: DatabaseDump::intoEmpty())
+     * @throws InvalidValue when the file has problems, or a database cannot be had or made from its dump
      */
-    public function apply(UiInterface $ui, ?\Closure $database = null): void
+    public function apply(UiInterface $ui, ?\Closure $database = null, ?\Closure $load = null): void
     {
         if ($this->problems !== []) {
             throw InvalidValue::because('invalid-request', 'the setup has problems: ' . implode('; ', array_map(
@@ -241,8 +254,47 @@ final class SetupApply
                     'An administrator of the database server makes it: database.admin_user and database.admin_password of the file (OPENSIM_DB_ADMIN_USER and OPENSIM_DB_ADMIN_PASS for opensim), or the commands above run by hand.',
                 ]));
             }
+            if ($kind === 'simulator' && $plan->regionDump !== '') {
+                try {
+                    ($load ?? static fn(SimulatorPlan $made): int => DatabaseDump::intoEmpty(
+                        ['host' => $made->dbHost, 'name' => $made->dbName, 'user' => $made->dbUser, 'pass' => $made->dbPass],
+                        $made->regionDump,
+                    ))($plan);
+                } catch (\RuntimeException $error) {
+                    throw InvalidValue::because('invalid-request', "the database of the simulator {$plan->slug} cannot be made from {$plan->regionDump}: {$error->getMessage()}");
+                }
+                $ui->note(sprintf(_('Database %s made from %s.'), $plan->dbName, $plan->regionDump));
+            }
             (new SimulatorProvisioner($ui))->apply($plan, $this->environment);
         }
+    }
+
+    /**
+     * What a region of the file is loaded with: its archive (oar), or the dump of the database of the simulator it comes from
+     * (dump), which makes the database of a new simulator only. A problem is the message after a '!'.
+     *
+     * @param array<string,mixed> $region
+     * @return array<string,string> by the key of the file
+     */
+    private static function content(array $region, bool $newDatabase): array
+    {
+        $content = [];
+        foreach (['oar', 'dump'] as $key) {
+            $file = trim((string) ($region[$key] ?? ''));
+            if ($file === '') {
+                continue;
+            }
+            $content[$key] = match (true) {
+                !is_file($file) || !is_readable($file) => "!cannot read $file",
+                $key === 'dump' && !$newDatabase => '!the dump of a database makes the database of a new simulator: give the region a simulator of its own, or load its archive (oar)',
+                default => $file,
+            };
+        }
+        if (isset($content['oar'], $content['dump']) && $content['oar'][0] !== '!' && $content['dump'][0] !== '!') {
+            $content['oar'] = '!an archive (oar) or the dump of a database (dump), not both';
+        }
+
+        return $content;
     }
 
     /** The name of the owner the grid keeps for a region, '' when it has none or does not answer. */

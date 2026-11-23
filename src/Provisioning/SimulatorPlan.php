@@ -92,6 +92,10 @@ final class SimulatorPlan
     public bool $createRegion = true;
     /** A region the grid has, taken over: its UUID, name, place and size are the ones the grid keeps. */
     public bool $regionTakenOver = false;
+    /** An archive of the region (OAR) loaded into it once it runs, in place of what a new region gets. */
+    public string $regionArchive = '';
+    /** The dump of the database of the simulator the region comes from: the new database of this simulator is made from it. */
+    public string $regionDump = '';
     public string $regionName = '';
     public string $regionUuid = '';
     public string $regionLocation = '';

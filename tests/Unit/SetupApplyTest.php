@@ -127,6 +127,50 @@ describe('A setup file applied', function () {
             ->toContain('[Old Garden]', 'RegionUUID = 11111111-2222-3333-4444-555555555555', 'Location = 1300,1300', 'SizeX = 512');
     });
 
+    test('loads a region with its archive once it runs, or makes the database of a new simulator from a dump, never both', function () {
+        $machine = new Machine();
+        $oar = test_tmp() . '/garden.oar';
+        $dump = test_tmp() . '/sim.sql.gz';
+        file_put_contents($oar, 'oar');
+        file_put_contents($dump, 'dump');
+        $file = static fn(array $north, array $alpha = []): array => [
+            'grid' => ['nick' => 'demo'],
+            'simulators' => [
+                ['name' => 'North', 'database' => ['user' => 'opensim', 'password' => 'secret'], 'regions' => [$north + ['name' => 'Big Garden']]],
+                ['name' => 'alpha', 'regions' => [$alpha + ['name' => 'Alpha Two']]],
+            ],
+        ];
+        $file = static fn(array $north, array $alpha = []): array => ['owner' => ['name' => 'Ada Love', 'password' => 'secret-pass']] + $file($north, $alpha);
+        $loaded = SetupApply::prepare($machine->environment, $file(['dump' => $dump], ['oar' => $oar]));
+        $plan = $loaded->document();
+        // The database is made from the dump before anything is written: what it cannot be made from stops the setup there
+        $made = [];
+        $failed = null;
+        try {
+            $loaded->apply(new NullUi(), static fn(): int => DatabaseService::OK, static function ($plan) use (&$made): int {
+                $made[] = [$plan->dbName, $plan->regionDump];
+
+                throw new RuntimeException('statement 3 failed');
+            });
+        } catch (InvalidValue $error) {
+            $failed = $error->getMessage();
+        }
+
+        expect($plan['problems'])->toBe([])
+            ->and([$plan['steps'][0]['region']['dump'], $plan['steps'][1]['region']['oar']])->toBe([$dump, $oar])
+            // What is loaded is loaded once it runs: the simulators start, nothing is left to start
+            ->and(array_column($plan['reminders'], 'code'))->not->toContain('start-simulator', 'start-simulator-regions')
+            ->and($made)->toBe([[$loaded->steps[0]['plan']->dbName, $dump]])
+            ->and($failed)->toContain("cannot be made from $dump: statement 3 failed")
+            ->and(is_file($loaded->steps[0]['plan']->iniPath()))->toBeFalse()
+            ->and(SetupApply::prepare($machine->environment, $file([], ['dump' => $dump]))->problems)
+            ->toBe(['simulators.1.regions.0.dump' => 'the dump of a database makes the database of a new simulator: give the region a simulator of its own, or load its archive (oar)'])
+            ->and(SetupApply::prepare($machine->environment, $file(['oar' => $oar, 'dump' => $dump]))->problems)
+            ->toBe(['simulators.0.regions.0.oar' => 'an archive (oar) or the dump of a database (dump), not both'])
+            ->and(SetupApply::prepare($machine->environment, $file(['oar' => '/nonexistent/garden.oar']))->problems)
+            ->toBe(['simulators.0.regions.0.oar' => 'cannot read /nonexistent/garden.oar']);
+    });
+
     test('is written: the database of the new simulator first, then its files and the regions', function () {
         $machine = new Machine();
         $setup = SetupApply::prepare($machine->environment, setup_apply_file());

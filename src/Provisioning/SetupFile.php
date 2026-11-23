@@ -21,7 +21,9 @@ use Symfony\Component\Yaml\Yaml;
  *   simulators:  a list of: name, http_port, console, estate: name, owner, database: driver (mysql|sqlite), host, name, user, password,
  *                regions: a list of: name, location (x,y), size (meters, 256 by default), port, roles (DefaultRegion, DefaultHGRegion, FallbackRegion,
  *                or default, default_hg, fallback), existing (true: the region of this name the grid has, taken over with its UUID,
- *                place and size); an adopted region also retains its uuid and original INI text in source
+ *                place and size), oar (an archive loaded into it once it runs) or dump (the dump of the database of the simulator it
+ *                comes from, which makes the database of a new simulator); an adopted region also retains its uuid and original INI
+ *                text in source
  *   users:       a list of: first, last, email (optional), password (made when empty) or password_hash
  *                and password_salt (written as they are)
  *
