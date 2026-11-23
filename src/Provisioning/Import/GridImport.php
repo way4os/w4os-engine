@@ -44,6 +44,7 @@ final class GridImport
         public readonly array $unreadable,
         public readonly ?SimulatorImports $simulators,
         public readonly DataMoves $data = new DataMoves([]),
+        public readonly array $constants = [],
     ) {}
 
     /**
@@ -109,9 +110,11 @@ final class GridImport
         $backup = SourceBackup::prepare($environment, $file, $plan->gridNick, 'robust');
         $imports = $simulators === [] ? null : SimulatorImports::prepare($environment, $simulators, $plan->gridNick, Grid::planned($environment, $plan));
         // The folders of its data in the old install come into the layout of this one, where its new config has them
-        $data = DataMoves::plan($dropped, ConfigReader::expand(ConfigReader::parse(RobustImporter::generate($plan, $environment))), basename($file, '.ini'), $copyData);
+        $configs = trim((string) ($expanded['Startup']['ConfigDirectory'] ?? ''), " \t\"");
+        $names = [$configs !== '' && !str_contains($configs, '${') ? basename($configs) : '', trim((string) ($expanded['Launch']['MachineName'] ?? ''), '"'), basename($file, '.ini')];
+        $data = DataMoves::plan($dropped, ConfigReader::expand(ConfigReader::parse(RobustImporter::generate($plan, $environment))), $names, $copyData);
 
-        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data);
+        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $raw['Const'] ?? []);
     }
 
     /**
@@ -192,13 +195,16 @@ final class GridImport
             $plan->enable = false;
             $plan->start = false;
             (new GridProvisioner($ui))->apply($plan, $environment);
-            file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations));
+            file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations, $this->constants));
             file_put_contents($this->reportPath(), $this->report());
             $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
             $this->data->apply($ui, $brought);
             $this->simulators?->apply($environment, $ui, $dump);
             // Passwords are in the config files: 640, as the rest of the grid
             GridFileService::protect($plan->gridDir);
+            // Each instance reads what it is written: a reference none of its files resolves would stop it at its start
+            ($unresolved = self::unresolved($environment, $plan->gridNick)) === [] ||
+                throw InvalidValue::because('config-unresolved', 'the configs written refer to what they do not define: ' . implode('; ', $unresolved));
         } catch (\Throwable $error) {
             $this->data->undo($brought, $ui);
             foreach ($made as $dir) {
@@ -208,6 +214,27 @@ final class GridImport
 
             throw $error;
         }
+    }
+
+    /**
+     * What the configs of the instances of a grid refer to and none of their files define, by instance.
+     *
+     * @return list<string>
+     */
+    public static function unresolved(Environment $environment, string $nick): array
+    {
+        $grid = Grid::find($environment, $nick);
+        $found = [];
+        foreach ([$grid?->robust(), ...array_map(static fn($simulator) => $simulator->controller(), $grid?->simulators() ?? [])] as $instance) {
+            if ($instance === null) {
+                continue;
+            }
+            foreach (RobustImporter::unresolved($instance->files(), $instance instanceof \W4OS\Engine\Controllers\RobustController) as $reference) {
+                $found[] = $instance->name() . " $reference";
+            }
+        }
+
+        return $found;
     }
 
     /** A folder this import made, and all it holds. */
@@ -226,10 +253,11 @@ final class GridImport
 
     /**
      * The grid run from here instead of the old install: refused while the old Robust still holds the ports of the grid (its
-     * operator stops it, and keeps it from starting again); then the grid and its simulators (the ones of the import) enabled and
-     * started.
+     * operator stops it, and keeps it from starting again), or while a config of it refers to what it does not define; then the grid
+     * and its simulators (the ones of the import) enabled and started, as `opensim start` starts them (up only once ready, else the
+     * error of its log). Its simulators are not started when its Robust did not.
      *
-     * @return list<string> the instances started
+     * @return array<string,\W4OS\Engine\Runtime\Outcome|\W4OS\Engine\Exceptions\InstanceFailed> what became of each instance
      */
     public function switch(Environment $environment, UiInterface $ui): array
     {
@@ -243,17 +271,31 @@ final class GridImport
                 "port $port of the grid is taken: the old Robust still runs, stop it (and keep it from starting again), then switch",
             );
         }
+        ($unresolved = self::unresolved($environment, $plan->gridNick)) === [] ||
+            throw InvalidValue::because('config-unresolved', 'the configs of the grid refer to what they do not define: ' . implode('; ', $unresolved));
         $grid->isEnabled() || $grid->enable() || throw new \RuntimeException("could not enable the grid {$plan->gridNick}");
         // The simulators of the grid are the ones of the import: it was made by it
-        $instances = [$plan->gridNick];
+        $simulators = [];
         foreach (Grid::find($environment, $plan->gridNick)?->simulators() ?? [] as $simulator) {
             $simulator->isEnabled() || $simulator->enable();
-            $instances[] = $simulator->name();
+            $simulators[] = $simulator->name();
         }
-        OpenSim::start($instances, $environment);
-        $ui->note(sprintf(_('Started %s'), implode(', ', $instances)));
+        $results = OpenSim::start([$plan->gridNick], $environment);
+        $robust = $results[$plan->gridNick] ?? null;
+        if ($robust instanceof \W4OS\Engine\Exceptions\InstanceFailed) {
+            foreach ($simulators as $name) {
+                $results[$name] = new \W4OS\Engine\Exceptions\InstanceFailed($name, "not started: the Robust of {$plan->gridNick} did not start", 'robust-not-started');
+            }
+        } elseif ($simulators !== []) {
+            $results += OpenSim::start($simulators, $environment);
+        }
+        foreach ($results as $name => $result) {
+            $result instanceof \W4OS\Engine\Exceptions\InstanceFailed
+                ? $ui->error("$name: " . $result->getMessage())
+                : $ui->note(sprintf(_('Started %s'), $name));
+        }
 
-        return $instances;
+        return $results;
     }
 
     /** What was found and kept, for whoever compares the new config with the original. */

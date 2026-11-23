@@ -50,16 +50,17 @@ final class DataMoves
      *
      * @param list<array{section:string,key:string,value:string,reason:string,place?:bool}> $dropped
      * @param array<string,array<string,string>> $generated the new config, its references replaced
-     * @param string $machineName what `${Launch|MachineName}` is for the old install (the name of its config)
+     * @param list<string> $names what a `${Launch|...}` of the old install may be, the one whose folder is there is taken (its launcher
+     *        names the instance at its start: its folder of config, its name in [Launch], the name of its config)
      */
-    public static function plan(array $dropped, array $generated, string $machineName, bool $copy = false): self
+    public static function plan(array $dropped, array $generated, array $names, bool $copy = false): self
     {
         $moves = [];
         foreach ($dropped as $setting) {
             if (($setting['place'] ?? false) !== true || $setting['reason'] !== 'replaced') {
                 continue;
             }
-            $from = rtrim(str_replace('${Launch|MachineName}', $machineName, $setting['value']), '/');
+            $from = rtrim(self::launched($setting['value'], $names), '/');
             $to = rtrim(trim((string) ($generated[$setting['section']][$setting['key']] ?? ''), " \t\""), '/');
             if (str_contains($from, '${') || !str_starts_with($from, '/') || !is_dir($from) || $to === '' || str_contains($to, '${') || !str_starts_with($to, '/') || $from === $to) {
                 continue;
@@ -78,6 +79,22 @@ final class DataMoves
         }
 
         return new self($kept, $copy);
+    }
+
+    /** A place of the old install with its `${Launch|...}` replaced by the first of these names that makes it a folder that is there. */
+    private static function launched(string $place, array $names): string
+    {
+        if (!str_contains($place, '${Launch|')) {
+            return $place;
+        }
+        foreach (array_unique(array_filter($names, 'strlen')) as $name) {
+            $there = (string) preg_replace('/\$\{Launch\|[^}]+\}/', $name, $place);
+            if (is_dir($there)) {
+                return $there;
+            }
+        }
+
+        return $place;
     }
 
     /**

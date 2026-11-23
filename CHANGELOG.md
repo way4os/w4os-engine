@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- fix (migrate): the data folders of an install launched as its folder of config (kimbe.red) are found and moved
+- fix (migrate): the constants of the old config its kept settings use are written; an unresolved ${...} is refused
+- fix (migrate): the switch starts as opensim start does, its failures said, the simulators left when Robust fails
 - fix (in place): a simulator is named by its ini without the grid's nick (w4osdemogrid_welcome: welcome), else its first region
 - fix (api): the engine API of a grid listens on a port of its block (8005 for 8002), kept with it; a served one is kept
 - new (import): a migration moves the data folders of the old install into the layout (copyData copies), named, never measured; moved back on failure

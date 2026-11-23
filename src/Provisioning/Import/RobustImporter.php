@@ -227,22 +227,56 @@ final class RobustImporter
     }
 
     /**
-     * Put the customizations into the config the kit wrote, in place.
+     * Put the customizations into the config the kit wrote, in place, with the constants they use that it does not define: each as
+     * the original defines it ($constants, its [Const] as written), and the ones that definition uses in turn.
      *
      * @param list<array{section:string,key:string,value:string,unknown:bool,path?:bool}> $customizations
+     * @param array<string,string> $constants the [Const] of the original, as written
      */
-    public static function inject(string $text, array $customizations): string
+    public static function inject(string $text, array $customizations, array $constants = []): string
     {
         $ini = new IniEditor($text);
+        $quoted = static fn(string $value): string => preg_match('/^(-?\d+(\.\d+)?|true|false)$/i', $value) === 1 ? $value : '"' . $value . '"';
         foreach ($customizations as $c) {
-            $value =
-                preg_match('/^(-?\d+(\.\d+)?|true|false)$/i', $c['value']) === 1
-                    ? $c['value']
-                    : '"' . $c['value'] . '"';
-            $ini->set($c['section'], $c['key'], $value);
+            $ini->set($c['section'], $c['key'], $quoted($c['value']));
+        }
+        $pending = array_column($customizations, 'value');
+        while ($pending !== []) {
+            preg_match_all('/\$\{Const\|([^}]+)\}/', (string) array_shift($pending), $used);
+            foreach ($used[1] as $name) {
+                if ($ini->get('Const', $name) === null && isset($constants[$name])) {
+                    $value = trim($constants[$name], " \t\"");
+                    $ini->set('Const', $name, $quoted($value));
+                    $pending[] = $value;
+                }
+            }
         }
 
         return rtrim($ini->toString()) . "\n";
+    }
+
+    /**
+     * The references of a config its files do not resolve, `${Section|Key}` that no file of it defines: Nini stops the instance on the
+     * first ("Expand key not found"). `[Launch]` is the launcher's, left out.
+     *
+     * @param list<string> $files the files of the instance, in the order it reads them, with what they include
+     * @param bool $directory the `*.ini` of its ConfigDirectory too, as Robust reads them
+     * @return list<string> each as "[Section] Key: ${Ref}"
+     */
+    public static function unresolved(array $files, bool $directory = false): array
+    {
+        $merged = \W4OS\Engine\Config\ConfigReader::load($files, [], false, $directory);
+        $found = [];
+        foreach ($merged as $section => $values) {
+            foreach ($values as $key => $value) {
+                preg_match_all('/\$\{([^|}]+)\|([^}]+)\}/', (string) $value, $refs, PREG_SET_ORDER);
+                foreach ($refs as [$ref, $from, $name]) {
+                    $from === 'Launch' || isset($merged[$from][$name]) || $found[] = "[$section] $key: $ref";
+                }
+            }
+        }
+
+        return array_values(array_unique($found));
     }
 
     /** A path that was relative to the original config is made absolute: the user's data stays where it is. */

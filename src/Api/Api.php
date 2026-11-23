@@ -1207,8 +1207,10 @@ final class Api
         $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply', copyData: Result::isTrue($attributes['copyData'] ?? false));
         // Its grid moves into the layout of this install, its data with it: the account of this install runs it
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
-        $started = $switch ? $planned->switch($this->environment, new NullUi()) : [];
-        $document = $planned->document();
+        $results = $switch ? $planned->switch($this->environment, new NullUi()) : [];
+        $started = array_keys(array_filter($results, static fn($result): bool => !$result instanceof \W4OS\Engine\Exceptions\InstanceFailed));
+        $failed = array_map(static fn(\W4OS\Engine\Exceptions\InstanceFailed $failure): string => $failure->getMessage(), array_filter($results, static fn($result): bool => $result instanceof \W4OS\Engine\Exceptions\InstanceFailed));
+        $document = $planned->document() + ($switch ? ['failed' => $failed] : []);
 
         return Response::document([
             'data' => [

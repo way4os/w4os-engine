@@ -38,6 +38,7 @@ final class SimulatorImport
     /**
      * @param list<array{file:string,to:string,name:string,uuid:string,location:string,port:int,size:int}> $regions
      * @param list<array{section:string,key:string,value:string,unknown:bool}> $customizations
+     * @param array<string,string> $constants the [Const] of the original, as written: the ones the settings kept use are defined
      */
     private function __construct(
         public readonly SimulatorPlan $plan,
@@ -51,6 +52,7 @@ final class SimulatorImport
         public readonly bool $copyScripts = true,
         public readonly array $missingModules = [],
         public readonly array $unreadable = [],
+        public readonly array $constants = [],
     ) {}
 
     /**
@@ -197,7 +199,7 @@ final class SimulatorImport
         // grid), a path this process cannot read is said in the plan, and nothing is written
         $unreadable = self::unreadable([...$backup->files, ...array_column($regions, 'file'), ...($scripts ? array_keys($folders) : [])]);
 
-        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped, $backup, array_keys($folders), $scripts, $missing, $unreadable);
+        return new self($plan, $file, $regions, $customizations, SimulatorImporter::regionsDirectory($raw, $file), $dropped, $backup, array_keys($folders), $scripts, $missing, $unreadable, $raw['Const'] ?? []);
     }
 
     /**
@@ -293,7 +295,7 @@ final class SimulatorImport
             }
             $ui->note(sprintf(_('Copied the state of the scripts to %s'), $this->scriptsDirectory()));
         }
-        $text = RobustImporter::inject((string) file_get_contents($plan->iniPath()), $this->customizations);
+        $text = RobustImporter::inject((string) file_get_contents($plan->iniPath()), $this->customizations, $this->constants);
         file_put_contents($plan->iniPath(), $text);
         file_put_contents($this->reportPath(), $this->report());
         $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));

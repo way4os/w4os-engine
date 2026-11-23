@@ -193,6 +193,12 @@ abstract class AbstractController implements Enablable
         return [$this->ini];
     }
 
+    /** @return list<string> the files of its config, in the order it reads them (its master first, for a simulator that has one) */
+    public function files(): array
+    {
+        return $this->configFiles();
+    }
+
     /** One setting of a section, case of the key as written; empty when the config does not say it. */
     public function setting(string $section, string $key): string
     {

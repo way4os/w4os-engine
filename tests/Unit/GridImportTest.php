@@ -40,6 +40,31 @@ function grid_import_no_dump(): Closure
 }
 
 describe('The import of a grid', function () {
+    test('defines in its config the constants of the old one its kept settings use, and refuses what none defines', function () {
+        [$machine, $robust] = old_robust_install();
+        $text = str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://old.example.org\"\n    PrivURL = \${Const|BaseURL}\n    WebURL = \"http://site.example.org\"\n", file_get_contents($robust));
+        file_put_contents($robust, $text . "[Hypergrid]\n    PrivateHelper = \"\${Const|PrivURL}:\${Const|PrivatePort}/helper\"\n    WelcomeSite = \"\${Const|WebURL}/welcome\"\n");
+        $import = GridImport::prepare($machine->environment, $robust);
+        $import->apply($machine->environment, new \W4OS\Engine\Provisioning\NullUi(), grid_import_no_dump());
+        $written = ConfigReader::file($import->plan->robustIni());
+
+        [$other, $broken] = old_robust_install();
+        file_put_contents($broken, file_get_contents($broken) . "[Hypergrid]\n    Lost = \"\${Const|Nowhere}/lost\"\n");
+        $failing = GridImport::prepare($other->environment, $broken);
+        $failed = null;
+        try {
+            $failing->apply($other->environment, new \W4OS\Engine\Provisioning\NullUi(), grid_import_no_dump());
+        } catch (\W4OS\Engine\Exceptions\InvalidValue $e) {
+            $failed = $e;
+        }
+
+        expect(trim($written['Const']['PrivURL'] ?? '', '"'))->toBe('${Const|BaseURL}')
+            ->and(trim($written['Const']['WebURL'] ?? '', '"'))->toBe('http://site.example.org')
+            ->and(\W4OS\Engine\Provisioning\Import\RobustImporter::unresolved([$import->plan->robustIni()], true))->toBe([])
+            ->and($failed?->getMessage())->toContain('${Const|Nowhere}')
+            ->and(is_dir($failing->plan->gridDir))->toBeFalse();
+    });
+
     /** The old install with folders of data its config names, in its own tree: [machine, its Robust config, its assets folder]. */
     $withData = static function (): array {
         [$machine, $robust] = old_robust_install();
@@ -70,6 +95,18 @@ describe('The import of a grid', function () {
             ->and(is_dir("$old/var/data/OldGrid/fsassets/data"))->toBeFalse()
             // The new config reads them there, nothing points to the old install
             ->and(file_get_contents($import->plan->robustIni()))->not->toContain("$old/var");
+    });
+
+    test('finds the folders its launcher named after its folder of config, not after the name of its config', function () use ($withData) {
+        [$machine, $robust, $old] = $withData();
+        // opensim-debian: the instance named after the folder of the config of its grid (ConfigDirectory), kimbe.red
+        rename("$old/var/data/OldGrid", "$old/var/data/kimbe.red");
+        rename("$old/var/cache/OldGrid", "$old/var/cache/kimbe.red");
+        mkdir("$old/etc/kimbe.red", 0o755, true);
+        file_put_contents($robust, file_get_contents($robust) . "[Startup]\n    ConfigDirectory = \"$old/etc/kimbe.red\"\n");
+        $import = GridImport::prepare($machine->environment, $robust);
+
+        expect(array_column($import->document()['data'], 'from'))->toBe(["$old/var/cache/kimbe.red/maptiles", "$old/var/data/kimbe.red/fsassets/data"]);
     });
 
     test('copies them instead when asked, the old install left whole', function () use ($withData) {
@@ -246,10 +283,13 @@ describe('The import of a grid', function () {
         expect(fn() => $import->switch($machine->environment, new NullUi()))->toThrow(InvalidArgumentException::class, 'still runs');
 
         $machine->processes->listening = [];
-        $started = $import->switch($machine->environment, new NullUi());
+        // Its Robust does not start: said, never taken for started
+        $machine->launcher->exitsAtOnce = true;
+        $results = $import->switch($machine->environment, new NullUi());
 
-        expect($started)
+        expect(array_keys($results))
             ->toBe(['oldgrid'])
+            ->and($results['oldgrid'])->toBeInstanceOf(\W4OS\Engine\Exceptions\InstanceFailed::class)
             ->and(Grid::find($machine->environment, 'oldgrid')->isEnabled())
             ->toBeTrue();
     });
