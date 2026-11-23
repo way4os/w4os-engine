@@ -50,10 +50,16 @@ helpers, a plugin, a site) never exposes it, proxies it or passes it through, an
 
    The first part goes to `/etc/php/<version>/fpm/pool.d/w4os-api.conf`, then `systemctl reload php<version>-fpm`.
 
-2. a listener on `127.0.0.1:8780` (`--port`) that serves the paths of the API and nothing else, through that pool, to the entry
+2. a listener on 127.0.0.1, on the port of the engine API of the grid, that serves the paths of the API and nothing else, through that pool, to the entry
    point of the engine (`--docroot` for another one): a site block
    of its own for Caddy, a server block for Nginx, a virtual host for Apache (PHP-FPM with proxy_fcgi, never mod_php, which runs as
    the web server).
+
+The port of the engine API is one of the grid, kept with it (`ApiPort` of `[Grid]` in its `<nick>.conf`; in its section of
+`w4os.conf` for a grid run in place): the first free one of its block after its own ports, its console (x4) left to it, so 8005 for a
+grid on 8002 and 8003. A grid whose API a web server of this machine serves already keeps that port. Each grid has its own, so two
+grids on one machine never share one; `opensim ports` lists it as `local` (127.0.0.1 only: never published, never opened by
+`--ufw`), `--port` gives another one.
 
 The public site of the grid keeps its own pool: its pages, the services the viewers and the simulators call, are not run as the user
 of the instances.
@@ -71,7 +77,7 @@ In the site, the engine is remote, at that listener, with that key. For the Word
 ```yaml
 engine: remote
 url: https://grid.example.org/helpers   # the public helpers, for the blocks
-api_url: http://127.0.0.1:8780/api      # the engine API, run as the user of the instances
+api_url: http://127.0.0.1:8005/api      # the engine API of the grid (its port: opensim web GRID api says it), run as the user of the instances
 api_key: <the key>
 ```
 
