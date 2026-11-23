@@ -40,6 +40,8 @@ final class GridProvisioner
 
         // What was asked is kept, to make the same grid again from a file (opensim import)
         SetupFile::record($plan->gridDir, static fn(array $data): array => SetupFile::withGrid($data, $plan));
+        // The port of its engine API, one of its block, kept with it
+        \W4OS\Engine\Network\ApiPort::of($environment, "{$plan->gridDir}/{$plan->gridNick}.conf", 'Grid', $plan->gridNick, $plan->publicPort, $plan->privatePort);
 
         $systemUser = $environment->layout->systemUser();
         $this->giveToSystemUser($systemUser, [$plan->etcDirectory, $plan->dataDirectory, $plan->cacheDirectory], true);

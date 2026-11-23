@@ -1478,6 +1478,33 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return (int) $this->get('privatePort');
     }
 
+    /**
+     * The port its engine API answers at on this machine, 127.0.0.1 only (opensim web GRID api): its own, else the one a web server
+     * here serves, else the first free one of its block (Network\ApiPort), kept for it.
+     */
+    public function apiPort(): int
+    {
+        [$conf, $section] = $this->apiPortPlace();
+
+        return \W4OS\Engine\Network\ApiPort::of($this->environment, $conf, $section, $this->nick(), $this->publicPort(), $this->privatePort());
+    }
+
+    /** The port of its engine API as it is known now, nothing allocated (a list of the ports): null when it has none yet. */
+    public function knownApiPort(): ?int
+    {
+        [$conf, $section] = $this->apiPortPlace();
+
+        return \W4OS\Engine\Network\ApiPort::known($conf, $section, $this->nick());
+    }
+
+    /** @return array{0:string,1:string} the file that keeps the port of its engine API and its section there */
+    private function apiPortPlace(): array
+    {
+        return $this->placed !== null
+            ? [(string) $this->environment->layout->file(), "Grid {$this->placed}"]
+            : ["{$this->directory}/" . basename($this->directory) . '.conf', 'Grid'];
+    }
+
     public function databaseHost(): string
     {
         return (string) $this->get('databaseHost');

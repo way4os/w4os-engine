@@ -66,9 +66,8 @@ final class Snippets
         ];
     }
 
-    /** Where the engine API for the sites of this machine is reached by default: its socket, its port on 127.0.0.1. */
+    /** Where the engine API for the sites of this machine is reached: its socket (its port on 127.0.0.1 is the grid's, Grid::apiPort()). */
     public const API_SOCKET = '/run/php/w4os-api.sock';
-    public const API_PORT = 8780;
 
     /** The files of the API for the sites of this machine, by web server (the preset `engine-api`). */
     private const API_FILES = [
@@ -93,17 +92,18 @@ final class Snippets
     }
 
     /**
-     * What a web server needs to serve the engine API of a grid to the sites of this machine only: a listener on 127.0.0.1, its paths
-     * (/api) and no other, through the pool of pool(), to the entry point of the engine (engineRoot(), public/index.php).
+     * What a web server needs to serve the engine API of a grid to the sites of this machine only: a listener on 127.0.0.1, on the port
+     * of the grid ($port, Grid::apiPort()), its paths (/api) and no other, through the pool of pool(), to the entry point of the engine
+     * (engineRoot(), public/index.php, when $docroot is empty).
      *
      * @throws \InvalidArgumentException when the server is not one
      */
     public static function api(
         string $server,
         string $nick,
-        string $docroot = '',
-        string $socket = self::API_SOCKET,
-        int $port = self::API_PORT,
+        string $docroot,
+        string $socket,
+        int $port,
     ): string {
         $server = strtolower(trim($server));
         isset(self::API_FILES[$server]) || throw new \InvalidArgumentException("unknown web server '$server'");

@@ -367,6 +367,7 @@ abstract class AbstractController implements Enablable
      *  - public:  the viewers, the other grids, the other simulators
      *  - private: the simulators of the grid only (Robust private port, without any authentication: never for the world)
      *  - console: the REST console, which gives every right on the instance
+     *  - local:   this machine only, on 127.0.0.1 (the engine API of a grid for its sites): never opened
      *  - off:     kept for a console that is not enabled
      *
      * The region ports are UDP: they are the ones the viewers send to, and the number is the one the viewers get, so it cannot

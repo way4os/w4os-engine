@@ -176,13 +176,13 @@ describe('The engine API for the sites of this machine', function () {
 
     test('is served on 127.0.0.1 only, its paths and no other, through that pool, by each web server', function () {
         foreach (Snippets::SERVERS as $server) {
-            $snippet = Snippets::api($server, 'test_grid', '/srv/w4os-helpers/html', '/run/php/w4os-api.sock', 8780);
+            $snippet = Snippets::api($server, 'test_grid', '/srv/w4os-helpers/html', '/run/php/w4os-api.sock', 8005);
 
             expect($snippet)
-                ->toContain('127.0.0.1', '8780', '/run/php/w4os-api.sock', '/srv/w4os-helpers/html', 'test_grid', '/api')
+                ->toContain('127.0.0.1:8005', '/run/php/w4os-api.sock', '/srv/w4os-helpers/html', 'test_grid', '/api')
                 ->not->toContain('{{');
         }
-        expect(fn() => Snippets::api('unknown', 'test_grid'))->toThrow(InvalidArgumentException::class);
+        expect(fn() => Snippets::api('unknown', 'test_grid', '', Snippets::API_SOCKET, 8005))->toThrow(InvalidArgumentException::class);
     });
 
     test('goes to the entry point of the engine itself by default, the helpers to theirs as their preset says', function () {
@@ -194,7 +194,7 @@ describe('The engine API for the sites of this machine', function () {
             ->toBe(dirname(__DIR__, 2) . '/public')
             ->and(is_file(Snippets::engineRoot() . '/index.php'))
             ->toBeTrue()
-            ->and(Snippets::api('nginx', 'test_grid'))
+            ->and(Snippets::api('nginx', 'test_grid', '', Snippets::API_SOCKET, 8005))
             ->toContain(Snippets::engineRoot() . '/index.php')
             ->not->toContain('w4os-helpers')
             ->and(Snippets::helpersRoot())

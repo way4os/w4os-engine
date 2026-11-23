@@ -9,7 +9,8 @@ use W4OS\Engine\Runtime\Environment;
  * The next free ports, shared by the setup and `opensim next port`: a port is
  * "in use" if it appears (even commented) in any OpenSim config .ini under the
  * roots of the environment (every grid of the machine) — as InternalPort / PublicPort /
- * PrivatePort / http_listener_port / console_port — if a socket of this machine
+ * PrivatePort / http_listener_port / console_port — or as the port of the engine API of a
+ * grid (ApiPort of its <nick>.conf), if a socket of this machine
  * listens on it (the process table of the environment), or if the caller says so: the regions the grids of
  * this machine know on other machines (GridRegistry::knownPorts), which are no
  * problem for this one but easier to maintain when every port is different.
@@ -151,6 +152,11 @@ final class Ports
             }
         }
 
+        // The port of the engine API of each grid, in its <nick>.conf (ApiPort)
+        foreach ([...(glob(rtrim($layout->etcRoot(), '/') . '/grids/*/*.conf') ?: []), ...array_filter([(string) $layout->file()])] as $conf) {
+            preg_match_all('/^\s*' . ApiPort::KEY . '\s*=\s*"?(\d+)/m', (string) @file_get_contents($conf), $m);
+            array_push($ports, ...array_map('intval', $m[1]));
+        }
         foreach ($this->environment->processes->listening() as $p) {
             $ports[] = $p;
         }

@@ -151,6 +151,8 @@ final class RobustController extends AbstractController
                 self::addPort($uses, $port, 'tcp', 'additional service', 'private');
             }
         }
+        // The engine API of the grid, served by the web server of this machine for its sites: on 127.0.0.1 only
+        self::addPort($uses, $this->grid()?->knownApiPort(), 'tcp', 'engine API of the grid, for the sites of this machine (127.0.0.1)', 'local');
 
         return $uses;
     }
