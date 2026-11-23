@@ -46,6 +46,26 @@ final class Status
         return $names;
     }
 
+    /**
+     * The simulators whose process runs and that do not answer at /simstatus/ within two seconds: hung, or still loading.
+     *
+     * @param ?\Closure(string):?string $get reads an address (Http::get() without it)
+     * @return list<string> their names
+     */
+    public function unresponsive(?\Closure $get = null): array
+    {
+        $get ??= static fn(string $url): ?string => \W4OS\Engine\Network\Http::get($url, 2);
+        $names = [];
+        foreach ($this->instances as $instance) {
+            $port = $instance instanceof \W4OS\Engine\Controllers\OpenSimController ? (int) $instance->httpPort() : 0;
+            if ($port > 0 && $instance->process() !== null && trim((string) $get("http://127.0.0.1:$port/simstatus/")) !== 'OK') {
+                $names[] = $instance->name();
+            }
+        }
+
+        return $names;
+    }
+
     /** @return array{cpu:float,memory:float,rss:int} */
     public function totals(): array
     {

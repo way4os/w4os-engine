@@ -33,6 +33,8 @@ final class SystemLauncher implements LauncherInterface
         if ($spec->bigStack) {
             $script .= 'ulimit -s 1048576 2>/dev/null; ';
         }
+        // The output of this start only, in a file of the account it runs as
+        $spec->output === '' || $script .= ': >' . $output . ' || exit 1; ';
         if ($spec->screen) {
             // The output of the session is kept, so that an early crash can be reported
             $script .= 'screen -L -Logfile ' . $output . ' -S ' . escapeshellarg($spec->name) . ' -d -m ' . $command;

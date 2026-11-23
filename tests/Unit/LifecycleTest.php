@@ -164,6 +164,65 @@ describe('Starting a simulator', function () {
             ->and(Grid::find($machine->environment, 'demo')->simulator('alpha')->isRunning())->toBeFalse();
     });
 
+    test('that gives up a region is stopped and says why, never taken for one that is up', function () {
+        $machine = new Machine();
+        $machine->startLog(
+            'alpha',
+            '[LOAD REGIONS PLUGIN]: Done.',
+            '[RegionReady]: Enabled for region Plaza',
+            '2026-11-21 23:54:13,515 ERROR [STARTUP]: Registration of region with grid failed, aborting startup due to A generic error occurred in GDI+.',
+        );
+        $failed = null;
+        try {
+            Grid::find($machine->environment, 'demo')->simulator('alpha')->start();
+        } catch (InstanceFailed $e) {
+            $failed = $e;
+        }
+
+        expect($failed?->reason)->toBe('region-failed')
+            ->and($failed?->getMessage())->toContain('alpha stopped', 'Registration of region with grid failed')
+            ->and(Grid::find($machine->environment, 'demo')->simulator('alpha')->isRunning())->toBeFalse();
+    });
+
+    test('whose regions never come up is not said started: its errors are told, or it is still starting', function () {
+        $machine = new Machine();
+        $machine->startLog('alpha', '[LOAD REGIONS PLUGIN]: Done.', '[RegionReady]: Enabled for region Plaza');
+        $starting = Grid::find($machine->environment, 'demo')->simulator('alpha')->start();
+        $machine->processes->processes = [];
+
+        $machine->startLog('alpha', '[LOAD REGIONS PLUGIN]: Done.', '2026-11-23 10:00:00,000 ERROR [WORLD MAP]: Access to the path is denied.');
+        $failed = null;
+        try {
+            Grid::find($machine->environment, 'demo')->simulator('alpha')->start();
+        } catch (InstanceFailed $e) {
+            $failed = $e;
+        }
+
+        expect($starting)->toBe(Outcome::Starting)
+            ->and($machine->reporter->info)->toContain('alpha still starting: its regions are not up yet, check opensim status later')
+            ->and($failed?->reason)->toBe('regions-not-up')
+            ->and($failed?->getMessage())->toContain('not up after', '[WORLD MAP]: Access to the path is denied.');
+    });
+
+    test('that cannot write where its config says it writes is not started, and is told what to give it', function () {
+        $machine = new Machine();
+        $tiles = $machine->root . '/maptiles';
+        mkdir($tiles, 0o555);
+        $ini = $machine->grid . '/sims/alpha.ini';
+        file_put_contents($ini, file_get_contents($ini) . "\n[Map]\n    MapTileDirectory = \"$tiles\"\n");
+        $failed = null;
+        try {
+            Grid::find($machine->environment, 'demo')->simulator('alpha')->start();
+        } catch (InstanceFailed $e) {
+            $failed = $e;
+        }
+        chmod($tiles, 0o755);
+
+        expect($failed?->reason)->toBe('unwritable')
+            ->and($failed?->getMessage())->toContain($tiles, 'sudo chown -R')
+            ->and($machine->launcher->launched)->toBe([]);
+    })->skip(fn() => posix_geteuid() === 0, 'root writes everywhere');
+
     test('is not started when its http port is taken: another simulator, the one of an older install, listens on it', function () {
         $machine = new Machine();
         $simulator = Grid::find($machine->environment, 'demo')->simulator('alpha');
@@ -493,6 +552,23 @@ describe('status', function () {
             ->toBe(2)
             ->and($status->totals())
             ->toBe(['cpu' => 1.5, 'memory' => 2.5, 'rss' => 100000]);
+    });
+
+    test('says which running simulators do not answer, the ones that do not run asked nothing', function () {
+        $machine = new Machine();
+        foreach (['alpha', 'beta'] as $name) {
+            $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . "/opensim.d/$name.ini", 'opensim', 1.0, 1.0, 1000);
+        }
+        $asked = [];
+        $alpha = (int) OpenSim::instance($machine->environment, 'alpha')?->httpPort();
+        $get = static function (string $url) use (&$asked, $alpha): ?string {
+            $asked[] = $url;
+
+            return str_contains($url, ":$alpha/") ? "OK\n" : null;
+        };
+
+        expect(OpenSim::status($machine->environment)->unresponsive($get))->toBe(['beta'])
+            ->and($asked)->toHaveCount(2);
     });
 });
 

@@ -24,6 +24,12 @@ final class StartService
      */
     private const OWNER_LOOP = '/you must create the estate owner account first at the grid/';
 
+    /** What a simulator says when a region could not be made: it stops loading, and runs on with no region up. */
+    private const ABORTED = '/^.*(?:aborting startup|Registration of region with grid failed).*$/m';
+
+    /** What a region says once it is up: registered with its grid, then ready (scripts started). */
+    public const REGION_UP = '/\[GRID SERVICE\]: Region (.+?) \([0-9a-f-]{36}.*registered at|\[RegionReady\]: Region "(.+?)" is ready/';
+
     /** The questions of a first start, which a region fully described does not ask: each is answered with its default. */
     private const QUESTIONS = [
         'RegionUUID',
@@ -140,6 +146,20 @@ final class StartService
                 touch($logPath);
             }
         }
+        // An instance that cannot write its files hangs or stops without a word: what it would not write is said before
+        $account = $env->layout->systemUser() ?: (function_exists('posix_geteuid') ? (string) (posix_getpwuid(posix_geteuid())['name'] ?? '') : '');
+        $refused = InstanceWrites::unwritable(
+            [dirname($logPath), ...InstanceWrites::folders(\W4OS\Engine\Config\ConfigReader::expand($instance->settings()), $core->bin())],
+            $account,
+        );
+        if ($refused !== []) {
+            $owners = implode(', ', array_unique($refused));
+            $this->fail(
+                $name,
+                "$name cannot start: $account, the account it runs as, cannot write in " . implode(' ', array_keys($refused)) . " (owned by $owners). Give them to it: sudo chown -R $account: " . implode(' ', array_map('escapeshellarg', array_keys($refused))),
+                reason: 'unwritable',
+            );
+        }
         $log = new LogFile($logPath);
         // Where this start begins in the log, before the instance writes to it
         $mark = $log->mark();
@@ -167,7 +187,8 @@ final class StartService
         }
         $env->reporter->debug(implode(' ', $command));
 
-        $output = (string) tempnam(sys_get_temp_dir(), 'opensim-start-');
+        // What it prints before its log has anything, next to its log: made by the account it runs as, kept after the start
+        $output = dirname($logPath) . "/$name.start.log";
         $spec = new LaunchSpec(
             $name,
             $core->bin(),
@@ -182,22 +203,18 @@ final class StartService
             $remote === null,
             $base === 'OpenSim',
         );
-        try {
-            if (!$env->launcher->launch($spec)) {
-                $this->fail($name, "$name failed to start: the launcher could not run it");
-            }
-            // Confirm it came up: an immediate exit (a missing or incompatible runtime) would leave us waiting for nothing
-            $env->clock->sleep(1);
-            if (!$instance->isRunning()) {
-                $this->tell($output, 0);
-
-                $this->fail($name, "$name failed to start: the process exited immediately");
-            }
-
-            return $this->wait($instance, $base, $log, $mark, $output, $remote !== null);
-        } finally {
-            is_file($output) && unlink($output);
+        if (!$env->launcher->launch($spec)) {
+            $this->fail($name, "$name failed to start: the launcher could not run it");
         }
+        // Confirm it came up: an immediate exit (a missing or incompatible runtime) would leave us waiting for nothing
+        $env->clock->sleep(1);
+        if (!$instance->isRunning()) {
+            $this->tell($output, 0);
+
+            $this->fail($name, "$name failed to start: the process exited immediately", "Its output: $output");
+        }
+
+        return $this->wait($instance, $base, $log, $mark, $output, $remote !== null);
     }
 
     /** Wait for the instance to be ready, and tell how it went. */
@@ -225,15 +242,18 @@ final class StartService
             }
         } else {
             $progress = new StartProgress($env, $instance, $log, $mark, $output);
-            $stuck = static fn(): bool => preg_match(self::OWNER_LOOP, $log->since($mark)) === 1;
+            // 5 when it asks for the owner of its estate without end, 6 when it gave up a region
+            $stuck = static function () use ($log, $mark): int {
+                $since = $log->since($mark);
+
+                return preg_match(self::OWNER_LOOP, $since) === 1 ? 5 : (preg_match(self::ABORTED, $since) === 1 ? 6 : 0);
+            };
             $code = $remote
                 ? $this->waitLog($instance, $log, $mark, $progress, $stuck)
                 : $this->waitConsole($instance, $progress, $stuck);
-            // The regions are loaded before the physics and the scripts start: a region that cannot run them ends within seconds, and
-            // one without an estate asks for its owner once its region is made
+            // Its regions loaded, each is made, registered with its grid and started: up only once all are
             if ($code === 0) {
-                $env->clock->sleep(5);
-                $code = $stuck() ? 5 : ($instance->isRunning() ? 0 : 3);
+                $code = $this->waitRegions($instance, $progress, $stuck, $remote);
             }
             $progress->finish();
         }
@@ -253,7 +273,16 @@ final class StartService
             case 3:
                 $this->tell($output, 20);
 
-                $this->fail($name, "$name exited while starting");
+                $this->fail($name, "$name exited while starting" . $this->errors($log, $mark), "Its log: {$log->path()}, its output: $output");
+            case 6:
+                $this->abandon($instance);
+                preg_match(self::ABORTED, $log->since($mark), $line);
+                $this->fail(
+                    $name,
+                    "$name stopped: a region could not be made, and it would run on without it: " . trim((string) preg_replace('/^.*?\[STARTUP\]: */', '', $line[0] ?? '')),
+                    "Its log: {$log->path()}",
+                    'region-failed',
+                );
             case 5:
                 $this->abandon($instance);
                 $owner = $instance instanceof OpenSimController ? (string) $instance->estateOwner() : '';
@@ -264,10 +293,84 @@ final class StartService
                     'estate-owner-missing',
                 );
             default:
-                $env->reporter->info("$name still starting, let it run and check status later");
+                $errors = $this->errors($log, $mark);
+                if ($errors !== '') {
+                    $this->fail(
+                        $name,
+                        "$name runs, but its regions are not up after " . self::TIMEOUT . " seconds" . $errors,
+                        "Its log: {$log->path()}",
+                        'regions-not-up',
+                    );
+                }
+                $env->reporter->info("$name still starting: its regions are not up yet, check opensim status later");
 
                 return Outcome::Starting;
         }
+    }
+
+    /**
+     * Wait for all the regions of a simulator to be up: in its log (or its screen), else, when its log does not say (no DEBUG
+     * line), as its grid knows them, or by its own status when it has no grid. 0 when they are, 3 when it exited, 5 or 6 when it
+     * is stuck (see wait()), 1 at the end of the delay.
+     */
+    private function waitRegions(AbstractController $instance, StartProgress $progress, \Closure $stuck, bool $remote): int
+    {
+        $env = $this->environment;
+        $console = $remote ? null : $env->consoles->screen($instance->name());
+        for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
+            if (($code = $stuck()) !== 0) {
+                return $code;
+            }
+            $progress->show();
+            if ($progress->up($console?->screenText() ?? '') || ($tick % 10 === 9 && $progress->blind() && $this->answers($instance, $progress->names()))) {
+                // The physics and the scripts start once the regions are up: one that cannot run them ends within seconds
+                $env->clock->sleep(3);
+
+                return ($code = $stuck()) !== 0 ? $code : ($instance->isRunning() ? 0 : 3);
+            }
+            if (!$instance->isRunning()) {
+                return 3;
+            }
+            $env->clock->sleep(0.5);
+        }
+
+        return 1;
+    }
+
+    /**
+     * Whether its regions are up as its grid knows them (online, registered from its port), or, without a grid, whether it answers
+     * at /simstatus/.
+     *
+     * @param list<string> $regions
+     */
+    private function answers(AbstractController $instance, array $regions): bool
+    {
+        $port = $instance instanceof OpenSimController ? (int) $instance->httpPort() : 0;
+        $grid = (string) (\W4OS\Engine\Config\ConfigReader::expand($instance->settings())['GridService']['GridServerURI'] ?? '');
+        if ($grid === '') {
+            $body = ($this->environment->http ?? static fn(string $url): ?string => \W4OS\Engine\Network\Http::get($url, 2))("http://127.0.0.1:$port/simstatus/");
+
+            return trim((string) $body) === 'OK';
+        }
+        $host = (string) parse_url(trim($grid, '"'), PHP_URL_HOST);
+        $robust = (int) parse_url(trim($grid, '"'), PHP_URL_PORT);
+        foreach ($regions as $region) {
+            $record = \W4OS\Engine\Provisioning\RobustGrid::region($host, $robust, $region);
+            if (!is_array($record) || ($record['flags'] & \W4OS\Engine\Provisioning\RobustGrid::ONLINE) === 0 || (int) parse_url($record['server'], PHP_URL_PORT) !== $port) {
+                return false;
+            }
+        }
+
+        return $regions !== [];
+    }
+
+    /** The last errors of its log since this start, as the end of a message: empty when there is none. */
+    private function errors(LogFile $log, int $mark): string
+    {
+        preg_match_all('/^\S+ \S+ (?:ERROR|FATAL) +(.*)$/m', $log->since($mark), $found);
+        $errors = array_slice(array_unique(array_map(static fn(string $e): string => mb_substr(trim($e), 0, 200), $found[1])), -3);
+
+        return $errors === [] ? '' : ". Its last errors:\n  " . implode("\n  ", $errors);
     }
 
     /**
@@ -323,14 +426,14 @@ final class StartService
     }
 
     /**
-     * Wait for the regions of a simulator with a remote console to be ready, in its log: 0, 3 when it exited, 5 when it is stuck
-     * asking for the owner of its estate, 1 at the end of the delay.
+     * Wait for the regions of a simulator with a remote console to be loaded, in its log: 0, 3 when it exited, 5 or 6 when it is
+     * stuck (see wait()), 1 at the end of the delay.
      */
     private function waitLog(AbstractController $instance, LogFile $log, int $mark, StartProgress $progress, ?\Closure $stuck = null): int
     {
         for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
-            if ($stuck !== null && $stuck()) {
-                return 5;
+            if ($stuck !== null && ($code = $stuck()) !== 0) {
+                return $code;
             }
             if (preg_match('/RegionReady|LOAD REGIONS PLUGIN\]: Done/', $log->since($mark))) {
                 return 0;
@@ -382,8 +485,8 @@ final class StartService
     /**
      * Wait for a pattern in the screen of an instance.
      *
-     * @return array{0:int,1:string} 0 and the lines that match, 3 when the session is gone, 5 when it is stuck asking for the
-     *                                owner of its estate, 1 at the end of the delay
+     * @return array{0:int,1:string} 0 and the lines that match, 3 when the session is gone, 5 or 6 when it is stuck (see wait()),
+     *                                1 at the end of the delay
      */
     private function waitScreen(
         AbstractController $instance,
@@ -393,8 +496,8 @@ final class StartService
         ?\Closure $stuck = null,
     ): array {
         for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
-            if ($stuck !== null && $stuck()) {
-                return [5, ''];
+            if ($stuck !== null && ($code = $stuck()) !== 0) {
+                return [$code, ''];
             }
             $matches = array_filter(
                 explode("\n", $console->screenText()),

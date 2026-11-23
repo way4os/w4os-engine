@@ -2,6 +2,11 @@
 
 ### Unreleased
 
+- fix (start): a simulator is started once its regions are registered or ready, not at the first lines that name them
+- fix (start): a region given up (aborting startup) stops its simulator and says why; regions not up tell the log's last errors
+- fix (start): what an instance cannot write (log, map tiles, caches) is said before it starts, with the chown to do
+- fix (start): the first output of an instance is kept next to its log, written by the account it runs as
+- new (status): Status::unresponsive() names the running simulators that do not answer at /simstatus/
 - new (setup): the review shows each database account, whether it exists, what is done with it and where its password comes from, masked (Show passwords)
 - fix (databases): an account of the name on another host is never made again for localhost; the rights go to the one the server logs in as
 - fix (in place): the hint of an in-place import says how its own start stops (kickstart --in-place, or its cron, kill -TERM)

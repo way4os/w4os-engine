@@ -85,16 +85,6 @@ final class InPlaceGrids
             + ($entries === [] ? [] : ['Simulators' => implode(', ', $entries)]);
     }
 
-    /** Where an instance writes, by its config: the folder of its files, a folder (a relative one is in the folder of its core). */
-    private const WRITTEN = [
-        'Startup' => ['PIDFile' => 'file', 'ConsoleHistoryFile' => 'file'],
-        'Map' => ['MapTileDirectory' => 'folder'],
-        'AssetCache' => ['CacheDirectory' => 'folder'],
-        'XEngine' => ['ScriptEnginesPath' => 'folder'],
-        'YEngine' => ['ScriptEnginesPath' => 'folder'],
-        'DataSnapshot' => ['data_snapshot_path' => 'folder'],
-    ];
-
     /**
      * What the instances of a grid in place could not write, run by the user of this install (the one running the code): the
      * notice that says it and what to change, one per owner of these folders. The install is not changed.
@@ -108,28 +98,13 @@ final class InPlaceGrids
         $files = array_filter([$section['RobustIni'] ?? '', ...array_column(self::simulators('', $section), 'ini')]);
         $folders = [];
         foreach ($files as $ini) {
-            $config = ConfigReader::expand(ConfigReader::load($ini));
-            foreach (self::WRITTEN as $name => $keys) {
-                foreach ($keys as $key => $kind) {
-                    $value = trim((string) ($config[$name][$key] ?? ''), '"');
-                    if ($value === '') {
-                        continue;
-                    }
-                    $path = str_starts_with($value, '/') ? $value : ($bin !== '' ? "$bin/$value" : '');
-                    $path === '' || $folders[] = $kind === 'file' ? dirname($path) : $path;
-                }
-            }
-        }
-        $byOwner = [];
-        foreach (array_unique($folders) as $folder) {
-            // The folder, or the first of its parents that exists (where it would be made)
-            for ($there = $folder; !file_exists($there) && $there !== dirname($there); $there = dirname($there));
-            if (!is_writable($there)) {
-                $owner = function_exists('posix_getpwuid') ? (posix_getpwuid((int) fileowner($there))['name'] ?? (string) fileowner($there)) : (string) fileowner($there);
-                $byOwner[$owner][] = $there;
-            }
+            array_push($folders, ...\W4OS\Engine\Runtime\InstanceWrites::folders(ConfigReader::expand(ConfigReader::load($ini)), $bin));
         }
         $user = $environment->layout->systemUser() ?: (function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : '');
+        $byOwner = [];
+        foreach (\W4OS\Engine\Runtime\InstanceWrites::unwritable($folders, $user) as $there => $owner) {
+            $byOwner[$owner][] = $there;
+        }
         $notices = [];
         foreach ($byOwner as $owner => $there) {
             $there = array_values(array_unique($there));

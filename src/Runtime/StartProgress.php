@@ -17,6 +17,9 @@ final class StartProgress
     private array $shown = [];
     private readonly int $regions;
 
+    /** @var list<string> */
+    private readonly array $names;
+
     /**
      * @param int $mark where the log of this start begins (see LogFile::mark())
      * @param string $output the file the process writes its first output to
@@ -28,13 +31,38 @@ final class StartProgress
         private readonly int $mark,
         private readonly string $output = '',
     ) {
-        $count = 0;
+        $names = [];
         if ($instance instanceof OpenSimController && $instance->regionsDirectory() !== '') {
             foreach (glob($instance->regionsDirectory() . '/*.ini') ?: [] as $file) {
-                $count += (int) preg_match_all('/^[ \t]*\[/m', (string) file_get_contents($file));
+                preg_match_all('/^[ \t]*\[([^\]]+)\]/m', (string) file_get_contents($file), $found);
+                array_push($names, ...array_map('trim', $found[1]));
             }
         }
-        $this->regions = max(1, $count);
+        $this->names = array_values(array_unique($names));
+        $this->regions = max(1, count($this->names));
+    }
+
+    /** @return list<string> the names of its regions, by its region files */
+    public function names(): array
+    {
+        return $this->names;
+    }
+
+    /** Whether all its regions said they are up, in its log or in this text (its screen). */
+    public function up(string $screen = ''): bool
+    {
+        preg_match_all(StartService::REGION_UP, $this->log->since($this->mark) . "\n" . $screen, $found);
+        $up = array_unique(array_filter([...$found[1], ...$found[2]], 'strlen'));
+
+        return count($up) >= $this->regions;
+    }
+
+    /** Whether its log cannot tell when its regions are up: it writes, but no DEBUG line, where they would be said. */
+    public function blind(): bool
+    {
+        $since = $this->log->since($this->mark);
+
+        return preg_match('/^\S+ \S+ (?:INFO|WARN) /m', $since) === 1 && preg_match('/^\S+ \S+ DEBUG /m', $since) !== 1;
     }
 
     /** Show the steps not shown yet. */
@@ -56,25 +84,9 @@ final class StartProgress
         }
     }
 
-    /**
-     * End of the progress. The regions announce themselves to the grid some seconds after their configuration is loaded: the
-     * steps keep showing until all of them did (or for a minute, or while the instance runs), then no more.
-     */
+    /** End of the progress: the steps not shown yet, then no more. */
     public function finish(): void
     {
-        for ($tick = 0; $tick < 120; $tick++) {
-            $this->show();
-            if (
-                preg_match_all('/\[GRID SERVICE\]: Region .* registered at/', $this->log->since($this->mark)) >=
-                $this->regions
-            ) {
-                break;
-            }
-            if (!$this->instance->isRunning()) {
-                break;
-            }
-            $this->environment->clock->sleep(0.5);
-        }
         $this->show();
         $this->environment->reporter->stepEnd();
     }
