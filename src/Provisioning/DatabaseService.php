@@ -213,6 +213,20 @@ final class DatabaseService
             return self::RETRY;
         }
 
+        // An account of the name on another host is never made again for localhost: local logins would take the new one, and the
+        // install whose grid uses the other ('opensim'@'%') would lose them. Its own password is the one to give
+        if ($hosts !== [] && $host === 'localhost') {
+            $this->ui->error(sprintf(
+                _("User %s exists for %s, which the server takes for the logins from '%s' too: the password given is not its own. Give its own (the one the config of its grid keeps), or another user name; it is never made again for '%s'."),
+                $plan->dbUser,
+                implode(', ', $hosts),
+                $host,
+                $host,
+            ));
+
+            return self::RETRY;
+        }
+
         // The setup can make it (the administrator access works): said as what is going to be done, not as a problem
         $this->ui->note(
             $hosts === []
@@ -293,7 +307,11 @@ final class DatabaseService
                 return $this->failed('create the database', $err, $plan, $host, false, true);
             }
         }
-        $account = $this->quote($plan->dbUser) . '@' . $this->quote($host);
+        // The account the server logs the user in as: an existing 'opensim'@'%' is the one given the rights, never a new one
+        [$code, $out] = $this->run($plan, null, 'SELECT CURRENT_USER()');
+        $current = $code === 0 ? trim((string) $out) : '';
+        $grantHost = str_contains($current, '@') ? substr($current, strrpos($current, '@') + 1) : $host;
+        $account = $this->quote($plan->dbUser) . '@' . $this->quote($grantHost);
         [$code, , $err] = $this->admin($plan, "GRANT ALL ON `{$plan->dbName}`.* TO $account");
         if ($code !== 0) {
             return $this->failed('give the user access to the database', $err, $plan, $host, false, !$exists);
@@ -350,7 +368,7 @@ final class DatabaseService
      *
      * @return list<string>|null
      */
-    private function accountHosts(GridPlan $plan): ?array
+    public function accountHosts(GridPlan $plan): ?array
     {
         [$code, $out] = $this->admin($plan, 'SELECT Host FROM mysql.user WHERE User=' . $this->quote($plan->dbUser));
 
