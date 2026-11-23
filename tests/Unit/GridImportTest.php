@@ -40,6 +40,62 @@ function grid_import_no_dump(): Closure
 }
 
 describe('The import of a grid', function () {
+    test('moves into this install under its account, and takes the owner of the old one only for data that stays there', function () {
+        [$machine, $robust] = old_robust_install();
+        $conf = $machine->etc . '/' . \W4OS\Engine\Config\Layout::FILE;
+        file_put_contents($conf, "[Defaults]\nEtcRoot = {$machine->etc}\nSystemUser = nobody-here\n");
+        $router = new \W4OS\Engine\Api\Router(new \W4OS\Engine\Api\Api($machine->environment->withLayout(\W4OS\Engine\Config\Layout::load($conf, $machine->environment->layout->all()))));
+        $ask = static fn() => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'robust', 'file' => $robust]]])->document['data']['attributes'];
+
+        $moved = $ask();
+        // A place of its assets out of the old install: its data stays there
+        $assets = $machine->root . '/srv/assets';
+        mkdir($assets, 0o755, true);
+        file_put_contents($robust, file_get_contents($robust) . "[AssetService]\n    BaseDirectory = \"$assets\"\n");
+        $kept = $ask();
+
+        expect($moved['accounts'])->toBe([])
+            ->and($kept['accounts']['SystemUser'])->toBe(['from' => 'nobody-here', 'to' => posix_getpwuid(fileowner($assets))['name']]);
+    });
+
+    test('that fails takes back what it made, and is applied again once the cause is fixed', function () {
+        $failing = static fn(array $database, string $to) => throw new RuntimeException("cannot connect to {$database['name']}");
+        $failed = null;
+        [$machine, $robust] = old_robust_install();
+        file_put_contents($robust, str_replace('Data Source=db.example.org;', 'Data Source=localhost;', file_get_contents($robust)));
+        $import = GridImport::prepare($machine->environment, $robust);
+        try {
+            $import->apply($machine->environment, new \W4OS\Engine\Provisioning\NullUi(), $failing);
+        } catch (RuntimeException $e) {
+            $failed = $e;
+        }
+        $left = is_dir($import->plan->gridDir);
+        $again = GridImport::prepare($machine->environment, $robust);
+        $again->apply($machine->environment, new \W4OS\Engine\Provisioning\NullUi(), grid_import_no_dump());
+
+        expect($failed?->getMessage())->toContain('cannot connect to oldgrid')
+            ->and($left)->toBeFalse()
+            ->and(is_file($again->plan->robustIni()))->toBeTrue();
+    });
+
+    test('backs up the databases of this machine, and names the ones of another server without ever failing on them', function () {
+        [$machine, $robust] = old_robust_install();
+        file_put_contents($robust, str_replace('Data Source=db.example.org;', 'Data Source=localhost;', file_get_contents($robust))
+            . "[Gloebit]\n    GLBSpecificConnectionString = \"Data Source=glb.example.org;Database=osgloebit;User ID=glb;Password=glbpass;\"\n");
+        $dumped = [];
+        $dump = static function (array $database, string $to) use (&$dumped): void {
+            $database['host'] === 'localhost' || throw new RuntimeException("cannot connect to {$database['name']}");
+            $dumped[] = $database['name'];
+            file_put_contents($to, "-- {$database['name']}\n");
+        };
+        $import = GridImport::prepare($machine->environment, $robust);
+        $import->apply($machine->environment, new \W4OS\Engine\Provisioning\NullUi(), $dump);
+
+        expect($import->document()['backup'])->toMatchArray(['databases' => ['oldgrid'], 'remote' => ['osgloebit @ glb.example.org']])
+            ->and($dumped)->toBe(['oldgrid'])
+            ->and(is_file((string) $import->document()['backup']['file']))->toBeTrue();
+    });
+
     test('takes the nick of its config made a nick here, as an import in place does', function () {
         [$machine, $robust] = old_robust_install();
         file_put_contents($robust, str_replace('gridnick = "oldgrid"', 'gridnick = "W4osDemoGrid"', file_get_contents($robust)));

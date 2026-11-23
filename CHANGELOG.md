@@ -2,6 +2,10 @@
 
 ### Unreleased
 
+- fix (import): the source backup dumps the databases of this machine; another server's are named, never fatal
+- fix (import): a grid import that fails takes back the folders it made, to be applied again
+- fix (layout): the folders of the suite follow SystemUser when it changes; an install that exists is never in them
+- fix (migrate): the suite keeps its account unless places of the old install's data stay where they are
 - fix (import): every import form gives a grid the same nick by default, its gridnick made a nick here (W4osDemoGrid: w4osdemogrid)
 - new (regions): DELETE a region takes it out of its stopped simulator, its file set aside, for --existing elsewhere
 - fix (regions): a region taken over keeps the address the grid knows it by, else the grid's host; SYSTEMIP last, said

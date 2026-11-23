@@ -1205,11 +1205,14 @@ final class Api
         }
         // Switched once applied: the grid is here, written by the import
         $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply');
-        // The data of the old install stays where it is: its instances run as its owner here too, its site served as it is
+        // Its grid moves into the layout of this install, which keeps its account; only when places of its data stay in the old install
+        // (kept settings of places) do its instances run as the owner of those, its site served as it is
         $conf = (string) $this->environment->layout->file();
-        [, $accounts] = $conf !== '' && is_file($file) ? $this->installAccounts($conf, $file) : ['', []];
-        $mode === 'apply' && \W4OS\Engine\Provisioning\InstallAccount::adopt($conf, $accounts);
+        $kept = $planned->keptPlaces();
+        [, $accounts] = $conf !== '' && is_file($file) && $kept !== [] ? $this->installAccounts($conf, $file, $kept[0]) : ['', []];
+        // The accounts taken once the grid is written: a failed import changes neither the grid nor the accounts
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
+        $mode === 'apply' && \W4OS\Engine\Provisioning\InstallAccount::adopt($conf, $accounts);
         $started = $switch ? $planned->switch($this->environment, new NullUi()) : [];
         $document = $planned->document();
         $document['accounts'] = array_map(static fn(array $change): array => ['from' => $change[0], 'to' => $change[1]], $accounts);
@@ -1226,14 +1229,14 @@ final class Api
     }
 
     /**
-     * The accounts of the install of a Robust config that w4os.conf would take: its owner, and the web server account that serves its
-     * site.
+     * The accounts of the install of a Robust config that w4os.conf would take: its owner (the one of $ownedBy, a place of its data,
+     * when given), and the web server account that serves its site.
      *
      * @return array{0:string,1:array<string,array{0:string,1:string}>} the owner, and the changes of w4os.conf (InstallAccount::changes())
      */
-    private function installAccounts(string $conf, string $robustIni): array
+    private function installAccounts(string $conf, string $robustIni, ?string $ownedBy = null): array
     {
-        $owner = \W4OS\Engine\Provisioning\InstallAccount::owner($robustIni);
+        $owner = \W4OS\Engine\Provisioning\InstallAccount::owner($ownedBy !== null && file_exists($ownedBy) ? $ownedBy : $robustIni);
         $web = (new \W4OS\Engine\Provisioning\WebServerAccount())->serving(\W4OS\Engine\Provisioning\InstallAccount::hosts($robustIni));
 
         return [$owner, \W4OS\Engine\Provisioning\InstallAccount::changes($conf, $owner, $web === null ? null : ['user' => $web['user'], 'group' => $web['group']])];

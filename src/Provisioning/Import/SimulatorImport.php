@@ -273,6 +273,9 @@ final class SimulatorImport
         );
         if ($this->backup !== null) {
             $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
+            foreach ($this->backup->document()['remote'] as $database) {
+                $ui->warn(sprintf(_('Not in the backup: %s, a database of another server (its own backups keep it)'), $database));
+            }
         }
         (new SimulatorProvisioner($ui))->apply($plan, $environment);
         is_dir($plan->regionsDir()) || mkdir($plan->regionsDir(), 0o755, true);

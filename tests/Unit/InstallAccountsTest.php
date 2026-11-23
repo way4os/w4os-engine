@@ -72,7 +72,9 @@ describe('The units of the suite', function () {
         expect($made)->toBeTrue()
             ->and(file_get_contents("$base/systemd/opensim.service.d/" . ServiceUnits::DROP_IN))->toContain('User=durant')
             ->and(implode("\n", $commands))->toContain("chown 'durant':")
-            ->and(implode("\n", $commands))->not->toContain("chown 'opensim'");
+            ->and(implode("\n", $commands))->not->toContain("chown 'opensim'")
+            // What the folders of the suite hold follows the account: its config, its state, its cron
+            ->and(implode("\n", $commands))->toContain("find '$base/etc/opensim' -mindepth 1 ! -user 'durant'", "find '$base/var/cron' -mindepth 1 ! -user 'durant'");
     });
 });
 

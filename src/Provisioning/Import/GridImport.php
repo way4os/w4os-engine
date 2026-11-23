@@ -154,7 +154,8 @@ final class GridImport
 
     /**
      * Write the grid, disabled: first the backup of its source, then its config with the settings it keeps, the report, its
-     * simulators. The old install keeps running until it is stopped.
+     * simulators. The old install keeps running until it is stopped. When it fails, the folders it made are taken back (its
+     * config, its data and cache folders): it can be applied again; the backup of the source is kept.
      *
      * @param ?\Closure $dump writes the dump of a database for the backup (default: DatabaseDump::write())
      */
@@ -166,19 +167,64 @@ final class GridImport
         );
         ($this->simulators?->document()['problems'] ?? []) === [] ||
             throw InvalidValue::because('invalid-request', 'the simulators cannot be imported: ' . implode('; ', $this->simulators->document()['problems']));
-        if ($this->backup !== null) {
-            $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
-        }
         $plan = $this->plan;
-        $plan->enable = false;
-        $plan->start = false;
-        (new GridProvisioner($ui))->apply($plan, $environment);
-        file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations));
-        file_put_contents($this->reportPath(), $this->report());
-        $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
-        $this->simulators?->apply($environment, $ui, $dump);
-        // Passwords are in the config files: 640, as the rest of the grid
-        GridFileService::protect($plan->gridDir);
+        // What this import makes, taken back when it fails
+        $made = array_values(array_filter(
+            array_unique([$plan->gridDir, $plan->dataDirectory, $plan->cacheDirectory]),
+            static fn(string $dir): bool => $dir !== '' && !file_exists($dir),
+        ));
+        try {
+            if ($this->backup !== null) {
+                $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
+                foreach ($this->backup->document()['remote'] as $database) {
+                    $ui->warn(sprintf(_('Not in the backup: %s, a database of another server (its own backups keep it)'), $database));
+                }
+            }
+            $plan->enable = false;
+            $plan->start = false;
+            (new GridProvisioner($ui))->apply($plan, $environment);
+            file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations));
+            file_put_contents($this->reportPath(), $this->report());
+            $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
+            $this->simulators?->apply($environment, $ui, $dump);
+            // Passwords are in the config files: 640, as the rest of the grid
+            GridFileService::protect($plan->gridDir);
+        } catch (\Throwable $error) {
+            foreach ($made as $dir) {
+                self::remove($dir);
+            }
+            $made === [] || $ui->warn(sprintf(_('The import stopped: what it made is taken back (%s); apply it again once the cause is fixed.'), implode(', ', $made)));
+
+            throw $error;
+        }
+    }
+
+    /** A folder this import made, and all it holds. */
+    private static function remove(string $dir): void
+    {
+        if (is_link($dir) || !is_dir($dir)) {
+            is_file($dir) || is_link($dir) ? @unlink($dir) : null;
+
+            return;
+        }
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST) as $item) {
+            $item->isDir() && !$item->isLink() ? @rmdir($item->getPathname()) : @unlink($item->getPathname());
+        }
+        @rmdir($dir);
+    }
+
+    /**
+     * The places of its data that stay where they are, in the old install (its settings of places it keeps, absolute): the data
+     * there is read and written by the instances here.
+     *
+     * @return list<string>
+     */
+    public function keptPlaces(): array
+    {
+        return array_values(array_unique(array_map(
+            static fn(array $setting): string => trim($setting['value'], '"'),
+            array_filter($this->customizations, static fn(array $setting): bool => ($setting['path'] ?? false) && str_starts_with(trim($setting['value'], '"'), '/')),
+        )));
     }
 
     /**

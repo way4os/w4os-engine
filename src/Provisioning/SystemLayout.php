@@ -93,7 +93,7 @@ final class SystemLayout
             }
         }
         $etc = $layout->etcRoot();
-        $folders = [dirname($conf), $etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot()];
+        $folders = [dirname($conf), $etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot(), $layout->tasksRoot()];
         // The backup root is made when it is the default one; a chosen one (a mount) is the administrator's
         if (self::makesBackupRoot($layout)) {
             $folders[] = $layout->backupRoot();
@@ -116,6 +116,11 @@ final class SystemLayout
                 ShellService::arg($group),
                 ShellService::arg(self::USER),
             ));
+        }
+        // What the folders of the suite hold follows its account too, when it changes: what another account owns is given to it, the
+        // group with it when it was that account's own (a group of the web server stays); an install that exists is never in them
+        foreach (array_unique($folders) as $dir) {
+            $this->execute(self::follow($dir, $user, $group));
         }
         $this->ui->note(sprintf(_('Folders ready in %s, %s, %s.'), $etc, $layout->varRoot(), $layout->logsRoot()));
         // The setup process needs this group to protect files for the web server; an account that is the web server's has it
@@ -144,6 +149,18 @@ final class SystemLayout
         }
 
         return true;
+    }
+
+    /** The command that gives what a folder holds to an account, the group with it where it was the former owner's own. */
+    private static function follow(string $dir, string $user, string $group): string
+    {
+        // POSIX: run by /bin/sh; the account and its group given to the loop as its $0, user:group
+        return sprintf(
+            'find %1$s -mindepth 1 ! -user %2$s -exec sh -c \'for p; do if [ "$(stat -c %%G "$p")" = "$(id -gn "$(stat -c %%U "$p")" 2>/dev/null)" ]; then chown -h "$0" "$p"; else chown -h "${0%%%%:*}" "$p"; fi; done\' %3$s {} + 2>/dev/null || true',
+            ShellService::arg($dir),
+            ShellService::arg($user),
+            ShellService::arg("$user:$group"),
+        );
     }
 
     /** Whether the layout makes its backup root: the default one, named by w4os.conf (as a new one is written) or not. */

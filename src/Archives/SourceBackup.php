@@ -24,13 +24,15 @@ final class SourceBackup
 {
     /**
      * @param list<string> $files the files it copies
-     * @param list<array{host:string,name:string,user:string,pass:string}> $databases the ones it dumps
+     * @param list<array{host:string,name:string,user:string,pass:string}> $databases the ones it dumps, the ones of this machine
+     * @param list<array{host:string,name:string}> $remote the ones of another server its config names: theirs, never dumped here
      */
     private function __construct(
         public readonly string $config,
         public readonly string $file,
         public readonly array $files,
         public readonly array $databases,
+        public readonly array $remote = [],
     ) {}
 
     /**
@@ -45,32 +47,50 @@ final class SourceBackup
     {
         $config = (string) (realpath($config) ?: $config);
         $files = array_values(array_unique([...ConfigReader::files($config, [], true), ...array_filter(array_map('realpath', $extra))]));
-        // Every database the config names (ConnectionString, EstateConnectionString...), once each
+        // Every database the config names (ConnectionString, EstateConnectionString, GLBSpecificConnectionString...), once each; the
+        // ones of another server are that server's, left to its own backups
         $databases = [];
+        $remote = [];
         foreach (ConfigReader::load($config, [], true, true) as $settings) {
             foreach ($settings as $key => $value) {
                 $connection = preg_match('/ConnectionString$/i', (string) $key) === 1 ? ConnectionString::parse(trim((string) $value, " \t\"")) : null;
-                if ($connection !== null && $connection->driver !== 'sqlite' && $connection->database !== '') {
+                if ($connection === null || $connection->driver === 'sqlite' || $connection->database === '') {
+                    continue;
+                }
+                if (self::onThisMachine($connection->source)) {
                     $databases[$connection->key()] = ['host' => $connection->source, 'name' => $connection->database, 'user' => $connection->user, 'pass' => $connection->password];
+                } else {
+                    $remote[$connection->key()] = ['host' => $connection->source, 'name' => $connection->database];
                 }
             }
         }
         $part = Archives::part($simulator);
         $file = sprintf('%s/%s/%s/%s-%s-%s-source.tar.gz', $environment->layout->backupRoot(), $grid, $part, $grid, $part, Archives::stamp());
 
-        return new self($config, $file, $files, array_values($databases));
+        return new self($config, $file, $files, array_values($databases), array_values($remote));
+    }
+
+    /** Whether a database server is this machine: localhost, a socket, or its own name or address. */
+    private static function onThisMachine(string $host): bool
+    {
+        $host = strtolower(trim((string) preg_replace('/:\d+$/', '', $host), " \t[]"));
+        $name = strtolower((string) gethostname());
+
+        return ConnectionString::isLocal($host) || $host === $name || ($name !== '' && $host === strtolower((string) gethostbyname($name)));
     }
 
     /**
      * Where it goes, the databases it dumps, the files it copies and their size (the dumps are counted when they are made).
      *
-     * @return array{file:string,databases:list<string>,files:list<string>,size:int}
+     * @return array{file:string,databases:list<string>,remote:list<string>,files:list<string>,size:int}
      */
     public function document(): array
     {
         return [
             'file' => $this->file,
             'databases' => array_column($this->databases, 'name'),
+            // Named by the config, of another server: not in the backup
+            'remote' => array_map(static fn(array $db): string => "{$db['name']} @ {$db['host']}", $this->remote),
             'files' => $this->files,
             'size' => array_sum(array_map(static fn(string $file): int => (int) filesize($file), $this->files)),
         ];
