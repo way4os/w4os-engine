@@ -301,7 +301,9 @@ final class RegionPlanner
         }
         $key = strtolower(trim($name));
         if (isset($this->context['files'][$key])) {
-            return 'The grid has a region of this name already.';
+            return $existing
+                ? 'A simulator of this machine has this region already: take it out of that one first.'
+                : 'The grid has a region of this name already.';
         }
         if ($existing) {
             $region = $this->registered(trim($name));
@@ -309,7 +311,7 @@ final class RegionPlanner
                 return 'The grid does not answer: the region it has of this name cannot be taken over.';
             }
             if ($region === false) {
-                return 'The grid has no region of this name to take over.';
+                return 'The grid has no region of this name to take over (a simulator stopped cleanly takes its regions out of the grid, but the ones with a role): add it as a new region, with its archive or its dump.';
             }
             if (($region['flags'] & RobustGrid::ONLINE) !== 0 && $region['server'] !== '' && $this->serving($region['server'])) {
                 return sprintf(

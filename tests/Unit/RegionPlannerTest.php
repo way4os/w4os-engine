@@ -398,13 +398,13 @@ describe('A region the grid has, taken over', function () {
         expect($planner($record(['flags' => 4]), serving: true)->problems(['name' => 'Old Garden', 'existing' => true]))
             ->toBe(['name' => 'The region Old Garden is still run by the simulator at http://old.example.org:9000/, which answers: stop it there (or take the region out of it) before taking it over here.'])
             ->and($planner(false)->problems(['name' => 'Old Garden', 'existing' => true]))
-            ->toBe(['name' => 'The grid has no region of this name to take over.'])
+            ->toBe(['name' => 'The grid has no region of this name to take over (a simulator stopped cleanly takes its regions out of the grid, but the ones with a role): add it as a new region, with its archive or its dump.'])
             ->and($planner(null)->problems(['name' => 'Old Garden', 'existing' => true]))
             ->toBe(['name' => 'The grid does not answer: the region it has of this name cannot be taken over.']);
     });
 
     test('is not one a simulator of this machine describes: that one is there already', function () use ($record, $planner) {
         expect($planner($record(), more: ['files' => ['old garden' => true]])->problems(['name' => 'Old Garden', 'existing' => true]))
-            ->toBe(['name' => 'The grid has a region of this name already.']);
+            ->toBe(['name' => 'A simulator of this machine has this region already: take it out of that one first.']);
     });
 });
