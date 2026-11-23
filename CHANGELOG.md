@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (start): simulators start one after another again, each started before the next, every result kept and named
 - fix (start): the simulators started together are launched together, their waits from their launch: the time of the slowest
 - fix (start): a simulator waiting at its console for an answer nothing gives (an estate with no owner) is stopped, said
 - fix (start): its waits are bounded in time, not in turns; a switch says what still starts, not answering yet
