@@ -931,7 +931,8 @@ final class Api
                 ? $attributes['setup']
                 : SetupFile::read((string) ($attributes['text'] ?? ''), ($attributes['format'] ?? '') !== '' ? (string) $attributes['format'] : null);
             $setup = SetupApply::prepare($this->environment, $data);
-            $mode === 'apply' && $setup->apply(new NullUi());
+            $ui = new NullUi();
+            $mode === 'apply' && $setup->apply($ui);
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -941,7 +942,13 @@ final class Api
                 'type' => 'files',
                 'id' => $setup->grid->nick(),
                 'attributes' => ['mode' => $mode, 'applied' => $mode === 'apply'] + $setup->document() + [
-                    'notes' => $mode === 'apply' ? [] : [Notice::of('plan-reserves-nothing')],
+                    // What the writing said (what started, what was loaded), the files apart: they are the writes
+                    'notes' => $mode === 'apply'
+                        ? array_values(array_map(
+                            static fn(array $said): string => $said[1],
+                            array_filter($ui->said, static fn(array $said): bool => $said[0] !== 'error' && !str_starts_with($said[1], 'Wrote ')),
+                        ))
+                        : [Notice::of('plan-reserves-nothing')],
                 ],
             ],
             'links' => ['self' => $instance],
