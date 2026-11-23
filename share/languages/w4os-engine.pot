@@ -3902,7 +3902,7 @@ msgid "The old Robust of {grid} keeps running until it is stopped: stop it and k
 msgstr ""
 
 msgctxt "notice_in_place_enable"
-msgid "The grid is registered in place, disabled: once its own start is stopped (its service, its cron, its screen), {enable}, then {start}."
+msgid "The grid is registered in place, disabled. Stop its own start first (kickstart.sh --in-place does it), or by hand: its cron or its service set aside, its running instances stopped (kill -TERM: a Robust with a remote console has no screen). Then {enable}, then {start}."
 msgstr ""
 
 msgctxt "notice_in_place_unwritable"
