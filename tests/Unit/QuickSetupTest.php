@@ -603,6 +603,7 @@ function quick_doubles(array $set = []): void
                 'remoteHas' => static fn(string $name): ?bool => false,
                 'freePlace' => static fn(int $x, int $y, ?string $ignored): array => [$x, $y, true],
                 'hasAccount' => static fn(string $name): ?bool => true,
+                'accountHosts' => static fn($plan): ?array => [],
             ],
         ],
     );
@@ -1305,6 +1306,34 @@ describe('quick setup, the scenario', function () {
             ->toContain('Grid name:  Remote World', 'Login URI:  remote.example.org:8002')
             ->and(glob("{$machine->etc}/grids/remote/sims/*.ini"))
             ->toHaveCount(1);
+    });
+
+    test('shows the database accounts it is about to use, where each password comes from, masked unless asked', function () {
+        $machine = new Machine();
+        quick_core($machine);
+        quick_doubles(['region' => [
+            'remoteHas' => static fn(string $name): ?bool => false,
+            'freePlace' => static fn(int $x, int $y, ?string $ignored): array => [$x, $y, true],
+            'hasAccount' => static fn(string $name): ?bool => true,
+            // The account of the kit exists, the one of another install too
+            'accountHosts' => static fn($plan): array => ['localhost', '%'],
+        ]]);
+        putenv('OPENSIM_DB_USER=opensim_w4os');
+        putenv('OPENSIM_DB_PASS=rc-secret');
+        $form = quick_until($machine, 'form', 'simulator');
+        $review = quick_step($machine, $form, ['login_uri' => 'remote.example.org:8002', 'private_port' => '', 'name' => 'Plaza', 'avatar' => 'Ada Love']);
+        $shown = quick_step($machine, $review, [], 'show');
+        $masked = quick_step($machine, $shown, [], 'show');
+        putenv('OPENSIM_DB_USER');
+        putenv('OPENSIM_DB_PASS');
+        quick_doubles();
+        $account = static fn(array $screen): string => array_column($screen['rows'], 'value', 'label')['Database account'] ?? '';
+
+        expect($account($review))->toBe('opensim_w4os@localhost (localhost): exists, used as it is, never changed; password from the environment (~/.opensimrc): ********')
+            ->and($review['buttons']['show'])->toBe('Show passwords')
+            ->and($account($shown))->toEndWith('password from the environment (~/.opensimrc): rc-secret')
+            ->and($shown['buttons']['show'])->toBe('Hide passwords')
+            ->and($account($masked))->toEndWith(': ********');
     });
 
     test('asks again for an avatar the joined grid does not have: its simulator would ask for it without end', function () {

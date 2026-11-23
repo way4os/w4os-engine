@@ -2,6 +2,7 @@
 
 namespace W4OS\Engine\Provisioning;
 
+use W4OS\Engine\Config\ConnectionString;
 use W4OS\Engine\Exceptions\SetupFailedException;
 use W4OS\Engine\Forms\FieldSet;
 use W4OS\Engine\Models\Grid;
@@ -396,7 +397,7 @@ final class QuickSetup
     private static function advance(Environment $environment, array $request, bool $prepare): array
     {
         $state = self::decode((string) ($request['state'] ?? ''));
-        $button = in_array($request['button'] ?? 'next', ['next', 'back', 'quit'], true)
+        $button = in_array($request['button'] ?? 'next', ['next', 'back', 'quit', 'show'], true)
             ? $request['button'] ?? 'next'
             : 'next';
         $answers = $state['answers'];
@@ -417,7 +418,7 @@ final class QuickSetup
                 }
                 $type = strtolower(trim((string) ($given['type'] ?? ($answers['type'] ?? ''))));
                 $answers['type'] = $type;
-                $answers = array_replace($answers, array_intersect_key($given, array_flip(['hostname', 'login_uri', 'oar', 'dump'])));
+                $answers = array_replace($answers, array_intersect_key($given, array_flip(['hostname', 'login_uri', 'oar', 'dump', 'show_passwords'])));
                 if (isset($given['existing_region'])) {
                     $answers['existing_region'] = (string) $given['existing_region'];
                     if ($answers['existing_region'] !== '') {
@@ -533,6 +534,12 @@ final class QuickSetup
                 return $prepare ? self::prepared($environment, $answers) : self::install($environment, $answers);
 
             case 'review':
+                // The passwords of the accounts shown or masked again, nothing else changed
+                if ($button === 'show') {
+                    $answers['show_passwords'] = !Result::isTrue($answers['show_passwords'] ?? false);
+
+                    return self::screenReview($environment, $answers);
+                }
                 if ($button === 'back') {
                     return $remote
                         ? self::screenForm($environment, $answers, '')
@@ -848,7 +855,9 @@ final class QuickSetup
     /** What the setup will do, to confirm. */
     private static function screenReview(Environment $environment, array $answers): array
     {
+        $answers = self::pinned($environment, $answers);
         $quick = self::plan($environment, self::answersOf($answers));
+        $shown = Result::isTrue($answers['show_passwords'] ?? false);
 
         return [
             'action' => 'screen',
@@ -856,8 +865,12 @@ final class QuickSetup
             'title' => _('Review'),
             'text' => implode("\n", $quick['warnings'] ?? []),
             'notice' => '',
-            'rows' => $quick['rows'],
-            'buttons' => ['next' => ($answers['existing_region'] ?? '') !== '' ? _('Stage import') : _('Install'), 'back' => _('Back')],
+            'rows' => [...$quick['rows'], ...self::accountRows($environment, $answers)],
+            'buttons' => [
+                'next' => ($answers['existing_region'] ?? '') !== '' ? _('Stage import') : _('Install'),
+                'back' => _('Back'),
+                'show' => $shown ? _('Hide passwords') : _('Show passwords'),
+            ],
             'wait' => _('Installing, this can take a few minutes…'),
             'state' => self::encode('review', $answers),
         ];
@@ -1149,7 +1162,16 @@ final class QuickSetup
      */
     private static function pinned(Environment $environment, array $answers): array
     {
+        // The account the command line has (the ~/.opensimrc of kickstart): the one the setup uses, said where it comes from
+        $user = getenv('OPENSIM_DB_USER');
+        isset($answers['database_user']) || !is_string($user) || $user === '' || ($answers['database_user'] = $user);
+        $password = getenv('OPENSIM_DB_PASS');
+        if (!isset($answers['database_password']) && is_string($password) && $password !== '') {
+            $answers['database_password'] = $password;
+            $answers['database_password_source'] = 'environment';
+        }
         if (!isset($answers['database_password'])) {
+            $answers['database_password_source'] = 'generated';
             $remote = in_array(
                 self::kindOf($environment, (string) ($answers['type'] ?? '')),
                 ['remote', 'preset'],
@@ -1241,6 +1263,54 @@ final class QuickSetup
             : RobustGrid::accountName($grid->baseHostname(), $grid->privatePort(), $registered['owner']);
 
         return is_string($name) ? $name : '';
+    }
+
+    /**
+     * The database accounts the setup is about to use, before anything is made: each by its name and host, whether it exists (when an
+     * administrator access tells), what is done with it, and where its password comes from, masked unless asked.
+     *
+     * @return list<array{section:string,label:string,value:string}>
+     */
+    private static function accountRows(Environment $environment, array $answers): array
+    {
+        $remote = in_array(self::kindOf($environment, (string) ($answers['type'] ?? '')), ['remote', 'preset'], true);
+        $built = $remote ? self::buildRemote($environment, self::answersOf($answers)) : self::build($environment, self::answersOf($answers));
+        $plans = array_filter([$remote ? null : ($built['plan'] ?? null), ($built['simulator'] ?? null)?->databasePlan()]);
+        $shown = Result::isTrue($answers['show_passwords'] ?? false);
+        $mask = static fn(string $password): string => $shown ? $password : '********';
+        $sources = [
+            'generated' => _('made at random'),
+            'environment' => _('from the environment (~/.opensimrc)'),
+            'given' => _('given'),
+        ];
+        $rows = [];
+        $seen = [];
+        foreach ($plans as $plan) {
+            if ($plan->dbDriver === 'sqlite' || isset($seen["{$plan->dbUser}@{$plan->dbHost}"])) {
+                continue;
+            }
+            $seen["{$plan->dbUser}@{$plan->dbHost}"] = true;
+            $host = ConnectionString::isLocal($plan->dbHost) ? 'localhost' : '%';
+            $hosts = isset(self::$region['accountHosts'])
+                ? (self::$region['accountHosts'])($plan)
+                : (new DatabaseService(new NullUi()))->accountHosts($plan);
+            $state = match (true) {
+                $hosts === null => _('checked before anything is made (no administrator access yet)'),
+                in_array($host, $hosts, true) => _('exists, used as it is, never changed'),
+                $hosts !== [] && $host === 'localhost' => sprintf(_('exists for %s: never made again for localhost, its own password is needed'), implode(', ', $hosts)),
+                default => _('new, made by the setup'),
+            };
+            $source = $sources[$answers['database_password_source'] ?? 'given'] ?? $sources['given'];
+            $rows[] = ['section' => 'database', 'label' => _('Database account'), 'value' => "{$plan->dbUser}@$host ({$plan->dbHost}): $state; " . sprintf(_('password %s: %s'), $source, $mask($plan->dbPass))];
+        }
+        $admin = (string) ($answers['admin_user'] ?? (getenv('OPENSIM_DB_ADMIN_USER') ?: ''));
+        if ($admin !== '') {
+            $password = (string) ($answers['admin_password'] ?? (getenv('OPENSIM_DB_ADMIN_PASS') ?: ''));
+            $source = isset($answers['admin_user']) ? $sources['given'] : $sources['environment'];
+            $rows[] = ['section' => 'database', 'label' => _('Database administrator'), 'value' => "$admin: " . _('used to make what is missing, never changed') . '; ' . sprintf(_('password %s: %s'), $source, $mask($password))];
+        }
+
+        return $rows;
     }
 
     /** SQLite is a simulator option; for a standalone it is also the grid's only database. */

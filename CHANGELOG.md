@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (setup): the review shows each database account, whether it exists, what is done with it and where its password comes from, masked (Show passwords)
 - fix (databases): an account of the name on another host is never made again for localhost; the rights go to the one the server logs in as
 - fix (in place): the hint of an in-place import says how its own start stops (kickstart --in-place, or its cron, kill -TERM)
 - fix (in place): a valid nick from its own, its core from its config or --core, what its instances cannot write said, its simulators enabled with it
