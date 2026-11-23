@@ -12,6 +12,15 @@ The engine is a pure library: it reads and writes the data of OpenSimulator grid
 - **Errors are explicit**: an exception that says what failed (`ChannelUnavailable`, `InvalidArgumentException`), told as a problem (RFC 9457) by `W4OS\Engine\Api\Problem`. No intentional 500.
 - **Comments say what, not why or how**: the docblocks tell what a thing is, its arguments, its result. The history is in git.
 
+## Who runs what
+
+Two accounts, set in `w4os.conf` (both may be the same):
+
+- **SystemUser** (`opensim` on a new install; the owner of an install taken in place, or of the data a migration leaves where it is): the instances, run by `opensim.service` and the backup units through their drop-in (`<unit>.d/w4os-system-user.conf`, `ServiceUnits`), the launch master and its socket (`/run/opensim/launch.sock`, 0700), the command line, and the PHP-FPM pool `w4os-api` of the engine API: the engine writes the configs of the grids and talks to the master socket. The pool's `listen.group` is WebGroup, so the web server reaches its socket (`Snippets::pool()`).
+- **WebUser / WebGroup** (`www-data` on a new install; the account an existing site is served as): the web server, the site (`/var/lib/w4os`) and the helpers. WebGroup reads what the engine writes for it: the ini files of the grids (640, `GridFileService::protect()`), `api-keys.json`.
+
+`SystemLayout::folders()` is the one list of the folders of the suite, each with its account. The layout step (the postinst, `opensim-layout.php`, as root) gives each to its account, makes what it holds follow when that account changes, and writes the drop-ins. An install that exists, run in place, is never in that list: its files keep their owner.
+
 ## Tests
 
 The suite needs nothing of the machine it runs on: `composer test` (Pest). The fakes of `W4OS\Engine\Testing` stand for the install, the processes, the consoles and the clock; the databases are SQLite in memory with the tables of OpenSimulator. A test that needs more (podman, a real database) is skipped, with the reason, where it cannot run.
