@@ -78,6 +78,45 @@ describe('The units of the suite', function () {
     });
 });
 
+describe('The folders of the suite', function () {
+    /** The layout made with these accounts, on its own folders: [the commands it ran, its folders and their accounts]. */
+    $made = static function (string $system, string $web): array {
+        $base = accounts_dir('folders');
+        mkdir("$base/etc/w4os", 0o755, true);
+        mkdir("$base/site/www", 0o755, true);
+        $conf = "$base/etc/w4os/w4os.conf";
+        file_put_contents($conf, "[Defaults]\nSystemUser = $system\nWebUser = $web\nWebGroup = $web\n");
+        $layout = new Layout([
+            'EtcRoot' => "$base/etc/opensim", 'VarRoot' => "$base/var", 'DataRoot' => "$base/var/data", 'LogsRoot' => "$base/log",
+            'CacheRoot' => "$base/cache", 'CoreRoot' => "$base/core", 'BackupRoot' => "$base/backups", 'SiteRoot' => "$base/site",
+            'SystemUser' => $system, 'WebUser' => $web, 'WebGroup' => $web,
+        ]);
+        $commands = [];
+        (new SystemLayout(new NullUi(), function (string $c) use (&$commands): int {
+            $commands[] = $c;
+
+            return 0;
+        }, fn() => true, true, fn() => false, $conf, new ServiceUnits("$base/systemd", static fn(): int => 0, false)))->prepare($layout);
+
+        return [$commands, SystemLayout::folders($layout, $conf)];
+    };
+
+    test('each follows its account when it changes, the instances\' or the web server\'s, and no other folder', function () use ($made) {
+        foreach ([['durant', 'webby'], ['durant', 'durant']] as [$system, $web]) {
+            [$commands, $folders] = $made($system, $web);
+            $followed = [];
+            foreach ($commands as $command) {
+                preg_match("/^find '([^']+)' -mindepth 1 ! -user '([^']+)'/", $command, $m) === 1 && $followed[$m[1]] = $m[2];
+            }
+            $expected = array_map(static fn(array $folder): string => $folder[0] === SystemLayout::SYSTEM ? $system : $web, $folders);
+
+            expect($followed)->toEqualCanonicalizing($expected)
+                ->and(array_keys($followed))->toEqualCanonicalizing(array_keys($folders))
+                ->and(array_filter($folders, static fn(array $folder): bool => $folder[0] === SystemLayout::WEB))->toHaveCount(1);
+        }
+    });
+});
+
 describe('The account a web server serves a site as', function () {
     test('is the AssignUserID of an Apache site of mpm-itk', function () {
         $etc = accounts_dir('etc');

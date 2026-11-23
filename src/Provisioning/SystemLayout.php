@@ -93,41 +93,46 @@ final class SystemLayout
             }
         }
         $etc = $layout->etcRoot();
-        $folders = [dirname($conf), $etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot(), $layout->tasksRoot()];
-        // The backup root is made when it is the default one; a chosen one (a mount) is the administrator's
-        if (self::makesBackupRoot($layout)) {
-            $folders[] = $layout->backupRoot();
-        }
         $group = ServiceUnits::groupOf($user);
-        foreach ($folders as $dir) {
-            if (!is_dir($dir) && !@mkdir($dir, 0o755, true)) {
-                $this->ui->error(sprintf(_('Could not create %s.'), $dir));
+        $web = $layout->webUser();
+        $webGroup = $layout->webGroup();
+        $accounts = [self::SYSTEM => [$user, $group], self::WEB => [$web, $webGroup]];
+        foreach (self::folders($layout, $conf) as $dir => [$owner, $made]) {
+            [$account, $accountGroup] = $accounts[$owner];
+            // The folders of the site are made by its package: given to their account when they are there
+            if (!$made) {
+                is_dir($dir) && $this->execute(sprintf('chown %s:%s %s', ShellService::arg($account), ShellService::arg($accountGroup), ShellService::arg($dir)));
+            } else {
+                if (!is_dir($dir) && !@mkdir($dir, 0o755, true)) {
+                    $this->ui->error(sprintf(_('Could not create %s.'), $dir));
 
-                return false;
+                    return false;
+                }
+                $this->execute(sprintf('chown %s:%s %s', ShellService::arg($account), ShellService::arg($accountGroup), ShellService::arg($dir)));
+                @chmod($dir, 0o755);
+                // On a system with dpkg the owner survives the upgrades of the packages: an administrator's own override stays, the
+                // one made for the default account follows the account of the install
+                $this->execute(sprintf(
+                    'command -v dpkg-statoverride >/dev/null 2>&1 && { o=$(dpkg-statoverride --list %1$s); [ -z "$o" ] || [ "${o%%%% *}" != %4$s ] || [ %4$s = %2$s ] || { dpkg-statoverride --remove %1$s; o=; }; [ -n "$o" ] || dpkg-statoverride --update --add %2$s %3$s 755 %1$s; } || true',
+                    ShellService::arg($dir),
+                    ShellService::arg($account),
+                    ShellService::arg($accountGroup),
+                    ShellService::arg(self::USER),
+                ));
             }
-            $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($group), ShellService::arg($dir)));
-            @chmod($dir, 0o755);
-            // On a system with dpkg the owner survives the upgrades of the packages: an administrator's own override stays, the
-            // one made for the default account follows the account of the install
-            $this->execute(sprintf(
-                'command -v dpkg-statoverride >/dev/null 2>&1 && { o=$(dpkg-statoverride --list %1$s); [ -z "$o" ] || [ "${o%%%% *}" != %4$s ] || [ %4$s = %2$s ] || { dpkg-statoverride --remove %1$s; o=; }; [ -n "$o" ] || dpkg-statoverride --update --add %2$s %3$s 755 %1$s; } || true',
-                ShellService::arg($dir),
-                ShellService::arg($user),
-                ShellService::arg($group),
-                ShellService::arg(self::USER),
-            ));
+            // What it holds follows its account when that changes: what another account owns is given to it, the group with it when it
+            // was that account's own (the group of the web server on the files of a grid stays); an install that exists is never here
+            (!$made && !is_dir($dir)) || $this->execute(self::follow($dir, $account, $accountGroup));
         }
-        // What the folders of the suite hold follows its account too, when it changes: what another account owns is given to it, the
-        // group with it when it was that account's own (a group of the web server stays); an install that exists is never in them
-        foreach (array_unique($folders) as $dir) {
-            $this->execute(self::follow($dir, $user, $group));
+        // The files of the grids the web server reads (the helpers): its group, whichever it is now
+        foreach (glob("$etc/grids/*", GLOB_ONLYDIR) ?: [] as $grid) {
+            \W4OS\Engine\Config\GridFileService::protect($grid);
         }
         $this->ui->note(sprintf(_('Folders ready in %s, %s, %s.'), $etc, $layout->varRoot(), $layout->logsRoot()));
         // The setup process needs this group to protect files for the web server; an account that is the web server's has it
-        $web = $layout->webGroup();
-        $webGroup = ($this->groupInfo ?? static fn(string $name): array|false => function_exists('posix_getgrnam') ? posix_getgrnam($name) : false)($web);
-        if ($webGroup !== false && $web !== $group && !in_array($user, $webGroup['members'], true)) {
-            $this->execute(sprintf('/usr/sbin/usermod -aG %s %s', ShellService::arg($web), ShellService::arg($user)));
+        $members = ($this->groupInfo ?? static fn(string $name): array|false => function_exists('posix_getgrnam') ? posix_getgrnam($name) : false)($webGroup);
+        if ($members !== false && $webGroup !== $group && !in_array($user, $members['members'], true)) {
+            $this->execute(sprintf('/usr/sbin/usermod -aG %s %s', ShellService::arg($webGroup), ShellService::arg($user)));
         }
 
         if (!is_file($conf)) {
@@ -149,6 +154,36 @@ final class SystemLayout
         }
 
         return true;
+    }
+
+    /** The folders of the account of the instances and the engine (SystemUser): the grids, their state, logs, caches, backups. */
+    public const SYSTEM = 'system';
+
+    /** The folders of the account of the web server (WebUser, WebGroup): the site. */
+    public const WEB = 'web';
+
+    /** Where the site of the suite is (w4os-site), when the install names no other place (SiteRoot). */
+    public const SITE_ROOT = '/var/lib/w4os';
+
+    /**
+     * The folders of the suite, each with the account that owns it (SYSTEM or WEB) and whether the layout makes it: the one list the
+     * layout gives to their accounts, and makes what they hold follow when an account changes. What the other account needs there is
+     * given by groups and modes: the files of the grids are readable by the group of the web server (GridFileService::protect()).
+     *
+     * @return array<string,array{0:string,1:bool}> folder => [its account, made by the layout]
+     */
+    public static function folders(Layout $layout, string $conf): array
+    {
+        $etc = $layout->etcRoot();
+        $folders = [];
+        foreach ([dirname($conf), $etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot(), $layout->tasksRoot()] as $dir) {
+            $folders[$dir] = [self::SYSTEM, true];
+        }
+        // The backup root is made when it is the default one; a chosen one (a mount) is the administrator's
+        self::makesBackupRoot($layout) && $folders[$layout->backupRoot()] = [self::SYSTEM, true];
+        $folders[$layout->get('SiteRoot') ?: self::SITE_ROOT] = [self::WEB, false];
+
+        return $folders;
     }
 
     /** The command that gives what a folder holds to an account, the group with it where it was the former owner's own. */

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (layout): one list of the suite's folders, each the instances' (SystemUser) or the site's (WebUser), followed when either changes
 - fix (import): the source backup dumps the databases of this machine; another server's are named, never fatal
 - fix (import): a grid import that fails takes back the folders it made, to be applied again
 - fix (layout): the folders of the suite follow SystemUser when it changes; an install that exists is never in them
