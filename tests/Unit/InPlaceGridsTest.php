@@ -80,6 +80,17 @@ describe('A grid in place', function () {
     });
 });
 
+describe('A grid in place enabled', function () {
+    test('is its Robust and the simulators imported with it', function () {
+        [$machine, $environment, , $conf] = in_place_machine();
+
+        Grid::find($environment, 'oldgrid')->enable();
+
+        expect(InPlaceGrids::section($conf, 'oldgrid'))->toMatchArray(['Enabled' => 'yes', 'EnabledSimulators' => 'welcome'])
+            ->and(file_get_contents($conf))->toEndWith("\n");
+    });
+});
+
 describe('The settings of the helpers of a grid in place', function () {
     test('go to its section of the config of the suite, never in a file of the install', function () {
         [$machine, $environment, $old, $conf] = in_place_machine();
@@ -131,5 +142,48 @@ describe('A grid of an existing install, through the API', function () {
             ->toBe([])
             ->and(file_get_contents("$old/bin/Robust.HG.ini"))
             ->toBe($before);
+    });
+});
+
+describe('A grid of an existing install registered in place', function () {
+    /** The install of Way: its gridnick in capitals, its config apart from its core, which [Launch] BinDir names. */
+    $way = static function (): array {
+        [$machine, , $old] = in_place_machine();
+        mkdir("$old/etc", 0o755, true);
+        mkdir("$old/core/opensim-0.9.2.2/bin", 0o755, true);
+        file_put_contents("$old/etc/OldGrid.ini", "[Launch]\n    BinDir = \"$old/core/opensim-0.9.2.2/bin\"\n[Startup]\n    PIDFile = \"$old/var/run/OldGrid.pid\"\n[GridInfoService]\n    gridname = \"Old Grid\"\n    gridnick = \"OldGrid\"\n");
+        $conf = $machine->etc . '/' . Layout::FILE;
+        file_put_contents($conf, "[Defaults]\nEtcRoot = {$machine->etc}\n");
+        $environment = $machine->environment->withLayout(Layout::load($conf, $machine->environment->layout->all()));
+        $router = new \W4OS\Engine\Api\Router(new \W4OS\Engine\Api\Api($environment));
+
+        return [$router, $old];
+    };
+
+    test('takes the nick of its config made a nick of this install, and the core its config runs from, or the one asked', function () use ($way) {
+        [$router, $old] = $way();
+        $ask = static fn(array $more) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => $more + ['kind' => 'robust', 'file' => "$old/etc/OldGrid.ini", 'inPlace' => true]]]);
+
+        $named = $ask([])->document['data'];
+        $asked = $ask(['core' => "$old/bin"])->document['data']['attributes']['section'];
+
+        expect($named['id'])->toBe('oldgrid')
+            ->and($named['attributes']['section']['CoreDirectory'])->toBe("$old/core/opensim-0.9.2.2")
+            ->and($asked['CoreDirectory'])->toBe($old)
+            ->and($ask(['nick' => 'Not A Nick'])->document['detail'] ?? '')->toContain('give one with --nick');
+    });
+
+    test('says which folders its instances could not write, run by the user of this install, and how to give them', function () use ($way) {
+        [$router, $old] = $way();
+        mkdir("$old/var/run", 0o755, true);
+        chmod("$old/var/run", 0o555);
+
+        $reminders = $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'robust', 'file' => "$old/etc/OldGrid.ini", 'inPlace' => true]]])
+            ->document['data']['attributes']['reminders'];
+        chmod("$old/var/run", 0o755);
+
+        expect(array_column($reminders, 'code'))->toBe(['in-place-unwritable', 'in-place-enable'])
+            ->and($reminders[0]['params']['folders'])->toBe("$old/var/run")
+            ->and($reminders[0]['params']['command'])->toContain('chown -R', "$old/var/run");
     });
 });

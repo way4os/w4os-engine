@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (in place): a valid nick from its own, its core from its config or --core, what its instances cannot write said, its simulators enabled with it
 - fix (start): start --simulators of a grid with no simulator enabled says so
 - fix (config): the files written by IniEditor, w4os.conf among them, end with a line break
 - fix (start): the estate owner loop is caught after the region is made too, where OpenSim starts it

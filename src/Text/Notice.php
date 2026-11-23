@@ -43,6 +43,7 @@ final class Notice
         'import-stop-grid' => ['grid', 'ports'],
         'import-switch' => ['command'],
         'in-place-enable' => ['enable', 'start'],
+        'in-place-unwritable' => ['account', 'owner', 'folders', 'command'],
         // The plan of a restore (Archives\BackupRestore)
         'restore-start' => ['instance', 'command'],
         'restore-estate-missing' => ['regions', 'database'],

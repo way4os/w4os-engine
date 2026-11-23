@@ -4426,6 +4426,12 @@ msgstr ""
 "La grille est inscrite sur place, désactivée : une fois son propre démarrage "
 "arrêté (son service, son cron, son screen), {enable}, puis {start}."
 
+msgctxt "notice_in_place_unwritable"
+msgid ""
+"Here its instances run as the account {account}, which cannot write in "
+"{folders} (folders of {owner}): give them to {account}, {command}."
+msgstr "Ici, ses instances tournent avec le compte {account}, qui ne peut pas écrire dans {folders} (dossiers de {owner}) : donne-les à {account}, {command}."
+
 msgctxt "notice_import_switch"
 msgid ""
 "Then switch: {command} (the grid and its simulators enabled and started "
@@ -4534,6 +4540,15 @@ msgstr "La configuration de la grille ne dit pas où est cette base de données.
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "La base de données est injoignable."
+
+#~ msgctxt "notice_in_place_unwritable"
+#~ msgid ""
+#~ "Here its instances run as {user}, who cannot write in {folders} (folders "
+#~ "of {owner}): give them to {user}, {command}."
+#~ msgstr ""
+#~ "Ici, ses instances tournent avec le compte {account}, qui ne peut pas "
+#~ "écrire dans {folders} (dossiers de {owner}) : donne-les à {account}, "
+#~ "{command}."
 
 #~ msgctxt "link_menu_hop_apptp"
 #~ msgid "Teleport (hop app)"

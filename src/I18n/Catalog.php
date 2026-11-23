@@ -1111,6 +1111,7 @@ final class Catalog
         'notice_restart_simulators' => 'Simulator(s) restart is required: {restart}.',
         'notice_import_stop_grid' => 'The old Robust of {grid} keeps running until it is stopped: stop it and keep it from starting again (its service, its cron, its screen), its ports {ports} are the ones of the grid here, its database the same.',
         'notice_in_place_enable' => 'The grid is registered in place, disabled: once its own start is stopped (its service, its cron, its screen), {enable}, then {start}.',
+        'notice_in_place_unwritable' => 'Here its instances run as the account {account}, which cannot write in {folders} (folders of {owner}): give them to {account}, {command}.',
         'notice_import_switch' => 'Then switch: {command} (the grid and its simulators enabled and started here).',
         'notice_restore_estate_missing' => 'The regions {regions} have no estate in {database}, the database of the grid here, which is kept as it is: they would start with none. Restore their estate there, or link them to one (estate link region) before starting.',
         'notice_restore_estate_unchecked' => 'The estates of the regions could not be checked in {database}, the database of the grid here, which is kept as it is: check that they are there before starting.',

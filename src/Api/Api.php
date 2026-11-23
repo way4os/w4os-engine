@@ -1199,7 +1199,7 @@ final class Api
         $file = (string) ($attributes['file'] ?? '');
         // In place: the install where it is, only its section of the config of the suite written (or removed)
         if (Result::isTrue($attributes['inPlace'] ?? false) || Result::isTrue($attributes['forget'] ?? false)) {
-            return $this->registerInPlace($file, $nick, $simulators, $mode, Result::isTrue($attributes['forget'] ?? false), $instance);
+            return $this->registerInPlace($file, $nick, $simulators, $mode, Result::isTrue($attributes['forget'] ?? false), $instance, $core);
         }
         // Switched once applied: the grid is here, written by the import
         $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply');
@@ -1222,22 +1222,24 @@ final class Api
      *
      * @param list<array<string,mixed>> $simulators
      */
-    private function registerInPlace(string $file, ?string $nick, array $simulators, string $mode, bool $forget, string $instance): Response
+    private function registerInPlace(string $file, ?string $nick, array $simulators, string $mode, bool $forget, string $instance, ?string $core = null): Response
     {
         is_file($file) && is_readable($file) || throw InvalidValue::because('invalid-request', "cannot read the Robust config: $file");
         $conf = (string) $this->environment->layout->file();
         $conf !== '' || throw InvalidValue::because('invalid-request', 'this install has no ' . \W4OS\Engine\Config\Layout::FILE . ' to register the grid in');
         $raw = \W4OS\Engine\Config\ConfigReader::load($file);
-        $nick ??= trim((string) ($raw['GridInfoService']['gridnick'] ?? ''), '"') ?: \W4OS\Engine\Provisioning\Slug::nick(trim((string) ($raw['GridInfoService']['gridname'] ?? ''), '"'));
-        ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with nick");
-        $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators);
+        // The nick of its config in the lower case of a nick (W4osDemoGrid: w4osdemogrid), else the one of its name
+        $nick ??= (string) preg_replace('/[^a-z0-9_-]+/', '', strtolower(trim((string) ($raw['GridInfoService']['gridnick'] ?? ''), '"')))
+            ?: \W4OS\Engine\Provisioning\Slug::nick(trim((string) ($raw['GridInfoService']['gridname'] ?? ''), '"'));
+        ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with --nick (nick)");
+        $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators, $core);
         $known = \W4OS\Engine\Config\InPlaceGrids::section($conf, (string) $nick);
         if ($forget) {
             $known !== [] || throw NotFound::for("grid in place called '$nick'", 'grids');
             $mode === 'apply' && \W4OS\Engine\Config\InPlaceGrids::forget($conf, (string) $nick);
         } else {
             $known === [] && is_dir(rtrim($this->environment->layout->etcRoot(), '/') . "/grids/$nick") &&
-                throw InvalidValue::because('invalid-request', "this install has the grid $nick already: give another nick (nick)");
+                throw InvalidValue::because('invalid-request', "this install has the grid $nick already: give another nick with --nick (nick)");
             $known === [] || ($known['RobustIni'] ?? '') === $section['RobustIni'] ||
                 throw InvalidValue::because('invalid-request', "the grid $nick is registered in place from another Robust config already ({$known['RobustIni']})");
             $mode === 'apply' && \W4OS\Engine\Config\InPlaceGrids::set($conf, (string) $nick, $section);
@@ -1250,7 +1252,10 @@ final class Api
                 'attributes' => [
                     'kind' => 'robust', 'mode' => $mode, 'inPlace' => true, 'forget' => $forget, 'applied' => $mode === 'apply',
                     'grid' => (string) $nick, 'config' => $conf, 'section' => $forget ? $known : $section,
-                    'reminders' => $forget ? [] : [Notice::of('in-place-enable', ['enable' => "opensim enable $nick", 'start' => "opensim start $nick"])],
+                    'reminders' => $forget ? [] : [
+                        ...\W4OS\Engine\Config\InPlaceGrids::unwritable($this->environment, $section),
+                        Notice::of('in-place-enable', ['enable' => "opensim enable $nick", 'start' => "opensim start $nick"]),
+                    ],
                 ],
             ],
             'links' => ['self' => $instance],
