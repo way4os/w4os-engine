@@ -109,14 +109,17 @@ describe('What w4os.conf takes of an install that exists', function () {
     test('its owner and the account of its site, only what changes, written when asked', function () {
         $dir = accounts_dir('conf');
         $conf = "$dir/w4os.conf";
-        file_put_contents($conf, "[Defaults]\nSystemUser = opensim\nWebUser = www-data\nWebGroup = www-data\n");
+        // A profile of a release has its own SystemUser, which the install reads over [Defaults]
+        file_put_contents($conf, "[Defaults]\nSystemUser = nobody-here\nWebUser = www-data\nWebGroup = www-data\nDefaultProfile = opensim-0.9.3.0\n\n[opensim-0.9.3.0]\nSystemUser = opensim\n");
         file_put_contents("$dir/Robust.ini", "[Const]\n    BaseHostname = \"grid.example.org\"\n    WebURL = \"https://www.example.org/\"\n[GridInfoService]\n    homepage = \"https://www.example.org/welcome\"\n");
 
         $changes = InstallAccount::changes($conf, 'durant', ['user' => 'dupneu', 'group' => 'dupneu']);
         InstallAccount::adopt($conf, $changes);
 
         expect($changes)->toBe(['SystemUser' => ['opensim', 'durant'], 'WebUser' => ['www-data', 'dupneu'], 'WebGroup' => ['www-data', 'dupneu']])
-            ->and(file_get_contents($conf))->toContain('SystemUser = durant', 'WebGroup = dupneu')
+            ->and(substr_count(file_get_contents($conf), 'SystemUser = durant'))->toBe(2)
+            ->and(Layout::load($conf)->systemUser())->toBe('durant')
+            ->and(file_get_contents($conf))->toContain('WebGroup = dupneu')
             ->and(InstallAccount::changes($conf, 'durant', null))->toBe([])
             ->and(InstallAccount::hosts("$dir/Robust.ini"))->toBe(['www.example.org', 'grid.example.org'])
             ->and(InstallAccount::owner("$dir/Robust.ini"))->toBe(posix_getpwuid(posix_geteuid())['name']);

@@ -49,11 +49,12 @@ final class InstallAccount
      */
     public static function changes(string $conf, string $owner, ?array $web): array
     {
-        $ini = is_file($conf) ? IniEditor::load($conf) : new IniEditor('');
+        // As the install reads them: its profile over [Defaults]
+        $layout = \W4OS\Engine\Config\Layout::load(is_file($conf) ? $conf : null);
         $wanted = ['SystemUser' => $owner] + ($web === null ? [] : ['WebUser' => $web['user'], 'WebGroup' => $web['group']]);
         $changes = [];
         foreach ($wanted as $key => $value) {
-            $now = trim((string) $ini->get('Defaults', $key), " \t\"");
+            $now = trim($layout->get($key), " \t\"");
             $now === $value || $changes[$key] = [$now, $value];
         }
 
@@ -61,7 +62,7 @@ final class InstallAccount
     }
 
     /**
-     * Write these changes in w4os.conf.
+     * Write these changes in w4os.conf: in [Defaults], and in each section that has its own (the profiles of the releases).
      *
      * @param array<string,array{0:string,1:string}> $changes as changes() gives them
      */
@@ -71,8 +72,12 @@ final class InstallAccount
             return;
         }
         $ini = is_file($conf) ? IniEditor::load($conf) : new IniEditor('');
+        $sections = is_file($conf) ? ConfigReader::file($conf) : [];
         foreach ($changes as $key => [, $value]) {
             $ini->set('Defaults', $key, $value);
+            foreach ($sections as $section => $values) {
+                $section !== 'Defaults' && isset($values[$key]) && $ini->set((string) $section, $key, $value);
+            }
         }
         $ini->save($conf);
     }
