@@ -272,7 +272,10 @@ final class OpenSim
             }
             $add($found);
             if ($simulators && $found instanceof RobustController) {
-                foreach ($found->grid()?->enabledSimulators() ?? [] as $simulator) {
+                $enabled = $found->grid()?->enabledSimulators() ?? [];
+                // Said, so that a start of its Robust alone is not taken for one of the grid
+                $enabled !== [] || $environment->reporter->info("the grid $target has no simulator enabled: opensim enable <simulator> enables one");
+                foreach ($enabled as $simulator) {
                     $add($simulator->controller());
                 }
             }
