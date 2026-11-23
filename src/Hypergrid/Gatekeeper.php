@@ -71,20 +71,10 @@ final class Gatekeeper
         }
         $xml_request = xmlrpc_encode_request($method, [$request]); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions
 
-        $options = [
-            'http' => [
-                'method' => 'POST',
-                'header' => 'Content-Type: text/xml' . "\r\n",
-                'timeout' => self::$timeout, // most of the time below 1 sec, but leave some time for slow ones
-                'content' => $xml_request,
-            ],
-        ];
-        if (!self::$verifyPeer) {
-            $options['ssl'] = ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true];
-        }
-        $context = stream_context_create($options);
-
-        $response = self::$transport !== null ? (self::$transport)($gatekeeper, $xml_request) ?? false : @file_get_contents($gatekeeper, false, $context);
+        // Most of the time below a second, but some are slow
+        $response = self::$transport !== null
+            ? (self::$transport)($gatekeeper, $xml_request) ?? false
+            : (\W4OS\Engine\Network\Http::post($gatekeeper, $xml_request, ['Content-Type: text/xml'], (int) ceil(self::$timeout), self::$verifyPeer) ?? false);
         if ($response === false) {
             self::$cache['down'][self::host($gatekeeper)] = true;
 
@@ -237,27 +227,7 @@ final class Gatekeeper
             error_log('[ERROR] (XML RPC missing) self::post() requires xmlrpc_decode()');
             return false;
         }
-        $enable_self_signed = !self::$verifyPeer;
-
-        $options = [
-            'http' => [
-                'method' => 'POST',
-                'header' => 'Content-Type: text/xml' . "\r\n",
-                'content' => $request,
-            ],
-        ];
-
-        // Add SSL context options if self-signed certificates should be accepted
-        if ($enable_self_signed) {
-            $options['ssl'] = [
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-                'allow_self_signed' => true,
-            ];
-        }
-
-        $context = stream_context_create($options);
-        $response = xmlrpc_decode(file_get_contents($requestURL, false, $context));
+        $response = xmlrpc_decode((string) \W4OS\Engine\Network\Http::post($requestURL, $request, ['Content-Type: text/xml'], 30, self::$verifyPeer));
         if (is_array($response) && !xmlrpc_is_fault($response) && !empty($response) && isset($response['data'])) {
             return $response['data'];
         } else {

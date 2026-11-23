@@ -102,8 +102,7 @@ final class RobustGrid
         if (!preg_match('#^https?://#', $server)) {
             return false;
         }
-        $context = stream_context_create(['http' => ['timeout' => $timeout, 'ignore_errors' => true]]);
-        $body = @file_get_contents(rtrim($server, '/') . '/simstatus/', false, $context);
+        $body = \W4OS\Engine\Network\Http::get(rtrim($server, '/') . '/simstatus/', $timeout);
 
         return is_string($body) && trim($body) === 'OK';
     }
@@ -212,17 +211,9 @@ final class RobustGrid
     /** The answer of the grid service to a request, null when it does not answer. */
     private static function ask(string $host, int $port, array $fields, string $service = 'grid'): ?string
     {
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-                'content' => http_build_query($fields),
-                'timeout' => 5,
-                'ignore_errors' => true,
-            ],
-        ]);
-        $body = @file_get_contents("http://$host:$port/$service", false, $context);
+        // Whatever its status: the grid service answers its errors in its XML
+        [$status, $body] = \W4OS\Engine\Network\Http::exchange("http://$host:$port/$service", $fields);
 
-        return $body === false || $body === '' ? null : $body;
+        return $status === 0 || $body === '' ? null : $body;
     }
 }

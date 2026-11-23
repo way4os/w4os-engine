@@ -10,10 +10,14 @@ namespace W4OS\Engine\Network;
 final class Http
 {
     /**
+     * Through curl, which stops at the end of the answer: the HTTP streams of PHP read until the server closes, two seconds more
+     * with the servers of OpenSimulator, which keep the connection open.
+     *
      * @param array<string,scalar>|string $body the fields of a form, or the body as it is
      * @param list<string> $headers
+     * @param bool $verify whether the certificate of an https address is checked
      */
-    public static function post(string $url, array|string $body, array $headers = [], int $timeout = 5): ?string
+    public static function post(string $url, array|string $body, array $headers = [], int $timeout = 5, bool $verify = true): ?string
     {
         $handle = curl_init($url);
         if ($handle === false) {
@@ -26,6 +30,8 @@ final class Http
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CONNECTTIMEOUT => min(3, $timeout),
             CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_SSL_VERIFYPEER => $verify,
+            CURLOPT_SSL_VERIFYHOST => $verify ? 2 : 0,
         ]);
 
         return self::answer($handle, curl_exec($handle));

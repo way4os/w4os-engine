@@ -179,13 +179,13 @@ final class Simulator extends InstalledModel
     /** The body of a local address, null when it does not answer within two seconds. */
     private static function fetch(string $url): ?string
     {
-        $context = stream_context_create(['http' => ['timeout' => 2, 'ignore_errors' => true]]);
-        set_error_handler(static fn(): bool => true);
-        try {
-            $body = file_get_contents($url, false, $context);
-        } finally {
-            restore_error_handler();
+        $handle = curl_init($url);
+        if ($handle === false) {
+            return null;
         }
+        // Whatever its status, as the simulator says it
+        curl_setopt_array($handle, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 2]);
+        $body = curl_exec($handle);
 
         return is_string($body) ? $body : null;
     }
