@@ -14,11 +14,35 @@ use W4OS\Engine\Provisioning\UiInterface;
  */
 final class DataMoves
 {
+    /** @var list<array{from:string,to:string,setting:string,mode:string,acrossFilesystems:bool}> what it brings, as planned */
+    private readonly array $planned;
+
+    /** @var list<string> what keeps it from bringing them, as planned */
+    private readonly array $refused;
+
     /**
+     * What it brings and what keeps it from it are read once, as planned: once brought, the old folders are gone.
+     *
      * @param list<array{from:string,to:string,setting:string}> $moves
      * @param bool $copy copy instead of moving
      */
-    public function __construct(public readonly array $moves, public readonly bool $copy = false) {}
+    public function __construct(public readonly array $moves, public readonly bool $copy = false)
+    {
+        $this->planned = array_map(fn(array $move): array => $move + [
+            'mode' => $copy ? 'copy' : 'move',
+            'acrossFilesystems' => self::device($move['from']) !== self::device($move['to']),
+        ], $moves);
+        $refused = [];
+        foreach ($moves as $move) {
+            $from = $move['from'];
+            if ($copy) {
+                is_readable($from) && is_executable($from) || $refused[] = "cannot read $from to copy it: run the import as root";
+            } elseif (!is_writable(dirname($from)) || !is_writable($from)) {
+                $refused[] = "cannot move $from (its folder is not writable here): run the import as root, or copy it (copyData)";
+            }
+        }
+        $this->refused = $refused;
+    }
 
     /**
      * The folders to bring: the places of the old install its new config replaces (RobustImporter::sorted(), `place`), that are
@@ -64,10 +88,7 @@ final class DataMoves
      */
     public function document(): array
     {
-        return array_map(fn(array $move): array => $move + [
-            'mode' => $this->copy ? 'copy' : 'move',
-            'acrossFilesystems' => self::device($move['from']) !== self::device($move['to']),
-        ], $this->moves);
+        return $this->planned;
     }
 
     /**
@@ -78,17 +99,7 @@ final class DataMoves
      */
     public function problems(): array
     {
-        $problems = [];
-        foreach ($this->moves as $move) {
-            $from = $move['from'];
-            if ($this->copy) {
-                is_readable($from) && is_executable($from) || $problems[] = "cannot read $from to copy it: run the import as root";
-            } elseif (!is_writable(dirname($from)) || !is_writable($from)) {
-                $problems[] = "cannot move $from (its folder is not writable here): run the import as root, or copy it (copyData)";
-            }
-        }
-
-        return $problems;
+        return $this->refused;
     }
 
     /**
