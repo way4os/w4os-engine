@@ -140,7 +140,8 @@ final class RobustImporter
      *
      * @param list<string> $roots the folders of the old install (a folder under one is its own, `replaced`)
      * @param array<string,array<string,string>> $layout the folders the new one has instead, by section and key
-     * @return array{kept:list<array{section:string,key:string,value:string,unknown:bool,path:bool}>,dropped:list<array{section:string,key:string,value:string,reason:string,replacement?:?string}>}
+     * @return array{kept:list<array{section:string,key:string,value:string,unknown:bool,path:bool}>,dropped:list<array{section:string,key:string,value:string,reason:string,replacement?:?string,place?:bool}>} a place of the old install
+     *         it replaces is `place` (its data brought by DataMoves)
      */
     public static function sorted(
         array $original,
@@ -154,8 +155,8 @@ final class RobustImporter
     ): array {
         $found = [];
         $dropped = [];
-        $drop = static function (string $section, string $key, string $value, string $reason, ?string $replacement = null) use (&$dropped): void {
-            $dropped[] = ['section' => $section, 'key' => $key, 'value' => $value, 'reason' => $reason] + ($replacement === null ? [] : ['replacement' => $replacement]);
+        $drop = static function (string $section, string $key, string $value, string $reason, ?string $replacement = null, bool $place = false) use (&$dropped): void {
+            $dropped[] = ['section' => $section, 'key' => $key, 'value' => $value, 'reason' => $reason] + ($replacement === null ? [] : ['replacement' => $replacement]) + ($place ? ['place' => true] : []);
         };
         foreach ($original as $section => $values) {
             foreach ($values as $key => $value) {
@@ -182,7 +183,7 @@ final class RobustImporter
                     // A folder of the old install is its own: the new one has the folders of its layout
                     foreach ($roots as $root) {
                         if ($place === $root || str_starts_with($place, rtrim($root, '/') . '/')) {
-                            $drop($section, $key, $place, 'replaced', $layout[$section][$key] ?? $standard);
+                            $drop($section, $key, $place, 'replaced', $layout[$section][$key] ?? $standard, true);
 
                             continue 2;
                         }

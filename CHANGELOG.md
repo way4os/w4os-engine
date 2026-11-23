@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (import): a migration moves the data folders of the old install into the layout (copyData copies), named, never measured; moved back on failure
+- fix (import): a migration never keeps a place in the old install nor takes its owner
 - fix (layout): one list of the suite's folders, each the instances' (SystemUser) or the site's (WebUser), followed when either changes
 - fix (import): the source backup dumps the databases of this machine; another server's are named, never fatal
 - fix (import): a grid import that fails takes back the folders it made, to be applied again

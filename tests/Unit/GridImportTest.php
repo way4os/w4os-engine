@@ -40,22 +40,76 @@ function grid_import_no_dump(): Closure
 }
 
 describe('The import of a grid', function () {
-    test('moves into this install under its account, and takes the owner of the old one only for data that stays there', function () {
+    /** The old install with folders of data its config names, in its own tree: [machine, its Robust config, its assets folder]. */
+    $withData = static function (): array {
+        [$machine, $robust] = old_robust_install();
+        $old = dirname($robust, 2);
+        mkdir("$old/var/data/OldGrid/fsassets/data/ab", 0o755, true);
+        mkdir("$old/var/cache/OldGrid/maptiles", 0o755, true);
+        file_put_contents("$old/var/data/OldGrid/fsassets/data/ab/abcdef.gz", 'an asset');
+        file_put_contents("$old/var/cache/OldGrid/maptiles/map-1.jpg", 'a tile');
+        file_put_contents($robust, file_get_contents($robust)
+            . "[AssetService]\n    BaseDirectory = \"$old/var/data/\${Launch|MachineName}/fsassets/data\"\n[GridService]\n    MapTileDirectory = \"$old/var/cache/\${Launch|MachineName}/maptiles\"\n");
+        rename($robust, dirname($robust) . '/OldGrid.ini');
+        $example = $machine->core . '/bin/Robust.HG.ini.example';
+        file_put_contents($example, file_get_contents($example) . "[AssetService]\n    BaseDirectory = \"\${Const|DataDirectory}/fsassets/data\"\n[GridService]\n    MapTileDirectory = \"\${Const|CacheDirectory}/maptiles\"\n");
+
+        return [$machine, dirname($robust) . '/OldGrid.ini', $old];
+    };
+
+    test('moves the folders of its data where its new config has them, named in the plan without measuring them', function () use ($withData) {
+        [$machine, $robust, $old] = $withData();
+        $import = GridImport::prepare($machine->environment, $robust);
+        $planned = $import->document()['data'];
+        $import->apply($machine->environment, new \W4OS\Engine\Provisioning\NullUi(), grid_import_no_dump());
+
+        expect(array_column($planned, 'from'))->toBe(["$old/var/cache/OldGrid/maptiles", "$old/var/data/OldGrid/fsassets/data"])
+            ->and(array_column($planned, 'to'))->toBe([$import->plan->cacheDirectory . '/maptiles', $import->plan->dataDirectory . '/fsassets/data'])
+            ->and(array_column($planned, 'mode'))->toBe(['move', 'move'])
+            ->and(file_get_contents($import->plan->dataDirectory . '/fsassets/data/ab/abcdef.gz'))->toBe('an asset')
+            ->and(is_dir("$old/var/data/OldGrid/fsassets/data"))->toBeFalse()
+            // The new config reads them there, nothing points to the old install
+            ->and(file_get_contents($import->plan->robustIni()))->not->toContain("$old/var");
+    });
+
+    test('copies them instead when asked, the old install left whole', function () use ($withData) {
+        [$machine, $robust, $old] = $withData();
+        $import = GridImport::prepare($machine->environment, $robust, copyData: true);
+        $import->apply($machine->environment, new \W4OS\Engine\Provisioning\NullUi(), grid_import_no_dump());
+
+        expect(array_column($import->document()['data'], 'mode'))->toBe(['copy', 'copy'])
+            ->and(file_get_contents($import->plan->dataDirectory . '/fsassets/data/ab/abcdef.gz'))->toBe('an asset')
+            ->and(file_get_contents("$old/var/data/OldGrid/fsassets/data/ab/abcdef.gz"))->toBe('an asset');
+    });
+
+    test('that fails once its data is moved moves it back', function () use ($withData) {
+        [$machine, $robust, $old] = $withData();
+        $import = GridImport::prepare($machine->environment, $robust);
+        // The place of the second folder has files already: it cannot be brought there
+        mkdir($import->plan->dataDirectory . '/fsassets/data', 0o755, true);
+        file_put_contents($import->plan->dataDirectory . '/fsassets/data/other', 'x');
+        $failed = null;
+        try {
+            $import->apply($machine->environment, new \W4OS\Engine\Provisioning\NullUi(), grid_import_no_dump());
+        } catch (RuntimeException $e) {
+            $failed = $e;
+        }
+
+        expect($failed?->getMessage())->toContain('has files already')
+            ->and(file_get_contents("$old/var/cache/OldGrid/maptiles/map-1.jpg"))->toBe('a tile')
+            ->and(file_get_contents("$old/var/data/OldGrid/fsassets/data/ab/abcdef.gz"))->toBe('an asset')
+            ->and(is_dir($import->plan->gridDir))->toBeFalse();
+    });
+
+    test('moves into this install under its account, never the one of the old install', function () {
         [$machine, $robust] = old_robust_install();
         $conf = $machine->etc . '/' . \W4OS\Engine\Config\Layout::FILE;
         file_put_contents($conf, "[Defaults]\nEtcRoot = {$machine->etc}\nSystemUser = nobody-here\n");
         $router = new \W4OS\Engine\Api\Router(new \W4OS\Engine\Api\Api($machine->environment->withLayout(\W4OS\Engine\Config\Layout::load($conf, $machine->environment->layout->all()))));
-        $ask = static fn() => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'robust', 'file' => $robust]]])->document['data']['attributes'];
+        $moved = $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'robust', 'file' => $robust]]])->document['data']['attributes'];
 
-        $moved = $ask();
-        // A place of its assets out of the old install: its data stays there
-        $assets = $machine->root . '/srv/assets';
-        mkdir($assets, 0o755, true);
-        file_put_contents($robust, file_get_contents($robust) . "[AssetService]\n    BaseDirectory = \"$assets\"\n");
-        $kept = $ask();
-
-        expect($moved['accounts'])->toBe([])
-            ->and($kept['accounts']['SystemUser'])->toBe(['from' => 'nobody-here', 'to' => posix_getpwuid(fileowner($assets))['name']]);
+        expect($moved)->not->toHaveKey('accounts')
+            ->and(file_get_contents($conf))->toContain('SystemUser = nobody-here');
     });
 
     test('that fails takes back what it made, and is applied again once the cause is fixed', function () {

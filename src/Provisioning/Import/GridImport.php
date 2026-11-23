@@ -43,6 +43,7 @@ final class GridImport
         public readonly ?SourceBackup $backup,
         public readonly array $unreadable,
         public readonly ?SimulatorImports $simulators,
+        public readonly DataMoves $data = new DataMoves([]),
     ) {}
 
     /**
@@ -55,7 +56,7 @@ final class GridImport
      * @param bool $written the import was applied already: the grid is here (to switch it)
      * @throws InvalidValue for what cannot be imported, said
      */
-    public static function prepare(Environment $environment, string $file, ?string $nick = null, ?string $core = null, array $simulators = [], bool $written = false): self
+    public static function prepare(Environment $environment, string $file, ?string $nick = null, ?string $core = null, array $simulators = [], bool $written = false, bool $copyData = false): self
     {
         if (!is_file($file) || !is_readable($file)) {
             throw InvalidValue::because('invalid-request', "cannot read the Robust config: $file");
@@ -97,7 +98,7 @@ final class GridImport
         // A migration keeps the choices of the grid: what this install writes its own way (a text of a preset) is the old one again,
         // but the services the options of this install lay ([ServiceList])
         foreach ($dropped as $i => $setting) {
-            if ($setting['reason'] === 'replaced' && $setting['section'] !== 'ServiceList' && !str_contains($setting['value'], '${')) {
+            if ($setting['reason'] === 'replaced' && !($setting['place'] ?? false) && $setting['section'] !== 'ServiceList' && !str_contains($setting['value'], '${')) {
                 $customizations[] = ['section' => $setting['section'], 'key' => $setting['key'], 'value' => $setting['value'], 'unknown' => false, 'path' => false];
                 unset($dropped[$i]);
             }
@@ -107,8 +108,10 @@ final class GridImport
         // The way back: its database and its files, as they are, before anything is written (the first start may upgrade the tables)
         $backup = SourceBackup::prepare($environment, $file, $plan->gridNick, 'robust');
         $imports = $simulators === [] ? null : SimulatorImports::prepare($environment, $simulators, $plan->gridNick, Grid::planned($environment, $plan));
+        // The folders of its data in the old install come into the layout of this one, where its new config has them
+        $data = DataMoves::plan($dropped, ConfigReader::expand(ConfigReader::parse(RobustImporter::generate($plan, $environment))), basename($file, '.ini'), $copyData);
 
-        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports);
+        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data);
     }
 
     /**
@@ -135,7 +138,9 @@ final class GridImport
             'report' => $this->reportPath(),
             'backup' => $this->backup?->document(),
             'simulators' => $simulators,
-            'problems' => $simulators['problems'] ?? [],
+            // The folders of its data brought into this install, never measured first
+            'data' => $this->data->document(),
+            'problems' => ($simulators['problems'] ?? []) + ($this->data->problems() === [] ? [] : ['data' => implode('; ', $this->data->problems())]),
             'writes' => array_values(array_unique([
                 ...($this->backup === null ? [] : [$this->backup->file]),
                 $plan->robustIni(),
@@ -154,8 +159,10 @@ final class GridImport
 
     /**
      * Write the grid, disabled: first the backup of its source, then its config with the settings it keeps, the report, its
-     * simulators. The old install keeps running until it is stopped. When it fails, the folders it made are taken back (its
-     * config, its data and cache folders): it can be applied again; the backup of the source is kept.
+     * simulators. The folders of its data are moved (or copied) where its new config has them, as the last of its own writings.
+     * The old install keeps running until it is stopped (it runs without the data moved). When it fails, its data is moved back and
+     * the folders it made are taken back (its config, its data and cache folders): it can be applied again; the backup of the
+     * source is kept.
      *
      * @param ?\Closure $dump writes the dump of a database for the backup (default: DatabaseDump::write())
      */
@@ -167,12 +174,14 @@ final class GridImport
         );
         ($this->simulators?->document()['problems'] ?? []) === [] ||
             throw InvalidValue::because('invalid-request', 'the simulators cannot be imported: ' . implode('; ', $this->simulators->document()['problems']));
+        $this->data->problems() === [] || throw InvalidValue::because('invalid-request', 'its data cannot be brought: ' . implode('; ', $this->data->problems()));
         $plan = $this->plan;
         // What this import makes, taken back when it fails
         $made = array_values(array_filter(
             array_unique([$plan->gridDir, $plan->dataDirectory, $plan->cacheDirectory]),
             static fn(string $dir): bool => $dir !== '' && !file_exists($dir),
         ));
+        $brought = [];
         try {
             if ($this->backup !== null) {
                 $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
@@ -186,10 +195,12 @@ final class GridImport
             file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations));
             file_put_contents($this->reportPath(), $this->report());
             $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
+            $this->data->apply($ui, $brought);
             $this->simulators?->apply($environment, $ui, $dump);
             // Passwords are in the config files: 640, as the rest of the grid
             GridFileService::protect($plan->gridDir);
         } catch (\Throwable $error) {
+            $this->data->undo($brought, $ui);
             foreach ($made as $dir) {
                 self::remove($dir);
             }
@@ -211,20 +222,6 @@ final class GridImport
             $item->isDir() && !$item->isLink() ? @rmdir($item->getPathname()) : @unlink($item->getPathname());
         }
         @rmdir($dir);
-    }
-
-    /**
-     * The places of its data that stay where they are, in the old install (its settings of places it keeps, absolute): the data
-     * there is read and written by the instances here.
-     *
-     * @return list<string>
-     */
-    public function keptPlaces(): array
-    {
-        return array_values(array_unique(array_map(
-            static fn(array $setting): string => trim($setting['value'], '"'),
-            array_filter($this->customizations, static fn(array $setting): bool => ($setting['path'] ?? false) && str_starts_with(trim($setting['value'], '"'), '/')),
-        )));
     }
 
     /**
