@@ -18,6 +18,12 @@ final class StartService
     /** Seconds an instance has to come up. */
     private const TIMEOUT = 120;
 
+    /**
+     * What a simulator says, again and again, when the owner its estate is given is not an account of its grid: OpenSim asks for
+     * it without end, its log growing, and no region ever comes up.
+     */
+    private const OWNER_LOOP = '/you must create the estate owner account first at the grid/';
+
     /** The questions of a first start, which a region fully described does not ask: each is answered with its default. */
     private const QUESTIONS = [
         'RegionUUID',
@@ -219,9 +225,10 @@ final class StartService
             }
         } else {
             $progress = new StartProgress($env, $instance, $log, $mark, $output);
+            $stuck = static fn(): bool => preg_match(self::OWNER_LOOP, $log->since($mark)) === 1;
             $code = $remote
-                ? $this->waitLog($instance, $log, $mark, $progress)
-                : $this->waitConsole($instance, $progress);
+                ? $this->waitLog($instance, $log, $mark, $progress, $stuck)
+                : $this->waitConsole($instance, $progress, $stuck);
             // The regions are loaded before the physics and the scripts start: a region that cannot run them ends within seconds
             if ($code === 0) {
                 $env->clock->sleep(5);
@@ -246,6 +253,15 @@ final class StartService
                 $this->tell($output, 20);
 
                 $this->fail($name, "$name exited while starting");
+            case 5:
+                $this->abandon($instance);
+                $owner = $instance instanceof OpenSimController ? (string) $instance->estateOwner() : '';
+                $this->fail(
+                    $name,
+                    "$name stopped: the owner of its estate" . ($owner !== '' ? " ($owner)" : '') . ' is not an account of its grid, and OpenSim asks for it without end. Create that account on the grid, or give the estate the name of an account it has (DefaultEstateOwnerName in [Estates] of ' . $instance->ini() . "), then: opensim start $name",
+                    "Its log: {$log->path()}",
+                    'estate-owner-missing',
+                );
             default:
                 $env->reporter->info("$name still starting, let it run and check status later");
 
@@ -305,12 +321,18 @@ final class StartService
         return [1, $failed];
     }
 
-    /** Wait for the regions of a simulator with a remote console to be ready, in its log: 0, 3 when it exited, 1 at the end of the delay. */
-    private function waitLog(AbstractController $instance, LogFile $log, int $mark, StartProgress $progress): int
+    /**
+     * Wait for the regions of a simulator with a remote console to be ready, in its log: 0, 3 when it exited, 5 when it is stuck
+     * asking for the owner of its estate, 1 at the end of the delay.
+     */
+    private function waitLog(AbstractController $instance, LogFile $log, int $mark, StartProgress $progress, ?\Closure $stuck = null): int
     {
         for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
             if (preg_match('/RegionReady|LOAD REGIONS PLUGIN\]: Done/', $log->since($mark))) {
                 return 0;
+            }
+            if ($stuck !== null && $stuck()) {
+                return 5;
             }
             $progress->show();
             if (!$instance->isRunning()) {
@@ -327,7 +349,7 @@ final class StartService
      * their default, each once, as they come: a region fully described asks none. A question blocks the loading, so the region is
      * ready only after them.
      */
-    private function waitConsole(AbstractController $instance, StartProgress $progress): int
+    private function waitConsole(AbstractController $instance, StartProgress $progress, ?\Closure $stuck = null): int
     {
         $console = $this->environment->consoles->screen($instance->name());
         $answered = [];
@@ -336,7 +358,7 @@ final class StartService
             foreach (self::QUESTIONS as $i => $question) {
                 $pattern .= isset($answered[$i]) ? '' : "|$question";
             }
-            [$code, $seen] = $this->waitScreen($instance, $console, $pattern, $progress);
+            [$code, $seen] = $this->waitScreen($instance, $console, $pattern, $progress, $stuck);
             if ($code !== 0) {
                 return $code;
             }
@@ -359,15 +381,20 @@ final class StartService
     /**
      * Wait for a pattern in the screen of an instance.
      *
-     * @return array{0:int,1:string} 0 and the lines that match, 3 when the session is gone, 1 at the end of the delay
+     * @return array{0:int,1:string} 0 and the lines that match, 3 when the session is gone, 5 when it is stuck asking for the
+     *                                owner of its estate, 1 at the end of the delay
      */
     private function waitScreen(
         AbstractController $instance,
         ScreenInterface $console,
         string $pattern,
         StartProgress $progress,
+        ?\Closure $stuck = null,
     ): array {
         for ($tick = 0; $tick < self::TIMEOUT * 2; $tick++) {
+            if ($stuck !== null && $stuck()) {
+                return [5, ''];
+            }
             $matches = array_filter(
                 explode("\n", $console->screenText()),
                 static fn(string $line): bool => (bool) preg_match("/$pattern/", $line),
@@ -432,6 +459,21 @@ final class StartService
         }
         $lines = explode("\n", $text);
         $this->environment->reporter->error(implode("\n", $last > 0 ? array_slice($lines, -$last) : $lines));
+    }
+
+    /** An instance that cannot go on, ended at once: its console waits for an answer, it would not take a shutdown. */
+    private function abandon(AbstractController $instance): void
+    {
+        $process = $instance->process();
+        if ($process === null) {
+            return;
+        }
+        $processes = $this->environment->processes;
+        $processes->signal($process->pid, 'TERM');
+        for ($try = 0; $try < 20 && $processes->alive($process->pid); $try++) {
+            $this->environment->clock->sleep(0.5);
+        }
+        $processes->alive($process->pid) && $processes->signal($process->pid, 'KILL');
     }
 
     private function fail(string $name, string $message, string $debug = '', string $reason = 'instance-failed'): never

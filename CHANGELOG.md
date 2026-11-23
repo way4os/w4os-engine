@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (start): a simulator whose estate owner the grid has not is stopped at once and says why, its log filled no more
 - fix (http): Robust, simulators and gatekeepers asked through curl, not PHP streams that waited 2 s more on each answer
 - fix (sqlite): a simulator on SQLite starts: the package brings php-sqlite3, the core's libsqlite3 is linked as .NET asks
 - fix (databases): a server on another port is written Data Source=host;Port=port, as the MySQL connector reads it

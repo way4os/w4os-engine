@@ -142,6 +142,25 @@ describe('Starting a simulator', function () {
             ->toContain('  Plaza: configured (1/1)');
     });
 
+    test('whose estate owner is not an account of its grid is stopped at once and says why, its log left to grow no more', function () {
+        $machine = new Machine();
+        $machine->startLog(
+            'alpha',
+            '[REGION LOADER FILE SYSTEM]: Loaded config for region Plaza',
+            '[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first at the grid',
+        );
+        $failed = null;
+        try {
+            Grid::find($machine->environment, 'demo')->simulator('alpha')->start();
+        } catch (InstanceFailed $e) {
+            $failed = $e;
+        }
+
+        expect($failed?->reason)->toBe('estate-owner-missing')
+            ->and($failed?->getMessage())->toContain('alpha stopped: the owner of its estate', 'DefaultEstateOwnerName', 'opensim start alpha')
+            ->and(Grid::find($machine->environment, 'demo')->simulator('alpha')->isRunning())->toBeFalse();
+    });
+
     test('is not started when its http port is taken: another simulator, the one of an older install, listens on it', function () {
         $machine = new Machine();
         $simulator = Grid::find($machine->environment, 'demo')->simulator('alpha');
