@@ -24,6 +24,8 @@ depends:
   - php-intl
   - php-mbstring
   - php-mysql
+  # The databases of the simulators and standalones that keep theirs in a file (SQLite)
+  - php-sqlite3
   - php-xml
   # The instances run in screen when they have no REST console; their processes are read with ps
   - procps

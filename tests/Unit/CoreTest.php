@@ -89,6 +89,7 @@ describe('runtime of a core', function () {
         mkdir("$root/0.9.3.0/bin/lib64");
         touch("$root/0.9.3.0/bin/lib64/libBulletSim-x86_64.so");
         touch("$root/0.9.3.0/bin/lib64/libopenjpeg-dotnet.so");
+        touch("$root/0.9.3.0/bin/lib64/libsqlite3_64.so");
 
         $links = Core::at("$root/0.9.3.0")->nativeLibraries("$root/native", 'x86_64');
 
@@ -98,6 +99,9 @@ describe('runtime of a core', function () {
             ->toBe("$root/0.9.3.0/bin/lib64/libBulletSim-x86_64.so")
             ->and(readlink("$links/libopenjpeg-dotnet.so"))
             ->toBe("$root/0.9.3.0/bin/lib64/libopenjpeg-dotnet.so")
+            // SQLite by the name Mono.Data.Sqlite asks for, the build of the core its dllmap names
+            ->and(readlink("$links/libsqlite3.so"))
+            ->toBe("$root/0.9.3.0/bin/lib64/libsqlite3_64.so")
             ->and(Core::at("$root/0.9.3.0")->nativeLibraries("$root/native2", 'aarch64'))
             ->toBe("$root/native2/0.9.3.0")
             ->and(is_link("$root/native2/0.9.3.0/libBulletSim.so"))

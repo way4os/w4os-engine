@@ -187,6 +187,24 @@ final class Core
             }
         }
 
+        // SQLite (Mono.Data.Sqlite asks for sqlite3): the build of the core its dllmap names, else the one of the system
+        $sqlite = $arch === 'x86_64' && is_file("$lib64/libsqlite3_64.so") ? "$lib64/libsqlite3_64.so" : self::systemSqlite();
+        if ($sqlite !== null) {
+            $link = "$destination/libsqlite3.so";
+            if (is_link($link)) {
+                unlink($link);
+            }
+            symlink($sqlite, $link);
+        }
+
         return $destination;
+    }
+
+    /** The SQLite library of the system (libsqlite3.so.0 of the libsqlite3-0 package), null when it has none. */
+    private static function systemSqlite(): ?string
+    {
+        $found = glob('{/usr/lib,/lib,/usr/lib64,/lib64}{/*-linux-gnu,}/libsqlite3.so.0', GLOB_BRACE) ?: [];
+
+        return $found[0] ?? null;
     }
 }

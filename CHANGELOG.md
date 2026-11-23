@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (sqlite): a simulator on SQLite starts: the package brings php-sqlite3, the core's libsqlite3 is linked as .NET asks
 - fix (databases): a server on another port is written Data Source=host;Port=port, as the MySQL connector reads it
 - new (runtime): the instances start through the launch master of opensim.service when it listens, theirs whoever asks
 - fix (regions): the regions of a dump of MariaDB's mysqldump, a row on each line, are read
