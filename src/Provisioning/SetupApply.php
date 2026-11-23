@@ -139,6 +139,10 @@ final class SetupApply
                         ? ($problems["simulators.$i.regions.$j.$field"] = substr($value, 1))
                         : ($regionPlan->{$field === 'oar' ? 'regionArchive' : 'regionDump'} = $value);
                 }
+                // The dump has the data of the region by its UUID: the one taken over, or the only one it has for a new region
+                if ($regionPlan->regionDump !== '' && ($problem = self::dumpRegion($regionPlan, $grid)) !== null) {
+                    $problems["simulators.$i.regions.$j.dump"] = $problem;
+                }
                 // What the region is loaded with is loaded once it runs: its simulator starts
                 if ($regionPlan->regionArchive !== '' || $regionPlan->regionDump !== '') {
                     $regionPlan->start = true;
@@ -297,6 +301,38 @@ final class SetupApply
         return $content;
     }
 
+    /**
+     * The region of the dump a region is made from: the one it takes over, else the only region the dump has, whose UUID it takes
+     * (unless the grid has a region of another name with it). Why not, null when it is fine.
+     */
+    public static function dumpRegion(SimulatorPlan $plan, Grid $grid): ?string
+    {
+        try {
+            $uuids = DatabaseDump::regionUuids($plan->regionDump);
+        } catch (\RuntimeException $error) {
+            return $error->getMessage();
+        }
+        if ($plan->regionTakenOver) {
+            return $uuids === [] || in_array(strtolower($plan->regionUuid), $uuids, true)
+                ? null
+                : sprintf('the dump has no region %s (it has %s): the dump of the simulator of this region, or its archive (oar)', $plan->regionUuid, implode(', ', $uuids));
+        }
+        if (count($uuids) > 1) {
+            return sprintf('the dump has %d regions: take over the one the grid has (existing), or load the archive (oar) of the region', count($uuids));
+        }
+        if ($uuids !== []) {
+            $named = isset(self::$robust['registeredName'])
+                ? (self::$robust['registeredName'])($uuids[0])
+                : RobustGrid::regionName($grid->isRemote() ? $grid->baseHostname() : '127.0.0.1', $grid->privatePort(), $uuids[0]);
+            if (is_string($named) && strcasecmp($named, $plan->regionName) !== 0) {
+                return sprintf('the region of the dump (%s) is the region %s of the grid: take that one over (existing)', $uuids[0], $named);
+            }
+            $plan->regionUuid = $uuids[0];
+        }
+
+        return null;
+    }
+
     /** The name of the owner the grid keeps for a region, '' when it has none or does not answer. */
     private static function ownerOf(Grid $grid, string $region): string
     {
@@ -313,9 +349,10 @@ final class SetupApply
 
     /**
      * What the Robust of the grid answers, for the tests (default: it is asked): registered (what it keeps of a region, by name),
-     * serving (whether a simulator answers at an address), accountName (the name of an account, by UUID).
+     * serving (whether a simulator answers at an address), accountName (the name of an account, by UUID), registeredName (the name
+     * of a region, by UUID).
      *
-     * @var array{registered?:\Closure,serving?:\Closure,accountName?:\Closure}
+     * @var array{registered?:\Closure,serving?:\Closure,accountName?:\Closure,registeredName?:\Closure}
      */
     public static array $robust = [];
 

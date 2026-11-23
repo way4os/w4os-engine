@@ -171,6 +171,37 @@ describe('A setup file applied', function () {
             ->toBe(['simulators.0.regions.0.oar' => 'cannot read /nonexistent/garden.oar']);
     });
 
+    test('gives a region made from a dump the UUID of the region of the dump, the one it takes over, and no other', function () {
+        $machine = new Machine();
+        $dump = static function (string ...$uuids): string {
+            $file = test_tmp() . '/dump-' . count($uuids) . '.sql';
+            file_put_contents($file, "-- Dump\nCREATE TABLE `regionsettings` (`regionUUID` char(36));\nINSERT INTO `regionsettings` VALUES "
+                . implode(',', array_map(static fn(string $uuid): string => "('$uuid',0,'x')", $uuids)) . ";\n");
+
+            return $file;
+        };
+        $one = '11111111-2222-3333-4444-555555555555';
+        $file = static fn(array $region): array => [
+            'grid' => ['nick' => 'demo'],
+            'owner' => ['name' => 'Ada Love', 'password' => 'secret-pass'],
+            'simulators' => [['name' => 'Moved', 'database' => ['user' => 'opensim', 'password' => 'secret'], 'regions' => [$region + ['name' => 'Old Garden']]]],
+        ];
+        SetupApply::$robust = [
+            'registered' => static fn(string $name): array => ['uuid' => '99999999-2222-3333-4444-555555555555', 'name' => 'Old Garden', 'location' => '1300,1300', 'size' => 256, 'owner' => '', 'server' => '', 'flags' => 16],
+            'registeredName' => static fn(string $uuid): string|false => $uuid === '22222222-2222-3333-4444-555555555555' ? 'Other Place' : false,
+        ];
+        $new = SetupApply::prepare($machine->environment, $file(['dump' => $dump($one)]));
+        $several = SetupApply::prepare($machine->environment, $file(['dump' => $dump($one, '33333333-2222-3333-4444-555555555555')]))->problems;
+        $other = SetupApply::prepare($machine->environment, $file(['dump' => $dump('22222222-2222-3333-4444-555555555555')]))->problems;
+        $takenOver = SetupApply::prepare($machine->environment, $file(['dump' => $dump($one), 'existing' => true]))->problems;
+        SetupApply::$robust = [];
+
+        expect([$new->problems, $new->steps[0]['plan']->regionUuid])->toBe([[], $one])
+            ->and($several['simulators.0.regions.0.dump'])->toStartWith('the dump has 2 regions')
+            ->and($other['simulators.0.regions.0.dump'])->toContain('the region Other Place of the grid')
+            ->and($takenOver['simulators.0.regions.0.dump'])->toStartWith('the dump has no region 99999999-2222-3333-4444-555555555555');
+    });
+
     test('is written: the database of the new simulator first, then its files and the regions', function () {
         $machine = new Machine();
         $setup = SetupApply::prepare($machine->environment, setup_apply_file());

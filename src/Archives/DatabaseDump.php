@@ -247,6 +247,34 @@ final class DatabaseDump
     }
 
     /**
+     * The regions a dump of the database of a simulator has the settings of (table regionsettings, its first column the UUID of the
+     * region), in the order of the dump.
+     *
+     * @return list<string>
+     * @throws \RuntimeException when the file cannot be read
+     */
+    public static function regionUuids(string $file): array
+    {
+        $in = @gzopen($file, 'rb');
+        if ($in === false) {
+            throw new \RuntimeException("cannot read $file");
+        }
+        $uuids = [];
+        try {
+            while (($line = gzgets($in)) !== false) {
+                if (preg_match('/^INSERT INTO `?regionsettings`?\s/i', $line) === 1) {
+                    preg_match_all("/(?:VALUES\s*|\),\s*)\('([0-9a-fA-F-]{36})'/", $line, $found);
+                    array_push($uuids, ...array_map('strtolower', $found[1]));
+                }
+            }
+        } finally {
+            gzclose($in);
+        }
+
+        return array_values(array_unique($uuids));
+    }
+
+    /**
      * Make a database that has no table from a dump (of write(), or of mysqldump): nothing of a database that has some is replaced.
      *
      * @param array{host:string,name:string,user:string,pass:string} $db

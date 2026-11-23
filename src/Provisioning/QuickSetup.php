@@ -1487,6 +1487,9 @@ final class QuickSetup
         if ($simulator->regionArchive !== '' && $simulator->regionDump !== '') {
             $problems['oar'] = _('an archive (oar) or the dump of a database, not both');
         }
+        if ($simulator->regionDump !== '' && ($problem = SetupApply::dumpRegion($simulator, $grid)) !== null) {
+            $problems['dump'] = $problem;
+        }
 
         return [
             'problems' => $problems,
