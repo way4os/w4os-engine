@@ -192,12 +192,16 @@ describe('A setup file applied', function () {
         ];
         $new = SetupApply::prepare($machine->environment, $file(['dump' => $dump($one)]));
         $several = SetupApply::prepare($machine->environment, $file(['dump' => $dump($one, '33333333-2222-3333-4444-555555555555')]))->problems;
+        // mysqldump of MariaDB: a row on each line after the INSERT
+        $lines = test_tmp() . '/dump-lines.sql';
+        file_put_contents($lines, "INSERT INTO `regionsettings` VALUES\n('$one',0,'x'),\n('33333333-2222-3333-4444-555555555555',0,'y');\nINSERT INTO `land` VALUES\n('44444444-2222-3333-4444-555555555555',0);\n");
         $other = SetupApply::prepare($machine->environment, $file(['dump' => $dump('22222222-2222-3333-4444-555555555555')]))->problems;
         $takenOver = SetupApply::prepare($machine->environment, $file(['dump' => $dump($one), 'existing' => true]))->problems;
         SetupApply::$robust = [];
 
         expect([$new->problems, $new->steps[0]['plan']->regionUuid])->toBe([[], $one])
             ->and($several['simulators.0.regions.0.dump'])->toStartWith('the dump has 2 regions')
+            ->and(W4OS\Engine\Archives\DatabaseDump::regionUuids($lines))->toBe([$one, '33333333-2222-3333-4444-555555555555'])
             ->and($other['simulators.0.regions.0.dump'])->toContain('the region Other Place of the grid')
             ->and($takenOver['simulators.0.regions.0.dump'])->toStartWith('the dump has no region 99999999-2222-3333-4444-555555555555');
     });

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (regions): the regions of a dump of MariaDB's mysqldump, a row on each line, are read
 - fix (api): a setup file applied says what its writing did (what started, what was loaded) in its notes
 - fix (regions): a region made from a dump takes the UUID of its region there, the one taken over must be in it
 - new (regions): a region added is loaded with its archive (oar) once it runs, or a new simulator's database made from a dump

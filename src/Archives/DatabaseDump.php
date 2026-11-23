@@ -260,11 +260,15 @@ final class DatabaseDump
             throw new \RuntimeException("cannot read $file");
         }
         $uuids = [];
+        // An INSERT of the table, on its line or on the lines that follow it (mysqldump of MariaDB: a row on each line)
+        $inside = false;
         try {
             while (($line = gzgets($in)) !== false) {
-                if (preg_match('/^INSERT INTO `?regionsettings`?\s/i', $line) === 1) {
-                    preg_match_all("/(?:VALUES\s*|\),\s*)\('([0-9a-fA-F-]{36})'/", $line, $found);
+                $inside = $inside || preg_match('/^INSERT INTO `?regionsettings`?\s/i', $line) === 1;
+                if ($inside) {
+                    preg_match_all("/(?:^|VALUES\s*|\),\s*)\('([0-9a-fA-F-]{36})'/", $line, $found);
                     array_push($uuids, ...array_map('strtolower', $found[1]));
+                    $inside = !str_ends_with(rtrim($line), ';');
                 }
             }
         } finally {
