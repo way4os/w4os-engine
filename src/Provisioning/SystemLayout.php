@@ -27,6 +27,7 @@ final class SystemLayout
      * @param ?bool $root whether this process is root (default: it is when its user id is 0)
      * @param ?\Closure(string):array|false $groupInfo the members of a system group (default: the system's)
      * @param ?string $conf the config file of the suite (default: the system one, Layout::systemFile())
+     * @param ?ServiceUnits $units the units made to run as the account (default: the system's, when this process is root)
      */
     public function __construct(
         private readonly UiInterface $ui,
@@ -35,6 +36,7 @@ final class SystemLayout
         private readonly ?bool $root = null,
         private readonly ?\Closure $groupInfo = null,
         private readonly ?string $conf = null,
+        private readonly ?ServiceUnits $units = null,
     ) {}
 
     /** Whether the place of the grids cannot be written by whoever calls: the layout has to be made. */
@@ -50,7 +52,8 @@ final class SystemLayout
 
     /**
      * Make the account, the folders and `w4os.conf` (left as it is when it exists; the `opensim.conf` of before w4os, in the
-     * folder of the grids, moved to its place as it is).
+     * folder of the grids, moved to its place as it is), the folders given to the account it names, and the units of the suite run
+     * as that account. Run again when the account changes.
      *
      * @return bool whether the layout is there at the end
      */
@@ -95,28 +98,48 @@ final class SystemLayout
         if (self::makesBackupRoot($layout)) {
             $folders[] = $layout->backupRoot();
         }
+        $group = ServiceUnits::groupOf($user);
         foreach ($folders as $dir) {
             if (!is_dir($dir) && !@mkdir($dir, 0o755, true)) {
                 $this->ui->error(sprintf(_('Could not create %s.'), $dir));
 
                 return false;
             }
-            $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($user), ShellService::arg($dir)));
+            $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($group), ShellService::arg($dir)));
             @chmod($dir, 0o755);
-            // On a system with dpkg the owner survives the upgrades of the packages: an administrator's own override stays
-            $this->execute(sprintf('command -v dpkg-statoverride >/dev/null 2>&1 && { dpkg-statoverride --list %1$s >/dev/null || dpkg-statoverride --update --add %2$s %2$s 755 %1$s; } || true', ShellService::arg($dir), ShellService::arg($user)));
+            // On a system with dpkg the owner survives the upgrades of the packages: an administrator's own override stays, the
+            // one made for the default account follows the account of the install
+            $this->execute(sprintf(
+                'command -v dpkg-statoverride >/dev/null 2>&1 && { o=$(dpkg-statoverride --list %1$s); [ -z "$o" ] || [ "${o%%%% *}" != %4$s ] || [ %4$s = %2$s ] || { dpkg-statoverride --remove %1$s; o=; }; [ -n "$o" ] || dpkg-statoverride --update --add %2$s %3$s 755 %1$s; } || true',
+                ShellService::arg($dir),
+                ShellService::arg($user),
+                ShellService::arg($group),
+                ShellService::arg(self::USER),
+            ));
         }
         $this->ui->note(sprintf(_('Folders ready in %s, %s, %s.'), $etc, $layout->varRoot(), $layout->logsRoot()));
-        // The setup process needs this group to protect files for the web server
-        $webGroup = ($this->groupInfo ?? static fn(string $name): array|false => function_exists('posix_getgrnam') ? posix_getgrnam($name) : false)('www-data');
-        if ($webGroup !== false && !in_array($user, $webGroup['members'], true)) {
-            $this->execute(sprintf('/usr/sbin/usermod -aG www-data %s', ShellService::arg($user)));
+        // The setup process needs this group to protect files for the web server; an account that is the web server's has it
+        $web = $layout->webGroup();
+        $webGroup = ($this->groupInfo ?? static fn(string $name): array|false => function_exists('posix_getgrnam') ? posix_getgrnam($name) : false)($web);
+        if ($webGroup !== false && $web !== $group && !in_array($user, $webGroup['members'], true)) {
+            $this->execute(sprintf('/usr/sbin/usermod -aG %s %s', ShellService::arg($web), ShellService::arg($user)));
         }
 
         if (!is_file($conf)) {
             file_put_contents($conf, $this->conf($layout, $user));
-            $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($user), ShellService::arg($conf)));
+            $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($group), ShellService::arg($conf)));
             $this->ui->note(sprintf(_('Wrote %s.'), $conf));
+        }
+        // The units run as the account it names, never only as the one they name
+        $units = $this->units ?? (PHP_OS_FAMILY === 'Linux' && function_exists('posix_geteuid') && posix_geteuid() === 0 ? new ServiceUnits(run: $this->run) : null);
+        try {
+            foreach ($units?->apply($user, $group) ?? [] as $file) {
+                $this->ui->note(sprintf(_('The units run as %s: %s.'), $user, $file));
+            }
+        } catch (\RuntimeException $e) {
+            $this->ui->error($e->getMessage());
+
+            return false;
         }
 
         return true;
@@ -140,6 +163,8 @@ final class SystemLayout
             $lines[] = "$key = " . ($layout->get($key) !== '' ? $layout->get($key) : ($roots[$key] ?? ''));
         }
         $lines[] = "SystemUser = $user";
+        $lines[] = 'WebUser = ' . $layout->webUser();
+        $lines[] = 'WebGroup = ' . $layout->webGroup();
 
         return implode("\n", $lines) . "\n";
     }

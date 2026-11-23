@@ -103,6 +103,9 @@ final class Layout
     /**
      * The settings of w4os.conf an environment may give as `OPENSIM_<NAME_IN_CAPITALS>` (`OPENSIM_ETC_ROOT` for EtcRoot).
      */
+    /** The account and group of the web server of a new install. */
+    public const WEB_ACCOUNT = 'www-data';
+
     public const ENVIRONMENT_KEYS = [
         'CoreRoot',
         'CoreDirectory',
@@ -114,6 +117,8 @@ final class Layout
         'DataRoot',
         'BackupRoot',
         'SystemUser',
+        'WebUser',
+        'WebGroup',
         'ModulesRoot',
         'EnabledModules',
     ];
@@ -269,6 +274,18 @@ final class Layout
     public function systemUser(): string
     {
         return $this->get('SystemUser');
+    }
+
+    /** The account of the web server that serves the sites of the grids: `WebUser`, www-data when the install names none. */
+    public function webUser(): string
+    {
+        return $this->get('WebUser') ?: self::WEB_ACCOUNT;
+    }
+
+    /** The group of the web server, that reads the settings of the grids: `WebGroup`, www-data when the install names none. */
+    public function webGroup(): string
+    {
+        return $this->get('WebGroup') ?: self::WEB_ACCOUNT;
     }
 
     /** The resolved paths and Unix identities of this install. @return array<string,string|int> */

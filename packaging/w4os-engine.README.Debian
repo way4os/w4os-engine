@@ -22,8 +22,14 @@ The files of a grid
 -------------------
 
 Every ini file of a grid may hold a password: it is readable by its owner and the group of the web server only
-(mode 640, group www-data when the machine has one), as the helpers read the settings of the grid. Each install or
-upgrade of the package gives them these modes again, and adds the files a grid is missing (MoneyServer.ini).
+(mode 640, the group of WebGroup in /etc/w4os/w4os.conf, www-data by default), as the helpers read the settings of the
+grid. Each install or upgrade of the package gives them these modes again, and adds the files a grid is missing
+(MoneyServer.ini).
+
+The instances run as SystemUser of /etc/w4os/w4os.conf (opensim on a new install; the owner of an install that exists,
+taken by opensim import --in-place or a migration). The units of w4os-cli follow it through a drop-in,
+/etc/systemd/system/<unit>.d/w4os-system-user.conf, written by each install or upgrade of the package, and by
+php /usr/share/w4os-engine/bin/opensim-layout.php (as root) after the account changes.
 
 Purge
 -----

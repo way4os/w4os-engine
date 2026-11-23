@@ -13,10 +13,15 @@ use W4OS\Engine\Exceptions\SetupFailedException;
  */
 final class GridFileService
 {
-    /** The group of the web server on this machine, null when there is none. */
+    /** The group of the web server on this machine (WebGroup of the install, www-data by default), null when there is none. */
     public static function webGroup(): ?int
     {
-        $group = function_exists('posix_getgrnam') ? posix_getgrnam('www-data') : false;
+        try {
+            $name = Layout::resolve()->webGroup();
+        } catch (\RuntimeException) {
+            $name = Layout::WEB_ACCOUNT;
+        }
+        $group = function_exists('posix_getgrnam') ? posix_getgrnam($name) : false;
 
         return $group === false ? null : (int) $group['gid'];
     }

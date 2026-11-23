@@ -154,12 +154,22 @@ final class StartService
         );
         if ($refused !== []) {
             $quoted = static fn(array $paths): string => implode(' ', array_map('escapeshellarg', $paths));
-            $theirs = array_keys(array_filter($refused, static fn(string $owner): bool => $owner === $account));
-            $others = array_keys(array_diff_key($refused, array_flip($theirs)));
+            // Only the folders of the suite are given to its account: the ones of an install that exists are never changed
+            $layout = $env->layout;
+            $ours = array_filter(
+                array_keys($refused),
+                static fn(string $path): bool => array_filter(
+                    [$layout->etcRoot(), $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot()],
+                    static fn(string $root): bool => $root !== '' && ($path === $root || str_starts_with($path, rtrim($root, '/') . '/')),
+                ) !== [],
+            );
+            $theirs = array_values(array_filter($ours, static fn(string $path): bool => $refused[$path] === $account));
+            $others = array_values(array_diff($ours, $theirs));
+            $fix = implode(' && ', array_filter([$others === [] ? '' : "sudo chown -R $account: " . $quoted($others), $theirs === [] ? '' : 'sudo chmod -R u+w ' . $quoted($theirs)]));
             $this->fail(
                 $name,
-                "$name cannot start: $account, the account it runs as, cannot write in " . implode(' ', array_keys($refused)) . ' (owned by ' . implode(', ', array_unique($refused)) . '). Fix it with: '
-                . implode(' && ', array_filter([$others === [] ? '' : "sudo chown -R $account: " . $quoted($others), $theirs === [] ? '' : 'sudo chmod -R u+w ' . $quoted($theirs)])),
+                "$name cannot start: $account, the account it runs as (SystemUser), cannot write in " . implode(' ', array_keys($refused)) . ' (owned by ' . implode(', ', array_unique($refused)) . ')'
+                . ($fix !== '' ? ". Fix it with: $fix" : ''),
                 reason: 'unwritable',
             );
         }

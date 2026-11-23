@@ -2,6 +2,10 @@
 
 ### Unreleased
 
+- fix (service): opensim.service and the backup units run as SystemUser of w4os.conf, by a drop-in the layout writes
+- new (in place): the install's owner becomes SystemUser and its site's web account WebUser/WebGroup; nothing of it is changed
+- fix (migrate): the owner of the old install, whose data stays where it is, becomes SystemUser too
+- fix (start): a folder of an install that exists is never given a chown or chmod to fix it, only the suite's own
 - fix (start): a simulator is started once its regions are registered or ready, not at the first lines that name them
 - fix (start): a region given up (aborting startup) stops its simulator and says why; regions not up tell the log's last errors
 - fix (start): what an instance cannot write (log, map tiles, caches) is said before it starts, with the chown to do

@@ -173,7 +173,27 @@ describe('A grid of an existing install registered in place', function () {
             ->and($ask(['nick' => 'Not A Nick'])->document['detail'] ?? '')->toContain('give one with --nick');
     });
 
-    test('says which folders its instances could not write, run by the user of this install, and how to give them', function () use ($way) {
+    test('runs as the owner of the install, its account taken by the suite once applied, the service told how', function () use ($way) {
+        [$router, $old] = $way();
+        $ask = static fn(string $mode) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'robust', 'file' => "$old/etc/OldGrid.ini", 'inPlace' => true, 'mode' => $mode]]])->document['data']['attributes'];
+        $owner = posix_getpwuid(fileowner("$old/etc/OldGrid.ini"))['name'];
+        $conf = dirname($old) . '/etc/' . Layout::FILE;
+
+        $planned = $ask('plan');
+        $written = file_get_contents($conf);
+        $applied = $ask('apply');
+
+        expect($planned['accounts']['SystemUser'])->toBe(['from' => '', 'to' => $owner])
+            ->and($planned['reminders'][0]['code'])->toBe('install-account')
+            ->and($planned['reminders'][0]['params']['command'])->toContain('opensim-layout.php')
+            ->and($written)->not->toContain('SystemUser')
+            ->and($applied['accounts']['SystemUser']['to'])->toBe($owner)
+            ->and(file_get_contents($conf))->toContain("SystemUser = $owner")
+            // Taken once, it is not a change any more
+            ->and($ask('plan')['accounts'])->toBe([]);
+    });
+
+    test('says which folders its instances could not write, run by the owner of the install, and changes nothing', function () use ($way) {
         [$router, $old] = $way();
         mkdir("$old/var/run", 0o755, true);
         chmod("$old/var/run", 0o555);
@@ -182,8 +202,8 @@ describe('A grid of an existing install registered in place', function () {
             ->document['data']['attributes']['reminders'];
         chmod("$old/var/run", 0o755);
 
-        expect(array_column($reminders, 'code'))->toBe(['in-place-unwritable', 'in-place-enable'])
-            ->and($reminders[0]['params']['folders'])->toBe("$old/var/run")
-            ->and($reminders[0]['params']['command'])->toContain('chown -R', "$old/var/run");
-    });
+        expect(array_column($reminders, 'code'))->toBe(['install-account', 'in-place-unwritable', 'in-place-enable'])
+            ->and($reminders[1]['params']['folders'])->toBe("$old/var/run")
+            ->and($reminders[1]['params'])->not->toHaveKey('command');
+    })->skip(fn() => posix_geteuid() === 0, 'root writes everywhere');
 });

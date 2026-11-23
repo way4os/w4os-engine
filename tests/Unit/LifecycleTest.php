@@ -206,7 +206,8 @@ describe('Starting a simulator', function () {
 
     test('that cannot write where its config says it writes is not started, and is told what to give it', function () {
         $machine = new Machine();
-        $tiles = $machine->root . '/maptiles';
+        $tiles = $machine->root . '/var/maptiles';
+        is_dir(dirname($tiles)) || mkdir(dirname($tiles), 0o755, true);
         mkdir($tiles, 0o555);
         $ini = $machine->grid . '/sims/alpha.ini';
         file_put_contents($ini, file_get_contents($ini) . "\n[Map]\n    MapTileDirectory = \"$tiles\"\n");
@@ -221,6 +222,26 @@ describe('Starting a simulator', function () {
         expect($failed?->reason)->toBe('unwritable')
             ->and($failed?->getMessage())->toContain($tiles, 'sudo chmod -R u+w')
             ->and($machine->launcher->launched)->toBe([]);
+    })->skip(fn() => posix_geteuid() === 0, 'root writes everywhere');
+
+    test('that cannot write in a folder of an install that exists is not started, and that folder is never given away', function () {
+        $machine = new Machine();
+        $tiles = $machine->root . '/old/maptiles';
+        mkdir($tiles, 0o755, true);
+        chmod($tiles, 0o555);
+        $ini = $machine->grid . '/sims/alpha.ini';
+        file_put_contents($ini, file_get_contents($ini) . "\n[Map]\n    MapTileDirectory = \"$tiles\"\n");
+        $failed = null;
+        try {
+            Grid::find($machine->environment, 'demo')->simulator('alpha')->start();
+        } catch (InstanceFailed $e) {
+            $failed = $e;
+        }
+        chmod($tiles, 0o755);
+
+        expect($failed?->reason)->toBe('unwritable')
+            ->and($failed?->getMessage())->toContain($tiles)
+            ->and($failed?->getMessage())->not->toContain('sudo');
     })->skip(fn() => posix_geteuid() === 0, 'root writes everywhere');
 
     test('is not started when its http port is taken: another simulator, the one of an older install, listens on it', function () {

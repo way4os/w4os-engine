@@ -47,8 +47,11 @@ case "$1" in
         php "$engine/opensim-profiles.php" ||
             echo "w4os-engine: could not update the install profiles in /etc/w4os/w4os.conf" >&2
         # The files a grid needs that it does not have yet, and the options its simulators miss, made as the account of the instances
-        if [ -d /etc/opensim/grids ] && getent passwd opensim >/dev/null; then
-            runuser -u opensim -- php "$engine/opensim-complete-grids.php" || true
+        # (SystemUser of w4os.conf, opensim by default)
+        user=$(sed -n 's/^[[:space:]]*SystemUser[[:space:]]*=[[:space:]]*"\{0,1\}\([^"[:space:]]*\).*/\1/p' /etc/w4os/w4os.conf 2>/dev/null | head -1)
+        user=${user:-opensim}
+        if [ -d /etc/opensim/grids ] && getent passwd "$user" >/dev/null; then
+            runuser -u "$user" -- php "$engine/opensim-complete-grids.php" || true
         fi
         migrate_web_configs 's#/usr/share/opensim-engine\b#/usr/share/w4os-engine#g' 's#/run/php/opensim-api\.sock#/run/php/w4os-api.sock#g' \
             's#^\[opensim-api\]#[w4os-api]#' -- '/usr/share/opensim-engine\b|/run/php/opensim-api\.sock|^\[opensim-api\]'

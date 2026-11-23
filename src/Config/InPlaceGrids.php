@@ -86,13 +86,14 @@ final class InPlaceGrids
     }
 
     /**
-     * What the instances of a grid in place could not write, run by the user of this install (the one running the code): the
-     * notice that says it and what to change, one per owner of these folders. The install is not changed.
+     * What the instances of a grid in place could not write, run by the account of this install (SystemUser, else the one running
+     * the code; $account when it is about to be another): the notice that says it, one per owner of these folders. The install is
+     * never changed.
      *
      * @param array<string,string> $section
      * @return list<\W4OS\Engine\Text\Notice>
      */
-    public static function unwritable(\W4OS\Engine\Runtime\Environment $environment, array $section): array
+    public static function unwritable(\W4OS\Engine\Runtime\Environment $environment, array $section, string $account = ''): array
     {
         $bin = ($section['CoreDirectory'] ?? '') !== '' ? rtrim($section['CoreDirectory'], '/') . '/bin' : '';
         $files = array_filter([$section['RobustIni'] ?? '', ...array_column(self::simulators('', $section), 'ini')]);
@@ -100,7 +101,7 @@ final class InPlaceGrids
         foreach ($files as $ini) {
             array_push($folders, ...\W4OS\Engine\Runtime\InstanceWrites::folders(ConfigReader::expand(ConfigReader::load($ini)), $bin));
         }
-        $user = $environment->layout->systemUser() ?: (function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : '');
+        $user = $account ?: $environment->layout->systemUser() ?: (function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : '');
         $byOwner = [];
         foreach (\W4OS\Engine\Runtime\InstanceWrites::unwritable($folders, $user) as $there => $owner) {
             $byOwner[$owner][] = $there;
@@ -112,7 +113,6 @@ final class InPlaceGrids
                 'account' => $user,
                 'owner' => $owner,
                 'folders' => implode(' ', $there),
-                'command' => "sudo chown -R $user: " . implode(' ', array_map('escapeshellarg', $there)),
             ]);
         }
 

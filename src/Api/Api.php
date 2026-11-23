@@ -1203,22 +1203,67 @@ final class Api
         }
         // Switched once applied: the grid is here, written by the import
         $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply');
+        // The data of the old install stays where it is: its instances run as its owner here too, its site served as it is
+        $conf = (string) $this->environment->layout->file();
+        [, $accounts] = $conf !== '' && is_file($file) ? $this->installAccounts($conf, $file) : ['', []];
+        $mode === 'apply' && \W4OS\Engine\Provisioning\InstallAccount::adopt($conf, $accounts);
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
         $started = $switch ? $planned->switch($this->environment, new NullUi()) : [];
+        $document = $planned->document();
+        $document['accounts'] = array_map(static fn(array $change): array => ['from' => $change[0], 'to' => $change[1]], $accounts);
+        $document['reminders'] = [...$this->accountNotice($conf, $accounts), ...($document['reminders'] ?? [])];
 
         return Response::document([
             'data' => [
                 'type' => 'imports',
                 'id' => $planned->plan->gridNick,
-                'attributes' => ['kind' => 'robust', 'mode' => $mode, 'applied' => $mode === 'apply', 'switched' => $switch, 'started' => $started] + $planned->document(),
+                'attributes' => ['kind' => 'robust', 'mode' => $mode, 'applied' => $mode === 'apply', 'switched' => $switch, 'started' => $started] + $document,
             ],
             'links' => ['self' => $instance],
         ]);
     }
 
     /**
+     * The accounts of the install of a Robust config that w4os.conf would take: its owner, and the web server account that serves its
+     * site.
+     *
+     * @return array{0:string,1:array<string,array{0:string,1:string}>} the owner, and the changes of w4os.conf (InstallAccount::changes())
+     */
+    private function installAccounts(string $conf, string $robustIni): array
+    {
+        $owner = \W4OS\Engine\Provisioning\InstallAccount::owner($robustIni);
+        $web = (new \W4OS\Engine\Provisioning\WebServerAccount())->serving(\W4OS\Engine\Provisioning\InstallAccount::hosts($robustIni));
+
+        return [$owner, \W4OS\Engine\Provisioning\InstallAccount::changes($conf, $owner, $web === null ? null : ['user' => $web['user'], 'group' => $web['group']])];
+    }
+
+    /**
+     * What a change of the accounts of the install leaves to do: the service told, as root.
+     *
+     * @param array<string,array{0:string,1:string}> $accounts
+     * @return list<Notice>
+     */
+    private function accountNotice(string $conf, array $accounts): array
+    {
+        if ($accounts === []) {
+            return [];
+        }
+        $layout = $this->environment->layout;
+        $user = $accounts['WebUser'][1] ?? $layout->webUser();
+        $group = $accounts['WebGroup'][1] ?? $layout->webGroup();
+
+        return [Notice::of('install-account', [
+            'account' => $accounts['SystemUser'][1] ?? $layout->systemUser(),
+            'web' => "$user:$group",
+            'conf' => $conf,
+            'command' => 'sudo php ' . dirname(__DIR__, 2) . '/bin/opensim-layout.php',
+        ])];
+    }
+
+    /**
      * An existing install registered in place (InPlaceGrids): its section of the config of the suite planned, written with `mode`
-     * apply, or removed (`forget`); nothing else is written, the install is never changed.
+     * apply, or removed (`forget`), and the accounts of the install taken by the suite (its owner as SystemUser, the account its
+     * site is served as as WebUser and WebGroup); the install is never changed.
      *
      * @param list<array<string,mixed>> $simulators
      */
@@ -1234,6 +1279,8 @@ final class Api
         ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with --nick (nick)");
         $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators, $core);
         $known = \W4OS\Engine\Config\InPlaceGrids::section($conf, (string) $nick);
+        // Its instances run as the owner of its files, its site served as it is: the suite takes their accounts, not its defaults
+        [$owner, $accounts] = $forget ? ['', []] : $this->installAccounts($conf, $file);
         if ($forget) {
             $known !== [] || throw NotFound::for("grid in place called '$nick'", 'grids');
             $mode === 'apply' && \W4OS\Engine\Config\InPlaceGrids::forget($conf, (string) $nick);
@@ -1243,6 +1290,7 @@ final class Api
             $known === [] || ($known['RobustIni'] ?? '') === $section['RobustIni'] ||
                 throw InvalidValue::because('invalid-request', "the grid $nick is registered in place from another Robust config already ({$known['RobustIni']})");
             $mode === 'apply' && \W4OS\Engine\Config\InPlaceGrids::set($conf, (string) $nick, $section);
+            $mode === 'apply' && \W4OS\Engine\Provisioning\InstallAccount::adopt($conf, $accounts);
         }
 
         return Response::document([
@@ -1252,8 +1300,10 @@ final class Api
                 'attributes' => [
                     'kind' => 'robust', 'mode' => $mode, 'inPlace' => true, 'forget' => $forget, 'applied' => $mode === 'apply',
                     'grid' => (string) $nick, 'config' => $conf, 'section' => $forget ? $known : $section,
+                    'accounts' => array_map(static fn(array $change): array => ['from' => $change[0], 'to' => $change[1]], $accounts),
                     'reminders' => $forget ? [] : [
-                        ...\W4OS\Engine\Config\InPlaceGrids::unwritable($this->environment, $section),
+                        ...$this->accountNotice($conf, $accounts),
+                        ...\W4OS\Engine\Config\InPlaceGrids::unwritable($this->environment, $section, $owner),
                         Notice::of('in-place-enable', ['enable' => "opensim enable $nick", 'start' => "opensim start $nick"]),
                     ],
                 ],
