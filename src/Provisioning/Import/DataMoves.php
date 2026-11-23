@@ -25,14 +25,15 @@ final class DataMoves
      *
      * @param list<array{from:string,to:string,setting:string}> $moves
      * @param bool $copy copy instead of moving
+     * @param list<string> $unseen places this process cannot see into, so cannot tell whether they hold data
      */
-    public function __construct(public readonly array $moves, public readonly bool $copy = false)
+    public function __construct(public readonly array $moves, public readonly bool $copy = false, public readonly array $unseen = [])
     {
         $this->planned = array_map(fn(array $move): array => $move + [
             'mode' => $copy ? 'copy' : 'move',
             'acrossFilesystems' => self::device($move['from']) !== self::device($move['to']),
         ], $moves);
-        $refused = [];
+        $refused = array_map(static fn(string $place): string => "cannot see whether $place holds data (a folder above it is not readable here): run the import as root", $unseen);
         foreach ($moves as $move) {
             $from = $move['from'];
             if ($copy) {
@@ -56,13 +57,20 @@ final class DataMoves
     public static function plan(array $dropped, array $generated, array $names, bool $copy = false): self
     {
         $moves = [];
+        $unseen = [];
         foreach ($dropped as $setting) {
             if (($setting['place'] ?? false) !== true || $setting['reason'] !== 'replaced') {
                 continue;
             }
             $from = rtrim(self::launched($setting['value'], $names), '/');
             $to = rtrim(trim((string) ($generated[$setting['section']][$setting['key']] ?? ''), " \t\""), '/');
-            if (str_contains($from, '${') || !str_starts_with($from, '/') || !is_dir($from) || $to === '' || str_contains($to, '${') || !str_starts_with($to, '/') || $from === $to) {
+            if (!str_starts_with($from, '/') || $to === '' || str_contains($to, '${') || !str_starts_with($to, '/') || $from === $to) {
+                continue;
+            }
+            // A folder that is not there holds nothing; one this process cannot see is said, never taken for absent (a name of its
+            // launcher it cannot find either: the folder before it)
+            if (str_contains($from, '${') || !is_dir($from)) {
+                self::hidden(str_contains($from, '${') ? substr($from, 0, (int) strpos($from, '${')) . '_' : $from) && $unseen[] = $from;
                 continue;
             }
             $moves[$from] = ['from' => $from, 'to' => $to, 'setting' => "[{$setting['section']}] {$setting['key']}"];
@@ -78,7 +86,15 @@ final class DataMoves
             $kept[] = $move;
         }
 
-        return new self($kept, $copy);
+        return new self($kept, $copy, array_values(array_unique($unseen)));
+    }
+
+    /** Whether a path cannot be seen by this process: the first of its parents that is there cannot be searched. */
+    private static function hidden(string $path): bool
+    {
+        for ($there = dirname($path); !file_exists($there) && $there !== dirname($there); $there = dirname($there));
+
+        return is_dir($there) && !is_executable($there);
     }
 
     /** A place of the old install with its `${Launch|...}` replaced by the first of these names that makes it a folder that is there. */

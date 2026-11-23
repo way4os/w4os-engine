@@ -109,6 +109,16 @@ describe('The import of a grid', function () {
         expect(array_column($import->document()['data'], 'from'))->toBe(["$old/var/cache/kimbe.red/maptiles", "$old/var/data/kimbe.red/fsassets/data"]);
     });
 
+    test('says the folders it cannot see into, never takes them for absent', function () use ($withData) {
+        [$machine, $robust, $old] = $withData();
+        chmod("$old/var/data", 0o000);
+        $import = GridImport::prepare($machine->environment, $robust);
+        chmod("$old/var/data", 0o755);
+
+        expect(array_column($import->document()['data'], 'from'))->toBe(["$old/var/cache/OldGrid/maptiles"])
+            ->and($import->document()['problems']['data'] ?? '')->toContain("cannot see whether $old/var/data/", 'run the import as root');
+    })->skip(fn() => posix_geteuid() === 0, 'root sees everything');
+
     test('copies them instead when asked, the old install left whole', function () use ($withData) {
         [$machine, $robust, $old] = $withData();
         $import = GridImport::prepare($machine->environment, $robust, copyData: true);
