@@ -45,6 +45,7 @@ final class Notice
         'in-place-enable' => ['enable', 'start'],
         'in-place-unwritable' => ['account', 'owner', 'folders'],
         'install-account' => ['account', 'web', 'conf', 'command'],
+        'region-removed' => ['region', 'simulator', 'file', 'command'],
         // The plan of a restore (Archives\BackupRestore)
         'restore-start' => ['instance', 'command'],
         'restore-estate-missing' => ['regions', 'database'],

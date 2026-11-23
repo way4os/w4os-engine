@@ -302,7 +302,7 @@ final class RegionPlanner
         $key = strtolower(trim($name));
         if (isset($this->context['files'][$key])) {
             return $existing
-                ? 'A simulator of this machine has this region already: take it out of that one first.'
+                ? sprintf('A simulator of this machine has this region already: take it out of that one first, stopped (opensim region remove %s %s).', $this->context['grid']?->nick() ?? 'GRID', escapeshellarg(trim($name)))
                 : 'The grid has a region of this name already.';
         }
         if ($existing) {

@@ -216,3 +216,30 @@ describe('region by its key', function () {
             ->toBeNull();
     });
 });
+
+describe('A region taken out of its simulator', function () {
+    test('leaves its file, set aside when it describes no other region, its section only when it does', function () {
+        [$dir, $config] = region_config_grid();
+        file_put_contents("$dir/sims/beta/regions/Shore.ini", "[Shore]\nLocation = 5,6\n\n[Dune]\nRegionUUID = bbbbbbbb-0000-4000-8000-000000000002\nLocation = 7,8\n");
+        $pdo = new \W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        $pdo->exec('CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, owner_uuid CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))');
+        $pdo->exec("INSERT INTO regions (uuid, regionName, locX, locY, serverURI, flags) VALUES
+            ('607c44e9-3d01-45eb-a07e-937dc72dbadb', 'Plaza', 307200, 307456, 'http://10.0.0.1:9000/', 0),
+            ('bbbbbbbb-0000-4000-8000-000000000002', 'Dune', 1792, 2048, 'http://10.0.0.1:9010/', 0)");
+        \W4OS\Engine\Data\Connections::using(static fn() => $pdo);
+        try {
+            $plaza = Region::find($config, 'Plaza');
+            $plaza->delete();
+            Region::find($config, 'Dune')->delete();
+        } finally {
+            \W4OS\Engine\Data\Connections::using(null);
+        }
+
+        expect(file_exists("$dir/sims/alpha/regions/Plaza.ini"))->toBeFalse()
+            ->and(file_get_contents("$dir/sims/alpha/regions/Plaza.ini.removed"))->toContain('RegionUUID = 607C44E9')
+            ->and($plaza->reminders()[0]['code'])->toBe('region-removed')
+            ->and($plaza->reminders()[0]['params'])->toMatchArray(['region' => 'Plaza', 'simulator' => 'alpha', 'file' => "$dir/sims/alpha/regions/Plaza.ini.removed"])
+            ->and($plaza->reminders()[0]['params']['command'])->toContain('--existing')
+            ->and(file_get_contents("$dir/sims/beta/regions/Shore.ini"))->toContain('[Shore]')->not->toContain('[Dune]');
+    });
+});

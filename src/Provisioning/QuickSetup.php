@@ -904,7 +904,8 @@ final class QuickSetup
      * What replaces the work that needs a machine, for the tests: how the databases are checked and made (Closure(GridPlan, UiInterface):
      * int, a DatabaseService code), how the account of the avatar is made (Closure(Grid, SimulatorPlan, UiInterface): bool) and what a
      * grid says of itself (Closure(string $host, int $port): array<string,string>), and what the planner of a region of a grid on
-     * another machine asks it (the context of RegionPlanner: remoteHas, freePlace, registeredUuid, registeredName).
+     * another machine asks it (the context of RegionPlanner: remoteHas, freePlace, registeredUuid, registeredName; registeredRecord, what
+     * it keeps of a region, RobustGrid::region()).
      *
      * @param array{database?:?\Closure,account?:?\Closure,says?:?\Closure,region?:array<string,mixed>,dumper?:?\Closure,loader?:?\Closure} $doubles none: the real work
      */
@@ -1520,6 +1521,10 @@ final class QuickSetup
                         : RobustGrid::regionName($grid->baseHostname(), $grid->privatePort(), $description['uuid']);
                 }
                 RegionAdoption::apply($simulator, $existingRegion, $registered, $registeredName);
+                // A region that names no address of its own keeps the one the grid knows it by, else the grid's name
+                if ($simulator->externalHost === '' || strcasecmp($simulator->externalHost, 'SYSTEMIP') === 0) {
+                    $simulator->externalHost = self::formerHost($grid, $description['name']);
+                }
             } catch (\InvalidArgumentException $error) {
                 $problems['existing_region'] = $error->getMessage();
             }
@@ -1609,9 +1614,37 @@ final class QuickSetup
         $simulator->regionDump !== '' && $add('region', 'Database from', $simulator->regionDump);
         $add('region', 'Location', $simulator->regionLocation);
         $add('region', 'Port', (string) $simulator->regionPort);
+        $simulator->existingRegionConfig !== '' && $add('region', 'Address', self::addressRow($simulator->externalHost));
         $add('owner', 'Avatar', $simulator->estateOwner);
 
         return $rows;
+    }
+
+    /**
+     * The address viewers reached a region at, as its grid keeps it (serverIP, else the host of serverURI), when it is a name or a
+     * public address; else the host name of the grid; SYSTEMIP (the address of this machine) when neither is known. A private or
+     * loopback address is what SYSTEMIP gave on the machine it ran on: never kept.
+     */
+    private static function formerHost(Grid $grid, string $region): string
+    {
+        $record = isset(self::$region['registeredRecord'])
+            ? (self::$region['registeredRecord'])($region)
+            : RobustGrid::region($grid->baseHostname(), $grid->privatePort(), $region);
+        foreach (is_array($record) ? [$record['address'] ?? '', (string) parse_url($record['server'] ?? '', PHP_URL_HOST)] : [] as $host) {
+            $private = filter_var($host, FILTER_VALIDATE_IP) !== false
+                && filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+            if ($host !== '' && strcasecmp($host, 'SYSTEMIP') !== 0 && !$private) {
+                return $host;
+            }
+        }
+
+        return $grid->baseHostname() !== '' ? $grid->baseHostname() : 'SYSTEMIP';
+    }
+
+    /** What the review says of the address of an adopted region: SYSTEMIP is said for what it is. */
+    private static function addressRow(string $host): string
+    {
+        return strcasecmp($host, 'SYSTEMIP') === 0 ? _('SYSTEMIP: the address of this machine, the grid knowing none for it (behind NAT or in a container, give its own)') : $host;
     }
 
     /**
@@ -1737,6 +1770,7 @@ final class QuickSetup
         $simulator->regionDump !== '' && $add('region', 'Database from', $simulator->regionDump);
         $add('region', 'Location', $simulator->regionLocation);
         $add('region', 'Port', (string) $simulator->regionPort);
+        $simulator->existingRegionConfig !== '' && $add('region', 'Address', self::addressRow($simulator->externalHost));
         $simulator->regionRoles !== [] && $add('region', 'Roles', implode(', ', $simulator->regionRoles));
 
         $add('owner', 'Avatar', $simulator->estateOwner . ($email !== '' ? " <$email>" : ''));

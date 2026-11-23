@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- fix (import): every import form gives a grid the same nick by default, its gridnick made a nick here (W4osDemoGrid: w4osdemogrid)
+- new (regions): DELETE a region takes it out of its stopped simulator, its file set aside, for --existing elsewhere
+- fix (regions): a region taken over keeps the address the grid knows it by, else the grid's host; SYSTEMIP last, said
 - fix (sqlite): the library of the system is found without the brace glob flag, which musl and Alpine lack
 - fix (tests): the PHP compatibility checks read the code of a worktree or a copy too, never nothing
 - fix (config): the config of the suite is its account's; a file IniEditor cannot write is an error, not a warning

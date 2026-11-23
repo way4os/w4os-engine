@@ -445,6 +445,8 @@ final class Contract
                     'The UUID of its new owner, the owner of its estate: through the console of its simulator, else the database of the estate when the simulator is stopped; the table of regions of the grid at once. `estate-shared` when its estate has other regions, `owner-unknown` for an avatar the grid does not have. Its name, its place and its size are its file\'s: `field-read-only`',
                 ],
             ],
+            'deletable' => true,
+            'delete' => 'Take the region out of its simulator of this machine, so that another simulator can be given it (`POST /setups/files`, its region `existing`): its section removed from its file, the file set aside as `<file>.removed` when it describes no other region (named back, the region is back). What it holds stays in the database of its simulator, and the grid keeps it in its table. Refused (400) while its simulator runs. The answer is 200 with `meta.reminders` (`region-removed`: the file, and the command that gives it to another simulator).',
         ],
         'parcels' => [
             'scope' => 'grid',
@@ -891,8 +893,11 @@ final class Contract
                     'tags' => [$tag],
                     'summary' => "Delete $word",
                     'parameters' => [...$parameters, self::idParameter()],
+                ] + (isset($resource['delete']) ? ['description' => $resource['delete']] : []) + [
                     'responses' => [
                         '204' => ['description' => 'Deleted'],
+                        '200' => ['description' => 'Deleted, with what is left to do (`meta.reminders`)'],
+                        '400' => self::problem('It cannot be deleted now'),
                         '404' => self::problem('There is none with this id'),
                         '503' => self::problem('No channel can delete it now'),
                     ],

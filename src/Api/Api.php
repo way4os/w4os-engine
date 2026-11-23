@@ -476,8 +476,10 @@ final class Api
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
+        // What is left to do once it is gone, when the model says it (a region taken out of its simulator)
+        $reminders = method_exists($model, 'reminders') ? $model->reminders() : [];
 
-        return new Response(204, [], []);
+        return $reminders === [] ? new Response(204, [], []) : Response::document(['meta' => ['reminders' => $reminders]]);
     }
 
     /**
@@ -1273,9 +1275,8 @@ final class Api
         $conf = (string) $this->environment->layout->file();
         $conf !== '' || throw InvalidValue::because('invalid-request', 'this install has no ' . \W4OS\Engine\Config\Layout::FILE . ' to register the grid in');
         $raw = \W4OS\Engine\Config\ConfigReader::load($file);
-        // The nick of its config in the lower case of a nick (W4osDemoGrid: w4osdemogrid), else the one of its name
-        $nick ??= (string) preg_replace('/[^a-z0-9_-]+/', '', strtolower(trim((string) ($raw['GridInfoService']['gridnick'] ?? ''), '"')))
-            ?: \W4OS\Engine\Provisioning\Slug::nick(trim((string) ($raw['GridInfoService']['gridname'] ?? ''), '"'));
+        // The nick of its config made a nick here, as for a migration
+        $nick ??= \W4OS\Engine\Provisioning\Import\RobustImporter::defaultNick($raw);
         ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with --nick (nick)");
         $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators, $core);
         $known = \W4OS\Engine\Config\InPlaceGrids::section($conf, (string) $nick);

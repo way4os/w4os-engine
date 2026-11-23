@@ -40,6 +40,13 @@ function grid_import_no_dump(): Closure
 }
 
 describe('The import of a grid', function () {
+    test('takes the nick of its config made a nick here, as an import in place does', function () {
+        [$machine, $robust] = old_robust_install();
+        file_put_contents($robust, str_replace('gridnick = "oldgrid"', 'gridnick = "W4osDemoGrid"', file_get_contents($robust)));
+
+        expect(GridImport::prepare($machine->environment, $robust)->document()['grid'])->toBe('w4osdemogrid');
+    });
+
     test('is planned: the same grid and database, the settings of the old one kept, the secrets masked, nothing written', function () {
         [$machine, $robust] = old_robust_install();
 

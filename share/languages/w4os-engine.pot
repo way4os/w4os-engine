@@ -3909,6 +3909,10 @@ msgctxt "notice_in_place_unwritable"
 msgid "Its instances run as the account {account}, which cannot write in {folders} (folders of {owner}). The install is left as it is: they cannot run until {account} can write there."
 msgstr ""
 
+msgctxt "notice_region_removed"
+msgid "{region} is out of {simulator}: its region file is {file} now (named back, the region is back). What it holds stays in the database of {simulator}. Give it to another simulator with: {command}"
+msgstr ""
+
 msgctxt "notice_install_account"
 msgid "The instances run as {account}, the owner of the install, and its site is served as {web}: SystemUser, WebUser and WebGroup of {conf}. The service takes the account with: {command}"
 msgstr ""

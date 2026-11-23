@@ -23,6 +23,20 @@ final class RobustImporter
     private const KIT_SECTIONS = ['Const', 'Startup', 'Launch'];
 
     /**
+     * The nick a grid gets here when none is given: the one of its config in the small letters of a nick, without what a nick cannot
+     * have (W4osDemoGrid: w4osdemogrid), else one made of its name.
+     *
+     * @param array<string,array<string,string>> $raw its Robust config, as written
+     */
+    public static function defaultNick(array $raw): string
+    {
+        $info = $raw['GridInfoService'] ?? [];
+
+        return (string) preg_replace('/[^a-z0-9_-]+/', '', strtolower(trim((string) ($info['gridnick'] ?? ''), '"')))
+            ?: Slug::nick(trim((string) ($info['gridname'] ?? ''), '"'));
+    }
+
+    /**
      * What the setup asks, read from the original config: a plan for NewGrid.
      *
      * @param array<string,array<string,string>> $raw the original, as written (see ConfigReader::load)
@@ -37,8 +51,8 @@ final class RobustImporter
     ): GridPlan|string {
         $ini = ConfigReader::expand($raw);
         $name = $ini['GridInfoService']['gridname'] ?? '';
-        // The nick given, or the one of the grid as it is: never changed, refused when it is not one (Grid::validateNick())
-        $nick = trim((string) ($nick ?: $ini['GridInfoService']['gridnick'] ?? '' ?: Slug::nick($name)));
+        // The nick given, else the one of the grid made a nick here; refused when it is not one (Grid::validateNick())
+        $nick = trim((string) ($nick ?: self::defaultNick($ini)));
         if ($nick === '') {
             return 'the grid has no nick (gridnick of [GridInfoService]): give one with --nick';
         }

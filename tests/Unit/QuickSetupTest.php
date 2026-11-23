@@ -679,11 +679,39 @@ describe('existing region setup', function () {
             ->and(is_dir($machine->etc . '/grids/remote'))->toBeFalse();
     });
 
+    test('stages existing region at the address its grid knows it by', function () {
+        quick_doubles([
+            'database' => static fn(): int => throw new RuntimeException('unexpected database provisioning'),
+            'account' => static fn(): bool => throw new RuntimeException('unexpected account creation'),
+            'region' => [
+                'registeredUuid' => static fn(): string => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+                'registeredRecord' => static fn(): array => ['address' => 'garden.example.org', 'server' => 'http://garden.example.org:9101/'],
+            ],
+        ]);
+        InstanceControl::runThrough(static fn(): array => throw new RuntimeException('unexpected startup'));
+        $answers = quick_answers([
+            'type' => 'simulator', 'name' => 'Imported', 'database_name' => 'existing_db',
+            'existing_region' => file_get_contents(dirname(__DIR__) . '/fixtures/existing-region.ini'),
+        ]);
+        $planned = QuickSetup::plan((new Machine())->environment, $answers);
+        $target = new Machine();
+        QuickSetup::next($target->environment, ['configuration' => [
+            'version' => 1, 'identity' => $planned['identity'], 'answers' => $answers, 'setup' => $planned['setup'],
+        ]]);
+
+        expect(file_get_contents($target->etc . '/grids/remote/sims/remote.imported/regions/ExistingGarden.ini'))
+            ->toContain('ExternalHostName = garden.example.org', 'CustomSetting = preserve-me');
+    });
+
     test('stages existing region', function () {
         quick_doubles([
             'database' => static fn(): int => throw new RuntimeException('unexpected database provisioning'),
             'account' => static fn(): bool => throw new RuntimeException('unexpected account creation'),
-            'region' => ['registeredUuid' => static fn(): string => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'],
+            'region' => [
+                'registeredUuid' => static fn(): string => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+                // Where SYSTEMIP sent viewers on the machine it ran on: an address of a private network, never kept
+                'registeredRecord' => static fn(): array => ['address' => '10.0.2.15', 'server' => 'http://10.0.2.15:9101/'],
+            ],
         ]);
         InstanceControl::runThrough(static fn(): array => throw new RuntimeException('unexpected startup'));
         $source = new Machine();
@@ -696,17 +724,20 @@ describe('existing region setup', function () {
         $done = QuickSetup::next($target->environment, ['configuration' => [
             'version' => 1, 'identity' => $planned['identity'], 'answers' => $answers, 'setup' => $planned['setup'],
         ]]);
+        $host = \W4OS\Engine\Models\Grid::find($target->environment, 'remote')?->baseHostname();
+        $adopted = str_replace('ExternalHostName = SYSTEMIP', "ExternalHostName = $host", file_get_contents(dirname(__DIR__) . '/fixtures/existing-region.ini'));
         expect($done['action'])->toBe('quit')
             ->and($done['message'])->toContain('disabled')
+            ->and($host)->not->toBe('')
             ->and(file_get_contents($target->etc . '/grids/remote/sims/remote.imported/regions/ExistingGarden.ini'))
-            ->toBe(file_get_contents(dirname(__DIR__) . '/fixtures/existing-region.ini'))
+            ->toBe($adopted)
             ->and(glob($target->etc . '/opensim.d/remote.imported.ini'))->toBe([]);
         $again = QuickSetup::next($target->environment, ['configuration' => [
             'version' => 1, 'identity' => $planned['identity'], 'answers' => $answers, 'setup' => $planned['setup'],
         ]]);
         expect($again['action'])->toBe('quit')
             ->and(file_get_contents($target->etc . '/grids/remote/sims/remote.imported/regions/ExistingGarden.ini'))
-            ->toBe(file_get_contents(dirname(__DIR__) . '/fixtures/existing-region.ini'));
+            ->toBe($adopted);
         $path = $target->etc . '/grids/remote/sims/remote.imported/regions/ExistingGarden.ini';
         $edited = str_replace('preserve-me', 'locally-edited', file_get_contents($path));
         file_put_contents($path, $edited);

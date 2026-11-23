@@ -464,6 +464,45 @@ final class Region extends Model implements Reachable, \W4OS\Engine\Assets\Pictu
     }
 
     /**
+     * Take it out of its simulator, so that another one can be given it (opensim region add ... --existing): its section removed from
+     * its file, the file set aside (`<file>.removed`) when it describes no other region. What it holds stays in the database of its
+     * simulator. Refused while its simulator runs: it would keep it, and register it again. What is left to do is said by reminders().
+     *
+     * @throws ChannelUnavailable when no simulator of this machine describes it
+     * @throws InvalidValue while its simulator runs
+     */
+    public function delete(): void
+    {
+        $this->reminders = [];
+        $file = $this->file();
+        $simulator = $this->simulator();
+        $action = 'take ' . $this->name() . ' out of its simulator';
+        $file !== '' && is_file($file) || throw ChannelUnavailable::for($action, 'no simulator of this machine describes it');
+        InstanceConsoleService::running((string) $this->config->file("simulators/$simulator")) &&
+            throw InvalidValue::because('invalid-request', "its simulator $simulator runs: stop it first (opensim stop $simulator)");
+        $sections = array_keys(ConfigReader::file($file));
+        $section = array_values(array_filter($sections, fn(string $name): bool => strcasecmp(trim($name), $this->name()) === 0))[0] ?? null;
+        $section !== null || throw ChannelUnavailable::for($action, "$file does not describe it");
+        if (count($sections) === 1) {
+            $kept = "$file.removed";
+            file_exists($kept) && ($kept = "$file.removed-" . date('YmdHis'));
+            @rename($file, $kept) || throw ChannelUnavailable::for($action, "$file cannot be set aside");
+        } else {
+            $ini = IniEditor::load($file);
+            $ini->removeSection($section);
+            $ini->save($file);
+            $kept = $file;
+        }
+        $grid = $this->robustInstance();
+        $this->reminders[] = Notice::of('region-removed', [
+            'region' => $this->name(),
+            'simulator' => $simulator,
+            'file' => $kept,
+            'command' => sprintf('opensim region add %s SIMULATOR --name %s --existing', $grid, escapeshellarg($this->name())),
+        ]);
+    }
+
+    /**
      * Put it in another estate (its number, or its id: `demo.alpha:102`), one of the database of the estates of its simulator: by the
      * console of its simulator when it runs (`estate link region`, at once), else in the map of the estates, which it reads when it
      * starts.

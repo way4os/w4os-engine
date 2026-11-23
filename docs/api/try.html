@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "6757990",
+        "version": "e7c6afb",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -4149,6 +4149,19 @@
                     "204": {
                         "description": "Deleted"
                     },
+                    "200": {
+                        "description": "Deleted, with what is left to do (`meta.reminders`)"
+                    },
+                    "400": {
+                        "description": "It cannot be deleted now",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "There is none with this id",
                         "content": {
@@ -5390,6 +5403,78 @@
                         "databases"
                     ]
                 }
+            },
+            "delete": {
+                "operationId": "deleteRegion",
+                "tags": [
+                    "Regions"
+                ],
+                "summary": "Delete region",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "description": "Take the region out of its simulator of this machine, so that another simulator can be given it (`POST /setups/files`, its region `existing`): its section removed from its file, the file set aside as `<file>.removed` when it describes no other region (named back, the region is back). What it holds stays in the database of its simulator, and the grid keeps it in its table. Refused (400) while its simulator runs. The answer is 200 with `meta.reminders` (`region-removed`: the file, and the command that gives it to another simulator).",
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "200": {
+                        "description": "Deleted, with what is left to do (`meta.reminders`)"
+                    },
+                    "400": {
+                        "description": "It cannot be deleted now",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "There is none with this id",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "No channel can delete it now",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false,
+                    "needs": [
+                        "databases"
+                    ]
+                }
             }
         },
         "/grids/{grid}/parcels": {
@@ -6148,6 +6233,19 @@
                 "responses": {
                     "204": {
                         "description": "Deleted"
+                    },
+                    "200": {
+                        "description": "Deleted, with what is left to do (`meta.reminders`)"
+                    },
+                    "400": {
+                        "description": "It cannot be deleted now",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
                     },
                     "404": {
                         "description": "There is none with this id",

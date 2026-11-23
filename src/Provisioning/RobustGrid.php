@@ -68,7 +68,7 @@ final class RobustGrid
      * What the grid keeps of a region of this name: its UUID and name, its place (in blocks) and size, its owner, the simulator that
      * registered it last and its flags.
      *
-     * @return array{uuid:string,name:string,location:string,size:int,owner:string,server:string,flags:int}|false|null false when
+     * @return array{uuid:string,name:string,location:string,size:int,owner:string,server:string,address:string,flags:int}|false|null false when
      *         the grid has none, null when it does not answer
      */
     public static function region(string $host, int $port, string $name): array|false|null
@@ -92,6 +92,7 @@ final class RobustGrid
             'size' => max(256, (int) ($region->sizeX ?? 256)),
             'owner' => \W4OS\Engine\Text\Uuid::isValid((string) ($region->owner_uuid ?? '')) ? (string) $region->owner_uuid : '',
             'server' => trim((string) ($region->serverURI ?? '')),
+            'address' => trim((string) ($region->serverIP ?? '')),
             'flags' => (int) ($region->flags ?? 0),
         ];
     }

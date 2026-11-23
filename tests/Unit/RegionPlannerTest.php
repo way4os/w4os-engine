@@ -405,6 +405,9 @@ describe('A region the grid has, taken over', function () {
 
     test('is not one a simulator of this machine describes: that one is there already', function () use ($record, $planner) {
         expect($planner($record(), more: ['files' => ['old garden' => true]])->problems(['name' => 'Old Garden', 'existing' => true]))
-            ->toBe(['name' => 'A simulator of this machine has this region already: take it out of that one first.']);
+            ->toHaveKey('name')
+            ->and($planner($record(), more: ['files' => ['old garden' => true]])->problems(['name' => 'Old Garden', 'existing' => true])['name'])
+            ->toStartWith('A simulator of this machine has this region already: take it out of that one first, stopped (opensim region remove ')
+            ->toEndWith(" 'Old Garden').");
     });
 });
