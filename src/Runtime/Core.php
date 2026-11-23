@@ -203,8 +203,15 @@ final class Core
     /** The SQLite library of the system (libsqlite3.so.0 of the libsqlite3-0 package), null when it has none. */
     private static function systemSqlite(): ?string
     {
-        $found = glob('{/usr/lib,/lib,/usr/lib64,/lib64}{/*-linux-gnu,}/libsqlite3.so.0', GLOB_BRACE) ?: [];
+        foreach (['/usr/lib', '/lib', '/usr/lib64', '/lib64'] as $lib) {
+            foreach (["$lib/*-linux-gnu/libsqlite3.so.0", "$lib/libsqlite3.so.0"] as $pattern) {
+                $found = glob($pattern) ?: [];
+                if ($found !== []) {
+                    return $found[0];
+                }
+            }
+        }
 
-        return $found[0] ?? null;
+        return null;
     }
 }

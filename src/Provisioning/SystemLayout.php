@@ -127,9 +127,10 @@ final class SystemLayout
 
         if (!is_file($conf)) {
             file_put_contents($conf, $this->conf($layout, $user));
-            $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($group), ShellService::arg($conf)));
             $this->ui->note(sprintf(_('Wrote %s.'), $conf));
         }
+        // The config of the suite is its account's, which enables and changes its grids
+        $this->execute(sprintf('chown %s:%s %s', ShellService::arg($user), ShellService::arg($group), ShellService::arg($conf)));
         // The units run as the account it names, never only as the one they name
         $units = $this->units ?? (PHP_OS_FAMILY === 'Linux' && function_exists('posix_geteuid') && posix_geteuid() === 0 ? new ServiceUnits(run: $this->run) : null);
         try {

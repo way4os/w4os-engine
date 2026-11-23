@@ -11,18 +11,28 @@ $minimum = preg_replace('/^[^0-9]*/', '', $composer['require']['php'] ?? '');
 $newest = '8.5';
 
 /**
- * The PHP files git knows and does not ignore: what .gitignore leaves out is not the code of the project.
+ * The PHP files of the project: the ones git knows and does not ignore in a checkout (a worktree's .git is a file), else the ones
+ * of its folders but the ones it does not make (vendor, build, dist).
  *
- * @return list<string> Absolute paths, none when this is not a checkout.
+ * @return list<string> Absolute paths.
  */
 function compat_php_files(string $root): array
 {
     $files = [];
-    if (is_dir("$root/.git")) {
+    if (file_exists("$root/.git")) {
         exec('git -C ' . escapeshellarg($root) . ' ls-files --cached --others --exclude-standard -- "*.php"', $files);
+
+        return array_values(array_filter(array_map(fn($file) => "$root/$file", $files), 'is_file'));
+    }
+    $iterator = new RecursiveIteratorIterator(new RecursiveCallbackFilterIterator(
+        new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+        static fn(SplFileInfo $file): bool => !($file->isDir() && in_array($file->getFilename(), ['vendor', 'build', 'dist', 'node_modules', '.git'], true)),
+    ));
+    foreach ($iterator as $file) {
+        $file->isFile() && $file->getExtension() === 'php' && $files[] = $file->getPathname();
     }
 
-    return array_values(array_filter(array_map(fn($file) => "$root/$file", $files), 'is_file'));
+    return $files;
 }
 
 describe('PHP', function () use ($root, $composer, $minimum, $newest) {
@@ -41,7 +51,10 @@ describe('PHP', function () use ($root, $composer, $minimum, $newest) {
     test('code has no brace glob flag, Alpine (musl, lerd) lacks it', function () use ($root) {
         $needle = 'GLOB_' . 'BRACE'; // built, so that this file does not match itself
         $found = [];
-        foreach (compat_php_files($root) as $file) {
+        $files = compat_php_files($root);
+        // Some code looked at: a test that reads none passes for nothing
+        expect(count($files))->toBeGreaterThan(10);
+        foreach ($files as $file) {
             if (str_contains((string) file_get_contents($file), $needle)) {
                 $found[] = str_replace("$root/", '', $file);
             }

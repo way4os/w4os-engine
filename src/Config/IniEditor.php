@@ -380,6 +380,8 @@ final class IniEditor
         }
         // A text file ends with a line break
         $text = $this->toString();
-        file_put_contents($path, $text === '' || str_ends_with($text, "\n") ? $text : "$text\n");
+        if (@file_put_contents($path, $text === '' || str_ends_with($text, "\n") ? $text : "$text\n") === false) {
+            throw new \RuntimeException("could not write $path");
+        }
     }
 }

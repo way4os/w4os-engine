@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- fix (sqlite): the library of the system is found without the brace glob flag, which musl and Alpine lack
+- fix (tests): the PHP compatibility checks read the code of a worktree or a copy too, never nothing
+- fix (config): the config of the suite is its account's; a file IniEditor cannot write is an error, not a warning
 - fix (service): opensim.service and the backup units run as SystemUser of w4os.conf, by a drop-in the layout writes
 - new (in place): the install's owner becomes SystemUser and its site's web account WebUser/WebGroup; nothing of it is changed
 - fix (migrate): the owner of the old install, whose data stays where it is, becomes SystemUser too
