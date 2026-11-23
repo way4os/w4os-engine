@@ -79,9 +79,10 @@ final class ConnectionString
             return 'URI=file:' . $this->source . ',version=3,UseUTF16Encoding=True';
         }
 
+        // The port apart (Port=3307): the connector of MySQL reads no port in the Data Source
         return sprintf(
             'Data Source=%s;Database=%s;User ID=%s;Password=%s;Old Guids=true;',
-            $this->source,
+            $this->port !== null && $this->host !== '' ? "{$this->host};Port={$this->port}" : $this->source,
             $this->database,
             $this->user,
             $this->password,
