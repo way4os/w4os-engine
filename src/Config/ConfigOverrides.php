@@ -16,6 +16,12 @@ final class ConfigOverrides
     /** The file an import writes in the folder. */
     public const IMPORTED = 'imported.ini';
 
+    /** A value that is an address: a URL, or the constant of one (${Const|BaseURL}:${Const|PublicPort}). */
+    private const ADDRESS = '~^(https?://|\$\{Const\|\w*(URL|URI|Host)\w*\})~i';
+
+    /** A value that is a path: absolute, relative to a folder, from the constant of one, or with a folder in it (assets/AssetSets.xml). */
+    private const PATH = '~^(/|\.\.?/|\$\{Const\|\w*(Dir|Path)\w*\}|[\w.-]+/[^\s:,;]*$)~i';
+
     /** The folder, for the file of a simulator (its real place: opensim.d links to the grid's). */
     public static function directory(string $ini): string
     {
@@ -72,18 +78,22 @@ final class ConfigOverrides
 
     /**
      * Why the kit keeps its value over the original's, null when the original's wins: what the kit needs to work, the architecture
-     * of its grid (its modules and services), the addresses of its grid, its folders. The settings of the grid and of the simulator
-     * (OSSL, cache...) are the original's.
+     * of its grid (its modules and services), the addresses of its grid, its paths. Told by the values the kit and the original
+     * give, never by the name of the key: the permissions of OSSL and of the script engines are the original's, whatever they name.
      *
-     * @param array{section:string,key:string,value:string} $setting
+     * @param array{section:string,key:string,value:string,kit?:string} $setting
      */
     public static function kept(array $setting): ?string
     {
+        $values = array_map(static fn(string $value): string => trim($value, " \t\""), [$setting['value'], $setting['kit'] ?? '']);
+        $any = static fn(string $pattern): bool => preg_grep($pattern, $values) !== [];
+
         return match (true) {
+            strcasecmp($setting['section'], 'OSSL') === 0 || stripos($setting['key'], 'Allow') === 0 => null,
             strcasecmp($setting['section'], 'Modules') === 0 => 'the architecture of the grid',
-            stripos($setting['value'], '.dll:') !== false => 'a service of the architecture of the grid',
-            preg_match('/(URI|URL|Gatekeeper)$/i', $setting['key']) === 1 => 'an address of the grid',
-            preg_match('/(Directory|Path|Dir|Location)$/i', $setting['key']) === 1 => 'a folder of the install',
+            $any('/\.dll:/i') => 'a service of the architecture of the grid',
+            $any(self::ADDRESS) => 'an address of the grid',
+            $any(self::PATH) => 'a path of the install',
             default => null,
         };
     }
