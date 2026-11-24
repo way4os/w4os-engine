@@ -428,4 +428,26 @@ describe('The pictures of the guide of a grid', function () {
 
         expect($world->pictures->missed())->toBe(['Far beach' => 'the gatekeeper gives no region']);
     });
+
+    test('of the popular places of another grid are asked too, and shown: a host without a grid has no asset of its own', function () {
+        $world = remote_grid();
+        $machine = new Machine();
+        $machine->http['http://far.example.net:8002/assets/' . REMOTE_BEACH] = '<AssetBase><Data>' . base64_encode('JP2-BYTES') . '</Data><ID>' . REMOTE_BEACH . '</ID><Name>Beach</Name><Type>0</Type></AssetBase>';
+        $db = search_database();
+        $db->exec("INSERT INTO regionsregister VALUES ('Far', 'r9', '9', 'http://sim.far.example.net:9000/', 'Bob', 'o', 'http://far.example.net:8002')");
+        $db->exec("INSERT INTO parcels VALUES ('p9', 'r9', 'Far beach', '10/20/30', '', '', 'true', 'true', 'true', 40, 'info', 'PG', 'http://far.example.net:8002', NULL)");
+        $db->exec("INSERT INTO popularplaces VALUES ('p9', 'Far beach', 40, 'info', 0, 'PG', 'http://far.example.net:8002')");
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+
+        $run = $grid->refreshGuidePictures();
+        $places = array_column($grid->popularPlaces(10, hypergrid: true), 'picture', 'name');
+        $kept = RemotePictures::image(Cache::for($machine->environment, $grid->config()), REMOTE_BEACH);
+        W4OS\Engine\Data\Connections::using(null);
+
+        expect($run['found'])->toBe(1)
+            ->and($places['Far beach'] ?? null)->toBe(REMOTE_BEACH)
+            // Kept where the pages find it (WebAssets)
+            ->and($kept)->not->toBeNull();
+    });
 });

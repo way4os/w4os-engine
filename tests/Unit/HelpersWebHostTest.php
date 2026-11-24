@@ -34,6 +34,12 @@ describe('The helpers on a web host without OpenSimulator', function () {
         $grid = Grid::find($machine->environment, 'twodo');
 
         expect($grid?->address('search'))->toBe('https://2do.directory/charm/search')
-            ->and($grid?->configuredInfo()['gridname'] ?? null)->toBe('2do HYPEvents');
+            ->and($grid?->configuredInfo()['gridname'] ?? null)->toBe('2do HYPEvents')
+            // No database of a grid: its people, its groups, its regions are none of this host's
+            ->and($grid?->hasDatabase())->toBeFalse();
+        // A grid of this machine, its database in its Robust config
+        $machine->write($machine->grid . '/Robust.HG.ini', (string) file_get_contents($machine->grid . '/Robust.HG.ini') .
+            "\n[DatabaseService]\n    ConnectionString = \"Data Source=localhost;Database=demo;User ID=opensim;Password=x;\"\n");
+        expect(Grid::find($machine->environment, 'demo')?->hasDatabase())->toBeTrue();
     });
 });

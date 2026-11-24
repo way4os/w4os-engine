@@ -20,7 +20,8 @@ use W4OS\Engine\Scheduling\Task;
  * due is read, the others are left alone), read the events of the calendar (`events-parse`, every 55 minutes), and ask the grids
  * of the hypergrid destinations of its guide for their pictures (`guide-pictures`, once an hour: a destination that is due is
  * asked, RemotePictures), and check its health (`health`, every 15 minutes, HealthCheck: a page shows the last check at once).
- * An install that leaves the search to another one (`MaintainSearch = false` of `[Helpers]`) checks the health alone.
+ * An install that leaves the search to another one (`MaintainSearch = false` of `[Helpers]`) asks the pictures (a cache) and checks
+ * the health alone.
  *
  *     SearchTasks::add($scheduler, $environment, $config);
  *     SearchTasks::add($scheduler, $grid->environment(), $grid->config(), $grid);   // a grid with no folder
@@ -85,14 +86,15 @@ final class SearchTasks
      * does nothing. The tables of the search are made first, when they are not there yet (a grid where no simulator registered).
      * A database without such locks (SQLite) runs it as it is.
      */
-    public static function exclusively(OSPDO $db, string $task, \Closure $run): string
+    public static function exclusively(OSPDO $db, string $task, \Closure $run, bool $prepare = true): string
     {
         if ($db->getAttribute(\PDO::ATTR_DRIVER_NAME) !== 'mysql') {
             return (string) $run();
         }
         $database = (string) $db->query('SELECT DATABASE()')->fetchColumn();
-        // The tables of the search, before a simulator registers (which makes them too): once a process, for each database
-        if (!isset(self::$prepared[$database])) {
+        // The tables of the search, before a simulator registers (which makes them too): once a process, for each database; never
+        // by an install that leaves the search to another one
+        if ($prepare && !isset(self::$prepared[$database])) {
             SearchTables::ensure($db);
             self::$prepared[$database] = true;
         }
@@ -131,7 +133,8 @@ final class SearchTasks
         $at = $grid instanceof Grid ? static fn(): Grid => $grid : ($folder !== '' && is_dir($folder) ? static fn(): Grid => Grid::at($environment, $folder) : null);
         $scope = (string) preg_replace('/[^A-Za-z0-9_-]/', '_', $grid instanceof Grid ? $grid->nick() : ($grid ?? self::gridOf($config)));
         // Another install may keep its registry (MaintainSearch = false of [Helpers]): then this one never writes into it
-        if (self::maintains($config)) {
+        $maintains = self::maintains($config);
+        if ($maintains) {
             $regions = Region::searchTable($db);
             $scheduler->add(
                 new Task(
@@ -165,21 +168,22 @@ final class SearchTasks
                     $scope,
                 ),
             );
-            $at !== null && $scheduler->add(
-                new Task(
-                    'guide-pictures',
-                    self::PICTURES_EVERY,
-                    static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($config, $at): string {
-                        $run = $at()->refreshGuidePictures($config);
-                        $missed = array_map(static fn(string $name, string $step): string => "$name ($step)", array_keys($run['missed']), $run['missed']);
-
-                        return "{$run['found']} picture(s) of hypergrid destinations found" . ($missed === [] ? '' : '; none for ' . implode(', ', $missed));
-                    }),
-                    'Ask the grids of the destinations of the guide for their pictures',
-                    $scope,
-                ),
-            );
         }
+        // The pictures of the guide and of the popular places: kept in the cache, never in the search, whoever keeps it
+        $at !== null && $scheduler->add(
+            new Task(
+                'guide-pictures',
+                self::PICTURES_EVERY,
+                static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($config, $at): string {
+                    $run = $at()->refreshGuidePictures($config);
+                    $missed = array_map(static fn(string $name, string $step): string => "$name ($step)", array_keys($run['missed']), $run['missed']);
+
+                    return "{$run['found']} picture(s) of hypergrid destinations found" . ($missed === [] ? '' : '; none for ' . implode(', ', $missed));
+                }, $maintains),
+                'Ask the grids of the destinations of the guide and of the popular places for their pictures',
+                $scope,
+            ),
+        );
         // The health of the grid, checked in the background: a page shows the last check at once
         $at !== null && $scheduler->add(
             new Task(

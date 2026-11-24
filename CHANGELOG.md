@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (pictures): the popular places of other grids get their pictures from their grid; the task runs without MaintainSearch
+- new (grid): Grid::hasDatabase(), whether its config gives the database of the grid
 - new (setup): the web search of 2do.directory (/charm/search), the one of a grid without its own helpers
 - fix (helpers): without a Robust, Helpers.ini says what it would tell ([GridInfoService], [LoginService]...)
 - new (search): MaintainSearch = false of [Helpers] leaves the registry to another install: no task writes into it

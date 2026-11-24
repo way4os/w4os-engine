@@ -809,11 +809,14 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         }
         $own = $hypergrid ? null : (string) $this->loginUrl();
         $places = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri(), $own === '' ? null : $own))->popular($count, $landSales);
+        // The picture another grid gave of its parcel (RemotePictures), else the one of the search
+        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
 
-        return array_map(function (array $place) use ($config): array {
+        return array_map(function (array $place) use ($config, $cache): array {
             $place += $this->card($place['url'], $place['name'], $config);
+            $picture = \W4OS\Engine\Services\RemotePictures::lookup($cache, $place['url'], $place['name']) ?? $place['picture'];
 
-            return ['picture' => \W4OS\Engine\Assets\TitleImage::pick($place['picture'], (string) ($place['title'] ?? $place['name']))] + $place;
+            return ['picture' => \W4OS\Engine\Assets\TitleImage::pick($picture, (string) ($place['title'] ?? $place['name']))] + $place;
         }, $places);
     }
 
@@ -1262,6 +1265,9 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $guide;
     }
 
+    /** The section of the popular places among the ones of the guide whose pictures are asked: never the name of a category. */
+    private const POPULAR_PICTURES = "\0popular";
+
     /**
      * The guide with the pictures known of its destinations, null where none is (DestinationPictures), before the images of the titles.
      *
@@ -1294,8 +1300,15 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             new \W4OS\Engine\Network\GridInfoCache($this->environment, cache: \W4OS\Engine\Data\Cache::for($this->environment, $config)),
         );
 
-        // The destinations without a picture are asked: the guide before the images of their titles
-        $found = $pictures->refresh($this->guidePictures($config));
+        // The destinations without a picture are asked: the guide before the images of their titles; and the popular places of the
+        // other grids, whose assets this grid has not (a host without a grid has none)
+        $guide = $this->guidePictures($config);
+        $search = $config === null ? null : Connections::pdo($config, Database::Search);
+        if ($search !== null) {
+            $popular = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri()))->popular();
+            $guide[self::POPULAR_PICTURES] = ['picture' => null, 'destinations' => array_map(static fn(array $p): array => ['picture' => null] + $p, $popular)];
+        }
+        $found = $pictures->refresh($guide);
 
         return ['found' => $found, 'missed' => $pictures->missed()];
     }
@@ -1623,6 +1636,17 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     public function webUrl(): string
     {
         return (string) $this->get('webUrl');
+    }
+
+    /**
+     * Whether its config gives the database of the grid (Robust's: its accounts, its groups, its regions): a web host without
+     * OpenSimulator may have its search alone.
+     */
+    public function hasDatabase(): bool
+    {
+        $config = $this->config();
+
+        return $config !== null && Connections::key($config, Database::Robust) !== null;
     }
 
     public function hasHelpers(): bool
