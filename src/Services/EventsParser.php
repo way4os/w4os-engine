@@ -154,7 +154,7 @@ final class EventsParser
             $position[0] += $located['x'];
             $position[1] += $located['y'];
         }
-        $links = $this->places['link']($place, Destination::APPTP + Destination::HOP);
+        // Its description as the calendar gives it: the links a viewer needs are added to its answer only (SearchQuery::viewerDescription())
         $description = strip_tags(html_entity_decode(Encoding::latin1Only((string) ($event['description'] ?? ''))));
 
         return [
@@ -162,7 +162,7 @@ final class EventsParser
             'name' => strip_tags(html_entity_decode(Encoding::latin1Only((string) ($event['title'] ?? '')))),
             'creatoruuid' => self::NOBODY,
             'category' => self::category($event['categories'] ?? null),
-            'description' => "$links\n\n$description",
+            'description' => $description,
             'dateUTC' => $start,
             'duration' => $duration,
             'covercharge' => 0,

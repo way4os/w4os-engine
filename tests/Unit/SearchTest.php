@@ -489,9 +489,9 @@ describe('The events of the search', function () {
             ->toContain('events.landingpoint', 'events.parcelName')
             ->and(W4OS\Engine\Services\SearchTables::upgrade($db))
             ->not->toContain('events.landingpoint')
+            // Its description as the calendar gives it: the links of the viewers are added to its answer only (SearchQuery)
             ->and($event['description'])
-            ->toStartWith('link:40:grid.example.org:8002:Welcome/10/20/30')
-            ->toEndWith('Come in');
+            ->toBe('Come in');
     });
 
     test('are left as they are when the calendar does not answer', function () {
@@ -679,6 +679,25 @@ describe('The questions of the search', function () {
             // Of another grid: host:port:Region, as a viewer names it (the place of the event, its link in the panel)
             ->and([$far['simname'], $far['globalposition']])
             ->toBe([(new W4OS\Engine\Hypergrid\Place('far.example.org:8002/Lonely Lands'))->tpLink(W4OS\Engine\Hypergrid\Destination::LSL), '2583726,2579592,24']);
+    });
+
+    test('tell an event to a viewer with the teleport links of its place before its description, once, never stored', function () {
+        $db = search_database();
+        $links = (string) (new W4OS\Engine\Hypergrid\Place('far.example.org:8002 Lonely Lands/128/128/24'))->tpLink(W4OS\Engine\Hypergrid\Destination::APPTP + W4OS\Engine\Hypergrid\Destination::HOP);
+        $db->exec("INSERT INTO events VALUES ('o', 'Far night', 3, 'c', 20, 'Far away', 1700003600, 60, 0, 0, 'far.example.org:8002 Lonely Lands/128/128/24', 'p', '1,1,24', 0, 'http://far.example.org:8002'), " .
+            // A row of before, its links stored by the parser of then: never twice
+            "('o', 'Old night', 4, 'c', 20, " . $db->quote("$links\n\nStill here") . ", 1700003600, 60, 0, 0, 'far.example.org:8002 Lonely Lands/128/128/24', 'p', '1,1,24', 0, 'http://far.example.org:8002')");
+        $rpc = new XmlRpc((new SearchQuery($db, 'regionsregister', gk: SEARCH_GK))->methods());
+
+        $info = rpc_call($rpc, 'event_info_query', ['eventID' => '3'])['data']['data'][0];
+        $old = rpc_call($rpc, 'event_info_query', ['eventID' => '4'])['data']['data'][0];
+
+        expect($links)->toContain('hop://', 'secondlife:///app/teleport/')
+            ->and($info['description'])->toBe("$links\n\nFar away")
+            ->and($old['description'])->toBe("$links\n\nStill here")
+            ->and(SearchQuery::withoutViewerLinks("$links\n\nStill here"))->toBe('Still here')
+            // Only the block the parser wrote, at the start: never an address in the text
+            ->and(SearchQuery::withoutViewerLinks("Come\nhop://x:8002/Y\n\nhere"))->toBe("Come\nhop://x:8002/Y\n\nhere");
     });
 
     test('list the classifieds of the profiles, and tell one in full, when the grid has them', function () {

@@ -376,7 +376,7 @@ final class SearchQuery
                     'creator' => $row['creatoruuid'],
                     'name' => $row['name'],
                     'category' => self::EVENT_CATEGORIES[(int) $row['category']] ?? '*Unspecified*',
-                    'description' => $row['description'],
+                    'description' => self::viewerDescription((string) $row['description'], $stored),
                     'date' => date('o-m-d H:i:s', (int) $row['dateUTC']),
                     'dateUTC' => $row['dateUTC'],
                     'duration' => $row['duration'],
@@ -388,6 +388,30 @@ final class SearchQuery
                 ];
             }, $rows),
         );
+    }
+
+    /**
+     * The description of an event as a viewer is given it: the teleport links of its place first (hop:// and secondlife:///app/teleport/),
+     * which the panel of the event of a viewer cannot open by itself, then its text. The one place they are added: where their form
+     * for the viewers is made, never stored (a row of before that has them has them once).
+     *
+     * @param string $place the place of the event as the table keeps it (simname: host:port Region/x/y/z)
+     */
+    public static function viewerDescription(string $description, string $place): string
+    {
+        $links = trim((string) (new \W4OS\Engine\Hypergrid\Place($place))->tpLink(\W4OS\Engine\Hypergrid\Destination::APPTP + \W4OS\Engine\Hypergrid\Destination::HOP));
+        $text = self::withoutViewerLinks($description);
+
+        return $links === '' ? $text : "$links\n\n$text";
+    }
+
+    /**
+     * A description without the block of teleport links the parser of the events stored before it (lines of hop:// and
+     * secondlife:///app/teleport/ links, then an empty line), at its start only; any other address stays.
+     */
+    public static function withoutViewerLinks(string $description): string
+    {
+        return (string) preg_replace('#\A(?:(?:hop://|secondlife:///app/teleport/)\S+\R)+\R#', '', $description);
     }
 
     /**
