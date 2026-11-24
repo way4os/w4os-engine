@@ -1026,15 +1026,14 @@ final class GridOptions
         // Where the helpers are on the site: the path of their economy
         $base = dirname($variables['page_currency']);
         $variables['helpers_base'] = $variables['page_currency'] === '' ? '' : ($base === '.' ? '/' : $base);
-        // The paths of the site that are the helpers' (the first segment of the base and of each page), for the web server to hand over
-        $segments = [];
-        foreach ([$variables['helpers_base'], ...array_map(fn(string $key): string => $variables[$key], preg_grep('/^page_/', array_keys($variables)))] as $path) {
-            $segment = explode('/', trim($path, '/'))[0];
-            $segment === '' || ($segments[$segment] = true);
-        }
-        $segments['health'] = true;
-        $variables['web_globs'] = implode(' ', array_map(static fn(string $s): string => "/$s*", array_keys($segments)));
-        $variables['web_regex'] = implode('|', array_map('preg_quote', array_keys($segments)));
+        // The paths of the site that are the helpers' (the first segment of the base and of each page, and the addresses of their
+        // services the grid names elsewhere on its site), for the web server to hand over (Snippets::routes())
+        $routes = Snippets::routes(
+            [$variables['helpers_base'], ...array_map(fn(string $key): string => $variables[$key], preg_grep('/^page_/', array_keys($variables))), '/health'],
+            $this->grid->isPlanned() ? [] : array_values($this->grid->helperPaths()),
+        );
+        $variables['web_globs'] = implode(' ', $routes['globs']);
+        $variables['web_regex'] = implode('|', $routes['regex']);
         // The site of the grid, and what the options that are on give to the others
         $variables += Snippets::siteVariables($this->grid->webUrl());
         foreach ([...$this->enabled(), ...($also === null ? [] : [$also->name()])] as $name) {

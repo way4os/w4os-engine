@@ -2094,8 +2094,67 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     public function servedByHelpers(string $url): bool
     {
         $base = $this->helpersUrl();
+        if (trim($url) === '') {
+            return false;
+        }
+        if ($base !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $base)) {
+            return true;
+        }
+        // An address its config names on its site, wherever it is (the paths of an install of before), and what follows it
+        $site = $this->site();
+        if ($site === null || strcasecmp((string) parse_url($url, PHP_URL_HOST), (string) parse_url($site, PHP_URL_HOST)) !== 0) {
+            return false;
+        }
+        $path = '/' . trim((string) parse_url($url, PHP_URL_PATH), '/');
+        foreach ($this->helperPaths() as $known) {
+            if ($path === $known || str_starts_with($path, "$known/")) {
+                return true;
+            }
+        }
 
-        return $base !== null && trim($url) !== '' && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $base);
+        return false;
+    }
+
+    /** @var ?array<string,string> helperPaths(), read once */
+    private ?array $helperPaths = null;
+
+    /**
+     * The paths of its site its helpers answer, by service: the addresses its config names on its own site (the host of its web site),
+     * wherever they are (the paths an install of before kept), never one of another host, nor a path its config does not name.
+     *
+     * @return array<string,string> service => its path on the site (`/helper/query.php`)
+     */
+    public function helperPaths(): array
+    {
+        if ($this->helperPaths !== null) {
+            return $this->helperPaths;
+        }
+        $site = $this->site();
+        if ($site === null) {
+            return $this->helperPaths = [];
+        }
+        $economy = $this->economy();
+        $urls = [
+            'query' => $this->searchApi(),
+            'register' => $this->registerUrl(),
+            'offline' => $this->offlineUrl(),
+            'motd' => $this->motdUrl(),
+            'currency' => $economy === null ? null : "$economy/currency.php",
+            'landtool' => $economy === null ? null : "$economy/landtool.php",
+            // The web assets of the grid, when the helpers serve them (the pictures under it): the address it sets, else theirs
+            'assets' => $this->assetsUrl() ?? ($this->helperUrl('assets') ?: null),
+        ];
+        $host = (string) parse_url($site, PHP_URL_HOST);
+        $paths = [];
+        foreach ($urls as $service => $url) {
+            if ($url === null || strcasecmp((string) parse_url($url, PHP_URL_HOST), $host) !== 0) {
+                continue;
+            }
+            $path = '/' . trim((string) parse_url($url, PHP_URL_PATH), '/');
+            $path === '/' || ($paths[$service] = $path);
+        }
+
+        return $this->helperPaths = $paths;
     }
 
     /** @return array{0:?string,1:?string} the base of the helpers and where it comes from */
