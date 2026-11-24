@@ -35,6 +35,28 @@ describe('The web services a setup chose', function () {
             ->and($registers['2do'])->toHaveKey('DATA_SRV_2do')->not->toHaveKey('DATA_SRV_demo');
     });
 
+    test('open the web search of the helpers, and none without them: the viewers keep their own', function () {
+        $read = static function (string $choice): array {
+            $machine = new Machine();
+            $plan = demo_plan($machine);
+            $plan->webSearch = $choice;
+            $plan->options = ['helpers', 'search'];
+            $options = new GridOptions(Grid::planned($machine->environment, $plan), layered: true, extra: $plan->variables());
+            $options->enable('helpers');
+            $options->enable('search');
+            $robust = ConfigReader::file($machine->grid . '/Robust.HG.ini');
+
+            return [$robust['GridInfoService']['search'] ?? null, $robust['LoginService']['SearchURL'] ?? null];
+        };
+        $helpers = $read('internal');
+
+        expect(trim((string) $helpers[0], '"'))->toStartWith('${Const|WebURL}/helpers/')
+            ->and($helpers[1])->toBe($helpers[0])
+            ->and($read('none'))->toBe([null, null])
+            // 2do.directory has no web search yet: nothing points to it
+            ->and(Grid::SHARED_WEB_SEARCH)->toBe('');
+    });
+
     test('read the events from the calendar given, and keep the economy where it is said: the helpers, or another service', function () {
         $read = static function (string $economy): array {
             $machine = new Machine();

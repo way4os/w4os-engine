@@ -260,6 +260,7 @@ describe('The services of a standalone', function () {
             'helpersPath' => '/helpers',
             'enableHypergrid' => true,
             'search' => 'internal',
+            'webSearch' => 'internal',
         ]);
 
         standalone_made($plan);

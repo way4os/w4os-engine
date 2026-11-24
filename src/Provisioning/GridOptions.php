@@ -1030,6 +1030,12 @@ final class GridOptions
             : $variables['url_register'];
         $variables['register_own'] = $register === '2do' ? '' : $own;
         $variables['register_2do'] = $register === 'helpers' ? '' : Grid::SHARED_SEARCH . '/register.php';
+        // The web search the viewers open: the page of the helpers, 2do.directory's, or none (the viewers keep their own)
+        $variables['web_search_url'] = match ($this->extra['web_search'] ?? 'internal') {
+            'shared' => Grid::SHARED_WEB_SEARCH,
+            'none' => '',
+            default => $variables['page_search'] === '' ? '' : '${Const|WebURL}' . $variables['page_search'],
+        };
         // Where the helpers are on the site: the path of their economy
         $base = dirname($variables['page_currency']);
         $variables['helpers_base'] = $variables['page_currency'] === '' ? '' : ($base === '.' ? '/' : $base);

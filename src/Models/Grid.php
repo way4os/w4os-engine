@@ -366,6 +366,9 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /** The shared search provider a grid can use instead of its own: the one of 2do.directory. */
     public const SHARED_SEARCH = 'https://2do.directory/helpers';
 
+    /** The web search page of the shared search provider, empty while it has none. */
+    public const SHARED_WEB_SEARCH = '';
+
     /**
      * The options of a new grid, each with its default: what the setup offers to enable or not. They are decided when the grid is made;
      * after that `opensim enable|disable` and the files of the grid decide.

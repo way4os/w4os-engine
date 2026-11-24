@@ -220,7 +220,7 @@ final class GridPlanner
             'web_url' => $web,
             'helpers' => Result::isTrue($answers['helpers'] ?? $c['helpersAvailable']),
             'helpers_path' => $text('helpers_path', $c['helpersPath']),
-            // Without the helpers the search is 2do.directory's: the in-world one, the web one, the register of the regions
+            // Without the helpers the in-world search and the register of the regions are 2do.directory's
             'search' => self::choice(
                 // A setup of before says yes or no (Cross-grid Search): yes 2do.directory's, no the helpers', else none
                 match (true) {
@@ -232,9 +232,10 @@ final class GridPlanner
                 ['internal', 'shared', 'disabled'],
                 Result::isTrue($answers['helpers'] ?? $c['helpersAvailable']) ? 'internal' : 'shared',
             ),
+            // 2do.directory's web search only once it has one (Grid::SHARED_WEB_SEARCH), else none without the helpers
             'web_search' => Result::isTrue($answers['helpers'] ?? $c['helpersAvailable'])
-                ? self::choice($answers['web_search'] ?? null, ['internal', 'shared'], 'internal')
-                : 'shared',
+                ? self::choice($answers['web_search'] ?? null, self::webSearches(), 'internal')
+                : (Grid::SHARED_WEB_SEARCH === '' ? 'none' : 'shared'),
             'register' => Result::isTrue($answers['helpers'] ?? $c['helpersAvailable'])
                 ? self::choice($answers['register'] ?? null, ['both', 'helpers', '2do'], 'both')
                 : '2do',
@@ -456,6 +457,16 @@ final class GridPlanner
     }
 
     /** An answer among the choices there are, else the default. */
+    /**
+     * The web searches a grid with helpers can choose: the helpers', and 2do.directory's once it has one.
+     *
+     * @return list<string>
+     */
+    public static function webSearches(): array
+    {
+        return Grid::SHARED_WEB_SEARCH === '' ? ['internal'] : ['internal', 'shared'];
+    }
+
     private static function choice(mixed $value, array $choices, string $default): string
     {
         $value = strtolower(trim((string) $value));

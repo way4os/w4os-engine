@@ -3,6 +3,7 @@
 ### Unreleased
 
 - new (setup): the web services screen: Quick Start website and its path, helpers path, register, in-world and web search, events, economy path
+- new (setup): the web search is the helpers' only (2do.directory has none yet); without the helpers, none
 - fix (web): the base of the helpers is routed exactly, never its whole first segment nor /health of the root; Snippets::outside()
 - fix (migrate): the addresses of the grid's site are kept as they are (the helpers serve them there); the report says what is added and the final values
 - new (economy): whether the helpers serve it is said (EconomyProvided, Provide of its page), never guessed from its address

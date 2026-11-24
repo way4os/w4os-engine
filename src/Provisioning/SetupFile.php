@@ -15,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  *                options of a new grid: search (internal|shared|disabled), options (the presets that are on, by name: a list, or a
  *                map name => true|false: see GridOptions), or the answer each preset takes (economy: gloebit, ossl: true...),
  *                web_server (caddy|apache|nginx), web_site (helpers|website), site (the Quick Start website: true|false),
- *                site_path (its folder, / by default), register (both|helpers|2do), web_search (internal|shared), events_url,
+ *                site_path (its folder, / by default), register (both|helpers|2do), web_search (internal|shared|none), events_url,
  *                economy_path (empty or a path: the helpers; a full address: another service),
  *                database: driver (mysql|sqlite for standalone), host, name, user, password, admin_user, admin_password
  *   owner:       name (First Last), password, or password_hash and password_salt (as Robust keeps them),

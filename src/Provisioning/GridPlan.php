@@ -63,7 +63,7 @@ final class GridPlan
     public string $sitePath = '/';
     /** Where the simulators register for the search: 'both' (the helpers and 2do.directory), 'helpers' or '2do' alone. */
     public string $register = 'both';
-    /** The web search of the viewers and of the site: 'internal' (the helpers) or 'shared' (2do.directory). */
+    /** The web search of the viewers and of the site: 'internal' (the helpers), 'shared' (2do.directory, once it has one) or 'none' (the viewers' own). */
     public string $webSearch = 'internal';
     /** The HYPEvents calendar the events of the search are read from (the grid has no events of its own yet). */
     public string $eventsUrl = \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE;

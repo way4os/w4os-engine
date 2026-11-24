@@ -45,7 +45,7 @@ describe('quick setup, its web services', function () {
             'register' => 'helpers', 'search' => 'shared', 'web_search' => 'internal', 'events_url' => 'https://events.example.org/calendar',
             'economy_path' => 'https://money.example.net/economy', 'web_site' => 'website', 'site_path' => '/opensim',
         ])
-            ->and([$without['register'] ?? null, $without['search'] ?? null, $without['web_search'] ?? null])->toBe(['2do', 'shared', 'shared']);
+            ->and([$without['register'] ?? null, $without['search'] ?? null, $without['web_search'] ?? null])->toBe(['2do', 'shared', 'none']);
         // Under its folder, the site is the Quick Start website's own: the root of the site keeps what it has (no webroot-website)
         expect($chosen['options'] ?? [])->not->toContain('webroot-website');
     });
@@ -977,6 +977,8 @@ describe('quick setup, the scenario', function () {
                 'events_url' => 'https://2do.directory/events', 'economy_path' => '/helpers',
             ])
             ->and(array_keys($fields['register']['options'] ?? []))->toBe(['both', 'helpers', '2do'])
+            // 2do.directory has no web search yet: the helpers' only
+            ->and(array_keys($fields['web_search']['options'] ?? []))->toBe(['internal'])
             ->and($fields['site_path']['help'] ?? '')->toBe('Choose a subfolder to keep separate from existing main website')
             ->and($fields['economy_path']['help'] ?? '')->toBe('Defaults to helpers path, use a full URL for an external service')
             ->and($fields['search']['help'] ?? '')->toContain('hypergrid')

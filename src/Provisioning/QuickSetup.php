@@ -878,7 +878,7 @@ final class QuickSetup
             ['name' => 'helpers_path', 'label' => _('Helpers path'), 'value' => $helpersPath],
             ['name' => 'register', 'label' => _('Register the regions'), 'value' => $value('register', (string) ($grid['register'] ?? 'both')), 'options' => ['both' => _('Helpers and 2do.directory'), 'helpers' => _('Helpers only'), '2do' => _('2do.directory only')]],
             ['name' => 'search', 'label' => _('In-world search'), 'value' => $value('search', (string) ($grid['search'] ?? 'internal')), 'options' => ['internal' => _('Helpers'), 'shared' => '2do.directory'], 'help' => $hypergrid],
-            ['name' => 'web_search', 'label' => _('Web search'), 'value' => $value('web_search', (string) ($grid['web_search'] ?? 'internal')), 'options' => ['internal' => _('Helpers'), 'shared' => '2do.directory'], 'help' => $hypergrid],
+            ['name' => 'web_search', 'label' => _('Web search'), 'value' => $value('web_search', (string) ($grid['web_search'] ?? 'internal')), 'options' => array_intersect_key(['internal' => _('Helpers'), 'shared' => '2do.directory'], array_flip(GridPlanner::webSearches()))] + (count(GridPlanner::webSearches()) > 1 ? ['help' => $hypergrid] : []),
             ['name' => 'events_url', 'label' => _('Events'), 'value' => $value('events_url', (string) ($grid['events_url'] ?? \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE)), 'help' => _('A HYPEvents calendar; this grid has no events of its own yet')],
             ['name' => 'economy_path', 'label' => _('Economy path'), 'value' => $value('economy_path', (string) (($grid['economy_path'] ?? '') ?: $helpersPath)), 'help' => _('Defaults to helpers path, use a full URL for an external service')],
         ];
@@ -1780,11 +1780,13 @@ final class QuickSetup
             $add('web', 'Quick Start website', $plan->webSite === 'website' ? 'yes, at ' . $plan->webUrl . ($plan->sitePath === '/' ? '/' : $plan->sitePath) : 'no');
             $add('web', 'Register the regions', ['both' => 'the helpers and 2do.directory', 'helpers' => 'the helpers only', '2do' => '2do.directory only'][$plan->register] ?? $plan->register);
             $add('web', 'In-world search', $plan->search === 'disabled' ? 'none' : $two($plan->search));
-            $add('web', 'Web search', $two($plan->webSearch));
+            $add('web', 'Web search', $plan->webSearch === 'none' ? 'none, the viewers keep their own' : $two($plan->webSearch));
             $plan->search === 'internal' && $add('web', 'Events', $plan->eventsUrl);
             $add('web', 'Economy', $plan->economyPath === '' ? $plan->webUrl . $plan->helpersPath : (str_contains($plan->economyPath, '://') ? $plan->economyPath . ' (another service)' : $plan->webUrl . $plan->economyPath));
         } else {
-            $add('web', 'Search', 'the in-world search, the web search and the register of the regions are 2do.directory\'s (it searches the whole hypergrid)');
+            $add('web', 'Search', $plan->webSearch === 'shared'
+                ? 'the in-world search, the web search and the register of the regions are 2do.directory\'s (it searches the whole hypergrid)'
+                : 'the in-world search and the register of the regions are 2do.directory\'s (it searches the whole hypergrid); no web search, the viewers keep their own');
         }
         // The presets that are on, asked or not
         foreach ($plan->options as $name) {
