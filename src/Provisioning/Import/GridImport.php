@@ -49,6 +49,7 @@ final class GridImport
         public readonly DataMoves $data = new DataMoves([]),
         public readonly array $constants = [],
         public readonly array $gridInfo = [],
+        public readonly array $helpers = [],
     ) {}
 
     /**
@@ -59,9 +60,10 @@ final class GridImport
      * @param ?string $core the core it runs with here (default: the one of the install)
      * @param list<array{file:string,name?:?string,core?:?string,scripts?:bool}> $simulators the configs of its simulators
      * @param bool $written the import was applied already: the grid is here (to switch it)
+     * @param ?bool $helpersHere this install serves the helpers (w4os-helpers is installed; by default, whether its folder is there)
      * @throws InvalidValue for what cannot be imported, said
      */
-    public static function prepare(Environment $environment, string $file, ?string $nick = null, ?string $core = null, array $simulators = [], bool $written = false, bool $copyData = false): self
+    public static function prepare(Environment $environment, string $file, ?string $nick = null, ?string $core = null, array $simulators = [], bool $written = false, bool $copyData = false, ?bool $helpersHere = null): self
     {
         if (!is_file($file) || !is_readable($file)) {
             throw InvalidValue::because('invalid-request', "cannot read the Robust config: $file");
@@ -80,15 +82,37 @@ final class GridImport
         // The choice its simulators made in a group (the offline messages V1 where V2 is the default) is the grid's: the option they
         // tell, else none of its group, their settings brought into the OpenSim.ini of the grid telling it there (apply())
         $sources = array_values(array_filter(array_map(static fn(array $s): string => (string) ($s['file'] ?? ''), $simulators), 'is_file'));
+        $helpers = [];
         if ($sources !== []) {
+            $helpersHere ??= is_dir(\W4OS\Engine\Provisioning\Web\Snippets::WEBROOT);
             $options = new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables());
-            foreach ($options->toldBy($sources) as $told) {
-                $group = $options->template($told)?->group() ?? '';
-                if ($group === '' || in_array($told, $plan->options, true)) {
+            $withHelpers = new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, GridPlan::fromArray(['helpers' => true] + $plan->toArray())), layered: true, extra: $plan->variables());
+            $told = $options->toldBy($sources);
+            // A choice the helpers serve: they are on when this install serves them and the old one had them on the site of the grid,
+            // else the helper of the old config stays where it is, outside this install
+            foreach ($told as $name) {
+                $template = $options->template($name);
+                if ($template === null || $options->unmet($template) === null || $withHelpers->unmet($template) !== null) {
                     continue;
                 }
-                $plan->options = array_values(array_filter($plan->options, static fn(string $name): bool => $options->template($name)?->group() !== $group));
-                $options->unmet($options->template($told)) === null && ($plan->options[] = $told);
+                $url = self::helperAddress($template, $sources[0]);
+                if ($helpersHere && $url !== '' && self::onSite($url, $plan->webUrl)) {
+                    $plan->helpers = true;
+                    $helpers[] = "Helpers on: $name needs them, and this install serves them (w4os-helpers)";
+                } else {
+                    $helpers[] = "$name: served by the helper at " . ($url !== '' ? $url : 'its address') . ', outside this install';
+                }
+            }
+            // The options of a grid with its helpers, then, as the setup lays them
+            $plan->helpers && ($plan->options = $withHelpers->selection([]));
+            $options = $plan->helpers ? $withHelpers : $options;
+            foreach ($told as $name) {
+                $group = $options->template($name)?->group() ?? '';
+                if ($group === '' || in_array($name, $plan->options, true)) {
+                    continue;
+                }
+                $plan->options = array_values(array_filter($plan->options, static fn(string $other): bool => $options->template($other)?->group() !== $group));
+                $options->unmet($options->template($name)) === null && ($plan->options[] = $name);
             }
         }
         $written || Grid::find($environment, $plan->gridNick) === null ||
@@ -201,7 +225,7 @@ final class GridImport
             }
         }
 
-        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $constants, $gridInfo);
+        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $constants, $gridInfo, $helpers);
     }
 
     /**
@@ -226,6 +250,8 @@ final class GridImport
             'settings' => array_map(SimulatorImport::masked(...), $this->customizations),
             // The values of its grid info made ASCII: OpenSim's grid info cannot send other characters
             'gridInfo' => $this->gridInfo,
+            // What the choices kept say of the helpers: on here, or the old config's outside this install
+            'helpers' => $this->helpers,
             'dropped' => array_map(SimulatorImport::masked(...), $this->dropped),
             'report' => $this->reportPath(),
             'backup' => $this->backup?->document(),
@@ -339,6 +365,33 @@ final class GridImport
     }
 
     /**
+     * The address of the helper an option takes from the grid (its `{{url_...}}` setting), as the config of an old simulator gives it,
+     * its constants replaced; empty when it gives none.
+     */
+    private static function helperAddress(\W4OS\Engine\Provisioning\OptionTemplate $option, string $source): string
+    {
+        $config = array_change_key_case(ConfigReader::load($source, [], true));
+        foreach ($option->settings('OpenSim.ini', [], false) as [$section, $key, $value]) {
+            if (str_contains($value, '{{url_')) {
+                $found = array_change_key_case($config[strtolower($section)] ?? [])[strtolower($key)] ?? '';
+                if (trim((string) $found, " \t\"") !== '') {
+                    return trim((string) $found, " \t\"");
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /** Whether an address is on the web site of the grid (the host of its WebURL). */
+    private static function onSite(string $url, string $webUrl): bool
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        return $host !== '' && $host === strtolower((string) parse_url($webUrl, PHP_URL_HOST));
+    }
+
+    /**
      * Whether each reference of a value (`${Section|Key}`) is defined in a config.
      *
      * @param array<string,array<string,string>> $config
@@ -427,6 +480,8 @@ final class GridImport
             "Ports: public {$plan->publicPort}, private {$plan->privatePort}" . ($plan->consoleMode === 'rest' ? ", console {$plan->consolePort}" : ''),
             '',
             ...($this->gridInfo === [] ? [] : ['Grid info made ASCII:', ...array_map(static fn(string $said): string => "  $said", $this->gridInfo), '']),
+            // The helpers the choices kept need: this install's, or the old config's where they are
+            ...($this->helpers === [] ? [] : ['Helpers:', ...array_map(static fn(string $said): string => "  $said", $this->helpers), '']),
             count($this->customizations) . ' setting(s) of the original kept in the new config:',
         ];
         foreach ($this->customizations as $setting) {

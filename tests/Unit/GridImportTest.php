@@ -401,7 +401,7 @@ describe('The import of a grid', function () {
         file_put_contents("$bin/OpenSim.ini", "[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n[Includes]\n    Include-Common = \"$common\"\n");
         file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
 
-        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']]);
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']], helpersHere: false);
         $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
         $grid = Grid::find($machine->environment, 'oldgrid');
         $sim = $grid->simulator('oldgrid.welcome')->controller();
@@ -451,6 +451,61 @@ describe('The import of a grid', function () {
             ->toBe(['GLBEnvironment' => 'production', 'GLBKey' => 'kimbe-key', 'GLBSecret' => 'kimbe-secret', 'GLBOwnerName' => 'Pam Molly'])
             ->and((new W4OS\Engine\Models\GridSettings($grid))->read('economy')['economyModule'] ?? null)->toBe('Gloebit')
             ->and($economyAsLayout)->toBe([]);
+    });
+
+    /** An old install whose simulators keep their offline messages V1 with the helper at $url: [machine, Robust config, simulators]. */
+    $offlineV1 = static function (string $url): array {
+        [$machine, $robust] = old_robust_install();
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        file_put_contents($robust, str_replace("[Const]\n", "[Const]\n    WebURL = \"https://old.example.org\"\n", file_get_contents($robust)));
+        $bin = dirname($robust);
+        mkdir("$bin/Regions");
+        file_put_contents("$bin/OpenSim.ini", "[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n" .
+            "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n" .
+            "[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"$url\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        return [$machine, $robust, [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']]];
+    };
+    $offlineUrl = static function (Machine $machine): string {
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $master = W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory());
+
+        return (string) (ConfigReader::expand(ConfigReader::load([$master, ...$sim->files()], [], false, false, $sim->lastFiles()))['Messaging']['OfflineMessageURL'] ?? '');
+    };
+
+    test('turns its helpers on when a choice it keeps needs them and this install serves them, and says it', function () use ($offlineV1, $offlineUrl) {
+        // V1 and its helper on the site of the grid, the helpers installed here
+        [$machine, $robust, $simulators] = $offlineV1('https://old.example.org/helpers/helper/offline.php');
+        $import = GridImport::prepare($machine->environment, $robust, simulators: $simulators, helpersHere: true);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $report = (string) file_get_contents($import->document()['report']);
+
+        expect($import->plan->helpers)->toBeTrue()
+            // Written, its helpers are its Helpers.ini and the addresses of their services
+            ->and(is_file(W4OS\Engine\Provisioning\Web\HelpersConfig::path($grid->directory())))->toBeTrue()
+            ->and($grid->helperUrl('offline'))->toStartWith('https://old.example.org/')
+            ->and((new W4OS\Engine\Provisioning\GridOptions($grid))->enabled())->toContain('offline-helpers')->not->toContain('offline-robust')
+            // The helpers of this install serve it now, at their address
+            ->and($offlineUrl($machine))->toBe($grid->helperUrl('offline'))->not->toContain('/helpers/helper/')
+            ->and($report)->toContain('Helpers on: offline-helpers needs them, and this install serves them (w4os-helpers)');
+    });
+
+    test('keeps the helper of a choice outside this install where it is, and says it: never the helpers of this install', function () use ($offlineV1, $offlineUrl) {
+        // A helper of another server; and one on the site of the grid where this install has no helpers
+        foreach ([['https://im.example.org/helper/offline.php', true], ['https://old.example.org/helpers/helper/offline.php', false]] as [$url, $here]) {
+            [$machine, $robust, $simulators] = $offlineV1($url);
+            $import = GridImport::prepare($machine->environment, $robust, simulators: $simulators, helpersHere: $here);
+            $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+            $report = (string) file_get_contents($import->document()['report']);
+
+            expect($import->plan->helpers)->toBeFalse()
+                ->and($offlineUrl($machine))->toBe($url)
+                ->and($report)->toContain("offline-helpers: served by the helper at $url, outside this install");
+        }
     });
 
     test('refuses a grid this install has already', function () {
