@@ -89,7 +89,8 @@ final class OfflineMessages
         );
         $saved && ($this->after[] = fn() => $this->mail($xml));
 
-        return Response::binary(XmlRpc::plain((bool) $saved), XmlRpc::CONTENT_TYPE);
+        // The module reads a boolean, and tells the sender whether it was saved
+        return Response::binary(XmlRpc::boolean((bool) $saved), XmlRpc::CONTENT_TYPE);
     }
 
     /** Give the messages kept for an avatar, and forget them. */
@@ -200,7 +201,8 @@ final class OfflineMessages
 
         return [
             'from' => $from,
-            'subject' => htmlspecialchars($subject),
+            // A header is text, not HTML
+            'subject' => $subject,
             'body' =>
                 '<html><body>' .
                 ($intro === '' ? '' : '<p>' . htmlspecialchars($intro) . '</p>') .

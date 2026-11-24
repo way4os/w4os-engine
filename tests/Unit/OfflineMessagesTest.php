@@ -166,6 +166,43 @@ describe('The offline messages', function () {
         },
     );
 
+    test('answer what the module reads, a boolean: true when the message is kept, false when not (the sender is told which)', function () {
+        [$messages, $profiles] = offline_databases();
+        $kept = (new OfflineMessages($messages, $profiles, 'Demo World'))->call('SaveMessage', offline_message());
+        // A database without the table: nothing is kept
+        $lost = (new OfflineMessages(test_pdo(), $profiles, 'Demo World'))->call('SaveMessage', offline_message());
+
+        // OfflineMessageModule reads it with XmlSerializer as a bool: "User is not logged in. Message saved." or "Message not saved"
+        expect(simplexml_load_string($kept->body())->getName())->toBe('boolean')
+            ->and(trim((string) simplexml_load_string($kept->body())))->toBe('true')
+            ->and(simplexml_load_string($lost->body())->getName())->toBe('boolean')
+            ->and(trim((string) simplexml_load_string($lost->body())))->toBe('false');
+    });
+
+    test('mail nobody whose preferences the profiles do not have', function () {
+        [$messages, $profiles] = offline_databases();
+        $profiles->exec('DELETE FROM usersettings');
+        $sent = [];
+        $service = new OfflineMessages($messages, $profiles, 'Demo World', 'no-reply@example.org', offline_mailer($sent));
+
+        $service->call('SaveMessage', offline_message());
+        $service->finish();
+
+        expect($sent)->toBe([])->and($messages->get_var('SELECT COUNT(*) FROM im_offline'))->toBe(1);
+    });
+
+    test('write a subject as text, never as HTML: a name with an apostrophe or an ampersand stays as it is', function () {
+        [$messages, $profiles] = offline_databases();
+        $service = new OfflineMessages($messages, $profiles, 'Kimbé & Co');
+        $mail = $service->compose(simplexml_load_string(offline_message('Hi', '0', "Ada O'Hara")));
+        $notice = $service->compose(simplexml_load_string(offline_message('Rock & roll|Tonight', '32')));
+
+        expect($mail['subject'])->toBe("Message from Ada O'Hara")
+            ->and($notice['subject'])->toBe('Group notice: Rock & roll')
+            // In the body, the same text is HTML
+            ->and($mail['body'])->toContain('Kimbé &amp; Co');
+    });
+
     test('give back the messages kept for an avatar, as the module reads them, and forget them', function () {
         [$messages, $profiles] = offline_databases();
         $service = new OfflineMessages($messages, $profiles, 'Demo World');

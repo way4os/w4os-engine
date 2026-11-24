@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (offline): SaveMessage answers a boolean, false too; the mail subject is text, its non-ASCII names encoded (RFC 2047)
 - fix (migrate): the choice of the simulators in a group stays (offline V1 and its helper), brought into the grid's OpenSim.ini
 - new (status): the avatars in world, NPCs never counted, by grid and by simulator that runs; on the API, avatars of a grid
 - fix (migrate): a setting kept that a kit include sets otherwise wins, read last (-inidirectory); the report lists it

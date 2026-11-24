@@ -156,6 +156,12 @@ final class XmlRpc
             . "</fault>\n</methodResponse>\n";
     }
 
+    /** A boolean as .NET serializes one (XmlSerializer): what OfflineMessageModule reads from SaveMessage. */
+    public static function boolean(bool $value): string
+    {
+        return '<?xml version="1.0" encoding="utf-8"?>' . "\n<boolean>" . ($value ? 'true' : 'false') . "</boolean>\n";
+    }
+
     /**
      * The shortest answers, the ones the search gives when it has nothing to say: `true`, or an error.
      */
