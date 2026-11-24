@@ -134,7 +134,7 @@ final class Event extends SearchResult
         return new ItemForm(
             [
                 ItemForm::shown('name', 'web_search_name', 'text', 'event'),
-                ItemForm::shown('category', 'web_search_land_type', 'select', 'event', ['options' => array_combine(array_map('strval', array_keys($categories)), $categories)]),
+                ItemForm::shown('category', 'web_search_category', 'select', 'event', ['options' => array_combine(array_map('strval', array_keys($categories)), $categories)]),
                 ItemForm::shown('adult', 'web_search_adult_content', 'boolean', 'event'),
                 ItemForm::shown('date', 'web_search_date', 'datetime', 'event'),
                 ItemForm::shown('duration', 'web_search_duration', 'duration', 'event'),

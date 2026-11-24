@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (search): the category of an event called Category in its details, as its filter
 - new (search): the picture of a result shown in full (Grid::shownPicture(), as the cards; an event its parcel's); its description a text of its own (bare)
 - change (events): their description stored as the calendar gives it; the teleport links added to the answer of the viewers only
 - fix (pictures): the text of a title image under the corner where a card puts its button, within what a 5:3 card shows

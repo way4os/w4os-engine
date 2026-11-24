@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: bd64e5a
+  version: 064b1c0
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -5800,7 +5800,7 @@ paths:
             readOnly: true
           -
             name: category
-            label: web_search_land_type
+            label: web_search_category
             type: select
             group: event
             readOnly: true

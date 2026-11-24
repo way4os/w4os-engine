@@ -996,3 +996,12 @@ describe('The details of a result of the search', function () {
             ->and(W4OS\Engine\Models\Event::listing()->document()['columns'][0]['picture'] ?? null)->toBe('picture');
     });
 });
+
+describe('The category of a result', function () {
+    test('is called Category in its details as in its filter, an event too (the viewer says Type)', function () {
+        $label = static fn(string $model, string $name): ?string => array_column($model::itemForm()->fields, 'label', 'name')[$name] ?? null;
+
+        expect([$label(W4OS\Engine\Models\Event::class, 'category'), $label(W4OS\Engine\Models\Classified::class, 'category')])
+            ->toBe(['web_search_category', 'web_search_category']);
+    });
+});
