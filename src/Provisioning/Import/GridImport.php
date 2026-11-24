@@ -292,8 +292,9 @@ final class GridImport
             // The settings of the grid its simulators read (its options: the offline messages, the search, the economy...) come into
             // its OpenSim.ini, as opensim import --grid-settings brings them, and its options are the ones they tell (the module V1)
             if ($this->simulators !== null && $this->simulators->imports !== []) {
-                foreach ($this->simulators->imports as $simulator) {
-                    GridSettingsImport::prepare($environment, $simulator->source, $plan->gridNick)->apply();
+                // The first simulator's over what the options of the kit wrote; the others give what it does not say
+                foreach (array_values($this->simulators->imports) as $i => $simulator) {
+                    GridSettingsImport::prepare($environment, $simulator->source, $plan->gridNick, overKit: $i === 0)->apply();
                 }
                 (new \W4OS\Engine\Provisioning\GridOptions(Grid::find($environment, $plan->gridNick) ?? throw new \RuntimeException("the grid {$plan->gridNick} was not written")))->repair(true);
                 // The master its simulators read made again with them

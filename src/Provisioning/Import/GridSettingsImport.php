@@ -57,7 +57,11 @@ final class GridSettingsImport
     ) {}
 
     /** The settings of an old config to bring into a grid of this machine, planned. */
-    public static function prepare(Environment $environment, string $file, string $nick): self
+    /**
+     * @param bool $overKit a grid a migration just made: a value its options wrote (a pre-setting, the sandbox of Gloebit) is the old
+     *        config's again, but what the kit needs to work (ConfigOverrides::kept(): its addresses, its paths, its services)
+     */
+    public static function prepare(Environment $environment, string $file, string $nick, bool $overKit = false): self
     {
         $grid = Grid::find($environment, $nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
         is_file($file) && is_readable($file) || throw InvalidValue::because('invalid-request', "$file cannot be read");
@@ -70,7 +74,7 @@ final class GridSettingsImport
         $notes = [];
         foreach (ConfigReader::files($file) as $path) {
             $text = (string) @file_get_contents($path);
-            foreach (ConfigReader::parse($text) as $section => $keys) {
+            foreach (\W4OS\Engine\Config\MovedSettings::normalize(ConfigReader::parse($text)) as $section => $keys) {
                 $lower = strtolower($section);
                 foreach ($keys as $key => $value) {
                     if ($lower === 'const') {
@@ -135,7 +139,12 @@ final class GridSettingsImport
                     }
                     // Gloebit has its settings in one place, the Gloebit.ini of the grid; the rest where the simulators read them
                     $gloebitHere = $gloebit && in_array($lower, ['economy', 'gloebit'], true);
-                    if (array_key_exists($key, ($gloebitHere ? $gloebitThere : $there)[$lower] ?? [])) {
+                    $has = ($gloebitHere ? $gloebitThere : $there)[$lower] ?? [];
+                    if (array_key_exists($key, $has) && (
+                        !$overKit ||
+                        trim((string) $has[$key], " \t\"") === trim($value, " \t\"") ||
+                        \W4OS\Engine\Config\ConfigOverrides::kept(['section' => $section, 'key' => $name, 'value' => $value, 'kit' => (string) $has[$key]]) !== null
+                    )) {
                         continue;
                     }
                     $files[$gloebitHere ? $gloebitFile : $into][$section][$name] = $value;

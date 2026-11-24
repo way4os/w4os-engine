@@ -422,6 +422,37 @@ describe('The import of a grid', function () {
             ->and($report)->toContain('[Messaging] OfflineMessageModule = OfflineMessageModule (grid')->not->toContain('OfflineMessageModule = OfflineMessageModule (replaced');
     });
 
+    test('keeps the economy of its simulators, Gloebit and its keys, its module where an old config has it ([Startup])', function () {
+        [$machine, $robust] = old_robust_install();
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        $bin = dirname($robust);
+        mkdir("$bin/Regions");
+        // The money module where OpenSimulator reads it first, [Startup], and the settings of Gloebit
+        file_put_contents("$bin/OpenSim.ini", "[Startup]\n    EconomyModule = Gloebit\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n" .
+            "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n" .
+            "[Gloebit]\n    Enabled = true\n    GLBEnvironment = production\n    GLBKey = kimbe-key\n    GLBSecret = kimbe-secret\n    GLBOwnerName = \"Pam Molly\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']]);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $master = W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory());
+        $read = ConfigReader::expand(ConfigReader::load([$master, ...$sim->files()], [], false, false, $sim->lastFiles()));
+        // As SampleMoneyModule and Gloebit read it: [Startup] first, then [Economy]
+        $module = ($read['Startup']['economymodule'] ?? $read['Startup']['EconomyModule'] ?? '') ?: ($read['Economy']['economymodule'] ?? '');
+        $dropped = $import->document()['simulators']['steps'][0]['dropped'] ?? [];
+        $economyAsLayout = array_filter($dropped, static fn(array $d): bool => $d['reason'] === 'layout' && stripos($d['key'], 'economy') !== false);
+
+        expect($module)->toBe('Gloebit')
+            ->and((new W4OS\Engine\Provisioning\GridOptions($grid))->enabled())->toContain('economy-gloebit')
+            ->and(array_intersect_key($read['Gloebit'] ?? [], array_flip(['GLBEnvironment', 'GLBKey', 'GLBSecret', 'GLBOwnerName'])))
+            ->toBe(['GLBEnvironment' => 'production', 'GLBKey' => 'kimbe-key', 'GLBSecret' => 'kimbe-secret', 'GLBOwnerName' => 'Pam Molly'])
+            ->and((new W4OS\Engine\Models\GridSettings($grid))->read('economy')['economyModule'] ?? null)->toBe('Gloebit')
+            ->and($economyAsLayout)->toBe([]);
+    });
+
     test('refuses a grid this install has already', function () {
         [$machine, $robust] = old_robust_install();
 

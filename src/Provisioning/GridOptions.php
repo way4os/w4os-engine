@@ -490,7 +490,7 @@ final class GridOptions
     {
         $said = [];
         foreach ($files ?? $this->gridFiles() as $file) {
-            foreach (array_change_key_case(\W4OS\Engine\Config\ConfigReader::load($file, $this->gridConstants(), expand: false)) as $section => $keys) {
+            foreach (array_change_key_case(\W4OS\Engine\Config\MovedSettings::normalize(\W4OS\Engine\Config\ConfigReader::load($file, $this->gridConstants(), expand: false))) as $section => $keys) {
                 is_array($keys) && ($said[$section] = array_merge($said[$section] ?? [], array_change_key_case(array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys))));
             }
         }

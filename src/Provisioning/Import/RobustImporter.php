@@ -159,7 +159,7 @@ final class RobustImporter
         $drop = static function (string $section, string $key, string $value, string $reason, ?string $replacement = null, bool $place = false) use (&$dropped): void {
             $dropped[] = ['section' => $section, 'key' => $key, 'value' => $value, 'reason' => $reason] + ($replacement === null ? [] : ['replacement' => $replacement]) + ($place ? ['place' => true] : []);
         };
-        foreach ($original as $section => $values) {
+        foreach (\W4OS\Engine\Config\MovedSettings::normalize($original) as $section => $values) {
             foreach ($values as $key => $value) {
                 $key = (string) $key;
                 $value = (string) $value;
