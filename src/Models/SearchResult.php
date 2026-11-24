@@ -119,7 +119,7 @@ abstract class SearchResult extends Model implements Reachable, \W4OS\Engine\Ass
      *
      * @throws ChannelUnavailable when the search the grid sets cannot be reached
      */
-    public static function all(GridConfig $config, array $options = []): Collection
+    public static function all(GridConfig $config, array $options = [], ?Grid $grid = null): Collection
     {
         static::listing()->check($options);
         $sorts = static::sorts();
@@ -145,7 +145,7 @@ abstract class SearchResult extends Model implements Reachable, \W4OS\Engine\Ass
             $rows = self::read($db, $sql, $values);
         }
 
-        return new Collection(array_map(static fn(array $row): static => new static($config, $row), $rows), [
+        return new Collection(array_map(static fn(array $row): static => (new static($config, $row))->on($grid), $rows), [
             'total' => $total,
             'page' => $page,
             'perPage' => $perPage,
@@ -157,7 +157,7 @@ abstract class SearchResult extends Model implements Reachable, \W4OS\Engine\Ass
     }
 
     /** @throws ChannelUnavailable when the search the grid sets cannot be reached */
-    public static function find(GridConfig $config, string $id): ?static
+    public static function find(GridConfig $config, string $id, ?Grid $grid = null): ?static
     {
         $db = self::search($config);
         if ($db === null) {
@@ -165,7 +165,39 @@ abstract class SearchResult extends Model implements Reachable, \W4OS\Engine\Ass
         }
         $rows = self::read($db, 'SELECT ' . static::from($db) . ' WHERE ' . static::key() . ' = :id', ['id' => $id]);
 
-        return $rows === [] ? null : new static($config, $rows[0]);
+        return $rows === [] ? null : (new static($config, $rows[0]))->on($grid);
+    }
+
+    /** @var ?Grid the grid of the result, when its caller gives it: what its picture is read through (realPicture()) */
+    private ?Grid $grid = null;
+
+    /** The result on its grid, for what only the grid has (its cache: the pictures its grids gave). */
+    public function on(?Grid $grid): static
+    {
+        $this->grid = $grid;
+
+        return $this;
+    }
+
+    /**
+     * Its picture, the one door to it: its own (pictureAsset()), else the one of the parcel of its place; on its grid, the search
+     * then what the grid of its place gave (the cache of its grid), shown when this host can show it (Grid::shownPicture()); null
+     * when it has none. picture() gives it, else the image of its name (a card).
+     */
+    public function realPicture(): ?string
+    {
+        $own = $this->pictureAsset();
+        $uri = (string) $this->tpUri();
+        if ($this->grid !== null && $uri !== '') {
+            return $this->grid->shownPicture($uri, $this->name(), $own, $this->config, title: false);
+        }
+
+        return $own ?? ($uri === '' ? null : (new \W4OS\Engine\Services\DestinationPictures(self::search($this->config)))->picture($uri, $this->name()));
+    }
+
+    public function picture(): string
+    {
+        return \W4OS\Engine\Assets\TitleImage::pick($this->realPicture(), $this->pictureTitle());
     }
 
     /** The ratings asked in its filters, none for every one. */

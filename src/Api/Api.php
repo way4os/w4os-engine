@@ -230,9 +230,12 @@ final class Api
                 );
             }
             $options = self::options($query);
-            $collection = isset(self::RESOURCES[$type])
-                ? $class::all($this->environment, $options)
-                : $class::all($this->gridConfig((string) $grid), $options);
+            $collection = match (true) {
+                isset(self::RESOURCES[$type]) => $class::all($this->environment, $options),
+                // A result of the search on its grid: its picture read through it (SearchResult::realPicture())
+                is_subclass_of($class, \W4OS\Engine\Models\SearchResult::class) => $class::all($this->gridConfig((string) $grid), $options, $this->grid((string) $grid)),
+                default => $class::all($this->gridConfig((string) $grid), $options),
+            };
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
@@ -1890,6 +1893,7 @@ final class Api
             // A grid is one of the grids served: of this machine, or given by an application
             $type === 'grids' => $this->grid($id),
             isset(self::RESOURCES[$type]) => $class::find($this->environment, $id),
+            is_subclass_of($class, \W4OS\Engine\Models\SearchResult::class) => $class::find($this->gridConfig((string) $grid), $id, $this->grid((string) $grid)),
             default => $class::find($this->gridConfig((string) $grid), $id),
         };
         if ($model === null) {

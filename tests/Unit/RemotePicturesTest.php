@@ -532,12 +532,23 @@ describe('The pictures of the guide of a grid', function () {
         $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
 
         $grid->refreshGuidePictures();
+        // Through the models, given their grid: the picture, the only door
+        $events = array_column(array_map(static fn(W4OS\Engine\Models\Event $e): array => [$e->name(), $e->realPicture(), $e->picture()], W4OS\Engine\Models\Event::all($grid->config(), ['filters' => ['day' => 'u']], $grid)->items()), null, 0);
+        $found = W4OS\Engine\Models\Event::find($grid->config(), '7', $grid)?->realPicture();
+        $alone = W4OS\Engine\Models\Event::find($grid->config(), '7')?->realPicture();
         $party = $grid->shownPicture('far.example.net:8002/Far/10/20/30', 'Beach party', null, title: false);
         $walk = $grid->shownPicture('far.example.net:8002/Far/128/128/25', 'Hill walk', null, title: false);
         $card = $grid->shownPicture('far.example.net:8002/Far/128/128/25', 'Hill walk');
         W4OS\Engine\Data\Connections::using(null);
 
-        expect($party)->toBe(REMOTE_BEACH)
+        expect($events['Beach party'][1] ?? null)->toBe(REMOTE_BEACH)
+            ->and($events)->toHaveKey('Hill walk')->and($events['Hill walk'][1])->toBeNull()
+            // A card: the image of its title without a picture
+            ->and($events['Hill walk'][2] ?? null)->toBe(W4OS\Engine\Assets\TitleImage::id('Hill walk'))
+            ->and($found)->toBe(REMOTE_BEACH)
+            // Without its grid, a model knows what the search knows alone
+            ->and($alone)->toBeNull()
+            ->and($party)->toBe(REMOTE_BEACH)
             // A detail without a picture shows none; a card has the image of its title
             ->and($walk)->toBeNull()
             ->and($card)->toBe(W4OS\Engine\Assets\TitleImage::id('Hill walk'));

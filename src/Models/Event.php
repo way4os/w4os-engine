@@ -46,14 +46,6 @@ final class Event extends SearchResult
         return (string) ($this->row['landingpoint'] ?? '');
     }
 
-    /** The picture of the parcel of its place, as the search knows it (DestinationPictures), none without one. */
-    protected function pictureAsset(): ?string
-    {
-        $uri = (string) $this->tpUri();
-
-        return $uri === '' ? null : (new \W4OS\Engine\Services\DestinationPictures(self::search($this->config)))->picture($uri, $this->name());
-    }
-
     public function detail(): array
     {
         $flags = (int) ($this->row['eventflags'] ?? 0);
