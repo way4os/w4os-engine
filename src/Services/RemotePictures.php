@@ -73,12 +73,15 @@ final class RemotePictures
     }
 
     /**
-     * The picture a page can show of a destination: the one given for a place of this grid (its own assets have it), for a place
+     * The picture a page can show of a destination: the one given for a place of this grid (its own assets have it; a region named
+     * alone is one), for a place
      * of another grid only when its picture is kept here (refresh() asked its grid); null otherwise, the image of its title then.
      */
     public static function shown(Cache $cache, string $login, string $url, ?string $picture): ?string
     {
-        if ($picture === null || self::isLocal(Destination::loginParts($login), Destination::parse($url))) {
+        $at = Destination::parse($url);
+        // A region named alone is one of the grid
+        if ($picture === null || ($at['host'] ?? '') === '' || self::isLocal(Destination::loginParts($login), $at)) {
             return $picture;
         }
 

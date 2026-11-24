@@ -484,5 +484,14 @@ describe('The pictures of the guide of a grid', function () {
             ->and($title($places['Far hill'] ?? null))->toBeTrue()
             ->and($title($guide['Far hill'] ?? null))->toBeTrue();
     });
+
+    test('of the grid, a region named alone included, are the search\'s: shown as it gives them', function () {
+        $cache = new Cache(new FileCacheStore(test_tmp() . '/remote-shown-' . bin2hex(random_bytes(4))), new ClockFake());
+
+        expect(RemotePictures::shown($cache, 'http://grid.example.org:8002', 'Welcome/128/128/25', REMOTE_HILL))->toBe(REMOTE_HILL)
+            ->and(RemotePictures::shown($cache, 'http://grid.example.org:8002', 'grid.example.org:8002/Welcome', REMOTE_HILL))->toBe(REMOTE_HILL)
+            // Another grid's, not kept here: none
+            ->and(RemotePictures::shown($cache, 'http://grid.example.org:8002', 'far.example.net:8002/Far', REMOTE_HILL))->toBeNull();
+    });
 });
 
