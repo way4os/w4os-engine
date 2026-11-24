@@ -41,6 +41,10 @@ final class GridInfoReader
      */
     public static function parse(string $xml): array
     {
+        // Bytes that are not UTF-8 without a declaration of theirs: Latin-1, as OpenSim 0.9.3 writes the characters it is given
+        if (!mb_check_encoding($xml, 'UTF-8') && preg_match('/^\s*<\?xml[^>]*encoding=/i', $xml) !== 1) {
+            $xml = mb_convert_encoding($xml, 'UTF-8', 'ISO-8859-1');
+        }
         $previous = libxml_use_internal_errors(true);
         $document = simplexml_load_string($xml);
         libxml_clear_errors();
@@ -62,6 +66,28 @@ final class GridInfoReader
         }
 
         return $said;
+    }
+
+    /**
+     * What makes an answer of `/get_grid_info` one a viewer refuses ("broken grid info xml"): bytes that are not UTF-8 (the first
+     * one said), or XML that is not well formed; null when it is well formed UTF-8.
+     */
+    public static function defect(string $xml): ?string
+    {
+        if (!mb_check_encoding($xml, 'UTF-8')) {
+            // The longest start that is UTF-8: the byte after it is the first that is not
+            preg_match('/^(?:[\x00-\x7F]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x90-\xBF][\x80-\xBF]{2}|[\xF1-\xF3][\x80-\xBF]{3}|\xF4[\x80-\x8F][\x80-\xBF]{2})*+/', $xml, $valid);
+            $at = strlen($valid[0] ?? '');
+
+            return sprintf('not UTF-8: byte 0x%02X at %d, after "%s"', ord($xml[$at]), $at, substr($valid[0] ?? '', -20));
+        }
+        $previous = libxml_use_internal_errors(true);
+        $document = simplexml_load_string($xml);
+        $error = libxml_get_last_error();
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        return $document === false ? 'not well-formed XML: ' . trim($error !== false ? $error->message : 'unreadable') : null;
     }
 
     /** The body of an address, null when it does not answer with a 200 (the certificate is not checked). */

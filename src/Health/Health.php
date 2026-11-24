@@ -308,8 +308,9 @@ class Health
                 self::origin($value) === $home &&
                 trim((string) parse_url($value, PHP_URL_PATH), '/') === '')
         ) {
-            // What answers at these addresses is the grid info, the first thing the viewers ask
+            // What answers at these addresses is the grid info, the first thing the viewers ask: at the login, read as they read it
             $row['probe'] = rtrim($value, '/') . '/get_grid_info';
+            $key === 'login' && ($row['gridInfo'] = true);
         } elseif ($key === 'economy') {
             // The address of the helpers, to which the viewers add the name of the script: no page of its own
             $row['expect'] = self::TEAPOT;
@@ -614,7 +615,7 @@ class Health
         $unique = [];
         $same = [];
         foreach ($requests as $id => $row) {
-            $key = json_encode([$row['probe'] ?? $row['url'], $row['method'] ?? 'get', $row['body'] ?? null, !empty($row['stay']), $row['contains'] ?? null]);
+            $key = json_encode([$row['probe'] ?? $row['url'], $row['method'] ?? 'get', $row['body'] ?? null, !empty($row['stay']), $row['contains'] ?? null, !empty($row['gridInfo'])]);
             $same[$id] = $unique[$key] ??= $id;
         }
         $results = self::ask(array_intersect_key($requests, array_flip($unique)), $timeout);
@@ -669,6 +670,11 @@ class Health
                         $verdict['level'] = 'error';
                         $verdict['detail'] = self::say('health_block_missing', [(string) ($row['block'] ?? '')]);
                     }
+                    // A grid info a viewer cannot read is a grid it refuses, whatever it answers
+                    if (($verdict['level'] ?? '') === 'ok' && !empty($row['gridInfo']) && ($defect = \W4OS\Engine\Network\GridInfoReader::defect((string) ($result['body'] ?? ''))) !== null) {
+                        $verdict['level'] = 'error';
+                        $verdict['detail'] = self::say('health_grid_info_broken', [$defect]);
+                    }
                     // A redirection that does not lead where it must is wrong
                     if (($verdict['level'] ?? '') === 'ok' && ($row['leadsTo'] ?? '') !== '' && !self::sameAddress((string) ($verdict['location'] ?? ''), $row['leadsTo'])) {
                         $verdict['level'] = 'error';
@@ -686,6 +692,7 @@ class Health
                     'stay' => 0,
                     'leadsTo' => 0,
                     'contains' => 0,
+                    'gridInfo' => 0,
                 ]) +
                     ($address ? $verdict + ['ms' => null] : $verdict);
             }
@@ -739,15 +746,15 @@ class Health
                 $id = (string) array_key_first($waiting);
                 $row = array_shift($waiting);
                 $body = new \ArrayObject(['text' => '']);
-                $handle = self::handle($row, $timeout, isset($row['contains']) ? $body : null);
+                $handle = self::handle($row, $timeout, isset($row['contains']) || !empty($row['gridInfo']) ? $body : null);
                 curl_multi_add_handle($multi, $handle);
-                $running[spl_object_id($handle)] = [$id, $handle, $row['contains'] ?? null, $body];
+                $running[spl_object_id($handle)] = [$id, $handle, $row['contains'] ?? null, $body, !empty($row['gridInfo'])];
             }
             curl_multi_exec($multi, $active);
             $active && curl_multi_select($multi, 0.2);
             // The code of the error of each address is told by the set, not by the handle
             while (($done = curl_multi_info_read($multi)) !== false) {
-                [$id, $handle, $contains, $body] = $running[spl_object_id($done['handle'])];
+                [$id, $handle, $contains, $body, $kept] = $running[spl_object_id($done['handle'])];
                 unset($running[spl_object_id($done['handle'])]);
                 $errno = (int) $done['result'];
                 $results[$id] = [
@@ -760,7 +767,7 @@ class Health
                     // Where it led (redirections followed), and where it sends to (a redirection not followed)
                     'effective' => (string) curl_getinfo($handle, CURLINFO_EFFECTIVE_URL),
                     'redirect' => (string) (curl_getinfo($handle, CURLINFO_REDIRECT_URL) ?: ''),
-                ] + ($contains === null ? [] : ['contains' => str_contains((string) $body['text'], $contains)]);
+                ] + ($contains === null ? [] : ['contains' => str_contains((string) $body['text'], $contains)]) + ($kept ? ['body' => (string) $body['text']] : []);
                 curl_multi_remove_handle($multi, $handle);
             }
         } while ($running !== [] || $waiting !== []);

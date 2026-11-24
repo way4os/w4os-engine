@@ -325,6 +325,26 @@ describe('the elements of get_grid_info', function () {
         },
     );
 
+    test('in Latin-1, as OpenSim 0.9.3 writes an accent, are read as UTF-8, and what a viewer refuses in them is said', function () {
+        $latin1 = "<gridinfo><gridname>Kimb\xE9 R\xE8d, pa moli</gridname></gridinfo>";
+
+        expect(GridInfoReader::parse($latin1))->toBe(['gridname' => 'Kimbé Rèd, pa moli'])
+            ->and(GridInfoReader::defect($latin1))->toBe('not UTF-8: byte 0xE9 at 24, after "dinfo><gridname>Kimb"')
+            ->and(GridInfoReader::defect('<gridinfo><gridname>Kimbé Rèd</gridname></gridinfo>'))->toBeNull()
+            ->and(GridInfoReader::defect('<gridinfo><gridname>Broken</gridinfo>'))->toStartWith('not well-formed XML: ');
+    });
+
+    test('of a running Robust that a viewer would refuse are said by the status', function () {
+        $machine = new Machine();
+        $machine->processes->add('dotnet Robust.dll -inifile=' . $machine->etc . '/robust.d/demo.ini');
+        $port = (int) \W4OS\Engine\OpenSim::instance($machine->environment, 'demo')?->publicPort();
+        $status = \W4OS\Engine\OpenSim::status($machine->environment);
+        $answers = static fn(string $body): \Closure => static fn(string $url): ?string => $url === "http://127.0.0.1:$port/get_grid_info" ? $body : null;
+
+        expect($status->brokenGridInfo($answers("<gridinfo><gridname>Kimb\xE9</gridname></gridinfo>")))->toBe(['demo' => 'not UTF-8: byte 0xE9 at 24, after "dinfo><gridname>Kimb"'])
+            ->and($status->brokenGridInfo($answers('<gridinfo><gridname>Kimbé</gridname></gridinfo>')))->toBe([]);
+    });
+
     test('are all the keys of [GridInfoService] when the grid does not answer, empty values included', function () {
         $machine = new Machine();
         $machine->write(

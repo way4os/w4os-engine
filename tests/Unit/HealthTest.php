@@ -7,7 +7,7 @@
 use W4OS\Engine\Config\GridConfig;
 use W4OS\Engine\Health\Health;
 
-/** A web server that answers the code its path says: /200, /404, /500, /redirect (to /200), /redirect404 (to /404); /needs-data refuses (400) what has no data; /block/NAME shows the block NAME of the helpers, far in the page. */
+/** A web server that answers the code its path says: /200, /404, /500, /redirect (to /200), /redirect404 (to /404); /needs-data refuses (400) what has no data; /block/NAME shows the block NAME of the helpers, far in the page; /latin1/get_grid_info a grid info in Latin-1, as OpenSim 0.9.3 writes an accent. */
 function code_server(int $workers = 1): array
 {
     $dir = sys_get_temp_dir() . '/code-server-' . bin2hex(random_bytes(4));
@@ -22,6 +22,7 @@ function code_server(int $workers = 1): array
         if ($path === "profile-chain") { header("Location: /to-register", true, 301); return; }
         if (str_starts_with($path, "chain-away")) { header("Location: /elsewhere", true, 301); return; }
         if ($path === "redirect404") { header("Location: /404", true, 308); return; }
+        if ($path === "latin1/get_grid_info") { header("Content-Type: application/xml"); echo "<gridinfo><gridname>Kimb\xE9 R\xE8d</gridname><login>http://play.example.org:8002/</login></gridinfo>"; return; }
         if ($path === "get_grid_info") { header("Content-Type: text/xml"); echo "<gridinfo><gridname>Alpha</gridname><login>http://play.example.org:8002/</login></gridinfo>"; return; }
         if ($path === "busy") { $f = __DIR__ . "/busy"; $h = fopen($f, "c+"); flock($h, LOCK_EX); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h) ?: "0 0") + [0, 0]); $now++; $max = max($max, $now); ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); usleep(300000); flock($h, LOCK_EX); rewind($h); [$now, $max] = array_map("intval", explode(" ", stream_get_contents($h)) + [0, 0]); $now--; ftruncate($h, 0); rewind($h); fwrite($h, "$now $max"); flock($h, LOCK_UN); return; }
         if (preg_match("#^slow/(\\d+)$#", $path, $m)) { usleep((int) $m[1] * 1000); http_response_code(200); return; }
@@ -86,6 +87,17 @@ describe('An address', function () {
                 ->toBe(['level' => 'none', 'status' => '', 'ms' => null]);
         },
     );
+
+    test('of the login of a grid is its grid info, refused when it is not well-formed UTF-8 XML, as a viewer refuses it', function () {
+        [$process, $port] = code_server();
+        $login = static fn(string $path): array => Health::grid(['live' => [], 'login' => "http://127.0.0.1:$port/$path"])[0]['rows'][0];
+        $groups = Health::answers([['file' => 'get_grid_info', 'title' => '', 'rows' => [$login('')]], ['file' => 'get_grid_info', 'title' => '', 'rows' => [$login('latin1/')]]]);
+        proc_terminate($process);
+
+        expect([$groups[0]['rows'][0]['level'], $groups[1]['rows'][0]['level']])->toBe(['ok', 'error'])
+            ->and($groups[1]['rows'][0]['detail'] ?? '')->toContain('not well-formed UTF-8 XML', 'not UTF-8: byte 0xE9 at 24, after "dinfo><gridname>Kimb"')
+            ->and($groups[1]['rows'][0])->not->toHaveKey('gridInfo');
+    });
 
     test('is asked, all of them, and the answer is the one of each, where the redirections lead', function () {
         [$process, $port] = code_server();

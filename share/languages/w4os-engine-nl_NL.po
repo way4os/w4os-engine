@@ -3384,6 +3384,11 @@ msgid "runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing 
 msgstr "draait op .NET %s, zijn core is gemaakt voor .NET %s: zijn asset-cache bewaart niets (grijze huid); installeer .NET %s en herstart het"
 
 #, php-format
+msgctxt "health_grid_info_broken"
+msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s"
+msgstr "de grid-info is geen goed gevormde UTF-8-XML, de viewers weigeren het grid: %s"
+
+#, php-format
 msgctxt "health_matches_grid_info"
 msgid "matches %s of get_grid_info"
 msgstr "komt overeen met %s van get_grid_info"

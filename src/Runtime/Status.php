@@ -88,6 +88,26 @@ final class Status
     }
 
     /**
+     * The Robusts that run and answer `/get_grid_info` with what a viewer refuses: not UTF-8, or not well-formed XML
+     * (GridInfoReader::defect()).
+     *
+     * @param ?\Closure(string):?string $get reads an address (Http::get() without it)
+     * @return array<string,string> name => what is wrong
+     */
+    public function brokenGridInfo(?\Closure $get = null): array
+    {
+        $get ??= static fn(string $url): ?string => \W4OS\Engine\Network\Http::get($url, 2);
+        $broken = [];
+        foreach ($this->instances as $instance) {
+            $port = $instance instanceof \W4OS\Engine\Controllers\RobustController ? (int) $instance->publicPort() : 0;
+            $body = $port > 0 && $instance->process() !== null ? $get("http://127.0.0.1:$port/get_grid_info") : null;
+            is_string($body) && $body !== '' && ($defect = \W4OS\Engine\Network\GridInfoReader::defect($body)) !== null && ($broken[$instance->name()] = $defect);
+        }
+
+        return $broken;
+    }
+
+    /**
      * The instances that run on a .NET major other than the one their core targets (RuntimeProbe::wrongRuntime()).
      *
      * @return array<string,array{running:int,target:int}> name => the major it runs on, the one it targets

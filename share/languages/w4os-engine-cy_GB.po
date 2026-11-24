@@ -3383,6 +3383,11 @@ msgid "runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing 
 msgstr "yn rhedeg ar .NET %s, mae ei graidd yn targedu .NET %s: nid yw ei storfa asedau yn cadw dim (crwyn llwyd); gosod .NET %s a'i ailgychwyn"
 
 #, php-format
+msgctxt "health_grid_info_broken"
+msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s"
+msgstr "nid yw gwybodaeth y grid yn XML UTF-8 wedi'i ffurfio'n dda, mae'r viewers yn gwrthod y grid: %s"
+
+#, php-format
 msgctxt "health_matches_grid_info"
 msgid "matches %s of get_grid_info"
 msgstr "yn cyfateb i %s get_grid_info"

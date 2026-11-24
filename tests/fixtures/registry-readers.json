@@ -877,6 +877,7 @@
                         "url": "http://localhost:8002/",
                         "method": "get",
                         "probe": "http://localhost:8002/get_grid_info",
+                        "gridInfo": true,
                         "context": {
                             "instance": "grid_info",
                             "file": "get_grid_info",
@@ -1402,6 +1403,7 @@
                         "url": "http://localhost:8002/",
                         "method": "get",
                         "probe": "http://localhost:8002/get_grid_info",
+                        "gridInfo": true,
                         "context": {
                             "instance": "grid_info",
                             "file": "get_grid_info",
@@ -1891,6 +1893,7 @@
                         "url": "http://localhost:8002/",
                         "method": "get",
                         "probe": "http://localhost:8002/get_grid_info",
+                        "gridInfo": true,
                         "context": {
                             "instance": "grid_info",
                             "file": "get_grid_info",
@@ -1983,6 +1986,7 @@
                         "url": "http://localhost:8002/",
                         "method": "get",
                         "probe": "http://localhost:8002/get_grid_info",
+                        "gridInfo": true,
                         "context": {
                             "instance": "grid_info",
                             "file": "get_grid_info",
