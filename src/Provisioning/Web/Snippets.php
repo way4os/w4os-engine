@@ -123,7 +123,9 @@ final class Snippets
     }
 
     /**
-     * Render the web-server include for a grid from its shipped preset.
+     * Render the web-server include for a grid from its shipped preset. Under a prefix (`/opensim`: the block of the site of the grid
+     * has that path, beside the one of its host), the paths of the helpers are the ones under it, each by its segment after it
+     * (`/opensim/economy`), never the prefix itself; the others stay with the block of the host.
      *
      * @throws \InvalidArgumentException when the server has no preset
      * @throws \RuntimeException when the preset file cannot be read
@@ -135,8 +137,10 @@ final class Snippets
         string $docroot = '',
         string $socket = '',
         string $webUrl = '',
+        string $prefix = '',
     ): string {
         $server = strtolower(trim($server));
+        $prefix = trim($prefix, '/');
         if (!in_array($server, self::SERVERS, true)) {
             throw new \InvalidArgumentException("unknown web server '$server'");
         }
@@ -156,17 +160,27 @@ final class Snippets
         $services = HelpersConfig::services($gridDirectory);
         $segments = [];
         foreach ([...array_keys(Services::SCRIPTS), ...array_keys(Services::PAGES)] as $page) {
-            $segment = explode('/', trim($services->path($page), '/'))[0];
+            $path = trim($services->path($page), '/');
+            if ($prefix !== '') {
+                // Under the prefix only, by the segment that follows it
+                if (!str_starts_with("$path/", "$prefix/")) {
+                    continue;
+                }
+                $path = ltrim(substr($path, strlen($prefix)), '/');
+            }
+            $segment = explode('/', $path)[0];
             $segment === '' || ($segments[$segment] = true);
         }
-        $segments['health'] = true;
+        $prefix === '' && ($segments['health'] = true);
         $variables = self::siteVariables($webUrl) + [
             'grid_nick' => $nick,
             'grid_dir' => rtrim($gridDirectory, '/'),
             'docroot' => $docroot !== '' ? $docroot : self::helpersRoot(),
             'php_socket' => $socket !== '' ? $socket : '/run/php/php-fpm.sock',
-            'web_globs' => implode(' ', array_map(static fn(string $path): string => "/$path*", array_keys($segments))),
-            'web_regex' => implode('|', array_map('preg_quote', array_keys($segments))),
+            'web_globs' => $prefix === ''
+                ? implode(' ', array_map(static fn(string $path): string => "/$path*", array_keys($segments)))
+                : implode(' ', array_merge(...array_map(static fn(string $path): array => ["/$prefix/$path", "/$prefix/$path/*"], array_keys($segments)))),
+            'web_regex' => implode('|', array_map(static fn(string $path): string => preg_quote($prefix === '' ? $path : "$prefix/$path"), array_keys($segments))),
         ];
 
         return (string) preg_replace_callback(

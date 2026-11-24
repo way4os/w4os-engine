@@ -159,6 +159,24 @@ describe('Web server snippets', function () {
             ->not->toContain('{{');
     });
 
+    test('under a prefix, takes the paths of the helpers under it alone, each by its own segment, never the whole prefix', function () {
+        $dir = test_tmp() . '/web-snippet-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents("$dir/Robust.ini", "[Const]\nWebURL = \"https://grid.example.test\"\n");
+        // The helpers of the grid under the path of its mini site
+        file_put_contents("$dir/Helpers.ini", "[Helpers]\nHelpersURL = \"https://grid.example.test/opensim/economy\"\n");
+
+        $root = Snippets::render('caddy', 'test_grid', $dir);
+        $prefixed = Snippets::render('caddy', 'test_grid', $dir, prefix: '/opensim');
+        $matcher = static fn(string $snippet): string => (string) preg_replace('/^.*@opensim_helpers path ([^\n]*)\n.*$/s', '$1', $snippet);
+
+        // At the root, by the first segment of their paths
+        expect($matcher($root))->toContain('/opensim*')
+            // Under the prefix, by the one after it: the mini site under /opensim is not theirs, nor what stays at the root (/health)
+            ->and($matcher($prefixed))->toBe('/opensim/economy /opensim/economy/*')
+            ->and(Snippets::render('caddy', 'test_grid', $dir, prefix: 'opensim/'))->toBe($prefixed);
+    });
+
     test('rejects an unknown web server', function () {
         expect(fn() => Snippets::render('unknown', 'test_grid', '/tmp/grid'))
             ->toThrow(InvalidArgumentException::class);
