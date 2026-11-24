@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (grid info): its values are ASCII, OpenSim sends no other: setup and settings refuse accents, an import transliterates
 - new (health): the grid info at the login is checked as a viewer reads it, well-formed UTF-8 XML; status too
 - fix (grid info): an answer in Latin-1 (OpenSim 0.9.3 with an accent) is read as UTF-8, never passed on broken
 - fix (runtime): a .NET core runs on the major it targets, never rolled forward (.NET 9+ broke its asset cache)

@@ -877,7 +877,7 @@ final class Catalog
         'health_options_missing' => 'missing: %s',
         'health_module_unconfigured' => '%s installed but not configured, off: %s to set',
         'health_runtime_wrong' => 'runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing (grey skins); install .NET %s and restart it',
-        'health_grid_info_broken' => 'the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s',
+        'health_grid_info_broken' => 'the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s. Its values must be ASCII (opensim settings GRID grid --set gridName=...)',
         'health_matches_grid_info' => 'matches %s of get_grid_info',
         'health_differs_grid_info' => 'differs from %s of get_grid_info',
         'health_web_search' => 'Web search',

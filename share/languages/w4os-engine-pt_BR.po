@@ -3362,8 +3362,8 @@ msgstr "roda no .NET %s, seu core visa o .NET %s: seu cache de assets não guard
 
 #, php-format
 msgctxt "health_grid_info_broken"
-msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s"
-msgstr "as informações do grid não são XML UTF-8 bem formado, os viewers recusam o grid: %s"
+msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s. Its values must be ASCII (opensim settings GRID grid --set gridName=...)"
+msgstr "as informações do grid não são XML UTF-8 bem formado, os viewers recusam o grid: %s. Seus valores devem ser ASCII (opensim settings GRID grid --set gridName=...)"
 
 #, php-format
 msgctxt "health_matches_grid_info"

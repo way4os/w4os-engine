@@ -64,7 +64,8 @@ final class RobustImporter
         }
 
         $plan = new GridPlan();
-        $plan->gridName = $name !== '' ? $name : Slug::nameOf($nick);
+        // What its grid info sends: ASCII only (GridInfoText)
+        $plan->gridName = $name !== '' ? \W4OS\Engine\Config\GridInfoText::ascii(trim((string) $name, " \t\"")) : Slug::nameOf($nick);
         $plan->gridNick = $nick;
         $plan->gridSlug = Slug::slug($plan->gridName);
         $plan->enableHypergrid = str_contains(basename($path), '.HG.') || isset($ini['Hypergrid']['GatekeeperURI']);

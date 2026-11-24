@@ -126,3 +126,17 @@ describe('The rule of the avatar models', function () {
             ->toBe([100, 200]);
     });
 });
+
+describe('The grid info of a grid', function () {
+    test('refuses what OpenSim cannot send in it, its ASCII form proposed', function () {
+        $machine = new \W4OS\Engine\Testing\Machine();
+        $router = new \W4OS\Engine\Api\Router(new \W4OS\Engine\Api\Api($machine->environment));
+        $patch = static fn(string $name) => $router->patch('/grids/demo/settings/grid', ['data' => ['type' => 'settings', 'id' => 'grid', 'attributes' => ['gridName' => $name]]]);
+
+        $refused = $patch('Kimbé Rèd');
+
+        expect($refused->status)->toBe(400)
+            ->and($refused->document['errors'][0]['detail'] ?? $refused->document['detail'] ?? '')->toContain("'Kimbé Rèd' has characters OpenSim's grid info cannot send non-ASCII characters: 'Kimbe Red' instead")
+            ->and($patch('Kimbe Red')->status)->toBe(200);
+    });
+});

@@ -6,6 +6,7 @@ namespace W4OS\Engine\Provisioning\Import;
 
 use W4OS\Engine\Archives\SourceBackup;
 use W4OS\Engine\Config\ConfigReader;
+use W4OS\Engine\Config\GridInfoText;
 use W4OS\Engine\Config\GridFileService;
 use W4OS\Engine\Exceptions\InvalidValue;
 use W4OS\Engine\Models\Grid;
@@ -34,6 +35,7 @@ final class GridImport
      * @param list<array{section:string,key:string,value:string,unknown:bool,path:bool}> $customizations
      * @param list<array<string,mixed>> $dropped
      * @param list<string> $unreadable
+     * @param list<string> $gridInfo the values of its grid info made ASCII, said (GridInfoText::said())
      */
     private function __construct(
         public readonly GridPlan $plan,
@@ -45,6 +47,7 @@ final class GridImport
         public readonly ?SimulatorImports $simulators,
         public readonly DataMoves $data = new DataMoves([]),
         public readonly array $constants = [],
+        public readonly array $gridInfo = [],
     ) {}
 
     /**
@@ -111,6 +114,24 @@ final class GridImport
         }
         $dropped = array_values($dropped);
 
+        // Its grid info sends ASCII only: what the new config keeps of it is transliterated, said
+        $gridInfo = [];
+        $original = trim((string) (ConfigReader::expand($raw)['GridInfoService']['gridname'] ?? ''), " \t\"");
+        $original !== '' && $original !== $plan->gridName && $gridInfo[] = GridInfoText::said(['section' => 'GridInfoService', 'key' => 'gridname', 'from' => $original, 'to' => $plan->gridName]);
+        $referred = [];
+        foreach ([...array_values($generated['GridInfoService'] ?? []), ...array_column(array_filter($customizations, static fn(array $s): bool => $s['section'] === 'GridInfoService'), 'value')] as $value) {
+            preg_match_all('/\$\{Const\|([^}]+)\}/i', (string) $value, $m);
+            array_push($referred, ...array_map('strtolower', $m[1]));
+        }
+        foreach ($customizations as $i => $setting) {
+            $sent = $setting['section'] === 'GridInfoService' || ($setting['section'] === 'Const' && in_array(strtolower($setting['key']), $referred, true));
+            if ($sent && !GridInfoText::sendable($setting['value'])) {
+                $customizations[$i]['value'] = GridInfoText::ascii($setting['value']);
+                $said = GridInfoText::said(['section' => $setting['section'], 'key' => $setting['key'], 'from' => $setting['value'], 'to' => $customizations[$i]['value']]);
+                in_array($said, $gridInfo, true) || $gridInfo[] = $said;
+            }
+        }
+
         // The way back: its database and its files, as they are, before anything is written (the first start may upgrade the tables)
         $backup = SourceBackup::prepare($environment, $file, $plan->gridNick, 'robust');
         $imports = $simulators === [] ? null : SimulatorImports::prepare($environment, $simulators, $plan->gridNick, Grid::planned($environment, $plan));
@@ -128,7 +149,17 @@ final class GridImport
         $bin = trim((string) ($expanded['Launch']['BinDir'] ?? ''), " \t\"");
         $data = DataMoves::plan($dropped, ConfigReader::expand($written), $names, $copyData, str_starts_with($bin, '/') ? $bin : dirname($file), $required);
 
-        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $raw['Const'] ?? []);
+        // The constants of the old config its grid info refers to, written with the kept settings: ASCII too
+        $constants = $raw['Const'] ?? [];
+        foreach ($constants as $key => $value) {
+            if (in_array(strtolower((string) $key), $referred, true) && !GridInfoText::sendable((string) $value)) {
+                $constants[$key] = GridInfoText::ascii((string) $value);
+                $said = GridInfoText::said(['section' => 'Const', 'key' => (string) $key, 'from' => (string) $value, 'to' => $constants[$key]]);
+                in_array($said, $gridInfo, true) || $gridInfo[] = $said;
+            }
+        }
+
+        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $constants, $gridInfo);
     }
 
     /**
@@ -151,6 +182,8 @@ final class GridImport
             'database' => ['host' => $plan->dbHost, 'name' => $plan->dbName, 'user' => $plan->dbUser, 'kept' => true],
             'ports' => ['public' => $plan->publicPort, 'private' => $plan->privatePort, 'console' => $plan->consoleMode === 'rest' ? $plan->consolePort : null],
             'settings' => array_map(SimulatorImport::masked(...), $this->customizations),
+            // The values of its grid info made ASCII: OpenSim's grid info cannot send other characters
+            'gridInfo' => $this->gridInfo,
             'dropped' => array_map(SimulatorImport::masked(...), $this->dropped),
             'report' => $this->reportPath(),
             'backup' => $this->backup?->document(),
@@ -340,6 +373,7 @@ final class GridImport
             "Database: {$plan->dbName} @ {$plan->dbHost} (user {$plan->dbUser}), kept as it is",
             "Ports: public {$plan->publicPort}, private {$plan->privatePort}" . ($plan->consoleMode === 'rest' ? ", console {$plan->consolePort}" : ''),
             '',
+            ...($this->gridInfo === [] ? [] : ['Grid info made ASCII:', ...array_map(static fn(string $said): string => "  $said", $this->gridInfo), '']),
             count($this->customizations) . ' setting(s) of the original kept in the new config:',
         ];
         foreach ($this->customizations as $setting) {

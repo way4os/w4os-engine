@@ -145,7 +145,7 @@ describe('Grid', function () {
             ->toMatchArray([
                 'hostname' => 'invalid (host name)',
                 'web_url' => 'invalid (https://host)',
-                'name' => 'transliterated',
+                'name' => 'transliterated: OpenSim\'s grid info cannot send non-ASCII characters',
             ])
             ->and($fields->corrections(['name' => 'Café']))
             ->toBe(['name' => 'Cafe']);

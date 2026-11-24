@@ -1264,7 +1264,8 @@ final class Api
     /**
      * An existing install registered in place (InPlaceGrids): its section of the config of the suite planned, written with `mode`
      * apply, or removed (`forget`), and the accounts of the install taken by the suite (its owner as SystemUser, the account its
-     * site is served as as WebUser and WebGroup); the install is never changed.
+     * site is served as as WebUser and WebGroup); of the install, only the values of its grid info that are not ASCII are changed
+     * (GridInfoText), nothing else.
      *
      * @param list<array<string,mixed>> $simulators
      */
@@ -1279,6 +1280,8 @@ final class Api
         ($wrong = Grid::validateNick((string) $nick)) === null || throw InvalidValue::because('invalid-request', "the nick '$nick' is $wrong: give one with --nick (nick)");
         $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators, $core, (string) $nick);
         $known = \W4OS\Engine\Config\InPlaceGrids::section($conf, (string) $nick);
+        // Its grid info sends ASCII only: the values that are not are transliterated where they are written, nothing else changed
+        $gridInfo = $forget ? [] : \W4OS\Engine\Config\GridInfoText::changes(\W4OS\Engine\Config\ConfigReader::files($file, [], true));
         // Its instances run as the owner of its files, its site served as it is: the suite takes their accounts, not its defaults
         [$owner, $accounts] = $forget ? ['', []] : $this->installAccounts($conf, $file);
         if ($forget) {
@@ -1291,6 +1294,7 @@ final class Api
                 throw InvalidValue::because('invalid-request', "the grid $nick is registered in place from another Robust config already ({$known['RobustIni']})");
             $mode === 'apply' && \W4OS\Engine\Config\InPlaceGrids::set($conf, (string) $nick, $section);
             $mode === 'apply' && \W4OS\Engine\Provisioning\InstallAccount::adopt($conf, $accounts);
+            $mode === 'apply' && \W4OS\Engine\Config\GridInfoText::apply($gridInfo);
         }
 
         return Response::document([
@@ -1301,6 +1305,8 @@ final class Api
                     'kind' => 'robust', 'mode' => $mode, 'inPlace' => true, 'forget' => $forget, 'applied' => $mode === 'apply',
                     'grid' => (string) $nick, 'config' => $conf, 'section' => $forget ? $known : $section,
                     'accounts' => array_map(static fn(array $change): array => ['from' => $change[0], 'to' => $change[1]], $accounts),
+                    // The values of its grid info made ASCII in the files of the install: OpenSim's grid info cannot send other characters
+                    'gridInfo' => array_map(static fn(array $change): string => $change['file'] . ': ' . \W4OS\Engine\Config\GridInfoText::said($change), $gridInfo),
                     'reminders' => $forget ? [] : [
                         ...$this->accountNotice($conf, $accounts),
                         ...\W4OS\Engine\Config\InPlaceGrids::unwritable($this->environment, $section, $owner),

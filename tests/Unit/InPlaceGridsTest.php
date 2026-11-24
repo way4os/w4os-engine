@@ -160,6 +160,24 @@ describe('A grid of an existing install registered in place', function () {
         return [$router, $old];
     };
 
+    test('makes its grid info ASCII where it is written, said in the plan, nothing else of the install changed', function () use ($way) {
+        [$router, $old] = $way();
+        $ini = "$old/etc/OldGrid.ini";
+        file_put_contents($ini, str_replace('gridname = "Old Grid"', 'gridname = "${Const|GridName}"', file_get_contents($ini)) . "[Const]\n    GridName = \"Kimbé Rèd, pa moli\"\n    Owner = \"Noël\"\n");
+        $before = file_get_contents($ini);
+        $ask = static fn(string $mode) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => ['kind' => 'robust', 'file' => $ini, 'inPlace' => true, 'mode' => $mode]]])->document['data']['attributes'];
+
+        $planned = $ask('plan');
+        $unchanged = file_get_contents($ini);
+        $applied = $ask('apply');
+
+        expect($planned['gridInfo'])->toBe(["$ini: [Const] GridName 'Kimbé Rèd, pa moli' -> 'Kimbe Red, pa moli': OpenSim's grid info cannot send non-ASCII characters"])
+            ->and($unchanged)->toBe($before)
+            ->and($applied['gridInfo'])->toBe($planned['gridInfo'])
+            // That line only: the constant its grid info does not send keeps its accent
+            ->and(file_get_contents($ini))->toBe(str_replace('GridName = "Kimbé Rèd, pa moli"', 'GridName = "Kimbe Red, pa moli"', $before));
+    });
+
     test('takes the nick of its config made a nick of this install, and the core its config runs from, or the one asked', function () use ($way) {
         [$router, $old] = $way();
         $ask = static fn(array $more) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => $more + ['kind' => 'robust', 'file' => "$old/etc/OldGrid.ini", 'inPlace' => true]]]);

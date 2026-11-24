@@ -3385,8 +3385,8 @@ msgstr "draait op .NET %s, zijn core is gemaakt voor .NET %s: zijn asset-cache b
 
 #, php-format
 msgctxt "health_grid_info_broken"
-msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s"
-msgstr "de grid-info is geen goed gevormde UTF-8-XML, de viewers weigeren het grid: %s"
+msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s. Its values must be ASCII (opensim settings GRID grid --set gridName=...)"
+msgstr "de grid-info is geen goed gevormde UTF-8-XML, de viewers weigeren het grid: %s. De waarden moeten ASCII zijn (opensim settings GRID grid --set gridName=...)"
 
 #, php-format
 msgctxt "health_matches_grid_info"

@@ -115,6 +115,19 @@ describe('The import of a grid', function () {
             ->and($inPlace->problems())->toBe([]);
     });
 
+    test('makes the grid info it keeps ASCII, said in its plan and its report: OpenSim cannot send other characters', function () {
+        [$machine, $robust] = old_robust_install();
+        file_put_contents($robust, str_replace('gridname = "Old Grid"', 'gridname = "Kimbé Rèd, pa moli"', file_get_contents($robust)));
+        $import = GridImport::prepare($machine->environment, $robust, 'kimbered');
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $written = ConfigReader::file($import->plan->robustIni());
+
+        expect($import->plan->gridName)->toBe('Kimbe Red, pa moli')
+            ->and($import->document()['gridInfo'])->toBe(["[GridInfoService] gridname 'Kimbé Rèd, pa moli' -> 'Kimbe Red, pa moli': OpenSim's grid info cannot send non-ASCII characters"])
+            ->and(trim($written['GridInfoService']['gridname'] ?? '', '"'))->toBe('Kimbe Red, pa moli')
+            ->and(file_get_contents($import->document()['report']))->toContain('Grid info made ASCII:');
+    });
+
     test('defines in its config the constants of the old one its kept settings use, and refuses what none defines', function () {
         [$machine, $robust] = old_robust_install();
         $text = str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://old.example.org\"\n    PrivURL = \${Const|BaseURL}\n    WebURL = \"http://site.example.org\"\n", file_get_contents($robust));

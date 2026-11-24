@@ -92,7 +92,7 @@ final class Status
      * (GridInfoReader::defect()).
      *
      * @param ?\Closure(string):?string $get reads an address (Http::get() without it)
-     * @return array<string,string> name => what is wrong
+     * @return array<string,array{defect:string,gridName:string}> name => what is wrong, and the name of the grid it can send
      */
     public function brokenGridInfo(?\Closure $get = null): array
     {
@@ -101,7 +101,10 @@ final class Status
         foreach ($this->instances as $instance) {
             $port = $instance instanceof \W4OS\Engine\Controllers\RobustController ? (int) $instance->publicPort() : 0;
             $body = $port > 0 && $instance->process() !== null ? $get("http://127.0.0.1:$port/get_grid_info") : null;
-            is_string($body) && $body !== '' && ($defect = \W4OS\Engine\Network\GridInfoReader::defect($body)) !== null && ($broken[$instance->name()] = $defect);
+            if (is_string($body) && $body !== '' && ($defect = \W4OS\Engine\Network\GridInfoReader::defect($body)) !== null) {
+                $name = \W4OS\Engine\Network\GridInfoReader::parse($body)['gridname'] ?? (string) $instance->gridName();
+                $broken[$instance->name()] = ['defect' => $defect, 'gridName' => \W4OS\Engine\Config\GridInfoText::ascii($name)];
+            }
         }
 
         return $broken;

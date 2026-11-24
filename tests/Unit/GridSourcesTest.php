@@ -341,7 +341,7 @@ describe('the elements of get_grid_info', function () {
         $status = \W4OS\Engine\OpenSim::status($machine->environment);
         $answers = static fn(string $body): \Closure => static fn(string $url): ?string => $url === "http://127.0.0.1:$port/get_grid_info" ? $body : null;
 
-        expect($status->brokenGridInfo($answers("<gridinfo><gridname>Kimb\xE9</gridname></gridinfo>")))->toBe(['demo' => 'not UTF-8: byte 0xE9 at 24, after "dinfo><gridname>Kimb"'])
+        expect($status->brokenGridInfo($answers("<gridinfo><gridname>Kimb\xE9</gridname></gridinfo>")))->toBe(['demo' => ['defect' => 'not UTF-8: byte 0xE9 at 24, after "dinfo><gridname>Kimb"', 'gridName' => 'Kimbe']])
             ->and($status->brokenGridInfo($answers('<gridinfo><gridname>Kimbé</gridname></gridinfo>')))->toBe([]);
     });
 

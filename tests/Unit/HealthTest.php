@@ -95,7 +95,7 @@ describe('An address', function () {
         proc_terminate($process);
 
         expect([$groups[0]['rows'][0]['level'], $groups[1]['rows'][0]['level']])->toBe(['ok', 'error'])
-            ->and($groups[1]['rows'][0]['detail'] ?? '')->toContain('not well-formed UTF-8 XML', 'not UTF-8: byte 0xE9 at 24, after "dinfo><gridname>Kimb"')
+            ->and($groups[1]['rows'][0]['detail'] ?? '')->toContain('not well-formed UTF-8 XML', 'not UTF-8: byte 0xE9 at 24, after "dinfo><gridname>Kimb"', 'must be ASCII (opensim settings GRID grid --set gridName=')
             ->and($groups[1]['rows'][0])->not->toHaveKey('gridInfo');
     });
 

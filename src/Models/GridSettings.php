@@ -1077,6 +1077,9 @@ final class GridSettings
             return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
         }
         $value = trim((string) (is_scalar($value) ? $value : ''));
+        // What the grid info sends is ASCII only: refused otherwise, its ASCII form proposed
+        ($entry['section'] ?? '') === 'GridInfoService' && !\W4OS\Engine\Config\GridInfoText::sendable($value) &&
+            $refuse("'$value' has characters " . \W4OS\Engine\Config\GridInfoText::WHY . ": '" . \W4OS\Engine\Config\GridInfoText::ascii($value) . "' instead");
         if ($value !== '') {
             match ($entry['type']) {
                 'url' => preg_match('#^https?://[^\s"<>/]+(/[^\s"<>]*)?$#i', $value) === 1 || $refuse("'$value' is not an address (https://...)"),

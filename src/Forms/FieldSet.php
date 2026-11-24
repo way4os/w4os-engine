@@ -125,7 +125,7 @@ final class FieldSet
             if (is_callable($callback) && ($message = $callback($checked, $answers, $field)) !== null) {
                 $problems[$name] = (string) $message;
             } elseif (is_string($value) && $checked !== trim($value)) {
-                $problems[$name] = _('transliterated');
+                $problems[$name] = (string) ($field['transliterated'] ?? _('transliterated'));
             }
         }
 

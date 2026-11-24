@@ -462,7 +462,7 @@ describe('quick setup, the names and the host', function () {
         expect($first['corrected'])
             ->toBe(['name' => 'Ile Noel'])
             ->and($first['problems'])
-            ->toBe(['name' => 'transliterated'])
+            ->toBe(['name' => 'transliterated: OpenSim\'s grid info cannot send non-ASCII characters'])
             ->and($first['setup']['simulators'][0]['regions'][0]['name'])
             ->toBe('Ile Noel')
             ->and($bad['problems'])
@@ -521,7 +521,7 @@ describe('quick setup, the alphabets', function () {
         expect($arabic['corrected'])
             ->toBe(['name' => 'mrhbaan', 'avatar' => 'mrhbaan Lapointe'])
             ->and($arabic['problems'])
-            ->toBe(['name' => 'transliterated', 'avatar' => 'transliterated'])
+            ->toBe(['name' => 'transliterated: OpenSim\'s grid info cannot send non-ASCII characters', 'avatar' => 'transliterated'])
             ->and($arabic['setup']['grid']['name'])
             ->toBe('mrhbaan');
     });

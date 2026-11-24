@@ -204,6 +204,8 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
                 'label' => _('Grid name'),
                 'callback' => [self::class, 'validateName'],
                 'normalize' => [self::class, 'normalizeName'],
+                // Its grid info sends it, ASCII only (GridInfoText)
+                'transliterated' => _("transliterated: OpenSim's grid info cannot send non-ASCII characters"),
             ],
             [
                 // The nick names the folder, the database and the instances: it is not changed afterwards
