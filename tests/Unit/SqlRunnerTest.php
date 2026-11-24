@@ -129,13 +129,13 @@ describe('an error', function () {
 describe('connection of OSPDO', function () {
     test('has the DSN of its driver, the port apart from the host', function () {
         expect(OSPDO::dsn('mysql', 'db.example.org:3307', 'grid'))
-            ->toBe('mysql:host=db.example.org;port=3307;dbname=grid')
+            ->toBe('mysql:host=db.example.org;port=3307;dbname=grid;charset=utf8mb4')
             ->and(OSPDO::dsn('mysql', 'localhost'))
-            ->toBe('mysql:host=localhost')
+            ->toBe('mysql:host=localhost;charset=utf8mb4')
             ->and(OSPDO::dsn('mysql', '::1', 'grid'))
-            ->toBe('mysql:host=::1;dbname=grid')
+            ->toBe('mysql:host=::1;dbname=grid;charset=utf8mb4')
             ->and(OSPDO::dsn('mysql', 'localhost', null, '/run/mysqld/mysqld.sock'))
-            ->toBe('mysql:unix_socket=/run/mysqld/mysqld.sock')
+            ->toBe('mysql:unix_socket=/run/mysqld/mysqld.sock;charset=utf8mb4')
             ->and(OSPDO::dsn('sqlite', '', ':memory:'))
             ->toBe('sqlite::memory:')
             ->and(OSPDO::connectionstring_to_array(

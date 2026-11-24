@@ -1761,7 +1761,8 @@ final class Api
         }
         $key = (string) Connections::key($config, Database::Search);
         if (!isset(self::$prepared[$key])) {
-            SearchTables::ensure($db);
+            // Never the search another install keeps (MaintainSearch = false): it is read as it is
+            \W4OS\Engine\Services\SearchTasks::maintains($config) && SearchTables::ensure($db);
             self::$prepared[$key] = true;
         }
 

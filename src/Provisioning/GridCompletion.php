@@ -97,7 +97,8 @@ final class GridCompletion
         try {
             $config = Grid::at($environment, $dir)->config();
             $db = $config === null ? null : \W4OS\Engine\Data\Connections::pdo($config, \W4OS\Engine\Data\Database::Search);
-            $added = $db !== null && $db->connected ? \W4OS\Engine\Services\SearchTables::upgrade($db) : [];
+            // Never the search another install keeps (MaintainSearch = false)
+            $added = $db !== null && $db->connected && \W4OS\Engine\Services\SearchTasks::maintains($config) ? \W4OS\Engine\Services\SearchTables::upgrade($db) : [];
         } catch (\Throwable) {
             return [];
         }

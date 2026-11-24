@@ -9,7 +9,6 @@ use W4OS\Engine\Hypergrid\Destination;
 use W4OS\Engine\Hypergrid\Gatekeeper;
 use W4OS\Engine\Network\Http;
 use W4OS\Engine\Runtime\ClockInterface;
-use W4OS\Engine\Text\Encoding;
 
 /**
  * Fills the events of the search from a HYPEvents calendar (`events.json` of a 2do directory, or any implementation of it): the
@@ -189,11 +188,12 @@ final class EventsParser
             $position[1] += $located['y'];
         }
         // Its description as the calendar gives it: the links a viewer needs are added to its answer only (SearchQuery::viewerDescription())
-        $description = strip_tags(html_entity_decode(Encoding::latin1Only((string) ($event['description'] ?? ''))));
+        // UTF-8 as the calendar gives it: accents, emojis, full-width signs (the tables are utf8mb4)
+        $description = strip_tags(html_entity_decode((string) ($event['description'] ?? '')));
 
         return [
             'owneruuid' => self::NOBODY,
-            'name' => strip_tags(html_entity_decode(Encoding::latin1Only((string) ($event['title'] ?? '')))),
+            'name' => strip_tags(html_entity_decode((string) ($event['title'] ?? ''))),
             'creatoruuid' => self::NOBODY,
             'category' => self::category($event['categories'] ?? null),
             'description' => $description,

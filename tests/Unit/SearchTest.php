@@ -525,13 +525,36 @@ describe('The events of the search', function () {
         $rows = array_map(static fn(array $r): array => [$r['name'], (int) $r['dateUTC'] - 1_700_000_000, (int) $r['duration']], $db->get_results('SELECT name, dateUTC, duration FROM events ORDER BY dateUTC, name', [], PDO::FETCH_ASSOC));
 
         expect($kept)->toBe(4)
-            // Their names as the table keeps them, Latin-1 (what the viewers show)
+            // Their names as the calendar gives them, UTF-8
             ->and($rows)->toBe([
                 ['DJ Isadora - EARLY MORNING BREAKFAST SHOW', 3600, 240],
-                ['DJ LaRissa?The Night Owls', 3600, 120],
-                ['DJ LaRissa?The Night Owls', 10800, 60],
-                ['DJ LaRissa?The Night Owls', 21600, 60],
+                ['DJ LaRissa＠The Night Owls', 3600, 120],
+                ['DJ LaRissa＠The Night Owls', 10800, 60],
+                ['DJ LaRissa＠The Night Owls', 21600, 60],
             ]);
+    });
+
+    test('keep their text as UTF-8, from the calendar to the answer of the viewers: an emoji, a full-width @, accents', function () {
+        $db = search_database();
+        W4OS\Engine\Services\SearchTables::upgrade($db);
+        $clock = new ClockFake();
+        $clock->now = 1_700_000_000.0;
+        $title = 'Soirée 🎉 DJ LaRissa＠The Night Owls';
+        $calendar = json_encode([['title' => $title, 'description' => 'Café 🌙 & dance', 'start' => gmdate('Y-m-d\TH:i:s\Z', 1_700_003_600), 'end' => gmdate('Y-m-d\TH:i:s\Z', 1_700_007_200), 'categories' => ['Music'], 'hgurl' => 'grid.example.org:8002:Owls']]);
+        $places = [
+            'online' => static fn(string $url): bool => true,
+            'parts' => static fn(string $url): array => ['gatekeeper' => 'http://grid.example.org:8002', 'pos' => ''],
+            'located' => static fn(string $url): array => ['x' => 256000, 'y' => 256000],
+            'link' => static fn(string $url, int $format): string => 'grid.example.org:8002 Owls',
+        ];
+        (new EventsParser($db, 'https://calendar.example.org/events', static fn(string $url): ?string => $calendar, $places, clock: $clock))->parse();
+        $id = (string) $db->get_var('SELECT eventid FROM events');
+        $rpc = new XmlRpc((new SearchQuery($db, 'regionsregister', gk: SEARCH_GK, clock: $clock))->methods());
+        $info = rpc_call($rpc, 'event_info_query', ['eventID' => $id])['data']['data'][0];
+
+        expect($db->get_var('SELECT name FROM events'))->toBe($title)
+            ->and($info['name'])->toBe($title)
+            ->and($info['description'])->toEndWith('Café 🌙 & dance');
     });
 
     test('are left as they are when the calendar does not answer', function () {
@@ -1046,3 +1069,16 @@ describe('The category of a result', function () {
             ->toBe(['web_search_category', 'web_search_category']);
     });
 });
+
+describe('The text of the search', function () {
+    test('is UTF-8 everywhere: utf8mb4 on the connection, the tables made so, the ones of before converted with their keys', function () {
+        $statements = implode("\n", (new ReflectionMethod(W4OS\Engine\Services\SearchTables::class, 'statements'))->invoke(null, 'regionsregister'));
+
+        expect(W4OS\Engine\Data\OSPDO::dsn('mysql', 'db.example.org', 'search'))->toBe('mysql:host=db.example.org;dbname=search;charset=utf8mb4')
+            ->and(W4OS\Engine\Data\OSPDO::dsn('sqlite', '', '/tmp/x.db'))->toBe('sqlite:/tmp/x.db')
+            ->and($statements)->toContain('CHARSET=utf8mb4')->not->toContain('CHARSET=utf8 ')->not->toContain('MyISAM')
+            // A table of before (latin1 or utf8, MyISAM): InnoDB for the length of its keys in utf8mb4, its text converted
+            ->and(W4OS\Engine\Services\SearchTables::conversion('parcels'))->toBe('ALTER TABLE `parcels` ENGINE=InnoDB, CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+    });
+});
+

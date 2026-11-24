@@ -107,7 +107,43 @@ final class SearchTables
             }
         }
 
+        // Their text UTF-8 on 4 bytes: the tables of before converted (MySQL, MariaDB)
+        array_push($added, ...self::utf8mb4($pdo));
+
         return $added;
+    }
+
+    /** The statement that converts a table of before to UTF-8 on 4 bytes, InnoDB for the length of its keys in it. */
+    public static function conversion(string $table): string
+    {
+        return "ALTER TABLE `$table` ENGINE=InnoDB, CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+    }
+
+    /**
+     * Convert to utf8mb4 the tables of the search not in it yet (MySQL, MariaDB): their text converted from what it is kept as.
+     * Only by an install that keeps the search (SearchTasks::maintains(): its callers), never the one of another install.
+     *
+     * @return list<string> the tables converted, `table.utf8mb4`
+     */
+    private static function utf8mb4(OSPDO $pdo): array
+    {
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) !== 'mysql') {
+            return [];
+        }
+        $converted = [];
+        foreach (self::names($pdo) as $table) {
+            try {
+                $collation = (string) $pdo->query('SELECT TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ' . $pdo->quote($table))->fetchColumn();
+                if ($collation !== '' && !str_starts_with($collation, 'utf8mb4')) {
+                    $pdo->exec(self::conversion($table));
+                    $converted[] = "$table.utf8mb4";
+                }
+            } catch (\Throwable $error) {
+                error_log("w4os-engine: the table $table of the search could not be converted to utf8mb4: " . $error->getMessage());
+            }
+        }
+
+        return $converted;
     }
 
     /** Whether a table has a column; null when the table is not there. */
@@ -130,8 +166,9 @@ final class SearchTables
     /** @return list<string> */
     private static function statements(string $regions): array
     {
-        $myisam = 'ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
-        $innodb = 'ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
+        // UTF-8 on 4 bytes (emojis); InnoDB for the length of their keys in it (MyISAM: 1000 bytes, a varchar(255) is 1020)
+        $myisam = 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
+        $innodb = 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
         $null = '00000000-0000-0000-0000-000000000000';
 
         return [
@@ -188,7 +225,7 @@ final class SearchTables
                 `parcelName` varchar(255) DEFAULT NULL,
                 `mature` enum('true','false') NOT NULL DEFAULT 'false',
                 PRIMARY KEY (`eventid`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=1",
             "CREATE TABLE IF NOT EXISTS `hostsregister` (
                 `host` varchar(255) NOT NULL,
                 `port` int(5) NOT NULL,

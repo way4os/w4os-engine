@@ -129,6 +129,8 @@ class OSPDO extends PDO
         if (!empty($name)) {
             $parts[] = 'dbname=' . $name;
         }
+        // Its text as UTF-8 on the way, whatever the server's default: accents, emojis (4 bytes)
+        $driver === 'mysql' && ($parts[] = 'charset=utf8mb4');
 
         return $driver . ':' . implode(';', $parts);
     }
