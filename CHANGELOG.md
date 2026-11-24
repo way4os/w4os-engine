@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (pictures): a card of another grid shows a picture kept here, else the image of its title; the search's own is asked until kept
 - fix (cache): in files when another install keeps the search database (MaintainSearch = false); a store that fails is logged once
 - new (helpers): Grid::brand(), the icon, accent color and font of the pages of the helpers (IconURL, AccentColor, Font, FontURL)
 - fix (pictures): the popular places of other grids get their pictures from their grid; the task runs without MaintainSearch

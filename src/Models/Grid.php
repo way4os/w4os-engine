@@ -812,9 +812,13 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         // The picture another grid gave of its parcel (RemotePictures), else the one of the search
         $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
 
-        return array_map(function (array $place) use ($config, $cache): array {
+        $login = (string) $this->loginUrl();
+
+        return array_map(function (array $place) use ($config, $cache, $login): array {
             $place += $this->card($place['url'], $place['name'], $config);
+            // The picture another grid gave, else the one of the search: shown when this host can show it (RemotePictures::shown())
             $picture = \W4OS\Engine\Services\RemotePictures::lookup($cache, $place['url'], $place['name']) ?? $place['picture'];
+            $picture = \W4OS\Engine\Services\RemotePictures::shown($cache, $login, $place['url'], $picture);
 
             return ['picture' => \W4OS\Engine\Assets\TitleImage::pick($picture, (string) ($place['title'] ?? $place['name']))] + $place;
         }, $places);
@@ -1251,14 +1255,20 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     {
         $config ??= $this->config();
         $guide = $this->guidePictures($config);
-        // What the card of each destination shows: its title, its label, the name of its grid; its picture, else the image of its title
+        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
+        $login = (string) $this->loginUrl();
+        // What the card of each destination shows: its title, its label, the name of its grid; its picture when this host can show it
+        // (RemotePictures::shown()), else the image of its title; a section the first of its destinations that has one
         foreach ($guide as $name => &$section) {
+            $first = null;
             foreach ($section['destinations'] as &$destination) {
                 $destination += $this->card($destination['url'], $destination['name'], $config);
-                $destination['picture'] = \W4OS\Engine\Assets\TitleImage::pick($destination['picture'], (string) ($destination['title'] ?? $destination['name']));
+                $shown = \W4OS\Engine\Services\RemotePictures::shown($cache, $login, $destination['url'], $destination['picture']);
+                $first ??= $shown;
+                $destination['picture'] = \W4OS\Engine\Assets\TitleImage::pick($shown, (string) ($destination['title'] ?? $destination['name']));
             }
             unset($destination);
-            $section['picture'] = \W4OS\Engine\Assets\TitleImage::pick($section['picture'], (string) $name);
+            $section['picture'] = \W4OS\Engine\Assets\TitleImage::pick($first, (string) $name);
         }
         unset($section);
 

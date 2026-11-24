@@ -312,8 +312,10 @@ describe('The pictures of the hypergrid destinations', function () {
             ->toBe('Far World');
     });
 
-    test('are not asked for the places of the grid, nor for the ones the search has a picture of', function () {
+    test('are not asked for the places of the grid, nor for the ones whose picture of the search is kept here', function () {
         $world = remote_grid();
+        // The picture the search names, its grid gave it already
+        RemotePictures::keep($world->cache, REMOTE_HILL, 'JP2-BYTES', 0, 'Hill');
 
         $found = $world->pictures->refresh(['Visit' => ['picture' => null, 'destinations' => [
             ['name' => 'Home', 'url' => 'grid.example.org:8002/Welcome', 'picture' => null],
@@ -450,4 +452,37 @@ describe('The pictures of the guide of a grid', function () {
             // Kept where the pages find it (WebAssets)
             ->and($kept)->not->toBeNull();
     });
+
+    test('of another grid: never a picture this host cannot show, the image of its title then, on a card of the popular places and of the guide', function () {
+        $world = remote_grid();
+        $machine = new Machine();
+        $machine->http['http://far.example.net:8002/assets/' . REMOTE_BEACH] = '<AssetBase><Data>' . base64_encode('JP2-BYTES') . '</Data><ID>' . REMOTE_BEACH . '</ID><Name>Beach</Name><Type>0</Type></AssetBase>';
+        $db = search_database();
+        $db->exec("INSERT INTO regionsregister VALUES ('Far', 'r9', '9', 'http://sim.far.example.net:9000/', 'Bob', 'o', 'http://far.example.net:8002')");
+        // Both parcels have a picture in the search; the grid gives the one of the beach, the hill has none on its land
+        $db->exec("INSERT INTO parcels VALUES ('p9', 'r9', 'Far beach', '10/20/30', '', '', 'true', 'true', 'true', 40, 'info', 'PG', 'http://far.example.net:8002', '" . REMOTE_BEACH . "'), " .
+            "('p8', 'r9', 'Far hill', '128/128/25', '', '', 'true', 'true', 'true', 30, 'info', 'PG', 'http://far.example.net:8002', '" . REMOTE_HILL . "')");
+        $db->exec("INSERT INTO popularplaces VALUES ('p9', 'Far beach', 40, 'info', 0, 'PG', 'http://far.example.net:8002'), ('p8', 'Far hill', 30, 'info', 0, 'PG', 'http://far.example.net:8002')");
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\nGuideSource = \"destinations.txt\"\n");
+        $machine->write($machine->grid . '/destinations.txt', "Visit\nFar beach|far.example.net:8002/Far/10/20/30\nFar hill|far.example.net:8002/Far/128/128/25\n");
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+
+        // Before the task: nothing kept, the images of their titles
+        $before = array_column($grid->popularPlaces(10, hypergrid: true), 'picture', 'name');
+        $grid->refreshGuidePictures();
+        $places = array_column($grid->popularPlaces(10, hypergrid: true), 'picture', 'name');
+        $guide = array_column($grid->guide()['Visit']['destinations'] ?? [], 'picture', 'name');
+        W4OS\Engine\Data\Connections::using(null);
+        $title = static fn(?string $picture): bool => str_starts_with((string) $picture, 'title-');
+
+        expect($title($before['Far beach'] ?? null))->toBeTrue()
+            // Asked though the search had a picture of it: shown once its grid gave it
+            ->and($places['Far beach'] ?? null)->toBe(REMOTE_BEACH)
+            ->and($guide['Far beach'] ?? null)->toBe(REMOTE_BEACH)
+            // Never given: the image of its title, never the asset the search names
+            ->and($title($places['Far hill'] ?? null))->toBeTrue()
+            ->and($title($guide['Far hill'] ?? null))->toBeTrue();
+    });
 });
+

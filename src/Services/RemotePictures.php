@@ -72,6 +72,30 @@ final class RemotePictures
         return $this->missed;
     }
 
+    /**
+     * The picture a page can show of a destination: the one given for a place of this grid (its own assets have it), for a place
+     * of another grid only when its picture is kept here (refresh() asked its grid); null otherwise, the image of its title then.
+     */
+    public static function shown(Cache $cache, string $login, string $url, ?string $picture): ?string
+    {
+        if ($picture === null || self::isLocal(Destination::loginParts($login), Destination::parse($url))) {
+            return $picture;
+        }
+
+        return self::image($cache, $picture) !== null ? $picture : null;
+    }
+
+    /**
+     * Whether a destination is on the grid of a login address (its own places are the search's).
+     *
+     * @param ?array<string,mixed> $own Destination::loginParts()
+     * @param array<string,mixed> $at Destination::parse()
+     */
+    private static function isLocal(?array $own, array $at): bool
+    {
+        return $own !== null && strtolower((string) $own['host']) === strtolower((string) ($at['host'] ?? '')) && (int) ($own['port'] ?? 80) === (int) ($at['port'] ?? 0);
+    }
+
     /** The key of what is kept of a destination. */
     public static function key(string $url, string $name): string
     {
@@ -171,7 +195,7 @@ final class RemotePictures
         foreach ($guide as $section) {
             foreach ($section['destinations'] as $destination) {
                 $at = Destination::parse($destination['url']);
-                $local = $own !== null && strtolower((string) $own['host']) === strtolower((string) ($at['host'] ?? '')) && (int) ($own['port'] ?? 80) === (int) ($at['port'] ?? 0);
+                $local = self::isLocal($own, $at);
                 // What the grid says of itself (its name, for the cards), once a day
                 $local || ($at['host'] ?? '') === '' || $this->grids?->login((string) $at['gatekeeper'], true);
                 // A grid alone: the region its gatekeeper lands on, so that its link names one
@@ -179,7 +203,9 @@ final class RemotePictures
                     self::resolveLanding($this->cache, (string) $at['region_uri'], $this->now());
                     continue;
                 }
-                if (($destination['picture'] ?? null) !== null || $local || ($at['region'] ?? '') === '' || ($at['host'] ?? '') === '') {
+                // A picture of another grid is asked until it is kept here: the one its search names, this host has not
+                $given = $destination['picture'] ?? null;
+                if (($given !== null && self::image($this->cache, $given) !== null) || $local || ($at['region'] ?? '') === '' || ($at['host'] ?? '') === '') {
                     continue;
                 }
                 $key = self::key($destination['url'], $destination['name']);
