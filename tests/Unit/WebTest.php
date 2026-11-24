@@ -170,8 +170,8 @@ describe('Web server snippets', function () {
         $prefixed = Snippets::render('caddy', 'test_grid', $dir, prefix: '/opensim');
         $matcher = static fn(string $snippet): string => (string) preg_replace('/^.*@opensim_helpers path ([^\n]*)\n.*$/s', '$1', $snippet);
 
-        // At the root, by the first segment of their paths
-        expect($matcher($root))->toContain('/opensim*')
+        // At the root, their base exactly, never its whole first segment (the mini site under /opensim)
+        expect($matcher($root))->toContain('/opensim/economy /opensim/economy/*')->not->toContain('/opensim*')
             // Under the prefix, by the one after it: the mini site under /opensim is not theirs, nor what stays at the root (/health)
             ->and($matcher($prefixed))->toBe('/opensim/economy /opensim/economy/*')
             ->and(Snippets::render('caddy', 'test_grid', $dir, prefix: 'opensim/'))->toBe($prefixed);

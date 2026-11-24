@@ -1029,8 +1029,8 @@ final class GridOptions
         // The paths of the site that are the helpers' (the first segment of the base and of each page, and the addresses of their
         // services the grid names elsewhere on its site), for the web server to hand over (Snippets::routes())
         $routes = Snippets::routes(
-            [$variables['helpers_base'], ...array_map(fn(string $key): string => $variables[$key], preg_grep('/^page_/', array_keys($variables))), '/health'],
-            $this->grid->isPlanned() ? [] : array_keys($this->grid->helperPaths()),
+            (string) $variables['helpers_base'],
+            [...array_map(fn(string $key): string => (string) $variables[$key], preg_grep('/^page_/', array_keys($variables))), ...($this->grid->isPlanned() ? [] : array_keys($this->grid->helperPaths()))],
         );
         $variables['web_globs'] = implode(' ', $routes['globs']);
         $variables['web_regex'] = implode('|', $routes['regex']);

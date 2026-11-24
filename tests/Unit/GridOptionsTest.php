@@ -299,7 +299,7 @@ describe('An option enabled', function () {
             ->and($server['files'])
             ->toBe([$machine->grid . '/web/demo.caddyfile'])
             ->and(file_get_contents($machine->grid . '/web/demo.caddyfile'))
-            ->toContain('@opensim_helpers path /helpers*', '/health*', 'root * /usr/share/w4os-helpers/public')
+            ->toContain('@opensim_helpers path /helpers /helpers/*', 'root * /usr/share/w4os-helpers/public')->not->toContain('/health*')
             ->not->toContain('/search*')
             ->toContain('php_fastcgi unix//run/php/php-fpm.sock {', 'env OPENSIM_GRID demo')
             ->toContain("site block:\n#     import {$machine->grid}/web/demo.caddyfile");

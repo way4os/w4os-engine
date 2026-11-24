@@ -55,8 +55,19 @@ describe('The paths of the helpers', function () {
         $root = $matcher(Snippets::render('caddy', 'demo', $grid->directory(), grid: $grid));
         $prefixed = $matcher(Snippets::render('caddy', 'demo', $grid->directory(), prefix: '/opensim', grid: $grid));
 
-        expect($root)->toContain('/helper/query.php')->toContain('/helpers/helper/offline.php /helpers/helper/offline.php/*')->toContain('/opensim*')
+        // Their base exactly, never its whole first segment (/opensim*, the mini site there), nor /health of the root
+        expect($root)->toContain('/helper/query.php')->toContain('/helpers/helper/offline.php /helpers/helper/offline.php/*')
+            ->toContain('/opensim/economy /opensim/economy/*')->not->toContain('/opensim*')->not->toContain('/health*')
             ->and($prefixed)->toBe('/opensim/economy /opensim/economy/*');
+    });
+
+    test('outside a prefix, are the ones a block of their own takes, each exactly: the mini site under it keeps the rest', function () use ($kimbe) {
+        $grid = $kimbe();
+        $outside = Snippets::outside($grid, '/opensim');
+
+        expect($outside)->toContain('/helper/query.php', '/helper/query.php/*', '/helpers/helper/offline.php', '/helpers/helper/offline.php/*')
+            // Their base under the prefix is in the block of the prefix (the snippet with --prefix), never here
+            ->and(array_filter($outside, static fn(string $path): bool => str_starts_with($path, '/opensim')))->toBe([]);
     });
 
     test('leave the economy to a third-party application when the grid says it does not provide it, even on its own host', function () use ($kimbe) {
@@ -70,5 +81,20 @@ describe('The paths of the helpers', function () {
             // The rest of the helpers, under the same base, stays theirs
             ->and($grid->servedByHelpers('https://kimbe.example/opensim/economy/welcome'))->toBeTrue()
             ->and($grid->helperPaths()['/helper/query.php'] ?? null)->toBe('query');
+    });
+
+    test('are read through the constants of the config, the ones of its own (BackOffice) too', function () {
+        $machine = new Machine();
+        $robust = $machine->grid . '/Robust.HG.ini';
+        file_put_contents($robust, str_replace("[Const]\n", "[Const]\n    WebURL = \"https://kimbe.example\"\n    BackOffice = \"\${Const|WebURL}/helper\"\n", (string) file_get_contents($robust)) .
+            "\n[GridInfoService]\n    search = \"\${Const|BackOffice}/query.php\"\n    message = \"\${Const|BackOffice}/offline.php\"\n");
+        $machine->write($machine->grid . '/OpenSim.ini', "[Const]\n    BackOffice = \"https://kimbe.example/helpers/helper\"\n[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"\${Const|BackOffice}/offline.php\"\n");
+        $grid = Grid::find($machine->environment, 'demo');
+        $paths = $grid->helperPaths();
+
+        expect($paths['/helper/query.php'] ?? null)->toBe('query')
+            ->and($paths['/helpers/helper/offline.php'] ?? null)->toBe('offline')
+            ->and($grid->servedByHelpers('https://kimbe.example/helper/query.php'))->toBeTrue()
+            ->and(array_filter(array_keys($paths), static fn(string $path): bool => str_contains($path, '${')))->toBe([]);
     });
 });

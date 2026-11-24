@@ -123,47 +123,57 @@ final class Snippets
     }
 
     /**
-     * The paths a web server hands over to the helpers: the first segment of their base and of their pages (`/helpers*`), and each
-     * address of a service the grid names elsewhere on its site, as it is (`/helper/query.php`, and what follows it), never its whole
-     * first segment, which may be the site's. Under a prefix, the ones under it alone, by their segment after it.
+     * The paths a web server hands over to the helpers: their base and what is under it (`/helpers`, `/helpers/*`), and each address
+     * of the grid elsewhere on its site as it is, with what follows it (`/helper/query.php`, `/helper/query.php/*`): never a whole
+     * first segment, which may be the site's (`/opensim*` would take the mini site under /opensim), nor the root's /health. A base at
+     * the root of the site takes nothing by itself: its pages are each their own. Under a prefix, the ones under it alone.
      *
-     * @param list<string> $segmented the paths whose first segment is the helpers' (their base, their pages)
-     * @param list<string> $exact the paths of services set apart (Grid::helperPaths())
+     * @param string $base the base of the helpers (`/helpers`)
+     * @param list<string> $exact the other paths: their pages, their scripts, the addresses the grid names (Grid::helperPaths())
      * @return array{globs:list<string>,regex:list<string>} the globs of a matcher (Caddy), the parts of a regular expression (nginx, Apache)
      */
-    public static function routes(array $segmented, array $exact, string $prefix = ''): array
+    public static function routes(string $base, array $exact, string $prefix = ''): array
     {
         $prefix = trim($prefix, '/');
-        $relative = static function (string $path) use ($prefix): ?string {
-            $path = trim($path, '/');
-            if ($prefix === '') {
-                return $path;
-            }
-
-            return str_starts_with("$path/", "$prefix/") ? ltrim(substr($path, strlen($prefix)), '/') : null;
+        $base = trim($base, '/');
+        $under = static fn(string $path, string $root): bool => $root === '' || $path === $root || str_starts_with("$path/", "$root/");
+        $globs = [];
+        $regex = [];
+        $add = static function (string $path) use (&$globs, &$regex): void {
+            array_push($globs, "/$path", "/$path/*");
+            $regex[] = preg_quote($path);
         };
-        $segments = [];
-        foreach ($segmented as $path) {
-            $path = $relative($path);
-            $segment = $path === null ? '' : explode('/', $path)[0];
-            // The root of the prefix is the site's, never the helpers'; /health is the root's own
-            $segment === '' || ($prefix !== '' && $segment === 'health') || ($segments[$segment] = true);
-        }
-        $at = static fn(string $path): string => $prefix === '' ? $path : "$prefix/$path";
-        $globs = $prefix === ''
-            ? array_map(static fn(string $segment): string => "/$segment*", array_keys($segments))
-            : array_merge(...array_map(static fn(string $segment): array => ['/' . $at($segment), '/' . $at($segment) . '/*'], array_keys($segments) ?: []), ...[[]]);
-        $regex = array_map(static fn(string $segment): string => preg_quote($at($segment)), array_keys($segments));
-        foreach (array_unique($exact) as $path) {
-            $path = $relative($path);
-            if ($path === null || $path === '' || isset($segments[explode('/', $path)[0]])) {
+        // The base, when it is a folder of the site (and under the prefix)
+        $base !== '' && $under($base, $prefix) && $base !== $prefix && $add($base);
+        $seen = [];
+        foreach ($exact as $path) {
+            $path = trim($path, '/');
+            if ($path === '' || $path === $prefix || isset($seen[$path]) || !$under($path, $prefix) || ($base !== '' && $under($path, $base))) {
                 continue;
             }
-            array_push($globs, '/' . $at($path), '/' . $at($path) . '/*');
-            $regex[] = preg_quote($at($path));
+            $seen[$path] = true;
+            $add($path);
         }
 
         return ['globs' => $globs, 'regex' => $regex];
+    }
+
+    /**
+     * The paths of the helpers of a grid outside a prefix (the mini site under /opensim): the addresses its config names on its site
+     * elsewhere, each exactly with what follows it (routes()), for a block of their own beside the one of the prefix.
+     *
+     * @return list<string> the paths, as Caddy addresses them (`/helper/query.php`, `/helper/query.php/*`)
+     */
+    public static function outside(\W4OS\Engine\Models\Grid $grid, string $prefix): array
+    {
+        $prefix = trim($prefix, '/');
+        $services = HelpersConfig::services($grid->directory());
+        $routes = self::routes(
+            $services->base(),
+            [...array_map(static fn(string $page): string => $services->path($page), [...array_keys(Services::SCRIPTS), ...array_keys(Services::PAGES)]), ...array_keys($grid->helperPaths())],
+        );
+
+        return array_values(array_filter($routes['globs'], static fn(string $glob): bool => $prefix === '' ? false : !str_starts_with(rtrim($glob, '*') . '/', "/$prefix/")));
     }
 
     /**
@@ -204,8 +214,8 @@ final class Snippets
         $webUrl = $webUrl !== '' ? $webUrl : HelpersConfig::webUrl($gridDirectory);
         $services = HelpersConfig::services($gridDirectory);
         $routes = self::routes(
-            [...array_map(static fn(string $page): string => $services->path($page), [...array_keys(Services::SCRIPTS), ...array_keys(Services::PAGES)]), '/health'],
-            array_keys($grid?->helperPaths() ?? []),
+            $services->base(),
+            [...array_map(static fn(string $page): string => $services->path($page), [...array_keys(Services::SCRIPTS), ...array_keys(Services::PAGES)]), ...array_keys($grid?->helperPaths() ?? [])],
             $prefix,
         );
         $variables = self::siteVariables($webUrl) + [
