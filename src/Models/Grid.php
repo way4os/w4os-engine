@@ -1332,6 +1332,26 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $logo === '' ? null : $logo;
     }
 
+    /**
+     * The brand of the grid for the pages of its helpers, from `[Helpers]`: its icon (`IconURL`, an address of the site's own file),
+     * its accent color (`AccentColor`, `#rgb` or `#rrggbb`: the links), its font (`Font`, a family name) and the stylesheet that
+     * loads it (`FontURL`). Null for what it does not say, or says in a form a page cannot take as it is.
+     *
+     * @return array{icon:?string,accent:?string,font:?string,fontUrl:?string}
+     */
+    public function brand(): array
+    {
+        $value = fn(string $key, string $pattern): ?string => preg_match($pattern, $said = trim((string) $this->setting('Helpers', $key), " \t\"")) === 1 ? $said : null;
+        $url = '#^(https?://[^\s"<>]+|/[^\s"<>]*)$#i';
+
+        return [
+            'icon' => $value('IconURL', $url),
+            'accent' => $value('AccentColor', '/^#([0-9a-f]{3}|[0-9a-f]{6})$/i'),
+            'font' => $value('Font', '/^[\\p{L}\\p{N} ,-]+$/u'),
+            'fontUrl' => $value('FontURL', $url),
+        ];
+    }
+
     /** A setting of the files of the grid (Robust, OpenSim.ini, Helpers.ini), the first that says it. */
     private function setting(string $section, string $key): ?string
     {
