@@ -295,7 +295,9 @@ describe('The services of a standalone', function () {
         $ini = ConfigReader::load("$dir/config-include/StandaloneCommon.ini", expand: false);
 
         expect($ini['GridInfoService'])
-            ->not->toHaveKeys(['economy', 'search', 'web_profile_url'])
+            ->not->toHaveKeys(['economy', 'web_profile_url'])
+            // The web search of a grid without its helpers is 2do.directory's
+            ->and(trim((string) ($ini['GridInfoService']['search'] ?? ''), '"'))->toBe(W4OS\Engine\Models\Grid::SHARED_WEB_SEARCH)
             ->and($ini['Hypergrid'] ?? [])
             ->not->toHaveKey('GatekeeperURI')
             ->and($ini['LoginService'])

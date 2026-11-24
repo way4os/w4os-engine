@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (setup): the web search of 2do.directory (/charm/search), the one of a grid without its own helpers
 - fix (helpers): without a Robust, Helpers.ini says what it would tell ([GridInfoService], [LoginService]...)
 - new (search): MaintainSearch = false of [Helpers] leaves the registry to another install: no task writes into it
 - fix (guide): the task asks the destinations without a picture again (the title images hid them), and says the step that failed

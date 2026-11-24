@@ -35,7 +35,7 @@ describe('The web services a setup chose', function () {
             ->and($registers['2do'])->toHaveKey('DATA_SRV_2do')->not->toHaveKey('DATA_SRV_demo');
     });
 
-    test('open the web search of the helpers, and none without them: the viewers keep their own', function () {
+    test('open the web search of the helpers or of 2do.directory, and none when it is said: the viewers keep their own', function () {
         $read = static function (string $choice): array {
             $machine = new Machine();
             $plan = demo_plan($machine);
@@ -53,8 +53,8 @@ describe('The web services a setup chose', function () {
         expect(trim((string) $helpers[0], '"'))->toStartWith('${Const|WebURL}/helpers/')
             ->and($helpers[1])->toBe($helpers[0])
             ->and($read('none'))->toBe([null, null])
-            // 2do.directory has no web search yet: nothing points to it
-            ->and(Grid::SHARED_WEB_SEARCH)->toBe('');
+            // 2do.directory's, the grid info and the login service together
+            ->and(array_map(static fn(?string $v): string => trim((string) $v, '"'), $read('shared')))->toBe(['https://2do.directory/charm/search', 'https://2do.directory/charm/search']);
     });
 
     test('read the events from the calendar given, and keep the economy where it is said: the helpers, or another service', function () {
