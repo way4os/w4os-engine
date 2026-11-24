@@ -4,6 +4,7 @@
 
 - fix (migrate): a setting kept that a kit include sets otherwise wins, read last (-inidirectory); the report lists it
 - fix (migrate): the kit keeps the addresses and paths its values show, never by key name; OSSL stays the source's
+- fix (migrate): a Robust imported keeps the paths of the kit (assets, library), not the old install's; reported corrected
 - fix (grid info): its values are ASCII, OpenSim sends no other: setup and settings refuse accents, an import transliterates
 - new (health): the grid info at the login is checked as a viewer reads it, well-formed UTF-8 XML; status too
 - fix (grid info): an answer in Latin-1 (OpenSim 0.9.3 with an accent) is read as UTF-8, never passed on broken

@@ -153,6 +153,27 @@ describe('The import of a grid', function () {
             ->and(is_dir($failing->plan->gridDir))->toBeFalse();
     });
 
+    test('leaves the paths of the install to the kit, said corrected in its report: the old ones are not there', function () {
+        [$machine, $robust] = old_robust_install();
+        $old = dirname($robust, 2);
+        $example = $machine->core . '/bin/Robust.HG.ini.example';
+        file_put_contents($example, file_get_contents($example) . "[AssetService]\n    AssetLoaderArgs = \"./assets/AssetSets.xml\"\n[LibraryService]\n    DefaultLibrary = \"./inventory/Libraries.xml\"\n");
+        $text = str_replace("[Const]\n", "[Const]\n    EtcDirectory = \"$old/etc\"\n", file_get_contents($robust));
+        file_put_contents($robust, $text . "[AssetService]\n    AssetLoaderArgs = \"\${Const|EtcDirectory}/assets/AssetSets.xml\"\n[LibraryService]\n    DefaultLibrary = \"\${Const|EtcDirectory}/inventory/Libraries.xml\"\n");
+        $import = GridImport::prepare($machine->environment, $robust, 'pathgrid');
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $read = ConfigReader::load($import->plan->robustIni(), [], true, true);
+        $report = (string) file_get_contents($import->document()['report']);
+        $data = $import->plan->dataDirectory;
+
+        expect($read['AssetService']['AssetLoaderArgs'])->toBe("$data/assets/AssetSets.xml")
+            ->and($read['LibraryService']['DefaultLibrary'])->toBe("$data/inventory/Libraries.xml")
+            ->and($report)->toContain(
+                '[AssetService] AssetLoaderArgs = ${Const|EtcDirectory}/assets/AssetSets.xml (corrected, now ${Const|DataDirectory}/assets/AssetSets.xml: a path of the install)',
+                '[LibraryService] DefaultLibrary = ${Const|EtcDirectory}/inventory/Libraries.xml (corrected, now ${Const|DataDirectory}/inventory/Libraries.xml: a path of the install)',
+            );
+    });
+
     /** The old install with folders of data its config names, in its own tree: [machine, its Robust config, its assets folder]. */
     $withData = static function (): array {
         [$machine, $robust] = old_robust_install();

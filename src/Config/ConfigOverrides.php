@@ -19,6 +19,9 @@ final class ConfigOverrides
     /** A value that is an address: a URL, or the constant of one (${Const|BaseURL}:${Const|PublicPort}). */
     private const ADDRESS = '~^(https?://|\$\{Const\|\w*(URL|URI|Host)\w*\})~i';
 
+    /** Why the kit keeps a path over the original's. */
+    public const PATH_WHY = 'a path of the install';
+
     /** A value that is a path: absolute, relative to a folder, from the constant of one, or with a folder in it (assets/AssetSets.xml). */
     private const PATH = '~^(/|\.\.?/|\$\{Const\|\w*(Dir|Path)\w*\}|[\w.-]+/[^\s:,;]*$)~i';
 
@@ -76,6 +79,12 @@ final class ConfigOverrides
         return $lost;
     }
 
+    /** Whether a value is a path: absolute, relative to a folder, from the constant of one, or with a folder in it. */
+    public static function path(string $value): bool
+    {
+        return preg_match(self::PATH, trim($value, " \t\"")) === 1;
+    }
+
     /**
      * Why the kit keeps its value over the original's, null when the original's wins: what the kit needs to work, the architecture
      * of its grid (its modules and services), the addresses of its grid, its paths. Told by the values the kit and the original
@@ -93,7 +102,7 @@ final class ConfigOverrides
             strcasecmp($setting['section'], 'Modules') === 0 => 'the architecture of the grid',
             $any('/\.dll:/i') => 'a service of the architecture of the grid',
             $any(self::ADDRESS) => 'an address of the grid',
-            $any(self::PATH) => 'a path of the install',
+            self::path($values[0]) || self::path($values[1]) => self::PATH_WHY,
             default => null,
         };
     }

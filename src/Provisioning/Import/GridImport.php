@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace W4OS\Engine\Provisioning\Import;
 
 use W4OS\Engine\Archives\SourceBackup;
+use W4OS\Engine\Config\ConfigOverrides;
 use W4OS\Engine\Config\ConfigReader;
 use W4OS\Engine\Config\GridInfoText;
 use W4OS\Engine\Config\GridFileService;
@@ -107,7 +108,15 @@ final class GridImport
             $defined[$setting['section']][$setting['key']] = $setting['value'];
         }
         foreach ($dropped as $i => $setting) {
-            if ($setting['reason'] === 'replaced' && !($setting['place'] ?? false) && $setting['section'] !== 'ServiceList' && self::resolves($setting['value'], $defined)) {
+            if ($setting['reason'] !== 'replaced' || ($setting['place'] ?? false)) {
+                continue;
+            }
+            // A path of the install is the kit's (ConfigOverrides::path()): the old one is not in this install
+            if (ConfigOverrides::path($setting['value'])) {
+                $dropped[$i] = ['reason' => 'corrected', 'replacement' => trim((string) ($generated[$setting['section']][$setting['key']] ?? ''), " \t\""), 'why' => ConfigOverrides::PATH_WHY] + $setting;
+                continue;
+            }
+            if ($setting['section'] !== 'ServiceList' && self::resolves($setting['value'], $defined)) {
                 $customizations[] = ['section' => $setting['section'], 'key' => $setting['key'], 'value' => $setting['value'], 'unknown' => false, 'path' => false];
                 unset($dropped[$i]);
             }
@@ -380,10 +389,10 @@ final class GridImport
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ($setting['unknown'] ? ' (not a setting of the core)' : '');
         }
         $lines[] = '';
-        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own):';
+        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; corrected: the value of the kit stays, the one it needs to work; default: as the core has it; layout, include: the old install\'s own):';
         foreach ($this->dropped as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']}" .
-                (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . ')';
+                (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . (isset($setting['why']) ? ": {$setting['why']}" : '') . ')';
         }
 
         return implode("\n", $lines) . "\n";
