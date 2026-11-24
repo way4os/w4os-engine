@@ -167,6 +167,16 @@ final class GridImport
         foreach ($customizations as $setting) {
             $defined[$setting['section']][$setting['key']] = $setting['value'];
         }
+        // The constants of the old config inject() brings with what uses them (BackOffice): the ones that resolve, never through [Launch]
+        do {
+            $more = false;
+            foreach ($raw['Const'] ?? [] as $key => $value) {
+                if (!isset($defined['Const'][$key]) && !str_contains((string) $value, '${Launch|') && self::resolves((string) $value, $defined)) {
+                    $defined['Const'][$key] = (string) $value;
+                    $more = true;
+                }
+            }
+        } while ($more);
         foreach ($dropped as $i => $setting) {
             if ($setting['reason'] !== 'replaced' || ($setting['place'] ?? false)) {
                 continue;

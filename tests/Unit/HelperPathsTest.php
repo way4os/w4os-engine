@@ -83,6 +83,18 @@ describe('The paths of the helpers', function () {
             ->and($grid->helperPaths()['/helper/query.php'] ?? null)->toBe('query');
     });
 
+    test('are the addresses Robust names too, not only the simulators\' and the grid info\'s', function () {
+        $machine = new Machine();
+        $robust = $machine->grid . '/Robust.HG.ini';
+        file_put_contents($robust, str_replace("[Const]\n", "[Const]\n    WebURL = \"https://kimbe.example\"\n    BackOffice = \"\${Const|WebURL}/helper\"\n", (string) file_get_contents($robust)) .
+            "\n[GridInfoService]\n    economy = \"\${Const|WebURL}/opensim/economy\"\n[Search]\n    SearchURL = \"\${Const|BackOffice}/query.php\"\n");
+        $grid = Grid::find($machine->environment, 'demo');
+
+        expect($grid->helperPaths()['/helper/query.php'] ?? null)->toBe('query')
+            ->and($grid->servedByHelpers('https://kimbe.example/helper/query.php'))->toBeTrue()
+            ->and(Snippets::outside($grid, '/opensim'))->toContain('/helper/query.php');
+    });
+
     test('are read through the constants of the config, the ones of its own (BackOffice) too', function () {
         $machine = new Machine();
         $robust = $machine->grid . '/Robust.HG.ini';

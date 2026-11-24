@@ -80,6 +80,12 @@ final class RobustImporter
         $plan->publicPort = (int) ($ini['Const']['PublicPort'] ?? 8002);
         $plan->privatePort = (int) ($ini['Const']['PrivatePort'] ?? $plan->publicPort + 1);
         $plan->webUrl = $ini['Const']['WebURL'] ?? "https://{$plan->baseHostname}";
+        // Its helpers where the old install had them: the path of the economy it gives on its site (the pages the kit adds go there)
+        $economy = trim((string) ($ini['GridInfoService']['economy'] ?? ''), " \t\"");
+        if ($economy !== '' && strcasecmp((string) parse_url($economy, PHP_URL_HOST), (string) parse_url($plan->webUrl, PHP_URL_HOST)) === 0) {
+            $path = \W4OS\Engine\Provisioning\Web\Services::pathOf($economy);
+            $path !== '/' && ($plan->helpersPath = $path);
+        }
         [$plan->dbHost, $plan->dbName, $plan->dbUser, $plan->dbPass] = [
             $db->source,
             $db->database,

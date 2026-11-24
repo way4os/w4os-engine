@@ -2,6 +2,10 @@
 
 ### Unreleased
 
+- fix (grid): its name is the gridname of its grid info, never a [Const] GridName or a snapshot before it
+- fix (migrate): a value through a constant of the old config (BackOffice) is kept, never replaced (the GridInfo search)
+- fix (migrate): the helpers where the old economy is on the site; the pages the install adds go under them
+- fix (web): the addresses Robust names on the site are the helpers' too ([Search] SearchURL)
 - new (setup): the web services screen: Quick Start website and its path, helpers path, register, in-world and web search, events, economy path
 - new (setup): the web search is the helpers' only (2do.directory has none yet); without the helpers, none
 - fix (web): the base of the helpers is routed exactly, never its whole first segment nor /health of the root; Snippets::outside()

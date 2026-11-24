@@ -25,7 +25,10 @@ final class InstanceSettings
 
         $grab = static fn(string $key): ?string => ConfigReader::find($ini, $key);
 
-        foreach (['gridName' => 'gridname', 'baseHostname' => 'BaseHostname', 'webUrl' => 'WebURL'] as $field => $key) {
+        // The name the grid gives itself is the one of its grid info, never a constant or a snapshot of the same name
+        $info = array_change_key_case(array_change_key_case($ini)['gridinfoservice'] ?? []);
+        isset($info['gridname']) && ($current['gridName'] = $info['gridname']);
+        foreach (['baseHostname' => 'BaseHostname', 'webUrl' => 'WebURL'] as $field => $key) {
             $value = $grab($key);
             if ($value !== null) {
                 $current[$field] = $value;

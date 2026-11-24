@@ -2172,7 +2172,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         ];
         // Any other address it gives on its site whose script is one of the helpers' (the search of the viewers at query.php)
         $scripts = array_flip(\W4OS\Engine\Provisioning\Web\Services::SCRIPTS);
-        foreach ($this->addresses(true) as $url) {
+        foreach ([...array_values($this->addresses(true)), ...$this->robustAddresses()] as $url) {
             $service = $scripts[strtolower(basename((string) parse_url($url, PHP_URL_PATH)))] ?? null;
             ($service === null || (!$provided && in_array($service, ['currency', 'landtool'], true))) || ($urls[] = [$service, $url]);
         }
@@ -2187,6 +2187,25 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         }
 
         return $this->helperPaths = $paths;
+    }
+
+    /**
+     * The addresses its Robust config names, whatever the setting ([Search] SearchURL of Robust), through its constants.
+     *
+     * @return list<string>
+     */
+    private function robustAddresses(): array
+    {
+        $robust = $this->config()?->get('Robust');
+        $urls = [];
+        foreach (is_array($robust) ? \W4OS\Engine\Config\ConfigReader::expand($robust) : [] as $section => $values) {
+            foreach (is_array($values) && $section !== 'Const' ? $values : [] as $value) {
+                $value = trim((string) $value, " \t\"");
+                preg_match('#^https?://#i', $value) === 1 && ($urls[] = $value);
+            }
+        }
+
+        return $urls;
     }
 
     /** @return array{0:?string,1:?string} the base of the helpers and where it comes from */

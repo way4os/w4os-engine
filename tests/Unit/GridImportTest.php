@@ -551,6 +551,38 @@ describe('The import of a grid', function () {
             ->and($report)->toContain('added by this install');
     });
 
+    test('of kimbe-red keeps its addresses through its own constants (BackOffice), and adds its pages under the base of its helpers', function () {
+        [$machine, $robust] = old_robust_install();
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        $text = str_replace("[Const]\n", "[Const]\n    WebURL = \"https://old.example.org\"\n    BackOffice = \"\${Const|WebURL}/helper\"\n", file_get_contents($robust));
+        $text = str_replace("[GridInfoService]\n", "[GridInfoService]\n    search = \"\${Const|BackOffice}/query.php\"\n    economy = \"\${Const|WebURL}/opensim/economy\"\n", $text);
+        file_put_contents($robust, $text . "\n[Search]\n    SearchURL = \"\${Const|BackOffice}/query.php\"\n");
+        $bin = dirname($robust);
+        mkdir("$bin/Regions");
+        file_put_contents("$bin/OpenSim.ini", "[Const]\n    WebURL = \"https://old.example.org\"\n[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n" .
+            "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n" .
+            "[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"\${Const|WebURL}/helpers/helper/offline.php\"\n" .
+            "[Search]\n    Module = OpenSimSearch\n    SearchURL = \"\${Const|WebURL}/helpers/query.php\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']], helpersHere: true);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false, true))['GridInfoService'] ?? [];
+        $dropped = array_filter($import->document()['dropped'], static fn(array $s): bool => $s['section'] === 'GridInfoService' && $s['key'] === 'search');
+
+        // The search of the viewers as the old install told it, never replaced by the kit's
+        expect($info['search'] ?? null)->toBe('https://old.example.org/helper/query.php')
+            ->and($dropped)->toBe([])
+            // The pages the kit adds are under the base of its helpers, where the old install had them (its economy)
+            ->and($import->plan->helpersPath)->toBe('/opensim/economy')
+            ->and((string) ($info['web_profile_url'] ?? ''))->toStartWith('https://old.example.org/opensim/economy/profile/')
+            ->and($grid->servedByHelpers(str_replace('[AGENT_NAME]', 'Pam.Molly2', (string) ($info['web_profile_url'] ?? ''))))->toBeTrue()
+            // Every address its config names on its site is the helpers', Robust's own too
+            ->and(array_keys($grid->helperPaths()))->toContain('/helper/query.php', '/helpers/query.php', '/helpers/helper/offline.php');
+    });
+
     test('keeps the helper of a choice outside this install where it is, and says it: never the helpers of this install', function () use ($offlineV1, $offlineUrl) {
         // A helper of another server; and one on the site of the grid where this install has no helpers
         foreach ([['https://im.example.org/helper/offline.php', true], ['https://old.example.org/helpers/helper/offline.php', false]] as [$url, $here]) {
