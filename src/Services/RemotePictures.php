@@ -56,6 +56,22 @@ final class RemotePictures
         private readonly ?GridInfoCache $grids = null,
     ) {}
 
+    /** @var array<string,string> missed(): the destinations asked that gave no picture, with the step that gave nothing */
+    private array $missed = [];
+
+    /** @var string the step of ask() that gave nothing */
+    private string $step = '';
+
+    /**
+     * The destinations of the last refresh() that gave no picture, each with the step that gave nothing.
+     *
+     * @return array<string,string> name => the step (the gatekeeper gives no region, the simulator does not answer...)
+     */
+    public function missed(): array
+    {
+        return $this->missed;
+    }
+
     /** The key of what is kept of a destination. */
     public static function key(string $url, string $name): string
     {
@@ -149,6 +165,7 @@ final class RemotePictures
     public function refresh(array $guide): int
     {
         Gatekeeper::forget();
+        $this->missed = [];
         $own = Destination::loginParts($this->login);
         $found = 0;
         foreach ($guide as $section) {
@@ -177,6 +194,7 @@ final class RemotePictures
                     continue;
                 }
                 $asked = $this->ask($at);
+                $asked === null && ($this->missed[$destination['name']] = $this->step);
                 // A grid that does not answer keeps the picture it gave
                 $failed = $asked === null;
                 $asked ??= $picture;
@@ -198,12 +216,16 @@ final class RemotePictures
         $region = Gatekeeper::region((string) $at['region_uri']);
         $server = is_array($region) ? (string) ($region['server_uri'] ?? '') : '';
         if ($server === '') {
+            $this->step = 'the gatekeeper gives no region';
+
             return null;
         }
         // The land of the simulator at the point, as a viewer asks it the place of a landmark (the snapshot a simulator sends a
         // search is not asked: it is sent on conditions, to a search that may not be ours, and does not hold the picture itself)
-        [$picture, $owner] = $this->landPicture($server, $region, (string) ($at['pos'] ?? ''));
+        [$picture, $owner, $answered] = $this->landPicture($server, $region, (string) ($at['pos'] ?? ''));
         if ($picture === null) {
+            $this->step = $answered ? 'the parcel has no picture' : 'the simulator does not answer (land_data)';
+
             return null;
         }
         // The picture kept, for a while again; else the asset service of its grid gives it
@@ -222,6 +244,8 @@ final class RemotePictures
         }
         $data = $asset?->data();
         if ($asset === null || $data === null) {
+            $this->step = 'the asset service does not give the picture';
+
             return null;
         }
         self::keep($this->cache, $picture, $data, $asset->typeNumber(), $asset->name());
@@ -249,12 +273,12 @@ final class RemotePictures
      * when the simulator does not answer or the parcel has no picture; with the owner of the parcel, a user of that grid.
      *
      * @param array<string,mixed> $region Gatekeeper::region()
-     * @return array{0:?string,1:?string} the picture, the owner
+     * @return array{0:?string,1:?string,2:bool} the picture, the owner, whether the simulator answered
      */
     private function landPicture(string $server, array $region, string $pos): array
     {
         if (!is_numeric($region['x'] ?? null) || !is_numeric($region['y'] ?? null)) {
-            return [null, null];
+            return [null, null, false];
         }
         $handle = ((int) $region['x'] << 32) | (int) $region['y'];
         $point = array_map(static fn($v): string => (string) (int) round((float) $v), array_slice(explode('/', $pos), 0, 2));
@@ -266,6 +290,7 @@ final class RemotePictures
         return [
             Uuid::isValid($picture) && !in_array($picture, Uuid::NULL_KEYS, true) ? $picture : null,
             Uuid::isValid($owner) && !in_array($owner, Uuid::NULL_KEYS, true) ? $owner : null,
+            is_array($land),
         ];
     }
 

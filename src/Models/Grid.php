@@ -1247,10 +1247,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     public function guide(?GridConfig $config = null): array
     {
         $config ??= $this->config();
-        $search = $config === null ? null : Connections::pdo($config, Database::Search);
-
-        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
-        $guide = (new \W4OS\Engine\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
+        $guide = $this->guidePictures($config);
         // What the card of each destination shows: its title, its label, the name of its grid; its picture, else the image of its title
         foreach ($guide as $name => &$section) {
             foreach ($section['destinations'] as &$destination) {
@@ -1266,12 +1263,26 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     }
 
     /**
+     * The guide with the pictures known of its destinations, null where none is (DestinationPictures), before the images of the titles.
+     *
+     * @return array<string,array{picture:?string,destinations:list<array{name:string,url:string,picture:?string}>}>
+     */
+    private function guidePictures(?GridConfig $config): array
+    {
+        $search = $config === null ? null : Connections::pdo($config, Database::Search);
+        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
+
+        return (new \W4OS\Engine\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
+    }
+
+    /**
      * Ask the grids of the hypergrid destinations of the guide for the pictures the search has none of, and keep them (a task of
      * the scheduler: RemotePictures). The guide then shows them without asking anything.
      *
-     * @return int how many pictures were found
+     * @return array{found:int,missed:array<string,string>} how many pictures were found, and the destinations asked that gave none,
+     *         each with the step that gave nothing
      */
-    public function refreshGuidePictures(?GridConfig $config = null): int
+    public function refreshGuidePictures(?GridConfig $config = null): array
     {
         $config ??= $this->config();
         $pictures = new \W4OS\Engine\Services\RemotePictures(
@@ -1283,7 +1294,10 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             new \W4OS\Engine\Network\GridInfoCache($this->environment, cache: \W4OS\Engine\Data\Cache::for($this->environment, $config)),
         );
 
-        return $pictures->refresh($this->guide($config));
+        // The destinations without a picture are asked: the guide before the images of their titles
+        $found = $pictures->refresh($this->guidePictures($config));
+
+        return ['found' => $found, 'missed' => $pictures->missed()];
     }
 
     /**

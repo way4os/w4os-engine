@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (guide): the task asks the destinations without a picture again (the title images hid them), and says the step that failed
 - fix (helpers): a web host without OpenSimulator reads the site of the grid from Helpers.ini ([Const] WebURL), as documented
 - fix (grid): its name is the gridname of its grid info, never a [Const] GridName or a snapshot before it
 - fix (migrate): a value through a constant of the old config (BackOffice) is kept, never replaced (the GridInfo search)

@@ -400,3 +400,32 @@ describe('The pictures of the hypergrid destinations', function () {
             ->toContain('http://far.example.net:8002/assets/' . REMOTE_BEACH, 'http://far.example.net:8002 get_server_urls', 'http://assets.far.example.net/assets/' . REMOTE_BEACH);
     });
 });
+
+describe('The pictures of the guide of a grid', function () {
+    test('are asked for each destination that has none, never taken for found by the image of its title', function () {
+        $world = remote_grid();
+        $machine = new Machine();
+        $machine->http['http://far.example.net:8002/assets/' . REMOTE_BEACH] = '<AssetBase><Data>' . base64_encode('JP2-BYTES') . '</Data><ID>' . REMOTE_BEACH . '</ID><Name>Beach</Name><Type>0</Type></AssetBase>';
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\nGuideSource = \"destinations.txt\"\n");
+        $machine->write($machine->grid . '/destinations.txt', "Visit\nFar beach|far.example.net:8002/Far/10/20/30\nFar hill|far.example.net:8002/Far/128/128/25\n");
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+
+        $run = $grid->refreshGuidePictures();
+        $guide = W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->guide();
+
+        expect($run['found'])->toBe(1)
+            ->and($guide['Visit']['destinations'][0]['picture'] ?? null)->toBe(REMOTE_BEACH)
+            // The step that gave nothing, for each destination without a picture: here its parcel has none
+            ->and($run['missed'])->toBe(['Far hill' => 'the parcel has no picture']);
+    });
+
+    test('say the step that failed for each destination: the gatekeeper, the simulator, the asset service', function () {
+        $world = remote_grid();
+        $guide = (new DestinationPictures(null))->of(['Visit' => [['name' => 'Far beach', 'url' => 'far.example.net:8002/Far/10/20/30']]]);
+        $world->down = true;
+
+        $world->pictures->refresh($guide);
+
+        expect($world->pictures->missed())->toBe(['Far beach' => 'the gatekeeper gives no region']);
+    });
+});

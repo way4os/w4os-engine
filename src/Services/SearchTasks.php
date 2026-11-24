@@ -158,9 +158,10 @@ final class SearchTasks
                 'guide-pictures',
                 self::PICTURES_EVERY,
                 static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($config, $at): string {
-                    $found = $at()->refreshGuidePictures($config);
+                    $run = $at()->refreshGuidePictures($config);
+                    $missed = array_map(static fn(string $name, string $step): string => "$name ($step)", array_keys($run['missed']), $run['missed']);
 
-                    return "$found picture(s) of hypergrid destinations found";
+                    return "{$run['found']} picture(s) of hypergrid destinations found" . ($missed === [] ? '' : '; none for ' . implode(', ', $missed));
                 }),
                 'Ask the grids of the destinations of the guide for their pictures',
                 $scope,
