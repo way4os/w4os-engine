@@ -67,6 +67,11 @@ final class OpenSimController extends AbstractController
             : [$this->ini()];
     }
 
+    public function lastFiles(): array
+    {
+        return \W4OS\Engine\Config\ConfigOverrides::files($this->ini());
+    }
+
     /**
      * The master of its grid, made again when the core or the grid changed, null when the grid has none (its simulators have
      * their whole config).

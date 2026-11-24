@@ -395,6 +395,57 @@ describe('The modules a simulator imported names', function () {
     });
 });
 
+describe('The settings a simulator imported keeps', function () {
+    test('win over the files of the kit read after its own, except what the kit needs to work: its architecture, its addresses', function () {
+        $machine = new Machine();
+        (new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment))->ensure($machine->grid, $machine->core . '/bin');
+        // The kit's includes, read after the simulator's file: its OSSL, its architecture, its cache
+        $kit = $machine->grid . '/config-include';
+        $machine->write("$kit/osslDefaultEnable.ini", "[OSSL]\nAllow_osAvatarPlayAnimation = false\nPermissionErrorToOwner = false\nInclude-osslEnable = \"$kit/osslEnable.ini\"\n");
+        $machine->write("$kit/osslEnable.ini", "[OSSL]\nosslParcelOG = \"PARCEL_GROUP_MEMBER,PARCEL_OWNER,\"\n");
+        $machine->write("$kit/GridHypergrid.ini", "[Modules]\nAssetServices = \"RegionAssetConnector\"\n[EstateDataStore]\nLocalServiceModule = \"OpenSim.Services.EstateService.dll:EstateDataService\"\n" .
+            "[AssetService]\nAssetServerURI = \"\${Const|PrivURL}:\${Const|PrivatePort}\"\n[Includes]\nInclude-Cache = \"$kit/FlotsamCache.ini\"\n");
+        $machine->write("$kit/FlotsamCache.ini", "[AssetCache]\nFileCacheTimeout = 48\n");
+        // The original: its OSSL in a file it includes, read last there
+        $file = old_install($machine);
+        $etc = dirname($file, 2);
+        $machine->write("$etc/grids/speculoos/osslEnable.ini", "[OSSL]\nosslParcelOG = \"PARCEL_GROUP_MEMBER,PARCEL_OWNER,\"\n" .
+            "Allow_osAvatarPlayAnimation = \"\${OSSL|osslParcelOG}ESTATE_MANAGER,ESTATE_OWNER\"\nPermissionErrorToOwner = true\n");
+        $machine->write($file, (string) file_get_contents($file) . "Include-Ossl = \"$etc/grids/speculoos/osslEnable.ini\"\n" .
+            "[AssetCache]\nFileCacheTimeout = 0\n[Modules]\nAssetServices = \"HGAssetBroker\"\n" .
+            "[EstateDataStore]\nLocalServiceModule = \"OpenSim.Services.Connectors.dll:EstateDataRemoteConnector\"\n" .
+            "[AssetService]\nAssetServerURI = \"http://old.example.org:8003\"\n");
+
+        $import = SimulatorImport::prepare($machine->environment, $file, 'demo');
+        $import->apply($machine->environment, new NullUi(), fake_dump());
+        $ini = $import->document()['config'];
+        $last = W4OS\Engine\Config\ConfigOverrides::files($ini);
+        // What OpenSimulator reads: the master, the simulator's file, their includes, then its -inidirectory
+        $read = W4OS\Engine\Config\ConfigReader::load([W4OS\Engine\Provisioning\SimulatorMaster::path($machine->grid), $ini], [], true, false, $last);
+        $report = (string) file_get_contents($import->document()['report']);
+
+        expect($last)->toBe([W4OS\Engine\Config\ConfigOverrides::directory($ini) . '/imported.ini'])
+            ->and($read['OSSL']['Allow_osAvatarPlayAnimation'])->toBe('PARCEL_GROUP_MEMBER,PARCEL_OWNER,ESTATE_MANAGER,ESTATE_OWNER')
+            ->and($read['OSSL']['PermissionErrorToOwner'])->toBe('true')
+            ->and($read['AssetCache']['FileCacheTimeout'])->toBe('0')
+            // The report says which file of the kit each overrides
+            ->and($report)->toContain('[AssetCache] FileCacheTimeout = 0 (FlotsamCache.ini: FileCacheTimeout = 48)')
+            // What the kit needs to work stays the kit's, its architecture and the addresses of its grid, and the report says so
+            ->and($read['EstateDataStore']['LocalServiceModule'])->toBe('OpenSim.Services.EstateService.dll:EstateDataService')
+            ->and($read['AssetService']['AssetServerURI'])->not->toContain('old.example.org')
+            ->and($report)->toContain(
+                '[EstateDataStore] LocalServiceModule = OpenSim.Services.Connectors.dll:EstateDataRemoteConnector, now OpenSim.Services.EstateService.dll:EstateDataService (GridHypergrid.ini: a service of the architecture of the grid)',
+                '[AssetService] AssetServerURI = http://old.example.org:8003, now ${Const|PrivURL}:${Const|PrivatePort} (GridHypergrid.ini: an address of the grid)',
+            )
+            // One this core has not is left to the kit, and said
+            ->and($read['Modules']['AssetServices'])->toBe('RegionAssetConnector')
+            ->and($report)->toContain('[Modules] AssetServices = HGAssetBroker (retired')
+            // What no file of the kit sets stays in the simulator's file, and the engine reads the config the same way
+            ->and((string) file_get_contents($ini))->toContain('MinThreads = 10')->not->toContain('Allow_osAvatarPlayAnimation')
+            ->and(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->simulator('demo.redoutable')->controller()->settings()['AssetCache']['FileCacheTimeout'])->toBe('0');
+    });
+});
+
 describe('The folders of a simulator imported', function () {
     test('are the ones of the new simulator, never the ones of the old install, and the plan says they are replaced', function () {
         $machine = new Machine();

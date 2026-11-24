@@ -77,6 +77,7 @@ final class ConfigReader
      * @param array<string,string> $constants those of another file (Robust's), for the ones the files read have not
      * @param bool $expand replace the `${Const|Name}` references by their value, else keep the text as written (to port a config)
      * @param bool $directory read the `*.ini` of the `ConfigDirectory` of `[Startup]` too, as Robust does
+     * @param list<string> $last files read after all the others and what they include, over them (a simulator's -inidirectory)
      * @return array<string,array<string,string>> section => key => value, empty when unreadable
      */
     public static function load(
@@ -84,8 +85,12 @@ final class ConfigReader
         array $constants = [],
         bool $expand = true,
         bool $directory = false,
+        array $last = [],
     ): array {
         $merged = self::walk($path, $constants, $directory)['merged'];
+        foreach ($last === [] ? [] : self::walk($last, ($merged['Const'] ?? []) + $constants, false)['merged'] as $section => $values) {
+            $merged[$section] = array_merge($merged[$section] ?? [], $values);
+        }
 
         return $expand ? self::expand($merged, $constants) : $merged;
     }

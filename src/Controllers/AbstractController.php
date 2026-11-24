@@ -104,7 +104,17 @@ abstract class AbstractController implements Enablable
      */
     public function settings(): array
     {
-        return $this->settings ??= ConfigReader::load($this->configFiles());
+        return $this->settings ??= ConfigReader::load($this->configFiles(), [], true, false, $this->lastFiles());
+    }
+
+    /**
+     * The files it reads after the rest of its config, which win over it (a simulator's -inidirectory, ConfigOverrides).
+     *
+     * @return list<string>
+     */
+    public function lastFiles(): array
+    {
+        return [];
     }
 
     /** Read its config again the next time. */

@@ -277,7 +277,7 @@ final class GridImport
             if ($instance === null) {
                 continue;
             }
-            foreach (RobustImporter::unresolved($instance->files(), $instance instanceof \W4OS\Engine\Controllers\RobustController) as $reference) {
+            foreach (RobustImporter::unresolved($instance->files(), $instance instanceof \W4OS\Engine\Controllers\RobustController, $instance->lastFiles()) as $reference) {
                 $found[] = $instance->name() . " $reference";
             }
         }

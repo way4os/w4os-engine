@@ -126,6 +126,21 @@ describe('A simulator with a master', function () {
             ->toContain('-inifile=' . $machine->etc . '/opensim.d/alpha.ini');
     });
 
+    test('reads last the files of its config folder, which win (-inidirectory), when it has some', function () {
+        $machine = master_machine();
+        (new SimulatorMaster())->ensure($machine->grid, $machine->core . '/bin');
+        $ini = $machine->etc . '/opensim.d/alpha.ini';
+        $folder = W4OS\Engine\Config\ConfigOverrides::directory($ini);
+        $machine->write("$folder/imported.ini", "[AssetCache]\nFileCacheTimeout = 0\n");
+        $machine->startLog('alpha', 'Region loaded');
+
+        $simulator = Grid::find($machine->environment, 'demo')->simulator('alpha');
+        $simulator->start();
+
+        expect($machine->launcher->launched[0]->command)->toContain("-inidirectory=$folder")
+            ->and($simulator->controller()->settings()['AssetCache']['FileCacheTimeout'])->toBe('0');
+    });
+
     test('makes the master again when the core changed', function () {
         $machine = master_machine();
         (new SimulatorMaster())->ensure($machine->grid, $machine->core . '/bin');

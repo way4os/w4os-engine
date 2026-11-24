@@ -35,6 +35,12 @@ use W4OS\Engine\Text\Secrets;
  */
 final class SimulatorImport
 {
+    /** @var list<array{section:string,key:string,value:string,file:string,kit:string}> the settings kept that a file of the kit read later sets otherwise (apply()) */
+    private array $lost = [];
+
+    /** @var list<array{section:string,key:string,value:string,file:string,kit:string,why:string}> the ones the kit keeps its value for (apply()) */
+    private array $corrected = [];
+
     /**
      * @param list<array{file:string,to:string,name:string,uuid:string,location:string,port:int,size:int}> $regions
      * @param list<array{section:string,key:string,value:string,unknown:bool}> $customizations
@@ -299,8 +305,30 @@ final class SimulatorImport
         $master = \W4OS\Engine\Provisioning\SimulatorMaster::path($plan->gridDir);
         $defined = array_keys(is_file($master) ? (ConfigReader::load($master, [], false)['Const'] ?? []) : []);
         $launch = ['BinDir' => $plan->binDir(), 'SimName' => $plan->slug, 'MachineName' => $plan->slug];
-        $text = RobustImporter::inject((string) file_get_contents($plan->iniPath()), $this->customizations, $this->constants, $defined, $launch);
+        // A setting a file of the kit sets later would lose in the simulator's file: it goes to the one read last (ConfigOverrides)
+        // unless it is what the kit needs to work (ConfigOverrides::kept()): the kit's value stays, said in the report
+        $this->lost = [];
+        $this->corrected = [];
+        foreach (\W4OS\Engine\Config\ConfigOverrides::lost(
+            $this->customizations,
+            $plan->iniPath(),
+            ConfigReader::files(is_file($master) ? [$master, $plan->iniPath()] : [$plan->iniPath()]),
+        ) as $setting) {
+            $why = \W4OS\Engine\Config\ConfigOverrides::kept($setting);
+            $why === null ? ($this->lost[] = $setting) : ($this->corrected[] = $setting + ['why' => $why]);
+        }
+        $lost = array_map(static fn(array $setting): string => strtolower("{$setting['section']}|{$setting['key']}"), [...$this->lost, ...$this->corrected]);
+        $own = array_values(array_filter($this->customizations, static fn(array $setting): bool => !in_array(strtolower("{$setting['section']}|{$setting['key']}"), $lost, true)));
+        $text = RobustImporter::inject((string) file_get_contents($plan->iniPath()), $own, $this->constants, $defined, $launch);
         file_put_contents($plan->iniPath(), $text);
+        if ($this->lost !== []) {
+            $last = \W4OS\Engine\Config\ConfigOverrides::directory($plan->iniPath()) . '/' . \W4OS\Engine\Config\ConfigOverrides::IMPORTED;
+            is_dir(dirname($last)) || mkdir(dirname($last), 0o750, true);
+            $header = "; The settings of {$this->source} that the files of the kit set otherwise, read after them (-inidirectory)\n";
+            $defined = [...$defined, ...array_keys(ConfigReader::parse($text)['Const'] ?? [])];
+            file_put_contents($last, RobustImporter::inject($header, $this->lost, $this->constants, $defined, $launch));
+            $ui->note(sprintf(_('Wrote %s'), $last));
+        }
         file_put_contents($this->reportPath(), $this->report());
         $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
         // Passwords are in the config files: 640, as the rest of the grid
@@ -322,6 +350,22 @@ final class SimulatorImport
         ];
         foreach ($this->customizations as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ($setting['unknown'] ? ' (not a setting of the core)' : '');
+        }
+        if ($this->lost !== []) {
+            $lines[] = '';
+            $lines[] = count($this->lost) . ' of them set otherwise by a file of the kit read after the simulator\'s, written in '
+                . \W4OS\Engine\Config\ConfigOverrides::directory($plan->iniPath()) . '/' . \W4OS\Engine\Config\ConfigOverrides::IMPORTED . ', read last, so they win:';
+            foreach ($this->lost as $setting) {
+                $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ' (' . basename($setting['file']) . ': ' . Secrets::mask("{$setting['key']} = {$setting['kit']}") . ')';
+            }
+        }
+        if ($this->corrected !== []) {
+            $lines[] = '';
+            $lines[] = count($this->corrected) . ' of them corrected: the value of the kit stays, the one it needs to work:';
+            foreach ($this->corrected as $setting) {
+                $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ', now ' . Secrets::mask($setting['kit'])
+                    . ' (' . basename($setting['file']) . ": {$setting['why']})";
+            }
         }
         $lines[] = '';
         $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own; grid: an option of the grid, on its settings pages, which opensim import --grid-settings brings from the old config; retired: it stops a simulator of this core):';

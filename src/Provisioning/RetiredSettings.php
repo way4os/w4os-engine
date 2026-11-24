@@ -20,6 +20,8 @@ final class RetiredSettings
      */
     public const RULES = [
         ['Map', 'MapImageModule', '/^warp3dimagemodule$/i', '0.9.3', 'Warp3DImageModule stops a simulator of OpenSimulator 0.9.3 (its map tiles): its default, MapImageModule'],
+        ['Modules', 'AssetServices', '/^hgassetbroker$/i', '0.9.3', 'OpenSimulator 0.9.3 has no HGAssetBroker: the one of its architecture, RegionAssetConnector'],
+        ['Modules', 'GridServices', '/^remotegridservicesconnector$/i', '0.9.3', 'OpenSimulator 0.9.3 has no RemoteGridServicesConnector: the one of its architecture, RegionGridServicesConnector'],
     ];
 
     /** Why a setting stops a simulator of this core, null when it does not. */

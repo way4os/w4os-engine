@@ -255,6 +255,10 @@ final class StartService
         if ($master !== null) {
             $command[] = '-inimaster=' . $master;
         }
+        // What it reads after the rest of its config (ConfigOverrides)
+        if ($base === 'OpenSim' && $instance->lastFiles() !== []) {
+            $command[] = '-inidirectory=' . \W4OS\Engine\Config\ConfigOverrides::directory($instance->ini());
+        }
         if ($base === 'Robust') {
             $prompt = $instance->launchSetting('consoleprompt', 'ConsolePrompt') ?: "Robust ($name) ";
             array_push($command, "-logfile=$logPath", '-prompt', $prompt);

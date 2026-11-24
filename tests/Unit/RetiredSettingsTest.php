@@ -17,7 +17,11 @@ describe('A setting that stops a simulator of its core', function () {
         expect(RetiredSettings::why('Map', 'MapImageModule', '"Warp3DImageModule"', '/usr/share/opensim/0.9.3.0'))->toContain('MapImageModule')
             ->and(RetiredSettings::why('Map', 'MapImageModule', 'Warp3DImageModule', '/opt/opensim/lib/opensim-0.9.2.2'))->toBeNull()
             ->and(RetiredSettings::why('Map', 'MapImageModule', 'MapImageModule', '/usr/share/opensim/0.9.3.0'))->toBeNull()
-            ->and(RetiredSettings::why('Startup', 'MapImageModule', 'Warp3DImageModule', '/usr/share/opensim/0.9.3.0'))->toBeNull();
+            ->and(RetiredSettings::why('Startup', 'MapImageModule', 'Warp3DImageModule', '/usr/share/opensim/0.9.3.0'))->toBeNull()
+            // The modules of 0.9.2 that 0.9.3 has no more
+            ->and(RetiredSettings::why('Modules', 'AssetServices', '"HGAssetBroker"', '/usr/share/opensim/0.9.3.0'))->toContain('RegionAssetConnector')
+            ->and(RetiredSettings::why('Modules', 'GridServices', 'RemoteGridServicesConnector', '/usr/share/opensim/0.9.3.0'))->toContain('RegionGridServicesConnector')
+            ->and(RetiredSettings::why('Modules', 'AssetServices', 'HGAssetBroker', '/opt/opensim/lib/opensim-0.9.2.2'))->toBeNull();
     });
 
     test('is not kept by the import of a simulator', function () {
