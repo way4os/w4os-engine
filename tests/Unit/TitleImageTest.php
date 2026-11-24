@@ -50,10 +50,26 @@ describe('The picture of a place', function () {
             // Within the band, filling it one way or the other
             ->and($width)->toBeLessThanOrEqual($bandWidth)->and($height)->toBeLessThanOrEqual($bandHeight)
             ->and(max($width / $bandWidth, $height / $bandHeight))->toBeGreaterThan(0.8)
-            ->and($y)->toBeGreaterThanOrEqual((TitleImage::SIDE - $bandHeight) / 2 - 1)
+            ->and($y)->toBeGreaterThanOrEqual(TitleImage::SIDE * ImagickTextRenderer::BAND_TOP - 1)
             // A word longer than a line makes the text smaller, never cut
             ->and($lwidth)->toBeLessThanOrEqual($bandWidth)->and($lheight)->toBeLessThanOrEqual($bandHeight)
             ->and($lx)->toBeGreaterThan(0);
+    });
+
+    test('drawn below the corner where a card puts its button, a long word alone included, within what a card of 5:3 shows', function () {
+        $renderer = new ImagickTextRenderer();
+        [$top, $bottom] = [TitleImage::SIDE * ImagickTextRenderer::BAND_TOP, TitleImage::SIDE * (ImagickTextRenderer::BAND_TOP + ImagickTextRenderer::BAND[1])];
+
+        foreach (['RuthAndRoth', 'OpenSimWorld', 'Paramour Shopping'] as $title) {
+            [$x, $y, $width, $height] = title_image_box((string) $renderer->fit($title, TitleImage::SIDE, TitleImage::COLOR, TitleImage::BACKGROUND));
+
+            // The button of a card covers its top right corner: the text starts under it, and ends before the bottom a 5:3 card cuts
+            expect($y)->toBeGreaterThanOrEqual($top - 1)
+                ->and($y + $height)->toBeLessThanOrEqual($bottom + 1)
+                ->and($bottom)->toBeLessThanOrEqual(TitleImage::SIDE * 0.8)
+                ->and($top)->toBeGreaterThanOrEqual(TitleImage::SIDE * 0.4)
+                ->and($x)->toBeGreaterThan(0)->and($x + $width)->toBeLessThan(TitleImage::SIDE);
+        }
     });
 
     test('served as any picture, by its id, in the format asked, drawn once', function () {

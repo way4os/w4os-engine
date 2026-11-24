@@ -19,10 +19,14 @@ final class ImagickTextRenderer implements TextRendererInterface
     public const FIT_FONT = 'DejaVu-Sans-Bold';
 
     /**
-     * The band of a square fit() fills, its width and its height: what every card shows of a square picture, the 5:3 of the guide
-     * the narrowest, a margin around.
+     * The band of a square fit() fills, its width and its height, and where it starts (BAND_TOP): within what every card shows of a
+     * square picture (the 5:3 of the guide the narrowest: from 0.2 to 0.8 of its height), under the corner where a card puts its
+     * button (its menu of links), a margin around.
      */
-    public const BAND = [0.84, 0.5];
+    public const BAND = [0.84, 0.36];
+
+    /** Where the band of fit() starts, as a share of the side. */
+    public const BAND_TOP = 0.42;
 
     public function render(string $text, string $font, int $size, string $color, string $background): ?string
     {
@@ -76,7 +80,8 @@ final class ImagickTextRenderer implements TextRendererInterface
             $lines = $this->wrap($image, $draw, $words, $low, $width) ?? [implode(' ', $words)];
             $line = $this->lineHeight($image, $draw, $low);
             $metrics = $image->queryFontMetrics($draw, 'Ag');
-            $top = ($side - count($lines) * $line) / 2;
+            // The lines centered in the band, under the corner of the button of a card
+            $top = $side * self::BAND_TOP + ($height - count($lines) * $line) / 2;
             foreach ($lines as $i => $text) {
                 // Its baseline: the glyphs centered in their line
                 $image->annotateImage($draw, $side / 2, $top + $i * $line + ($line + $metrics['ascender'] + $metrics['descender']) / 2, 0, $text);
