@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use W4OS\Engine\Config\ConfigReader;
 use W4OS\Engine\Models\Grid;
+use W4OS\Engine\Provisioning\Import\DataMoves;
 use W4OS\Engine\Provisioning\Import\GridImport;
 use W4OS\Engine\Provisioning\NullUi;
 use W4OS\Engine\Testing\Machine;
@@ -40,6 +41,80 @@ function grid_import_no_dump(): Closure
 }
 
 describe('The import of a grid', function () {
+    /** kimbe-red: the folder of its config holds the GridCommon of its simulators, which names its places after its launcher. */
+    $kimbe = static function (bool $literal = true, string $configs = 'kimbe.red'): array {
+        [$machine, $robust] = old_robust_install();
+        $old = dirname($robust, 2);
+        mkdir("$old/var/data/kimbe.red/fsassets/data/ab", 0o755, true);
+        file_put_contents("$old/var/data/kimbe.red/fsassets/data/ab/abcdef.gz", 'an asset');
+        mkdir("$old/etc/$configs", 0o755, true);
+        file_put_contents("$old/etc/$configs/KimbeRed-GridCommon.ini", "[Const]\n    BaseHostname = \"other.example.org\"\n    BaseURL = \"http://other.example.org\"\n    WebURL = \"http://other.example.org\"\n    DataDirectory = \"$old/var/data/\${Launch|MachineName}\"\n[Startup]\n    ConfigDirectory = /etc/opensim/\${Const|BaseHostname}\n[GridInfoService]\n    welcome = \${Const|WebURL}\n");
+        $text = file_get_contents($robust);
+        $text = str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://old.example.org\"\n" . ($literal ? "    DataDirectory = \"$old/var/data/kimbe.red\"\n" : ''), $text);
+        $text = str_replace("[GridInfoService]\n", "[GridInfoService]\n    welcome = \"\${Const|BaseURL}/opensim/welcome\"\n", $text);
+        file_put_contents($robust, $text . "[Startup]\n    ConfigDirectory = \"$old/etc/$configs\"\n[AssetService]\n    LocalServiceModule = \"OpenSim.Services.FSAssetService.dll:FSAssetConnector\"\n    BaseDirectory = \"\${Const|DataDirectory}/fsassets/data\"\n");
+        $example = $machine->core . '/bin/Robust.HG.ini.example';
+        file_put_contents($example, file_get_contents($example) . "[AssetService]\n    BaseDirectory = \"\${Const|DataDirectory}/fsassets/data\"\n");
+
+        return [$machine, $robust, $old];
+    };
+
+    test('of kimbe-red moves its assets, the folder of its config never changing its own constants', function () use ($kimbe) {
+        [$machine, $robust, $old] = $kimbe();
+        $import = GridImport::prepare($machine->environment, $robust, 'kimberedcharm');
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+
+        expect(array_column($import->document()['data'], 'from'))->toBe(["$old/var/data/kimbe.red/fsassets/data"])
+            ->and(file_get_contents($import->plan->dataDirectory . '/fsassets/data/ab/abcdef.gz'))->toBe('an asset')
+            // Its grid info its own, never the one of the simulators beside it
+            ->and(ConfigReader::load($robust, [], false, true)['GridInfoService']['welcome'] ?? '')->toBe('${Const|BaseURL}/opensim/welcome')
+            ->and(ConfigReader::expand(ConfigReader::file($import->plan->robustIni()))['GridInfoService']['welcome'] ?? '')->toBe('http://old.example.org/opensim/welcome');
+    });
+
+    test('refuses the data it cannot tell, never leaves it behind silently', function () use ($kimbe) {
+        // Its launcher named after nothing this config knows: the folder of its config is another
+        [$machine, $robust, $old] = $kimbe(literal: false, configs: 'common');
+        $import = GridImport::prepare($machine->environment, $robust, 'kimberedcharm');
+
+        expect($import->document()['data'])->toBe([])
+            ->and($import->document()['problems']['data'] ?? '')->toContain('cannot tell which folder [AssetService] BaseDirectory is', "$old/var/data/kimbe.red");
+    });
+
+    /** Its assets of FSAssets in the folder it runs in, `./fsassets/data`; the new config names their place, or not. */
+    $relative = static function (): array {
+        [$machine, $robust] = old_robust_install();
+        $old = dirname($robust, 2);
+        mkdir("$old/bin/fsassets/data/ab", 0o755, true);
+        file_put_contents("$old/bin/fsassets/data/ab/abcdef.gz", 'an asset');
+        file_put_contents($robust, file_get_contents($robust) . "[AssetService]\n    LocalServiceModule = \"OpenSim.Services.FSAssetService.dll:FSAssetConnector\"\n    BaseDirectory = \"./fsassets/data\"\n");
+        $example = $machine->core . '/bin/Robust.HG.ini.example';
+        file_put_contents($example, file_get_contents($example) . "[AssetService]\n    BaseDirectory = \"\${Const|DataDirectory}/fsassets/data\"\n");
+
+        return [$machine, $robust, $old];
+    };
+
+    test('moves its assets of a place relative to the folder it runs in', function () use ($relative) {
+        [$machine, $robust, $old] = $relative();
+        $import = GridImport::prepare($machine->environment, $robust, 'relativegrid');
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+
+        expect(array_column($import->document()['data'], 'from'))->toBe(["$old/bin/fsassets/data"])
+            ->and(file_get_contents($import->plan->dataDirectory . '/fsassets/data/ab/abcdef.gz'))->toBe('an asset');
+    });
+
+    test('refuses to go when data that must come would stay behind', function () {
+        $old = test_tmp() . '/old-' . bin2hex(random_bytes(4));
+        mkdir("$old/bin/fsassets/data/ab", 0o755, true);
+        file_put_contents("$old/bin/fsassets/data/ab/abcdef.gz", 'an asset');
+        $required = ['[AssetService] BaseDirectory' => './fsassets/data'];
+
+        $left = DataMoves::plan([], ['AssetService' => ['BaseDirectory' => '/new/data/fsassets/data']], [], false, "$old/bin", $required);
+        $inPlace = DataMoves::plan([], ['AssetService' => ['BaseDirectory' => "$old/bin/fsassets/data"]], [], false, "$old/bin", $required);
+
+        expect($left->problems())->toBe(["[AssetService] BaseDirectory of the old install is $old/bin/fsassets/data, which holds data the import does not bring to /new/data/fsassets/data"])
+            ->and($inPlace->problems())->toBe([]);
+    });
+
     test('defines in its config the constants of the old one its kept settings use, and refuses what none defines', function () {
         [$machine, $robust] = old_robust_install();
         $text = str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://old.example.org\"\n    PrivURL = \${Const|BaseURL}\n    WebURL = \"http://site.example.org\"\n", file_get_contents($robust));

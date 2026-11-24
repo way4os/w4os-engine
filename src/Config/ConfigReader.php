@@ -116,6 +116,9 @@ final class ConfigReader
         $paths = (array) $path;
         $queue = $paths;
         $done = [];
+        // The files of the ConfigDirectory add what the config does not say: they never replace its own (the GridCommon of the
+        // simulators beside a Robust does not change its constants)
+        $added = [];
         while ($queue) {
             $file = array_shift($queue);
             $real = realpath($file) ?: $file;
@@ -125,13 +128,18 @@ final class ConfigReader
             $done[$real] = true;
             $ini = self::file($file);
             foreach ($ini as $section => $values) {
-                $merged[$section] = array_merge($merged[$section] ?? [], $values);
+                $merged[$section] = isset($added[$real]) ? ($merged[$section] ?? []) + $values : array_merge($merged[$section] ?? [], $values);
             }
             $const = ($merged['Const'] ?? []) + $constants;
             foreach ($ini as $values) {
                 foreach ($values as $key => $value) {
                     if (stripos($key, 'Include-') === 0 && $value !== '') {
-                        array_push($queue, ...self::included($value, dirname($file), $const));
+                        $included = self::included($value, dirname($file), $const);
+                        // What a file of the ConfigDirectory includes adds too
+                        foreach (isset($added[$real]) ? $included : [] as $one) {
+                            $added[realpath($one) ?: $one] = true;
+                        }
+                        array_push($queue, ...$included);
                     }
                 }
             }
@@ -141,6 +149,9 @@ final class ConfigReader
                     $folder = str_starts_with($folder, '/') ? $folder : dirname($file) . "/$folder";
                     $found = glob(rtrim($folder, '/') . '/*.ini') ?: [];
                     sort($found);
+                    foreach ($found as $one) {
+                        $added[realpath($one) ?: $one] = true;
+                    }
                     array_push($queue, ...$found);
                 }
             }

@@ -86,9 +86,10 @@ final class GridImport
             $value = trim((string) $value, " \t\"");
             preg_match('/Directory$/i', (string) $key) === 1 && str_starts_with($value, '/') && ($roots[] = rtrim($value, '/'));
         }
+        $generated = ConfigReader::parse(RobustImporter::generate($plan, $environment));
         ['kept' => $customizations, 'dropped' => $dropped] = RobustImporter::sorted(
             $raw,
-            ConfigReader::parse(RobustImporter::generate($plan, $environment)),
+            $generated,
             $defaults,
             dirname($file),
             is_file($example) ? (string) file_get_contents($example) : '',
@@ -97,9 +98,13 @@ final class GridImport
         );
 
         // A migration keeps the choices of the grid: what this install writes its own way (a text of a preset) is the old one again,
-        // but the services the options of this install lay ([ServiceList])
+        // but the services the options of this install lay ([ServiceList]), and a value referring to what the new config does not define
+        $defined = $generated;
+        foreach ($customizations as $setting) {
+            $defined[$setting['section']][$setting['key']] = $setting['value'];
+        }
         foreach ($dropped as $i => $setting) {
-            if ($setting['reason'] === 'replaced' && !($setting['place'] ?? false) && $setting['section'] !== 'ServiceList' && !str_contains($setting['value'], '${')) {
+            if ($setting['reason'] === 'replaced' && !($setting['place'] ?? false) && $setting['section'] !== 'ServiceList' && self::resolves($setting['value'], $defined)) {
                 $customizations[] = ['section' => $setting['section'], 'key' => $setting['key'], 'value' => $setting['value'], 'unknown' => false, 'path' => false];
                 unset($dropped[$i]);
             }
@@ -112,7 +117,16 @@ final class GridImport
         // The folders of its data in the old install come into the layout of this one, where its new config has them
         $configs = trim((string) ($expanded['Startup']['ConfigDirectory'] ?? ''), " \t\"");
         $names = [$configs !== '' && !str_contains($configs, '${') ? basename($configs) : '', trim((string) ($expanded['Launch']['MachineName'] ?? ''), '"'), basename($file, '.ini')];
-        $data = DataMoves::plan($dropped, ConfigReader::expand(ConfigReader::parse(RobustImporter::generate($plan, $environment))), $names, $copyData);
+        // Its assets of FSAssets come, or the import does not go
+        $assets = $expanded['AssetService'] ?? [];
+        $store = trim((string) ($assets['BaseDirectory'] ?? ''), " \t\"");
+        $required = str_contains((string) ($assets['LocalServiceModule'] ?? ''), 'FSAsset') && $store !== '' ? ['[AssetService] BaseDirectory' => $store] : [];
+        $written = $generated;
+        foreach ($customizations as $setting) {
+            $written[$setting['section']][$setting['key']] = $setting['value'];
+        }
+        $bin = trim((string) ($expanded['Launch']['BinDir'] ?? ''), " \t\"");
+        $data = DataMoves::plan($dropped, ConfigReader::expand($written), $names, $copyData, str_starts_with($bin, '/') ? $bin : dirname($file), $required);
 
         return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $raw['Const'] ?? []);
     }
@@ -236,6 +250,23 @@ final class GridImport
         }
 
         return $found;
+    }
+
+    /**
+     * Whether each reference of a value (`${Section|Key}`) is defined in a config.
+     *
+     * @param array<string,array<string,string>> $config
+     */
+    private static function resolves(string $value, array $config): bool
+    {
+        preg_match_all('/\$\{([^|}]+)\|([^}]+)\}/', $value, $references, PREG_SET_ORDER);
+        foreach ($references as [, $section, $key]) {
+            if (!isset($config[$section][$key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** A folder this import made, and all it holds. */

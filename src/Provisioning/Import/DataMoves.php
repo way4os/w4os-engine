@@ -26,14 +26,15 @@ final class DataMoves
      * @param list<array{from:string,to:string,setting:string}> $moves
      * @param bool $copy copy instead of moving
      * @param list<string> $unseen places this process cannot see into, so cannot tell whether they hold data
+     * @param list<string> $unknown places it cannot tell from the folders that could be them, said
      */
-    public function __construct(public readonly array $moves, public readonly bool $copy = false, public readonly array $unseen = [])
+    public function __construct(public readonly array $moves, public readonly bool $copy = false, public readonly array $unseen = [], array $unknown = [])
     {
         $this->planned = array_map(fn(array $move): array => $move + [
             'mode' => $copy ? 'copy' : 'move',
             'acrossFilesystems' => self::device($move['from']) !== self::device($move['to']),
         ], $moves);
-        $refused = array_map(static fn(string $place): string => "cannot see whether $place holds data (a folder above it is not readable here): run the import as root", $unseen);
+        $refused = [...$unknown, ...array_map(static fn(string $place): string => "cannot see whether $place holds data (a folder above it is not readable here): run the import as root", $unseen)];
         foreach ($moves as $move) {
             $from = $move['from'];
             if ($copy) {
@@ -53,16 +54,20 @@ final class DataMoves
      * @param array<string,array<string,string>> $generated the new config, its references replaced
      * @param list<string> $names what a `${Launch|...}` of the old install may be, the one whose folder is there is taken (its launcher
      *        names the instance at its start: its folder of config, its name in [Launch], the name of its config)
+     * @param string $base the folder a relative place of the old install is in (its bin, where it runs)
+     * @param array<string,string> $required places of the old install whose data must come, by their setting (`[Section] Key`):
+     *        one that holds files and is not brought keeps the import from going
      */
-    public static function plan(array $dropped, array $generated, array $names, bool $copy = false): self
+    public static function plan(array $dropped, array $generated, array $names, bool $copy = false, string $base = '', array $required = []): self
     {
         $moves = [];
         $unseen = [];
+        $unknown = [];
         foreach ($dropped as $setting) {
             if (($setting['place'] ?? false) !== true || $setting['reason'] !== 'replaced') {
                 continue;
             }
-            $from = rtrim(self::launched($setting['value'], $names), '/');
+            $from = self::absolute(self::launched($setting['value'], $names), $base);
             $to = rtrim(trim((string) ($generated[$setting['section']][$setting['key']] ?? ''), " \t\""), '/');
             if (!str_starts_with($from, '/') || $to === '' || str_contains($to, '${') || !str_starts_with($to, '/') || $from === $to) {
                 continue;
@@ -70,7 +75,13 @@ final class DataMoves
             // A folder that is not there holds nothing; one this process cannot see is said, never taken for absent (a name of its
             // launcher it cannot find either: the folder before it)
             if (str_contains($from, '${') || !is_dir($from)) {
-                self::hidden(str_contains($from, '${') ? substr($from, 0, (int) strpos($from, '${')) . '_' : $from) && $unseen[] = $from;
+                // A name of its launcher none of the names known makes a folder: never taken for nothing when folders could be it
+                $could = str_contains($from, '${') ? array_values(array_filter(glob((string) preg_replace('/\$\{[^}]+\}/', '*', $from), GLOB_ONLYDIR) ?: [], static fn(string $dir): bool => (new \FilesystemIterator($dir))->valid())) : [];
+                if ($could !== []) {
+                    $unknown[] = "cannot tell which folder [{$setting['section']}] {$setting['key']} is ($from): " . implode(', ', $could) . ' could be its data, which the import does not move without knowing';
+                } elseif (self::hidden(str_contains($from, '${') ? substr($from, 0, (int) strpos($from, '${')) . '_' : $from)) {
+                    $unseen[] = $from;
+                }
                 continue;
             }
             $moves[$from] = ['from' => $from, 'to' => $to, 'setting' => "[{$setting['section']}] {$setting['key']}"];
@@ -86,7 +97,42 @@ final class DataMoves
             $kept[] = $move;
         }
 
-        return new self($kept, $copy, array_values(array_unique($unseen)));
+        // The data that must come, said when it does not: never left behind in the old install
+        foreach ($required as $label => $place) {
+            $from = self::absolute(self::launched($place, $names), $base);
+            if ($from === '' || str_contains($from, '${') || !is_dir($from) || !(new \FilesystemIterator($from))->valid()) {
+                continue;
+            }
+            $brought = array_filter($kept, static fn(array $move): bool => str_starts_with($from . '/', $move['from'] . '/'));
+            [$section, $key] = self::setting($label);
+            $to = rtrim(trim((string) ($generated[$section][$key] ?? ''), " \t\""), '/');
+            if ($brought === [] && realpath($from) !== realpath($to)) {
+                $unknown[] = "$label of the old install is $from, which holds data the import does not bring" . ($to === '' ? '' : " to $to");
+            }
+        }
+
+        return new self($kept, $copy, array_values(array_unique($unseen)), array_values(array_unique($unknown)));
+    }
+
+    /** A place of the old install, absolute: a relative one is in the folder it runs in. */
+    private static function absolute(string $place, string $base): string
+    {
+        $place = rtrim($place, '/');
+        if ($place === '' || str_starts_with($place, '/') || str_contains($place, '${') || $base === '') {
+            return $place;
+        }
+
+        return rtrim($base, '/') . '/' . (string) preg_replace('#^(\./)+#', '', $place);
+    }
+
+    /**
+     * The section and the key of a setting said `[Section] Key`.
+     *
+     * @return array{0:string,1:string}
+     */
+    private static function setting(string $label): array
+    {
+        return preg_match('/^\[([^\]]+)\]\s*(.+)$/', $label, $m) === 1 ? [$m[1], $m[2]] : ['', $label];
     }
 
     /** Whether a path cannot be seen by this process: the first of its parents that is there cannot be searched. */

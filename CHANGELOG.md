@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (migrate): the assets of FSAssets come, a relative place too, or the import refuses to go, said
+- fix (migrate): Robust keeps its own constants and grid info; its ConfigDirectory only adds what it does not say
 - fix (start): simulators start one after another again, each started before the next, every result kept and named
 - fix (start): the simulators started together are launched together, their waits from their launch: the time of the slowest
 - fix (start): a simulator waiting at its console for an answer nothing gives (an estate with no owner) is stopped, said
