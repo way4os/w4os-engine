@@ -414,9 +414,13 @@ describe('The pictures of the guide of a grid', function () {
 
         $run = $grid->refreshGuidePictures();
         $guide = W4OS\Engine\Models\Grid::find($machine->environment, 'demo')->guide();
+        // The guide as models of its places on the grid: their pictures theirs
+        $models = $grid->guideModels();
 
         expect($run['found'])->toBe(1)
             ->and($guide['Visit']['destinations'][0]['picture'] ?? null)->toBe(REMOTE_BEACH)
+            ->and(array_map(static fn(W4OS\Engine\Hypergrid\Place $p): array => [$p->name(), $p->realPicture()], $models['Visit'] ?? []))
+            ->toBe([['Far beach', REMOTE_BEACH], ['Far hill', null]])
             // The step that gave nothing, for each destination without a picture: here its parcel has none
             ->and($run['missed'])->toBe(['Far hill' => 'the parcel has no picture']);
     });

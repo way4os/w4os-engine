@@ -1271,25 +1271,37 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     public function guide(?GridConfig $config = null): array
     {
         $config ??= $this->config();
-        $guide = $this->guidePictures($config);
-        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
-        $login = (string) $this->loginUrl();
-        // What the card of each destination shows: its title, its label, the name of its grid; its picture when this host can show it
-        // (RemotePictures::shown()), else the image of its title; a section the first of its destinations that has one
-        foreach ($guide as $name => &$section) {
+        $guide = [];
+        // What the card of each destination shows: its title, its label, the name of its grid; its picture, its model's
+        // (Place::realPicture()), else the image of its title; a section the first of its destinations that has one
+        foreach ($this->destinations($config) as $name => $destinations) {
             $first = null;
-            foreach ($section['destinations'] as &$destination) {
-                $destination += $this->card($destination['url'], $destination['name'], $config);
-                $shown = \W4OS\Engine\Services\RemotePictures::shown($cache, $login, $destination['url'], $destination['picture']);
-                $first ??= $shown;
-                $destination['picture'] = \W4OS\Engine\Assets\TitleImage::pick($shown, (string) ($destination['title'] ?? $destination['name']));
+            $cards = [];
+            foreach ($destinations as $destination) {
+                $card = $destination + $this->card($destination['url'], $destination['name'], $config);
+                $picture = $this->place($destination['url'])->named($destination['name'])->on($this)->realPicture();
+                $first ??= $picture;
+                $cards[] = ['picture' => \W4OS\Engine\Assets\TitleImage::pick($picture, (string) ($card['title'] ?? $card['name']))] + $card;
             }
-            unset($destination);
-            $section['picture'] = \W4OS\Engine\Assets\TitleImage::pick($first, (string) $name);
+            $guide[$name] = ['picture' => \W4OS\Engine\Assets\TitleImage::pick($first, (string) $name), 'destinations' => $cards];
         }
-        unset($section);
 
         return $guide;
+    }
+
+    /**
+     * The guide as models of its places on this grid (Place, named and on the grid), by section: their pictures theirs.
+     *
+     * @return array<string,list<\W4OS\Engine\Hypergrid\Place>>
+     */
+    public function guideModels(?GridConfig $config = null): array
+    {
+        $config ??= $this->config();
+
+        return array_map(
+            fn(array $destinations): array => array_map(fn(array $d): \W4OS\Engine\Hypergrid\Place => $this->place($d['url'])->named($d['name'])->on($this), $destinations),
+            $this->destinations($config),
+        );
     }
 
     /**
@@ -1327,18 +1339,6 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /** The section of the popular places among the ones of the guide whose pictures are asked: never the name of a category. */
     private const POPULAR_PICTURES = "\0popular";
 
-    /**
-     * The guide with the pictures known of its destinations, null where none is (DestinationPictures), before the images of the titles.
-     *
-     * @return array<string,array{picture:?string,destinations:list<array{name:string,url:string,picture:?string}>}>
-     */
-    private function guidePictures(?GridConfig $config): array
-    {
-        $search = $config === null ? null : Connections::pdo($config, Database::Search);
-        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
-
-        return (new \W4OS\Engine\Services\DestinationPictures($search, (string) $this->loginUrl(), $cache))->of($this->destinations($config));
-    }
 
     /**
      * Ask the grids of the hypergrid destinations of the guide for the pictures the search has none of, and keep them (a task of
@@ -1361,7 +1361,16 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
 
         // The destinations without a picture are asked: the guide before the images of their titles; and the popular places of the
         // other grids, whose assets this grid has not (a host without a grid has none)
-        $guide = $this->guidePictures($config);
+        // The destinations of the guide by their models' addresses, the ones they read their pictures with (Place::realPicture());
+        // a grid alone by its own, for the region it lands on
+        $guide = [];
+        foreach ($this->destinations($config) as $name => $destinations) {
+            $guide[$name] = ['picture' => null, 'destinations' => array_map(function (array $d): array {
+                $alone = (\W4OS\Engine\Hypergrid\Destination::parse($d['url'])['region'] ?? '') === '';
+
+                return ['name' => $d['name'], 'url' => $alone ? $d['url'] : ((string) $this->place($d['url'])->tpUri() ?: $d['url']), 'picture' => null];
+            }, $destinations)];
+        }
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
         if ($search !== null) {
             // By their models' addresses, the ones they read their pictures with (SearchResult::realPicture())

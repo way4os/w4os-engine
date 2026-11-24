@@ -39,6 +39,50 @@ final class Place implements Reachable
         return new self(rtrim($grid, '/') . '/' . $region . ($point === '' ? '' : '/' . $point), $login, $formats);
     }
 
+    /** @var string what it is called (the name an entry of the guide gives it), its picture read with it */
+    private string $name = '';
+
+    /** @var ?\W4OS\Engine\Models\Grid the grid it is shown for, what its picture is read through (realPicture()) */
+    private ?\W4OS\Engine\Models\Grid $on = null;
+
+    /** The place with its name: the one of an entry of the guide, a popular place. */
+    public function named(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /** The place on the grid it is shown for: its picture is read through it (its search, the cache of what its grids gave). */
+    public function on(?\W4OS\Engine\Models\Grid $grid): self
+    {
+        $this->on = $grid;
+
+        return $this;
+    }
+
+    public function name(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Its picture, the one door to it: the one of the parcel of the place, as its grid finds it (Grid::shownPicture(): its search,
+     * what the grid of the place gave); null without one, or without a grid to read it through.
+     */
+    public function realPicture(): ?string
+    {
+        $uri = (string) $this->tpUri();
+
+        return $this->on === null || $uri === '' ? null : $this->on->shownPicture($uri, $this->name, null, title: false);
+    }
+
+    /** Its picture, else the image of its name (a card). */
+    public function picture(): string
+    {
+        return \W4OS\Engine\Assets\TitleImage::pick($this->realPicture(), $this->name);
+    }
+
     public function tpUri(): ?string
     {
         $uri = trim($this->destination) === '' ? '' : Destination::uri($this->destination, $this->login);
