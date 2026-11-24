@@ -143,8 +143,8 @@ final class GridImport
         // theirs, never kept in Robust, where it would do nothing (their settings of the grid come into its OpenSim.ini)
         $theirs = [];
         foreach ($simulators as $simulator) {
-            $file = (string) ($simulator['file'] ?? '');
-            foreach (is_file($file) ? ConfigReader::load($file, [], false) : [] as $section => $values) {
+            $config = (string) ($simulator['file'] ?? '');
+            foreach (is_file($config) ? ConfigReader::load($config, [], false) : [] as $section => $values) {
                 foreach (is_array($values) ? array_keys($values) : [] as $key) {
                     $theirs[strtolower("$section|$key")] = true;
                 }

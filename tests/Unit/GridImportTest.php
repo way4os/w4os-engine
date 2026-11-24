@@ -508,6 +508,23 @@ describe('The import of a grid', function () {
         }
     });
 
+    test('with its simulators is still the import of its Robust: its source, its backup and the switch it says are the Robust\'s', function () {
+        [$machine, $robust] = old_robust_install();
+        $bin = dirname($robust);
+        mkdir("$bin/Regions");
+        file_put_contents("$bin/OpenSim.ini", "[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']]);
+        $plan = $import->document();
+        $switch = array_values(array_filter($plan['reminders'] ?? [], static fn(array $r): bool => $r['code'] === 'import-switch'))[0]['params']['command'] ?? '';
+
+        expect($import->source)->toBe(realpath($robust))
+            ->and($plan['source'])->toBe(realpath($robust))
+            ->and($switch)->toBe('opensim import --robust ' . realpath($robust) . ' --switch')
+            ->and($plan['backup']['files'] ?? [])->toContain(realpath($robust));
+    });
+
     test('refuses a grid this install has already', function () {
         [$machine, $robust] = old_robust_install();
 
