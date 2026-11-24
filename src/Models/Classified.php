@@ -120,7 +120,7 @@ final class Classified extends SearchResult
                 ItemForm::shown('category', 'web_search_category', 'select', 'classified', ['options' => array_combine(array_map('strval', array_keys($categories)), $categories)]),
                 ItemForm::shown('created', 'web_search_creation_date', 'date', 'classified'),
                 ItemForm::shown('price', 'web_search_listing_cost', 'number', 'classified'),
-                ItemForm::shown('description', 'web_search_description', 'text', 'classified'),
+                ItemForm::shown('description', 'web_search_description', 'text', 'classified', ['bare' => true]),
             ],
             [ItemForm::group('classified', 'web_search_classifieds')],
         );

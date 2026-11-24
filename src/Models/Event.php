@@ -46,6 +46,14 @@ final class Event extends SearchResult
         return (string) ($this->row['landingpoint'] ?? '');
     }
 
+    /** The picture of the parcel of its place, as the search knows it (DestinationPictures), none without one. */
+    protected function pictureAsset(): ?string
+    {
+        $uri = (string) $this->tpUri();
+
+        return $uri === '' ? null : (new \W4OS\Engine\Services\DestinationPictures(self::search($this->config)))->picture($uri, $this->name());
+    }
+
     public function detail(): array
     {
         $flags = (int) ($this->row['eventflags'] ?? 0);
@@ -67,6 +75,8 @@ final class Event extends SearchResult
             'location' => trim((string) ($this->row['simname'] ?? '')),
             // The fee to enter it, null for none
             'coverCharge' => (int) ($this->row['covercharge'] ?? 0) !== 0 ? (int) ($this->row['coveramount'] ?? 0) : null,
+            // The picture of the parcel of its place, as the search knows it, else the image of its name
+            'picture' => $this->picture(),
         ] + $this->place();
     }
 
@@ -102,7 +112,7 @@ final class Event extends SearchResult
     {
         return new Listing(
             [
-                Listing::column('name', 'web_search_name', sort: 'name'),
+                Listing::column('name', 'web_search_name', sort: 'name', more: ['picture' => 'picture', 'default' => 'place']),
                 Listing::column('date', 'web_search_time', 'datetime', 'date'),
             ],
             [
@@ -131,7 +141,7 @@ final class Event extends SearchResult
                 ItemForm::shown('organizerName', 'web_search_organizer', 'text', 'event'),
                 ItemForm::shown('location', 'web_search_location', 'text', 'event', ['teleport' => true]),
                 ItemForm::shown('coverCharge', 'web_search_entry_fee', 'number', 'event', ['empty' => 'web_search_none']),
-                ItemForm::shown('description', 'web_search_description', 'text', 'event'),
+                ItemForm::shown('description', 'web_search_description', 'text', 'event', ['bare' => true]),
             ],
             [ItemForm::group('event', 'web_search_events')],
         );

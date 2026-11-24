@@ -232,7 +232,7 @@ abstract class SearchResult extends Model implements Reachable, \W4OS\Engine\Ass
     }
 
     /** The search database of the grid, null when it sets none. @throws ChannelUnavailable when it cannot be reached */
-    private static function search(GridConfig $config): ?OSPDO
+    protected static function search(GridConfig $config): ?OSPDO
     {
         return self::optional($config, Database::Search, null, 'read the search');
     }

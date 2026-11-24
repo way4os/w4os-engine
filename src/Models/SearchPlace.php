@@ -116,7 +116,7 @@ final class SearchPlace extends SearchResult
                 ItemForm::shown('area', 'web_search_area', 'number', 'place', ['unit' => 'm²']),
                 ItemForm::shown('traffic', 'web_search_traffic', 'number', 'place'),
                 ItemForm::shown('rating', 'web_search_rating', 'select', 'place', ['options' => self::ratingOptions()]),
-                ItemForm::shown('description', 'web_search_description', 'text', 'place'),
+                ItemForm::shown('description', 'web_search_description', 'text', 'place', ['bare' => true]),
             ],
             [ItemForm::group('place', 'web_search_places')],
         );

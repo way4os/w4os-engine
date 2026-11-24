@@ -986,3 +986,13 @@ describe('The page of a result of the search', function () {
             ->toBe(['location', 'location', 'region', 'region']);
     });
 });
+
+describe('The details of a result of the search', function () {
+    test('show its picture, an event the one of its place, and its description as a text of its own, without its label', function () {
+        $models = [W4OS\Engine\Models\Event::class, W4OS\Engine\Models\Classified::class, W4OS\Engine\Models\SearchPlace::class, W4OS\Engine\Models\LandSale::class];
+        $description = static fn(string $model): array => array_values(array_filter($model::itemForm()->fields, static fn(array $f): bool => $f['name'] === 'description'))[0] ?? [];
+
+        expect(array_map(static fn(string $model): bool => ($description($model)['bare'] ?? false) === true, $models))->toBe([true, true, true, true])
+            ->and(W4OS\Engine\Models\Event::listing()->document()['columns'][0]['picture'] ?? null)->toBe('picture');
+    });
+});

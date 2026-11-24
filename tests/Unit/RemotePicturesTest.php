@@ -493,5 +493,28 @@ describe('The pictures of the guide of a grid', function () {
             // Another grid's, not kept here: none
             ->and(RemotePictures::shown($cache, 'http://grid.example.org:8002', 'far.example.net:8002/Far', REMOTE_HILL))->toBeNull();
     });
+
+    test('of a result shown in full: its picture, or the one of the parcel of its place, as the cards have them', function () {
+        $world = remote_grid();
+        $machine = new Machine();
+        $db = search_database();
+        $db->exec("INSERT INTO regionsregister VALUES ('Welcome', 'r1', '1', 'http://sim.example.org:9000/', 'Ada', 'o', 'http://grid.example.org:8002'), ('Far', 'r9', '9', 'http://sim.far.example.net:9000/', 'Bob', 'o', 'http://far.example.net:8002')");
+        $db->exec("INSERT INTO parcels VALUES ('p1', 'r1', 'Rose garden', '128/128/25', '', '', 'true', 'true', 'true', 30, 'info', 'PG', 'http://grid.example.org:8002', '" . REMOTE_BEACH . "')");
+        $machine->write($machine->grid . '/Robust.HG.ini', (string) file_get_contents($machine->grid . '/Robust.HG.ini') . "\n[GridInfoService]\n    login = \"http://grid.example.org:8002/\"\n");
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+
+        // An event of the grid, without a picture of its own: the one of the parcel of its place
+        $event = $grid->shownPicture('grid.example.org:8002/Welcome/128/128/25', 'Jazz night');
+        // A place of another grid whose picture is not kept here: the image of its title
+        $far = $grid->shownPicture('far.example.net:8002/Far/10/20/30', 'Far beach', REMOTE_HILL);
+        // A place of the grid with its snapshot: that one
+        $own = $grid->shownPicture('grid.example.org:8002/Welcome/128/128/25', 'Rose garden', REMOTE_HILL);
+        W4OS\Engine\Data\Connections::using(null);
+
+        expect($event)->toBe(REMOTE_BEACH)
+            ->and($far)->toBe(W4OS\Engine\Assets\TitleImage::id('Far beach'))
+            ->and($own)->toBe(REMOTE_HILL);
+    });
 });
 

@@ -1275,6 +1275,27 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $guide;
     }
 
+    /**
+     * The picture of a result shown in full (a place, land for sale, a classified, an event), as the cards have theirs: its own (its
+     * snapshot), else the one of the parcel of its place (DestinationPictures: the search, else what its grid gave), shown when this
+     * host can show it (RemotePictures::shown()), else the image of its title (TitleImage).
+     *
+     * @param string $url its place (host:port/Region/x/y/z)
+     */
+    public function shownPicture(string $url, string $title, ?string $picture = null, ?GridConfig $config = null): string
+    {
+        $config ??= $this->config();
+        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
+        $login = (string) $this->loginUrl();
+        // None of its own (an image of its title is none): the one of the parcel of its place
+        if ($picture === null || !\W4OS\Engine\Text\Uuid::isValid($picture) || \W4OS\Engine\Text\Uuid::isNullKey($picture)) {
+            $search = $config === null ? null : Connections::pdo($config, Database::Search);
+            $picture = (new \W4OS\Engine\Services\DestinationPictures($search, $login, $cache))->picture($url, $title);
+        }
+
+        return \W4OS\Engine\Assets\TitleImage::pick(\W4OS\Engine\Services\RemotePictures::shown($cache, $login, $url, $picture), $title);
+    }
+
     /** The section of the popular places among the ones of the guide whose pictures are asked: never the name of a category. */
     private const POPULAR_PICTURES = "\0popular";
 

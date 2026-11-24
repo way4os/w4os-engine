@@ -130,7 +130,7 @@ final class LandSale extends SearchResult
                 ItemForm::shown('area', 'web_search_area', 'number', 'land', ['unit' => 'm²']),
                 ItemForm::shown('traffic', 'web_search_traffic', 'number', 'land'),
                 ItemForm::shown('rating', 'web_search_rating', 'select', 'land', ['options' => self::ratingOptions()]),
-                ItemForm::shown('description', 'web_search_description', 'text', 'land'),
+                ItemForm::shown('description', 'web_search_description', 'text', 'land', ['bare' => true]),
             ],
             [ItemForm::group('land', 'web_search_land')],
         );
