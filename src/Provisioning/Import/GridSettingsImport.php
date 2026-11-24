@@ -66,6 +66,8 @@ final class GridSettingsImport
         $grid = Grid::find($environment, $nick) ?? throw NotFound::for("grid called '$nick'", 'grids');
         is_file($file) && is_readable($file) || throw InvalidValue::because('invalid-request', "$file cannot be read");
         $target = rtrim($grid->directory(), '/') . '/OpenSim.ini';
+        // The host of the site of the grid: an address there is the grid's own (onSite())
+        $site = (string) parse_url((string) $grid->site(), PHP_URL_HOST);
         $sections = self::optionSections(new GridOptions($grid));
 
         // The old config as OpenSimulator reads it: each file, then the files it includes, each saying the last word
@@ -145,7 +147,10 @@ final class GridSettingsImport
                     if (array_key_exists($key, $has) && (
                         !$overKit ||
                         trim((string) $has[$key], " \t\"") === trim($value, " \t\"") ||
-                        \W4OS\Engine\Config\ConfigOverrides::kept(['section' => $section, 'key' => $name, 'value' => $value, 'kit' => (string) $has[$key]]) !== null
+                        // What the kit needs to work is its own, but an address of the site of the grid, which its helpers serve where
+                        // it is (Grid::helperPaths()): the old one's, never rewritten
+                        (\W4OS\Engine\Config\ConfigOverrides::kept(['section' => $section, 'key' => $name, 'value' => $value, 'kit' => (string) $has[$key]]) !== null
+                            && !self::onSite($value, $constants, $site))
                     )) {
                         continue;
                     }
@@ -220,6 +225,22 @@ final class GridSettingsImport
         }
 
         return $written;
+    }
+
+    /**
+     * Whether an address of the old config is on the site of the grid: written from its web site (`${Const|WebURL}`), or its host.
+     *
+     * @param array<string,string> $constants the [Const] of the old config, by their name in lower case
+     */
+    private static function onSite(string $value, array $constants, string $site): bool
+    {
+        $value = trim($value, " \t\"");
+        if (preg_match('/^\$\{Const\|WebURL\}/i', $value) === 1) {
+            return true;
+        }
+        $value = (string) preg_replace_callback('/\$\{Const\|([^}]+)\}/i', static fn(array $m): string => trim((string) ($constants[strtolower($m[1])] ?? $m[0]), " \t\""), $value);
+
+        return $site !== '' && strcasecmp((string) parse_url($value, PHP_URL_HOST), $site) === 0;
     }
 
     /**

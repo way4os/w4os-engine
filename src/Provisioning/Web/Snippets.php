@@ -205,7 +205,7 @@ final class Snippets
         $services = HelpersConfig::services($gridDirectory);
         $routes = self::routes(
             [...array_map(static fn(string $page): string => $services->path($page), [...array_keys(Services::SCRIPTS), ...array_keys(Services::PAGES)]), '/health'],
-            array_values($grid?->helperPaths() ?? []),
+            array_keys($grid?->helperPaths() ?? []),
             $prefix,
         );
         $variables = self::siteVariables($webUrl) + [

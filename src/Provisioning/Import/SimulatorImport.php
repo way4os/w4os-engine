@@ -374,9 +374,14 @@ final class SimulatorImport
         }
         $lines[] = '';
         $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own; grid: an option of the grid, on its settings pages, which opensim import --grid-settings brings from the old config, a migration of the grid too; retired: it stops a simulator of this core, or no core of the kit reads it):';
+        // What the simulator runs with, for the settings its grid gives it: the real value, said
+        $master = \W4OS\Engine\Provisioning\SimulatorMaster::path($plan->gridDir);
+        $runs = is_file($plan->iniPath()) ? array_change_key_case(ConfigReader::expand(ConfigReader::load([...(is_file($master) ? [$master] : []), $plan->iniPath()], [], false, false, \W4OS\Engine\Config\ConfigOverrides::files($plan->iniPath())))) : [];
         foreach ($this->dropped as $setting) {
+            $now = $setting['reason'] === 'grid' ? (array_change_key_case($runs[strtolower($setting['section'])] ?? [])[strtolower($setting['key'])] ?? null) : null;
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']}" .
-                (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . ')';
+                (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') .
+                ($now !== null ? ', now ' . Secrets::mask(trim((string) $now, '"')) : '') . ')';
         }
 
         return implode("\n", $lines) . "\n";

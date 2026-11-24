@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (migrate): the addresses of the grid's site are kept as they are (the helpers serve them there); the report says what is added and the final values
 - new (economy): whether the helpers serve it is said (EconomyProvided, Provide of its page), never guessed from its address
 - new (helpers): Grid::helperPaths(), the addresses its config names on its site wherever they are; the helpers and the web server follow it
 - fix (migrate): [Messaging] MuteListURL is left out, said: no core of the kit reads it (MuteListModule and Robust's MuteListService)

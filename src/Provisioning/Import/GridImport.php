@@ -52,6 +52,9 @@ final class GridImport
         public readonly array $helpers = [],
     ) {}
 
+    /** @var list<string> what this install added that the old config had not (addedSettings()), for the report */
+    private array $added = [];
+
     /**
      * What the import would do: nothing written.
      *
@@ -327,6 +330,9 @@ final class GridImport
                 \W4OS\Engine\Provisioning\SimulatorMaster::exists($plan->gridDir) && (new \W4OS\Engine\Provisioning\SimulatorMaster($environment))->ensure($plan->gridDir, $plan->binDir);
             }
             $this->simulators?->apply($environment, $ui, $dump);
+            // What this install added that the old config had not, said with what it is, in the report written again
+            $this->added = $this->addedSettings($environment);
+            file_put_contents($this->reportPath(), $this->report());
             // Passwords are in the config files: 640, as the rest of the grid
             GridFileService::protect($plan->gridDir);
             // Each instance reads what it is written: a reference none of its files resolves would stop it at its start
@@ -362,6 +368,43 @@ final class GridImport
         }
 
         return $found;
+    }
+
+    /**
+     * What this install added that the old config had not, each with its value as it is read: the keys of the grid info of its Robust
+     * that the old one and the example of the core have not, and the ones of the sections of the options its simulators run with
+     * (their master, the file of the first) that the old simulators and the defaults of the core have not.
+     *
+     * @return list<string> `[Section] key = value (Robust|the simulators)`
+     */
+    private function addedSettings(Environment $environment): array
+    {
+        $lower = static fn(array $values): array => array_change_key_case(array_map(static fn($v) => $v, $values));
+        $added = [];
+        $plan = $this->plan;
+        $example = "{$plan->binDir}/" . ($plan->enableHypergrid ? 'Robust.HG.ini.example' : 'Robust.ini.example');
+        $known = $lower(ConfigReader::load($this->source, [], false, true)['GridInfoService'] ?? []) + $lower(is_file($example) ? (ConfigReader::load($example, [], false)['GridInfoService'] ?? []) : []);
+        foreach (ConfigReader::expand(ConfigReader::load($plan->robustIni(), [], false, true))['GridInfoService'] ?? [] as $key => $value) {
+            array_key_exists(strtolower((string) $key), $known) || ($added[] = Secrets::mask("[GridInfoService] $key = " . trim((string) $value, '"')) . ' (Robust)');
+        }
+        $grid = Grid::find($environment, $plan->gridNick);
+        $first = $this->simulators?->imports === null || $this->simulators->imports === [] ? null : array_values($this->simulators->imports)[0];
+        $simulator = $first === null ? null : $grid?->simulator($first->plan->slug)?->controller();
+        if ($grid !== null && $first !== null && $simulator !== null) {
+            $master = \W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory());
+            $runs = ConfigReader::expand(ConfigReader::load([...(is_file($master) ? [$master] : []), ...$simulator->files()], [], false, false, $simulator->lastFiles()));
+            $old = array_change_key_case(ConfigReader::load($first->source, [], false));
+            $defaults = array_change_key_case(is_file("{$plan->binDir}/OpenSimDefaults.ini") ? ConfigReader::load("{$plan->binDir}/OpenSimDefaults.ini", [], false) : []);
+            foreach (array_keys(GridSettingsImport::sections($grid)) as $section) {
+                foreach (array_change_key_case($runs)[$section] ?? [] as $key => $value) {
+                    $k = strtolower((string) $key);
+                    array_key_exists($k, $lower($old[$section] ?? [])) || array_key_exists($k, $lower($defaults[$section] ?? []))
+                        || ($added[] = Secrets::mask('[' . GridSettingsImport::sections($grid)[$section] . "] $key = " . trim((string) $value, '"')) . ' (the simulators)');
+                }
+            }
+        }
+
+        return $added;
     }
 
     /**
@@ -486,6 +529,13 @@ final class GridImport
         ];
         foreach ($this->customizations as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ($setting['unknown'] ? ' (not a setting of the core)' : '');
+        }
+        if ($this->added !== []) {
+            $lines[] = '';
+            $lines[] = count($this->added) . ' setting(s) added by this install, which the old config had not (what w4os needs, its options):';
+            foreach ($this->added as $said) {
+                $lines[] = "  $said";
+            }
         }
         $lines[] = '';
         $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; corrected: the value of the kit stays, the one it needs to work; simulators: a setting of the simulators Robust does not use, theirs; default: as the core has it; layout, include: the old install\'s own):';

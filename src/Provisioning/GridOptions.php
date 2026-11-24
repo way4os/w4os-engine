@@ -1030,7 +1030,7 @@ final class GridOptions
         // services the grid names elsewhere on its site), for the web server to hand over (Snippets::routes())
         $routes = Snippets::routes(
             [$variables['helpers_base'], ...array_map(fn(string $key): string => $variables[$key], preg_grep('/^page_/', array_keys($variables))), '/health'],
-            $this->grid->isPlanned() ? [] : array_values($this->grid->helperPaths()),
+            $this->grid->isPlanned() ? [] : array_keys($this->grid->helperPaths()),
         );
         $variables['web_globs'] = implode(' ', $routes['globs']);
         $variables['web_regex'] = implode('|', $routes['regex']);

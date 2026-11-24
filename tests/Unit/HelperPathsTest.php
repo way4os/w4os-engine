@@ -28,12 +28,12 @@ describe('The paths of the helpers', function () {
     test('are the addresses its config names on its site, each where it is, never one of another host', function () use ($kimbe) {
         $paths = $kimbe()->helperPaths();
 
-        expect($paths['query'] ?? null)->toBe('/helper/query.php')
-            ->and($paths['offline'] ?? null)->toBe('/helpers/helper/offline.php')
-            ->and($paths['currency'] ?? null)->toBe('/opensim/economy/currency.php')
-            ->and($paths['landtool'] ?? null)->toBe('/opensim/economy/landtool.php')
+        expect($paths['/helper/query.php'] ?? null)->toBe('query')
+            ->and($paths['/helpers/helper/offline.php'] ?? null)->toBe('offline')
+            ->and($paths['/opensim/economy/currency.php'] ?? null)->toBe('currency')
+            ->and($paths['/opensim/economy/landtool.php'] ?? null)->toBe('landtool')
             // The message of the day of another host is not theirs
-            ->and($paths)->not->toHaveKey('motd');
+            ->and($paths)->not->toContain('motd');
     });
 
     test('are what the helpers answer: those and their base, never a path nobody set, never another host', function () use ($kimbe) {
@@ -65,10 +65,10 @@ describe('The paths of the helpers', function () {
         file_put_contents($grid->directory() . '/Helpers.ini', "[Helpers]\nHelpersURL = \"https://kimbe.example/opensim/economy\"\nEconomyProvided = false\n");
         $grid = Grid::find($grid->environment(), 'demo');
 
-        expect($grid->helperPaths())->not->toHaveKey('currency')->not->toHaveKey('landtool')
+        expect($grid->helperPaths())->not->toContain('currency')->not->toContain('landtool')
             ->and($grid->servedByHelpers('https://kimbe.example/opensim/economy/currency.php'))->toBeFalse()
             // The rest of the helpers, under the same base, stays theirs
             ->and($grid->servedByHelpers('https://kimbe.example/opensim/economy/welcome'))->toBeTrue()
-            ->and($grid->helperPaths()['query'] ?? null)->toBe('/helper/query.php');
+            ->and($grid->helperPaths()['/helper/query.php'] ?? null)->toBe('query');
     });
 });

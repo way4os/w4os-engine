@@ -2111,7 +2111,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             return false;
         }
         $path = '/' . trim((string) parse_url($url, PHP_URL_PATH), '/');
-        foreach ($this->helperPaths() as $known) {
+        foreach (array_keys($this->helperPaths()) as $known) {
             if ($path === $known || str_starts_with($path, "$known/")) {
                 return true;
             }
@@ -2139,10 +2139,11 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     private ?array $helperPaths = null;
 
     /**
-     * The paths of its site its helpers answer, by service: the addresses its config names on its own site (the host of its web site),
-     * wherever they are (the paths an install of before kept), never one of another host, nor a path its config does not name.
+     * The paths of its site its helpers answer, and the service each is: the addresses its config names on its own site (the host of
+     * its web site), wherever they are (the paths an install of before kept, a service at several), never one of another host, nor
+     * a path it does not name. An address of the site whose script is one of the helpers' (`query.php`, `offline.php`) is that service.
      *
-     * @return array<string,string> service => its path on the site (`/helper/query.php`)
+     * @return array<string,string> its path on the site (`/helper/query.php`) => the service (`query`)
      */
     public function helperPaths(): array
     {
@@ -2154,25 +2155,32 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             return $this->helperPaths = [];
         }
         $economy = $this->economy();
+        $provided = $this->economyProvided() !== false;
         $urls = [
-            'query' => $this->searchApi(),
-            'register' => $this->registerUrl(),
-            'offline' => $this->offlineUrl(),
-            'motd' => $this->motdUrl(),
+            ['query', $this->searchApi()],
+            ['register', $this->registerUrl()],
+            ['offline', $this->offlineUrl()],
+            ['motd', $this->motdUrl()],
             // The economy, unless the grid says another application serves it (whatever its address)
-            'currency' => $economy === null || $this->economyProvided() === false ? null : "$economy/currency.php",
-            'landtool' => $economy === null || $this->economyProvided() === false ? null : "$economy/landtool.php",
+            ['currency', $economy === null || !$provided ? null : "$economy/currency.php"],
+            ['landtool', $economy === null || !$provided ? null : "$economy/landtool.php"],
             // The web assets of the grid, when the helpers serve them (the pictures under it): the address it sets, else theirs
-            'assets' => $this->assetsUrl() ?? ($this->helperUrl('assets') ?: null),
+            ['assets', $this->assetsUrl() ?? ($this->helperUrl('assets') ?: null)],
         ];
+        // Any other address it gives on its site whose script is one of the helpers' (the search of the viewers at query.php)
+        $scripts = array_flip(\W4OS\Engine\Provisioning\Web\Services::SCRIPTS);
+        foreach ($this->addresses(true) as $url) {
+            $service = $scripts[strtolower(basename((string) parse_url($url, PHP_URL_PATH)))] ?? null;
+            ($service === null || (!$provided && in_array($service, ['currency', 'landtool'], true))) || ($urls[] = [$service, $url]);
+        }
         $host = (string) parse_url($site, PHP_URL_HOST);
         $paths = [];
-        foreach ($urls as $service => $url) {
+        foreach ($urls as [$service, $url]) {
             if ($url === null || strcasecmp((string) parse_url($url, PHP_URL_HOST), $host) !== 0) {
                 continue;
             }
             $path = '/' . trim((string) parse_url($url, PHP_URL_PATH), '/');
-            $path === '/' || ($paths[$service] = $path);
+            $path === '/' || isset($paths[$path]) || ($paths[$path] = $service);
         }
 
         return $this->helperPaths = $paths;

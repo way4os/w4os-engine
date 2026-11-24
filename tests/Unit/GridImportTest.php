@@ -505,9 +505,50 @@ describe('The import of a grid', function () {
             ->and(is_file(W4OS\Engine\Provisioning\Web\HelpersConfig::path($grid->directory())))->toBeTrue()
             ->and($grid->helperUrl('offline'))->toStartWith('https://old.example.org/')
             ->and((new W4OS\Engine\Provisioning\GridOptions($grid))->enabled())->toContain('offline-helpers')->not->toContain('offline-robust')
-            // The helpers of this install serve it now, at their address
-            ->and($offlineUrl($machine))->toBe($grid->helperUrl('offline'))->not->toContain('/helpers/helper/')
+            // The helpers of this install serve it where the old one had it: its address is never rewritten (Grid::helperPaths())
+            ->and($offlineUrl($machine))->toBe('https://old.example.org/helpers/helper/offline.php')
+            ->and($grid->servedByHelpers('https://old.example.org/helpers/helper/offline.php/SaveMessage/'))->toBeTrue()
             ->and($report)->toContain('Helpers on: offline-helpers needs them, and this install serves them (w4os-helpers)');
+    });
+
+    test('of kimbe-red keeps every address of its helpers as it is, its four prefixes, and says what it adds', function () {
+        [$machine, $robust] = old_robust_install();
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        $text = str_replace("[Const]\n", "[Const]\n    WebURL = \"https://old.example.org\"\n", file_get_contents($robust));
+        $text = str_replace("[GridInfoService]\n", "[GridInfoService]\n    search = \"\${Const|WebURL}/helper/query.php\"\n    message = \"\${Const|WebURL}/helper/offline.php\"\n" .
+            "    economy = \"\${Const|WebURL}/opensim/economy\"\n    welcome = \"\${Const|WebURL}/opensim/welcome\"\n", $text);
+        file_put_contents($robust, $text);
+        $bin = dirname($robust);
+        mkdir("$bin/Regions");
+        // Its simulators: the module V1 and the search at the addresses of the helpers of before
+        file_put_contents("$bin/OpenSim.ini", "[Const]\n    WebURL = \"https://old.example.org\"\n[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n" .
+            "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n" .
+            "[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"\${Const|WebURL}/helpers/helper/offline.php\"\n" .
+            "[Search]\n    Module = OpenSimSearch\n    SearchURL = \"\${Const|WebURL}/helpers/query.php\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']], helpersHere: true);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $master = W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory());
+        $runs = ConfigReader::expand(ConfigReader::load([$master, ...$sim->files()], [], false, false, $sim->lastFiles()));
+        $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false, true))['GridInfoService'] ?? [];
+        $report = (string) file_get_contents($import->document()['report']);
+        $options = (new W4OS\Engine\Provisioning\GridOptions($grid))->enabled();
+
+        // What the simulators and the viewers are told, as the old install told them
+        expect([$runs['Messaging']['OfflineMessageURL'] ?? null, $runs['Search']['SearchURL'] ?? null])
+            ->toBe(['https://old.example.org/helpers/helper/offline.php', 'https://old.example.org/helpers/query.php'])
+            ->and(array_intersect_key($info, array_flip(['search', 'message', 'economy', 'welcome'])))
+            ->toEqual(['search' => 'https://old.example.org/helper/query.php', 'message' => 'https://old.example.org/helper/offline.php', 'economy' => 'https://old.example.org/opensim/economy', 'welcome' => 'https://old.example.org/opensim/welcome'])
+            // Served where they are
+            ->and($grid->servedByHelpers('https://old.example.org/helper/query.php'))->toBeTrue()
+            // The three configs of the web servers, each saying what to add to its server (3bd3129), as a setup makes them
+            ->and($options)->toContain('webserver-caddy', 'webserver-apache', 'webserver-nginx')
+            // What the kit adds, the old one had not: said as added, with its value
+            ->and($report)->toContain('added by this install');
     });
 
     test('keeps the helper of a choice outside this install where it is, and says it: never the helpers of this install', function () use ($offlineV1, $offlineUrl) {
