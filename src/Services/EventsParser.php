@@ -100,12 +100,46 @@ final class EventsParser
             $row = is_array($event) ? $this->event($event) : null;
             $row !== null && ($events[] = $row);
         }
+        $events = self::merged($events);
         $this->db->prepareAndExecute("DELETE FROM {$this->table}");
         foreach ($events as $row) {
             $this->db->insert($this->table, $row) || error_log('error while inserting new events');
         }
 
         return count($events);
+    }
+
+    /** Seconds between the end of an event and the start of the next one of the same show, at most, for them to be one. */
+    public const MERGE_GAP = 3600;
+
+    /**
+     * The slots of one show as one event, as the 2do board has them: the events of the same name at the same place (their names as
+     * the calendar gives them, the same exactly; their places the same simname), the next one starting at most an hour after the
+     * end of the one before, are one event from the first start to the last end. The others as they are, the soonest first.
+     *
+     * @param list<array<string,mixed>> $events rows of the table
+     * @return list<array<string,mixed>>
+     */
+    public static function merged(array $events): array
+    {
+        usort($events, static fn(array $a, array $b): int => (int) $a['dateUTC'] <=> (int) $b['dateUTC']);
+        $merged = [];
+        $last = [];
+        foreach ($events as $event) {
+            $show = $event['name'] . "\0" . $event['simname'];
+            $at = $last[$show] ?? null;
+            if ($at !== null) {
+                $end = (int) $merged[$at]['dateUTC'] + (int) $merged[$at]['duration'] * 60;
+                if ((int) $event['dateUTC'] <= $end + self::MERGE_GAP) {
+                    $merged[$at]['duration'] = intdiv(max($end, (int) $event['dateUTC'] + (int) $event['duration'] * 60) - (int) $merged[$at]['dateUTC'], 60);
+                    continue;
+                }
+            }
+            $last[$show] = count($merged);
+            $merged[] = $event;
+        }
+
+        return $merged;
     }
 
     /** The category number of the names a calendar gives: miscellaneous for a name nobody knows, none for no name. */

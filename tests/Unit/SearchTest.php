@@ -494,6 +494,46 @@ describe('The events of the search', function () {
             ->toBe('Come in');
     });
 
+    test('of the same name at the same place, back to back (an hour apart at most), are one longer event, as the 2do board has them', function () {
+        $db = search_database();
+        W4OS\Engine\Services\SearchTables::upgrade($db);
+        $clock = new ClockFake();
+        $clock->now = 1_700_000_000.0;
+        $at = static fn(int $hours): string => gmdate('Y-m-d\TH:i:s\Z', (int) $clock->now + $hours * 3600);
+        $event = static fn(string $title, int $start, int $end, string $place = 'grid.example.org:8002:Owls'): array => ['title' => $title, 'description' => '', 'start' => $at($start), 'end' => $at($end), 'categories' => ['Music'], 'hgurl' => $place];
+        $calendar = json_encode([
+            // Two slots of one show, another show between them in the calendar
+            $event('DJ LaRissa＠The Night Owls', 1, 2),
+            $event('DJ Isadora - EARLY MORNING BREAKFAST SHOW', 1, 2, 'grid.example.org:8002:Cafe'),
+            $event('DJ LaRissa＠The Night Owls', 2, 3),
+            $event('DJ Isadora - EARLY MORNING BREAKFAST SHOW', 2, 3, 'grid.example.org:8002:Cafe'),
+            // An hour apart at most: still one
+            $event('DJ Isadora - EARLY MORNING BREAKFAST SHOW', 4, 5, 'grid.example.org:8002:Cafe'),
+            // The same name elsewhere, or later: another event
+            $event('DJ LaRissa＠The Night Owls', 3, 4, 'grid.example.org:8002:Elsewhere'),
+            $event('DJ LaRissa＠The Night Owls', 6, 7),
+        ]);
+        $places = [
+            'online' => static fn(string $url): bool => true,
+            'parts' => static fn(string $url): array => ['gatekeeper' => 'http://grid.example.org:8002', 'pos' => ''],
+            'located' => static fn(string $url): array => ['x' => 256000, 'y' => 256000],
+            'link' => static fn(string $url, int $format): string => "link:$format:$url",
+        ];
+        $parser = new EventsParser($db, 'https://calendar.example.org/events', static fn(string $url): ?string => $calendar, $places, clock: $clock);
+
+        $kept = $parser->parse();
+        $rows = array_map(static fn(array $r): array => [$r['name'], (int) $r['dateUTC'] - 1_700_000_000, (int) $r['duration']], $db->get_results('SELECT name, dateUTC, duration FROM events ORDER BY dateUTC, name', [], PDO::FETCH_ASSOC));
+
+        expect($kept)->toBe(4)
+            // Their names as the table keeps them, Latin-1 (what the viewers show)
+            ->and($rows)->toBe([
+                ['DJ Isadora - EARLY MORNING BREAKFAST SHOW', 3600, 240],
+                ['DJ LaRissa?The Night Owls', 3600, 120],
+                ['DJ LaRissa?The Night Owls', 10800, 60],
+                ['DJ LaRissa?The Night Owls', 21600, 60],
+            ]);
+    });
+
     test('are left as they are when the calendar does not answer', function () {
         $db = search_database();
         $db->exec("INSERT INTO events (eventid, name, dateUTC) VALUES (99, 'Kept', 1)");
