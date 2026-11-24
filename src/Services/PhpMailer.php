@@ -4,43 +4,41 @@ declare(strict_types=1);
 
 namespace W4OS\Engine\Services;
 
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
+
 /**
- * Sends mail with the mail function of PHP: it needs a mail system on the machine (a local SMTP server, sendmail).
+ * Sends mail with the mail function of PHP: it needs a mail system on the machine (a local SMTP server, sendmail). The mail is built
+ * by symfony/mime: a text part beside the HTML one, its headers encoded.
  */
 final class PhpMailer implements MailerInterface
 {
-    public function send(string $to, string $subject, string $html, string $from): bool
+    public function send(string $to, string $subject, string $html, string $from, string $text = ''): bool
     {
-        return mail($to, self::subject($subject), $html, self::headers($from));
-    }
+        $mail = self::message($to, $subject, $html, $from, $text);
 
-    /** A subject as a header has it: encoded when it is not ASCII (RFC 2047). */
-    public static function subject(string $subject): string
-    {
-        return self::ascii($subject) ? $subject : mb_encode_mimeheader($subject, 'UTF-8', 'B', "\r\n");
+        return mail($to, $mail['subject'], $mail['body'], $mail['headers']);
     }
 
     /**
-     * The headers of an HTML mail from `Name <address>`: the name quoted when it has what separates addresses, encoded when it is
-     * not ASCII (RFC 5322, RFC 2047), the address as it is.
+     * What the mail function of PHP takes: the subject encoded, the other headers (To and Subject are its own arguments), the body.
+     *
+     * @return array{subject:string,headers:string,body:string}
      */
-    public static function headers(string $from): string
+    public static function message(string $to, string $subject, string $html, string $from, string $text = ''): array
     {
-        if (preg_match('/^\s*(.*?)\s*<([^>]+)>\s*$/', $from, $m) === 1 && $m[1] !== '') {
-            $name = trim($m[1], '"');
-            $name = match (true) {
-                !self::ascii($name) => mb_encode_mimeheader($name, 'UTF-8', 'B', "\r\n"),
-                preg_match('/[()<>@,;:\\\\".\[\]]/', $name) === 1 => '"' . addcslashes($name, '"\\') . '"',
-                default => $name,
-            };
-            $from = "$name <{$m[2]}>";
-        }
+        $email = (new Email())->from(Address::create($from))->to($to)->subject($subject)->html($html);
+        $text === '' || $email->text($text);
+        $body = $email->getBody();
+        $headers = $email->getPreparedHeaders();
+        $encoded = trim(substr($headers->get('Subject')?->toString() ?? '', strlen('Subject: ')));
+        $headers->remove('To');
+        $headers->remove('Subject');
 
-        return "From: $from\r\nMIME-Version: 1.0\r\nContent-type: text/html; charset=UTF-8\r\n";
-    }
-
-    private static function ascii(string $text): bool
-    {
-        return preg_match('/[^\x20-\x7E]/', $text) !== 1;
+        return [
+            'subject' => $encoded,
+            'headers' => rtrim($headers->toString() . $body->getPreparedHeaders()->toString(), "\r\n"),
+            'body' => $body->bodyToString(),
+        ];
     }
 }

@@ -1,0 +1,6 @@
+<!-- An invitation to a group, mailed to an avatar who is not in world and asked for it ("Send IM to email" in the preferences of their viewer).
+     The HTML part; the text part, with the subject and the sender, is offline-group-invitation.txt, beside it. Replaced, HTML-escaped: {{grid}} the name of the grid, {{sender}} the avatar who sent it, {{message}} the invitation.
+     A copy of this file in the config folder of the install (mail/<language>/) is read in its place; this comment is left out. -->
+<html><body><p>{{message}}</p>Log in-world to accept or decline
+
+<hr><p style='font-size:small'><b>{{grid}}</b> Instant Messages mail forwarding by w4os-helpers.<br>Please log in-world to answer to this message. Emails to the sender address will not be processed.<br>To disable mail notifications, uncheck option "Send IM to mail" in your viewer preferences (tab "Chat" or "Communications").</p></body></html>

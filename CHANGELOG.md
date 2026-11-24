@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (offline): the mails of the offline messages come from templates (share/mail, replaced by <etc>/mail), text and HTML parts (symfony/mime)
 - fix (migrate): with simulators, the switch, the backup and the data of an import are the Robust's again, not the last simulator's
 - fix (migrate): a choice kept that needs the helpers turns them on when this install serves them, else keeps its helper; reported
 - fix (settings): a setting is written in a file of its own instance, never in Robust that has the same key (offline, search)

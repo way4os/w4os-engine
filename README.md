@@ -134,6 +134,8 @@ The tasks (the search index, the events) run by cron or by pseudo cron, at the e
 
 The texts a website of the grid shows its people (registration, sign-in, account, lost password, email confirmation, the avatars of the grid, and one per `code` of the problems of the API) are in gettext files, one source for every site (the Grav plugin, w4os): `share/languages/w4os-engine.pot` and `w4os-engine-<locale>.po` for cy_GB, de_DE, fr_FR, it_IT, nl_NL and pt_BR. The engine does not translate them: a site turns them into its own format.
 
+The mails the grid sends for the offline messages (an avatar who is away and asked for them, "Send IM to email" in their viewer) are written from templates: `share/mail/<language>/offline-<kind>.txt` (its `Subject:` and `From:`, a blank line, its text) and `.html`, one pair per kind (`message`, `grid-message`, `group-notice`, `group-invitation`, `inventory-offer`, `friendship-offer`). A file of the same name in the config folder of the install (`<etc>/mail/<language>/`) is read in its place. A template has no logic: `{{grid}}`, `{{sender}}`, `{{message}}`, `{{title}}` are replaced, as they are in the text, HTML-escaped in the HTML; the comment at its top lists them. The language is the recipient's (the one their viewer gave Robust), else English.
+
 Each text has a stable key, the `msgctxt` of the files; the text of a problem code is `error_` and the code with `_` for `-`:
 
 ```php

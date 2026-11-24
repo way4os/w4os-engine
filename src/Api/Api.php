@@ -830,12 +830,16 @@ final class Api
                 throw new Failure('Bad configuration: the database of the offline messages is not available', 503);
             }
             $profiles = Connections::pdo($config, Database::Profiles);
+            $preferences = Connections::pdo($config, 'AgentPreferencesService');
             $service = new OfflineMessages(
                 $messages,
                 $profiles?->connected ? $profiles : null,
                 $found->name(),
                 $config->find('Helpers', 'MailSender') ?? 'no-reply@' . $found->baseHostname(),
                 $this->mailer ?? new PhpMailer(),
+                // The templates of the mails: the config folder of the install's, else the kit's
+                templates: \W4OS\Engine\Services\MailTemplate::roots($this->environment->layout->etcRoot()),
+                preferences: $preferences?->connected ? $preferences : null,
             );
         } catch (Failure $failure) {
             return XmlRpc::failure($failure);

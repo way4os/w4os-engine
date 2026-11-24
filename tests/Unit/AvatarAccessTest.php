@@ -30,7 +30,7 @@ final class MailerFake implements MailerInterface
     public array $sent = [];
     public bool $broken = false;
 
-    public function send(string $to, string $subject, string $html, string $from): bool
+    public function send(string $to, string $subject, string $html, string $from, string $text = ''): bool
     {
         if ($this->broken) {
             return false;

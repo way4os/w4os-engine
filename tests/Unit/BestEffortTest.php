@@ -30,7 +30,7 @@ function site_api(): array
         'Helpers' => ['Helpers' => ['AssetsURL' => 'https://assets.example.org/a']],
     ]));
     $mailer = new class implements W4OS\Engine\Services\MailerInterface {
-        public function send(string $to, string $subject, string $html, string $from): bool
+        public function send(string $to, string $subject, string $html, string $from, string $text = ''): bool
         {
             return true;
         }

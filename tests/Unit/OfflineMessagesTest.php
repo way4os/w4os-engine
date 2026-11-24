@@ -56,9 +56,9 @@ function offline_mailer(array &$sent): MailerInterface
     return new class ($sent) implements MailerInterface {
         public function __construct(private array &$sent) {}
 
-        public function send(string $to, string $subject, string $html, string $from): bool
+        public function send(string $to, string $subject, string $html, string $from, string $text = ''): bool
         {
-            $this->sent[] = compact('to', 'subject', 'html', 'from');
+            $this->sent[] = compact('to', 'subject', 'html', 'from', 'text');
 
             return true;
         }
@@ -96,12 +96,15 @@ describe('The offline messages', function () {
             ->and($sent[0])
             ->toMatchArray([
                 'to' => 'ada@example.org',
-                'subject' => 'Message from Ada Love',
-                'from' => 'Ada Love <no-reply@example.org>',
+                'subject' => '[Demo World] Message from Ada Love',
+                'from' => 'Ada Love via Demo World <no-reply@example.org>',
             ])
             ->and($sent[0]['html'])
-            ->toContain("Hello\n<br>there")
-            ->toContain('<b>Demo World</b>');
+            ->toContain("Hello<br>\nthere")
+            ->toContain('<b>Demo World</b>')
+            ->and($sent[0]['text'])
+            ->toContain("Hello\nthere")
+            ->not->toContain('<');
     });
 
     test('do not mail an avatar who did not ask, or has no address', function () {
@@ -145,24 +148,24 @@ describe('The offline messages', function () {
             $server = $compose('Welcome', '0', 'Server');
 
             expect($notice['subject'])
-                ->toBe('Group notice: Meeting')
-                ->and($notice['body'])
+                ->toBe('[Demo World] Group notice: Meeting')
+                ->and($notice['html'])
                 ->toContain('<p>Ada Love sent a group notice in Demo World:</p>')
                 ->toContain('<h4>Meeting</h4>At noon')
                 ->and($invitation['subject'])
-                ->toBe('Group invitation from Ada Love')
-                ->and($invitation['body'])
+                ->toBe('[Demo World] Group invitation from Ada Love')
+                ->and($invitation['html'])
                 ->toContain('<p>Join us</p>Log in-world to accept or decline')
                 ->and($offer['subject'])
-                ->toBe('Inventory offer from Ada Love')
-                ->and($offer['body'])
+                ->toBe('[Demo World] Inventory offer from Ada Love')
+                ->and($offer['html'])
                 ->toContain('Ada Love returned you a hat')
                 ->and($friendship['subject'])
-                ->toBe('Friendship offer from Ada Love')
+                ->toBe('[Demo World] Friendship offer from Ada Love')
                 ->and($server['from'])
                 ->toBe('Demo World')
                 ->and($server['subject'])
-                ->toBe('Message from Demo World');
+                ->toBe('[Demo World] Message from Demo World');
         },
     );
 
@@ -197,10 +200,66 @@ describe('The offline messages', function () {
         $mail = $service->compose(simplexml_load_string(offline_message('Hi', '0', "Ada O'Hara")));
         $notice = $service->compose(simplexml_load_string(offline_message('Rock & roll|Tonight', '32')));
 
-        expect($mail['subject'])->toBe("Message from Ada O'Hara")
-            ->and($notice['subject'])->toBe('Group notice: Rock & roll')
-            // In the body, the same text is HTML
-            ->and($mail['body'])->toContain('Kimbé &amp; Co');
+        expect($mail['subject'])->toBe("[Kimbé & Co] Message from Ada O'Hara")
+            ->and($notice['subject'])->toBe('[Kimbé & Co] Group notice: Rock & roll')
+            // In the HTML part, the same values are HTML; in the text part, as they are
+            ->and($mail['html'])->toContain('Kimbé &amp; Co')->toContain('Ada O&#039;Hara')
+            ->and($mail['text'])->toContain("Sent by Ada O'Hara  in Kimbé & Co");
+    });
+
+    test('are written from the template of the kit, the one of the config folder of the install in its place', function () {
+        [$messages, $profiles] = offline_databases();
+        $etc = test_tmp() . '/etc-' . bin2hex(random_bytes(4));
+        $roots = ["$etc/mail", ...W4OS\Engine\Provisioning\ResourceRegistry::directories('share/mail')];
+        $compose = static fn(): array => (new OfflineMessages($messages, $profiles, 'Demo World', templates: $roots))->compose(simplexml_load_string(offline_message('1 < 2 & 3')));
+        $kit = $compose();
+        // The installation's own, in its config folder: the same name, read in place of the kit's
+        mkdir("$etc/mail/en", 0o755, true);
+        file_put_contents("$etc/mail/en/offline-message.txt", "# ours\nSubject: {{grid}}: {{sender}} wrote\nFrom: {{sender}} at {{grid}}\n\nOurs: {{message}}\n");
+        file_put_contents("$etc/mail/en/offline-message.html", "<!-- ours -->\n<p>Ours: {{message}}</p>\n");
+        $ours = $compose();
+
+        expect($kit['subject'])->toBe('[Demo World] Message from Ada Love')
+            ->and($kit['text'])->toContain('1 < 2 & 3')
+            ->and($kit['html'])->toContain('1 &lt; 2 &amp; 3')
+            ->and($ours)->toMatchArray(['subject' => 'Demo World: Ada Love wrote', 'from' => 'Ada Love at Demo World', 'text' => "Ours: 1 < 2 & 3\n", 'html' => "<p>Ours: 1 &lt; 2 &amp; 3</p>\n"]);
+    });
+
+    test('are in the language of the recipient when a template has it, else in English', function () {
+        [$messages, $profiles] = offline_databases();
+        $etc = test_tmp() . '/etc-' . bin2hex(random_bytes(4));
+        mkdir("$etc/mail/fr", 0o755, true);
+        file_put_contents("$etc/mail/fr/offline-message.txt", "Subject: [{{grid}}] Message de {{sender}}\nFrom: {{sender}} via {{grid}}\n\n{{message}}\n");
+        file_put_contents("$etc/mail/fr/offline-message.html", "<p>{{message}}</p>\n");
+        // The language its viewer gave Robust (AgentPrefs)
+        $prefs = test_pdo();
+        $prefs->exec('CREATE TABLE AgentPrefs (PrincipalID CHAR(36), Language VARCHAR(5))');
+        $said = static function (string $language) use ($messages, $profiles, $prefs, $etc): string {
+            $prefs->exec('DELETE FROM AgentPrefs');
+            $prefs->exec("INSERT INTO AgentPrefs VALUES ('" . OFFLINE_TO . "', '$language')");
+            $sent = [];
+            $service = new OfflineMessages($messages, $profiles, 'Demo World', 'no-reply@example.org', offline_mailer($sent),
+                templates: ["$etc/mail", ...W4OS\Engine\Provisioning\ResourceRegistry::directories('share/mail')], preferences: $prefs);
+            $service->call('SaveMessage', offline_message('Salut'));
+            $service->finish();
+
+            return $sent[0]['subject'] ?? '';
+        };
+
+        expect($said('fr-fr'))->toBe('[Demo World] Message de Ada Love')
+            ->and($said('fr'))->toBe('[Demo World] Message de Ada Love')
+            ->and($said('de'))->toBe('[Demo World] Message from Ada Love');
+    });
+
+    test('have a default template that says the names it replaces, for whoever edits it', function () {
+        $kit = W4OS\Engine\Provisioning\ResourceRegistry::directories('share/mail')[0] ?? '';
+        $files = glob("$kit/en/offline-*.txt") ?: [];
+
+        expect($files)->not->toBe([]);
+        foreach ($files as $file) {
+            expect((string) file_get_contents($file))->toStartWith('#')->toContain('{{grid}}')->toContain('{{sender}}')
+                ->and(is_file(substr($file, 0, -4) . '.html'))->toBeTrue();
+        }
     });
 
     test('give back the messages kept for an avatar, as the module reads them, and forget them', function () {

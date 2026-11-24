@@ -28,6 +28,8 @@ final class OfflineMessages
      * @param OSPDO $messages the database of the offline messages
      * @param ?OSPDO $profiles the database of the profiles, who knows the mail preferences (`usersettings`)
      * @param string $sender the address the mails come from
+     * @param list<string> $templates the folders of the templates of the mails (MailTemplate::roots()); none: the kit's
+     * @param ?OSPDO $preferences the database of the preferences of the avatars (`AgentPrefs`), who knows their language
      */
     public function __construct(
         private readonly OSPDO $messages,
@@ -36,6 +38,8 @@ final class OfflineMessages
         private readonly string $sender = '',
         private readonly ?MailerInterface $mailer = null,
         private readonly string $table = self::TABLE,
+        private readonly array $templates = [],
+        private readonly ?OSPDO $preferences = null,
     ) {}
 
     /**
@@ -147,75 +151,50 @@ final class OfflineMessages
         if (empty($email) || $wanted == 'false' || $this->mailer === null) {
             return;
         }
-        $mail = $this->compose($xml);
+        $mail = $this->compose($xml, $this->language((string) $xml->toAgentID));
         $from = $mail['from'] . ($this->sender === '' ? '' : " <{$this->sender}>");
-        $this->mailer->send((string) $email, $mail['subject'], $mail['body'], $from) ||
+        $this->mailer->send((string) $email, $mail['subject'], $mail['html'], $from, $mail['text']) ||
             error_log("error sending the IM notification to $email");
     }
 
-    /**
-     * The mail of a message: who it is from, the subject, the body.
-     *
-     * @return array{from:string,subject:string,body:string}
-     */
-    public function compose(\SimpleXMLElement $xml): array
+    /** The language of an avatar, as its viewer gave it to Robust (AgentPrefs); English when it is not known. */
+    private function language(string $avatar): string
     {
-        $from = (string) $xml->fromAgentName;
-        // The grid itself writes as the grid
-        $from === 'Server' && ($from = $this->gridName);
-        // A message may start with its subject: "Subject|Text"
-        $parts = explode('|', (string) $xml->message, 2);
-        $heading = count($parts) > 1 ? $parts[0] : '';
-        $text = $parts[1] ?? $parts[0];
-        $html = static fn(string $plain): string => str_replace("\n", "\n<br>", htmlspecialchars($plain));
-        $titled = ($heading === '' ? '' : '<h4>' . htmlspecialchars($heading) . '</h4>') . $html($text);
-        $in = $this->gridName === '' ? '' : " in {$this->gridName}";
-        $intro = '';
-        $outro = '';
-        $body = $titled;
-        // The kinds of messages of http://wiki.secondlife.com/wiki/ImprovedInstantMessage
-        switch ((string) $xml->dialog) {
-            case '32':
-                $subject = "Group notice: $heading";
-                $intro = "$from sent a group notice$in:";
-                break;
-            case '3':
-                $subject = "Group invitation from $from";
-                $intro = $text;
-                $body = 'Log in-world to accept or decline';
-                break;
-            case '4':
-                $subject = "Inventory offer from $from";
-                $intro = "$from returned you " . $text;
-                $body = 'Log in-world to accept or decline';
-                break;
-            case '38':
-                $subject = "Friendship offer from $from";
-                $intro = $text;
-                $body = 'Log in-world to accept or decline.';
-                break;
-            default:
-                $subject = "Message from $from";
-                $outro = "Sent by $from $in";
+        if ($this->preferences === null || empty($this->preferences->connected) || !$this->preferences->table_exists('AgentPrefs')) {
+            return MailTemplate::FALLBACK;
         }
+        $found = $this->preferences->prepareAndExecute('SELECT Language FROM AgentPrefs WHERE PrincipalID = :id', ['id' => $avatar]);
+        $language = $found ? $found->fetchColumn() : false;
 
-        return [
-            'from' => $from,
-            // A header is text, not HTML
-            'subject' => $subject,
-            'body' =>
-                '<html><body>' .
-                ($intro === '' ? '' : '<p>' . htmlspecialchars($intro) . '</p>') .
-                $body .
-                "\r\n\r\n" .
-                ($outro === '' ? '' : '<blockquote>' . htmlspecialchars($outro) . '</blockquote>') .
-                '<hr>' .
-                "<p style='font-size:small'><b>" .
-                htmlspecialchars($this->gridName) .
-                '</b> Instant Messages mail forwarding by w4os-helpers.' .
-                '<br>Please log in-world to answer to this message. Emails to the sender address will not be processed.' .
-                '<br>To disable mail notifications, uncheck option "Send IM to mail" in your viewer preferences (tab "Chat" or "Communications").' .
-                '</p></body></html>',
-        ];
+        return is_string($language) && trim($language) !== '' ? trim($language) : MailTemplate::FALLBACK;
+    }
+
+    /**
+     * The mail of a message, from the template of its kind (MailTemplate, `offline-<kind>`) in a language: the name it comes from, its
+     * subject, its text and its HTML.
+     *
+     * @return array{from:string,subject:string,text:string,html:string}
+     */
+    public function compose(\SimpleXMLElement $xml, string $language = MailTemplate::FALLBACK): array
+    {
+        $sender = (string) $xml->fromAgentName;
+        $message = (string) $xml->message;
+        // The kinds of messages of http://wiki.secondlife.com/wiki/ImprovedInstantMessage; the grid itself writes as the grid
+        $kind = match ((string) $xml->dialog) {
+            '32' => 'group-notice',
+            '3' => 'group-invitation',
+            '4' => 'inventory-offer',
+            '38' => 'friendship-offer',
+            default => $sender === 'Server' ? 'grid-message' : 'message',
+        };
+        $sender === 'Server' && ($sender = $this->gridName);
+        // A notice starts with its title: "Title|Text"
+        [$title, $text] = $kind === 'group-notice' && str_contains($message, '|') ? explode('|', $message, 2) : ['', $message];
+        $values = ['grid' => $this->gridName, 'sender' => $sender, 'title' => $title, 'message' => $text];
+        $roots = $this->templates !== [] ? $this->templates : \W4OS\Engine\Provisioning\ResourceRegistry::directories('share/mail');
+        $mail = (new MailTemplate($roots))->render("offline-$kind", $language, $values)
+            ?? throw new \RuntimeException("no template of the mail offline-$kind (share/mail of the kit)");
+
+        return ['from' => $mail['from'], 'subject' => $mail['subject'], 'text' => $mail['text'], 'html' => $mail['html']];
     }
 }

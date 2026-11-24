@@ -1,0 +1,6 @@
+<!-- A notice of a group, mailed to an avatar who is not in world and asked for it ("Send IM to email" in the preferences of their viewer).
+     The HTML part; the text part, with the subject and the sender, is offline-group-notice.txt, beside it. Replaced, HTML-escaped: {{grid}} the name of the grid, {{sender}} the avatar who sent it, {{title}} the title of the notice, {{message}} its text.
+     A copy of this file in the config folder of the install (mail/<language>/) is read in its place; this comment is left out. -->
+<html><body><p>{{sender}} sent a group notice in {{grid}}:</p><h4>{{title}}</h4>{{message}}
+
+<hr><p style='font-size:small'><b>{{grid}}</b> Instant Messages mail forwarding by w4os-helpers.<br>Please log in-world to answer to this message. Emails to the sender address will not be processed.<br>To disable mail notifications, uncheck option "Send IM to mail" in your viewer preferences (tab "Chat" or "Communications").</p></body></html>
