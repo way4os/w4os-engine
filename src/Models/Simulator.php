@@ -946,7 +946,7 @@ final class Simulator extends InstalledModel
     }
 
     /** @return list<string> the UUIDs of its regions, in lower case */
-    private function regionUuids(): array
+    public function regionUuids(): array
     {
         return $this->elsewhere !== null ? $this->elsewhere['uuids'] : array_values(array_map(
             static fn(Region $region): string => strtolower((string) $region->uuid()),

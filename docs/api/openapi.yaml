@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 7aa360a
+  version: 2e0ccb5
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -12382,6 +12382,11 @@ components:
                 - object
                 - 'null'
               description: 'What the grid says of itself at get_grid_info'
+            avatars:
+              type:
+                - integer
+                - 'null'
+              description: 'The people in its world: the members of the grid and the visitors of other grids, never a NPC (they do not reach Presence); null when it is not known'
         links:
           type: object
           properties:

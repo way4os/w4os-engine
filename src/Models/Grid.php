@@ -106,6 +106,9 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /** @var array{0:array<string,string>,1:bool}|null what the grid said of itself, asked once */
     private ?array $info = null;
 
+    /** @var array<string,array{members:int,visitors:int}>|false|null who is in its regions, read once (false until read) */
+    private array|false|null $presence = false;
+
     /**
      * @param ?array<string,mixed> $values what the sources say, by the names of DEFAULTS; null for a grid of this machine, read
      *        from its folder when asked
@@ -1752,7 +1755,49 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             'helpers' => $this->hasHelpers(),
             'simulators' => $folder ? $this->simulatorNames() : null,
             'announcement' => $this->said() ?: null,
+            'avatars' => $folder ? $this->avatars() : null,
         ];
+    }
+
+    /**
+     * Who is in its regions, by region (its UUID in lower case): the members of the grid and the visitors of other grids, never a NPC
+     * (Stats::presence()); null when its databases cannot be read.
+     *
+     * @return ?array<string,array{members:int,visitors:int}>
+     */
+    public function presence(): ?array
+    {
+        if ($this->presence === false) {
+            $config = $this->config();
+            $rows = $config === null ? null : \W4OS\Engine\Data\Stats::presence(static fn(string $service): ?\W4OS\Engine\Data\OSPDO => Connections::pdo($config, $service));
+            $this->presence = $rows === null ? null : $this->withoutStopped($rows);
+        }
+
+        return $this->presence;
+    }
+
+    /**
+     * Who is in its regions without the regions of its simulators of this machine that are down: nobody is there, whatever a row
+     * Presence kept says (a simulator that crashed leaves its rows until its regions start again).
+     *
+     * @param array<string,array{members:int,visitors:int}> $rows by region (its UUID in lower case)
+     * @return array<string,array{members:int,visitors:int}>
+     */
+    public function withoutStopped(array $rows): array
+    {
+        foreach ($this->in(self::FOLDER) ? $this->simulators() : [] as $simulator) {
+            $simulator->isRunning() || ($rows = array_diff_key($rows, array_flip($simulator->regionUuids())));
+        }
+
+        return $rows;
+    }
+
+    /** The people in its world, never a NPC; null when it is not known. */
+    public function avatars(): ?int
+    {
+        $presence = $this->presence();
+
+        return $presence === null ? null : array_sum(array_map('array_sum', $presence));
     }
 
     /** The name of the instance running its Robust: what the launcher makes of the config file name, its nick. */

@@ -125,6 +125,55 @@ final class Status
         return $wrong;
     }
 
+    /**
+     * The avatars in world, never a NPC (Grid::presence()): of each grid of the instances, and of each instance that runs (a Robust:
+     * its grid; a simulator: its regions): the figure the API gives of the grid. Null when it is not known: the databases of the grid cannot be read, or its Robust runs without its database.
+     *
+     * @param ?\Closure(\W4OS\Engine\Models\Grid):?array $presence who is in the regions of a grid (Grid::presence() without it)
+     * @param ?list<string> $withoutDatabase the Robusts that run without their database (withoutDatabase() without it)
+     * @return array{grids:array<string,?int>,instances:array<string,?int>} by the nick of the grid, by the name of the instance
+     */
+    public function avatars(?\Closure $presence = null, ?array $withoutDatabase = null): array
+    {
+        $presence ??= static fn(\W4OS\Engine\Models\Grid $grid): ?array => $grid->presence();
+        $withoutDatabase ??= $this->withoutDatabase();
+        $regions = static fn(AbstractController $instance): array => $instance instanceof \W4OS\Engine\Controllers\OpenSimController && $instance->regionsDirectory() !== ''
+            ? array_map(
+                static fn(\W4OS\Engine\Models\Region $region): string => strtolower((string) $region->uuid()),
+                array_values(array_filter(\W4OS\Engine\Models\Region::inDirectory($instance->regionsDirectory()), static fn(\W4OS\Engine\Models\Region $region): bool => $region->isEnabled())),
+            )
+            : [];
+        // Who is where, by grid, as the grid has it
+        $grids = [];
+        $nicks = [];
+        foreach ($this->instances as $instance) {
+            $grid = $instance->grid();
+            if ($grid === null) {
+                continue;
+            }
+            $nick = $grid->nick();
+            $nicks[$instance->name()] = $nick;
+            array_key_exists($nick, $grids) || ($grids[$nick] = $presence($grid));
+            if ($instance instanceof \W4OS\Engine\Controllers\RobustController && in_array($instance->name(), $withoutDatabase, true)) {
+                $grids[$nick] = null;
+            }
+        }
+        $sum = static fn(array $rows): int => array_sum(array_map('array_sum', $rows));
+        $avatars = ['grids' => array_map(static fn(?array $rows): ?int => $rows === null ? null : $sum($rows), $grids), 'instances' => []];
+        foreach ($this->instances as $instance) {
+            $nick = $nicks[$instance->name()] ?? null;
+            if ($nick === null || $instance->process() === null) {
+                continue;
+            }
+            $rows = $grids[$nick];
+            $avatars['instances'][$instance->name()] = $rows === null ? null : (
+                $instance instanceof \W4OS\Engine\Controllers\RobustController ? $sum($rows) : $sum(array_intersect_key($rows, array_flip($regions($instance))))
+            );
+        }
+
+        return $avatars;
+    }
+
     /** @return array{cpu:float,memory:float,rss:int} */
     public function totals(): array
     {

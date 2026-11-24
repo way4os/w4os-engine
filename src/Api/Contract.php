@@ -73,6 +73,7 @@ final class Contract
                 'helpers' => ['boolean', 'Its helpers are installed'],
                 'simulators' => ['array?', 'The names of its simulators'],
                 'announcement' => ['object?', 'What the grid says of itself at get_grid_info'],
+                'avatars' => ['integer?', 'The people in its world: the members of the grid and the visitors of other grids, never a NPC (they do not reach Presence); null when it is not known'],
             ],
             'writable' => [
                 'enabled' => ['boolean', 'Enable or disable the grid (its Robust); a running grid is not stopped'],
