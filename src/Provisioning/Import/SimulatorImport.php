@@ -151,7 +151,8 @@ final class SimulatorImport
         // The options of the grid (its search and data services, its economy and Gloebit, its offline messages...) are the grid's,
         // in the OpenSim.ini its master gives every simulator, where its settings pages change them: kept in the simulator, they
         // would hide them (a grid without a master has simulators whose config is whole: theirs stay)
-        if (\W4OS\Engine\Provisioning\SimulatorMaster::exists($found->directory())) {
+        // (a grid a migration makes has a master, and the migration brings them there)
+        if (\W4OS\Engine\Provisioning\SimulatorMaster::exists($found->directory()) || $found->isPlanned()) {
             $sections = GridSettingsImport::sections($found);
             foreach ($customizations as $i => $setting) {
                 if (isset($sections[strtolower($setting['section'])])) {
@@ -160,6 +161,10 @@ final class SimulatorImport
                 }
             }
             $customizations = array_values($customizations);
+            // What the options write their own way is the grid's all the same, never replaced by them
+            foreach ($dropped as $i => $setting) {
+                $setting['reason'] === 'replaced' && isset($sections[strtolower($setting['section'])]) && ($dropped[$i]['reason'] = 'grid');
+            }
         }
 
         // The way back: its databases and its files, as they are, before anything is written (the first start upgrades them)
@@ -368,7 +373,7 @@ final class SimulatorImport
             }
         }
         $lines[] = '';
-        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own; grid: an option of the grid, on its settings pages, which opensim import --grid-settings brings from the old config; retired: it stops a simulator of this core):';
+        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own; grid: an option of the grid, on its settings pages, which opensim import --grid-settings brings from the old config, a migration of the grid too; retired: it stops a simulator of this core):';
         foreach ($this->dropped as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']}" .
                 (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . ')';

@@ -77,6 +77,20 @@ final class GridImport
         is_string($plan) && throw InvalidValue::because('invalid-request', $plan);
         // The options this install lays by default (its Robust config, its folders, its database...), as the setup of a grid does
         $plan->options === [] && ($plan->options = (new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables()))->selection([]));
+        // The choice its simulators made in a group (the offline messages V1 where V2 is the default) is the grid's: the option they
+        // tell, else none of its group, their settings brought into the OpenSim.ini of the grid telling it there (apply())
+        $sources = array_values(array_filter(array_map(static fn(array $s): string => (string) ($s['file'] ?? ''), $simulators), 'is_file'));
+        if ($sources !== []) {
+            $options = new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables());
+            foreach ($options->toldBy($sources) as $told) {
+                $group = $options->template($told)?->group() ?? '';
+                if ($group === '' || in_array($told, $plan->options, true)) {
+                    continue;
+                }
+                $plan->options = array_values(array_filter($plan->options, static fn(string $name): bool => $options->template($name)?->group() !== $group));
+                $options->unmet($options->template($told)) === null && ($plan->options[] = $told);
+            }
+        }
         $written || Grid::find($environment, $plan->gridNick) === null ||
             throw InvalidValue::because('invalid-request', "this install has the grid {$plan->gridNick} already: give another nick (nick)");
 
@@ -100,6 +114,25 @@ final class GridImport
             $expanded,
             array_values(array_unique(array_filter($roots, static fn(string $root): bool => $root !== '' && $root !== '/'))),
         );
+
+        // What the files of its simulators set that the core of Robust does not know (a file both read: the folder of its config) is
+        // theirs, never kept in Robust, where it would do nothing (their settings of the grid come into its OpenSim.ini)
+        $theirs = [];
+        foreach ($simulators as $simulator) {
+            $file = (string) ($simulator['file'] ?? '');
+            foreach (is_file($file) ? ConfigReader::load($file, [], false) : [] as $section => $values) {
+                foreach (is_array($values) ? array_keys($values) : [] as $key) {
+                    $theirs[strtolower("$section|$key")] = true;
+                }
+            }
+        }
+        foreach ($customizations as $i => $setting) {
+            if ($setting['unknown'] && isset($theirs[strtolower("{$setting['section']}|{$setting['key']}")])) {
+                $dropped[] = ['section' => $setting['section'], 'key' => $setting['key'], 'value' => $setting['value'], 'reason' => 'simulators'];
+                unset($customizations[$i]);
+            }
+        }
+        $customizations = array_values($customizations);
 
         // A migration keeps the choices of the grid: what this install writes its own way (a text of a preset) is the old one again,
         // but the services the options of this install lay ([ServiceList]), and a value referring to what the new config does not define
@@ -256,6 +289,16 @@ final class GridImport
             file_put_contents($this->reportPath(), $this->report());
             $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
             $this->data->apply($ui, $brought);
+            // The settings of the grid its simulators read (its options: the offline messages, the search, the economy...) come into
+            // its OpenSim.ini, as opensim import --grid-settings brings them, and its options are the ones they tell (the module V1)
+            if ($this->simulators !== null && $this->simulators->imports !== []) {
+                foreach ($this->simulators->imports as $simulator) {
+                    GridSettingsImport::prepare($environment, $simulator->source, $plan->gridNick)->apply();
+                }
+                (new \W4OS\Engine\Provisioning\GridOptions(Grid::find($environment, $plan->gridNick) ?? throw new \RuntimeException("the grid {$plan->gridNick} was not written")))->repair(true);
+                // The master its simulators read made again with them
+                \W4OS\Engine\Provisioning\SimulatorMaster::exists($plan->gridDir) && (new \W4OS\Engine\Provisioning\SimulatorMaster($environment))->ensure($plan->gridDir, $plan->binDir);
+            }
             $this->simulators?->apply($environment, $ui, $dump);
             // Passwords are in the config files: 640, as the rest of the grid
             GridFileService::protect($plan->gridDir);
@@ -389,7 +432,7 @@ final class GridImport
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . ($setting['unknown'] ? ' (not a setting of the core)' : '');
         }
         $lines[] = '';
-        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; corrected: the value of the kit stays, the one it needs to work; default: as the core has it; layout, include: the old install\'s own):';
+        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; corrected: the value of the kit stays, the one it needs to work; simulators: a setting of the simulators Robust does not use, theirs; default: as the core has it; layout, include: the old install\'s own):';
         foreach ($this->dropped as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']}" .
                 (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . (isset($setting['why']) ? ": {$setting['why']}" : '') . ')';

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (migrate): the choice of the simulators in a group stays (offline V1 and its helper), brought into the grid's OpenSim.ini
 - new (status): the avatars in world, NPCs never counted, by grid and by simulator that runs; on the API, avatars of a grid
 - fix (migrate): a setting kept that a kit include sets otherwise wins, read last (-inidirectory); the report lists it
 - fix (migrate): the kit keeps the addresses and paths its values show, never by key name; OSSL stays the source's

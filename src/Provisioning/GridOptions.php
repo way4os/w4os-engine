@@ -465,11 +465,31 @@ final class GridOptions
         }
     }
 
-    /** @return list<string> told() */
-    private function tell(): array
+    /**
+     * The options other files tell, as the OpenSim.ini of the grid tells them (told()): the config of a simulator of another install,
+     * with the files it includes, the choice it made in a group (the offline messages V1 and their helper elsewhere).
+     *
+     * @param list<string> $files
+     * @return list<string>
+     */
+    public function toldBy(array $files): array
+    {
+        $this->telling = true;
+        try {
+            return $this->tell($files);
+        } finally {
+            $this->telling = false;
+        }
+    }
+
+    /**
+     * @param ?list<string> $files the files read, the ones of the grid without them
+     * @return list<string> told()
+     */
+    private function tell(?array $files = null): array
     {
         $said = [];
-        foreach ($this->gridFiles() as $file) {
+        foreach ($files ?? $this->gridFiles() as $file) {
             foreach (array_change_key_case(\W4OS\Engine\Config\ConfigReader::load($file, $this->gridConstants(), expand: false)) as $section => $keys) {
                 is_array($keys) && ($said[$section] = array_merge($said[$section] ?? [], array_change_key_case(array_map(static fn($v): string => strtolower(trim((string) $v, " \"")), $keys))));
             }

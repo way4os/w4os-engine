@@ -386,6 +386,42 @@ describe('The import of a grid', function () {
             ->toBeFalse();
     });
 
+    test('keeps the offline messages of its simulators, V1 and a helper outside this install: never switched to V2', function () {
+        [$machine, $robust] = old_robust_install();
+        // A core with its defaults: the grid has a master, which gives its simulators what the grid decides
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        $bin = dirname($robust);
+        $common = dirname($bin) . '/etc/kimbe/GridCommon.ini';
+        mkdir(dirname($common), 0o755, true);
+        // The simulators and the Robust read the same file of the grid (the folder of its config), V1 and its helper elsewhere
+        file_put_contents($common, "[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"https://im.example.org/helper/offline.php\"\n    ForwardOfflineGroupMessages = false\n");
+        file_put_contents($robust, file_get_contents($robust) . "[Startup]\n    ConfigDirectory = \"" . dirname($common) . "\"\n");
+        mkdir("$bin/Regions");
+        file_put_contents("$bin/OpenSim.ini", "[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n[Includes]\n    Include-Common = \"$common\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']]);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $master = W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory());
+        $read = ConfigReader::expand(ConfigReader::load([$master, ...$sim->files()], [], false, false, $sim->lastFiles()));
+        $settings = (new W4OS\Engine\Models\GridSettings($grid))->read('offline');
+        $report = (string) file_get_contents($import->document()['simulators']['steps'][0]['report']);
+
+        // What the simulators run (the master of the grid, then their own file): the module V1, its helper, the group messages not forwarded
+        expect(is_file($master))->toBeTrue()
+            ->and(array_intersect_key($read['Messaging'] ?? [], array_flip(['OfflineMessageModule', 'OfflineMessageURL', 'ForwardOfflineGroupMessages'])))
+            ->toBe(['OfflineMessageModule' => 'OfflineMessageModule', 'OfflineMessageURL' => 'https://im.example.org/helper/offline.php', 'ForwardOfflineGroupMessages' => 'false'])
+            ->and((new W4OS\Engine\Provisioning\GridOptions($grid))->enabled())->toContain('offline-helpers')->not->toContain('offline-robust')
+            // Its settings say what the simulators run, read where they read it, not in the Robust, which does not use them
+            ->and([$settings['offlineModule'] ?? null, $settings['offlineMessageUrl'] ?? null])->toBe(['OfflineMessageModule', 'https://im.example.org/helper/offline.php'])
+            ->and((string) file_get_contents($import->plan->robustIni()))->not->toContain('OfflineMessageModule')
+            // The report of the simulator says they are the grid's, never replaced
+            ->and($report)->toContain('[Messaging] OfflineMessageModule = OfflineMessageModule (grid')->not->toContain('OfflineMessageModule = OfflineMessageModule (replaced');
+    });
+
     test('refuses a grid this install has already', function () {
         [$machine, $robust] = old_robust_install();
 
