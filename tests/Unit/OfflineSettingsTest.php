@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use W4OS\Engine\Config\ConfigReader;
+
 /**
  * The page of the offline messages (provided_grid() of ProvideChoicesTest, address_patch() of ProvideAddressesTest): provided, the
  * helpers serve the module V1 and keep the messages in their database; not provided, the module is chosen, V1 with the address of
@@ -37,6 +39,37 @@ describe('The offline messages', function () {
             ->and($v1Lines)->toContain('OfflineMessageModule = OfflineMessageModule')->toContain('OfflineMessageURL = https://im.example.org/offline.php')
             ->and($on->document['data']['attributes'])->toMatchArray(['provide' => true, 'offlineModule' => 'OfflineMessageModule'])
             ->and($ini())->toContain('OfflineMessageURL = "https://play.example.org/helpers/offline');
+    });
+});
+
+describe('A setting of the simulators', function () {
+    test('is written where the simulators read it, never in Robust that has the same key and does not use it', function () {
+        [$machine, $router] = provided_grid();
+        // A grid whose master gives its simulators what it decides (OpenSim.ini of the grid)
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->grid . '/OpenSim.ini', "[Messaging]\n    OfflineMessageModule = \"Offline Message Module V2\"\n");
+        $master = new W4OS\Engine\Provisioning\SimulatorMaster($machine->environment);
+        $master->ensure($machine->grid, $machine->core . '/bin');
+        $robust = $machine->grid . '/Robust.HG.ini';
+        // A Robust that has the keys of the simulators (an old install read a file of the simulators with it)
+        file_put_contents($robust, file_get_contents($robust) . "[Messaging]\n    OfflineMessageModule = \"Offline Message Module V2\"\n    OfflineMessageURL = \"http://old.example.org:8003\"\n");
+        $before = (string) file_get_contents($robust);
+
+        $on = address_patch($router, 'offline', ['provide' => true]);
+        $search = address_patch($router, 'search', ['provide' => true, 'path' => 'search/query.php']);
+        $grid = ConfigReader::file($machine->grid . '/OpenSim.ini');
+        // What a simulator runs once restarted: its master made again from the OpenSim.ini of the grid
+        $run = ConfigReader::parse($master->render($machine->grid, $machine->core . '/bin'));
+
+        expect([$on->status, $search->status])->toBe([200, 200])
+            ->and($grid['Messaging']['OfflineMessageModule'] ?? null)->toBe('OfflineMessageModule')
+            ->and($grid['Messaging']['OfflineMessageURL'] ?? '')->toContain('https://play.example.org/helpers/offline')
+            ->and($grid['Search']['SearchURL'] ?? '')->toBe('https://play.example.org/helpers/search/query.php')
+            ->and($run['Messaging']['OfflineMessageModule'] ?? null)->toBe('OfflineMessageModule')
+            // The page says what else is needed: the simulators restart to take it
+            ->and(array_column($on->document['meta']['reminders'] ?? [], 'code'))->toContain('restart-simulators')
+            // Robust is left as it was: its keys there do nothing
+            ->and((string) file_get_contents($robust))->toBe($before);
     });
 });
 

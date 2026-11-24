@@ -1215,15 +1215,19 @@ final class GridSettings
     }
 
     /**
-     * The file of the grid a setting is written in: the one that says it already, else the file of its instance (the Robust config,
-     * the one of a standalone; the OpenSim.ini, the MoneyServer.ini, the Helpers.ini of the grid).
+     * The file of the grid a setting is written in: the file of its instance that says it already, else the file of its instance (the
+     * Robust config, the one of a standalone; the OpenSim.ini, the MoneyServer.ini, the Helpers.ini of the grid). For a process, the
+     * same key in a file of another instance is never the one: it does nothing there; the helpers read every file of the grid.
      *
      * @param array<string,mixed> $entry
      */
     private function fileOf(array $entry): string
     {
         $config = $this->config();
-        foreach (self::FILES as $role) {
+        // A process reads only its own files: the same key in another one does nothing there (the [Messaging] of the simulators in
+        // Robust); the helpers read theirs where the grid says them (Robust, the simulators, Helpers.ini)
+        $own = $entry['instance'] === 'helpers' ? null : (Settings::INSTANCES[$entry['instance']]['role'] ?? null);
+        foreach (array_filter(self::FILES, static fn(string $role): bool => $own === null || $role === $own) as $role) {
             $file = $config->file($role);
             if ($file !== null && $file !== '' && is_file($file)) {
                 $ini = array_change_key_case(ConfigReader::file($file));

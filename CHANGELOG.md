@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (settings): a setting is written in a file of its own instance, never in Robust that has the same key (offline, search)
 - fix (migrate): the economy of the simulators stays: [Startup] EconomyModule is the kit's [Economy], Gloebit and its keys kept
 - fix (offline): SaveMessage answers a boolean, false too; the mail subject is text, its non-ASCII names encoded (RFC 2047)
 - fix (migrate): the choice of the simulators in a group stays (offline V1 and its helper), brought into the grid's OpenSim.ini
