@@ -155,3 +155,42 @@ describe('a store', function () {
         expect($cache->get('second'))->toBe(2);
     });
 })->skip(fn() => test_pdo() === null, 'TEST_DATABASE is not set in tests/.env');
+
+describe('the cache of a grid', function () {
+    test('is in files when another install keeps its search (MaintainSearch = false): never written in that database', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\nMaintainSearch = false\n");
+        $config = W4OS\Engine\Config\GridConfig::fromFolder($machine->grid, ['Helpers' => 'Helpers.ini']);
+        $db = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
+
+        Cache::flush();
+        Cache::for($machine->environment, $config)->set('kept', 'here', 60);
+        Cache::flush();
+        $again = Cache::for($machine->environment, $config)->get('kept');
+        $table = $db->table_exists('oshelpers_cache');
+        W4OS\Engine\Data\Connections::using(null);
+
+        expect($again)->toBe('here')->and($table)->toBeFalse();
+    });
+
+    test('says once when it cannot write its database, never silent', function () {
+        $db = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
+        // A table it cannot write in (the columns of another)
+        $db->exec('CREATE TABLE oshelpers_cache (other INT)');
+        $log = tempnam(sys_get_temp_dir(), 'cache-log-');
+        $previous = ini_set('error_log', $log);
+        Cache::flush();
+        $cache = new Cache(new DatabaseCacheStore($db), new ClockFake());
+
+        $cache->set('first', 1, 60);
+        $cache->set('second', 2, 60);
+        $lines = array_values(array_filter(file($log, FILE_IGNORE_NEW_LINES) ?: [], static fn(string $line): bool => str_contains($line, 'oshelpers_cache')));
+        ini_set('error_log', (string) $previous);
+        unlink($log);
+
+        expect($lines)->toHaveCount(1)
+            // The memory goes on
+            ->and($cache->get('second'))->toBe(2);
+    });
+});

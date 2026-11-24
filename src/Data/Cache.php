@@ -19,8 +19,8 @@ use W4OS\Engine\Runtime\Environment;
  *     $row = $cache->remember('region.' . $uuid, fn() => Region::find($config, $uuid)?->detail(), 3600);
  *
  * The time to live tells which: none keeps it in memory, a number of seconds keeps it in the store as well (0 for ever). The store is
- * the `oshelpers_cache` table of the search database of the grid when it has one (the table the helpers and the aggregator use),
- * else files in the cache folder of the install. A memory that holds `null` holds it: a search that found nothing is not made again.
+ * the `oshelpers_cache` table of the search database of the grid when it has one and keeps it (the table the helpers and the
+ * aggregator use), else files in the cache folder of the install. A memory that holds `null` holds it: a search that found nothing is not made again.
  */
 final class Cache
 {
@@ -32,10 +32,13 @@ final class Cache
         private readonly ?ClockInterface $clock = null,
     ) {}
 
-    /** The cache of the grid of a config: in its search database, else in the files of the install. */
+    /**
+     * The cache of the grid of a config: in its search database, else in the files of the install; in the files too when another
+     * install keeps that database (MaintainSearch = false of [Helpers]): this one never writes in it.
+     */
     public static function for(Environment $environment, ?GridConfig $config = null): self
     {
-        $pdo = $config === null ? null : Connections::pdo($config, Database::Search);
+        $pdo = $config === null || !\W4OS\Engine\Services\SearchTasks::maintains($config) ? null : Connections::pdo($config, Database::Search);
         $store =
             $pdo !== null
                 ? new DatabaseCacheStore($pdo)

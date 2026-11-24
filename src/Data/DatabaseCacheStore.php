@@ -7,7 +7,7 @@ namespace W4OS\Engine\Data;
 /**
  * A Cache store in the `oshelpers_cache` table of a database: the one the helpers keep their answers in, with the same columns and
  * the same values (JSON), so what one writes the others read. The table is made when it is not there. A database that fails is left
- * alone for the rest of the session.
+ * alone for the rest of the session, said once in the log.
  */
 final class DatabaseCacheStore implements CacheStoreInterface
 {
@@ -15,6 +15,9 @@ final class DatabaseCacheStore implements CacheStoreInterface
 
     private bool $ready = false;
     private bool $failed = false;
+
+    /** @var array<string,true> the databases whose failure was said, in this process */
+    private static array $said = [];
 
     public function __construct(private readonly OSPDO $pdo) {}
 
@@ -65,8 +68,9 @@ final class DatabaseCacheStore implements CacheStoreInterface
                         'value' => json_encode($value, JSON_UNESCAPED_SLASHES),
                         'expires' => $expires,
                     ]);
-            } catch (\PDOException) {
-                // A request that came in between wrote the same key
+            } catch (\PDOException $e) {
+                // A request that came in between wrote the same key; any other failure is the store's
+                $e->getCode() === '23000' || throw $e;
             }
         });
     }
@@ -88,8 +92,11 @@ final class DatabaseCacheStore implements CacheStoreInterface
             $this->ready || $this->create();
 
             return $action();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             $this->failed = true;
+            // Said once a process for each database, never silent: the memory goes on
+            isset(self::$said[$this->scope()]) || error_log('w4os-engine: the cache cannot use the table ' . self::TABLE . ' of ' . ($this->pdo->db_name ?? 'its database') . ': ' . $e->getMessage());
+            self::$said[$this->scope()] = true;
 
             return null;
         }

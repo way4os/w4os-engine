@@ -31,13 +31,19 @@ final class FileCacheStore implements CacheStoreInterface
         return ['value' => $kept['value'], 'expires' => $expires];
     }
 
+    /** @var array<string,true> the folders whose failure was said, in this process */
+    private static array $said = [];
+
     public function put(string $key, mixed $value, int $expires): void
     {
-        if (!(is_dir($this->directory) || @mkdir($this->directory, 0o775, true) || is_dir($this->directory))) {
-            return;
-        }
         $json = json_encode(['value' => $value, 'expires' => $expires], JSON_UNESCAPED_SLASHES);
-        $json !== false && @file_put_contents($this->file($key), $json, LOCK_EX);
+        $written = (is_dir($this->directory) || @mkdir($this->directory, 0o775, true) || is_dir($this->directory))
+            && $json !== false && @file_put_contents($this->file($key), $json, LOCK_EX) !== false;
+        // Said once a process for each folder, never silent
+        if (!$written && !isset(self::$said[$this->directory])) {
+            self::$said[$this->directory] = true;
+            error_log("w4os-engine: the cache cannot write in {$this->directory}");
+        }
     }
 
     public function forget(string $key): void
