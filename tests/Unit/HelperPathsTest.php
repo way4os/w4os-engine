@@ -58,4 +58,17 @@ describe('The paths of the helpers', function () {
         expect($root)->toContain('/helper/query.php')->toContain('/helpers/helper/offline.php /helpers/helper/offline.php/*')->toContain('/opensim*')
             ->and($prefixed)->toBe('/opensim/economy /opensim/economy/*');
     });
+
+    test('leave the economy to a third-party application when the grid says it does not provide it, even on its own host', function () use ($kimbe) {
+        $grid = $kimbe();
+        // The economy on the site, run by another application: Provide off decides, never the address alone
+        file_put_contents($grid->directory() . '/Helpers.ini', "[Helpers]\nHelpersURL = \"https://kimbe.example/opensim/economy\"\nEconomyProvided = false\n");
+        $grid = Grid::find($grid->environment(), 'demo');
+
+        expect($grid->helperPaths())->not->toHaveKey('currency')->not->toHaveKey('landtool')
+            ->and($grid->servedByHelpers('https://kimbe.example/opensim/economy/currency.php'))->toBeFalse()
+            // The rest of the helpers, under the same base, stays theirs
+            ->and($grid->servedByHelpers('https://kimbe.example/opensim/economy/welcome'))->toBeTrue()
+            ->and($grid->helperPaths()['query'] ?? null)->toBe('/helper/query.php');
+    });
 });

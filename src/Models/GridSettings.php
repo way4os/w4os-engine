@@ -246,6 +246,8 @@ final class GridSettings
         $url = $values[$provide['setting']];
         $site = $this->grid->site();
         $on = !is_string($url) || $url === '' || ($site !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $site));
+        // The economy says it (EconomyProvided): its address alone never decides, a third-party application may be on the site
+        $page === 'economy' && ($said = $this->grid->economyProvided()) !== null && ($on = $said);
         // The module V2 is Robust's: the helpers do not provide it
         $page === 'offline' && stripos((string) $values['offlineModule'], 'V2') !== false && ($on = false);
         // The path under its base, which ends with the slash: it starts with one only for an address of the site out of the
@@ -418,7 +420,14 @@ final class GridSettings
         $entries = array_column(self::entries($page), null, 'name');
         // Provide switched on, before it becomes the address
         $switchedOn = filter_var($values['provide'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        // Whether the helpers serve the economy is said, for whoever reads it (its routes, the helpers), whatever its address
+        $provided = $page === 'economy' && array_key_exists('provide', $values) ? filter_var($values['provide'], FILTER_VALIDATE_BOOLEAN) : null;
         isset(self::PROVIDE[$page]) && ($values = $this->addressOf($page, $values));
+        if ($provided !== null) {
+            // As a word: false would take the key off
+            $values['economyProvided'] = $provided ? 'true' : 'false';
+            $entries['economyProvided'] = Settings::named('economyProvided');
+        }
         $now = $this->read($page);
         $before = $now;
         // Podex is written as the generic money server, and the provider the helpers serve

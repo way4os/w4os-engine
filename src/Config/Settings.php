@@ -179,6 +179,8 @@ final class Settings
                 'LinkFormatViewer' => ['name' => 'linkFormatViewer', 'type' => 'select', 'label' => 'setting_link_format_viewer', 'options' => ['GRID' => 'link_format_grid', 'HOP' => 'link_format_hop', 'APPTP' => 'link_format_apptp', 'LOCAL' => 'link_format_local'], 'default' => 'GRID', 'admin' => 'grid'],
                 'MailSender' => ['name' => 'mailSender', 'type' => 'email', 'label' => 'setting_mail_sender', 'admin' => 'offline', 'example' => 'no-reply@example.org'],
                 'CurrencyRate' => ['name' => 'currencyRate', 'type' => 'float', 'label' => 'setting_currency_rate', 'default' => 10.0, 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit', 'DTLNSLMoneyModule']]],
+                // Whether the helpers serve the economy of the grid (Provide of its page): said, never guessed from its address
+                'EconomyProvided' => ['name' => 'economyProvided', 'type' => 'bool', 'label' => 'provide_economy'],
                 // The currency provider the helpers serve with the generic money server: podex, else none
                 'CurrencyProvider' => ['name' => 'currencyProvider', 'type' => 'text', 'label' => 'setting_currency_provider'],
                 'CurrencyRatePer' => ['name' => 'currencyRatePer', 'type' => 'float', 'label' => 'setting_currency_rate_per', 'default' => 1000.0],

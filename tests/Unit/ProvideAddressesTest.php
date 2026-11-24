@@ -16,6 +16,22 @@ function address_patch(W4OS\Engine\Api\Router $router, string $page, array $attr
     return $router->patch("/grids/demo/settings/$page", ['data' => ['type' => 'settings', 'id' => $page, 'attributes' => $attributes]]);
 }
 
+describe('The economy', function () {
+    test('provided or not is said in the helpers, and read from there: the address alone never decides', function () {
+        [$machine, $router] = provided_grid();
+        $off = address_patch($router, 'economy', ['provide' => false, 'economyUrl' => 'https://play.example.org/money/']);
+        $helpers = (string) file_get_contents($machine->grid . '/Helpers.ini');
+        $on = address_patch($router, 'economy', ['provide' => true]);
+
+        // An address of the site itself, run by another application: off, as said
+        expect($off->status)->toBe(200)
+            ->and($off->document['data']['attributes']['provide'])->toBeFalse()
+            ->and($helpers)->toMatch('/EconomyProvided\s*=\s*false/')
+            ->and($on->document['data']['attributes']['provide'])->toBeTrue()
+            ->and((string) file_get_contents($machine->grid . '/Helpers.ini'))->toMatch('/EconomyProvided\s*=\s*true/');
+    });
+});
+
 describe('The address of a service', function () {
     test('on, is a path under the site, or under the helpers for what the viewers and the simulators call', function () {
         [$machine, $router] = provided_grid();

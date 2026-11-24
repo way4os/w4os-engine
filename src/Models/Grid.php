@@ -2097,6 +2097,11 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         if (trim($url) === '') {
             return false;
         }
+        // The economy another application serves is never the helpers', even under their base
+        $economy = $this->economyProvided() === false ? $this->economy() : null;
+        if ($economy !== null && preg_match('#^' . preg_quote(rtrim($economy, '/'), '#') . '/(currency|landtool)\.php(/|$)#i', $url) === 1) {
+            return false;
+        }
         if ($base !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $base)) {
             return true;
         }
@@ -2113,6 +2118,21 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         }
 
         return false;
+    }
+
+    /**
+     * Whether its helpers serve its economy, as it says it (`EconomyProvided` of Helpers.ini, Provide of the page of the economy);
+     * null when it does not say (a grid of before: the address decides then).
+     */
+    public function economyProvided(): ?bool
+    {
+        $said = strtolower(\W4OS\Engine\Provisioning\Web\HelpersConfig::value($this->helpersSource(), 'EconomyProvided'));
+
+        return match ($said) {
+            'true', '1', 'yes' => true,
+            'false', '0', 'no' => false,
+            default => null,
+        };
     }
 
     /** @var ?array<string,string> helperPaths(), read once */
@@ -2139,8 +2159,9 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             'register' => $this->registerUrl(),
             'offline' => $this->offlineUrl(),
             'motd' => $this->motdUrl(),
-            'currency' => $economy === null ? null : "$economy/currency.php",
-            'landtool' => $economy === null ? null : "$economy/landtool.php",
+            // The economy, unless the grid says another application serves it (whatever its address)
+            'currency' => $economy === null || $this->economyProvided() === false ? null : "$economy/currency.php",
+            'landtool' => $economy === null || $this->economyProvided() === false ? null : "$economy/landtool.php",
             // The web assets of the grid, when the helpers serve them (the pictures under it): the address it sets, else theirs
             'assets' => $this->assetsUrl() ?? ($this->helperUrl('assets') ?: null),
         ];

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (economy): whether the helpers serve it is said (EconomyProvided, Provide of its page), never guessed from its address
 - new (helpers): Grid::helperPaths(), the addresses its config names on its site wherever they are; the helpers and the web server follow it
 - fix (migrate): [Messaging] MuteListURL is left out, said: no core of the kit reads it (MuteListModule and Robust's MuteListService)
 - new (web): opensim web GRID snippet --prefix: the helpers under the path of a block of its own (the mini site under /opensim)
