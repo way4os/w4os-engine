@@ -1278,11 +1278,13 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /**
      * The picture of a result shown in full (a place, land for sale, a classified, an event), as the cards have theirs: its own (its
      * snapshot), else the one of the parcel of its place (DestinationPictures: the search, else what its grid gave), shown when this
-     * host can show it (RemotePictures::shown()), else the image of its title (TitleImage).
+     * host can show it (RemotePictures::shown()), else the image of its title (TitleImage) for a card; none for a detail.
      *
      * @param string $url its place (host:port/Region/x/y/z)
+     * @param string $name its name, the text of the image of its title
+     * @param bool $title the image of its title when it has no picture (a card), else null (a detail)
      */
-    public function shownPicture(string $url, string $title, ?string $picture = null, ?GridConfig $config = null): string
+    public function shownPicture(string $url, string $name, ?string $picture = null, ?GridConfig $config = null, bool $title = true): ?string
     {
         $config ??= $this->config();
         $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
@@ -1290,11 +1292,18 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         // None of its own (an image of its title is none): the one of the parcel of its place
         if ($picture === null || !\W4OS\Engine\Text\Uuid::isValid($picture) || \W4OS\Engine\Text\Uuid::isNullKey($picture)) {
             $search = $config === null ? null : Connections::pdo($config, Database::Search);
-            $picture = (new \W4OS\Engine\Services\DestinationPictures($search, $login, $cache))->picture($url, $title);
+            $picture = (new \W4OS\Engine\Services\DestinationPictures($search, $login, $cache))->picture($url, $name);
         }
+        $shown = \W4OS\Engine\Services\RemotePictures::shown($cache, $login, $url, $picture);
 
-        return \W4OS\Engine\Assets\TitleImage::pick(\W4OS\Engine\Services\RemotePictures::shown($cache, $login, $url, $picture), $title);
+        return $title ? \W4OS\Engine\Assets\TitleImage::pick($shown, $name) : $shown;
     }
+
+    /** The section of the places of the events among the ones of the guide whose pictures are asked: never the name of a category. */
+    private const EVENT_PICTURES_SECTION = "\0events";
+
+    /** How many events to come the task of the pictures asks the places of, the soonest first. */
+    public const EVENT_PICTURES = 50;
 
     /** The section of the popular places among the ones of the guide whose pictures are asked: never the name of a category. */
     private const POPULAR_PICTURES = "\0popular";
@@ -1338,6 +1347,18 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         if ($search !== null) {
             $popular = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri()))->popular();
             $guide[self::POPULAR_PICTURES] = ['picture' => null, 'destinations' => array_map(static fn(array $p): array => ['picture' => null] + $p, $popular)];
+        }
+        // The places of the events to come, the soonest first: their details show what their grid gave
+        if ($config !== null && $search !== null) {
+            try {
+                $events = \W4OS\Engine\Models\Event::all($config, ['filters' => ['day' => 'u'], 'sort' => 'date asc', 'perPage' => self::EVENT_PICTURES])->items();
+            } catch (\W4OS\Engine\Exceptions\ChannelUnavailable) {
+                $events = [];
+            }
+            $guide[self::EVENT_PICTURES_SECTION] = ['picture' => null, 'destinations' => array_values(array_filter(array_map(
+                static fn(\W4OS\Engine\Models\Event $event): array => ['name' => $event->name(), 'url' => (string) $event->tpUri(), 'picture' => null],
+                $events,
+            ), static fn(array $destination): bool => $destination['url'] !== ''))];
         }
         $found = $pictures->refresh($guide);
 

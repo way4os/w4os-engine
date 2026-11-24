@@ -516,5 +516,31 @@ describe('The pictures of the guide of a grid', function () {
             ->and($far)->toBe(W4OS\Engine\Assets\TitleImage::id('Far beach'))
             ->and($own)->toBe(REMOTE_HILL);
     });
+
+    test('of the places of the events to come are asked too: their details show what their grid gave, nothing when none', function () {
+        $world = remote_grid();
+        $machine = new Machine();
+        $machine->http['http://far.example.net:8002/assets/' . REMOTE_BEACH] = '<AssetBase><Data>' . base64_encode('JP2-BYTES') . '</Data><ID>' . REMOTE_BEACH . '</ID><Name>Beach</Name><Type>0</Type></AssetBase>';
+        $db = search_database();
+        // The tables as the engine keeps them (the landing point of an event)
+        W4OS\Engine\Services\SearchTables::upgrade($db);
+        $soon = time() + 3600;
+        $columns = '(owneruuid, name, eventid, creatoruuid, category, description, dateUTC, duration, covercharge, coveramount, simname, parcelUUID, globalPos, eventflags, gatekeeperURL, landingpoint)';
+        $db->exec("INSERT INTO events $columns VALUES ('o', 'Beach party', 7, 'c', 20, 'Dance', $soon, 60, 0, 0, 'far.example.net:8002 Far/10/20/30', 'p', '1,1,30', 0, 'http://far.example.net:8002', '10/20/30'), " .
+            "('o', 'Hill walk', 8, 'c', 20, 'Walk', $soon, 60, 0, 0, 'far.example.net:8002 Far/128/128/25', 'p', '1,1,25', 0, 'http://far.example.net:8002', '128/128/25')");
+        W4OS\Engine\Data\Connections::using(static fn() => $db);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+
+        $grid->refreshGuidePictures();
+        $party = $grid->shownPicture('far.example.net:8002/Far/10/20/30', 'Beach party', null, title: false);
+        $walk = $grid->shownPicture('far.example.net:8002/Far/128/128/25', 'Hill walk', null, title: false);
+        $card = $grid->shownPicture('far.example.net:8002/Far/128/128/25', 'Hill walk');
+        W4OS\Engine\Data\Connections::using(null);
+
+        expect($party)->toBe(REMOTE_BEACH)
+            // A detail without a picture shows none; a card has the image of its title
+            ->and($walk)->toBeNull()
+            ->and($card)->toBe(W4OS\Engine\Assets\TitleImage::id('Hill walk'));
+    });
 });
 

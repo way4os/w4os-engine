@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (pictures): the task asks the places of the 50 events to come too; a detail shows none without a picture (shownPicture title false)
 - change (settings): the offline messages: Provide their on or off (on by default), then the module, V2 (Robust, the default) or V1 (deprecated)
 - fix (search): the category of an event called Category in its details, as its filter
 - new (search): the picture of a result shown in full (Grid::shownPicture(), as the cards; an event its parcel's); its description a text of its own (bare)
