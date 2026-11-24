@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (popular places): models of the search (Grid::popularModels()), their pictures theirs; the task asks them by their models' addresses
 - change (search): a result's picture through its model on its grid (realPicture(), picture()): its own, else the parcel of its place
 - fix (pictures): the task asks the places of the 50 events to come too; a detail shows none without a picture (shownPicture title false)
 - change (settings): the offline messages: Provide their on or off (on by default), then the module, V2 (Robust, the default) or V1 (deprecated)

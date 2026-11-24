@@ -803,25 +803,42 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     public function popularPlaces(int $count = \W4OS\Engine\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null, bool $hypergrid = false, bool $landSales = false): array
     {
         $config ??= $this->config();
+
+        return array_map(function (SearchPlace $place) use ($config): array {
+            $url = (string) $place->tpUri();
+            $card = ['name' => $place->name(), 'url' => $url, 'dwell' => (int) ($place->detail()['traffic'] ?? 0)];
+            $card += $this->card($url, $place->name(), $config);
+
+            // Its picture, its model's (realPicture()), else the image of its title
+            return ['picture' => \W4OS\Engine\Assets\TitleImage::pick($place->realPicture(), (string) ($card['title'] ?? $card['name']))] + $card;
+        }, $this->popularModels($count, $config, $hypergrid, $landSales));
+    }
+
+    /**
+     * The popular places of the search as its models (SearchPlace) on this grid, the most visited first: what popularPlaces() shows,
+     * their pictures theirs.
+     *
+     * @return list<SearchPlace> empty without a search
+     */
+    public function popularModels(int $count = \W4OS\Engine\Services\DefaultDestinations::LIMIT, ?GridConfig $config = null, bool $hypergrid = false, bool $landSales = false): array
+    {
+        $config ??= $this->config();
         $search = self::searchDatabase($config, 'read the popular places');
-        if ($search === null) {
+        if ($search === null || $config === null) {
             return [];
         }
         $own = $hypergrid ? null : (string) $this->loginUrl();
-        $places = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri(), $own === '' ? null : $own))->popular($count, $landSales);
-        // The picture another grid gave of its parcel (RemotePictures), else the one of the search
-        $cache = \W4OS\Engine\Data\Cache::for($this->environment, $config);
+        $rows = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri(), $own === '' ? null : $own))->popular($count, $landSales);
 
-        $login = (string) $this->loginUrl();
-
-        return array_map(function (array $place) use ($config, $cache, $login): array {
-            $place += $this->card($place['url'], $place['name'], $config);
-            // The picture another grid gave, else the one of the search: shown when this host can show it (RemotePictures::shown())
-            $picture = \W4OS\Engine\Services\RemotePictures::lookup($cache, $place['url'], $place['name']) ?? $place['picture'];
-            $picture = \W4OS\Engine\Services\RemotePictures::shown($cache, $login, $place['url'], $picture);
-
-            return ['picture' => \W4OS\Engine\Assets\TitleImage::pick($picture, (string) ($place['title'] ?? $place['name']))] + $place;
-        }, $places);
+        return array_map(fn(array $row): SearchPlace => (new SearchPlace($config, [
+            'parcelUUID' => $row['parcel'],
+            'parcelname' => $row['name'],
+            'region' => $row['region'],
+            'landingpoint' => $row['landing'],
+            'gatekeeperURL' => $row['gatekeeper'],
+            'imageUUID' => $row['picture'],
+            'dwell' => $row['dwell'],
+        ]))->on($this), $rows);
     }
 
     /**
@@ -1295,6 +1312,8 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             $picture = (new \W4OS\Engine\Services\DestinationPictures($search, $login, $cache))->picture($url, $name);
         }
         $shown = \W4OS\Engine\Services\RemotePictures::shown($cache, $login, $url, $picture);
+        // The one of the search not kept here: what the grid of its place gave, by its address
+        $shown ??= \W4OS\Engine\Services\RemotePictures::shown($cache, $login, $url, \W4OS\Engine\Services\RemotePictures::lookup($cache, $url, $name));
 
         return $title ? \W4OS\Engine\Assets\TitleImage::pick($shown, $name) : $shown;
     }
@@ -1345,8 +1364,11 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         $guide = $this->guidePictures($config);
         $search = $config === null ? null : Connections::pdo($config, Database::Search);
         if ($search !== null) {
-            $popular = (new \W4OS\Engine\Services\DefaultDestinations($search, Region::searchTable($search), (string) $this->uri()))->popular();
-            $guide[self::POPULAR_PICTURES] = ['picture' => null, 'destinations' => array_map(static fn(array $p): array => ['picture' => null] + $p, $popular)];
+            // By their models' addresses, the ones they read their pictures with (SearchResult::realPicture())
+            $guide[self::POPULAR_PICTURES] = ['picture' => null, 'destinations' => array_values(array_filter(array_map(
+                static fn(SearchPlace $place): array => ['name' => $place->name(), 'url' => (string) $place->tpUri(), 'picture' => null],
+                $this->popularModels(config: $config, hypergrid: true),
+            ), static fn(array $destination): bool => $destination['url'] !== ''))];
         }
         // The places of the events to come, the soonest first: their details show what their grid gave
         if ($config !== null && $search !== null) {

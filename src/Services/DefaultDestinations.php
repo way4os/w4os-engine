@@ -73,7 +73,7 @@ final class DefaultDestinations
      * search of the viewers lists them, with their picture (an
      * asset UUID, null without one); of every grid the search serves, unless the guide was asked for one grid only.
      *
-     * @return list<array{name:string,url:string,picture:?string,dwell:int}>
+     * @return list<array{name:string,url:string,picture:?string,dwell:int,parcel:string,region:string,landing:string,gatekeeper:string}>
      */
     public function popular(int $limit = self::LIMIT, bool $landSales = false): array
     {
@@ -83,7 +83,7 @@ final class DefaultDestinations
         // The land for sale left out, as the search of the viewer does (include_landsales)
         $sales = !$landSales && $this->search->tables_exist(['parcelsales']);
         $rows = $this->rows(
-            'SELECT pop.name AS name, r.regionname AS region, par.landingpoint AS landing, pop.gatekeeperURL AS gatekeeper, par.imageUUID AS picture, pop.dwell AS dwell FROM popularplaces AS pop ' .
+            'SELECT pop.parcelUUID AS parcel, pop.name AS name, r.regionname AS region, par.landingpoint AS landing, pop.gatekeeperURL AS gatekeeper, par.imageUUID AS picture, pop.dwell AS dwell FROM popularplaces AS pop ' .
                 "INNER JOIN parcels AS par ON pop.parcelUUID = par.parcelUUID INNER JOIN {$this->regions} AS r ON par.regionUUID = r.regionUUID " .
                 ($sales ? 'LEFT JOIN parcelsales AS sales ON sales.parcelUUID = pop.parcelUUID ' : '') .
                 '%s ORDER BY pop.dwell DESC, par.parcelname',
@@ -98,6 +98,11 @@ final class DefaultDestinations
             return $this->destination($row) + [
                 'picture' => $picture === '' || in_array($picture, \W4OS\Engine\Text\Uuid::NULL_KEYS, true) ? null : $picture,
                 'dwell' => (int) $row['dwell'],
+                // What its model is made of (Grid::popularModels()): its parcel, its region, its point, its grid
+                'parcel' => (string) ($row['parcel'] ?? ''),
+                'region' => (string) ($row['region'] ?? ''),
+                'landing' => (string) ($row['landing'] ?? ''),
+                'gatekeeper' => (string) ($row['gatekeeper'] ?? ''),
             ];
         }, $rows);
     }

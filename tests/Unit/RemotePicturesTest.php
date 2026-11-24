@@ -445,12 +445,18 @@ describe('The pictures of the guide of a grid', function () {
         $run = $grid->refreshGuidePictures();
         $places = array_column($grid->popularPlaces(10, hypergrid: true), 'picture', 'name');
         $kept = RemotePictures::image(Cache::for($machine->environment, $grid->config()), REMOTE_BEACH);
+        // The popular places are models of the search on their grid: their picture is theirs (SearchResult::realPicture())
+        $models = $grid->popularModels(10, hypergrid: true);
+        $modelPicture = $models[0]?->realPicture();
         W4OS\Engine\Data\Connections::using(null);
 
         expect($run['found'])->toBe(1)
             ->and($places['Far beach'] ?? null)->toBe(REMOTE_BEACH)
             // Kept where the pages find it (WebAssets)
-            ->and($kept)->not->toBeNull();
+            ->and($kept)->not->toBeNull()
+            ->and($models)->toHaveCount(1)
+            ->and($models[0])->toBeInstanceOf(W4OS\Engine\Models\SearchPlace::class)
+            ->and($modelPicture)->toBe(REMOTE_BEACH);
     });
 
     test('of another grid: never a picture this host cannot show, the image of its title then, on a card of the popular places and of the guide', function () {

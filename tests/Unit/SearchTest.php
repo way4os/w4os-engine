@@ -871,8 +871,9 @@ describe('The guide of a grid that has no list', function () {
         $popular = (new W4OS\Engine\Services\DefaultDestinations($db, 'regionsregister', 'grid.example.org:8002'))->popular(2);
 
         expect($popular)->toBe([
-            ['name' => 'Elsewhere', 'url' => 'other.example.org:8002/Far', 'picture' => null, 'dwell' => 50],
-            ['name' => 'Rose garden', 'url' => 'grid.example.org:8002/Welcome/128/128/25', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000001', 'dwell' => 30],
+            // With what its model is made of (Grid::popularModels())
+            ['name' => 'Elsewhere', 'url' => 'other.example.org:8002/Far', 'picture' => null, 'dwell' => 50, 'parcel' => 'p4', 'region' => 'Far', 'landing' => '', 'gatekeeper' => 'http://other.example.org:8002'],
+            ['name' => 'Rose garden', 'url' => 'grid.example.org:8002/Welcome/128/128/25', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000001', 'dwell' => 30, 'parcel' => 'p1', 'region' => 'Welcome', 'landing' => '128/128/25', 'gatekeeper' => 'http://grid.example.org:8002'],
         ]);
     });
 
