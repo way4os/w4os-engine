@@ -43,15 +43,15 @@ describe('Provide', function () {
     });
 
     test('off, shows the whole address of the service and hides the rest of its settings', function () {
-        foreach (PROVIDED_PAGES as $page) {
+        // The offline messages have a page of their own: on or off, then the version, Provide a choice of V1 (OfflineSettingsTest)
+        foreach (array_diff(PROVIDED_PAGES, ['offline']) as $page) {
             $fields = provided_fields($page);
             $setting = array_values(array_filter($fields, static fn(array $field): bool => ($field['condition']['provide'] ?? null) === [false]));
             // The registers of the search are shown whatever Provide: 2do.directory and the other search engines
             $others = array_diff_key($fields, ['provide' => 1, 'registers' => 1, 'include2do' => 1], array_column($setting, null, 'name'));
 
-            // The offline messages have their module too
-            expect($setting)->toHaveCount($page === 'offline' ? 2 : 1)
-                ->and(array_values(array_unique(array_column($setting, 'type'))))->toBe($page === 'offline' ? ['select', 'url'] : ['url'])
+            expect($setting)->toHaveCount(1)
+                ->and(array_values(array_unique(array_column($setting, 'type'))))->toBe(['url'])
                 // Read-only ones too: the module of the economy, of the offline messages, where the search registers
                 ->and(array_filter($others, static fn(array $field): bool => ($field['condition']['provide'] ?? null) !== [true]))->toBe([]);
         }

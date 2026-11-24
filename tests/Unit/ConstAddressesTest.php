@@ -22,13 +22,11 @@ describe('An address written in a file of the grid', function () {
 
         $guide = $patch('guide', ['provide' => true, 'path' => '/places/guide']);
         $economy = $patch('economy', ['provide' => false, 'economyUrl' => 'http://studio.example.org:8002/money/']);
-        $elsewhere = $patch('offline', ['provide' => false, 'offlineModule' => 'OfflineMessageModule', 'offlineMessageUrl' => 'https://im.example.org/offline.php']);
         $ini = file_get_contents($robust);
 
-        expect([$guide->status, $economy->status, $elsewhere->status])->toBe([200, 200, 200])
+        expect([$guide->status, $economy->status])->toBe([200, 200])
             ->and($guide->document['data']['attributes']['path'])->toBe('places/guide')
             ->and($ini)->toContain('DestinationGuide = "${Const|WebURL}/places/guide"')
-            ->and($ini)->toContain('economy = "${Const|BaseURL}:8002/money/"')
-            ->and(file_get_contents($machine->grid . '/OpenSim.ini'))->toContain('OfflineMessageURL = "https://im.example.org/offline.php"');
+            ->and($ini)->toContain('economy = "${Const|BaseURL}:8002/money/"');
     });
 });

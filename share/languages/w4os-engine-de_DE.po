@@ -3035,12 +3035,22 @@ msgstr ""
 "wandelt die Bilder der Welt (JPEG 2000) für das Web um."
 
 msgctxt "offline_module_v1"
-msgid "By the helpers (V1)"
-msgstr "Durch die Helpers (V1)"
+msgid "V1, kept by the helpers (deprecated)"
+msgstr "V1, von den Helpers gespeichert (veraltet)"
+
+msgctxt "offline_module_help_v1"
+msgid ""
+"V1 (deprecated): the helpers keep the messages, and forward them by mail "
+"when the avatar asks it in the viewer."
+msgstr "V1 (veraltet): Die Helpers speichern die Nachrichten und leiten sie per E-Mail weiter, wenn der Avatar es im Viewer wünscht."
 
 msgctxt "offline_module_v2"
-msgid "By Robust (V2)"
-msgstr "Durch Robust (V2)"
+msgid "V2, kept by Robust"
+msgstr "V2, von Robust gespeichert"
+
+msgctxt "offline_module_help_v2"
+msgid "V2: the module of the core, Robust keeps the messages."
+msgstr "V2: Das Modul des Kerns, Robust speichert die Nachrichten."
 
 msgctxt "offline_database"
 msgid "Offline Messages Database"
@@ -4610,6 +4620,24 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#~ msgctxt "offline_module_v1"
+#~ msgid "Kept by the helpers, forwarded by mail when the avatar asks (V1)"
+#~ msgstr ""
+#~ "Von den Helpers gespeichert, per E-Mail weitergeleitet, wenn der Avatar "
+#~ "es wünscht (V1)"
+
+#~ msgctxt "offline_module_v2"
+#~ msgid "Kept by Robust (V2)"
+#~ msgstr "Von Robust gespeichert (V2)"
+
+#~ msgctxt "offline_module_v1"
+#~ msgid "By the helpers (V1)"
+#~ msgstr "Durch die Helpers (V1)"
+
+#~ msgctxt "offline_module_v2"
+#~ msgid "By Robust (V2)"
+#~ msgstr "Durch Robust (V2)"
 
 #~ msgctxt "notice_in_place_unwritable"
 #~ msgid ""

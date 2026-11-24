@@ -98,7 +98,6 @@ final class GridSettings
     private const ORDER = [
         'economy' => ['economyModule', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'webSearchUrl', 'eventsUrl'],
-        'offline' => ['mailSender', 'offlineDatabase', 'offlineModule'],
         'grid' => ['loginUri', 'gridName', 'gridNick', 'gridServerUri', 'database', 'consoleUser', 'consolePass', 'consolePort', 'assetServerUri', 'profileServiceUrl', 'webProfileUrl', 'excludeFromStats', 'linkFormatBrowser', 'linkFormatViewer'],
     ];
 
@@ -147,9 +146,6 @@ final class GridSettings
         'offline' => [
             'mailSender' => ['required' => true],
             'offlineDatabase' => ['description' => ['db_default_main']],
-            // Not provided, the module is chosen: V1 with the address of another service, V2 Robust's
-            'offlineModule' => ['condition' => ['provide' => [false]]],
-            'offlineMessageUrl' => ['condition' => ['offlineModule' => ['OfflineMessageModule']]],
         ],
     ];
     /** The type of a field of the standard format, by type of setting. */
@@ -181,7 +177,7 @@ final class GridSettings
             'economy' => 'The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module chosen as w4os-wp chooses its provider (the free economy, the generic money server, Gloebit and its settings, or Podex: the generic money server, `[Helpers] CurrencyProvider = podex`), its database, the key of the money server, the rate and the settings of Podex the helpers use.',
             'search' => 'The search of the grid, as w4os-wp has it: what the simulators call and where they register (set by the options of the grid), the database of the search, the calendar of the events.',
             'guide' => 'The destinations guide of the grid, as w4os-wp has it: its address (`DestinationGuide` of `[LoginService]`) and its source (`GuideSource` of `[Helpers]`).',
-            'offline' => 'The offline messages of the grid, as w4os-wp has them: provided, the helpers serve the module V1 and keep the messages in their database; not provided, the module V1 with the address of another service, or V2, Robust\'s, without one; the sender of the messages forwarded by mail.',
+            'offline' => 'The offline messages of the grid: kept or not (`offline`, on by default: none is the module None), then the version, V2 kept by Robust (the default), or V1 kept by the helpers, which forward them by mail; for V1, provided (the helpers of the site serve it and keep the messages in their database, the sender of their mails) or the address of another service.',
             'assets' => 'The web assets server of the grid (`AssetsURL` of `[Helpers]`): set when it is not the one of the helpers, as when this machine does not read JPEG 2000.',
             default => '',
         };
@@ -209,6 +205,7 @@ final class GridSettings
         );
         if (isset(self::PROVIDE[$page])) {
             $fields = self::provided($page, $fields);
+            $page === 'offline' && ($fields = self::offlineFields($fields));
         } else {
             // What the page shows of them, in its order
             $fields = array_map(static fn(array $field): array => (self::SHOWN_AS[$page][$field['name']] ?? []) + $field, $fields);
@@ -238,6 +235,8 @@ final class GridSettings
         if (($values['economyModule'] ?? null) === 'DTLNSLMoneyModule' && strtolower(trim((string) $config->find('Helpers', 'CurrencyProvider'))) === 'podex') {
             $values['economyModule'] = 'Podex';
         }
+        // The offline messages: Robust's (V2) when the grid says no module
+        $page === 'offline' && trim((string) ($values['offlineModule'] ?? '')) === '' && ($values['offlineModule'] = self::OFFLINE_V2);
         if (!$provide || !isset(self::PROVIDE[$page])) {
             return $values;
         }
@@ -248,11 +247,13 @@ final class GridSettings
         $on = !is_string($url) || $url === '' || ($site !== null && \W4OS\Engine\Provisioning\Web\Services::isUnder($url, $site));
         // The economy says it (EconomyProvided): its address alone never decides, a third-party application may be on the site
         $page === 'economy' && ($said = $this->grid->economyProvided()) !== null && ($on = $said);
-        // The module V2 is Robust's: the helpers do not provide it
-        $page === 'offline' && stripos((string) $values['offlineModule'], 'V2') !== false && ($on = false);
+        // The offline messages: Provide is whether the grid keeps them (the module None is off)
+        $page === 'offline' && ($on = strcasecmp(trim((string) $values['offlineModule']), 'None') !== 0);
         // The path under its base, which ends with the slash: it starts with one only for an address of the site out of the
         // helpers' base, from the root of the site
-        $path = $on && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page);
+        // The offline messages: the path of the address of their helper (V1, on the site), else the default one
+        $served = $page === 'offline' ? $values['offlineModule'] === 'OfflineMessageModule' && is_string($url) && $this->onSite($url) : $on;
+        $path = $served && is_string($url) && $url !== '' ? $this->pathOf($page, $url) : $this->defaultPath($page);
         (self::PROVIDE[$page]['base'] ?? 'site') === 'helpers' || ($path = ltrim($path, '/'));
         // The address of another server: the one kept, else the one the grid uses when it is elsewhere
         if (isset($provide['external']) && !$on && $config->find('Helpers', Settings::named($provide['external'])['key']) === null) {
@@ -663,6 +664,30 @@ final class GridSettings
     }
 
     /**
+     * The values of the page of the offline messages: Provide off, the module None (the address of the helper kept as it is); on, the
+     * module said, else the one the grid has, Robust's (V2) when it has none; V2 without the address of a helper. V1 goes on with
+     * the address of its helper (addressOf()).
+     *
+     * @param array<string,mixed> $values
+     * @return array<string,mixed>
+     */
+    private function offlineOf(array $values): array
+    {
+        $now = array_key_exists('provide', $values) && array_key_exists('offlineModule', $values) ? [] : $this->read('offline');
+        $on = array_key_exists('provide', $values) ? filter_var($values['provide'], FILTER_VALIDATE_BOOLEAN) : (bool) ($now['provide'] ?? true);
+        if (!$on) {
+            return ['offlineModule' => 'None'] + array_diff_key($values, ['provide' => 1, 'path' => 1, 'offlineMessageUrl' => 1]);
+        }
+        $module = trim((string) ($values['offlineModule'] ?? $now['offlineModule'] ?? ''));
+        ($module === '' || strcasecmp($module, 'None') === 0) && ($module = self::OFFLINE_V2);
+        if ($module !== 'OfflineMessageModule') {
+            return ['offlineModule' => $module] + array_diff_key($values, ['provide' => 1, 'path' => 1, 'offlineMessageUrl' => 1]);
+        }
+
+        return ['provide' => true, 'offlineModule' => $module] + $values;
+    }
+
+    /**
      * The values of a page of a service with its address in place of Provide and the path: on, the site and the path; off, the
      * whole address given.
      *
@@ -672,6 +697,10 @@ final class GridSettings
      */
     private function addressOf(string $page, array $values): array
     {
+        $page === 'offline' && ($values = $this->offlineOf($values));
+        if ($page === 'offline' && ($values['offlineModule'] ?? null) !== 'OfflineMessageModule') {
+            return $values;
+        }
         $provide = self::PROVIDE[$page];
         $setting = $provide['setting'];
         $external = $provide['external'] ?? null;
@@ -690,27 +719,16 @@ final class GridSettings
                 "the grid has no web site (WebURL of [Const]) to provide $page on: give the whole address of the service, Provide off",
             );
             $values = [$setting => $this->urlOf($page, $base, (string) ($path ?? $now['path']))] + $values;
-        } elseif ($page === 'offline' && stripos((string) ($values['offlineModule'] ?? $now['offlineModule']), 'V2') !== false) {
-            // V2: Robust serves them, no address of the helpers
-            unset($values[$setting]);
         } else {
             $address = $external !== null ? ($values[$external] ?? $now[$external]) : ($values[$setting] ?? null);
             // Left empty, the address of another server is its default (the search of 2do.directory)
             $external !== null && trim((string) $address) === '' && ($address = Settings::named($external)['default'] ?? $address);
-            // Not provided: another service, never the helpers
-            $helpers = $this->baseOf($page);
-            $page === 'offline' && $helpers !== null && is_string($address) && str_starts_with($address, $helpers . '/') && throw InvalidValue::because(
-                'invalid-request',
-                "with Provide off, the offline messages are another service's: $address is the helpers' (Provide on)",
-            );
             trim((string) $address) !== '' || throw InvalidValue::because(
                 'invalid-request',
                 'Provide off needs the whole address of the service (' . ($external ?? $setting) . ')',
             );
             $values = [$setting => $address] + $values;
         }
-        // Provided, the helpers serve the module V1
-        $page === 'offline' && $on && ($values['offlineModule'] = 'OfflineMessageModule');
         if ($page === 'search') {
             // The simulators register on the search the grid uses: its own under the helpers, else the other one
             $own = $this->ownRegister();
@@ -736,6 +754,40 @@ final class GridSettings
 
         return $values;
     }
+
+    /**
+     * The page of the offline messages: Provide, whether the grid keeps them (on by default, a service of the core), then the
+     * module, V2 kept by Robust, or V1 (deprecated) kept by the helpers, which forward them by mail; for V1, the address of the helper
+     * under the helpers, its database and the sender of its mails. The module tells its variants in points of its description, one
+     * for each choice (a third one to come: W4OS V2).
+     *
+     * @param list<array<string,mixed>> $fields provided()
+     * @return list<array<string,mixed>>
+     */
+    private static function offlineFields(array $fields): array
+    {
+        $on = ['provide' => [true]];
+        $v1 = $on + ['offlineModule' => ['OfflineMessageModule']];
+        $byName = array_column($fields, null, 'name');
+        $condition = static fn(array $field, array $more): array => ['condition' => $more] + $field;
+        $options = (array) ($byName['offlineModule']['options'] ?? []);
+
+        return [
+            ['default' => true] + $byName['provide'],
+            [
+                'default' => self::OFFLINE_V2,
+                // V2 first, V1 deprecated; None is Provide off, never a choice
+                'options' => array_intersect_key($options, [self::OFFLINE_V2 => 1]) + array_diff_key($options, [self::OFFLINE_V2 => 1, 'None' => 1]),
+                'description' => ['offline_module_help_v2', 'offline_module_help_v1'],
+            ] + $condition($byName['offlineModule'], $on),
+            $condition($byName['path'], $v1),
+            $condition($byName['offlineDatabase'], $v1),
+            $condition($byName['mailSender'], $v1),
+        ];
+    }
+
+    /** The module V2 of the offline messages, Robust's: the one a grid keeps them with unless it says another. */
+    private const OFFLINE_V2 = 'Offline Message Module V2';
 
     /**
      * The fields of a page of a service of the helpers: Provide first (on by default), the path under the site when on, the whole

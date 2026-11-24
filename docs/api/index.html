@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "064b1c0",
+        "version": "3bfa27c",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -12382,7 +12382,7 @@
                     "Settings"
                 ],
                 "summary": "The settings of the grid: offline",
-                "description": "The offline messages of the grid, as w4os-wp has them: provided, the helpers serve the module V1 and keep the messages in their database; not provided, the module V1 with the address of another service, or V2, Robust's, without one; the sender of the messages forwarded by mail.",
+                "description": "The offline messages of the grid: kept or not (`offline`, on by default: none is the module None), then the version, V2 kept by Robust (the default), or V1 kept by the helpers, which forward them by mail; for V1, provided (the helpers of the site serve it and keep the messages in their database, the sender of their mails) or the address of another service.",
                 "parameters": [
                     {
                         "name": "grid",
@@ -12399,28 +12399,57 @@
                     "menu": "settings_menu_offline",
                     "fields": [
                         {
+                            "default": true,
                             "name": "provide",
                             "label": "provide_offline",
                             "type": "boolean",
                             "widget": "switch"
                         },
                         {
+                            "tip": "tip_offline_module",
+                            "default": "Offline Message Module V2",
+                            "options": {
+                                "Offline Message Module V2": "offline_module_v2",
+                                "OfflineMessageModule": "offline_module_v1"
+                            },
+                            "description": [
+                                "offline_module_help_v2",
+                                "offline_module_help_v1"
+                            ],
                             "condition": {
                                 "provide": [
                                     true
                                 ]
                             },
-                            "required": true,
-                            "name": "mailSender",
-                            "type": "email",
-                            "label": "setting_mail_sender",
-                            "example": "no-reply@example.org",
-                            "description": "setting_mail_sender_help"
+                            "name": "offlineModule",
+                            "type": "select",
+                            "label": "setting_offline_module"
+                        },
+                        {
+                            "tip": "tip_offline_url",
+                            "condition": {
+                                "provide": [
+                                    true
+                                ],
+                                "offlineModule": [
+                                    "OfflineMessageModule"
+                                ]
+                            },
+                            "name": "path",
+                            "type": "path",
+                            "base": "helpers",
+                            "label": "offline_helper",
+                            "description": [
+                                "offline_helper_help"
+                            ]
                         },
                         {
                             "condition": {
                                 "provide": [
                                     true
+                                ],
+                                "offlineModule": [
+                                    "OfflineMessageModule"
                                 ]
                             },
                             "description": [
@@ -12460,52 +12489,20 @@
                             ]
                         },
                         {
-                            "tip": "tip_offline_module",
-                            "condition": {
-                                "provide": [
-                                    false
-                                ]
-                            },
-                            "name": "offlineModule",
-                            "type": "select",
-                            "label": "setting_offline_module",
-                            "options": {
-                                "OfflineMessageModule": "offline_module_v1",
-                                "Offline Message Module V2": "offline_module_v2"
-                            },
-                            "description": "setting_offline_module_help"
-                        },
-                        {
-                            "tip": "tip_offline_url",
-                            "name": "path",
-                            "type": "path",
-                            "base": "helpers",
-                            "label": "offline_helper",
-                            "description": [
-                                "offline_helper_help"
-                            ],
                             "condition": {
                                 "provide": [
                                     true
-                                ]
-                            }
-                        },
-                        {
-                            "tip": "tip_offline_url",
-                            "condition": {
-                                "provide": [
-                                    false
                                 ],
                                 "offlineModule": [
                                     "OfflineMessageModule"
                                 ]
                             },
-                            "label": "offline_helper",
-                            "description": [
-                                "offline_helper_help"
-                            ],
-                            "name": "offlineMessageUrl",
-                            "type": "url"
+                            "required": true,
+                            "name": "mailSender",
+                            "type": "email",
+                            "label": "setting_mail_sender",
+                            "example": "no-reply@example.org",
+                            "description": "setting_mail_sender_help"
                         }
                     ],
                     "submit": "action_save_changes",
@@ -12575,7 +12572,14 @@
                                                     "provide": {
                                                         "type": "boolean"
                                                     },
-                                                    "mailSender": {
+                                                    "offlineModule": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "Offline Message Module V2",
+                                                            "OfflineMessageModule"
+                                                        ]
+                                                    },
+                                                    "path": {
                                                         "type": "string"
                                                     },
                                                     "offlineDatabase": {
@@ -12603,17 +12607,7 @@
                                                         },
                                                         "nullable": true
                                                     },
-                                                    "offlineModule": {
-                                                        "type": "string",
-                                                        "enum": [
-                                                            "OfflineMessageModule",
-                                                            "Offline Message Module V2"
-                                                        ]
-                                                    },
-                                                    "path": {
-                                                        "type": "string"
-                                                    },
-                                                    "offlineMessageUrl": {
+                                                    "mailSender": {
                                                         "type": "string"
                                                     }
                                                 }

@@ -41,7 +41,11 @@ describe('A settings page of a service of the helpers', function () {
         };
         $economy = array_column(GridSettings::form('economy')['fields'], null, 'name');
 
-        foreach ($pages as $page) {
+        // The offline messages: Provide their on or off, the path of their helper for V1 only, no address of another service
+        $offline = array_column(GridSettings::form('offline')['fields'], null, 'name');
+        expect(GridSettings::form('offline')['fields'][0])->toMatchArray(['name' => 'provide', 'type' => 'boolean', 'widget' => 'switch', 'default' => true])
+            ->and($offline['path']['condition'])->toBe(['provide' => [true], 'offlineModule' => ['OfflineMessageModule']]);
+        foreach (array_diff($pages, ['offline']) as $page) {
             [$provide, $path, $url] = $first($page);
             expect($provide)->toMatchArray(['name' => 'provide', 'type' => 'boolean', 'widget' => 'switch'])
                 ->and($path)->toMatchArray(['name' => 'path', 'type' => 'path', 'base' => in_array($page, ['economy', 'guide', 'assets'], true) ? 'site' : 'helpers', 'condition' => ['provide' => [true]]])

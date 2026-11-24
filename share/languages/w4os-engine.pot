@@ -2682,11 +2682,19 @@ msgid "The web assets server of the grid when it is not the one of the helpers: 
 msgstr ""
 
 msgctxt "offline_module_v1"
-msgid "By the helpers (V1)"
+msgid "V1, kept by the helpers (deprecated)"
+msgstr ""
+
+msgctxt "offline_module_help_v1"
+msgid "V1 (deprecated): the helpers keep the messages, and forward them by mail when the avatar asks it in the viewer."
 msgstr ""
 
 msgctxt "offline_module_v2"
-msgid "By Robust (V2)"
+msgid "V2, kept by Robust"
+msgstr ""
+
+msgctxt "offline_module_help_v2"
+msgid "V2: the module of the core, Robust keeps the messages."
 msgstr ""
 
 msgctxt "offline_database"

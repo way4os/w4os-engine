@@ -37,7 +37,7 @@ describe('The pages of the services, as w4os-wp', function () {
         expect(page_fields('economy'))->toBe(['provide', 'path', 'economyUrl', 'economyModule', 'moneyServerWarning', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'gloebitConfiguration', 'moneyScriptKey', 'podexMessage', 'podexUrl'])
             ->and(page_fields('search'))->toBe(['provide', 'searchDatabase', 'path', 'searchExternalUrl', 'registerPath', 'include2do', 'registers', 'webSearchUrl', 'eventsUrl'])
             ->and(page_fields('guide'))->toBe(['provide', 'guideSource', 'path', 'destinationGuide'])
-            ->and(page_fields('offline'))->toBe(['provide', 'mailSender', 'offlineDatabase', 'offlineModule', 'path', 'offlineMessageUrl'])
+            ->and(page_fields('offline'))->toBe(['provide', 'offlineModule', 'path', 'offlineDatabase', 'mailSender'])
             ->and(page_fields('assets'))->toBe(['provide', 'path', 'assetsUrl']);
     });
 
@@ -102,6 +102,7 @@ describe('The ini lines of the pages', function () {
             ->and($blocks('guide'))->toHaveKeys(['Robust.HG.ini', 'Helpers.ini'])
             ->and($blocks('guide')['Robust.HG.ini'])->toContain('DestinationGuide = ')
             ->and($router->get('/grids/demo/settings/guide')->document['meta']['examples'][0]['text'])->toContain('Display Name|yourgrid.org:8002/Region Name')
-            ->and($blocks('offline')['OpenSim.ini'])->toContain('OfflineMessageModule = OfflineMessageModule');
+            // The offline messages kept by Robust by default (V2)
+            ->and($blocks('offline')['OpenSim.ini'])->toContain('OfflineMessageModule = "Offline Message Module V2"');
     });
 });

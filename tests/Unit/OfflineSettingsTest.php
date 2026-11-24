@@ -11,34 +11,54 @@ use W4OS\Engine\Config\ConfigReader;
  */
 
 describe('The offline messages', function () {
-    test('not provided, choose the module: V1 with the address of another service, V2 without one', function () {
+    test('Provide first, the service on or off (on by default), then the module: V2, or V1 (deprecated) with its helper, its database, its mail', function () {
         $fields = provided_fields('offline');
+        $v1 = ['provide' => [true], 'offlineModule' => ['OfflineMessageModule']];
 
-        expect($fields['offlineModule'])->toMatchArray(['type' => 'select', 'condition' => ['provide' => [false]]])
-            ->and($fields['offlineModule'])->not->toHaveKey('readOnly')
-            ->and($fields['offlineMessageUrl']['condition'])->toBe(['provide' => [false], 'offlineModule' => ['OfflineMessageModule']])
-            ->and($fields['offlineDatabase'])->toMatchArray(['type' => 'connection-string', 'fallback' => 'db_use_default', 'condition' => ['provide' => [true]]]);
+        expect(array_keys($fields))->toBe(['provide', 'offlineModule', 'path', 'offlineDatabase', 'mailSender'])
+            ->and($fields['provide'])->toMatchArray(['type' => 'boolean', 'widget' => 'switch', 'default' => true, 'label' => 'provide_offline'])
+            ->and($fields['offlineModule'])->toMatchArray(['type' => 'select', 'condition' => ['provide' => [true]], 'default' => 'Offline Message Module V2', 'description' => ['offline_module_help_v2', 'offline_module_help_v1']])
+            ->and($fields['offlineModule']['options'])->toBe(['Offline Message Module V2' => 'offline_module_v2', 'OfflineMessageModule' => 'offline_module_v1'])
+            ->and(W4OS\Engine\I18n\Catalog::MESSAGES['offline_module_v1'])->toContain('(deprecated)')
+            ->and($fields['path']['condition'])->toBe($v1)
+            ->and($fields['offlineDatabase'])->toMatchArray(['type' => 'connection-string', 'fallback' => 'db_use_default', 'condition' => $v1])
+            ->and($fields['mailSender']['condition'])->toBe($v1);
     });
 
-    test('V2 needs no address; V1 needs one, not the helpers\'; provided, the helpers serve V1', function () {
+    test('off: no module, the address of the helper kept as it is; on again, Robust keeps them (V2) unless V1 is said', function () {
         [$machine, $router] = provided_grid();
-        $ini = static fn(): string => file_get_contents($machine->grid . '/OpenSim.ini');
+        $ini = static fn(): array => W4OS\Engine\Config\ConfigReader::file($machine->grid . '/OpenSim.ini')['Messaging'] ?? [];
+        $v1 = address_patch($router, 'offline', ['provide' => true, 'offlineModule' => 'OfflineMessageModule', 'mailSender' => 'no-reply@example.org']);
+        $v1Ini = $ini();
 
-        $v2 = address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'Offline Message Module V2']);
-        $v2Ini = $ini();
-        $v2Lines = (array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file')['OpenSim.ini'] ?? '');
-        $helpers = address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'OfflineMessageModule', 'offlineMessageUrl' => 'https://play.example.org/helpers/offline.php']);
-        $v1 = address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'OfflineMessageModule', 'offlineMessageUrl' => 'https://im.example.org/offline.php']);
-        $v1Lines = (array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file')['OpenSim.ini'] ?? '');
+        $off = address_patch($router, 'offline', ['provide' => false]);
+        $offIni = $ini();
         $on = address_patch($router, 'offline', ['provide' => true]);
 
-        expect([$v2->status, $helpers->status, $v1->status, $on->status])->toBe([200, 400, 200, 200])
-            ->and($v2->document['data']['attributes'])->toMatchArray(['provide' => false, 'offlineModule' => 'Offline Message Module V2'])
-            ->and($v2Ini)->toContain('OfflineMessageModule = "Offline Message Module V2"')
+        expect([$v1->status, $off->status, $on->status])->toBe([200, 200, 200])
+            ->and($v1Ini['OfflineMessageModule'] ?? null)->toBe('OfflineMessageModule')
+            ->and($v1Ini['OfflineMessageURL'] ?? '')->toContain('https://play.example.org/helpers/offline')
+            ->and($off->document['data']['attributes']['provide'] ?? null)->toBeFalse()
+            ->and($offIni['OfflineMessageModule'] ?? null)->toBe('None')
+            ->and($offIni['OfflineMessageURL'] ?? null)->toBe($v1Ini['OfflineMessageURL'] ?? 'none')
+            ->and($on->document['data']['attributes'])->toMatchArray(['provide' => true, 'offlineModule' => 'Offline Message Module V2'])
+            ->and($ini()['OfflineMessageModule'] ?? null)->toBe('Offline Message Module V2');
+    });
+
+    test('V2 needs no address; V1 is served by the helpers at their address', function () {
+        [$machine, $router] = provided_grid();
+        $lines = static fn(): string => array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file')['OpenSim.ini'] ?? '';
+
+        $v2 = address_patch($router, 'offline', ['provide' => true, 'offlineModule' => 'Offline Message Module V2']);
+        $v2Lines = $lines();
+        $v1 = address_patch($router, 'offline', ['provide' => true, 'offlineModule' => 'OfflineMessageModule', 'mailSender' => 'no-reply@example.org']);
+        $v1Lines = $lines();
+
+        expect([$v2->status, $v1->status])->toBe([200, 200])
+            ->and($v2->document['data']['attributes'])->toMatchArray(['provide' => true, 'offlineModule' => 'Offline Message Module V2'])
             ->and($v2Lines)->toContain('Offline Message Module V2')->not->toContain('offline.php')
-            ->and($v1Lines)->toContain('OfflineMessageModule = OfflineMessageModule')->toContain('OfflineMessageURL = https://im.example.org/offline.php')
-            ->and($on->document['data']['attributes'])->toMatchArray(['provide' => true, 'offlineModule' => 'OfflineMessageModule'])
-            ->and($ini())->toContain('OfflineMessageURL = "https://play.example.org/helpers/offline');
+            ->and($v1->document['data']['attributes'])->toMatchArray(['provide' => true, 'offlineModule' => 'OfflineMessageModule'])
+            ->and($v1Lines)->toContain('OfflineMessageModule = OfflineMessageModule')->toContain('OfflineMessageURL = https://play.example.org/helpers/offline');
     });
 });
 
@@ -55,7 +75,7 @@ describe('A setting of the simulators', function () {
         file_put_contents($robust, file_get_contents($robust) . "[Messaging]\n    OfflineMessageModule = \"Offline Message Module V2\"\n    OfflineMessageURL = \"http://old.example.org:8003\"\n");
         $before = (string) file_get_contents($robust);
 
-        $on = address_patch($router, 'offline', ['provide' => true]);
+        $on = address_patch($router, 'offline', ['provide' => true, 'offlineModule' => 'OfflineMessageModule']);
         $search = address_patch($router, 'search', ['provide' => true, 'path' => 'search/query.php']);
         $grid = ConfigReader::file($machine->grid . '/OpenSim.ini');
         // What a simulator runs once restarted: its master made again from the OpenSim.ini of the grid
@@ -78,9 +98,9 @@ describe('The lines of Robust for the offline messages', function () {
         [, $router] = provided_grid();
         $robust = static fn(): string => array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file')['Robust.HG.ini'] ?? '';
 
-        address_patch($router, 'offline', ['provide' => false, 'offlineModule' => 'Offline Message Module V2']);
+        address_patch($router, 'offline', ['provide' => true, 'offlineModule' => 'Offline Message Module V2']);
         $v2 = $robust();
-        address_patch($router, 'offline', ['provide' => true, 'mailSender' => 'no-reply@example.org']);
+        address_patch($router, 'offline', ['provide' => true, 'offlineModule' => 'OfflineMessageModule', 'mailSender' => 'no-reply@example.org']);
         $v1 = $robust();
 
         expect($v2)->toContain("[ServiceList]\n    OfflineIMServiceConnector = \"\${Const|PrivatePort}/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector\"")
@@ -94,7 +114,7 @@ describe('The database of the offline messages', function () {
         [$machine, $router] = provided_grid();
 
         $default = array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file');
-        address_patch($router, 'offline', ['provide' => true, 'mailSender' => 'no-reply@example.org', 'offlineDatabase' => ['host' => 'db.example.org', 'database' => 'offline', 'user' => 'im', 'password' => 'pw-secret']]);
+        address_patch($router, 'offline', ['provide' => true, 'offlineModule' => 'OfflineMessageModule', 'mailSender' => 'no-reply@example.org', 'offlineDatabase' => ['host' => 'db.example.org', 'database' => 'offline', 'user' => 'im', 'password' => 'pw-secret']]);
         $set = array_column($router->get('/grids/demo/settings/offline')->document['meta']['snippets'], 'text', 'file');
         $robust = $set['Robust.HG.ini'] ?? '';
 
