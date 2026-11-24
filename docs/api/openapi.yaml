@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: 3bfa27c
+  version: 22c0f2e
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -8626,7 +8626,6 @@ paths:
             widget: switch
           -
             tip: tip_offline_module
-            default: 'Offline Message Module V2'
             options:
               'Offline Message Module V2': offline_module_v2
               OfflineMessageModule: offline_module_v1

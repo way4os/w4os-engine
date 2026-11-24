@@ -17,7 +17,9 @@ describe('The offline messages', function () {
 
         expect(array_keys($fields))->toBe(['provide', 'offlineModule', 'path', 'offlineDatabase', 'mailSender'])
             ->and($fields['provide'])->toMatchArray(['type' => 'boolean', 'widget' => 'switch', 'default' => true, 'label' => 'provide_offline'])
-            ->and($fields['offlineModule'])->toMatchArray(['type' => 'select', 'condition' => ['provide' => [true]], 'default' => 'Offline Message Module V2', 'description' => ['offline_module_help_v2', 'offline_module_help_v1']])
+            ->and($fields['offlineModule'])->toMatchArray(['type' => 'select', 'condition' => ['provide' => [true]], 'description' => ['offline_module_help_v2', 'offline_module_help_v1']])
+            // No default: the page reads V2 when the grid says none, a default would be an empty choice of a select (its placeholder)
+            ->and($fields['offlineModule'])->not->toHaveKey('default')
             ->and($fields['offlineModule']['options'])->toBe(['Offline Message Module V2' => 'offline_module_v2', 'OfflineMessageModule' => 'offline_module_v1'])
             ->and(W4OS\Engine\I18n\Catalog::MESSAGES['offline_module_v1'])->toContain('(deprecated)')
             ->and($fields['path']['condition'])->toBe($v1)

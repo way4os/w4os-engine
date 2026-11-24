@@ -775,8 +775,8 @@ final class GridSettings
         return [
             ['default' => true] + $byName['provide'],
             [
-                'default' => self::OFFLINE_V2,
-                // V2 first, V1 deprecated; None is Provide off, never a choice
+                // V2 first, V1 deprecated; None is Provide off, never a choice; no default: read() gives V2 when the grid says none
+                // (a default would be the empty choice of a select)
                 'options' => array_intersect_key($options, [self::OFFLINE_V2 => 1]) + array_diff_key($options, [self::OFFLINE_V2 => 1, 'None' => 1]),
                 'description' => ['offline_module_help_v2', 'offline_module_help_v1'],
             ] + $condition($byName['offlineModule'], $on),

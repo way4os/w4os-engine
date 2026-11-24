@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (settings): the module of the offline messages without a default (it was the empty choice of its select)
 - new (events): the slots of one show (same name, same place, an hour apart at most) are one longer event, as the 2do board has them
 - change (guide): its places as models on the grid (Grid::guideModels(), Place::realPicture()), the task asking them by their models' addresses
 - change (popular places): models of the search (Grid::popularModels()), their pictures theirs; the task asks them by their models' addresses
