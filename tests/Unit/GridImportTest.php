@@ -476,6 +476,22 @@ describe('The import of a grid', function () {
         return (string) (ConfigReader::expand(ConfigReader::load([$master, ...$sim->files()], [], false, false, $sim->lastFiles()))['Messaging']['OfflineMessageURL'] ?? '');
     };
 
+    test('leaves out what no core of the kit reads, said in the report: the MuteListURL of the helpers of before', function () use ($offlineV1) {
+        [$machine, $robust, $simulators] = $offlineV1('https://im.example.org/helper/offline.php');
+        file_put_contents($simulators[0]['file'], file_get_contents($simulators[0]['file']) . "    MuteListURL = \"https://old.example.org/mute.php\"\n");
+        $import = GridImport::prepare($machine->environment, $robust, simulators: $simulators, helpersHere: false);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $report = (string) file_get_contents($import->document()['simulators']['steps'][0]['report']);
+
+        expect((string) file_get_contents($grid->directory() . '/OpenSim.ini'))->not->toContain('MuteListURL')
+            ->and((string) file_get_contents($sim->ini()))->not->toContain('MuteListURL')
+            ->and($report)->toContain('[Messaging] MuteListURL = https://old.example.org/mute.php (retired, now')
+            // What else the grid has of the module V1 stays
+            ->and((string) file_get_contents($grid->directory() . '/OpenSim.ini'))->toContain('OfflineMessageURL');
+    });
+
     test('turns its helpers on when a choice it keeps needs them and this install serves them, and says it', function () use ($offlineV1, $offlineUrl) {
         // V1 and its helper on the site of the grid, the helpers installed here
         [$machine, $robust, $simulators] = $offlineV1('https://old.example.org/helpers/helper/offline.php');

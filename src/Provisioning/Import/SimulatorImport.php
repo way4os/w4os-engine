@@ -373,7 +373,7 @@ final class SimulatorImport
             }
         }
         $lines[] = '';
-        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own; grid: an option of the grid, on its settings pages, which opensim import --grid-settings brings from the old config, a migration of the grid too; retired: it stops a simulator of this core):';
+        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; default: as the core has it; layout, include: the old install\'s own; grid: an option of the grid, on its settings pages, which opensim import --grid-settings brings from the old config, a migration of the grid too; retired: it stops a simulator of this core, or no core of the kit reads it):';
         foreach ($this->dropped as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']}" .
                 (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . ')';

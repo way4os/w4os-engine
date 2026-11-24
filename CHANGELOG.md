@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (migrate): [Messaging] MuteListURL is left out, said: no core of the kit reads it (MuteListModule and Robust's MuteListService)
 - new (web): opensim web GRID snippet --prefix: the helpers under the path of a block of its own (the mini site under /opensim)
 - new (offline): the mails of the offline messages come from templates (share/mail, replaced by <etc>/mail), text and HTML parts (symfony/mime)
 - fix (migrate): with simulators, the switch, the backup and the data of an import are the Robust's again, not the last simulator's

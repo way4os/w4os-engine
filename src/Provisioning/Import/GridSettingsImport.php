@@ -105,8 +105,10 @@ final class GridSettingsImport
             $define = [];
             foreach ($values as $lower => $keys) {
                 foreach ($keys as $key => [$section, $name, $value]) {
+                    $retired = \W4OS\Engine\Provisioning\RetiredSettings::why($section, $name, $value, $grid->coreDirectory());
                     $reason = match (true) {
                         preg_match('/(Directory|Path|Dir|Location)$/i', $name) === 1 => null, // a folder of the old simulators
+                        $retired !== null => "$section/$name: $retired, left out",
                         in_array("$lower/$key", self::RETIRED, true),
                         $key === 'economymodule' && in_array(strtolower(trim($value)), self::RETIRED_MODULES, true) => "$section/$name: the money of DTL/NSL is not handled (old code, to install by hand), left out",
                         default => false,

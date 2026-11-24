@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace W4OS\Engine\Provisioning;
 
 /**
- * The settings of an older config that stop a simulator of a newer core, left to the core's default: on an import (the setting is
- * not kept) and at an upgrade (the line is commented, with why).
+ * The settings of an older config that stop a simulator of a newer core, or that no core of the kit reads any more, left to the
+ * core's default: on an import (the setting is not kept) and at an upgrade (the line is commented, with why).
  *
  *     RetiredSettings::why('Map', 'MapImageModule', 'Warp3DImageModule', '/usr/share/opensim/0.9.3.0');   // the reason, else null
  *     RetiredSettings::repair('/etc/opensim/grids/demo/sims/demo.welcome.ini', '/usr/share/opensim/0.9.3.0');   // lines commented
@@ -22,6 +22,8 @@ final class RetiredSettings
         ['Map', 'MapImageModule', '/^warp3dimagemodule$/i', '0.9.3', 'Warp3DImageModule stops a simulator of OpenSimulator 0.9.3 (its map tiles): its default, MapImageModule'],
         ['Modules', 'AssetServices', '/^hgassetbroker$/i', '0.9.3', 'OpenSimulator 0.9.3 has no HGAssetBroker: the one of its architecture, RegionAssetConnector'],
         ['Modules', 'GridServices', '/^remotegridservicesconnector$/i', '0.9.3', 'OpenSimulator 0.9.3 has no RemoteGridServicesConnector: the one of its architecture, RegionGridServicesConnector'],
+        // Read by no core of the kit (0.9.2.2, 0.9.3): the helpers of before had a mute.php for it
+        ['Messaging', 'MuteListURL', '/.*/', '0.9.2', 'no core of the kit reads MuteListURL: the mute list is MuteListModule\'s, with the MuteListService of Robust'],
     ];
 
     /** Why a setting stops a simulator of this core, null when it does not. */
