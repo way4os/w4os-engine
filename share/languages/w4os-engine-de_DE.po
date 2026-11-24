@@ -3388,13 +3388,22 @@ msgstr "%s installiert, aber nicht eingerichtet, aus: %s einzustellen"
 
 #, php-format
 msgctxt "health_runtime_wrong"
-msgid "runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing (grey skins); install .NET %s and restart it"
-msgstr "läuft auf .NET %s, sein Core zielt auf .NET %s: sein Asset-Cache behält nichts (graue Haut); .NET %s installieren und neu starten"
+msgid ""
+"runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing "
+"(grey skins); install .NET %s and restart it"
+msgstr ""
+"läuft auf .NET %s, sein Core zielt auf .NET %s: sein Asset-Cache behält "
+"nichts (graue Haut); .NET %s installieren und neu starten"
 
 #, php-format
 msgctxt "health_grid_info_broken"
-msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s. Its values must be ASCII (opensim settings GRID grid --set gridName=...)"
-msgstr "die Grid-Infos sind kein wohlgeformtes UTF-8-XML, die Viewer lehnen das Grid ab: %s. Ihre Werte müssen ASCII sein (opensim settings GRID grid --set gridName=...)"
+msgid ""
+"the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s. "
+"Its values must be ASCII (opensim settings GRID grid --set gridName=...)"
+msgstr ""
+"die Grid-Infos sind kein wohlgeformtes UTF-8-XML, die Viewer lehnen das Grid "
+"ab: %s. Ihre Werte müssen ASCII sein (opensim settings GRID grid --set "
+"gridName=...)"
 
 #, php-format
 msgctxt "health_matches_grid_info"
@@ -3844,6 +3853,21 @@ msgstr "%s MB"
 msgctxt "unit_percent"
 msgid "%s %%"
 msgstr "%s %%"
+
+#, php-format
+msgctxt "unit_minutes"
+msgid "%s min"
+msgstr "%s Min."
+
+#, php-format
+msgctxt "unit_hours"
+msgid "%s h"
+msgstr "%s Std."
+
+#, php-format
+msgctxt "unit_hours_minutes"
+msgid "%1$s h %2$s"
+msgstr "%1$s Std. %2$s Min."
 
 #, php-format
 msgctxt "usage_of"

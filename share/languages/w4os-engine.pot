@@ -3454,6 +3454,21 @@ msgid "%s %%"
 msgstr ""
 
 #, php-format
+msgctxt "unit_minutes"
+msgid "%s min"
+msgstr ""
+
+#, php-format
+msgctxt "unit_hours"
+msgid "%s h"
+msgstr ""
+
+#, php-format
+msgctxt "unit_hours_minutes"
+msgid "%1$s h %2$s"
+msgstr ""
+
+#, php-format
 msgctxt "usage_of"
 msgid "%1$s of %2$s"
 msgstr ""

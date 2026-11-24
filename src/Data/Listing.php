@@ -25,7 +25,8 @@ final class Listing
     /**
      * How a column shows its value:
      * - `text`, `email`: as it is;
-     * - `number`: as it is, with its `decimals` (none by default) and its `unit` (m², min) when it has them;
+     * - `number`: as it is, with its `decimals` (none by default) and its `unit` (m²) when it has them;
+     * - `duration`: minutes, shown in minutes under an hour and in hours from 60 (`unit_minutes`, `unit_hours`, `unit_hours_minutes`);
      * - `date`: a Unix time, shown as a day;
      * - `datetime`: a Unix time, shown with its time (when it was created, last seen);
      * - `boolean`: yes or no;
@@ -44,6 +45,7 @@ final class Listing
         'text',
         'email',
         'number',
+        'duration',
         'date',
         'datetime',
         'boolean',

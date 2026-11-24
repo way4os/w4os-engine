@@ -115,7 +115,7 @@ final class Classified extends SearchResult
             [
                 ItemForm::shown('picture', 'profile_picture', 'picture', 'classified', ['default' => 'place']),
                 ItemForm::shown('name', 'web_search_name', 'text', 'classified'),
-                ItemForm::shown('location', 'web_search_location', 'text', 'classified'),
+                ItemForm::shown('location', 'web_search_location', 'text', 'classified', ['teleport' => true]),
                 ItemForm::shown('rating', 'web_search_content_type', 'select', 'classified', ['options' => self::ratingOptions()]),
                 ItemForm::shown('category', 'web_search_category', 'select', 'classified', ['options' => array_combine(array_map('strval', array_keys($categories)), $categories)]),
                 ItemForm::shown('created', 'web_search_creation_date', 'date', 'classified'),

@@ -948,3 +948,22 @@ describe('The guide of a grid that has no list', function () {
         expect($empty)->toBe([])->and($none)->toBe([]);
     });
 })->skip(fn() => test_pdo() === null, 'TEST_DATABASE is not set in tests/.env');
+
+describe('The duration of an event', function () {
+    test('is a duration in minutes, shown in minutes under an hour and in hours from 60, by the units of the catalog', function () {
+        $fields = array_column(W4OS\Engine\Models\Event::itemForm()->fields, null, 'name');
+
+        expect($fields['duration']['type'] ?? null)->toBe('duration')
+            ->and(array_intersect_key(W4OS\Engine\I18n\Catalog::MESSAGES, array_flip(['unit_minutes', 'unit_hours', 'unit_hours_minutes'])))
+            ->toBe(['unit_minutes' => '%s min', 'unit_hours' => '%s h', 'unit_hours_minutes' => '%1$s h %2$s']);
+    });
+});
+
+describe('The page of a result of the search', function () {
+    test('puts its teleport link on the field that names its place: never a second line of its name', function () {
+        $teleport = static fn(string $model): ?string => array_values(array_filter($model::itemForm()->fields, static fn(array $field): bool => !empty($field['teleport'])))[0]['name'] ?? null;
+
+        expect(array_map($teleport, [W4OS\Engine\Models\Event::class, W4OS\Engine\Models\Classified::class, W4OS\Engine\Models\SearchPlace::class, W4OS\Engine\Models\LandSale::class]))
+            ->toBe(['location', 'location', 'region', 'region']);
+    });
+});

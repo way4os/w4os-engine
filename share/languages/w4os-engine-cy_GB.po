@@ -3379,13 +3379,22 @@ msgstr "%s wedi'i osod ond heb ei ffurfweddu, i ffwrdd: %s i'w gosod"
 
 #, php-format
 msgctxt "health_runtime_wrong"
-msgid "runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing (grey skins); install .NET %s and restart it"
-msgstr "yn rhedeg ar .NET %s, mae ei graidd yn targedu .NET %s: nid yw ei storfa asedau yn cadw dim (crwyn llwyd); gosod .NET %s a'i ailgychwyn"
+msgid ""
+"runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing "
+"(grey skins); install .NET %s and restart it"
+msgstr ""
+"yn rhedeg ar .NET %s, mae ei graidd yn targedu .NET %s: nid yw ei storfa "
+"asedau yn cadw dim (crwyn llwyd); gosod .NET %s a'i ailgychwyn"
 
 #, php-format
 msgctxt "health_grid_info_broken"
-msgid "the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s. Its values must be ASCII (opensim settings GRID grid --set gridName=...)"
-msgstr "nid yw gwybodaeth y grid yn XML UTF-8 wedi'i ffurfio'n dda, mae'r viewers yn gwrthod y grid: %s. Rhaid i'w gwerthoedd fod yn ASCII (opensim settings GRID grid --set gridName=...)"
+msgid ""
+"the grid info is not well-formed UTF-8 XML, the viewers refuse the grid: %s. "
+"Its values must be ASCII (opensim settings GRID grid --set gridName=...)"
+msgstr ""
+"nid yw gwybodaeth y grid yn XML UTF-8 wedi'i ffurfio'n dda, mae'r viewers yn "
+"gwrthod y grid: %s. Rhaid i'w gwerthoedd fod yn ASCII (opensim settings GRID "
+"grid --set gridName=...)"
 
 #, php-format
 msgctxt "health_matches_grid_info"
@@ -3839,6 +3848,21 @@ msgstr "%s MB"
 msgctxt "unit_percent"
 msgid "%s %%"
 msgstr "%s %%"
+
+#, php-format
+msgctxt "unit_minutes"
+msgid "%s min"
+msgstr "%s mun"
+
+#, php-format
+msgctxt "unit_hours"
+msgid "%s h"
+msgstr "%s awr"
+
+#, php-format
+msgctxt "unit_hours_minutes"
+msgid "%1$s h %2$s"
+msgstr "%1$s awr %2$s mun"
 
 #, php-format
 msgctxt "usage_of"

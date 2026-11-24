@@ -157,6 +157,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_online', 'web_search_partner', 'web_search_status',
         ],
         'fr_FR' => [
+            // The units of a duration, the same symbols
+            'unit_hours', 'unit_hours_minutes', 'unit_minutes',
             'actions', 'asset_animation', 'asset_image_jpeg', 'asset_image_tga', 'asset_mesh', 'asset_script', 'asset_texture',
             'asset_texture_tga', 'avatars_count', 'avatars_menu', 'avatars_title', 'column_avatars', 'column_date', 'column_port',
             'column_presence_short', 'column_prims', 'column_scripts', 'column_scripts_short', 'column_service', 'column_type',
@@ -169,6 +171,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_day', 'web_search_description', 'web_search_land_type',
         ],
         'it_IT' => [
+            // The units of a duration, the same symbols
+            'unit_hours', 'unit_hours_minutes', 'unit_minutes',
             'asset_mesh', 'asset_script', 'asset_texture', 'asset_texture_tga', 'column_file', 'column_presence_short',
             'column_scripts_short', 'column_server', 'connection_console', 'count_avatars_short', 'db_password', 'email',
             'gloebit_sandbox', 'group_console', 'group_database', 'health_ok', 'kind_backup', 'label_value', 'menu_admin', 'no',
@@ -181,6 +185,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_account', 'web_search_online', 'web_search_partner',
         ],
         'nl_NL' => [
+            // The unit of minutes, the same symbol
+            'unit_minutes',
             'asset_landmark', 'asset_link', 'asset_mesh', 'asset_object', 'asset_script', 'avatars_count', 'avatars_menu',
             'avatars_title', 'column_avatars', 'column_grid', 'column_presence_short', 'column_prims', 'column_scripts',
             'column_scripts_short', 'column_server', 'column_status', 'column_type', 'connection_console', 'count_avatars_short',
@@ -194,6 +200,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_account', 'web_search_online', 'web_search_partner', 'web_search_status',
         ],
         'pt_BR' => [
+            // The units of a duration, the same symbols
+            'unit_hours', 'unit_hours_minutes', 'unit_minutes',
             'asset_link', 'asset_material', 'asset_mesh', 'asset_script', 'column_grid', 'column_presence_short', 'column_prims',
             'column_scripts', 'column_scripts_short', 'column_status', 'connection_console', 'count_avatars_short', 'count_prims',
             'count_scripts', 'email', 'filter_local', 'gloebit_sandbox', 'group_console', 'health_ok', 'health_site',

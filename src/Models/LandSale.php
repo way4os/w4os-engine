@@ -124,7 +124,7 @@ final class LandSale extends SearchResult
             [
                 ItemForm::shown('picture', 'profile_picture', 'picture', 'land', ['default' => 'place']),
                 ItemForm::shown('name', 'web_search_name', 'text', 'land'),
-                ItemForm::shown('region', 'web_search_region', 'text', 'land'),
+                ItemForm::shown('region', 'web_search_region', 'text', 'land', ['teleport' => true]),
                 ItemForm::shown('type', 'web_search_land_type', 'select', 'land', ['options' => self::types()]),
                 ItemForm::shown('price', 'web_search_price', 'number', 'land'),
                 ItemForm::shown('area', 'web_search_area', 'number', 'land', ['unit' => 'm²']),

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (search): the teleport link of a result on its place (`teleport` of a field: the location of an event or a classified, the region)
+- new (search): the duration of an event a duration (minutes or hours: unit_minutes, unit_hours, unit_hours_minutes)
 - fix (pictures): a card of another grid shows a picture kept here, else the image of its title; the search's own is asked until kept
 - fix (cache): in files when another install keeps the search database (MaintainSearch = false); a store that fails is logged once
 - new (helpers): Grid::brand(), the icon, accent color and font of the pages of the helpers (IconURL, AccentColor, Font, FontURL)

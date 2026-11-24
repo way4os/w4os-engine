@@ -988,6 +988,10 @@ final class Catalog
         'unit_dimensions' => '%1$s x %2$s',
         'unit_mb' => '%s MB',
         'unit_percent' => '%s %%',
+        // A duration (minutes): in minutes under an hour, in hours from 60 (45 min, 1 h, 1 h 30)
+        'unit_minutes' => '%s min',
+        'unit_hours' => '%s h',
+        'unit_hours_minutes' => '%1$s h %2$s',
         'usage_of' => '%1$s of %2$s',
         // What the process of a simulator takes, in percents of the machine
         'column_cpu' => 'CPU',
