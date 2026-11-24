@@ -27,14 +27,14 @@ function probe_core(string $name = '0.9.3.0'): Core
 }
 
 describe('runtime of a core', function () {
-    test('is there when a .NET of the major it asks for, or a newer one, is installed', function () {
-        $probe = new RuntimeProbe(
-            static fn(string $c): string => str_contains($c, '--list-runtimes')
-                ? "Microsoft.NETCore.App 9.0.1 [/x]\n"
-                : '/usr/bin/dotnet',
+    test('is there when the .NET major it asks for is installed, a newer one never taken for it', function () {
+        $runtimes = static fn(string $list): RuntimeProbe => new RuntimeProbe(
+            static fn(string $c): string => str_contains($c, '--list-runtimes') ? $list : '/usr/bin/dotnet',
         );
 
-        expect($probe->problem(probe_core(), 'OpenSim.dll'))->toBeNull();
+        expect($runtimes("Microsoft.NETCore.App 8.0.34 [/x]\nMicrosoft.NETCore.App 10.0.14 [/x]\n")->problem(probe_core(), 'OpenSim.dll'))->toBeNull()
+            ->and($runtimes("Microsoft.NETCore.App 10.0.14 [/x]\n")->problem(probe_core(), 'OpenSim.dll'))
+            ->toContain('needs Microsoft.NETCore.App 8, which is not installed (installed: 10', 'sudo opensim install-dotnet 8');
     });
 
     test('is missing when dotnet is not installed, with the command that installs it', function () {
@@ -53,7 +53,7 @@ describe('runtime of a core', function () {
         );
 
         expect($probe->problem(probe_core(), 'OpenSim.dll'))
-            ->toContain('needs Microsoft.NETCore.App 8 or newer')
+            ->toContain('needs Microsoft.NETCore.App 8, which is not installed')
             ->toContain('installed: 6');
     });
 

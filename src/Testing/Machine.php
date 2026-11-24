@@ -132,6 +132,7 @@ final class Machine
                     str_contains($command, 'ldconfig') => "libgdiplus.so (libc6,x86-64) => /usr/lib/libgdiplus.so\n",
                     default => '',
                 },
+                proc: $this->root . '/proc',
             ),
             fn(string $url): ?string => $this->http[$url] ?? null,
         );

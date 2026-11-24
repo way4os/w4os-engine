@@ -148,6 +148,21 @@ final class HealthCheck
             }
         }
         $off === [] || ($groups[] = ['file' => 'modules', 'title' => '', 'rows' => $off]);
+        // The instances that run on a .NET major other than the one their core targets: their asset cache writes nothing
+        $wrong = [];
+        foreach ([$grid->robust(), ...array_map(static fn($simulator) => $simulator->controller(), $grid->simulators())] as $instance) {
+            $found = $instance === null ? null : $grid->environment()->probe->wrongRuntime($instance);
+            $found === null || $wrong[] = [
+                'label' => $instance->name(),
+                'kind' => 'runtime',
+                'running' => $found['running'],
+                'target' => $found['target'],
+                'level' => 'error',
+                'status' => Health::say('health_runtime_wrong', [$found['running'], $found['target'], $found['target']]),
+                'fix' => "sudo opensim install-dotnet {$found['target']}",
+            ];
+        }
+        $wrong === [] || ($groups[] = ['file' => 'runtime', 'title' => '', 'rows' => $wrong]);
         $files = Health::files($config?->files() ?? []);
         $files === [] || ($groups[] = ['file' => 'files', 'title' => '', 'rows' => $files]);
         // Each line its id: its file, its section, its setting, how it is asked

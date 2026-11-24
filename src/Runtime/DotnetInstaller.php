@@ -8,8 +8,9 @@ use W4OS\Engine\Provisioning\UiInterface;
 
 /**
  * Installs what OpenSimulator needs to run on this machine, when it is missing: the native library libgdiplus, which the regions
- * draw their dynamic textures with and stop at once without, and the .NET runtime, from the system packages when they have it,
- * from a runtime installed elsewhere, or with the install script of Microsoft.
+ * draw their dynamic textures with and stop at once without, and the .NET runtime of the major a core targets (Core::dotnetMajor(),
+ * never a newer one: .NET 9 removed what its asset cache writes with), from the system packages when they have it, from a runtime
+ * installed elsewhere, or with the install script of Microsoft, beside the runtimes already there.
  *
  * As root the runtime is installed for every user, the service account included; otherwise in ~/.dotnet. The questions go through
  * the interface it is given, which answers them its own way (a person, or the defaults).
@@ -44,28 +45,20 @@ final class DotnetInstaller
     }
 
     /**
-     * Make a .NET runtime of this major version, or a newer one, available.
+     * Make the .NET runtime of this major version available (a core targets it: Core::dotnetMajor()).
      *
-     * @return bool whether a runtime that fits is there at the end
+     * @return bool whether it is there at the end
      */
-    public function install(int $major = 8): bool
+    public function install(int $major): bool
     {
         $this->gdiplus();
 
-        $found = $this->suitable('dotnet', $major);
-        if ($found !== null) {
-            $this->ui->note(
-                sprintf(
-                    _('.NET %d found (%s), it can run OpenSim (.NET %d or newer).'),
-                    $found,
-                    $this->path('dotnet'),
-                    $major,
-                ),
-            );
+        if ($this->suitable('dotnet', $major)) {
+            $this->ui->note(sprintf(_('.NET %d found (%s), it can run OpenSim.'), $major, $this->path('dotnet')));
 
             return true;
         }
-        $this->ui->note(sprintf(_('OpenSim needs the .NET %d runtime (or newer), not found on the PATH.'), $major));
+        $this->ui->note(sprintf(_('OpenSim needs the .NET %d runtime, not found on the PATH.'), $major));
 
         // The system packages: Ubuntu, or Debian with the repository of Microsoft
         $package = $this->systemRuntimePackage($major);
@@ -95,8 +88,8 @@ final class DotnetInstaller
 
                 return false;
             }
-            if ($this->suitable($existing, $major) === null) {
-                $this->ui->error(sprintf(_('%s has no .NET %d runtime (or newer)'), $existing, $major));
+            if (!$this->suitable($existing, $major)) {
+                $this->ui->error(sprintf(_('%s has no .NET %d runtime'), $existing, $major));
 
                 return false;
             }
@@ -223,21 +216,16 @@ final class DotnetInstaller
         );
     }
 
-    /** The lowest major of the runtimes of a dotnet that is this one or a newer one, null when there is none. */
-    private function suitable(string $dotnet, int $major): ?int
+    /** Whether a dotnet has a runtime of this major. */
+    private function suitable(string $dotnet, int $major): bool
     {
         preg_match_all(
-            '/Microsoft\.NETCore\.App (\d+)/',
+            '/Microsoft\.NETCore\.App (\d+)\./',
             ($this->capture)(escapeshellarg($dotnet) . ' --list-runtimes 2>/dev/null'),
             $m,
         );
-        $majors = array_filter(
-            array_unique(array_map('intval', $m[1])),
-            static fn(int $found): bool => $found >= $major,
-        );
-        sort($majors);
 
-        return $majors[0] ?? null;
+        return in_array($major, array_map('intval', $m[1]), true);
     }
 
     private function path(string $command): string
@@ -273,29 +261,10 @@ final class DotnetInstaller
         return false;
     }
 
-    /** The newest system runtime package that can run the requested major. */
+    /** The system package of the runtime of this major, null when the package manager has none. */
     private function systemRuntimePackage(int $major): ?string
     {
-        if (!$this->exists('apt-cache')) {
-            return null;
-        }
-
-        $packages = array_filter(
-            explode("\n", ($this->capture)('apt-cache pkgnames dotnet-runtime-')),
-            static fn(string $package): bool =>
-                preg_match('/^dotnet-runtime-(\d+)\.0$/', $package, $matches) === 1 && (int) $matches[1] >= $major,
-        );
-        $packages[] = "dotnet-runtime-$major.0";
-        $packages = array_values(array_unique($packages));
-        usort($packages, static fn(string $a, string $b): int => version_compare($b, $a));
-
-        foreach ($packages as $package) {
-            if ($this->candidate($package)) {
-                return $package;
-            }
-        }
-
-        return null;
+        return $this->candidate("dotnet-runtime-$major.0") ? "dotnet-runtime-$major.0" : null;
     }
 
     private function isRoot(): bool

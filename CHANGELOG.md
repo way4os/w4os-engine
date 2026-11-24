@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (runtime): a .NET core runs on the major it targets, never rolled forward (.NET 9+ broke its asset cache)
+- new (health): an instance running on a .NET major its core does not target is said, with its fix; status too
 - fix (migrate): the assets of FSAssets come, a relative place too, or the import refuses to go, said
 - fix (migrate): Robust keeps its own constants and grid info; its ConfigDirectory only adds what it does not say
 - fix (start): simulators start one after another again, each started before the next, every result kept and named

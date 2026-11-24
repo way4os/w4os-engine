@@ -6,8 +6,8 @@ namespace W4OS\Engine\Runtime;
 
 /**
  * An OpenSimulator core installed in a folder (`<root>/<version>`, with its `bin`): the executables to run and the runtime
- * they need. 0.9.3.0 and later are .NET assemblies (`.dll`, run with dotnet and a roll-forward), the older releases are Mono
- * (`.exe`). The rule is here and nowhere else.
+ * they need. 0.9.3.0 and later are .NET assemblies (`.dll`, run on the .NET major they target, never a newer one: .NET 9 removed
+ * what their asset cache writes with), the older releases are Mono (`.exe`). The rule is here and nowhere else.
  */
 final class Core
 {
@@ -129,10 +129,29 @@ final class Core
             : 'mono';
     }
 
-    /** The options the runtime is given before the assembly. */
+    /** The options the runtime is given before the assembly: none, a .NET core runs on the major it targets (dotnetMajor()). */
     public function runtimeOptions(string $base = 'OpenSim'): string
     {
-        return $this->runtime($base) === 'dotnet' ? '--roll-forward Major' : '';
+        return '';
+    }
+
+    /** The .NET major an assembly targets (8 for 0.9.3), from its runtimeconfig.json; null for a Mono core. */
+    public function dotnetMajor(string $base = 'OpenSim'): ?int
+    {
+        return $this->runtime($base) === 'dotnet' ? (int) explode('.', $this->dotnetRequired($this->executable($base)))[0] : null;
+    }
+
+    /**
+     * The .NET majors the cores under a root target, ascending: the runtimes this machine needs.
+     *
+     * @return list<int>
+     */
+    public static function dotnetMajors(string $root): array
+    {
+        $majors = array_values(array_unique(array_filter(array_map(static fn(self $core): ?int => $core->dotnetMajor(), self::all($root)))));
+        sort($majors);
+
+        return $majors;
     }
 
     /** The file of an assembly by its base name (Robust, OpenSim, MoneyServer...): Robust.dll or Robust.exe. */

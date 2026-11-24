@@ -54,14 +54,18 @@ describe('cores of a folder', function () {
 });
 
 describe('runtime of a core', function () {
-    test('is .NET from 0.9.3.0, Mono before', function () {
-        $new = Core::at(cores_root(['0.9.3.0' => 'OpenSim.dll']) . '/0.9.3.0');
-        $old = Core::at(cores_root(['0.9.2.2' => 'OpenSim.exe']) . '/0.9.2.2');
+    test('is .NET from 0.9.3.0, on the major it targets, never rolled forward; Mono before', function () {
+        $root = cores_root(['0.9.3.0' => 'OpenSim.dll', '0.9.2.2' => 'OpenSim.exe']);
+        $new = Core::at("$root/0.9.3.0");
+        $old = Core::at("$root/0.9.2.2");
 
-        expect([$new->runtime(), $new->executable('Robust'), $new->runtimeOptions()])
-            ->toBe(['dotnet', 'Robust.dll', '--roll-forward Major'])
-            ->and([$old->runtime(), $old->executable('Robust'), $old->runtimeOptions()])
-            ->toBe(['mono', 'Robust.exe', '']);
+        expect([$new->runtime(), $new->executable('Robust'), $new->runtimeOptions(), $new->dotnetMajor()])
+            ->toBe(['dotnet', 'Robust.dll', '', 8])
+            ->and([$old->runtime(), $old->executable('Robust'), $old->runtimeOptions(), $old->dotnetMajor()])
+            ->toBe(['mono', 'Robust.exe', '', null])
+            // The runtimes this machine needs: the majors its cores target
+            ->and(Core::dotnetMajors($root))
+            ->toBe([8]);
     });
 
     test('is .NET for a build that has a runtimeconfig.json, whatever its folder is called', function () {

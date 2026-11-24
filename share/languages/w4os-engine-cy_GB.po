@@ -3378,6 +3378,11 @@ msgid "%s installed but not configured, off: %s to set"
 msgstr "%s wedi'i osod ond heb ei ffurfweddu, i ffwrdd: %s i'w gosod"
 
 #, php-format
+msgctxt "health_runtime_wrong"
+msgid "runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing (grey skins); install .NET %s and restart it"
+msgstr "yn rhedeg ar .NET %s, mae ei graidd yn targedu .NET %s: nid yw ei storfa asedau yn cadw dim (crwyn llwyd); gosod .NET %s a'i ailgychwyn"
+
+#, php-format
 msgctxt "health_matches_grid_info"
 msgid "matches %s of get_grid_info"
 msgstr "yn cyfateb i %s get_grid_info"

@@ -87,6 +87,21 @@ final class Status
         return $off;
     }
 
+    /**
+     * The instances that run on a .NET major other than the one their core targets (RuntimeProbe::wrongRuntime()).
+     *
+     * @return array<string,array{running:int,target:int}> name => the major it runs on, the one it targets
+     */
+    public function wrongRuntimes(RuntimeProbe $probe): array
+    {
+        $wrong = [];
+        foreach ($this->instances as $instance) {
+            ($found = $probe->wrongRuntime($instance)) === null || ($wrong[$instance->name()] = $found);
+        }
+
+        return $wrong;
+    }
+
     /** @return array{cpu:float,memory:float,rss:int} */
     public function totals(): array
     {

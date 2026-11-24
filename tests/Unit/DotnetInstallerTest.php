@@ -129,11 +129,11 @@ function dotnet_tools(array $more = []): array
 }
 
 describe('.NET runtime', function () {
-    test('is left alone when there is one that fits, a newer one included', function () {
+    test('is left alone when the major asked is there, beside a newer one', function () {
         [$capture, $run, $ran] = dotnet_machine(
             dotnet_tools([
                 '/command -v .dotnet./' => '/usr/bin/dotnet',
-                '/dotnet.* --list-runtimes/' => "Microsoft.NETCore.App 9.0.1 [/usr/share/dotnet/shared]\n",
+                '/dotnet.* --list-runtimes/' => "Microsoft.NETCore.App 8.0.34 [/usr/share/dotnet/shared]\nMicrosoft.NETCore.App 10.0.14 [/usr/share/dotnet/shared]\n",
             ]),
         );
         $ui = new DotnetUiFake();
@@ -143,7 +143,7 @@ describe('.NET runtime', function () {
             ->and($ran->getArrayCopy())
             ->toBe([])
             ->and($ui->said[0])
-            ->toContain('.NET 9 found');
+            ->toContain('.NET 8 found');
     });
 
     test('is installed from the system packages when they have it, as root', function () {
@@ -160,19 +160,25 @@ describe('.NET runtime', function () {
             ->toBe(['apt-get install -y dotnet-runtime-8.0']);
     });
 
-    test('uses a newer system runtime package when it satisfies the requested major', function () {
+    test('is installed beside a newer one, never taken for it, a newer package neither', function () {
+        $links = sys_get_temp_dir() . '/dotnet-links-' . bin2hex(random_bytes(4));
+        mkdir($links);
         [$capture, $run, $ran] = dotnet_machine(
             dotnet_tools([
+                '/command -v .dotnet./' => '/usr/local/bin/dotnet',
+                '/dotnet.* --list-runtimes/' => "Microsoft.NETCore.App 10.0.14 [/usr/local/share/dotnet/shared]\n",
                 '/apt-cache pkgnames dotnet-runtime-/' => "dotnet-runtime-10.0\n",
-                '/apt-cache policy .dotnet-runtime-10.0./' =>
-                    "dotnet-runtime-10.0:\n  Installed: (none)\n  Candidate: 10.0.1-1\n",
+                '/apt-cache policy .dotnet-runtime-10.0./' => "dotnet-runtime-10.0:\n  Installed: (none)\n  Candidate: 10.0.1-1\n",
+                '/apt-cache policy .dotnet-runtime-8.0./' => "dotnet-runtime-8.0:\n  Candidate: (none)\n",
             ]),
         );
 
-        expect((new DotnetInstaller(new DotnetUiFake(), $capture, $run, true))->install(8))
-            ->toBeTrue()
-            ->and($ran->getArrayCopy())
-            ->toBe(['apt-get install -y dotnet-runtime-10.0']);
+        $ok = (new DotnetInstaller(new DotnetUiFake(), $capture, $run, true, 'Linux', '', $links))->install(8);
+
+        $commands = $ran->getArrayCopy();
+        expect($ok)->toBeTrue()
+            ->and(implode("\n", $commands))->not->toContain('dotnet-runtime-10.0')
+            ->and((string) end($commands))->toContain("--runtime dotnet --channel '8.0' --install-dir '/usr/local/share/dotnet'");
     });
 
     test('is installed by a person who is not root only as far as telling them how', function () {

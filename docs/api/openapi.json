@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "3377d89",
+        "version": "1ee864e",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -14486,7 +14486,7 @@
                                                         },
                                                         "kind": {
                                                             "type": "string",
-                                                            "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`), `module` (a module enabled for the install that a simulator does not set up, kept off at its start: `module`, `missing`, `fix`)",
+                                                            "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`), `module` (a module enabled for the install that a simulator does not set up, kept off at its start: `module`, `missing`, `fix`), `runtime` (an instance running on a .NET major other than the one its core targets, its asset cache broken: `running`, `target`, `fix`)",
                                                             "enum": [
                                                                 "address",
                                                                 "value",
@@ -14495,7 +14495,8 @@
                                                                 "folder",
                                                                 "file",
                                                                 "option",
-                                                                "module"
+                                                                "module",
+                                                                "runtime"
                                                             ]
                                                         },
                                                         "reason": {
@@ -14549,9 +14550,17 @@
                                                             "type": "string",
                                                             "description": "The module (a module): gloebit"
                                                         },
+                                                        "running": {
+                                                            "type": "integer",
+                                                            "description": "The .NET major the instance runs on (a runtime)"
+                                                        },
+                                                        "target": {
+                                                            "type": "integer",
+                                                            "description": "The .NET major its core targets (a runtime)"
+                                                        },
                                                         "fix": {
                                                             "type": "string",
-                                                            "description": "The operation that repairs it: `POST /grids/{grid}/options/repair` (an option), `PATCH /grids/{grid}/settings/economy` (Gloebit)"
+                                                            "description": "The operation that repairs it: `POST /grids/{grid}/options/repair` (an option), `PATCH /grids/{grid}/settings/economy` (Gloebit), `sudo opensim install-dotnet 8` then a restart of the instance (a runtime: a command of the machine)"
                                                         },
                                                         "display": {
                                                             "type": "string",
@@ -14755,7 +14764,7 @@
                                                                                 },
                                                                                 "kind": {
                                                                                     "type": "string",
-                                                                                    "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`), `module` (a module enabled for the install that a simulator does not set up, kept off at its start: `module`, `missing`, `fix`)",
+                                                                                    "description": "What the line is, which says its fields: `address` (asked: `url`, `expectedStatus`, `status`, `ms`...), `value` (a setting that is not an address, shown: `text`), `secret` (never shown, only whether it is `set`), `requirement` (an extension of PHP: `installed`, `version`), `folder` (`path`, `exists`, `writable`), `file` (`path`, `readable`), `option` (the options of the grid a simulator has: `missing`, `fix`), `module` (a module enabled for the install that a simulator does not set up, kept off at its start: `module`, `missing`, `fix`), `runtime` (an instance running on a .NET major other than the one its core targets, its asset cache broken: `running`, `target`, `fix`)",
                                                                                     "enum": [
                                                                                         "address",
                                                                                         "value",
@@ -14764,7 +14773,8 @@
                                                                                         "folder",
                                                                                         "file",
                                                                                         "option",
-                                                                                        "module"
+                                                                                        "module",
+                                                                                        "runtime"
                                                                                     ]
                                                                                 },
                                                                                 "reason": {
@@ -14818,9 +14828,17 @@
                                                                                     "type": "string",
                                                                                     "description": "The module (a module): gloebit"
                                                                                 },
+                                                                                "running": {
+                                                                                    "type": "integer",
+                                                                                    "description": "The .NET major the instance runs on (a runtime)"
+                                                                                },
+                                                                                "target": {
+                                                                                    "type": "integer",
+                                                                                    "description": "The .NET major its core targets (a runtime)"
+                                                                                },
                                                                                 "fix": {
                                                                                     "type": "string",
-                                                                                    "description": "The operation that repairs it: `POST /grids/{grid}/options/repair` (an option), `PATCH /grids/{grid}/settings/economy` (Gloebit)"
+                                                                                    "description": "The operation that repairs it: `POST /grids/{grid}/options/repair` (an option), `PATCH /grids/{grid}/settings/economy` (Gloebit), `sudo opensim install-dotnet 8` then a restart of the instance (a runtime: a command of the machine)"
                                                                                 },
                                                                                 "display": {
                                                                                     "type": "string",

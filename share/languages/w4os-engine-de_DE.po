@@ -3387,6 +3387,11 @@ msgid "%s installed but not configured, off: %s to set"
 msgstr "%s installiert, aber nicht eingerichtet, aus: %s einzustellen"
 
 #, php-format
+msgctxt "health_runtime_wrong"
+msgid "runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing (grey skins); install .NET %s and restart it"
+msgstr "läuft auf .NET %s, sein Core zielt auf .NET %s: sein Asset-Cache behält nichts (graue Haut); .NET %s installieren und neu starten"
+
+#, php-format
 msgctxt "health_matches_grid_info"
 msgid "matches %s of get_grid_info"
 msgstr "entspricht %s von get_grid_info"

@@ -876,6 +876,7 @@ final class Catalog
         'health_options_all' => 'all the options of the grid',
         'health_options_missing' => 'missing: %s',
         'health_module_unconfigured' => '%s installed but not configured, off: %s to set',
+        'health_runtime_wrong' => 'runs on .NET %s, its core targets .NET %s: its asset cache keeps nothing (grey skins); install .NET %s and restart it',
         'health_matches_grid_info' => 'matches %s of get_grid_info',
         'health_differs_grid_info' => 'differs from %s of get_grid_info',
         'health_web_search' => 'Web search',
