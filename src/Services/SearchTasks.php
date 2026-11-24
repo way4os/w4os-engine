@@ -20,6 +20,7 @@ use W4OS\Engine\Scheduling\Task;
  * due is read, the others are left alone), read the events of the calendar (`events-parse`, every 55 minutes), and ask the grids
  * of the hypergrid destinations of its guide for their pictures (`guide-pictures`, once an hour: a destination that is due is
  * asked, RemotePictures), and check its health (`health`, every 15 minutes, HealthCheck: a page shows the last check at once).
+ * An install that leaves the search to another one (`MaintainSearch = false` of `[Helpers]`) checks the health alone.
  *
  *     SearchTasks::add($scheduler, $environment, $config);
  *     SearchTasks::add($scheduler, $grid->environment(), $grid->config(), $grid);   // a grid with no folder
@@ -45,6 +46,15 @@ final class SearchTasks
     public static function eventsSource(GridConfig $config): string
     {
         return rtrim(trim((string) $config->find('Helpers', 'HypEventsURL'), " \t\"") ?: self::EVENTS_SOURCE, '/');
+    }
+
+    /**
+     * Whether this install keeps the search of the grid (its registry, its events, the pictures of its guide): `MaintainSearch` of
+     * `[Helpers]`, true unless it says false (another install keeps them, this one only reads them).
+     */
+    public static function maintains(GridConfig $config): bool
+    {
+        return !\W4OS\Engine\Result::isFalse(trim((string) $config->find('Helpers', 'MaintainSearch'), " \t\""));
     }
 
     /** The nick of a grid: the name of the folder of its config (Robust, else OpenSim.ini, else Helpers.ini). */
@@ -120,53 +130,56 @@ final class SearchTasks
         // The grid itself for the tasks that need it, else the one of the folder of its config
         $at = $grid instanceof Grid ? static fn(): Grid => $grid : ($folder !== '' && is_dir($folder) ? static fn(): Grid => Grid::at($environment, $folder) : null);
         $scope = (string) preg_replace('/[^A-Za-z0-9_-]/', '_', $grid instanceof Grid ? $grid->nick() : ($grid ?? self::gridOf($config)));
-        $regions = Region::searchTable($db);
-        $scheduler->add(
-            new Task(
-                'search-parse',
-                self::PARSE_EVERY,
-                static fn(): string => self::exclusively($db, 'search-parse', static function () use ($db, $regions, $environment, $config): string {
-                    $registry = new SearchRegistry($db, $regions, $environment->clock);
-                    $hosts = (new SearchParser($registry, $db, $regions, $environment->http))->parse();
-                    // The land for sale of the regions of the grid, from their land: shown in search or not
-                    $sales = LandSales::sync($config, $db);
+        // Another install may keep its registry (MaintainSearch = false of [Helpers]): then this one never writes into it
+        if (self::maintains($config)) {
+            $regions = Region::searchTable($db);
+            $scheduler->add(
+                new Task(
+                    'search-parse',
+                    self::PARSE_EVERY,
+                    static fn(): string => self::exclusively($db, 'search-parse', static function () use ($db, $regions, $environment, $config): string {
+                        $registry = new SearchRegistry($db, $regions, $environment->clock);
+                        $hosts = (new SearchParser($registry, $db, $regions, $environment->http))->parse();
+                        // The land for sale of the regions of the grid, from their land: shown in search or not
+                        $sales = LandSales::sync($config, $db);
 
-                    return ($hosts === 0 ? 'no simulator due' : "$hosts simulator(s) read") . ", $sales parcel(s) for sale";
-                }),
-                'Read the snapshots of the registered simulators',
-                $scope,
-            ),
-        );
-        $source = self::eventsSource($config);
-        $scheduler->add(
-            new Task(
-                'events-parse',
-                self::EVENTS_EVERY,
-                static fn(): string => self::exclusively($db, 'events-parse', static function () use ($db, $source, $environment): string {
-                    $kept = (new EventsParser($db, $source, $environment->http, clock: $environment->clock))->parse();
+                        return ($hosts === 0 ? 'no simulator due' : "$hosts simulator(s) read") . ", $sales parcel(s) for sale";
+                    }),
+                    'Read the snapshots of the registered simulators',
+                    $scope,
+                ),
+            );
+            $source = self::eventsSource($config);
+            $scheduler->add(
+                new Task(
+                    'events-parse',
+                    self::EVENTS_EVERY,
+                    static fn(): string => self::exclusively($db, 'events-parse', static function () use ($db, $source, $environment): string {
+                        $kept = (new EventsParser($db, $source, $environment->http, clock: $environment->clock))->parse();
 
-                    $kept < 0 && throw new \RuntimeException("the calendar $source did not answer");
+                        $kept < 0 && throw new \RuntimeException("the calendar $source did not answer");
 
-                    return "$kept event(s) kept";
-                }),
-                'Read the events of the calendar',
-                $scope,
-            ),
-        );
-        $at !== null && $scheduler->add(
-            new Task(
-                'guide-pictures',
-                self::PICTURES_EVERY,
-                static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($config, $at): string {
-                    $run = $at()->refreshGuidePictures($config);
-                    $missed = array_map(static fn(string $name, string $step): string => "$name ($step)", array_keys($run['missed']), $run['missed']);
+                        return "$kept event(s) kept";
+                    }),
+                    'Read the events of the calendar',
+                    $scope,
+                ),
+            );
+            $at !== null && $scheduler->add(
+                new Task(
+                    'guide-pictures',
+                    self::PICTURES_EVERY,
+                    static fn(): string => self::exclusively($db, 'guide-pictures', static function () use ($config, $at): string {
+                        $run = $at()->refreshGuidePictures($config);
+                        $missed = array_map(static fn(string $name, string $step): string => "$name ($step)", array_keys($run['missed']), $run['missed']);
 
-                    return "{$run['found']} picture(s) of hypergrid destinations found" . ($missed === [] ? '' : '; none for ' . implode(', ', $missed));
-                }),
-                'Ask the grids of the destinations of the guide for their pictures',
-                $scope,
-            ),
-        );
+                        return "{$run['found']} picture(s) of hypergrid destinations found" . ($missed === [] ? '' : '; none for ' . implode(', ', $missed));
+                    }),
+                    'Ask the grids of the destinations of the guide for their pictures',
+                    $scope,
+                ),
+            );
+        }
         // The health of the grid, checked in the background: a page shows the last check at once
         $at !== null && $scheduler->add(
             new Task(

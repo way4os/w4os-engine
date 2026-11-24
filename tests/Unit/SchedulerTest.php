@@ -95,6 +95,19 @@ describe('The tasks of several grids', function () {
         expect(array_column($scheduler->status(), 'id'))->toBe(['search-parse.demo', 'events-parse.demo', 'guide-pictures.demo', 'health.demo']);
     });
 
+    test('of the search are left to another install when Helpers.ini says so: its health alone, nothing written', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\nMaintainSearch = false\n");
+        $config = W4OS\Engine\Config\GridConfig::fromFolder($machine->grid, ['Helpers' => 'Helpers.ini']);
+        W4OS\Engine\Data\Connections::using(static fn() => new W4OS\Engine\Data\OSPDO(['driver' => 'sqlite', 'name' => ':memory:']));
+        $scheduler = W4OS\Engine\Scheduling\Scheduler::for($machine->environment);
+
+        W4OS\Engine\Services\SearchTasks::add($scheduler, $machine->environment, $config);
+        W4OS\Engine\Data\Connections::using(null);
+
+        expect(array_column($scheduler->status(), 'id'))->toBe(['health.demo']);
+    });
+
     test('of a grid with no folder (the one a site makes of its description) are named by its nick, the pictures of its guide and its health with them', function () {
         $machine = new W4OS\Engine\Testing\Machine();
         $grid = W4OS\Engine\Models\SiteDescription::grid($machine->environment, W4OS\Engine\Models\SiteDescription::of(W4OS\Engine\Models\Grid::find($machine->environment, 'demo')));

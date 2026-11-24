@@ -935,6 +935,8 @@ final class Service extends InstalledModel
             $tree = $this->grid->config()?->tree() ?? [];
             $value = null;
             foreach ($this->settings() as [$role, $section, $key]) {
+                // Without a Robust (a web host without OpenSimulator), Helpers.ini says what it would tell, in the same sections
+                $role === 'Robust' && !isset($tree['Robust']) && ($role = 'Helpers');
                 $in = $tree[$role][$section] ?? [];
                 $value = self::valueOf(is_array($in) ? $in : [], $key);
                 if ($value !== null) {

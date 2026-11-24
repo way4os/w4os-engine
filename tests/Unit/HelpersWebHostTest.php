@@ -24,4 +24,16 @@ describe('The helpers on a web host without OpenSimulator', function () {
             ->and($grid?->servedByHelpers('https://2do.directory/charm/search'))->toBeTrue()
             ->and($grid?->servedByHelpers('https://2do.directory/other'))->toBeFalse();
     });
+
+    test('read what Robust would tell from Helpers.ini: its web search, its name', function () {
+        $machine = new Machine();
+        $directory = $machine->etc . '/grids/twodo';
+        $machine->write("$directory/twodo.conf", "[Grid]\nRemote = true\nGridName = \"2do Directory\"\nGridNick = twodo\nBaseHostname = 2do.directory\nPublicPort = 8002\n");
+        $machine->write("$directory/Helpers.ini", "[Const]\n    WebURL = \"https://2do.directory\"\n[Helpers]\n    HelpersURL = \"https://2do.directory/charm\"\n" .
+            "[GridInfoService]\n    search = \"\${Const|WebURL}/charm/search\"\n    gridname = \"2do HYPEvents\"\n[LoginService]\n    SearchURL = \"\${Const|WebURL}/charm/search\"\n");
+        $grid = Grid::find($machine->environment, 'twodo');
+
+        expect($grid?->address('search'))->toBe('https://2do.directory/charm/search')
+            ->and($grid?->configuredInfo()['gridname'] ?? null)->toBe('2do HYPEvents');
+    });
 });
