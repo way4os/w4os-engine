@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (helpers): a web host without OpenSimulator reads the site of the grid from Helpers.ini ([Const] WebURL), as documented
 - fix (grid): its name is the gridname of its grid info, never a [Const] GridName or a snapshot before it
 - fix (migrate): a value through a constant of the old config (BackOffice) is kept, never replaced (the GridInfo search)
 - fix (migrate): the helpers where the old economy is on the site; the pages the install adds go under them

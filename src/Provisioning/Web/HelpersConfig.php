@@ -93,8 +93,13 @@ final class HelpersConfig
             ? trim($m[1])
             : '';
 
-        // A constant of the files (${Const|BaseURL}:8830): the value the executables read
-        return str_contains($value, '${Const|') ? self::robustValue(GridConfig::fromFolder($gridDir), $key) : $value;
+        // A constant of the files (${Const|BaseURL}:8830): the value the executables read. Without a Robust (a web host without
+        // OpenSimulator), Helpers.ini says it in the same sections
+        return match (true) {
+            str_contains($value, '${Const|') => self::robustValue(GridConfig::fromFolder($gridDir), $key),
+            $value === '' && is_file(self::path($gridDir)) => self::robustValue(GridConfig::fromFolder($gridDir, ['Helpers' => self::FILE]), $key),
+            default => $value,
+        };
     }
 
     /** The address of the web site of the grid: the `WebURL` of its Robust config. */
