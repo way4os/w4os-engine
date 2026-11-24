@@ -343,9 +343,9 @@ describe('The options of a new grid', function () {
                     'web_site' => 'helpers',
                     'helpers' => true,
                 ])
-                // Without the helpers there is no search of the grid
+                // Without the helpers the search is 2do.directory's
                 ->and(planner()->resolve()['search'])
-                ->toBe('disabled');
+                ->toBe('shared');
         },
     );
 

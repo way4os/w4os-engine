@@ -220,18 +220,36 @@ final class GridPlanner
             'web_url' => $web,
             'helpers' => Result::isTrue($answers['helpers'] ?? $c['helpersAvailable']),
             'helpers_path' => $text('helpers_path', $c['helpersPath']),
-            // Without the helpers the grid has no search of its own
+            // Without the helpers the search is 2do.directory's: the in-world one, the web one, the register of the regions
             'search' => self::choice(
-                $answers['search'] ?? null,
+                // A setup of before says yes or no (Cross-grid Search): yes 2do.directory's, no the helpers', else none
+                match (true) {
+                    in_array($answers['search'] ?? null, ['internal', 'shared', 'disabled'], true) => $answers['search'],
+                    Result::isTrue($answers['search'] ?? null) => 'shared',
+                    Result::isFalse($answers['search'] ?? null) => Result::isTrue($answers['helpers'] ?? $c['helpersAvailable']) ? 'internal' : 'disabled',
+                    default => $answers['search'] ?? null,
+                },
                 ['internal', 'shared', 'disabled'],
-                Result::isTrue($answers['helpers'] ?? $c['helpersAvailable']) ? 'internal' : 'disabled',
+                Result::isTrue($answers['helpers'] ?? $c['helpersAvailable']) ? 'internal' : 'shared',
             ),
+            'web_search' => Result::isTrue($answers['helpers'] ?? $c['helpersAvailable'])
+                ? self::choice($answers['web_search'] ?? null, ['internal', 'shared'], 'internal')
+                : 'shared',
+            'register' => Result::isTrue($answers['helpers'] ?? $c['helpersAvailable'])
+                ? self::choice($answers['register'] ?? null, ['both', 'helpers', '2do'], 'both')
+                : '2do',
+            'events_url' => $text('events_url', \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE),
+            'economy_path' => $text('economy_path', ''),
+            'site_path' => \W4OS\Engine\Provisioning\Web\Services::normalize($text('site_path', '/')),
             // Robust keeps the messages (the module V2), the helpers only when they are asked
             'offline' => self::choice($answers['offline'] ?? null, ['helpers', 'robust'], 'robust'),
             'economy' => self::choice($answers['economy'] ?? null, ['beta', 'gloebit'], 'beta'),
             'ossl' => Result::isTrue($answers['ossl'] ?? $this->optionDefault('ossl')),
             'web_server' => self::choice($answers['web_server'] ?? null, ['caddy', 'apache', 'nginx'], $c['webServer']),
-            'web_site' => self::choice($answers['web_site'] ?? null, ['helpers', 'website'], 'helpers'),
+            // The Quick Start website: `site` yes or no, or as a setup of before says it (web_site)
+            'web_site' => array_key_exists('site', $answers)
+                ? (Result::isTrue($answers['site']) ? 'website' : 'helpers')
+                : self::choice($answers['web_site'] ?? null, ['helpers', 'website'], 'helpers'),
             'database_host' => $text(
                 'database_host',
                 $current?->databaseHost() ?? ($solo?->databaseHost() ?? ($layout->dataSource() ?: 'localhost')),
@@ -347,6 +365,12 @@ final class GridPlanner
         $plan->ossl = $v['ossl'];
         $plan->webServer = $v['web_server'];
         $plan->webSite = $v['web_site'];
+        $plan->sitePath = $v['site_path'];
+        $plan->register = $v['register'];
+        $plan->webSearch = $v['web_search'];
+        $plan->eventsUrl = $v['events_url'];
+        // The economy at the path of the helpers is theirs: empty, as the plan says it
+        $plan->economyPath = Web\Services::normalize($v['economy_path'] ?: '/') === Web\Services::normalize($plan->helpersPath) ? '' : $v['economy_path'];
         $plan->consoleMode = $v['console'];
         if ($plan->consoleMode === 'rest') {
             $plan->consolePort = $v['console_port'];
@@ -362,7 +386,8 @@ final class GridPlanner
         $plan->dbPass = $v['database_password'];
         // The options: the ones asked for, else the ones that are on by default and that the grid can have
         $plan->options = (new GridOptions(Grid::planned($this->environment(), $plan)))->selection(
-            $answers + ['web_server' => $v['web_server'], 'web_site' => $v['web_site']],
+            // Under a folder of its own, the Quick Start website is not the root of the site (w4os-site web --prefix does it)
+            $answers + ['web_server' => $v['web_server'], 'web_site' => $v['site_path'] === '/' ? $v['web_site'] : 'helpers'],
         );
         $plan->ossl = in_array('ossl-extended', $plan->options, true);
 

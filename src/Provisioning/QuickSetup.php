@@ -49,15 +49,6 @@ final class QuickSetup
                 'implemented' => true,
                 'plan' => static fn(bool $on): array => ['helpers' => $on],
             ],
-            'search' => [
-                'label' => 'Cross-grid Search',
-                'default' => true,
-                'implemented' => true,
-                // The search of the grid is its helpers', else there is none
-                'plan' => static fn(bool $on, array $chosen): array => [
-                    'search' => $on ? 'shared' : ($chosen['helpers'] ? 'internal' : 'disabled'),
-                ],
-            ],
         ];
         // The others are presets that say they are offered (see OptionTemplate): the administrator adds one by adding a folder
         foreach ((new Presets([], $environment->layout->etcRoot()))->options() as $name => $template) {
@@ -250,6 +241,8 @@ final class QuickSetup
         );
         $gridDatabase = $standalone ? $dbGiven : array_diff_key($dbGiven, ['database_driver' => true]);
         $gridAnswers = ['standalone' => $standalone] + self::portValues($answers, ['private_port' => 'private_port', 'console_port' => 'grid_console_port']) + $gridDatabase + $fromOptions;
+        // The web services (screenWeb()): as they are given; the planner gives what is not, and 2do.directory's without the helpers
+        $gridAnswers += array_intersect_key($answers, array_flip([...self::WEB, 'web_site']));
         trim((string) ($answers['name'] ?? '')) !== '' && ($gridAnswers['name'] = trim((string) $answers['name']));
         [$uri, $uriProblem] = Grid::parseLoginUri((string) ($answers['login_uri'] ?? ''));
         $uriProblem !== null && ($problems['login_uri'] = $uriProblem);
@@ -523,6 +516,17 @@ final class QuickSetup
                     return $screen;
                 }
 
+                // The web services the helpers give, when they are on; without them, 2do.directory's (said on the review)
+                return Result::isTrue($answers['helpers'] ?? true)
+                    ? self::screenWeb($environment, $answers, '')
+                    : self::screenReview($environment, self::pinned($environment, $answers));
+
+            case 'web':
+                $answers = self::keep($answers, $given, self::WEB);
+                if ($button === 'back') {
+                    return self::screenOptions($environment, $answers, '');
+                }
+
                 return self::screenReview($environment, self::pinned($environment, $answers));
 
             case 'database':
@@ -541,9 +545,11 @@ final class QuickSetup
                     return self::screenReview($environment, $answers);
                 }
                 if ($button === 'back') {
-                    return $remote
-                        ? self::screenForm($environment, $answers, '')
-                        : self::screenOptions($environment, $answers, '');
+                    return match (true) {
+                        $remote => self::screenForm($environment, $answers, ''),
+                        Result::isTrue($answers['helpers'] ?? true) => self::screenWeb($environment, $answers, ''),
+                        default => self::screenOptions($environment, $answers, ''),
+                    };
                 }
 
                 $answers = self::keep($answers, $given, [
@@ -849,6 +855,43 @@ final class QuickSetup
             'items' => $items,
             'buttons' => ['next' => _('OK'), 'back' => _('Back')],
             'state' => self::encode('options', $answers),
+        ];
+    }
+
+    /** The answers of the screen of the web services (screenWeb()). */
+    private const WEB = ['site', 'site_path', 'helpers_path', 'register', 'search', 'web_search', 'events_url', 'economy_path'];
+
+    /**
+     * The web services of the grid, when its helpers are on: the Quick Start website and its folder, the path of the helpers, where
+     * the regions register, the in-world and the web search, the calendar of the events, the economy. Each with what the planner
+     * proposes, or the last answer.
+     */
+    private static function screenWeb(Environment $environment, array $answers, string $notice): array
+    {
+        $grid = self::plan($environment, self::answersOf($answers))['setup']['grid'] ?? [];
+        $hypergrid = _('2do.directory searches every destination of the hypergrid, not only this grid\'s');
+        $value = static fn(string $name, string $proposed): string => (string) ($answers[$name] ?? $proposed);
+        $helpersPath = $value('helpers_path', (string) ($grid['helpers_path'] ?? '/helpers'));
+        $fields = [
+            ['name' => 'site', 'label' => _('Quick Start website'), 'value' => Result::isTrue($answers['site'] ?? (($grid['web_site'] ?? '') === 'website')) ? 'yes' : 'no', 'options' => ['yes' => _('Yes'), 'no' => _('No')]],
+            ['name' => 'site_path', 'label' => _('Path'), 'value' => $value('site_path', (string) ($grid['site_path'] ?? '/')), 'help' => _('Choose a subfolder to keep separate from existing main website')],
+            ['name' => 'helpers_path', 'label' => _('Helpers path'), 'value' => $helpersPath],
+            ['name' => 'register', 'label' => _('Register the regions'), 'value' => $value('register', (string) ($grid['register'] ?? 'both')), 'options' => ['both' => _('Helpers and 2do.directory'), 'helpers' => _('Helpers only'), '2do' => _('2do.directory only')]],
+            ['name' => 'search', 'label' => _('In-world search'), 'value' => $value('search', (string) ($grid['search'] ?? 'internal')), 'options' => ['internal' => _('Helpers'), 'shared' => '2do.directory'], 'help' => $hypergrid],
+            ['name' => 'web_search', 'label' => _('Web search'), 'value' => $value('web_search', (string) ($grid['web_search'] ?? 'internal')), 'options' => ['internal' => _('Helpers'), 'shared' => '2do.directory'], 'help' => $hypergrid],
+            ['name' => 'events_url', 'label' => _('Events'), 'value' => $value('events_url', (string) ($grid['events_url'] ?? \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE)), 'help' => _('A HYPEvents calendar; this grid has no events of its own yet')],
+            ['name' => 'economy_path', 'label' => _('Economy path'), 'value' => $value('economy_path', (string) (($grid['economy_path'] ?? '') ?: $helpersPath)), 'help' => _('Defaults to helpers path, use a full URL for an external service')],
+        ];
+
+        return [
+            'action' => 'screen',
+            'kind' => 'form',
+            'title' => _('Web services'),
+            'text' => '',
+            'notice' => $notice,
+            'fields' => array_map(static fn(array $field): array => $field + ['secret' => false, 'readonly' => false], $fields),
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'state' => self::encode('web', $answers),
         ];
     }
 
@@ -1730,12 +1773,19 @@ final class QuickSetup
         // What the person chose, then what is on whatever the answers (the helpers and what they serve)
         $add('options', 'Hypergrid', $yes($plan->enableHypergrid));
         $add('options', 'SSL', $yes($chosen['ssl'] ?? false) . ' (not implemented)');
-        $add(
-            'options',
-            'Cross-grid search',
-            $plan->search === 'shared' ? 'yes, the shared provider (2do.directory)' : 'no, the search of this grid',
-        );
         $add('options', 'Helpers', $plan->helpers ? "yes, served at {$plan->webUrl}{$plan->helpersPath}" : 'no');
+        // The web services: what the helpers give, or 2do.directory's without them
+        if ($plan->helpers) {
+            $two = static fn(string $choice): string => $choice === 'shared' ? '2do.directory' : 'the helpers';
+            $add('web', 'Quick Start website', $plan->webSite === 'website' ? 'yes, at ' . $plan->webUrl . ($plan->sitePath === '/' ? '/' : $plan->sitePath) : 'no');
+            $add('web', 'Register the regions', ['both' => 'the helpers and 2do.directory', 'helpers' => 'the helpers only', '2do' => '2do.directory only'][$plan->register] ?? $plan->register);
+            $add('web', 'In-world search', $plan->search === 'disabled' ? 'none' : $two($plan->search));
+            $add('web', 'Web search', $two($plan->webSearch));
+            $plan->search === 'internal' && $add('web', 'Events', $plan->eventsUrl);
+            $add('web', 'Economy', $plan->economyPath === '' ? $plan->webUrl . $plan->helpersPath : (str_contains($plan->economyPath, '://') ? $plan->economyPath . ' (another service)' : $plan->webUrl . $plan->economyPath));
+        } else {
+            $add('web', 'Search', 'the in-world search, the web search and the register of the regions are 2do.directory\'s (it searches the whole hypergrid)');
+        }
         // The presets that are on, asked or not
         foreach ($plan->options as $name) {
             isset($labels[$name]) && $add('options', $labels[$name], 'yes');

@@ -95,7 +95,7 @@ describe('setup ports', function () {
     test('saves confirmed ports', function () {
         $env = (new Machine())->environment;
         $screen = QuickSetup::next($env, ['mode' => 'prepare']);
-        foreach ([['type' => 'grid'], port_setup_answers(), [], [], [
+        foreach ([['type' => 'grid'], port_setup_answers(), [], [], [], [
             'database_host' => 'localhost', 'database_user' => 'opensim', 'database_password' => 'test-db-password',
         ]] as $answers) {
             $screen = QuickSetup::next($env, ['mode' => 'prepare', 'state' => $screen['state'], 'answers' => $answers]);

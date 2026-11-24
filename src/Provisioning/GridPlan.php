@@ -59,6 +59,16 @@ final class GridPlan
     /** The web server the configuration is written for (caddy, apache, nginx), and what it serves: 'helpers' or 'website'. */
     public string $webServer = 'caddy';
     public string $webSite = 'helpers';
+    /** Where the Quick Start website (w4os-site) is on the web site: `/` its root, else a subfolder of its own. */
+    public string $sitePath = '/';
+    /** Where the simulators register for the search: 'both' (the helpers and 2do.directory), 'helpers' or '2do' alone. */
+    public string $register = 'both';
+    /** The web search of the viewers and of the site: 'internal' (the helpers) or 'shared' (2do.directory). */
+    public string $webSearch = 'internal';
+    /** The HYPEvents calendar the events of the search are read from (the grid has no events of its own yet). */
+    public string $eventsUrl = \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE;
+    /** The economy: empty, the helpers at their path; a path, the helpers there; a full address, another service. */
+    public string $economyPath = '';
 
     // Database.
     /** mysql (MySQL or MariaDB) or sqlite for a standalone. */

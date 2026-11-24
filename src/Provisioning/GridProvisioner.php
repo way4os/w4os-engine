@@ -79,7 +79,36 @@ final class GridProvisioner
     }
 
     /** For the final report: the address of the site and where the configs of the web servers are (each says in its header what to add). */
+    /**
+     * The commands that put the Quick Start website under its own folder of the site (`/opensim`), as root: its package when it is
+     * not there, the site connected to the grid, its web server config, which never changes the block of the host. None at the root
+     * of the site, which the options of the grid serve (webroot-website).
+     *
+     * @param bool $installed w4os-site is installed on this machine
+     * @return list<string>
+     */
+    public static function siteSteps(GridPlan $plan, bool $installed): array
+    {
+        if ($plan->webSite !== 'website' || Web\Services::normalize($plan->sitePath) === '/') {
+            return [];
+        }
+
+        return [
+            ...($installed ? [] : ['apt install w4os-site']),
+            "w4os-site setup --grid {$plan->gridNick}",
+            'w4os-site web ' . $plan->webServer . ' --prefix ' . Web\Services::normalize($plan->sitePath) . ' --install',
+        ];
+    }
+
     private function webReport(GridPlan $plan, Environment $environment): string
+    {
+        $steps = self::siteSteps($plan, is_dir('/usr/share/w4os-site'));
+        $site = $steps === [] ? '' : sprintf("\nThe Quick Start website under %s, as root:\n    %s", Web\Services::normalize($plan->sitePath), implode("\n    ", $steps));
+
+        return $site === '' ? $this->webConfigs($plan) : $this->webConfigs($plan) . $site;
+    }
+
+    private function webConfigs(GridPlan $plan): string
     {
         return sprintf(
             'Web URL:     %1$s/

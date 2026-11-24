@@ -1023,6 +1023,13 @@ final class GridOptions
             $variables["url_$service"] = $url($service);
             $variables["page_$service"] = $prefix !== '' && $service === 'search' ? '' : $this->pagePath($service);
         }
+        // The registers of the search: the grid's own (its helpers) and 2do.directory's, unless the setup chose one alone (register)
+        $register = $this->extra['register'] ?? 'both';
+        $own = $this->grid->isPlanned() && $this->grid->hasHelpers()
+            ? (new Services($this->grid->helpersPath()))->url($this->grid->webUrl(), 'register')
+            : $variables['url_register'];
+        $variables['register_own'] = $register === '2do' ? '' : $own;
+        $variables['register_2do'] = $register === 'helpers' ? '' : Grid::SHARED_SEARCH . '/register.php';
         // Where the helpers are on the site: the path of their economy
         $base = dirname($variables['page_currency']);
         $variables['helpers_base'] = $variables['page_currency'] === '' ? '' : ($base === '.' ? '/' : $base);
@@ -1034,6 +1041,16 @@ final class GridOptions
         );
         $variables['web_globs'] = implode(' ', $routes['globs']);
         $variables['web_regex'] = implode('|', $routes['regex']);
+        // The economy the grid gives its viewers: the helpers at their path, a path of the site the setup gave, or the address of
+        // another service, which the helpers do not serve (EconomyProvided); a grid of before keeps the helpers' path
+        $economy = trim((string) ($this->extra['economy_path'] ?? ''));
+        $variables['economy_address'] = match (true) {
+            str_contains($economy, '://') => $economy,
+            $economy !== '' => '${Const|WebURL}' . Services::normalize($economy),
+            default => '${Const|WebURL}' . $variables['helpers_base'],
+        };
+        $variables['economy_provided'] = !array_key_exists('economy_path', $this->extra) ? ''
+            : (str_contains($economy, '://') && strcasecmp((string) parse_url($economy, PHP_URL_HOST), (string) parse_url($this->grid->webUrl(), PHP_URL_HOST)) !== 0 ? 'false' : 'true');
         // The site of the grid, and what the options that are on give to the others
         $variables += Snippets::siteVariables($this->grid->webUrl());
         foreach ([...$this->enabled(), ...($also === null ? [] : [$also->name()])] as $name) {

@@ -32,6 +32,25 @@ function quick_answers(array $set = []): array
     ];
 }
 
+describe('quick setup, its web services', function () {
+    test('are in the plan as they are chosen, and without the helpers 2do.directory\'s', function () {
+        $environment = (new Machine())->environment;
+        $chosen = QuickSetup::plan($environment, quick_answers([
+            'register' => 'helpers', 'search' => 'shared', 'web_search' => 'internal', 'events_url' => 'https://events.example.org/calendar',
+            'economy_path' => 'https://money.example.net/economy', 'site' => true, 'site_path' => '/opensim',
+        ]))['setup']['grid'];
+        $without = QuickSetup::plan($environment, quick_answers(['helpers' => false]))['setup']['grid'];
+
+        expect(array_intersect_key($chosen, array_flip(['register', 'search', 'web_search', 'events_url', 'economy_path', 'web_site', 'site_path'])))->toEqual([
+            'register' => 'helpers', 'search' => 'shared', 'web_search' => 'internal', 'events_url' => 'https://events.example.org/calendar',
+            'economy_path' => 'https://money.example.net/economy', 'web_site' => 'website', 'site_path' => '/opensim',
+        ])
+            ->and([$without['register'] ?? null, $without['search'] ?? null, $without['web_search'] ?? null])->toBe(['2do', 'shared', 'shared']);
+        // Under its folder, the site is the Quick Start website's own: the root of the site keeps what it has (no webroot-website)
+        expect($chosen['options'] ?? [])->not->toContain('webroot-website');
+    });
+});
+
 describe('quick setup of a grid', function () {
     test('offers SQLite as a simulator database driver', function () {
         $environment = (new Machine())->environment;
@@ -78,7 +97,8 @@ describe('quick setup of a grid', function () {
                 'database_driver' => 'sqlite',
             ],
         ]);
-        $review = QuickSetup::next($environment, ['mode' => 'prepare', 'state' => $options['state']]);
+        $web = QuickSetup::next($environment, ['mode' => 'prepare', 'state' => $options['state']]);
+        $review = QuickSetup::next($environment, ['mode' => 'prepare', 'state' => $web['state']]);
         $prepared = QuickSetup::next($environment, ['mode' => 'prepare', 'state' => $review['state']]);
 
         expect($prepared['action'])->toBe('prepared')
@@ -251,7 +271,7 @@ describe('quick setup, what is wrong', function () {
         $labels = array_column($rows, 'label');
 
         expect(array_values(array_unique(array_column($rows, 'section'))))
-            ->toBe(['grid', 'options', 'simulator', 'region', 'owner'])
+            ->toBe(['grid', 'options', 'web', 'simulator', 'region', 'owner'])
             ->and($labels)
             ->toContain('Grid name', 'Login URI', 'Hypergrid', 'Grid database', 'Simulator', 'Region', 'Port', 'Avatar')
             ->and($rows[1])
@@ -263,13 +283,15 @@ describe('quick setup, what is wrong', function () {
     test('shows the options chosen and the ones that are on whatever the answers, with what the setup does not apply yet', function () {
         $quick = QuickSetup::plan((new Machine())->environment, quick_answers(['economy-gloebit' => true, 'search' => 'yes']));
         $options = array_column(array_filter($quick['rows'], static fn(array $r): bool => $r['section'] === 'options'), 'value', 'label');
+        $web = array_column(array_filter($quick['rows'], static fn(array $r): bool => $r['section'] === 'web'), 'value', 'label');
 
         expect($options['Hypergrid'])
             ->toBe('yes')
             ->and($options['Economy: Gloebit'])
             ->toBe('yes')
-            ->and($options['Cross-grid search'])
-            ->toBe('yes, the shared provider (2do.directory)')
+            // A setup of before: Cross-grid Search yes, the in-world search of 2do.directory
+            ->and($web['In-world search'])
+            ->toBe('2do.directory')
             ->and($options['SSL'])
             ->toBe('no (not implemented)')
             ->and($options['Extended OSSL'])
@@ -278,19 +300,19 @@ describe('quick setup, what is wrong', function () {
             ->toContain('Helpers', 'Search module (OpenSimSearch)', 'Offline messages: the grid (module V2)', 'Profiles', 'Destination guide', 'Grid status');
     });
 
-    test('has the helpers, the cross-grid search and the extended OSSL on by default', function () {
+    test('has the helpers, their search and the extended OSSL on by default', function () {
         $quick = QuickSetup::plan((new Machine())->environment, quick_answers());
 
         expect($quick['setup']['grid']['helpers'])
             ->toBeTrue()
             ->and($quick['setup']['grid']['search'])
-            ->toBe('shared')
+            ->toBe('internal')
             ->and($quick['setup']['grid']['economy'])
             ->toBe('beta')
             ->and($quick['setup']['grid']['options'])
             ->toContain('ossl-extended', 'search', 'profiles', 'offline-robust')
             ->and(array_column($quick['options'], 'value', 'name'))
-            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'search' => true, 'economy-gloebit' => false, 'ossl-extended' => true]);
+            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => false, 'ossl-extended' => true]);
     });
 
     test('has no search of its own when the helpers are off and the shared one is not wanted, and refuses Gloebit without the helpers', function () {
@@ -316,12 +338,11 @@ describe('quick setup, what is wrong', function () {
                 'ssl' => 'SSL',
                 'hypergrid' => 'Hypergrid',
                 'helpers' => 'Helpers',
-                'search' => 'Cross-grid Search',
                 'economy-gloebit' => 'Economy: Gloebit',
                 'ossl-extended' => 'Extended OSSL',
             ])
             ->and(array_column($quick['options'], 'implemented', 'name'))
-            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'search' => true, 'economy-gloebit' => true, 'ossl-extended' => true])
+            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => true, 'ossl-extended' => true])
             ->and($quick['setup']['grid']['options'])
             ->toContain('ossl-extended')
             ->and($quick['types'])
@@ -572,7 +593,7 @@ function quick_form(array $set = []): array
     ];
 }
 
-/** The scenario up to a screen: the types, then the type chosen, then the form, then the options. */
+/** The scenario up to a screen: the types, then the type chosen, then the form, then the options, then the web services. */
 function quick_until(Machine $machine, string $screen, string $type = 'grid', array $form = [], array $options = []): array
 {
     $reply = quick_step($machine, null);
@@ -587,8 +608,10 @@ function quick_until(Machine $machine, string $screen, string $type = 'grid', ar
     if ($screen === 'checks') {
         return $reply;
     }
+    $reply = quick_step($machine, $reply, $options);
 
-    return quick_step($machine, $reply, $options);
+    // The web services, when the helpers are on, as they are proposed
+    return $screen !== 'web' && ($reply['title'] ?? '') === 'Web services' ? quick_step($machine, $reply, []) : $reply;
 }
 
 /** The work that needs a machine, done by doubles: the databases are fine, the account is made, the grid says who it is, the instances start. */
@@ -932,6 +955,42 @@ describe('quick setup, the scenario', function () {
         InstanceControl::runThrough(null);
     });
 
+    test('asks the web services after the options when the helpers are on: the website, the helpers, the search, the economy', function () {
+        $machine = new Machine();
+        $web = quick_step($machine, quick_until($machine, 'checks'), []);
+        $fields = array_column($web['fields'] ?? [], null, 'name');
+
+        expect($web['title'] ?? null)->toBe('Web services')
+            ->and(array_keys($fields))->toBe(['site', 'site_path', 'helpers_path', 'register', 'search', 'web_search', 'events_url', 'economy_path'])
+            ->and(array_column($fields, 'label', 'name'))->toBe([
+                'site' => 'Quick Start website',
+                'site_path' => 'Path',
+                'helpers_path' => 'Helpers path',
+                'register' => 'Register the regions',
+                'search' => 'In-world search',
+                'web_search' => 'Web search',
+                'events_url' => 'Events',
+                'economy_path' => 'Economy path',
+            ])
+            ->and(array_column($fields, 'value', 'name'))->toMatchArray([
+                'site_path' => '/', 'helpers_path' => '/helpers', 'register' => 'both', 'search' => 'internal', 'web_search' => 'internal',
+                'events_url' => 'https://2do.directory/events', 'economy_path' => '/helpers',
+            ])
+            ->and(array_keys($fields['register']['options'] ?? []))->toBe(['both', 'helpers', '2do'])
+            ->and($fields['site_path']['help'] ?? '')->toBe('Choose a subfolder to keep separate from existing main website')
+            ->and($fields['economy_path']['help'] ?? '')->toBe('Defaults to helpers path, use a full URL for an external service')
+            ->and($fields['search']['help'] ?? '')->toContain('hypergrid')
+            ->and(quick_step($machine, $web, ['register' => 'helpers'])['kind'])->toBe('review');
+    });
+
+    test('without the helpers asks no web service: the search, the web search and the register are 2do.directory\'s, said', function () {
+        $machine = new Machine();
+        $review = quick_step($machine, quick_until($machine, 'checks'), ['helpers' => false]);
+
+        expect($review['kind'])->toBe('review')
+            ->and(implode("\n", array_map(static fn(array $row): string => implode(' ', array_map('strval', $row)), $review['rows'] ?? [])))->toContain('2do.directory');
+    });
+
     test('starts with what can be set up, the choices not implemented said and kept in the list', function () {
         $reply = quick_step(new Machine(), null);
 
@@ -1033,14 +1092,15 @@ describe('quick setup, the scenario', function () {
     test('asks for the options with their proposals, then shows everything the setup will do', function () {
         $machine = new Machine();
         $options = quick_until($machine, 'checks');
-        $review = quick_step($machine, $options, ['ossl-extended' => true, 'economy-gloebit' => true, 'hypergrid' => false]);
+        $web = quick_step($machine, $options, ['ossl-extended' => true, 'economy-gloebit' => true, 'hypergrid' => false]);
+        $review = quick_step($machine, $web, []);
 
         expect($options['kind'])
             ->toBe('checks')
             ->and($options['title'])
             ->toBe('Options')
             ->and(array_column($options['items'], 'checked', 'name'))
-            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'search' => true, 'economy-gloebit' => false, 'ossl-extended' => true])
+            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => false, 'ossl-extended' => true])
             ->and(array_column($options['items'], 'note', 'name')['ssl'])
             ->toBe('not implemented')
             ->and($review)
@@ -1049,7 +1109,9 @@ describe('quick setup, the scenario', function () {
             ->toBe('Install')
             ->and(array_column(array_filter($review['rows'], static fn(array $r): bool => $r['section'] === 'options'), 'value', 'label'))
             ->toMatchArray(['Hypergrid' => 'no', 'Economy: Gloebit' => 'yes', 'Extended OSSL' => 'yes']);
-        expect(quick_step($machine, $review, [], 'back')['kind'])->toBe('checks');
+        // Back: the web services, then the options
+        expect(quick_step($machine, $review, [], 'back')['title'])->toBe('Web services')
+            ->and(quick_step($machine, $web, [], 'back')['kind'])->toBe('checks');
     });
 
     test('makes the folders and the files of a grid and of its first simulator when the review is confirmed', function () {
@@ -1083,8 +1145,9 @@ describe('quick setup, the scenario', function () {
             ->toHaveCount(1)
             ->and((string) file_get_contents("$folder/config-include/osslEnable.ini"))
             ->toContain('osslParcelO')
+            // The search of its helpers by default, the regions registered with them and with 2do.directory
             ->and(implode("\n", array_map('file_get_contents', array_merge(glob("$folder/*.ini"), glob("$folder/sims/*.ini")))))
-            ->toContain('https://2do.directory/helpers/query.php');
+            ->toContain('/helpers/query.php')->toContain('https://2do.directory/helpers/register.php');
     });
 
     test('makes a standalone, with no Robust, and the account is left to its first start', function () {
@@ -1161,8 +1224,9 @@ describe('quick setup, the scenario', function () {
             ->toMatchArray(['kind' => 'checks', 'notice' => 'Economy: Gloebit needs the helpers: Helpers is on.'])
             ->and(array_column($again['items'], 'checked', 'name'))
             ->toMatchArray(['helpers' => true, 'economy-gloebit' => true])
-            ->and(quick_step($machine, $again, ['helpers' => true, 'economy-gloebit' => true])['kind'])
-            ->toBe('review');
+            // The helpers on: their web services next
+            ->and(quick_step($machine, $again, ['helpers' => true, 'economy-gloebit' => true])['title'])
+            ->toBe('Web services');
     });
 
     test('asks the database again, with what the server said, when it cannot be reached or made, and goes on with the administrator', function () {
