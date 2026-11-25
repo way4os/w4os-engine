@@ -88,25 +88,25 @@ final class Status
     }
 
     /**
-     * The simulators that draw the simple map (MapImageModule) because their core cannot give them the 3D one: the core of the
-     * release, without MapTilesDirectory, in a folder they cannot write (MapRenderer). By core: what would, and the simulators.
+     * The simulators that draw the simple map (MapImageModule), by grid, and what gives them the 3D one (Warp3DImageModule): the
+     * option map-warp3d of their grid where their core lets them write their tiles (remedy null), else what would (MapRenderer).
      *
      * @param string $account the account they run as (SystemUser), empty for the one running this code
-     * @return array<string,array{remedy:string,simulators:list<string>}>
+     * @return array<string,array{remedy:?string,simulators:list<string>}>
      */
     public function simpleMaps(string $account = ''): array
     {
         $simple = [];
         foreach ($this->instances as $instance) {
             $core = $instance instanceof \W4OS\Engine\Controllers\OpenSimController ? (string) $instance->core()?->directory() : '';
-            if ($core === '' || \W4OS\Engine\Provisioning\MapRenderer::hasFolderSetting($core)) {
+            $module = $core === '' ? '' : trim((string) (\W4OS\Engine\Config\ConfigReader::expand($instance->settings())['Map']['MapImageModule'] ?? ''), " \t\"");
+            if ($core === '' || strcasecmp($module, \W4OS\Engine\Provisioning\MapRenderer::WARP3D) === 0) {
                 continue;
             }
-            $module = trim((string) (\W4OS\Engine\Config\ConfigReader::expand($instance->settings())['Map']['MapImageModule'] ?? ''), " \t\"");
-            if (strcasecmp($module, \W4OS\Engine\Provisioning\MapRenderer::WARP3D) !== 0 && \W4OS\Engine\Provisioning\MapRenderer::whyNotWarp3D($core, '', $account) !== null) {
-                $simple[$core]['remedy'] = \W4OS\Engine\Provisioning\MapRenderer::remedy($core);
-                $simple[$core]['simulators'][] = $instance->name();
-            }
+            $can = \W4OS\Engine\Provisioning\MapRenderer::hasFolderSetting($core) || \W4OS\Engine\Provisioning\MapRenderer::whyNotWarp3D($core, '', $account) === null;
+            $grid = (string) ($instance->grid()?->nick() ?? $instance->name());
+            $simple[$grid]['remedy'] = $can ? null : \W4OS\Engine\Provisioning\MapRenderer::remedy($core);
+            $simple[$grid]['simulators'][] = $instance->name();
         }
 
         return $simple;

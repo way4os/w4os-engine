@@ -110,7 +110,7 @@ describe('The 3D map of the simulators of a core', function () {
             ->and(array_column(array_filter($plan['dropped'], static fn(array $d): bool => $d['reason'] === 'retired'), 'key'))->not->toContain('MapImageModule');
     });
 
-    test('is said missing by the status, with what would give it: the simulators of a core of the release left on the simple map', function () {
+    test('is said missing by the status, by grid, with what would give it: the package of the core, else the option of the grid', function () {
         $machine = new Machine();
         $bin = Grid::find($machine->environment, 'demo')->coreDirectory() . '/bin';
         $machine->write("$bin/OpenSim.Region.CoreModules.dll", 'MZ assembly');
@@ -120,7 +120,8 @@ describe('The 3D map of the simulators of a core', function () {
         $machine->write("$bin/OpenSim.Region.CoreModules.dll", 'MZ assembly' . implode('', array_map(static fn(string $c): string => "$c\0", str_split('MapTilesDirectory'))));
         $patched = W4OS\Engine\OpenSim::status($machine->environment)->simpleMaps();
 
-        expect(array_values($official))->toBe([['remedy' => 'the package opensim-0.9.3.0-maptiles is installed', 'simulators' => ['alpha', 'beta']]])
-            ->and($patched)->toBe([]);
+        expect($official)->toBe(['demo' => ['remedy' => 'the package opensim-0.9.3.0-maptiles is installed', 'simulators' => ['alpha', 'beta']]])
+            // The core can: the option of the grid is what is left
+            ->and($patched)->toBe(['demo' => ['remedy' => null, 'simulators' => ['alpha', 'beta']]]);
     })->skip(fn() => function_exists('posix_geteuid') && posix_geteuid() === 0, 'root writes everywhere');
 });
