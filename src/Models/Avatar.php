@@ -582,19 +582,22 @@ final class Avatar extends Model
 
     /**
      * The groups it shows in its profile (the box of each group in the viewer, ListInProfile), by name: each with the title it
-     * wears in the group (the one of its role, null without one) and the insignia of the group (`picture`, null without one).
+     * wears in the group (the one of its role, null without one), the insignia of the group (`picture`, null without one), and
+     * its grid: `local` for a group of this grid, `grid` the name of its grid (this one's, or the one another grid gives itself at
+     * the address of its groups, kept by the cache of the grids given, asked once; null when it is not known, or at a private
+     * address). A group of another grid is the copy Groups V2 keeps of it, `name @ host:port`: its name without its address.
      * None when the grid has no groups.
      *
-     * @return list<array{id:string,name:string,title:?string,picture:?string}>
+     * @return list<array{id:string,name:string,title:?string,picture:?string,grid:?string,local:bool}>
      */
-    public function groups(): array
+    public function groups(?GridInfoCache $grids = null): array
     {
         $pdo = self::optional($this->config, Database::forTable('os_groups_membership') ?? Database::Robust, null, 'read the groups');
         if ($pdo === null || !$pdo->tables_exist(['os_groups_groups', 'os_groups_membership', 'os_groups_roles'])) {
             return [];
         }
         $rows = $pdo->get_results(
-            'SELECT g.GroupID, g.Name, g.InsigniaID, r.Title FROM os_groups_membership m'
+            'SELECT g.GroupID, g.Name, g.InsigniaID, g.Location, r.Title FROM os_groups_membership m'
                 . ' JOIN os_groups_groups g ON g.GroupID = m.GroupID'
                 . ' LEFT JOIN os_groups_roles r ON r.GroupID = m.GroupID AND r.RoleID = m.SelectedRoleID'
                 . ' WHERE m.PrincipalID = :id AND m.ListInProfile = 1 ORDER BY g.Name',
@@ -602,12 +605,43 @@ final class Avatar extends Model
             \PDO::FETCH_ASSOC,
         );
 
-        return array_map(static fn(array $row): array => [
-            'id' => (string) $row['GroupID'],
-            'name' => (string) $row['Name'],
-            'title' => trim((string) ($row['Title'] ?? '')) === '' ? null : (string) $row['Title'],
-            'picture' => \W4OS\Engine\Assets\TitleImage::pick((string) ($row['InsigniaID'] ?? ''), (string) $row['Name']),
-        ], is_array($rows) ? $rows : []);
+        $own = trim((string) $this->config->find('GridInfoService', 'gridname'));
+        $groups = [];
+        foreach (is_array($rows) ? $rows : [] as $row) {
+            $location = trim((string) ($row['Location'] ?? ''));
+            $name = (string) $row['Name'];
+            // The copy of a group of another grid: its name, then the address of its service
+            $authority = $location === '' ? '' : (string) parse_url($location, PHP_URL_HOST) . (($port = parse_url($location, PHP_URL_PORT)) ? ":$port" : '');
+            $authority !== '' && str_ends_with(strtolower($name), strtolower(" @ $authority")) && ($name = substr($name, 0, -strlen(" @ $authority")));
+            $groups[] = [
+                'id' => (string) $row['GroupID'],
+                'name' => $name,
+                'title' => trim((string) ($row['Title'] ?? '')) === '' ? null : (string) $row['Title'],
+                'picture' => \W4OS\Engine\Assets\TitleImage::pick((string) ($row['InsigniaID'] ?? ''), $name),
+                'grid' => $location === '' ? ($own === '' ? null : $own) : self::groupGrid($location, $grids),
+                'local' => $location === '',
+            ];
+        }
+        usort($groups, static fn(array $a, array $b): int => strcasecmp($a['name'], $b['name']));
+
+        return $groups;
+    }
+
+    /**
+     * The name of the grid of a group of another grid, as that grid says it at the address of its groups (kept, else asked once);
+     * null when it is not known, or at an address of a private network (the loopback of an install: no grid is there for us).
+     */
+    private static function groupGrid(string $location, ?GridInfoCache $grids): ?string
+    {
+        $host = trim((string) parse_url($location, PHP_URL_HOST), '[]');
+        $private = $host === '' || strcasecmp($host, 'localhost') === 0
+            || (filter_var($host, FILTER_VALIDATE_IP) !== false && filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false);
+        if ($private || $grids === null) {
+            return null;
+        }
+        $name = trim((string) ($grids->known($location)['gridname'] ?? ''));
+
+        return $name === '' ? null : $name;
     }
 
     /**

@@ -316,7 +316,7 @@ final class Api
             }
             $rows = match ($kind) {
                 'picks' => $avatar->picks(),
-                'groups' => $avatar->groups(),
+                'groups' => $avatar->groups(new \W4OS\Engine\Network\GridInfoCache($this->environment, cache: \W4OS\Engine\Data\Cache::for($this->environment, $this->gridConfig($grid)))),
                 'posts' => \W4OS\Engine\Flux\Posts::for($this->gridConfig($grid))->of((string) $avatar->uuid(), 1, 100),
                 default => $avatar->classifieds((int) $this->environment->clock->time()),
             };

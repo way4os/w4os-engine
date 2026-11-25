@@ -542,17 +542,23 @@ describe('account of the services of the grid', function () {
     });
 })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
-/** The tables of the groups of the grid (the module Groups of the core), Ada in three groups and Bob in one. */
+/**
+ * The tables of the groups of the grid (the module Groups of the core), Ada in three groups of the grid and two of other grids (the
+ * copies Groups V2 keeps of them: `name @ host:port`, their service in Location), Bob in one.
+ */
 function groups_in(OSPDO $pdo): void
 {
-    $pdo->exec('CREATE TABLE os_groups_groups (GroupID CHAR(36), Name VARCHAR(255), InsigniaID CHAR(36))');
+    $pdo->exec('CREATE TABLE os_groups_groups (GroupID CHAR(36), Name VARCHAR(255), InsigniaID CHAR(36), Location VARCHAR(255) DEFAULT \'\')');
     $pdo->exec('CREATE TABLE os_groups_membership (GroupID CHAR(36), PrincipalID VARCHAR(255), SelectedRoleID CHAR(36), ListInProfile INT)');
     $pdo->exec('CREATE TABLE os_groups_roles (GroupID CHAR(36), RoleID CHAR(36), Name VARCHAR(255), Title VARCHAR(255))');
-    $pdo->exec("INSERT INTO os_groups_groups VALUES
+    $pdo->exec("INSERT INTO os_groups_groups (GroupID, Name, InsigniaID) VALUES
         ('g1', 'Builders', 'aaaaaaaa-0000-4000-8000-000000000002'),
         ('g2', 'Artists', '00000000-0000-0000-0000-000000000000'),
         ('g3', 'Secret Club', ''),
         ('g4', 'Bobs', '')");
+    $pdo->exec("INSERT INTO os_groups_groups VALUES
+        ('g5', 'Body Talk @ partner.example.org:8002', '00000000-0000-0000-0000-000000000000', 'http://partner.example.org:8002'),
+        ('g6', 'Hedonism @ 127.0.0.1:8002', '00000000-0000-0000-0000-000000000000', 'http://127.0.0.1:8002')");
     $pdo->exec("INSERT INTO os_groups_roles VALUES
         ('g1', 'r1', 'Owners', 'Chief Builder'),
         ('g2', '00000000-0000-0000-0000-000000000000', 'Everyone', '')");
@@ -560,7 +566,9 @@ function groups_in(OSPDO $pdo): void
         ('g1', '11111111-1111-1111-1111-111111111111', 'r1', 1),
         ('g2', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 1),
         ('g3', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 0),
-        ('g4', '22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 1)");
+        ('g4', '22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 1),
+        ('g5', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 1),
+        ('g6', '11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000000', 1)");
 }
 
 describe('groups of an avatar', function () {
@@ -569,13 +577,36 @@ describe('groups of an avatar', function () {
         groups_in($pdo);
         avatars_in($pdo);
 
-        expect(Avatar::find(avatar_grid(), 'Ada Love')->groups())
+        $local = static fn(array $groups): array => array_values(array_filter($groups, static fn(array $g): bool => $g['local']));
+
+        expect($local(Avatar::find(avatar_grid(), 'Ada Love')->groups()))
             ->toBe([
-                ['id' => 'g2', 'name' => 'Artists', 'title' => null, 'picture' => W4OS\Engine\Assets\TitleImage::id('Artists')],
-                ['id' => 'g1', 'name' => 'Builders', 'title' => 'Chief Builder', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002'],
+                ['id' => 'g2', 'name' => 'Artists', 'title' => null, 'picture' => W4OS\Engine\Assets\TitleImage::id('Artists'), 'grid' => null, 'local' => true],
+                ['id' => 'g1', 'name' => 'Builders', 'title' => 'Chief Builder', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002', 'grid' => null, 'local' => true],
             ])
             ->and(array_column(Avatar::find(avatar_grid(), 'Bob Root')->groups(), 'name'))
             ->toBe(['Bobs']);
+    });
+
+    test('of another grid are named without its address, with the name of their grid as it says it; never a host, nor a private one', function () {
+        $pdo = avatar_database();
+        groups_in($pdo);
+        avatars_in($pdo);
+        $machine = new W4OS\Engine\Testing\Machine();
+        $machine->http['http://partner.example.org:8002/get_grid_info'] = '<gridinfo><gridname>Partner Grid</gridname><login>http://partner.example.org:8002/</login></gridinfo>';
+        $grids = new W4OS\Engine\Network\GridInfoCache($machine->environment);
+        $groups = array_column(Avatar::find(avatar_grid("[GridInfoService]\n gridname = \"Play World\"\n"), 'Ada Love')->groups($grids), null, 'id');
+        $machine->http = [];
+        $again = array_column(Avatar::find(avatar_grid(), 'Ada Love')->groups($grids), 'grid', 'id');
+
+        expect(array_map(static fn(array $g): array => [$g['name'], $g['grid'], $g['local']], $groups))->toBe([
+            'g2' => ['Artists', 'Play World', true],
+            'g5' => ['Body Talk', 'Partner Grid', false],
+            'g1' => ['Builders', 'Play World', true],
+            'g6' => ['Hedonism', null, false],
+        ])
+            // Kept: asked once
+            ->and($again['g5'])->toBe('Partner Grid');
     });
 
     test('are none when the grid has no groups', function () {

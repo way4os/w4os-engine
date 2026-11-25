@@ -491,6 +491,11 @@ final class Endpoints
                             'type' => 'string',
                             'description' => 'The UUID of the asset of the insignia of the group, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)',
                         ],
+                        'grid' => [
+                            'type' => ['string', 'null'],
+                            'description' => 'The name of its grid: this one\'s, or the one another grid gives itself at the address of its groups (asked once, kept); null when it is not known or at a private address',
+                        ],
+                        'local' => ['type' => 'boolean', 'description' => 'A group of this grid; else the copy of a group of another grid, named without its address'],
                     ]),
                 ],
                 '404' => Contract::problem('The grid or the avatar is not known here'),

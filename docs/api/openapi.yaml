@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: '23848e5'
+  version: aa741be
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -9514,7 +9514,7 @@ paths:
                     type: array
                     items:
                       type: object
-                      properties: { type: { const: groups }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { name: { type: string }, title: { type: [string, 'null'], description: 'The title the avatar wears in the group (the one of its role), null without one' }, picture: { type: string, description: 'The UUID of the asset of the insignia of the group, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)' } } } }
+                      properties: { type: { const: groups }, id: { type: string, description: 'Its UUID' }, attributes: { type: object, properties: { name: { type: string }, title: { type: [string, 'null'], description: 'The title the avatar wears in the group (the one of its role), null without one' }, picture: { type: string, description: 'The UUID of the asset of the insignia of the group, else the id of the image of its name (`/grids/{grid}/assets/{picture}.jpg` shows either)' }, grid: { type: [string, 'null'], description: "The name of its grid: this one's, or the one another grid gives itself at the address of its groups (asked once, kept); null when it is not known or at a private address" }, local: { type: boolean, description: 'A group of this grid; else the copy of a group of another grid, named without its address' } } } }
         404:
           description: 'The grid or the avatar is not known here'
           content:

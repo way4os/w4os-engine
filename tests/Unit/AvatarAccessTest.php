@@ -925,15 +925,15 @@ describe('The API, for the groups of an avatar', function () {
 
         expect($groups->status)
             ->toBe(200)
-            ->and($groups->document['data'])
-            ->toBe([
-                ['type' => 'groups', 'id' => 'g2', 'attributes' => ['name' => 'Artists', 'title' => null, 'picture' => W4OS\Engine\Assets\TitleImage::id('Artists')]],
-                [
-                    'type' => 'groups',
-                    'id' => 'g1',
-                    'attributes' => ['name' => 'Builders', 'title' => 'Chief Builder', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002'],
-                ],
-            ])
+            ->and(array_column($groups->document['data'], 'id'))
+            ->toBe(['g2', 'g5', 'g1', 'g6'])
+            ->and($groups->document['data'][2])
+            ->toMatchArray(['type' => 'groups', 'id' => 'g1'])
+            ->and($groups->document['data'][2]['attributes'])
+            ->toMatchArray(['name' => 'Builders', 'title' => 'Chief Builder', 'picture' => 'aaaaaaaa-0000-4000-8000-000000000002', 'local' => true])
+            // A group of another grid: its name without its address; the name of its grid unknown when it does not answer
+            ->and($groups->document['data'][1]['attributes'])
+            ->toMatchArray(['name' => 'Body Talk', 'grid' => null, 'local' => false])
             ->and($router->get('/grids/demo/avatars/Nobody%20Here/groups')->status)
             ->toBe(404)
             ->and(array_keys(W4OS\Engine\Api\Contract::document()['paths']))
