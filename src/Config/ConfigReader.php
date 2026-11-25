@@ -12,7 +12,6 @@ namespace W4OS\Engine\Config;
  *  - the files a file includes are read after it (in any section; a relative path is relative to the file that includes it, or to
  *    the folder above, where OpenSimulator is run from; `*` is a wildcard), and what they say replaces what was said before; a
  *    file is read once; a file nothing includes is not read;
- *  - Robust also reads the `*.ini` of its `ConfigDirectory`;
  *  - `${Const|Name}` is replaced by the constant of the files, whichever file has it.
  *
  * Reading is all it does: nothing is created, nothing is written (see IniEditor for that). A file that cannot be read is empty.
@@ -76,7 +75,8 @@ final class ConfigReader
      * @param string|list<string> $path the file, or the files in the order they are read
      * @param array<string,string> $constants those of another file (Robust's), for the ones the files read have not
      * @param bool $expand replace the `${Const|Name}` references by their value, else keep the text as written (to port a config)
-     * @param bool $directory read the `*.ini` of the `ConfigDirectory` of `[Startup]` too, as Robust does
+     * @param bool $directory read the `*.ini` of the `ConfigDirectory` of `[Startup]` too: the files an install keeps beside its
+     *        config (a backup), which OpenSimulator reads only when a file includes them
      * @param list<string> $last files read after all the others and what they include, over them (a simulator's -inidirectory)
      * @return array<string,array<string,string>> section => key => value, empty when unreadable
      */
@@ -97,7 +97,7 @@ final class ConfigReader
 
     /**
      * The files a config is read from, in the order they are read: itself, the files it includes, the `*.ini` of its ConfigDirectory
-     * (load(), the same way); the ones that are not there left out.
+     * when asked (load(), the same way); the ones that are not there left out.
      *
      * @param string|list<string> $path
      * @param array<string,string> $constants

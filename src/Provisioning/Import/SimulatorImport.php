@@ -97,7 +97,7 @@ final class SimulatorImport
             throw InvalidValue::because('invalid-request', "no core to run the simulator with (a folder that has bin/): $core");
         }
 
-        $raw = ConfigReader::load($file, [], false, true);
+        $raw = ConfigReader::load($file, [], false);
         $plan = SimulatorImporter::plan($raw, $file, $found, $name, $core);
         if (is_string($plan)) {
             throw InvalidValue::because('invalid-request', $plan);
@@ -115,7 +115,7 @@ final class SimulatorImport
             ["{$plan->binDir()}/OpenSimDefaults.ini", "{$plan->binDir()}/OpenSim.ini.example"],
             'is_file',
         ));
-        $defaults = $known === [] ? [] : ConfigReader::load($known, [], false, true);
+        $defaults = $known === [] ? [] : ConfigReader::load($known, [], false);
         $exampleText = implode("\n", array_map(static fn(string $path): string => (string) file_get_contents($path), $known));
         // The folders of the old install (above its etc, and the ones its constants name), and the ones of the new simulator
         $expanded = ConfigReader::expand($raw);

@@ -41,7 +41,7 @@ function grid_import_no_dump(): Closure
 }
 
 describe('The import of a grid', function () {
-    /** kimbe-red: the folder of its config holds the GridCommon of its simulators, which names its places after its launcher. */
+    /** kimbe-red: the folder of its config holds the GridCommon of its simulators, which Robust does not read; its places named after its launcher. */
     $kimbe = static function (bool $literal = true, string $configs = 'kimbe.red'): array {
         [$machine, $robust] = old_robust_install();
         $old = dirname($robust, 2);
@@ -50,7 +50,7 @@ describe('The import of a grid', function () {
         mkdir("$old/etc/$configs", 0o755, true);
         file_put_contents("$old/etc/$configs/KimbeRed-GridCommon.ini", "[Const]\n    BaseHostname = \"other.example.org\"\n    BaseURL = \"http://other.example.org\"\n    WebURL = \"http://other.example.org\"\n    DataDirectory = \"$old/var/data/\${Launch|MachineName}\"\n[Startup]\n    ConfigDirectory = /etc/opensim/\${Const|BaseHostname}\n[GridInfoService]\n    welcome = \${Const|WebURL}\n");
         $text = file_get_contents($robust);
-        $text = str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://old.example.org\"\n" . ($literal ? "    DataDirectory = \"$old/var/data/kimbe.red\"\n" : ''), $text);
+        $text = str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://old.example.org\"\n" . ($literal ? "    DataDirectory = \"$old/var/data/kimbe.red\"\n" : "    DataDirectory = \"$old/var/data/\${Launch|MachineName}\"\n"), $text);
         $text = str_replace("[GridInfoService]\n", "[GridInfoService]\n    welcome = \"\${Const|BaseURL}/opensim/welcome\"\n", $text);
         file_put_contents($robust, $text . "[Startup]\n    ConfigDirectory = \"$old/etc/$configs\"\n[AssetService]\n    LocalServiceModule = \"OpenSim.Services.FSAssetService.dll:FSAssetConnector\"\n    BaseDirectory = \"\${Const|DataDirectory}/fsassets/data\"\n");
         $example = $machine->core . '/bin/Robust.HG.ini.example';
@@ -67,7 +67,7 @@ describe('The import of a grid', function () {
         expect(array_column($import->document()['data'], 'from'))->toBe(["$old/var/data/kimbe.red/fsassets/data"])
             ->and(file_get_contents($import->plan->dataDirectory . '/fsassets/data/ab/abcdef.gz'))->toBe('an asset')
             // Its grid info its own, never the one of the simulators beside it
-            ->and(ConfigReader::load($robust, [], false, true)['GridInfoService']['welcome'] ?? '')->toBe('${Const|BaseURL}/opensim/welcome')
+            ->and(ConfigReader::load($robust, [], false)['GridInfoService']['welcome'] ?? '')->toBe('${Const|BaseURL}/opensim/welcome')
             ->and(ConfigReader::expand(ConfigReader::file($import->plan->robustIni()))['GridInfoService']['welcome'] ?? '')->toBe('http://old.example.org/opensim/welcome');
     });
 
@@ -148,7 +148,7 @@ describe('The import of a grid', function () {
 
         expect(trim($written['Const']['PrivURL'] ?? '', '"'))->toBe('${Const|BaseURL}')
             ->and(trim($written['Const']['WebURL'] ?? '', '"'))->toBe('http://site.example.org')
-            ->and(\W4OS\Engine\Provisioning\Import\RobustImporter::unresolved([$import->plan->robustIni()], true))->toBe([])
+            ->and(\W4OS\Engine\Provisioning\Import\RobustImporter::unresolved([$import->plan->robustIni()]))->toBe([])
             ->and($failed?->getMessage())->toContain('${Const|Nowhere}')
             ->and(is_dir($failing->plan->gridDir))->toBeFalse();
     });
@@ -162,7 +162,7 @@ describe('The import of a grid', function () {
         file_put_contents($robust, $text . "[AssetService]\n    AssetLoaderArgs = \"\${Const|EtcDirectory}/assets/AssetSets.xml\"\n[LibraryService]\n    DefaultLibrary = \"\${Const|EtcDirectory}/inventory/Libraries.xml\"\n");
         $import = GridImport::prepare($machine->environment, $robust, 'pathgrid');
         $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
-        $read = ConfigReader::load($import->plan->robustIni(), [], true, true);
+        $read = ConfigReader::load($import->plan->robustIni());
         $report = (string) file_get_contents($import->document()['report']);
         $data = $import->plan->dataDirectory;
 
@@ -453,6 +453,37 @@ describe('The import of a grid', function () {
             ->and($economyAsLayout)->toBe([]);
     });
 
+    test('reads what OpenSimulator reads, never a file of a folder of config nothing includes (kimbe-red: Gloebit left aside)', function () {
+        [$machine, $robust] = old_robust_install();
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        $bin = dirname($robust);
+        $configs = dirname($bin) . '/etc/kimbe.red';
+        mkdir($configs, 0o755, true);
+        // The folder of config of Robust and of the simulators holds a Gloebit file that neither includes
+        file_put_contents("$configs/KimbeGrid.Gloebit.ini", "[Economy]\n    economymodule = Gloebit\n[Gloebit]\n    Enabled = true\n    GLBEnvironment = production\n    GLBKey = kimbe-key\n");
+        file_put_contents($robust, file_get_contents($robust) . "[Startup]\n    ConfigDirectory = \"$configs\"\n");
+        mkdir("$bin/Regions");
+        file_put_contents("$bin/OpenSim.ini", "[Startup]\n    ConfigDirectory = \"$configs\"\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n" .
+            "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']], helpersHere: false);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $read = ConfigReader::load([W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory()), ...$sim->files()], [], false, false, $sim->lastFiles());
+        $plan = $import->document();
+        $gloebit = static fn(array $settings): array => array_filter($settings, static fn(array $s): bool => in_array($s['section'], ['Gloebit', 'Economy'], true));
+
+        expect((new W4OS\Engine\Provisioning\GridOptions($grid))->enabled())->not->toContain('economy-gloebit')
+            ->and($read['Economy']['economymodule'] ?? '')->not->toBe('Gloebit')
+            ->and($read['Gloebit']['GLBKey'] ?? null)->toBeNull()
+            ->and([...$gloebit($plan['settings']), ...$gloebit($plan['dropped'])])->toBe([])
+            ->and((string) file_get_contents($import->plan->robustIni()))->not->toContain('[Gloebit]')
+            ->and((string) file_get_contents($plan['report']))->not->toContain('Gloebit');
+    });
+
     /** An old install whose simulators keep their offline messages V1 with the helper at $url: [machine, Robust config, simulators]. */
     $offlineV1 = static function (string $url): array {
         [$machine, $robust] = old_robust_install();
@@ -534,7 +565,7 @@ describe('The import of a grid', function () {
         $sim = $grid->simulator('oldgrid.welcome')->controller();
         $master = W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory());
         $runs = ConfigReader::expand(ConfigReader::load([$master, ...$sim->files()], [], false, false, $sim->lastFiles()));
-        $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false, true))['GridInfoService'] ?? [];
+        $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false))['GridInfoService'] ?? [];
         $report = (string) file_get_contents($import->document()['report']);
         $options = (new W4OS\Engine\Provisioning\GridOptions($grid))->enabled();
 
@@ -569,7 +600,7 @@ describe('The import of a grid', function () {
         $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']], helpersHere: true);
         $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
         $grid = Grid::find($machine->environment, 'oldgrid');
-        $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false, true))['GridInfoService'] ?? [];
+        $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false))['GridInfoService'] ?? [];
         $dropped = array_filter($import->document()['dropped'], static fn(array $s): bool => $s['section'] === 'GridInfoService' && $s['key'] === 'search');
 
         // The search of the viewers as the old install told it, never replaced by the kit's
@@ -700,6 +731,9 @@ describe('The setup from an existing install', function () {
 describe('The settings of Gloebit in the config of Robust', function () {
     test('are left out, said in the report: Robust has no module of Gloebit, they are the simulators\'', function () {
         [$machine, $robust] = old_robust_install();
+        // Enabled is a key of other sections of Robust: in [Gloebit], still the simulators'
+        $example = $machine->core . '/bin/Robust.HG.ini.example';
+        file_put_contents($example, file_get_contents($example) . "[HGInstantMessageService]\n    ; Enabled = false\n");
         file_put_contents($robust, file_get_contents($robust) . "[Gloebit]\n    Enabled = true\n    GLBEnvironment = production\n    GLBKey = \"a-key\"\n");
 
         $plan = GridImport::prepare($machine->environment, $robust)->document();

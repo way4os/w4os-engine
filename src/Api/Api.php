@@ -1344,7 +1344,7 @@ final class Api
         $section = \W4OS\Engine\Config\InPlaceGrids::sectionFor($file, $simulators, $core, (string) $nick);
         $known = \W4OS\Engine\Config\InPlaceGrids::section($conf, (string) $nick);
         // Its grid info sends ASCII only: the values that are not are transliterated where they are written, nothing else changed
-        $gridInfo = $forget ? [] : \W4OS\Engine\Config\GridInfoText::changes(\W4OS\Engine\Config\ConfigReader::files($file, [], true));
+        $gridInfo = $forget ? [] : \W4OS\Engine\Config\GridInfoText::changes(\W4OS\Engine\Config\ConfigReader::files($file));
         // Its instances run as the owner of its files, its site served as it is: the suite takes their accounts, not its defaults
         [$owner, $accounts] = $forget ? ['', []] : $this->installAccounts($conf, $file);
         if ($forget) {

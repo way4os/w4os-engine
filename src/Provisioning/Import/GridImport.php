@@ -77,7 +77,7 @@ final class GridImport
         if ($core === '' || !is_dir("$core/bin")) {
             throw InvalidValue::because('invalid-request', "no core to run the grid with (a folder that has bin/): $core");
         }
-        $raw = ConfigReader::load($file, [], false, true);
+        $raw = ConfigReader::load($file, [], false);
         $plan = RobustImporter::plan($raw, $file, $environment, $nick, $core);
         is_string($plan) && throw InvalidValue::because('invalid-request', $plan);
         // The options this install lays by default (its Robust config, its folders, its database...), as the setup of a grid does
@@ -123,7 +123,7 @@ final class GridImport
 
         // The settings of the original that differ from what this install writes and from the defaults of the core
         $example = "{$plan->binDir}/" . ($plan->enableHypergrid ? 'Robust.HG.ini.example' : 'Robust.ini.example');
-        $defaults = is_file($example) ? ConfigReader::load($example, [], false, true) : [];
+        $defaults = is_file($example) ? ConfigReader::load($example, [], false) : [];
         $expanded = ConfigReader::expand($raw);
         // The folders of the old install: above its bin, and the ones its constants name
         $roots = [basename(dirname($file)) === 'bin' ? dirname($file, 2) : dirname($file)];
@@ -142,8 +142,8 @@ final class GridImport
             array_values(array_unique(array_filter($roots, static fn(string $root): bool => $root !== '' && $root !== '/'))),
         );
 
-        // What the files of its simulators set that the core of Robust does not know (a file both read: the folder of its config) is
-        // theirs, never kept in Robust, where it would do nothing (their settings of the grid come into its OpenSim.ini)
+        // What the files of its simulators set that the core of Robust does not know (a file both include) is theirs, never kept in
+        // Robust, where it would do nothing (their settings of the grid come into its OpenSim.ini)
         $theirs = [];
         foreach ($simulators as $simulator) {
             $config = (string) ($simulator['file'] ?? '');
@@ -153,10 +153,10 @@ final class GridImport
                 }
             }
         }
-        // A module of the simulators Robust has none of: its section, wherever Robust read it (a file of its folder of config)
+        // A module of the simulators Robust has none of: all of its section, its keys known to Robust elsewhere too (Enabled)
         $simulatorsOnly = ['gloebit'];
         foreach ($customizations as $i => $setting) {
-            if ($setting['unknown'] && (isset($theirs[strtolower("{$setting['section']}|{$setting['key']}")]) || in_array(strtolower($setting['section']), $simulatorsOnly, true))) {
+            if (($setting['unknown'] && isset($theirs[strtolower("{$setting['section']}|{$setting['key']}")])) || in_array(strtolower($setting['section']), $simulatorsOnly, true)) {
                 $dropped[] = ['section' => $setting['section'], 'key' => $setting['key'], 'value' => $setting['value'], 'reason' => 'simulators'];
                 unset($customizations[$i]);
             }
@@ -374,7 +374,7 @@ final class GridImport
             if ($instance === null) {
                 continue;
             }
-            foreach (RobustImporter::unresolved($instance->files(), $instance instanceof \W4OS\Engine\Controllers\RobustController, $instance->lastFiles()) as $reference) {
+            foreach (RobustImporter::unresolved($instance->files(), $instance->lastFiles()) as $reference) {
                 $found[] = $instance->name() . " $reference";
             }
         }
@@ -395,8 +395,8 @@ final class GridImport
         $added = [];
         $plan = $this->plan;
         $example = "{$plan->binDir}/" . ($plan->enableHypergrid ? 'Robust.HG.ini.example' : 'Robust.ini.example');
-        $known = $lower(ConfigReader::load($this->source, [], false, true)['GridInfoService'] ?? []) + $lower(is_file($example) ? (ConfigReader::load($example, [], false)['GridInfoService'] ?? []) : []);
-        foreach (ConfigReader::expand(ConfigReader::load($plan->robustIni(), [], false, true))['GridInfoService'] ?? [] as $key => $value) {
+        $known = $lower(ConfigReader::load($this->source, [], false)['GridInfoService'] ?? []) + $lower(is_file($example) ? (ConfigReader::load($example, [], false)['GridInfoService'] ?? []) : []);
+        foreach (ConfigReader::expand(ConfigReader::load($plan->robustIni(), [], false))['GridInfoService'] ?? [] as $key => $value) {
             array_key_exists(strtolower((string) $key), $known) || ($added[] = Secrets::mask("[GridInfoService] $key = " . trim((string) $value, '"')) . ' (Robust)');
         }
         $grid = Grid::find($environment, $plan->gridNick);

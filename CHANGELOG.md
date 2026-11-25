@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (migrate): only the files OpenSimulator reads, never all of a ConfigDirectory; all of [Gloebit] left out of Robust
 - fix (migrate): Gloebit only when the simulators loaded it (its module and Enabled); [Gloebit] of Robust left to the simulators
 - fix (groups): GroupsExternalURI the public address of Robust, a loopback one left out by a migration, said by the health
 - new (accounts): the groups of each account of a list, with a role; --create-groups makes the missing ones

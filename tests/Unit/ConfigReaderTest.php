@@ -104,7 +104,7 @@ describe('Loading a file', function () {
         },
     );
 
-    test('reads the config directory of Robust when asked', function () {
+    test('reads the files of the folder of config when asked, never by itself (OpenSimulator reads what includes them)', function () {
         $dir = reader_folder([
             'bin/Robust.HG.ini' => "[Startup]\n    ConfigDirectory = \"robust-include\"\n",
             'bin/robust-include/extra.ini' => "[Modules]\n    MyModule = \"on\"\n",

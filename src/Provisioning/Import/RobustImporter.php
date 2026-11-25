@@ -274,13 +274,12 @@ final class RobustImporter
      * first ("Expand key not found"). `[Launch]` is the launcher's, left out.
      *
      * @param list<string> $files the files of the instance, in the order it reads them, with what they include
-     * @param bool $directory the `*.ini` of its ConfigDirectory too, as Robust reads them
      * @param list<string> $last the files it reads after the others (a simulator's -inidirectory)
      * @return list<string> each as "[Section] Key: ${Ref}"
      */
-    public static function unresolved(array $files, bool $directory = false, array $last = []): array
+    public static function unresolved(array $files, array $last = []): array
     {
-        $merged = \W4OS\Engine\Config\ConfigReader::load($files, [], false, $directory, $last);
+        $merged = \W4OS\Engine\Config\ConfigReader::load($files, [], false, false, $last);
         $found = [];
         foreach ($merged as $section => $values) {
             foreach ($values as $key => $value) {
