@@ -714,6 +714,50 @@ final class Api
         return Response::binary($found->motd($username), 'text/plain; charset=utf-8');
     }
 
+    /**
+     * The regions of the web map of a grid (Grid::mapRegions()), the links to other grids left out; its bounds, its centre and
+     * whether it has a map in the meta.
+     */
+    public function map(string $grid): Response
+    {
+        $instance = self::path('map', null, $grid);
+        try {
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            $map = $found->mapRegions() ?? ['regions' => [], 'bounds' => null, 'center' => null];
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return Response::document([
+            'data' => array_map(static fn(array $region): array => [
+                'type' => 'map-region',
+                'id' => (string) ($region['uuid'] ?? $region['name']),
+                'attributes' => $region,
+            ], $map['regions']),
+            'meta' => ['hasMap' => $found->hasMap(), 'bounds' => $map['bounds'], 'center' => $map['center']],
+            'links' => ['self' => $instance, 'tiles' => $instance . '/{z}/{x}/{y}.jpg'],
+        ]);
+    }
+
+    /**
+     * A tile of the web map of a grid as a JPEG (Grid::mapTile()), kept by the browsers as long as the engine keeps it; 404 without
+     * a map, for a zoom Robust does not make, off the grid.
+     */
+    public function mapTile(string $grid, int $z, int $x, int $y): Response
+    {
+        $instance = self::path('map', null, $grid) . "/$z/$x/$y.jpg";
+        try {
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            $tile = $found->webMap()->tile($z, $x, $y);
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+
+        return $tile === null || $tile['data'] === ''
+            ? Response::problem(Problem::notFound("map tile $z/$x/$y", $instance))
+            : Response::binary($tile['data'], 'image/jpeg', 200, ['Cache-Control' => 'public, max-age=' . $tile['maxAge'], 'ETag' => '"' . md5($tile['data']) . '"']);
+    }
+
     /** The welcome of a page of a grid, as plain text: the avatar signed in when it is given (Grid::welcome()). */
     public function welcome(string $grid, string $avatar = ''): Response
     {

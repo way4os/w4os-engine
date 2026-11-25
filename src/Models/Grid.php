@@ -109,6 +109,9 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /** @var array<string,array{members:int,visitors:int}>|false|null who is in its regions, read once (false until read) */
     private array|false|null $presence = false;
 
+    /** Its web map, made once */
+    private ?\W4OS\Engine\Services\WebMap $webMap = null;
+
     /**
      * @param ?array<string,mixed> $values what the sources say, by the names of DEFAULTS; null for a grid of this machine, read
      *        from its folder when asked
@@ -2435,6 +2438,40 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     public function mapUrl(): ?string
     {
         return $this->address('map');
+    }
+
+    /** Whether the grid has a web map: its Robust serves the tiles, or their folder is here (WebMap). */
+    public function hasMap(): bool
+    {
+        return $this->webMap()->has();
+    }
+
+    /**
+     * A tile of its web map as a JPEG, as Robust names them (zoom 1 to 8, x and y in regions): read from its folder, else asked of
+     * Robust once and kept a day; water where it has no region. Null without a map, or off it (WebMap::tile()).
+     */
+    public function mapTile(int $z, int $x, int $y): ?string
+    {
+        $tile = $this->webMap()->tile($z, $x, $y);
+
+        return $tile === null || $tile['data'] === '' ? null : $tile['data'];
+    }
+
+    /**
+     * The regions of its web map, the links to other grids left out, with the bounds of the grid and its centre; null when it has no
+     * map (WebMap::regions()).
+     *
+     * @return ?array{regions:list<array<string,mixed>>,bounds:?array{minX:int,minY:int,maxX:int,maxY:int},center:?array{x:float,y:float}}
+     */
+    public function mapRegions(): ?array
+    {
+        return $this->webMap()->regions();
+    }
+
+    /** Its web map: the tiles with how long they are kept, its regions. */
+    public function webMap(): \W4OS\Engine\Services\WebMap
+    {
+        return $this->webMap ??= new \W4OS\Engine\Services\WebMap($this);
     }
 
     /** The page of the status of the grid. */

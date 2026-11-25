@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "1717eeb",
+        "version": "c1bf5cc",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -138,6 +138,10 @@
             "description": "The text the viewers show at login."
         },
         {
+            "name": "Map",
+            "description": "The web map of the grid: the tiles its Robust makes (MapImageService), served here so that a browser never waits behind its map handler, which answers one request at a time, and its regions, to name a place and teleport to it."
+        },
+        {
             "name": "Text images",
             "description": "Pictures of a text, for the signs and the boards in world."
         },
@@ -191,6 +195,7 @@
                 "Destinations",
                 "Addresses",
                 "Message of the day",
+                "Map",
                 "Avatar access",
                 "Search",
                 "Economy",
@@ -13235,6 +13240,274 @@
                     },
                     "404": {
                         "description": "The grid is not known here, or the destination is none",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
+            }
+        },
+        "/grids/{grid}/map": {
+            "get": {
+                "operationId": "getMap",
+                "tags": [
+                    "Map"
+                ],
+                "summary": "Regions of the map",
+                "description": "The regions of the grid for its web map, by name, the links to other grids left out (`Grid::mapRegions()`): where each is in regions of 256 m from the bottom left (`x`, `y`, as the tiles name them), its size in meters, whether it runs, its teleport links. The meta gives the `bounds` of the grid in regions (the max excluded), its `center` (the middle of the default region, else of the grid), both null without a region, and `hasMap`: whether the grid has tiles (its Robust serves them, or their folder is here); without them a page shows the list. The tiles are at `links.tiles`. Open: the viewers show the same map to anyone logged in.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The regions of the map",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "const": "map-region"
+                                                    },
+                                                    "id": {
+                                                        "type": "string",
+                                                        "description": "The UUID of the region"
+                                                    },
+                                                    "attributes": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "uuid": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "x": {
+                                                                "type": "integer",
+                                                                "description": "In regions of 256 m"
+                                                            },
+                                                            "y": {
+                                                                "type": "integer",
+                                                                "description": "In regions of 256 m"
+                                                            },
+                                                            "sizeX": {
+                                                                "type": "integer",
+                                                                "description": "In meters"
+                                                            },
+                                                            "sizeY": {
+                                                                "type": "integer",
+                                                                "description": "In meters"
+                                                            },
+                                                            "online": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "tpLinks": {
+                                                                "type": "object",
+                                                                "description": "Its teleport links by client (`viewer`, `browser`), as the results of the search give them: by Destination format, the one AUTO gives first, then the other ones that fit, then its address to copy, each `link`, `label` (the key of the catalog naming it in a menu) and `action`",
+                                                                "additionalProperties": {
+                                                                    "type": "object",
+                                                                    "additionalProperties": {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "link": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "label": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "action": {
+                                                                                "type": "string",
+                                                                                "enum": [
+                                                                                    "teleport",
+                                                                                    "map",
+                                                                                    "copy",
+                                                                                    "addgrid"
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "hasMap": {
+                                                    "type": "boolean"
+                                                },
+                                                "bounds": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "minX": {
+                                                            "type": "integer"
+                                                        },
+                                                        "minY": {
+                                                            "type": "integer"
+                                                        },
+                                                        "maxX": {
+                                                            "type": "integer"
+                                                        },
+                                                        "maxY": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                },
+                                                "center": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "x": {
+                                                            "type": "number"
+                                                        },
+                                                        "y": {
+                                                            "type": "number"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "self": {
+                                                    "type": "string"
+                                                },
+                                                "tiles": {
+                                                    "type": "string",
+                                                    "description": "The address of a tile, `{z}`, `{x}` and `{y}` in it"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid is not known here",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
+            }
+        },
+        "/grids/{grid}/map/{z}/{x}/{y}.jpg": {
+            "get": {
+                "operationId": "getMapTile",
+                "tags": [
+                    "Map"
+                ],
+                "summary": "Tile of the map",
+                "description": "A tile of the web map as Robust makes it (`map-<z>-<x>-<y>-objects.jpg`): read from the folder of the tiles when the files of the grid are here, else asked of Robust once and kept a day; the water tile where the grid has no region, Robust never asked, and for a minute when Robust does not answer. Kept by the browser as long (`Cache-Control`, `ETag`). Open.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "z",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 8
+                        },
+                        "description": "The zoom: 1, a region by tile, to 8, 128 by 128 regions"
+                    },
+                    {
+                        "name": "x",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "description": "In regions of 256 m, a multiple of 2^(z-1)"
+                    },
+                    {
+                        "name": "y",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "description": "In regions of 256 m, from the bottom, a multiple of 2^(z-1)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The tile, 256 by 256 pixels",
+                        "headers": {
+                            "Cache-Control": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "ETag": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "image/jpeg": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid is not known here, has no map, or the zoom is not one Robust makes",
                         "content": {
                             "application/problem+json": {
                                 "schema": {

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (map): the web map of a grid, Grid::mapTile() and Grid::mapRegions(), GET /grids/{grid}/map and its tiles
 - new (motd): the welcome of a page, Grid::welcome() and GET /grids/{grid}/welcome: "Welcome, <avatar>", else WelcomeMessage
 - change (settings): the welcome message of the grid on its Grid page, with its help
 - change (search): its text UTF-8 everywhere: no Latin-1 for the events, utf8mb4 on the connection, its tables converted (InnoDB)

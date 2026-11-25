@@ -19,6 +19,10 @@ msgctxt "guide_title"
 msgid "Destinations guide"
 msgstr ""
 
+msgctxt "map_title"
+msgid "Map"
+msgstr ""
+
 msgctxt "register_title"
 msgid "Create My Avatar"
 msgstr ""
@@ -1791,6 +1795,10 @@ msgstr ""
 
 msgctxt "block_search_help"
 msgid "A search form for the places, events, classifieds and people of the grid."
+msgstr ""
+
+msgctxt "block_map_help"
+msgid "The map of the grid and its regions, a click on one gives its teleport link."
 msgstr ""
 
 msgctxt "block_profile_help"

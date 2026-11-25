@@ -45,6 +45,8 @@ final class Router
         'GET /grids/{grid}/destinations/{id}',
         'GET /grids/{grid}/motd',
         'GET /grids/{grid}/welcome',
+        'GET /grids/{grid}/map',
+        'GET /grids/{grid}/map/{z}/{x}/{y}.jpg',
         'GET /grids/{grid}/addresses',
         'GET /grids/{grid}/info',
         'GET /grids/{grid}/place',
@@ -191,6 +193,7 @@ final class Router
                         'destinations',
                         'motd',
                         'welcome',
+                        'map',
                         'search',
                         'offline-messages',
                         'currency.php',
@@ -284,6 +287,18 @@ final class Router
         } elseif ($grid !== null && $tail === ['motd']) {
             $template = '/grids/{grid}/motd';
             $routes = ['GET' => fn() => $this->api->motd($grid, (string) ($query['username'] ?? ''))];
+        } elseif ($grid !== null && $tail === ['map']) {
+            $template = '/grids/{grid}/map';
+            $routes = ['GET' => fn() => $this->api->map($grid)];
+        } elseif (
+            $grid !== null &&
+            count($tail) === 4 &&
+            $tail[0] === 'map' &&
+            preg_match('/^\d+$/', $tail[1] . $tail[2]) === 1 &&
+            preg_match('/^(\d+)\.jpg$/', $tail[3], $m) === 1
+        ) {
+            $template = '/grids/{grid}/map/{z}/{x}/{y}.jpg';
+            $routes = ['GET' => fn() => $this->api->mapTile($grid, (int) $tail[1], (int) $tail[2], (int) $m[1])];
         } elseif ($grid !== null && $tail === ['welcome']) {
             $template = '/grids/{grid}/welcome';
             $routes = ['GET' => fn() => $this->api->welcome($grid, (string) ($query['avatar'] ?? ''))];

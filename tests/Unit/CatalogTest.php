@@ -139,7 +139,7 @@ describe('the catalog of the texts of the sites', function () {
             'unit_dimensions', 'unit_km2', 'unit_percent',
         ],
         'cy_GB' => [
-            'column_grid', 'column_map', 'column_prims', 'label_value', 'role_model', 'settings_menu_grid', 'unit_mb',
+            'column_grid', 'column_map', 'map_title', 'column_prims', 'label_value', 'role_model', 'settings_menu_grid', 'unit_mb',
             // The web search: the words of the viewers, the same in this language
             'web_search_partner',
         ],

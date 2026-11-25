@@ -66,6 +66,7 @@ final class Catalog
         // Home
         'welcome_title' => 'Welcome to %s',
         'guide_title' => 'Destinations guide',
+        'map_title' => 'Map',
 
         // Registration
         'register_title' => 'Create My Avatar',
@@ -562,6 +563,7 @@ final class Catalog
         'block_destination_guide_help' => 'Places to visit, the same list the viewers show in their destinations guide.',
         'block_directory_info_help' => 'The other grids whose places can be found in the search of this grid.',
         'block_search_help' => 'A search form for the places, events, classifieds and people of the grid.',
+        'block_map_help' => 'The map of the grid and its regions, a click on one gives its teleport link.',
         'block_profile_help' => 'The profile of an avatar.',
         'block_new_avatars_help' => 'The last avatars who joined the grid.',
         // The shortcodes of a site that are not blocks
