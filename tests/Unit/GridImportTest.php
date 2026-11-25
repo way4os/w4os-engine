@@ -569,11 +569,13 @@ describe('The import of a grid', function () {
             ->and($report)->toContain('Helpers on: offline-helpers needs them, and this install serves them (w4os-helpers)');
     });
 
-    test('of kimbe-red keeps every address of its helpers as it is, its four prefixes, and says what it adds', function () {
+    test('of kimbe-red keeps every address of its helpers as it is, its four prefixes, its web search made a page, and says what it adds', function () {
         [$machine, $robust] = old_robust_install();
         $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
         $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
-        $text = str_replace("[Const]\n", "[Const]\n    WebURL = \"https://old.example.org\"\n", file_get_contents($robust));
+        $text = str_replace("[Const]\n", "[Const]\n    WebURL = \"https://old.example.org\"\n    BaseURL = \"http://old.example.org\"\n", file_get_contents($robust));
+        // The login gives Robust itself as its search page
+        $text = str_replace("[LoginService]\n", "[LoginService]\n    SearchURL = \"\${Const|BaseURL}:\${Const|PublicPort}/\"\n", $text);
         $text = str_replace("[GridInfoService]\n", "[GridInfoService]\n    search = \"\${Const|WebURL}/helper/query.php\"\n    message = \"\${Const|WebURL}/helper/offline.php\"\n" .
             "    economy = \"\${Const|WebURL}/opensim/economy\"\n    welcome = \"\${Const|WebURL}/opensim/welcome\"\n", $text);
         file_put_contents($robust, $text);
@@ -592,21 +594,39 @@ describe('The import of a grid', function () {
         $sim = $grid->simulator('oldgrid.welcome')->controller();
         $master = W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory());
         $runs = ConfigReader::expand(ConfigReader::load([$master, ...$sim->files()], [], false, false, $sim->lastFiles()));
-        $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false))['GridInfoService'] ?? [];
+        $read = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false));
+        $info = $read['GridInfoService'] ?? [];
         $report = (string) file_get_contents($import->document()['report']);
         $options = (new W4OS\Engine\Provisioning\GridOptions($grid))->enabled();
 
         // What the simulators and the viewers are told, as the old install told them
         expect([$runs['Messaging']['OfflineMessageURL'] ?? null, $runs['Search']['SearchURL'] ?? null])
             ->toBe(['https://old.example.org/helpers/helper/offline.php', 'https://old.example.org/helpers/query.php'])
-            ->and(array_intersect_key($info, array_flip(['search', 'message', 'economy', 'welcome'])))
-            ->toEqual(['search' => 'https://old.example.org/helper/query.php', 'message' => 'https://old.example.org/helper/offline.php', 'economy' => 'https://old.example.org/opensim/economy', 'welcome' => 'https://old.example.org/opensim/welcome'])
+            ->and(array_intersect_key($info, array_flip(['message', 'economy', 'welcome'])))
+            ->toEqual(['message' => 'https://old.example.org/helper/offline.php', 'economy' => 'https://old.example.org/opensim/economy', 'welcome' => 'https://old.example.org/opensim/welcome'])
+            // The web search the viewers open: a page of this install, not the search the simulators call nor Robust, said
+            ->and($info['search'] ?? '')->toStartWith('https://old.example.org/')->not->toContain('query.php')
+            ->and($read['LoginService']['SearchURL'] ?? '')->toBe($info['search'] ?? '')
+            ->and($report)->toContain('[GridInfoService] search = ${Const|WebURL}/helper/query.php (corrected', 'XML-RPC', '[LoginService] SearchURL = ${Const|BaseURL}:${Const|PublicPort}/ (corrected', 'the address of Robust')
             // Served where they are
-            ->and($grid->servedByHelpers('https://old.example.org/helper/query.php'))->toBeTrue()
+            ->and($grid->servedByHelpers('https://old.example.org/helper/offline.php'))->toBeTrue()
             // The three configs of the web servers, each saying what to add to its server (3bd3129), as a setup makes them
             ->and($options)->toContain('webserver-caddy', 'webserver-apache', 'webserver-nginx')
             // What the kit adds, the old one had not: said as added, with its value
             ->and($report)->toContain('added by this install');
+    });
+
+    test('keeps a web search that is no page when this install has none to give, the health saying it', function () {
+        [$machine, $robust] = old_robust_install();
+        file_put_contents($robust, str_replace("[GridInfoService]\n", "[GridInfoService]\n    search = \"https://old.example.org/helper/query.php\"\n", file_get_contents($robust)));
+
+        // Without helpers here, this install gives no web search
+        $import = GridImport::prepare($machine->environment, $robust);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $info = ConfigReader::expand(ConfigReader::load($import->plan->robustIni(), [], false))['GridInfoService'] ?? [];
+
+        expect($info['search'] ?? null)->toBe('https://old.example.org/helper/query.php')
+            ->and(array_column(array_filter($import->document()['dropped'], static fn(array $s): bool => $s['key'] === 'search'), 'reason'))->not->toContain('corrected');
     });
 
     test('of kimbe-red keeps its addresses through its own constants (BackOffice), and adds its pages under the base of its helpers', function () {
@@ -630,9 +650,9 @@ describe('The import of a grid', function () {
         $info = ConfigReader::expand(ConfigReader::load($grid->robustIni(), [], false))['GridInfoService'] ?? [];
         $dropped = array_filter($import->document()['dropped'], static fn(array $s): bool => $s['section'] === 'GridInfoService' && $s['key'] === 'search');
 
-        // The search of the viewers as the old install told it, never replaced by the kit's
-        expect($info['search'] ?? null)->toBe('https://old.example.org/helper/query.php')
-            ->and($dropped)->toBe([])
+        // The web search of the viewers told the search the simulators call: the page of the kit in its place, said
+        expect($info['search'] ?? '')->toStartWith('https://old.example.org/opensim/economy/')->not->toContain('query.php')
+            ->and(array_column($dropped, 'reason'))->toBe(['corrected'])
             // The pages the kit adds are under the base of its helpers, where the old install had them (its economy)
             ->and($import->plan->helpersPath)->toBe('/opensim/economy')
             ->and((string) ($info['web_profile_url'] ?? ''))->toStartWith('https://old.example.org/opensim/economy/profile/')

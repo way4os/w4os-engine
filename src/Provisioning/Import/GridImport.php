@@ -175,6 +175,16 @@ final class GridImport
             }
         }
         $customizations = array_values($customizations);
+        // A web search that is no page (the search the simulators call, query.php; Robust itself) is invalid: the web search this
+        // install writes in its place when it has one, said; else it stays, the health says it
+        $robustAddress = rtrim(ConfigReader::replaceConstants('${Const|BaseURL}:${Const|PublicPort}', $expanded['Const'] ?? []), '/');
+        foreach ($dropped as $i => $setting) {
+            $why = self::noSearchPage($setting['section'], $setting['key'], $setting['value'], $expanded['Const'] ?? [], $robustAddress);
+            $web = trim((string) ($generated[$setting['section']][$setting['key']] ?? ''), " \t\"");
+            if ($setting['reason'] === 'replaced' && $why !== null && $web !== '' && self::noSearchPage($setting['section'], $setting['key'], $web, $generated['Const'] ?? [], $robustAddress) === null) {
+                $dropped[$i] = ['reason' => 'corrected', 'replacement' => $web, 'why' => $why] + $setting;
+            }
+        }
 
         // A migration keeps the choices of the grid: what this install writes its own way (a text of a preset) is the old one again,
         // but the services the options of this install lay ([ServiceList]), and a value referring to what the new config does not define
@@ -454,6 +464,29 @@ final class GridImport
     }
 
     /** Whether an address is on the web site of the grid (the host of its WebURL). */
+    /**
+     * Why an address of the web search is no page: the search the simulators call (query.php, XML-RPC) as the web search of the
+     * viewers, or a SearchURL of the login that is Robust itself; null when it is not one of them or not that.
+     *
+     * @param array<string,string> $constants the [Const] its value is read with
+     */
+    private static function noSearchPage(string $section, string $key, string $value, array $constants, string $robust): ?string
+    {
+        $search = strcasecmp($section, 'GridInfoService') === 0 && strcasecmp($key, 'search') === 0;
+        $login = strcasecmp($section, 'LoginService') === 0 && strcasecmp($key, 'SearchURL') === 0;
+        if (!$search && !$login) {
+            return null;
+        }
+        $address = rtrim(ConfigReader::replaceConstants(trim($value, " \t\""), $constants), '/');
+        if (preg_match('#/query\.php$#i', $address) === 1) {
+            return 'the search the simulators call (XML-RPC), not a page: the web search of this install in its place';
+        }
+
+        return $login && $robust !== '' && !str_contains($robust, '${') && strcasecmp($address, $robust) === 0
+            ? 'the address of Robust, no search page: the web search of this install in its place'
+            : null;
+    }
+
     private static function onSite(string $url, string $webUrl): bool
     {
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
