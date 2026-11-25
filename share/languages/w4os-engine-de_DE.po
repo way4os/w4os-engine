@@ -2695,6 +2695,10 @@ msgctxt "setting_register"
 msgid "Registration page"
 msgstr "Registrierungsseite"
 
+msgctxt "setting_groups_external"
+msgid "Groups address for other grids"
+msgstr "Gruppenadresse für andere Grids"
+
 msgctxt "setting_registration"
 msgid "Registration"
 msgstr "Registrierung"
@@ -3546,17 +3550,32 @@ msgctxt "health_offline_robust"
 msgid "served by Robust (module V2)"
 msgstr "von Robust bereitgestellt (Modul V2)"
 
+msgctxt "health_groups_external_status"
+msgid "unreachable by the other grids"
+msgstr "für die anderen Grids unerreichbar"
+
+#, php-format
+msgctxt "health_groups_external"
+msgid ""
+"the other grids keep the groups of this one under this address (\"name @ "
+"127.0.0.1\"): set it to the public address of Robust, %s"
+msgstr "die anderen Grids führen die Gruppen dieses Grids unter dieser Adresse („Name @ 127.0.0.1“): setzen Sie die öffentliche Adresse von Robust, %s"
+
 msgctxt "health_search_is_service"
 msgid ""
 "this is the search the simulators call (XML-RPC), not a page: give the web "
 "search page of the site instead"
-msgstr "das ist die Suche, die die Simulatoren aufrufen (XML-RPC), keine Seite: geben Sie stattdessen die Websuche der Website an"
+msgstr ""
+"das ist die Suche, die die Simulatoren aufrufen (XML-RPC), keine Seite: "
+"geben Sie stattdessen die Websuche der Website an"
 
 msgctxt "health_search_is_robust"
 msgid ""
 "this is the address of Robust, which has no search page: give the web search "
 "page of the site instead"
-msgstr "das ist die Adresse von Robust, das keine Suchseite hat: geben Sie stattdessen die Websuche der Website an"
+msgstr ""
+"das ist die Adresse von Robust, das keine Suchseite hat: geben Sie "
+"stattdessen die Websuche der Website an"
 
 #, php-format
 msgctxt "health_offline_unused"

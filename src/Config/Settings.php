@@ -120,7 +120,11 @@ final class Settings
             'MapImageService' => ['MapImageServerURI' => ['name' => 'mapImageServerUri', 'type' => 'url', 'label' => 'service_map_image', 'service' => 'map-image']],
             'MuteListService' => ['MuteListServerURI' => ['name' => 'muteListServerUri', 'type' => 'url', 'label' => 'service_mute_list', 'service' => 'mute-list']],
             'XBakes' => ['URL' => ['name' => 'bakesUrl', 'type' => 'url', 'label' => 'service_bakes', 'service' => 'bakes']],
-            'Groups' => ['GroupsServerURI' => ['name' => 'groupsServerUri', 'type' => 'url', 'label' => 'service_groups', 'service' => 'groups']],
+            'Groups' => [
+                'GroupsServerURI' => ['name' => 'groupsServerUri', 'type' => 'url', 'label' => 'service_groups', 'service' => 'groups'],
+                // The address the other grids keep the groups of this one under (the hypergrid groups): checked by the health
+                'GroupsExternalURI' => ['name' => 'groupsExternalUri', 'type' => 'url', 'label' => 'setting_groups_external', 'health' => 'groups-external'],
+            ],
             'UserProfiles' => ['ProfileServiceURL' => ['name' => 'profileServiceUrl', 'type' => 'url', 'label' => 'service_profile', 'service' => 'profile', 'admin' => 'grid', 'fallback' => 'db_use_default']],
             'Search' => [
                 'Module' => ['name' => 'searchModule', 'type' => 'text', 'label' => 'setting_search_module', 'default' => 'OpenSimSearch'],

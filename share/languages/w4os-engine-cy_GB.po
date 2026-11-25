@@ -2688,6 +2688,10 @@ msgctxt "setting_register"
 msgid "Registration page"
 msgstr "Tudalen gofrestru"
 
+msgctxt "setting_groups_external"
+msgid "Groups address for other grids"
+msgstr "Cyfeiriad grwpiau ar gyfer gridiau eraill"
+
 msgctxt "setting_registration"
 msgid "Registration"
 msgstr "Cofrestru"
@@ -3534,17 +3538,32 @@ msgctxt "health_offline_robust"
 msgid "served by Robust (module V2)"
 msgstr "yn cael ei weini gan Robust (modiwl V2)"
 
+msgctxt "health_groups_external_status"
+msgid "unreachable by the other grids"
+msgstr "ni all y gridiau eraill ei gyrraedd"
+
+#, php-format
+msgctxt "health_groups_external"
+msgid ""
+"the other grids keep the groups of this one under this address (\"name @ "
+"127.0.0.1\"): set it to the public address of Robust, %s"
+msgstr "mae'r gridiau eraill yn cadw grwpiau'r grid hwn dan y cyfeiriad hwn (\"enw @ 127.0.0.1\"): gosodwch gyfeiriad cyhoeddus Robust, %s"
+
 msgctxt "health_search_is_service"
 msgid ""
 "this is the search the simulators call (XML-RPC), not a page: give the web "
 "search page of the site instead"
-msgstr "dyma'r chwiliad y mae'r efelychwyr yn ei alw (XML-RPC), nid tudalen: rhowch dudalen chwilio we'r wefan yn lle hynny"
+msgstr ""
+"dyma'r chwiliad y mae'r efelychwyr yn ei alw (XML-RPC), nid tudalen: rhowch "
+"dudalen chwilio we'r wefan yn lle hynny"
 
 msgctxt "health_search_is_robust"
 msgid ""
 "this is the address of Robust, which has no search page: give the web search "
 "page of the site instead"
-msgstr "dyma gyfeiriad Robust, sydd heb dudalen chwilio: rhowch dudalen chwilio we'r wefan yn lle hynny"
+msgstr ""
+"dyma gyfeiriad Robust, sydd heb dudalen chwilio: rhowch dudalen chwilio we'r "
+"wefan yn lle hynny"
 
 #, php-format
 msgctxt "health_offline_unused"

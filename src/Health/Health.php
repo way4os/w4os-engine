@@ -250,6 +250,16 @@ class Health
                 return self::offlineByRobust($config)
                     ? [self::isOfflineHelper($value) ? self::offlineToRemove($entry['key'], $value) : self::valueRow('OfflineMessageModule', self::say('health_offline_robust'))]
                     : ($value === '' ? [self::emptyRow($entry['key'])] : self::post($entry['key'], $value, self::retrieveMessages(), 'RetrieveMessages/'));
+            case 'groups-external':
+                // A hypergrid grid gives the other grids an address for its groups: OpenSimulator's default is a loopback one
+                if (trim((string) $config->find('Hypergrid', 'GatekeeperURI')) === '' && trim((string) $config->find('Hypergrid', 'HomeURI')) === '') {
+                    return [];
+                }
+                $public = '${Const|BaseURL}:${Const|PublicPort}';
+
+                return $value === '' || \W4OS\Engine\Provisioning\RetiredSettings::privateAddress($value)
+                    ? [['label' => $entry['key'], 'kind' => 'value', 'text' => $value !== '' ? $value : 'http://127.0.0.1', 'level' => 'error', 'status' => self::say('health_groups_external_status'), 'detail' => self::say('health_groups_external', [$public])]]
+                    : [self::valueRow($entry['key'], $value) + ['level' => 'ok']];
             case 'secret':
                 // The key of the currency, where the MoneyServer has it: never shown, only whether the grid has one. Without it the
                 // helpers tie the quotes with their default key, which a money server of the grid does not share: an error for a grid

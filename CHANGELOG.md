@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (groups): GroupsExternalURI the public address of Robust, a loopback one left out by a migration, said by the health
 - new (accounts): the groups of each account of a list, with a role; --create-groups makes the missing ones
 - fix (health): longer timeouts, 401 a refusal, profiles by a name, no money key without a money server, served suggestions
 - change (accounts): a CSV list with its header in any order, quoted fields over lines, semicolons; the line of each result

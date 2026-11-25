@@ -2406,6 +2406,10 @@ msgctxt "setting_register"
 msgid "Registration page"
 msgstr ""
 
+msgctxt "setting_groups_external"
+msgid "Groups address for other grids"
+msgstr ""
+
 msgctxt "setting_registration"
 msgid "Registration"
 msgstr ""
@@ -3138,6 +3142,15 @@ msgstr ""
 
 msgctxt "health_offline_robust"
 msgid "served by Robust (module V2)"
+msgstr ""
+
+msgctxt "health_groups_external_status"
+msgid "unreachable by the other grids"
+msgstr ""
+
+#, php-format
+msgctxt "health_groups_external"
+msgid "the other grids keep the groups of this one under this address (\"name @ 127.0.0.1\"): set it to the public address of Robust, %s"
 msgstr ""
 
 msgctxt "health_search_is_service"

@@ -36,6 +36,10 @@ final class RetiredSettings
      */
     public static function why(string $section, string $key, string $value, string $core, array $context = []): ?string
     {
+        // The address of the groups for the other grids at a loopback or private address: none for them, the public one of the options
+        if (strcasecmp($section, 'Groups') === 0 && strcasecmp($key, 'GroupsExternalURI') === 0) {
+            return self::privateAddress($value) ? 'GroupsExternalURI is an address the other grids cannot reach: the public address of Robust (${Const|BaseURL}:${Const|PublicPort}) in its place' : null;
+        }
         if (strcasecmp($section, 'Map') === 0 && strcasecmp($key, 'MapImageModule') === 0 && strcasecmp(trim($value, " \t\""), MapRenderer::WARP3D) === 0) {
             return MapRenderer::whyNotWarp3D($core, (string) ($context['folder'] ?? ''), (string) ($context['account'] ?? ''));
         }
@@ -86,6 +90,19 @@ final class RetiredSettings
         }
 
         return $count;
+    }
+
+    /** Whether an address is a loopback or a private one (a reference to a constant is not known here: none). */
+    public static function privateAddress(string $value): bool
+    {
+        $value = trim($value, " \t\"");
+        if (str_contains($value, '${')) {
+            return false;
+        }
+        $host = trim((string) parse_url(str_contains($value, '://') ? $value : "http://$value", PHP_URL_HOST), '[]');
+
+        return $host === '' || strcasecmp($host, 'localhost') === 0
+            || (filter_var($host, FILTER_VALIDATE_IP) !== false && filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false);
     }
 
     /** The version of a core by its folder (/usr/share/opensim/0.9.3.0), null when it does not say one. */

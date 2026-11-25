@@ -72,10 +72,10 @@ describe('The registry of the settings', function () {
     test('says how the health asks each setting it shows', function () {
         $asked = array_filter(Settings::entries(), static fn(array $entry): bool => isset($entry['health']));
 
-        expect(array_diff(array_unique(array_column($asked, 'health')), ['address', 'login-search', 'xmlrpc', 'register', 'offline', 'secret']))
+        expect(array_diff(array_unique(array_column($asked, 'health')), ['address', 'login-search', 'xmlrpc', 'register', 'offline', 'secret', 'groups-external']))
             ->toBe([])
             ->and(array_column(array_filter($asked, static fn(array $entry): bool => $entry['section'] !== 'GridInfoService'), 'key'))
-            ->toBe(['DestinationGuide', 'MessageUrl', 'SearchURL', 'SearchURL', 'DATA_SRV_', 'OfflineMessageURL', 'MoneyScriptAccessKey']);
+            ->toBe(['DestinationGuide', 'MessageUrl', 'SearchURL', 'GroupsExternalURI', 'SearchURL', 'DATA_SRV_', 'OfflineMessageURL', 'MoneyScriptAccessKey']);
     });
 
     test('says the file of a setting for a grid: its Robust.HG.ini when it has one', function () {
