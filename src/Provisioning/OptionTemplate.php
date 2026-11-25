@@ -46,6 +46,7 @@ use W4OS\Engine\Config\TextFileService;
  * Initial = Gloebit/GLBEnvironment   written only where the file gives no value: the administrator's after that
  * Existing = Gloebit/Enabled         written only where the file already has the setting
  * Clear = Messaging/OfflineMessageURL  taken off when the grid has no value for it (a {{variable}} with nothing to say)
+ * Told = Economy/economymodule      what files must all say, as the option writes them, to tell it (the module chosen)
  * Keep = DataSnapshot/index_sims     left in place when the option is disabled (something else may use them)
  *
  * In a file, `;; @if standalone, !hypergrid` ... `;; @end` keeps the lines between for a grid that is one and is not the other (the
@@ -216,6 +217,16 @@ final class OptionTemplate
     }
 
     /** Whether a setting (`Section/Key`) is listed under a key of the manifest. */
+    /**
+     * The settings that must all say the option for files to tell it (`Told`): none, any of its own settings tells it.
+     *
+     * @return list<string> Section/Key
+     */
+    public function told(): array
+    {
+        return $this->list('Told');
+    }
+
     public function lists(string $manifestKey, string $section, string $key): bool
     {
         return in_array(strtolower("$section/$key"), array_map('strtolower', $this->list($manifestKey)), true);

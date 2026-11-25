@@ -153,8 +153,10 @@ final class GridImport
                 }
             }
         }
+        // A module of the simulators Robust has none of: its section, wherever Robust read it (a file of its folder of config)
+        $simulatorsOnly = ['gloebit'];
         foreach ($customizations as $i => $setting) {
-            if ($setting['unknown'] && isset($theirs[strtolower("{$setting['section']}|{$setting['key']}")])) {
+            if ($setting['unknown'] && (isset($theirs[strtolower("{$setting['section']}|{$setting['key']}")]) || in_array(strtolower($setting['section']), $simulatorsOnly, true))) {
                 $dropped[] = ['section' => $setting['section'], 'key' => $setting['key'], 'value' => $setting['value'], 'reason' => 'simulators'];
                 unset($customizations[$i]);
             }

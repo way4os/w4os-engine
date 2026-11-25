@@ -522,6 +522,23 @@ final class GridOptions
      */
     private function says(OptionTemplate $option, array $said): bool
     {
+        // All of the settings it names, as it writes them (Told): a module the simulators loaded, not a setting of it alone
+        if ($option->told() !== []) {
+            foreach ($option->told() as $pair) {
+                [$section, $key] = array_pad(explode('/', $pair, 2), 2, '');
+                $value = null;
+                foreach ($option->files() as $file) {
+                    foreach (preg_match('/^Robust/i', basename($file)) === 1 ? [] : $option->settings($file, [], true) as [$s, $k, $v]) {
+                        strcasecmp($s, $section) === 0 && strcasecmp($k, $key) === 0 && ($value = strtolower(trim($v, " \"")));
+                    }
+                }
+                if ($value === null || ($said[strtolower($section)][strtolower($key)] ?? null) !== $value) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         // What another option of its group writes the same way does not tell this one (the module of the groups, V2, is all of theirs)
         $shared = [];
         foreach ($option->group() === '' ? [] : $this->templates() as $name => $other) {

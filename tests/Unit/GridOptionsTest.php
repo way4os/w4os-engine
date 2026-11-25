@@ -470,3 +470,19 @@ describe('The options every grid has', function () {
         expect($off)->not->toContain('profiles')->and(demo_options($machine)->enabled())->toContain('profiles');
     });
 });
+
+describe('Gloebit, told by the files of the simulators', function () {
+    test('only when they choose it as the module of the economy, never by a price or a connection alone', function () {
+        $machine = new Machine();
+        $options = demo_options($machine);
+        $told = static function (string $text) use ($machine, $options): bool {
+            $file = $machine->write($machine->root . '/old/sim-' . bin2hex(random_bytes(3)) . '.ini', $text);
+
+            return in_array('economy-gloebit', $options->toldBy([$file]), true);
+        };
+
+        expect($told("[Economy]\n    PriceUpload = 0\n    PriceGroupCreate = 0\n[Gloebit]\n    GLBSpecificConnectionString = \"Data Source=x\"\n"))->toBeFalse()
+            ->and($told("[Gloebit]\n    Enabled = true\n    GLBEnvironment = production\n"))->toBeFalse()
+            ->and($told("[Economy]\n    economymodule = Gloebit\n"))->toBeTrue();
+    });
+});

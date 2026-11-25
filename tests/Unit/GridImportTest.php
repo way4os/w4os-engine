@@ -696,3 +696,15 @@ describe('The setup from an existing install', function () {
             ->toBeFalse();
     });
 });
+
+describe('The settings of Gloebit in the config of Robust', function () {
+    test('are left out, said in the report: Robust has no module of Gloebit, they are the simulators\'', function () {
+        [$machine, $robust] = old_robust_install();
+        file_put_contents($robust, file_get_contents($robust) . "[Gloebit]\n    Enabled = true\n    GLBEnvironment = production\n    GLBKey = \"a-key\"\n");
+
+        $plan = GridImport::prepare($machine->environment, $robust)->document();
+
+        expect(array_filter($plan['settings'], static fn(array $s): bool => $s['section'] === 'Gloebit'))->toBe([])
+            ->and(array_unique(array_column(array_filter($plan['dropped'], static fn(array $s): bool => $s['section'] === 'Gloebit'), 'reason')))->toBe(['simulators']);
+    });
+});
