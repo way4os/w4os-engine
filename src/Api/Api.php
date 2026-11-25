@@ -1414,7 +1414,7 @@ final class Api
             $counts[$row['status']] = ($counts[$row['status']] ?? 0) + 1;
             $made = $row['generated'] && $row['status'] === \W4OS\Engine\Provisioning\AccountImporter::CREATED;
             // A password is given back only when it was made here and its account exists
-            $results[] = ['first' => $row['first'], 'last' => $row['last'], 'email' => $row['email'], 'status' => $row['status'], 'detail' => $row['detail'], 'generated' => $row['generated'] && $row['status'] !== \W4OS\Engine\Provisioning\AccountImporter::EXISTS]
+            $results[] = ['line' => $row['line'], 'first' => $row['first'], 'last' => $row['last'], 'email' => $row['email'], 'status' => $row['status'], 'detail' => $row['detail'], 'generated' => $row['generated'] && $row['status'] !== \W4OS\Engine\Provisioning\AccountImporter::EXISTS]
                 + ($made ? ['password' => $row['password']] : []);
         }
         $applied = $mode === 'apply';

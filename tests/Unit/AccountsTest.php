@@ -46,6 +46,27 @@ describe('A list of accounts', function () {
         expect(array_column($without['accounts'], 'last'))->toBe(['Doe', 'Roe']);
     });
 
+    test('reads a CSV of a spreadsheet: its columns in any order, quoted fields over lines, accents, semicolons, the line of each', function () {
+        $csv = "email;Last;First;password;password_hash;password_salt\n"
+            . "jose@example.org;Perez;Jose;café crème;;\n"
+            . "\"anne@example.org\";\"Oneil\";\"Anne\";;5f4dcc3b5aa765d61d8327deb882cf99;abc\n"
+            . ";Doe;Jane;\"secret; over\ntwo lines\";;\n"
+            . ";Pérez;José;;;\n"
+            . ";Roe;;;;\n";
+        $list = AccountList::parse($csv);
+        $accounts = array_column($list['accounts'], null, 'first');
+
+        expect(array_keys($accounts))->toBe(['Jose', 'Anne', 'Jane'])
+            ->and($accounts['Jose'])->toMatchArray(['last' => 'Perez', 'email' => 'jose@example.org', 'password' => 'café crème', 'line' => 2])
+            ->and($accounts['Anne'])->toMatchArray(['last' => 'Oneil', 'password_hash' => '5f4dcc3b5aa765d61d8327deb882cf99', 'password_salt' => 'abc', 'line' => 3])
+            // A field quoted over two lines is one field: the next record is on line 6
+            ->and($accounts['Jane'])->toMatchArray(['password' => "secret; over\ntwo lines", 'line' => 4])
+            // The names OpenSimulator takes: letters, digits and -; each line refused told by its number
+            ->and($list['errors'])->toHaveCount(2)
+            ->and($list['errors'][0])->toStartWith('line 6: name "José Pérez"')
+            ->and($list['errors'][1])->toStartWith('line 7: name');
+    });
+
     test('reads JSON, a list or an object', function () {
         $list = AccountList::parse('[{"firstname":"Jane","lastname":"Doe","mail":"jane@example.org"}]');
         $object = AccountList::parse('{"accounts":[{"first":"John","last":"Roe","password":"x"}]}');

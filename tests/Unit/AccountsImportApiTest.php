@@ -47,6 +47,9 @@ describe('The accounts of a list, through the API', function () {
             ->toBeFalse()
             ->and(array_column($attributes['results'], 'status'))
             ->toBe([AccountImporter::EXISTS, AccountImporter::WOULD_CREATE])
+            // The line of the list each comes from
+            ->and(array_column($attributes['results'], 'line'))
+            ->toBe([2, 3])
             ->and($attributes['results'][1])
             ->toMatchArray(['first' => 'John', 'last' => 'Roe', 'generated' => true])
             ->not->toHaveKey('password')

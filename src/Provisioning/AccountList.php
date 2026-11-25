@@ -5,8 +5,9 @@ namespace W4OS\Engine\Provisioning;
 use W4OS\Engine\Models\Avatar;
 
 /**
- * A list of accounts to make, given as CSV (first, last, email, password, with or without a header line) or
- * as JSON (a list of objects with the same keys), as a third party gives it.
+ * A list of accounts to make, given as CSV (first, last, email, password, with or without a header line; with a header, its
+ * columns in any order, password_hash and password_salt too; a comma, a semicolon or a tab between them, quoted fields as RFC
+ * 4180 has them), as JSON or YAML (a list of objects with the same keys), as a third party gives it.
  */
 final class AccountList
 {
@@ -97,30 +98,44 @@ final class AccountList
     /** @return array<int,array<string,mixed>> line number => values */
     private static function csvRows(string $text): array
     {
-        $lines = preg_split('/\r\n|\r|\n/', $text) ?: [];
-        $first = trim((string) ($lines[0] ?? ''));
+        $first = trim((string) (preg_split('/\r\n|\r|\n/', $text, 2) ?: [''])[0]);
         $delimiter =
             substr_count($first, ';') > substr_count($first, ',') ? ';' : (str_contains($first, "\t") ? "\t" : ',');
         $names = ['first', 'last', 'email', 'password'];
-        $header = null;
-        if (preg_match('/^"?(first|firstname|first name)"?\s*[' . preg_quote($delimiter, '/') . ']/i', $first) === 1) {
-            $header = array_map(
-                static fn(string $cell): string => self::normalize($cell),
-                str_getcsv($first, $delimiter, '"', ''),
-            );
+        $stream = fopen('php://memory', 'r+');
+        if ($stream === false) {
+            return [];
         }
+        fwrite($stream, $text);
+        rewind($stream);
+        // The records as RFC 4180 has them (a quoted field may hold the separator and line breaks), each with its first line
+        $records = [];
+        $line = 1;
+        while (true) {
+            $at = (int) ftell($stream);
+            $cells = fgetcsv($stream, null, $delimiter, '"', '');
+            if ($cells === false) {
+                break;
+            }
+            $records[$line] = $cells;
+            $line += max(1, substr_count(substr($text, $at, (int) ftell($stream) - $at), "\n"));
+        }
+        fclose($stream);
+        // A header names first and last, in any order, with the other columns
+        $head = array_map(static fn($cell): string => self::normalize((string) $cell), (array) reset($records));
+        $header = in_array('first', $head, true) && in_array('last', $head, true) ? $head : null;
+        // Taken off by its key: the keys are the lines
+        $header === null || array_key_first($records) === null || ($records = array_diff_key($records, [array_key_first($records) => true]));
 
         $rows = [];
-        foreach ($lines as $i => $line) {
-            if (($i === 0 && $header !== null) || trim($line) === '') {
+        foreach ($records as $at => $cells) {
+            if ($cells === [null] || implode('', array_map('strval', $cells)) === '' && count($cells) <= 1) {
                 continue;
             }
-            $cells = str_getcsv($line, $delimiter, '"', '');
-            $rows[$i + 1] =
+            $cells = array_map(static fn($cell): string => (string) $cell, $cells);
+            $rows[$at] =
                 $header !== null
-                    ? self::keys(
-                        array_combine($header, array_pad(array_slice($cells, 0, count($header)), count($header), '')),
-                    )
+                    ? self::keys(array_combine($header, array_pad(array_slice($cells, 0, count($header)), count($header), '')))
                     : array_combine($names, array_pad(array_slice($cells, 0, 4), 4, ''));
         }
 

@@ -70,7 +70,7 @@ final class AccountImporter
      * @param list<array{first:string,last:string,email:string,password:string,line:int}> $accounts
      * @param bool $apply     write the accounts, else only tell what would be written
      * @param bool $keepGoing go on after an account that failed
-     * @return array{error:?string,results:list<array{first:string,last:string,email:string,status:string,detail:string,password:string,generated:bool}>}
+     * @return array{error:?string,results:list<array{line:int,first:string,last:string,email:string,status:string,detail:string,password:string,generated:bool}>}
      */
     public function run(Grid|GridConfig $target, array $accounts, bool $apply, bool $keepGoing = false): array
     {
@@ -87,6 +87,8 @@ final class AccountImporter
         $stopped = false;
         foreach ($accounts as $account) {
             $row = [
+                // The line of the list it comes from, for the report
+                'line' => (int) ($account['line'] ?? 0),
                 'first' => $account['first'],
                 'last' => $account['last'],
                 'email' => $account['email'],

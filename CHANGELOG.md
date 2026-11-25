@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (accounts): a CSV list with its header in any order, quoted fields over lines, semicolons; the line of each result
 - new (settings): the registration of the grid, open or closed; closed, get_grid_info announces no register page
 - new (profiles): each group with its grid, by the name the grid gives itself, and whether it is a group of this grid
 - fix (de): Test-Website, not Testseite, in the messages of a test site
