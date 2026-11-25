@@ -2228,7 +2228,8 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
 
     /**
      * Where the helpers are: the base of the pages and the services they serve. `HelpersURL` of `[Helpers]` (Helpers.ini) when it
-     * is set, else the economy the grid gives its viewers when it is on its web site, else the web site and `/helpers`. A base at
+     * is set, else the web site and `/helpers` for a grid that has helpers (Helpers.ini, an economy on its site; the economy follows
+     * the helpers, never the reverse). A base at
      * the root of the site (`https://example.org/`) has no path: the helpers serve every page of the grid. Null for a grid without a
      * web site.
      */
@@ -2245,7 +2246,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $site === '' ? null : $site;
     }
 
-    /** Where the base of the helpers comes from: `config` (HelpersURL), `economy`; null when the grid sets none (never a guess). */
+    /** Where the base of the helpers comes from: `config` (HelpersURL), `default` (the web site and /helpers); null without a site. */
     public function helpersUrlSource(): ?string
     {
         return $this->helpersBase()[1];
@@ -2369,6 +2370,16 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $urls;
     }
 
+    /** Whether the grid has the file of its helpers (Helpers.ini), here or in the config a site gives. */
+    private function hasHelpersFile(): bool
+    {
+        if ($this->given !== null) {
+            return $this->given->has('Helpers');
+        }
+
+        return $this->directory !== '' && is_file(\W4OS\Engine\Provisioning\Web\HelpersConfig::path($this->directory));
+    }
+
     /** @return array{0:?string,1:?string} the base of the helpers and where it comes from */
     private function helpersBase(): array
     {
@@ -2382,14 +2393,17 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         if ($web === '') {
             return [null, null];
         }
-        // The economy the grid gives, on its web site: the base of the helpers is where currency.php is; else the grid has none
-        $economy = $this->economy();
-        if ($economy === null || parse_url($economy, PHP_URL_HOST) !== parse_url($web, PHP_URL_HOST)) {
+        // A grid that has helpers (their Helpers.ini, an economy on its site): the path the setup gives them, else the default one,
+        // never the economy, which follows the helpers and not the reverse; a grid that has none has no base (never a guess)
+        $economy = $this->isPlanned() ? null : $this->economy();
+        $has = $this->isPlanned() || $this->hasHelpersFile()
+            || ($economy !== null && strcasecmp((string) parse_url($economy, PHP_URL_HOST), (string) parse_url($web, PHP_URL_HOST)) === 0);
+        if (!$has) {
             return [null, null];
         }
-        $path = \W4OS\Engine\Provisioning\Web\Services::pathOf($economy);
+        $path = \W4OS\Engine\Provisioning\Web\Services::normalize(($this->isPlanned() ? $this->helpersPath() : '') ?: \W4OS\Engine\Provisioning\Web\HelpersConfig::DEFAULT_PATH);
 
-        return [rtrim($web, '/') . ($path === '/' ? '' : $path), 'economy'];
+        return [rtrim($web, '/') . ($path === '/' ? '' : $path), 'default'];
     }
 
     /** The web page of the search of the grid. */

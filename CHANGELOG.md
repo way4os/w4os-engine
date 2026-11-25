@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (helpers): their base HelpersURL, else /helpers for a grid that has them, never the economy (which follows them)
 - fix (config): ini values in double quotes, as OpenSimulator reads them; single-quoted ones rewritten at an upgrade
 - fix (migrate): a web search at query.php or a SearchURL at Robust corrected to this install's web search, said
 - fix (migrate): Gloebit loaded without its keys stays off, said in the report; not loaded, its settings left out

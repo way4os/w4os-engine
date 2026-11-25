@@ -105,7 +105,7 @@ describe('Helpers.ini', function () {
     })->skip(fn() => !web_test_fs_tells_cases(), 'the file system does not tell the cases apart');
 
     test(
-        'gives the web address and the path of the helpers from the Robust config, the economy being their path',
+        'gives the web address and the path of the helpers from the Robust config, their default path whatever the economy',
         function () {
             $dir = test_tmp() . '/helpers-ini-' . bin2hex(random_bytes(4));
             mkdir($dir);
@@ -117,9 +117,9 @@ describe('Helpers.ini', function () {
             expect(HelpersConfig::webUrl($dir))
                 ->toBe('https://play.example.org')
                 ->and(HelpersConfig::basePath($dir))
-                ->toBe('/helper')
+                ->toBe('/helpers')
                 ->and(HelpersConfig::services($dir)->path('currency'))
-                ->toBe('/helper/currency.php');
+                ->toBe('/helpers/currency.php');
 
             $bare = test_tmp() . '/helpers-ini-' . bin2hex(random_bytes(4));
             mkdir($bare);

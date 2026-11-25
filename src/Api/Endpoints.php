@@ -335,7 +335,7 @@ final class Endpoints
                         'addGrid' => Contract::addGrid(),
                         'helpers' => [
                             'type' => ['string', 'null'],
-                            'description' => 'The base of the helpers: `HelpersURL` of `[Helpers]`, else the economy, else the web site and /helpers (its source is `helpers` of `sources`: config, economy or default). A page under it is served by the helpers, any other by the site',
+                            'description' => 'The base of the helpers: `HelpersURL` of `[Helpers]`, else the web site and /helpers, never the economy (its source is `helpers` of `sources`: config or default). A page under it is served by the helpers, any other by the site',
                         ],
                         'economy' => ['type' => ['string', 'null']],
                         'search' => ['type' => ['string', 'null']],

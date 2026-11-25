@@ -125,16 +125,12 @@ final class HelpersConfig
         return rtrim(self::value($grid, self::URL_KEY), '/');
     }
 
-    /** Where the helpers are: the path of `HelpersURL` of Helpers.ini, else of the economy the grid gives to its viewers. */
+    /** Where the helpers are: the path of `HelpersURL` of Helpers.ini, else the default one (never the economy, which follows them). */
     public static function basePath(string|GridConfig $grid): string
     {
         $configured = self::value($grid, self::URL_KEY);
-        if ($configured !== '') {
-            return Services::pathOf($configured);
-        }
-        $economy = self::robustValue($grid, 'economy');
 
-        return $economy === '' ? self::DEFAULT_PATH : Services::pathOf($economy);
+        return $configured !== '' ? Services::pathOf($configured) : self::DEFAULT_PATH;
     }
 
     /** The services as the grid has them. */

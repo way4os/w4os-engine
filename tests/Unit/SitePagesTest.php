@@ -30,7 +30,7 @@ function pages_grid(string $gridInfo = '', string $helpers = ''): array
 }
 
 describe('The base of the helpers', function () {
-    test('is HelpersURL of Helpers.ini, else the economy, never a guess, and says where it comes from', function () {
+    test('is HelpersURL of Helpers.ini, else /helpers for a grid that has helpers, never the economy nor a guess, and says where it comes from', function () {
         $base = static function (string $gridInfo, string $helpers): array {
             [, $grid] = pages_grid($gridInfo, $helpers);
 
@@ -40,14 +40,17 @@ describe('The base of the helpers', function () {
         // A grid that sets no helpers has none: /helpers is no base of its own
         expect($base('', ''))
             ->toBe([null, null])
+            // An economy on its site says it has helpers, which keep their own path: the economy follows them, not the reverse
             ->and($base("[GridInfoService]\n    economy = \"https://demo.example.org/shop\"", ''))
-            ->toBe(['https://demo.example.org/shop', 'economy'])
+            ->toBe(['https://demo.example.org/helpers', 'default'])
+            ->and($base('', 'LogoURL = "https://demo.example.org/logo.png"'))
+            ->toBe(['https://demo.example.org/helpers', 'default'])
             ->and($base("[GridInfoService]\n    economy = \"https://demo.example.org/shop\"", 'HelpersURL = "https://demo.example.org/helperz/"'))
             ->toBe(['https://demo.example.org/helperz', 'config'])
             ->and($base('', 'HelpersURL = "https://demo.example.org/"'))
             ->toBe(['https://demo.example.org', 'config'])
             ->and($base("[GridInfoService]\n    economy = \"https://demo.example.org/\"", ''))
-            ->toBe(['https://demo.example.org', 'economy'])
+            ->toBe(['https://demo.example.org/helpers', 'default'])
             ->and($base('', 'HelpersURL = "https://demo.example.org"'))
             ->toBe(['https://demo.example.org', 'config']);
     });
@@ -118,9 +121,9 @@ describe('The pages of a grid', function () {
 
         expect(array_keys($pages))
             ->toBe(['helpers', 'search', 'profile', 'guide', 'welcome', 'status', 'directory'])
-            // The helpers the grid sets: where its economy is
+            // The helpers of a grid that sets no HelpersURL: their default path
             ->and($pages['helpers'])
-            ->toMatchArray(['url' => 'https://demo.example.org/helpers', 'source' => 'economy'])
+            ->toMatchArray(['url' => 'https://demo.example.org/helpers', 'source' => 'default'])
             ->and($pages['search'])
             ->toMatchArray(['url' => 'https://demo.example.org/search', 'source' => 'config', 'servedBy' => 'site'])
             ->and($pages['profile'])

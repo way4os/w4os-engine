@@ -629,7 +629,7 @@ describe('The import of a grid', function () {
             ->and(array_column(array_filter($import->document()['dropped'], static fn(array $s): bool => $s['key'] === 'search'), 'reason'))->not->toContain('corrected');
     });
 
-    test('of kimbe-red keeps its addresses through its own constants (BackOffice), and adds its pages under the base of its helpers', function () {
+    test('of kimbe-red keeps its addresses through its own constants (BackOffice), and adds its pages under the default base of the helpers', function () {
         [$machine, $robust] = old_robust_install();
         $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
         $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
@@ -651,11 +651,12 @@ describe('The import of a grid', function () {
         $dropped = array_filter($import->document()['dropped'], static fn(array $s): bool => $s['section'] === 'GridInfoService' && $s['key'] === 'search');
 
         // The web search of the viewers told the search the simulators call: the page of the kit in its place, said
-        expect($info['search'] ?? '')->toStartWith('https://old.example.org/opensim/economy/')->not->toContain('query.php')
+        expect($info['search'] ?? '')->toBe('https://old.example.org/helpers/search')
             ->and(array_column($dropped, 'reason'))->toBe(['corrected'])
-            // The pages the kit adds are under the base of its helpers, where the old install had them (its economy)
-            ->and($import->plan->helpersPath)->toBe('/opensim/economy')
-            ->and((string) ($info['web_profile_url'] ?? ''))->toStartWith('https://old.example.org/opensim/economy/profile/')
+            // The pages the kit adds are under the default base of the helpers, never the economy, which keeps its own address
+            ->and($import->plan->helpersPath)->toBe('/helpers')
+            ->and($info['economy'] ?? null)->toBe('https://old.example.org/opensim/economy')
+            ->and((string) ($info['web_profile_url'] ?? ''))->toStartWith('https://old.example.org/helpers/profile/')
             ->and($grid->servedByHelpers(str_replace('[AGENT_NAME]', 'Pam.Molly2', (string) ($info['web_profile_url'] ?? ''))))->toBeTrue()
             // Every address its config names on its site is the helpers', Robust's own too
             ->and(array_keys($grid->helperPaths()))->toContain('/helper/query.php', '/helpers/query.php', '/helpers/helper/offline.php');

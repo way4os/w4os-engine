@@ -55,7 +55,7 @@ describe('A grid described by a site', function () {
         $bare = Grid::described($environment, ['nick' => 'bare', 'name' => 'Bare', 'remote' => true]);
 
         expect([$far->logoUrl(), $far->helpersUrl(), $far->helpersUrlSource(), $far->searchUrl(), $far->economy(), $far->allowUserProfileWebUrls()])
-            ->toBe(['https://far.example.org/logo.png', 'https://far.example.org/tools', 'economy', 'https://far.example.org/search', 'https://far.example.org/tools', false])
+            ->toBe(['https://far.example.org/logo.png', 'https://far.example.org/helpers', 'default', 'https://far.example.org/search', 'https://far.example.org/tools', false])
             ->and($far->config())
             ->toBe($config)
             // A grid given no config has none: nothing read from the machine
