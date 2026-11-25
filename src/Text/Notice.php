@@ -39,6 +39,10 @@ final class Notice
         // What a change of the settings leaves to do (GridSettings::reminders())
         'restart-grid' => ['restart'],
         'restart-simulators' => ['restart'],
+        // Why the simulators cannot draw the 3D map (GridSettings, the page of the map)
+        'map-package' => ['package'],
+        'map-core' => [],
+        'map-folder' => ['account', 'folder'],
         // The plan of the import of a grid (GridImport)
         'import-stop-grid' => ['grid', 'ports'],
         'import-switch' => ['command'],

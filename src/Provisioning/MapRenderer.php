@@ -86,9 +86,17 @@ final class MapRenderer
     /** What gives a core MapTilesDirectory: the package of its release, or a newer one. */
     public static function remedy(string $core): string
     {
+        $package = self::package($core);
+
+        return $package !== null ? "the package $package is installed" : 'a newer OpenSimulator is installed';
+    }
+
+    /** The package that gives the core of a release MapTilesDirectory (opensim-0.9.3.0-maptiles), null for the others. */
+    public static function package(string $core): ?string
+    {
         $version = self::version($core);
 
-        return $version === '0.9.3.0' ? "the package opensim-$version-maptiles is installed" : 'a newer OpenSimulator is installed';
+        return $version === '0.9.3.0' ? "opensim-$version-maptiles" : null;
     }
 
     /** The version of a core by its folder (/usr/share/opensim/0.9.3.0), null when it does not say one. */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace W4OS\Engine\Models;
 
+use W4OS\Engine\Provisioning\MapRenderer;
 use W4OS\Engine\Config\ConfigReader;
 use W4OS\Engine\Config\GridConfig;
 use W4OS\Engine\Config\IniEditor;
@@ -55,6 +56,8 @@ final class GridSettings
         'guide' => ['title' => 'settings_guide', 'menu' => 'settings_menu_guide', 'description' => ['guide_help_feature', 'guide_help_places', 'guide_source_help_file', 'guide_source_help_pipe', 'guide_source_help_categories', 'guide_source_help_comments', 'guide_source_help_board']],
         'offline' => ['title' => 'settings_offline', 'menu' => 'settings_menu_offline', 'description' => ['provide_offline_help', 'provide_offline_help_core']],
         'assets' => ['title' => 'settings_assets', 'menu' => 'settings_menu_assets', 'description' => ['provide_assets_help']],
+        // How the simulators draw the map, in the menu of the regions of a site (`parent`)
+        'map' => ['title' => 'settings_map', 'menu' => 'settings_menu_map', 'parent' => 'regions'],
     ];
 
     /**
@@ -98,6 +101,7 @@ final class GridSettings
     private const ORDER = [
         'economy' => ['economyModule', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'webSearchUrl', 'eventsUrl'],
+        'map' => ['mapImageModule', 'textureOnMapTile', 'drawPrimOnMapTile', 'texturePrims', 'renderMeshes', 'maptileRefresh'],
         'grid' => ['loginUri', 'gridName', 'gridNick', 'welcomeMessage', 'gridServerUri', 'database', 'consoleUser', 'consolePass', 'consolePort', 'assetServerUri', 'profileServiceUrl', 'webProfileUrl', 'excludeFromStats', 'linkFormatBrowser', 'linkFormatViewer'],
     ];
 
@@ -180,6 +184,7 @@ final class GridSettings
             'guide' => 'The destinations guide of the grid, as w4os-wp has it: its address (`DestinationGuide` of `[LoginService]`) and its source (`GuideSource` of `[Helpers]`).',
             'offline' => 'The offline messages of the grid: kept or not (`offline`, on by default: none is the module None), then the version, V2 kept by Robust (the default), or V1 kept by the helpers, which forward them by mail; for V1, provided (the helpers of the site serve it and keep the messages in their database, the sender of their mails) or the address of another service.',
             'assets' => 'The web assets server of the grid (`AssetsURL` of `[Helpers]`): set when it is not the one of the helpers, as when this machine does not read JPEG 2000.',
+            'map' => 'How the simulators draw the tiles of the map (`[Map]` of the OpenSim.ini of the grid): the simple map (MapImageModule, the default), or the regions in 3D (Warp3DImageModule) with the textures of their terrain, their objects, the textures of the objects and the meshes; how often a running region draws its tile again (`maptileRefresh`, seconds, 0: at its start). The 3D map is only taken where the simulators can write its tiles (their core reads MapTilesDirectory, written with it, or they run from a folder of their own); `meta.notices` says why it cannot (`map-package`: the package of the core, `map-core`: a newer OpenSimulator, `map-folder`: the folder of the tiles), and choosing it there is refused.',
             default => '',
         };
     }
@@ -217,7 +222,7 @@ final class GridSettings
         $fields = array_map(static fn(array $field): array => isset(self::TIPS[$page][$field['name']]) ? ['tip' => self::TIPS[$page][$field['name']]] + $field : $field, $fields);
 
         return ['title' => self::PAGES[$page]['title'], 'menu' => self::PAGES[$page]['menu'], 'fields' => $fields, 'submit' => 'action_save_changes', 'saved' => 'settings_saved']
-            + array_intersect_key(self::PAGES[$page], ['description' => 1, 'preview' => 1, 'groups' => 1]);
+            + array_intersect_key(self::PAGES[$page], ['description' => 1, 'preview' => 1, 'groups' => 1, 'parent' => 1]);
     }
 
     /**
@@ -238,6 +243,8 @@ final class GridSettings
         }
         // The offline messages: Robust's (V2) when the grid says no module
         $page === 'offline' && trim((string) ($values['offlineModule'] ?? '')) === '' && ($values['offlineModule'] = self::OFFLINE_V2);
+        // The map: the simple one, OpenSimulator's, when the grid says none
+        $page === 'map' && trim((string) ($values['mapImageModule'] ?? '')) === '' && ($values['mapImageModule'] = MapRenderer::SIMPLE);
         if (!$provide || !isset(self::PROVIDE[$page])) {
             return $values;
         }
@@ -432,6 +439,14 @@ final class GridSettings
         }
         $now = $this->read($page);
         $before = $now;
+        // The 3D map only where the simulators can write its tiles, in the folder their core reads, written with it
+        if ($page === 'map' && strcasecmp(trim((string) ($values['mapImageModule'] ?? '')), MapRenderer::WARP3D) === 0) {
+            ($notice = $this->warp3dNotice()) === null || throw InvalidValue::because('invalid-request', $notice['detail']);
+            if (MapRenderer::hasFolderSetting($this->core()) && trim((string) $this->config()->find('Map', 'MapTilesDirectory')) === '') {
+                $values['mapTilesDirectory'] = MapRenderer::FOLDER;
+                $entries['mapTilesDirectory'] = Settings::named('mapTilesDirectory');
+            }
+        }
         // Podex is written as the generic money server, and the provider the helpers serve
         if ($page === 'economy' && isset($values['economyModule']) && $values['economyModule'] !== $now['economyModule']) {
             $values['currencyProvider'] = $values['economyModule'] === 'Podex' ? 'podex' : '';
@@ -665,6 +680,34 @@ final class GridSettings
     }
 
     /**
+     * Why the simulators of the grid cannot draw the 3D map, and what gives it (MapRenderer): the package of their core, a newer
+     * OpenSimulator, or the folder of the tiles their account cannot write; null when they can.
+     *
+     * @return ?array{code:string,params:array<string,string>,detail:string}
+     */
+    private function warp3dNotice(): ?array
+    {
+        $core = $this->core();
+        $account = $this->grid->environment()->layout->systemUser();
+        $folder = MapRenderer::hasFolderSetting($core) ? (trim((string) $this->config()->find('Map', 'MapTilesDirectory'), " \t\"") ?: $this->grid->cacheDirectory()) : '';
+        if (MapRenderer::whyNotWarp3D($core, $folder, $account) === null) {
+            return null;
+        }
+
+        return match (true) {
+            MapRenderer::hasFolderSetting($core) => Notice::of('map-folder', ['account' => $account !== '' ? $account : 'the simulators', 'folder' => $folder]),
+            ($package = MapRenderer::package($core)) !== null => Notice::of('map-package', ['package' => $package]),
+            default => Notice::of('map-core', []),
+        };
+    }
+
+    /** The core the simulators of the grid run from. */
+    private function core(): string
+    {
+        return $this->grid->coreDirectory() ?: $this->grid->environment()->layout->coreDirectory();
+    }
+
+    /**
      * The values of the page of the offline messages: Provide off, the module None (the address of the helper kept as it is); on, the
      * module said, else the one the grid has, Robust's (V2) when it has none; V2 without the address of a helper. V1 goes on with
      * the address of its helper (addressOf()).
@@ -864,7 +907,9 @@ final class GridSettings
     {
         $fixed = $this->fixed($page);
         if (!isset(self::PROVIDE[$page])) {
-            return $fixed === [] ? [] : ['fixed' => $fixed];
+            $notices = $page === 'map' && ($notice = $this->warp3dNotice()) !== null ? [$notice] : [];
+
+            return ($fixed === [] ? [] : ['fixed' => $fixed]) + ($notices === [] ? [] : ['notices' => $notices]);
         }
         $provide = self::PROVIDE[$page];
         $url = $this->address($page);

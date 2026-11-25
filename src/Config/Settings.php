@@ -150,6 +150,16 @@ final class Settings
                 'GLBOwnerName' => ['name' => 'gloebitOwnerName', 'type' => 'text', 'label' => 'setting_gloebit_owner_name', 'example' => 'Banker Name', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
                 'GLBOwnerEmail' => ['name' => 'gloebitOwnerEmail', 'type' => 'email', 'label' => 'setting_gloebit_owner_email', 'example' => 'banker@example.org', 'admin' => 'economy', 'condition' => ['economyModule' => ['Gloebit']]],
             ],
+            // How the simulators draw the tiles of the map (MapRenderer); the folder of the tiles written with the 3D map
+            'Map' => [
+                'MapImageModule' => ['name' => 'mapImageModule', 'type' => 'select', 'label' => 'setting_map_module', 'options' => ['MapImageModule' => 'map_module_simple', 'Warp3DImageModule' => 'map_module_warp3d'], 'admin' => 'map'],
+                'TextureOnMapTile' => ['name' => 'textureOnMapTile', 'type' => 'bool', 'label' => 'setting_map_terrain', 'default' => true, 'admin' => 'map'],
+                'DrawPrimOnMapTile' => ['name' => 'drawPrimOnMapTile', 'type' => 'bool', 'label' => 'setting_map_prims', 'default' => true, 'admin' => 'map'],
+                'TexturePrims' => ['name' => 'texturePrims', 'type' => 'bool', 'label' => 'setting_map_prim_textures', 'default' => true, 'admin' => 'map', 'condition' => ['mapImageModule' => ['Warp3DImageModule']]],
+                'RenderMeshes' => ['name' => 'renderMeshes', 'type' => 'bool', 'label' => 'setting_map_meshes', 'default' => false, 'admin' => 'map', 'condition' => ['mapImageModule' => ['Warp3DImageModule']]],
+                'MaptileRefresh' => ['name' => 'maptileRefresh', 'type' => 'integer', 'label' => 'setting_map_refresh', 'default' => 0, 'admin' => 'map'],
+                'MapTilesDirectory' => ['name' => 'mapTilesDirectory', 'type' => 'text', 'label' => 'setting_map_tiles_directory'],
+            ],
         ],
         'moneyserver' => [
             // Its database in parts of their own, the keys of [MySql] by part

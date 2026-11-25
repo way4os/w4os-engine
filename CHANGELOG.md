@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (settings): the page of the map (Regions › Map): the renderer, its options, the refresh; why the 3D map cannot run
 - change (status): the simple maps by grid; the option map-warp3d where the core can already draw the 3D one
 - new (map): the 3D map (Warp3D) by default where the simulators can write their tiles; else the simple map, and what would give it
 - fix (guide): a kept picture of another grid found whatever the spelling of its address, an earlier one too
