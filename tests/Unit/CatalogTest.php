@@ -193,6 +193,7 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_account', 'web_search_online', 'web_search_partner',
         ],
         'nl_NL' => [
+            'registration_open',
             // The word for a visitor of the welcome of a page
             'motd_avatar_visitor',
             // The unit of minutes, the same symbol

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (settings): the registration of the grid, open or closed; closed, get_grid_info announces no register page
 - new (profiles): each group with its grid, by the name the grid gives itself, and whether it is a group of this grid
 - fix (de): Test-Website, not Testseite, in the messages of a test site
 - change (settings): the map renderers by their module names; the help says Warp3D costs more of the server

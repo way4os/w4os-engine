@@ -178,7 +178,7 @@ final class GridSettings
         return match ($page) {
             'models' => 'The rule the avatar models are picked by (`[Models]`, the keys of w4os): `match` first (the first name is the pattern), last (the last name), any (either), uuid (the list); `pattern`, the name; `list`, the UUIDs of the models for uuid. The models it picks are the list of `/grids/{grid}/avatar-models`.',
             'grid' => 'What the grid is (its login URI, its name, its nick), the ways to reach its Robust in one place (its address, the private one of the services, its database, its remote console: `[Network]` of Robust), the services that may be in Robust instances of their own (the assets, the profiles: null, Use default, the address of Robust, the login URI), the web page of a profile, and what the numbers of the grid leave out (`excludeFromStats`: models, nomail, the accounts without email, hypergrid, the visitors of other grids; the models and nomail by default, as w4os-wp).',
-            'avatars' => 'What is checked when an avatar is made (`[Avatars]` of Helpers.ini): `allowMultipleAvatars`, more than one avatar for an email (true by default; false refuses a new avatar whose email an avatar has, `email-taken`); `reservedNames`, the names no new avatar may have as its first or last name (Default, Test, Admin by default; the name of the grid always, `name-reserved`).',
+            'avatars' => 'Whether the grid takes new avatars (`registration`: open, the default, or closed: the grid announces no registration page, `register` of `[GridInfoService]` taken off and kept, given back when it opens again; Robust restarts to say it), and what is checked when an avatar is made (`[Avatars]` of Helpers.ini): `allowMultipleAvatars`, more than one avatar for an email (true by default; false refuses a new avatar whose email an avatar has, `email-taken`); `reservedNames`, the names no new avatar may have as its first or last name (Default, Test, Admin by default; the name of the grid always, `name-reserved`).',
             'economy' => 'The economy of the grid, as w4os-wp has it: the address of its helpers (`economy` of `[GridInfoService]`), its module chosen as w4os-wp chooses its provider (the free economy, the generic money server, Gloebit and its settings, or Podex: the generic money server, `[Helpers] CurrencyProvider = podex`), its database, the key of the money server, the rate and the settings of Podex the helpers use.',
             'search' => 'The search of the grid, as w4os-wp has it: what the simulators call and where they register (set by the options of the grid), the database of the search, the calendar of the events.',
             'guide' => 'The destinations guide of the grid, as w4os-wp has it: its address (`DestinationGuide` of `[LoginService]`) and its source (`GuideSource` of `[Helpers]`).',
@@ -243,6 +243,8 @@ final class GridSettings
         }
         // The offline messages: Robust's (V2) when the grid says no module
         $page === 'offline' && trim((string) ($values['offlineModule'] ?? '')) === '' && ($values['offlineModule'] = self::OFFLINE_V2);
+        // The registration: open when the grid says nothing
+        $page === 'avatars' && trim((string) ($values['registration'] ?? '')) === '' && ($values['registration'] = 'open');
         // The map: the simple one, OpenSimulator's, when the grid says none
         $page === 'map' && trim((string) ($values['mapImageModule'] ?? '')) === '' && ($values['mapImageModule'] = MapRenderer::SIMPLE);
         if (!$provide || !isset(self::PROVIDE[$page])) {
@@ -439,6 +441,18 @@ final class GridSettings
         }
         $now = $this->read($page);
         $before = $now;
+        // The registration closed: no registration page announced, the grid's kept; open again: the one kept, else the site's
+        if ($page === 'avatars' && isset($values['registration']) && $values['registration'] !== $now['registration']) {
+            in_array($values['registration'], ['open', 'closed'], true) || throw InvalidValue::because('invalid-request', "registration is 'open' or 'closed'");
+            $kept = trim((string) $this->config()->find('Avatars', 'RegisterPage'), " \t\"");
+            $site = trim(ConfigReader::replaceConstants((string) $this->config()->find('Const', 'WebURL'), $this->config()->section('Const')), " \t\"/");
+            $values['registerPage'] = $values['registration'] === 'closed'
+                ? ''
+                : ($kept !== '' ? $kept : ($site !== '' && !str_contains($site, '${') ? "$site/register" : ''));
+            $values['registerPageKept'] = $values['registration'] === 'closed' ? trim((string) $this->config()->find('GridInfoService', 'register'), " \t\"") : '';
+            $entries['registerPage'] = Settings::named('registerPage');
+            $entries['registerPageKept'] = Settings::named('registerPageKept');
+        }
         // The 3D map only where the simulators can write its tiles, in the folder their core reads, written with it
         if ($page === 'map' && strcasecmp(trim((string) ($values['mapImageModule'] ?? '')), MapRenderer::WARP3D) === 0) {
             ($notice = $this->warp3dNotice()) === null || throw InvalidValue::because('invalid-request', $notice['detail']);
@@ -491,9 +505,9 @@ final class GridSettings
         }
         foreach ($writes as [$entry, $value, $where]) {
             // Its default: what the grid uses when the setting says nothing (the database of Robust for the search); an empty address
-            // sent is the default too, never an empty key
-            $default = isset($entry['fallback']) && ((is_array($value) && filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN))
-                || (is_string($value) && trim($value) === ''));
+            // sent is the default too, never an empty key (a page the grid does not announce: its registration closed)
+            $default = (isset($entry['fallback']) && is_array($value) && filter_var($value['useDefault'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                || ((isset($entry['fallback']) || $entry['type'] === 'url') && is_string($value) && trim($value) === '');
             // A database in keys of its own (the money server) reads no other: the main database of the grid is written in them
             if ($default && isset($entry['parts'])) {
                 $main = \W4OS\Engine\Data\Database::Robust->connection($this->config()) ?? throw InvalidValue::because('invalid-request', "the grid says no main database to use for {$entry['name']}");
@@ -501,7 +515,11 @@ final class GridSettings
                 $default = false;
             }
             // The instances that read the file restart to take a value that changed (the helpers and the site read theirs each time)
-            ($value != ($before[$entry['name']] ?? null)) && isset($where['file']) && $this->restartFor((string) $where['file']);
+            // A setting written with the page that is not one of its fields (the registration page of Robust): its value in the files
+            $changed = array_key_exists($entry['name'], $before)
+                ? $value != $before[$entry['name']]
+                : trim((string) json_encode($value), '"') !== trim((string) json_encode(self::value($entry, $this->config()) ?? ''), '"');
+            $changed && isset($where['file']) && $this->restartFor((string) $where['file']);
             // false: the key commented out, as w4os-wp leaves the register the grid does not use
             if ($value === false) {
                 ($where['store'] ?? false) && $this->grid->environment()->settings->set($entry['section'], $entry['key'], '');

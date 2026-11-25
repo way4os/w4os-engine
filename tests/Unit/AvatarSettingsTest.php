@@ -42,7 +42,7 @@ describe('The settings of the avatars', function () {
         $form = GridSettings::form('avatars');
         $fields = array_column($form['fields'], null, 'name');
 
-        expect(array_keys($fields))->toBe(['allowMultipleAvatars', 'reservedNames'])
+        expect(array_keys($fields))->toBe(['registration', 'allowMultipleAvatars', 'reservedNames'])
             ->and($fields['allowMultipleAvatars'])->toMatchArray(['type' => 'boolean', 'default' => true, 'label' => 'setting_allow_multiple_avatars'])
             ->and($fields['reservedNames'])->toMatchArray(['type' => 'string', 'multiple' => true, 'default' => ['Default', 'Test', 'Admin'], 'label' => 'setting_reserved_names'])
             ->and(Catalog::MESSAGES[$form['title']])->toBe('Avatar Settings')
@@ -69,5 +69,35 @@ describe('The settings of the avatars', function () {
             ->and(avatar_refusal($staff, ['name' => 'Jane Mygrid']))->toBe('name-reserved')
             ->and(avatar_refusal($staff, ['name' => 'Test Person']))->toBeNull()
             ->and(avatar_refusal(avatar_settings_grid(), ['name' => 'Test Someone']))->toBe('name-reserved');
+    });
+});
+
+describe('The registration of the grid', function () {
+    test('is open by default; closed, the grid announces no registration page, its old one kept and given back when it opens again', function () {
+        $machine = new W4OS\Engine\Testing\Machine();
+        $robust = $machine->grid . '/Robust.HG.ini';
+        $machine->write($robust, str_replace("[Const]\n", "[Const]\n    WebURL = \"https://play.example.org\"\n", (string) file_get_contents($robust)) . "\n[GridInfoService]\n    register = \"https://play.example.org/join\"\n");
+        $grid = static fn(): W4OS\Engine\Models\Grid => W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $register = static fn(): ?string => W4OS\Engine\Config\ConfigReader::file($robust)['GridInfoService']['register'] ?? null;
+        $form = array_column(GridSettings::form('avatars')['fields'], null, 'name')['registration'] ?? [];
+
+        $open = (new GridSettings($grid()))->read('avatars')['registration'];
+        $closing = new GridSettings($grid());
+        $closing->write('avatars', ['registration' => 'closed']);
+        $closed = [(new GridSettings($grid()))->read('avatars')['registration'], $register()];
+        (new GridSettings($grid()))->write('avatars', ['registration' => 'open']);
+        $reopened = $register();
+        // Closed again then opened with no page kept: the register page of the site
+        (new GridSettings($grid()))->write('avatars', ['registration' => 'closed']);
+        file_put_contents($machine->grid . '/Helpers.ini', preg_replace('/^\s*RegisterPage\s*=.*$/m', '', (string) file_get_contents($machine->grid . '/Helpers.ini')));
+        (new GridSettings($grid()))->write('avatars', ['registration' => 'open']);
+
+        expect($form)->toMatchArray(['type' => 'select', 'options' => ['open' => 'registration_open', 'closed' => 'registration_closed']])
+            ->and($open)->toBe('open')
+            ->and($closed)->toBe(['closed', null])
+            ->and(array_column($closing->reminders(), 'code'))->toContain('restart-grid')
+            // Written with the constant of the site, as the engine writes its addresses
+            ->and(trim((string) $reopened, '"'))->toBe('${Const|WebURL}/join')
+            ->and(trim((string) $register(), '"'))->toBe('${Const|WebURL}/register');
     });
 });

@@ -17,7 +17,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "aa741be",
+        "version": "d88df31",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -11183,7 +11183,7 @@
                     "Settings"
                 ],
                 "summary": "The settings of the grid: avatars",
-                "description": "What is checked when an avatar is made (`[Avatars]` of Helpers.ini): `allowMultipleAvatars`, more than one avatar for an email (true by default; false refuses a new avatar whose email an avatar has, `email-taken`); `reservedNames`, the names no new avatar may have as its first or last name (Default, Test, Admin by default; the name of the grid always, `name-reserved`).",
+                "description": "Whether the grid takes new avatars (`registration`: open, the default, or closed: the grid announces no registration page, `register` of `[GridInfoService]` taken off and kept, given back when it opens again; Robust restarts to say it), and what is checked when an avatar is made (`[Avatars]` of Helpers.ini): `allowMultipleAvatars`, more than one avatar for an email (true by default; false refuses a new avatar whose email an avatar has, `email-taken`); `reservedNames`, the names no new avatar may have as its first or last name (Default, Test, Admin by default; the name of the grid always, `name-reserved`).",
                 "parameters": [
                     {
                         "name": "grid",
@@ -11199,6 +11199,16 @@
                     "title": "settings_avatars",
                     "menu": "settings_avatars",
                     "fields": [
+                        {
+                            "name": "registration",
+                            "type": "select",
+                            "label": "setting_registration",
+                            "options": {
+                                "open": "registration_open",
+                                "closed": "registration_closed"
+                            },
+                            "description": "setting_registration_help"
+                        },
                         {
                             "name": "allowMultipleAvatars",
                             "type": "boolean",
@@ -11279,6 +11289,13 @@
                                             "attributes": {
                                                 "type": "object",
                                                 "properties": {
+                                                    "registration": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "open",
+                                                            "closed"
+                                                        ]
+                                                    },
                                                     "allowMultipleAvatars": {
                                                         "type": "boolean"
                                                     },

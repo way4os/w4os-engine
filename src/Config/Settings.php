@@ -204,6 +204,9 @@ final class Settings
             ],
             // Checked when an avatar is made (Avatar::check())
             'Avatars' => [
+                // Whether the grid takes new avatars: closed, it announces no registration page (its own kept in RegisterPage)
+                'Registration' => ['name' => 'registration', 'type' => 'select', 'label' => 'setting_registration', 'options' => ['open' => 'registration_open', 'closed' => 'registration_closed'], 'admin' => 'avatars'],
+                'RegisterPage' => ['name' => 'registerPageKept', 'type' => 'text', 'label' => 'setting_register'],
                 'AllowMultipleAvatars' => ['name' => 'allowMultipleAvatars', 'type' => 'bool', 'label' => 'setting_allow_multiple_avatars', 'default' => true, 'admin' => 'avatars'],
                 'ReservedNames' => ['name' => 'reservedNames', 'type' => 'text', 'label' => 'setting_reserved_names', 'multiple' => true, 'default' => \W4OS\Engine\Models\Avatar::RESERVED_NAMES, 'admin' => 'avatars'],
             ],
