@@ -207,8 +207,25 @@ final class HealthCheck
     {
         $groups = Health::describe($groups, static fn(string $url): bool => $grid->servedByHelpers($url));
 
+        // What a wrong or missing address should be, only an address that is served
+        $groups = Health::expect($groups, (new GridOptions($grid))->expected(), $config?->section('Const') ?? []);
+        $suggested = [];
+        foreach ($groups as $group) {
+            foreach ($group['rows'] as $row) {
+                isset($row['expected']) && ($suggested[] = (string) $row['expected']);
+            }
+        }
+        $served = $suggested === [] ? [] : Health::served($suggested);
+        foreach ($groups as $g => $group) {
+            foreach ($group['rows'] as $r => $row) {
+                if (isset($row['expected']) && Health::isUrl((string) $row['expected']) && !($served[$row['expected']] ?? false)) {
+                    unset($groups[$g]['rows'][$r]['expected'], $groups[$g]['rows'][$r]['snippet']);
+                }
+            }
+        }
+
         // The texts of each line by their key, for a site to say them in its language
-        return Health::withTexts(Health::expect($groups, (new GridOptions($grid))->expected(), $config?->section('Const') ?? []));
+        return Health::withTexts($groups);
     }
 
     /**

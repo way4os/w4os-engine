@@ -3140,6 +3140,14 @@ msgctxt "health_offline_robust"
 msgid "served by Robust (module V2)"
 msgstr ""
 
+msgctxt "health_search_is_service"
+msgid "this is the search the simulators call (XML-RPC), not a page: give the web search page of the site instead"
+msgstr ""
+
+msgctxt "health_search_is_robust"
+msgid "this is the address of Robust, which has no search page: give the web search page of the site instead"
+msgstr ""
+
 #, php-format
 msgctxt "health_offline_unused"
 msgid "set, but the module V2 does not use it (Robust keeps the offline messages): remove %s"

@@ -191,7 +191,7 @@ describe('An address', function () {
             ->and($fast)
             ->toMatchArray(['level' => 'ok', 'status' => '200'])
             ->and(Health::TIMEOUT)
-            ->toBe(3)
+            ->toBe(5)
             ->and(Health::RETRY_TIMEOUT)
             ->toBeGreaterThan(Health::TIMEOUT);
     });
@@ -258,7 +258,7 @@ describe('An address', function () {
             );
 
             expect($search)
-                ->toMatchArray(['method' => 'post', 'body' => '', 'expect' => [400, 405], 'tag' => 'without data'])
+                ->toMatchArray(['method' => 'post', 'body' => '', 'expect' => [400, 401, 405], 'tag' => 'without data'])
                 ->and($good)
                 ->toMatchArray(['method' => 'xmlrpc', 'tag' => 'with valid XMLRPC request'])
                 ->and($good['body'])
@@ -862,11 +862,12 @@ describe('sections of a grid', function () {
                 ->toMatchArray(['kind' => 'secret', 'set' => true, 'level' => 'ok', 'status' => 'set'])
                 ->and(json_encode($row($key)))
                 ->not->toContain('a-secret-key')
-                ->and($row(['Economy' => ['economymodule' => 'Gloebit']]))
+                // The money server's currency without its key: an error
+                ->and($row(['Economy' => ['economymodule' => 'DTLNSLMoneyModule']]))
                 ->toMatchArray(['level' => 'error', 'status' => 'missing'])
-                // A grid without a currency needs none, and says nothing
-                ->and($row(['Economy' => ['economymodule' => 'BetaGridLikeMoneyModule']]))
-                ->toMatchArray(['level' => 'unset', 'reason' => 'health_unset']);
+                // A grid without a money server (no currency, Gloebit) needs none, and says nothing of it
+                ->and(array_column(array_merge(...array_column(Health::grid($in(['Economy' => ['economymodule' => 'BetaGridLikeMoneyModule']])), 'rows')), 'label'))
+                ->not->toContain('MoneyScriptAccessKey');
         },
     );
 });
@@ -1219,5 +1220,32 @@ describe('The offline messages of the helpers in the grid info', function () {
         expect($offline('https://grid.example.org/helpers/offline.php'))->toMatchArray(['label' => 'OfflineMessageURL', 'level' => 'error'])
             ->and($offline('http://127.0.0.1:8003')['level'])->not->toBe('error')
             ->and($offline('')['level'])->not->toBe('error');
+    });
+});
+
+describe('The health of the kimbe copy', function () {
+    $rows = static fn(array $in): array => array_merge(...array_column(Health::grid($in), 'rows'));
+
+    test('says how to fix a web search given the service of the simulators, and a SearchURL that is Robust itself', function () use ($rows) {
+        $config = new GridConfig(['Robust' => ['Const' => ['BaseURL' => 'http://kimbe.example.org', 'PublicPort' => '9700'], 'LoginService' => ['SearchURL' => '${Const|BaseURL}:${Const|PublicPort}/']]]);
+        $all = array_column(array_filter($rows(['live' => ['search' => 'https://kimbe.example.org/helper/query.php'], 'config' => $config]), static fn(array $row): bool => isset($row['url'])), null, 'label');
+
+        expect($all['search']['detail'] ?? '')->toContain('not a page')
+            ->and($all['SearchURL']['detail'] ?? '')->toContain('address of Robust');
+    });
+
+    test('asks a profile given without [AGENT_NAME] with the name of an avatar, as the viewers add it', function () use ($rows) {
+        $row = array_column($rows(['live' => ['web_profile_url' => 'https://kimbe.example.org/opensim/profile'], 'owner' => 'Jane.Doe']), null, 'label')['web_profile_url'];
+
+        expect($row['url'])->toBe('https://kimbe.example.org/opensim/profile/Jane.Doe')
+            ->and($row['display'])->toBe('https://kimbe.example.org/opensim/profile');
+    });
+
+    test('takes a refusal of a service called with nothing (401 too), and leaves the key of a money server the grid has not', function () use ($rows) {
+        $config = new GridConfig(['Robust' => ['Economy' => ['economymodule' => 'Gloebit']]]);
+
+        expect(Health::BARE)->toContain(400, 401, 405)
+            ->and(array_column($rows(['live' => [], 'config' => $config]), 'label'))->not->toContain('MoneyScriptAccessKey')
+            ->and(Health::served(['http://127.0.0.1:1/nothing']))->toBe(['http://127.0.0.1:1/nothing' => false]);
     });
 });

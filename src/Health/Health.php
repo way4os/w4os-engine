@@ -30,10 +30,10 @@ use W4OS\Engine\Config\GridConfig;
 class Health
 {
     /** How long an address has to answer, in seconds. */
-    const TIMEOUT = 3;
+    const TIMEOUT = 5;
 
     /** How long an address that took too long has, asked again (a page made after a deploy, a cache to fill): slow when it answers. */
-    const RETRY_TIMEOUT = 10;
+    const RETRY_TIMEOUT = 20;
 
     /** How many addresses are asked at once: the pages of a site call back the engine, and a small pool of workers serves both. */
     const CONCURRENCY = 2;
@@ -50,8 +50,8 @@ class Health
      */
     const GRID_ADDRESSES = ['login', 'gatekeeper', 'uas'];
 
-    /** What a service answers to a call with nothing in it, or with the wrong method. */
-    const BARE = [400, 405];
+    /** What a service answers to a call with nothing in it, or with the wrong method (401: it asks who calls, as the helpers do). */
+    const BARE = [400, 401, 405];
 
     /** @var array{register?:string,helpers?:?callable,offlineByRobust?:bool} the site of the grid being checked (grid()), and whether Robust keeps its offline messages (V2) */
     private static $site = [];
@@ -225,7 +225,12 @@ class Health
         $value = (string) $config->find($entry['section'], $entry['key']);
         switch ($entry['health']) {
             case 'login-search':
-                return [self::loginSearch($value, $given['search'] ?? '')];
+                $row = self::loginSearch($value, $given['search'] ?? '');
+                // The address of Robust itself: no search page is there
+                $robust = $config->has('Robust') ? rtrim(\W4OS\Engine\Config\ConfigReader::replaceConstants((string) $config->find('Const', 'BaseURL'), $config->section('Const')), '/') . ':' . $config->find('Const', 'PublicPort') : '';
+                $value !== '' && $robust !== ':' && rtrim(\W4OS\Engine\Config\ConfigReader::replaceConstants($value, $config->section('Const')), '/') === $robust && ($row['detail'] = self::say('health_search_is_robust'));
+
+                return [$row];
             case 'xmlrpc':
                 // What the simulators call for the search
                 return $value === ''
@@ -249,7 +254,11 @@ class Health
                 // helpers tie the quotes with their default key, which a money server of the grid does not share: an error for a grid
                 // that has a currency
                 $module = strtolower((string) $config->find('Economy', 'economymodule'));
-                $needed = $module !== '' && $module !== 'betagridlikemoneymodule';
+                // The key of the money server: nothing to say of a grid that runs none (Gloebit, the free economy)
+                if ($config->section('MoneyServer') === [] && $module !== 'dtlnslmoneymodule') {
+                    return [];
+                }
+                $needed = $module === 'dtlnslmoneymodule';
                 $has = trim($value) !== '';
 
                 return [
@@ -322,6 +331,12 @@ class Health
         } elseif ($key === 'search') {
             // The web page of the search, not the service the simulators call
             $row['tag'] = self::say('health_web_search');
+            // query.php is that service (XML-RPC): what to give instead
+            preg_match('#/query\.php/?$#i', (string) parse_url($value, PHP_URL_PATH)) === 1 && ($row['detail'] = self::say('health_search_is_service'));
+        } elseif ($key === 'web_profile_url' && $owner !== null && !str_contains($value, '[AGENT_NAME]')) {
+            // An address without the name: the viewers add it, as the name of the owner of the grid here
+            $row['url'] = \W4OS\Engine\Models\Avatar::profileAt(rtrim($value, '/') . '/[AGENT_NAME]', $owner) ?? $value;
+            $row['display'] = $value;
         } elseif (str_contains($value, '[AGENT_NAME]')) {
             // What the grid says is the address without the name, which is not a page (a teapot); the one with the name of an avatar
             // is the one of the config
@@ -399,6 +414,20 @@ class Health
         }
 
         return self::page('SearchURL', $value, self::say('health_web_search'));
+    }
+
+    /**
+     * Whether addresses are served: something answers there that is not a 404 (a page, a service refusing a call with nothing).
+     *
+     * @param list<string> $urls
+     * @return array<string,bool>
+     */
+    public static function served(array $urls, $timeout = self::TIMEOUT)
+    {
+        $urls = array_values(array_unique(array_filter($urls, static fn($url): bool => self::isUrl((string) $url))));
+        $answers = self::ask(array_combine($urls, array_map(static fn(string $url): array => ['url' => $url], $urls)) ?: [], $timeout);
+
+        return array_map(static fn(array $answer): bool => $answer['code'] > 0 && $answer['code'] !== 404, $answers);
     }
 
     /** The row of an address that is not set: neither served nor tested (`unset`, `health_unset` says why), not a wrong one. */
