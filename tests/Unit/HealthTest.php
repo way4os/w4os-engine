@@ -626,7 +626,7 @@ describe('sections of a grid', function () {
                     'OpenSim.ini [Search]',
                     'OpenSim.ini [DataSnapshot]',
                     'OpenSim.ini [Messaging]',
-                    'MoneyServer.ini [MoneyServer]',
+                    // No [MoneyServer]: the grid runs no money server
                 ])
                 // The ones of Robust.HG.ini.example, not what the example does not have (uas is the one of a standalone)
                 ->and(array_column($rows['Robust.HG.ini [GridInfoService]'], 'label'))
@@ -728,7 +728,6 @@ describe('sections of a grid', function () {
                 'OpenSim.ini',
                 'OpenSim.ini',
                 'OpenSim.ini',
-                'MoneyServer.ini',
             ]);
         },
     );

@@ -1183,6 +1183,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -1226,6 +1227,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -1263,6 +1265,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -1306,6 +1309,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -1673,6 +1677,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -1716,6 +1721,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -1753,6 +1759,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -1796,6 +1803,7 @@
                         "body": "",
                         "expect": [
                             400,
+                            401,
                             405
                         ],
                         "refuse": true,
@@ -2279,27 +2287,6 @@
                         },
                         "name": "setting_offline_module",
                         "description": "setting_offline_module_help"
-                    }
-                ]
-            },
-            {
-                "file": "MoneyServer.ini",
-                "title": "[MoneyServer]",
-                "rows": [
-                    {
-                        "label": "MoneyScriptAccessKey",
-                        "kind": "secret",
-                        "set": false,
-                        "level": "unset",
-                        "reason": "health_unset",
-                        "context": {
-                            "instance": "moneyserver",
-                            "file": "MoneyServer.ini",
-                            "section": "MoneyServer",
-                            "key": "MoneyScriptAccessKey"
-                        },
-                        "name": "setting_money_script_key",
-                        "description": "setting_money_script_key_help"
                     }
                 ]
             },

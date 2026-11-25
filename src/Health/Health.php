@@ -210,7 +210,8 @@ class Health
             array_push($sections[$id]['rows'], ...self::settingRows($entry, $config, $owner, $given));
         }
 
-        return [...$groups, ...array_values($sections)];
+        // A section left without a line (the key of a money server the grid has not) is not shown
+        return [...$groups, ...array_values(array_filter($sections, static fn(array $section): bool => $section['rows'] !== []))];
     }
 
     /**
