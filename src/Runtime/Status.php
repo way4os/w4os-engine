@@ -88,6 +88,31 @@ final class Status
     }
 
     /**
+     * The simulators that draw the simple map (MapImageModule) because their core cannot give them the 3D one: the core of the
+     * release, without MapTilesDirectory, in a folder they cannot write (MapRenderer). By core: what would, and the simulators.
+     *
+     * @param string $account the account they run as (SystemUser), empty for the one running this code
+     * @return array<string,array{remedy:string,simulators:list<string>}>
+     */
+    public function simpleMaps(string $account = ''): array
+    {
+        $simple = [];
+        foreach ($this->instances as $instance) {
+            $core = $instance instanceof \W4OS\Engine\Controllers\OpenSimController ? (string) $instance->core()?->directory() : '';
+            if ($core === '' || \W4OS\Engine\Provisioning\MapRenderer::hasFolderSetting($core)) {
+                continue;
+            }
+            $module = trim((string) (\W4OS\Engine\Config\ConfigReader::expand($instance->settings())['Map']['MapImageModule'] ?? ''), " \t\"");
+            if (strcasecmp($module, \W4OS\Engine\Provisioning\MapRenderer::WARP3D) !== 0 && \W4OS\Engine\Provisioning\MapRenderer::whyNotWarp3D($core, '', $account) !== null) {
+                $simple[$core]['remedy'] = \W4OS\Engine\Provisioning\MapRenderer::remedy($core);
+                $simple[$core]['simulators'][] = $instance->name();
+            }
+        }
+
+        return $simple;
+    }
+
+    /**
      * The Robusts that run and answer `/get_grid_info` with what a viewer refuses: not UTF-8, or not well-formed XML
      * (GridInfoReader::defect()).
      *

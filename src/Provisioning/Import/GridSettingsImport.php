@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace W4OS\Engine\Provisioning\Import;
 
+use W4OS\Engine\Provisioning\MapRenderer;
 use W4OS\Engine\Config\ConfigReader;
 use W4OS\Engine\Config\IniEditor;
 use W4OS\Engine\Exceptions\InvalidValue;
@@ -91,6 +92,12 @@ final class GridSettingsImport
             }
         }
         $gloebit = strtolower(trim($values['economy']['economymodule'][2] ?? '')) === 'gloebit';
+        // The 3D map kept where its simulators can draw it: on a core that reads MapTilesDirectory, in their cache (MapRenderer)
+        $core = $grid->coreDirectory();
+        $map = ['folder' => MapRenderer::hasFolderSetting($core) ? MapRenderer::FOLDER : '', 'account' => $environment->layout->systemUser()];
+        if ($map['folder'] !== '' && strcasecmp(trim((string) ($values['map']['mapimagemodule'][2] ?? ''), " \t\""), MapRenderer::WARP3D) === 0) {
+            $values['map']['maptilesdirectory'] = ['Map', 'MapTilesDirectory', '"' . MapRenderer::FOLDER . '"'];
+        }
         $gloebitFile = rtrim($grid->directory(), '/') . '/Gloebit.ini';
         // Where the settings of the simulators go: the OpenSim.ini of the grid, which its master gives them all; a grid without a
         // master has simulators whose config is whole, each its own place (SimulatorConfig)
@@ -107,9 +114,10 @@ final class GridSettingsImport
             $define = [];
             foreach ($values as $lower => $keys) {
                 foreach ($keys as $key => [$section, $name, $value]) {
-                    $retired = \W4OS\Engine\Provisioning\RetiredSettings::why($section, $name, $value, $grid->coreDirectory());
+                    $retired = \W4OS\Engine\Provisioning\RetiredSettings::why($section, $name, $value, $core, $map);
+                    $ours = strcasecmp($name, 'MapTilesDirectory') === 0 && trim($value, " \t\"") === MapRenderer::FOLDER;
                     $reason = match (true) {
-                        preg_match('/(Directory|Path|Dir|Location)$/i', $name) === 1 => null, // a folder of the old simulators
+                        !$ours && preg_match('/(Directory|Path|Dir|Location)$/i', $name) === 1 => null, // a folder of the old simulators
                         $retired !== null => "$section/$name: $retired, left out",
                         in_array("$lower/$key", self::RETIRED, true),
                         $key === 'economymodule' && in_array(strtolower(trim($value)), self::RETIRED_MODULES, true) => "$section/$name: the money of DTL/NSL is not handled (old code, to install by hand), left out",

@@ -74,13 +74,16 @@ final class GridCompletion
     private static function retired(Environment $environment, string $dir): array
     {
         try {
-            $core = Grid::at($environment, $dir)->coreDirectory() ?: $environment->layout->coreDirectory();
+            $grid = Grid::at($environment, $dir);
+            $core = $grid->coreDirectory() ?: $environment->layout->coreDirectory();
         } catch (\Throwable) {
             return [];
         }
+        // The folder of the map tiles the grid gives its simulators, and the account they run as (MapRenderer)
+        $context = ['folder' => trim((string) $grid->config()?->find('Map', 'MapTilesDirectory'), " \t\""), 'account' => $environment->layout->systemUser()];
         $changed = [];
         foreach ([...(glob("$dir/*.ini") ?: []), ...(glob("$dir/*/*.ini") ?: [])] as $file) {
-            ($count = RetiredSettings::repair($file, $core)) > 0 && ($changed[$file] = $count);
+            ($count = RetiredSettings::repair($file, $core, $context)) > 0 && ($changed[$file] = $count);
         }
 
         return $changed;

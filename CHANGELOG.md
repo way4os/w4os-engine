@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (map): the 3D map (Warp3D) by default where the simulators can write their tiles; else the simple map, and what would give it
 - fix (guide): a kept picture of another grid found whatever the spelling of its address, an earlier one too
 - fix (map): MapTileURL of the config first; a grid only described here has its tiles where it logs in
 - change (motd): the help of its block says the grid's own message first

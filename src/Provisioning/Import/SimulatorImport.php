@@ -139,9 +139,17 @@ final class SimulatorImport
             array_values(array_unique(array_filter($roots, static fn(string $root): bool => $root !== '' && $root !== '/'))),
             array_map(static fn(array $values): array => array_map(static fn($v): string => trim((string) $v, '"'), $values), $layout),
         );
-        // What stops a simulator of this core is left to its default (RetiredSettings)
+        // What stops a simulator of this core is left to its default (RetiredSettings); the 3D map kept where it can be drawn, in
+        // the cache of the simulator on a core that reads MapTilesDirectory (MapRenderer)
+        $mapFolder = \W4OS\Engine\Provisioning\MapRenderer::hasFolderSetting($core) ? $plan->cacheDirectory . '/maptiles' : '';
+        $map = ['folder' => $mapFolder, 'account' => $environment->layout->systemUser()];
         foreach ($customizations as $i => $setting) {
-            $why = \W4OS\Engine\Provisioning\RetiredSettings::why($setting['section'], $setting['key'], $setting['value'], $core);
+            $warp3d = strcasecmp($setting['section'], 'Map') === 0 && strcasecmp($setting['key'], 'MapImageModule') === 0
+                && strcasecmp(trim((string) $setting['value'], " \t\""), \W4OS\Engine\Provisioning\MapRenderer::WARP3D) === 0;
+            if ($warp3d && $mapFolder !== '' && !in_array('map/maptilesdirectory', array_map(static fn(array $s): string => strtolower("{$s['section']}/{$s['key']}"), $customizations), true)) {
+                $customizations[] = ['section' => 'Map', 'key' => 'MapTilesDirectory', 'value' => '"' . \W4OS\Engine\Provisioning\MapRenderer::FOLDER . '"', 'unknown' => false, 'path' => true];
+            }
+            $why = \W4OS\Engine\Provisioning\RetiredSettings::why($setting['section'], $setting['key'], $setting['value'], $core, $map);
             if ($why !== null) {
                 $dropped[] = ['section' => $setting['section'], 'key' => $setting['key'], 'value' => $setting['value'], 'reason' => 'retired', 'replacement' => $why];
                 unset($customizations[$i]);

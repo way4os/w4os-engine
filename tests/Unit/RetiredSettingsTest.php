@@ -50,7 +50,7 @@ describe('A setting that stops a simulator of its core', function () {
 
         expect($done)->toContain('1 setting that stop a simulator of its core commented in sims/')
             ->and($again)->not->toContain('stop a simulator')
-            ->and($text)->toContain('    ; MapImageModule = "Warp3DImageModule" ; Warp3DImageModule stops a simulator of OpenSimulator 0.9.3')
+            ->and($text)->toContain('    ; MapImageModule = "Warp3DImageModule" ; Warp3DImageModule writes the map tile of a region in the bin folder of OpenSimulator 0.9.3.0, read-only: MapImageModule')
             ->toContain("    ; MapImageModule = \"Warp3DImageModule\"\n")
             ->toContain('    GenerateMaptiles = true');
     });

@@ -958,6 +958,12 @@ final class GridOptions
             $word === 'hypergrid' => $this->grid->isHypergrid(),
             $word === 'helpers' => $prefix !== '' || $this->grid->hasHelpers(),
             $word === 'master' => $this->layered(),
+            // Its simulators can write their map tile, in their cache when the core reads MapTilesDirectory (MapRenderer)
+            $word === 'warp3d' => MapRenderer::whyNotWarp3D(
+                $core = $this->grid->coreDirectory() ?: $this->grid->environment()->layout->coreDirectory(),
+                MapRenderer::hasFolderSetting($core) ? $this->grid->cacheDirectory() : '',
+                $this->grid->environment()->layout->systemUser(),
+            ) === null,
             str_starts_with($word, 'service:') => $prefix !== '' || $this->grid->helperUrl(substr($word, 8)) !== '',
             str_starts_with($word, 'connector:') => in_array(
                 strtolower(substr($word, 10)),
