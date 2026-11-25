@@ -298,6 +298,14 @@ final class Region extends Model implements Reachable, \W4OS\Engine\Assets\Pictu
         return $owner !== '' && $owner !== '00000000-0000-0000-0000-000000000000' ? $owner : null;
     }
 
+    /** The name of its owner, when the grid has its account (all() reads them), null otherwise. */
+    public function ownerName(): ?string
+    {
+        $name = trim((string) ($this->row['ownerName'] ?? ''));
+
+        return $name === '' ? null : $name;
+    }
+
     public function flags(): int
     {
         return (int) ($this->row['flags'] ?? 0);

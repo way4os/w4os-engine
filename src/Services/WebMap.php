@@ -85,9 +85,11 @@ final class WebMap
 
     /**
      * The regions of the map, the links to other grids left out: each `uuid`, `name`, `x` and `y` (in regions of 256 m, from the
-     * bottom left), `sizeX` and `sizeY` (in meters), `online` and `tpLinks` (by client, as the results of the search give them:
-     * `viewer` and `browser`, each by Destination format); the `bounds` of the grid in regions (the max excluded), the `center`
-     * (the middle of the default region, else of the grid), null for both without a region. Null when the grid has no map.
+     * bottom left), `sizeX` and `sizeY` (in meters), `online`, `tpLinks` (by client, as the results of the search give them:
+     * `viewer` and `browser`, each by Destination format), and what the world map of the viewers says of it: `type` (its RegionType
+     * as the grid wrote it), `estate` (its name) and `owner` (the name of the owner of its estate, else of the region), each null
+     * where it is not known here; the `bounds` of the grid in regions (the max excluded), the `center` (the middle of the default
+     * region, else of the grid), null for both without a region. Null when the grid has no map.
      *
      * @return ?array{regions:list<array<string,mixed>>,bounds:?array{minX:int,minY:int,maxX:int,maxY:int},center:?array{x:float,y:float}}
      */
@@ -97,6 +99,7 @@ final class WebMap
             return null;
         }
         $regions = $this->known() ?: [];
+        [$types, $estates] = $this->described();
         $list = [];
         $bounds = null;
         $default = null;
@@ -111,6 +114,9 @@ final class WebMap
                 'sizeY' => $region->height(),
                 'online' => $region->isOnline(),
                 'tpLinks' => array_combine(Destination::CLIENTS, array_map(static fn(string $client): array => $region->tpLinks($client), Destination::CLIENTS)),
+                'type' => $types[strtolower((string) $region->uuid())] ?? null,
+                'estate' => ($estate = $estates[strtolower((string) $region->uuid())] ?? null)?->name(),
+                'owner' => $estate?->ownerName() ?? $region->ownerName(),
             ];
             $bounds = [
                 'minX' => min($bounds['minX'] ?? $x, $x),
@@ -127,6 +133,35 @@ final class WebMap
             'bounds' => $bounds,
             'center' => $center === null ? null : ['x' => (float) $center['x'], 'y' => (float) $center['y']],
         ];
+    }
+
+    /**
+     * The types of the regions as their files say them, and their estates, by UUID: what the files and the databases here know.
+     *
+     * @return array{0:array<string,string>,1:array<string,\W4OS\Engine\Models\Estate>}
+     */
+    private function described(): array
+    {
+        $config = $this->grid->config();
+        if ($config === null) {
+            return [[], []];
+        }
+        $types = [];
+        foreach (Region::configured($config) as $local) {
+            $local->uuid() === null || $local->type() === null || ($types[strtolower($local->uuid())] = $local->type());
+        }
+        $estates = [];
+        try {
+            foreach (\W4OS\Engine\Models\Estate::all($config)->items() as $estate) {
+                foreach ($estate->regions() as $uuid) {
+                    $estates[$uuid] ??= $estate;
+                }
+            }
+        } catch (\Throwable) {
+            // No database of estates here: none said
+        }
+
+        return [$types, $estates];
     }
 
     /** Whether no region of the grid is in the square of regions from x,y: false when its regions cannot be read. */

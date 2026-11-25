@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 'OpenSim engine'
-  version: e77749e
+  version: '23848e5'
   license:
     name: AGPL-3.0-or-later
     identifier: AGPL-3.0-or-later
@@ -9262,7 +9262,7 @@ paths:
                     type: array
                     items:
                       type: object
-                      properties: { type: { const: map-region }, id: { type: string, description: 'The UUID of the region' }, attributes: { type: object, properties: { uuid: { type: string }, name: { type: string }, x: { type: integer, description: 'In regions of 256 m' }, 'y': { type: integer, description: 'In regions of 256 m' }, sizeX: { type: integer, description: 'In meters' }, sizeY: { type: integer, description: 'In meters' }, online: { type: boolean }, tpLinks: { type: object, description: 'Its teleport links by client (`viewer`, `browser`), as the results of the search give them: by Destination format, the one AUTO gives first, then the other ones that fit, then its address to copy, each `link`, `label` (the key of the catalog naming it in a menu) and `action`', additionalProperties: { type: object, additionalProperties: { type: object, properties: { link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy, addgrid] } } } } } } } }
+                      properties: { type: { const: map-region }, id: { type: string, description: 'The UUID of the region' }, attributes: { type: object, properties: { uuid: { type: string }, name: { type: string }, x: { type: integer, description: 'In regions of 256 m' }, 'y': { type: integer, description: 'In regions of 256 m' }, sizeX: { type: integer, description: 'In meters' }, sizeY: { type: integer, description: 'In meters' }, online: { type: boolean }, type: { type: [string, 'null'], description: 'Its RegionType as the grid wrote it (Mainland, Private...), null where its file is not here or says none' }, estate: { type: [string, 'null'], description: 'The name of its estate, null where the estates are not read here' }, owner: { type: [string, 'null'], description: 'The name of the owner of its estate, else of the region' }, tpLinks: { type: object, description: 'Its teleport links by client (`viewer`, `browser`), as the results of the search give them: by Destination format, the one AUTO gives first, then the other ones that fit, then its address to copy, each `link`, `label` (the key of the catalog naming it in a menu) and `action`', additionalProperties: { type: object, additionalProperties: { type: object, properties: { link: { type: string }, label: { type: string }, action: { type: string, enum: [teleport, map, copy, addgrid] } } } } } } } }
                   meta:
                     type: object
                     properties:

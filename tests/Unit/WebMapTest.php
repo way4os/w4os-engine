@@ -30,6 +30,8 @@ function map_grid(bool $map = true, bool $tilesFolder = false, bool $default = t
     $ini = (string) file_get_contents($robust);
     $map && ($ini = str_replace("[ServiceList]\n", "[ServiceList]\n    MapGetServiceConnector = \"\${Const|PublicPort}/OpenSim.Server.Handlers.dll:MapGetServiceConnector\"\n", $ini)
         . "\n[MapImageService]\n    LocalServiceModule = \"OpenSim.Services.MapImageService.dll:MapImageService\"\n    TilesStoragePath = \"\${Const|DataDirectory}/maptiles\"\n");
+    // The estates of the grid in its database, served by its Robust
+    $ini = str_replace("[ServiceList]\n", "[ServiceList]\n    EstateDataService = \"\${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector\"\n", $ini);
     $machine->write($robust, $ini . "\n[Hypergrid]\n    GatekeeperURI = \"http://grid.example.org:8002\"\n");
     $pdo = new OSPDO(['driver' => 'sqlite', 'name' => ':memory:']);
     $pdo->exec('CREATE TABLE regions (uuid VARCHAR(36) PRIMARY KEY, regionHandle BIGINT, regionName VARCHAR(128), locX INT, locY INT, sizeX INT DEFAULT 0, sizeY INT DEFAULT 0, serverIP VARCHAR(64), serverPort INT, serverURI VARCHAR(255), flags INT DEFAULT 0, last_seen INT DEFAULT 0, owner_uuid CHAR(36), access INT DEFAULT 21, ScopeID CHAR(36), regionMapTexture VARCHAR(36))');
@@ -42,6 +44,18 @@ function map_grid(bool $map = true, bool $tilesFolder = false, bool $default = t
     ] as [$uuid, $name, $x, $y, $sizeX, $sizeY, $flags]) {
         $insert->execute([$uuid, $name, $x * 256, $y * 256, $sizeX, $sizeY, $flags]);
     }
+    // Welcome: of Ada, in her estate Main, a Mainland as its file says it
+    $pdo->exec("UPDATE regions SET owner_uuid = 'aaaaaaaa-0000-0000-0000-000000000001' WHERE regionName = 'Welcome'");
+    $pdo->exec('CREATE TABLE UserAccounts (PrincipalID CHAR(36), ScopeID CHAR(36), FirstName VARCHAR(64), LastName VARCHAR(64), Email VARCHAR(64), ServiceURLs TEXT, Created INT, UserLevel INT DEFAULT 0, UserFlags INT DEFAULT 0, UserTitle VARCHAR(64), active INT DEFAULT 1)');
+    $pdo->exec("INSERT INTO UserAccounts (PrincipalID, FirstName, LastName) VALUES ('aaaaaaaa-0000-0000-0000-000000000001', 'Ada', 'Lovelace')");
+    $pdo->exec('CREATE TABLE estate_settings (EstateID INTEGER PRIMARY KEY, EstateName VARCHAR(64), EstateOwner CHAR(36), ParentEstateID INT DEFAULT 0, PublicAccess INT DEFAULT 1, DenyAnonymous INT DEFAULT 0, PricePerMeter INT DEFAULT 1, AllowEnviromentOverride INT DEFAULT 0)');
+    foreach (['estate_map (RegionID CHAR(36), EstateID INT)', 'estate_managers (EstateID INT, uuid CHAR(36))', 'estate_users (EstateID INT, uuid CHAR(36))', 'estate_groups (EstateID INT, uuid CHAR(36))'] as $table) {
+        $pdo->exec("CREATE TABLE $table");
+    }
+    $pdo->exec('CREATE TABLE estateban (EstateID INT, bannedUUID CHAR(36), bannedIp VARCHAR(16), bannedIpHostMask VARCHAR(16), bannedNameMask VARCHAR(255) DEFAULT NULL)');
+    $pdo->exec("INSERT INTO estate_settings (EstateID, EstateName, EstateOwner) VALUES (101, 'Main', 'aaaaaaaa-0000-0000-0000-000000000001')");
+    $pdo->exec("INSERT INTO estate_map VALUES ('11111111-0000-0000-0000-000000000001', 101)");
+    $machine->write($machine->grid . '/sims/alpha/regions/Welcome.ini', "[Welcome]\nRegionUUID = 11111111-0000-0000-0000-000000000001\nLocation = 1000,1000\nRegionType = Mainland\n");
     Connections::using(static fn() => $pdo);
     $grid = Grid::find($machine->environment, 'demo');
     $folder = $grid->dataDirectory() . '/maptiles/00000000-0000-0000-0000-000000000000';
@@ -124,6 +138,9 @@ describe('The regions of the map', function () {
 
         expect(array_keys($regions))->toBe(['Big Island', 'Plaza', 'Welcome'])
             ->and($regions['Big Island'])->toMatchArray(['x' => 1002, 'y' => 1000, 'sizeX' => 512, 'sizeY' => 512, 'online' => false])
+            // What the world map of the viewers says of a region: its type as the grid wrote it, its estate, its owner
+            ->and($regions['Welcome'])->toMatchArray(['type' => 'Mainland', 'estate' => 'Main', 'owner' => 'Ada Lovelace'])
+            ->and($regions['Plaza'])->toMatchArray(['type' => null, 'estate' => null, 'owner' => null])
             ->and($regions['Plaza'])->toMatchArray(['x' => 1001, 'y' => 1000, 'sizeX' => 256, 'sizeY' => 256, 'online' => true])
             // By client, as the results of the search give them
             ->and(array_keys($regions['Welcome']['tpLinks']))->toBe(['viewer', 'browser'])

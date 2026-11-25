@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "e77749e",
+        "version": "23848e5",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -13524,6 +13524,27 @@
                                                             },
                                                             "online": {
                                                                 "type": "boolean"
+                                                            },
+                                                            "type": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ],
+                                                                "description": "Its RegionType as the grid wrote it (Mainland, Private...), null where its file is not here or says none"
+                                                            },
+                                                            "estate": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ],
+                                                                "description": "The name of its estate, null where the estates are not read here"
+                                                            },
+                                                            "owner": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ],
+                                                                "description": "The name of the owner of its estate, else of the region"
                                                             },
                                                             "tpLinks": {
                                                                 "type": "object",
