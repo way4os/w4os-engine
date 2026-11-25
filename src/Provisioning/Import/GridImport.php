@@ -15,6 +15,7 @@ use W4OS\Engine\OpenSim;
 use W4OS\Engine\Provisioning\GridPlan;
 use W4OS\Engine\Provisioning\GridProvisioner;
 use W4OS\Engine\Provisioning\UiInterface;
+use W4OS\Engine\Provisioning\Web\PageAddress;
 use W4OS\Engine\Runtime\Environment;
 use W4OS\Engine\Text\Notice;
 use W4OS\Engine\Text\Secrets;
@@ -56,6 +57,9 @@ final class GridImport
 
     /** @var list<string> what this install added that the old config had not (addedSettings()), for the report */
     private array $added = [];
+
+    /** @var list<string> what the settings of the simulators brought into the grid say (GridSettingsImport), for the report */
+    private array $settingsNotes = [];
 
     /**
      * What the import would do: nothing written.
@@ -175,14 +179,15 @@ final class GridImport
             }
         }
         $customizations = array_values($customizations);
-        // A web search that is no page (the search the simulators call, query.php; Robust itself) is invalid: the web search this
-        // install writes in its place when it has one, said; else it stays, the health says it
-        $robustAddress = rtrim(ConfigReader::replaceConstants('${Const|BaseURL}:${Const|PublicPort}', $expanded['Const'] ?? []), '/');
+        // A page that is none (a web search at the search the simulators call or at Robust, a profile at Robust or a script) is
+        // invalid: the page this install writes in its place when it has one, said; else it stays, the health says it
+        $robust = array_map(static fn(string $address): string => rtrim(ConfigReader::replaceConstants($address, $expanded['Const'] ?? []), '/'), ['${Const|BaseURL}:${Const|PublicPort}', '${Const|PrivURL}:${Const|PrivatePort}']);
+        $read = static fn(string $value, array $constants): string => ConfigReader::replaceConstants(trim($value, " \t\""), $constants);
         foreach ($dropped as $i => $setting) {
-            $why = self::noSearchPage($setting['section'], $setting['key'], $setting['value'], $expanded['Const'] ?? [], $robustAddress);
-            $web = trim((string) ($generated[$setting['section']][$setting['key']] ?? ''), " \t\"");
-            if ($setting['reason'] === 'replaced' && $why !== null && $web !== '' && self::noSearchPage($setting['section'], $setting['key'], $web, $generated['Const'] ?? [], $robustAddress) === null) {
-                $dropped[$i] = ['reason' => 'corrected', 'replacement' => $web, 'why' => $why] + $setting;
+            $why = PageAddress::invalid($setting['section'], $setting['key'], $read($setting['value'], $expanded['Const'] ?? []), $robust);
+            $page = trim((string) ($generated[$setting['section']][$setting['key']] ?? ''), " \t\"");
+            if ($setting['reason'] === 'replaced' && $why !== null && $page !== '' && PageAddress::invalid($setting['section'], $setting['key'], $read($page, $expanded['Const'] ?? []), $robust) === null) {
+                $dropped[$i] = ['reason' => 'corrected', 'replacement' => $page, 'why' => $why] + $setting;
             }
         }
 
@@ -360,7 +365,9 @@ final class GridImport
             if ($this->simulators !== null && $this->simulators->imports !== []) {
                 // The first simulator's over what the options of the kit wrote; the others give what it does not say
                 foreach (array_values($this->simulators->imports) as $i => $simulator) {
-                    GridSettingsImport::prepare($environment, $simulator->source, $plan->gridNick, overKit: $i === 0)->apply();
+                    $settings = GridSettingsImport::prepare($environment, $simulator->source, $plan->gridNick, overKit: $i === 0);
+                    $settings->apply();
+                    array_push($this->settingsNotes, ...$settings->document()['notes']);
                 }
                 (new \W4OS\Engine\Provisioning\GridOptions(Grid::find($environment, $plan->gridNick) ?? throw new \RuntimeException("the grid {$plan->gridNick} was not written")))->repair(true);
                 // The master its simulators read made again with them
@@ -464,29 +471,6 @@ final class GridImport
     }
 
     /** Whether an address is on the web site of the grid (the host of its WebURL). */
-    /**
-     * Why an address of the web search is no page: the search the simulators call (query.php, XML-RPC) as the web search of the
-     * viewers, or a SearchURL of the login that is Robust itself; null when it is not one of them or not that.
-     *
-     * @param array<string,string> $constants the [Const] its value is read with
-     */
-    private static function noSearchPage(string $section, string $key, string $value, array $constants, string $robust): ?string
-    {
-        $search = strcasecmp($section, 'GridInfoService') === 0 && strcasecmp($key, 'search') === 0;
-        $login = strcasecmp($section, 'LoginService') === 0 && strcasecmp($key, 'SearchURL') === 0;
-        if (!$search && !$login) {
-            return null;
-        }
-        $address = rtrim(ConfigReader::replaceConstants(trim($value, " \t\""), $constants), '/');
-        if (preg_match('#/query\.php$#i', $address) === 1) {
-            return 'the search the simulators call (XML-RPC), not a page: the web search of this install in its place';
-        }
-
-        return $login && $robust !== '' && !str_contains($robust, '${') && strcasecmp($address, $robust) === 0
-            ? 'the address of Robust, no search page: the web search of this install in its place'
-            : null;
-    }
-
     private static function onSite(string $url, string $webUrl): bool
     {
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
@@ -597,6 +581,13 @@ final class GridImport
             $lines[] = count($this->added) . ' setting(s) added by this install, which the old config had not (what w4os needs, its options):';
             foreach ($this->added as $said) {
                 $lines[] = "  $said";
+            }
+        }
+        if ($this->settingsNotes !== []) {
+            $lines[] = '';
+            $lines[] = 'The settings of its simulators brought into the grid:';
+            foreach (array_values(array_unique($this->settingsNotes)) as $note) {
+                $lines[] = '  ' . Secrets::mask($note);
             }
         }
         $lines[] = '';

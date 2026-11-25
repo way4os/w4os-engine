@@ -91,6 +91,16 @@ final class GridSettingsImport
                 $notes[] = "$setting: what follows its closing quote is left out, as OpenSimulator reads it";
             }
         }
+        // The search in the world calls the script of the helpers (query.php): another address is wrong, theirs in its place, said
+        if (isset($values['search']['searchurl'])) {
+            $address = ConfigReader::replaceConstants(trim($values['search']['searchurl'][2], " \t\""), array_map(static fn($v): string => trim((string) $v, " \t\""), $constants));
+            $why = \W4OS\Engine\Provisioning\Web\PageAddress::invalid('Search', 'SearchURL', $address);
+            $query = $grid->helpersUrl() === null ? '' : $grid->helperUrl('query');
+            if ($why !== null && $query !== '') {
+                $values['search']['searchurl'][2] = $query;
+                $notes[] = "Search/SearchURL: $address is wrong, $why ($query)";
+            }
+        }
         $gloebit = strtolower(trim($values['economy']['economymodule'][2] ?? '', " \t\"")) === 'gloebit';
         // Gloebit set up in the old config (loaded, with its keys) comes; else its settings stay there, said
         $unanswered = $gloebit ? (new GridOptions($grid))->unanswered('economy-gloebit', [$file]) : [];

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (migrate): wrong page addresses (profile, web and in-world search) put right at import and upgrade, said
 - new (api): GET/PUT /grids/{grid}/site-pages/{page}, the pages a site declares; never over an address given otherwise
 - fix (helpers): their base HelpersURL, else /helpers for a grid that has them, never the economy (which follows them)
 - fix (config): ini values in double quotes, as OpenSimulator reads them; single-quoted ones rewritten at an upgrade

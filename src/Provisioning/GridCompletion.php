@@ -39,6 +39,11 @@ final class GridCompletion
             foreach (self::quotes($dir) as $file => $count) {
                 $done[] = basename($dir) . ": $count value" . ($count > 1 ? 's' : '') . ' in single quotes put in double quotes in ' . substr($file, strlen($dir) + 1) . ' (restart what reads it: opensim restart)';
             }
+            // A page at a wrong address (a web search at query.php or at Robust, a profile at Robust or a script, a search in the world
+            // at a page), or the profiles without their page: the right one of the grid in its place
+            foreach (self::pages($environment, $dir) as $line) {
+                $done[] = basename($dir) . ": $line";
+            }
             // What stops a simulator of its core (an older config: Warp3DImageModule on 0.9.3), commented with why
             foreach (self::retired($environment, $dir) as $file => $count) {
                 $done[] = basename($dir) . ": $count setting" . ($count > 1 ? 's' : '') . ' that stop a simulator of its core commented in ' . substr($file, strlen($dir) + 1) . ' (restart what reads it: opensim restart)';
@@ -111,6 +116,68 @@ final class GridCompletion
         }
 
         return $added === [] ? [] : ['search tables: added ' . implode(', ', $added)];
+    }
+
+    /**
+     * The addresses of the pages of a grid that has helpers put right (PageAddress): the web search, the search page of the login and
+     * the profiles in its Robust, the page the site declared else the helpers' one; the search in the world in the files of its
+     * simulators, the script of the helpers. The profiles a grid has (ProfileServiceURL) without their page get it. A right
+     * address stays; one the grid cannot replace stays too, the health says it.
+     *
+     * @return list<string> what was put right
+     */
+    private static function pages(Environment $environment, string $dir): array
+    {
+        try {
+            $grid = Grid::at($environment, $dir);
+            if ($grid->helpersUrl() === null || ($file = $grid->isStandalone() ? null : $grid->robustIni()) === null || !is_file($file)) {
+                return [];
+            }
+            $config = $grid->config();
+        } catch (\Throwable) {
+            return [];
+        }
+        $done = [];
+        $constants = array_map(static fn($v): string => trim((string) $v, " \t\""), $config?->section('Const') ?? []);
+        $robust = array_map(static fn(string $a): string => rtrim(\W4OS\Engine\Config\ConfigReader::replaceConstants($a, $constants), '/'), ['${Const|BaseURL}:${Const|PublicPort}', '${Const|PrivURL}:${Const|PrivatePort}']);
+        $site = rtrim((string) $grid->site(), '/');
+        $written = static fn(string $url): string => '"' . ($site !== '' && str_starts_with($url, "$site/") ? '${Const|WebURL}' . substr($url, strlen($site)) : $url) . '"';
+        $declared = \W4OS\Engine\Provisioning\Web\SitePages::declared($grid);
+        $profiles = trim((string) $config?->find('UserProfiles', 'ProfileServiceURL')) !== '';
+        $pages = [
+            ['GridInfoService', 'web_profile_url', $declared['profile'] ?? rtrim($grid->helperUrl('profile'), '/') . '/[AGENT_NAME]', $profiles],
+            ['GridInfoService', 'search', $declared['search'] ?? $grid->helperUrl('search'), false],
+            ['LoginService', 'SearchURL', $declared['search'] ?? $grid->helperUrl('search'), false],
+        ];
+        \W4OS\Engine\Models\AddressHistory::around($grid, static function () use ($file, $pages, $robust, $written, &$done, $grid): void {
+            $read = \W4OS\Engine\Config\ConfigReader::load($file);
+            $ini = \W4OS\Engine\Config\IniEditor::load($file);
+            foreach ($pages as [$section, $key, $right, $needed]) {
+                $now = trim((string) ($read[$section][$key] ?? ''), " \t\"");
+                $why = $now === '' ? ($needed ? 'the profiles of the grid have no page' : null) : \W4OS\Engine\Provisioning\Web\PageAddress::invalid($section, $key, $now, $robust);
+                if ($why === null || $right === '' || \W4OS\Engine\Provisioning\Web\PageAddress::invalid($section, $key, $right, $robust) !== null) {
+                    continue;
+                }
+                $ini->set($section, $key, $written($right));
+                $done[] = "[$section] $key " . ($now === '' ? 'given' : "was $now") . " ($why): $right (restart Robust: opensim restart {$grid->nick()})";
+            }
+            $done === [] || $ini->save($file);
+        });
+        // The search in the world, in the files of its simulators that say it
+        $query = $grid->helperUrl('query');
+        foreach ($query === '' ? [] : [...(glob("$dir/*.ini") ?: []), ...(glob("$dir/*/*.ini") ?: [])] as $path) {
+            $ini = \W4OS\Engine\Config\IniEditor::load($path);
+            $now = \W4OS\Engine\Config\ConfigReader::replaceConstants(trim((string) $ini->get('Search', 'SearchURL'), " \t\""), $constants);
+            $why = $now === '' ? null : \W4OS\Engine\Provisioning\Web\PageAddress::invalid('Search', 'SearchURL', $now);
+            if ($why === null) {
+                continue;
+            }
+            $ini->set('Search', 'SearchURL', $written($query));
+            $ini->save($path);
+            $done[] = '[Search] SearchURL of ' . substr($path, strlen($dir) + 1) . " was $now ($why): $query (restart the simulators: opensim restart {$grid->nick()})";
+        }
+
+        return $done;
     }
 
     /**

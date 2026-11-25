@@ -574,8 +574,9 @@ describe('The import of a grid', function () {
         $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
         $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
         $text = str_replace("[Const]\n", "[Const]\n    WebURL = \"https://old.example.org\"\n    BaseURL = \"http://old.example.org\"\n", file_get_contents($robust));
-        // The login gives Robust itself as its search page
+        // The login gives Robust itself as its search page, the profiles Robust too
         $text = str_replace("[LoginService]\n", "[LoginService]\n    SearchURL = \"\${Const|BaseURL}:\${Const|PublicPort}/\"\n", $text);
+        $text = str_replace("[GridInfoService]\n", "[GridInfoService]\n    web_profile_url = \"\${Const|BaseURL}:\${Const|PublicPort}/profile/[AGENT_NAME]\"\n", $text);
         $text = str_replace("[GridInfoService]\n", "[GridInfoService]\n    search = \"\${Const|WebURL}/helper/query.php\"\n    message = \"\${Const|WebURL}/helper/offline.php\"\n" .
             "    economy = \"\${Const|WebURL}/opensim/economy\"\n    welcome = \"\${Const|WebURL}/opensim/welcome\"\n", $text);
         file_put_contents($robust, $text);
@@ -608,12 +609,39 @@ describe('The import of a grid', function () {
             ->and($info['search'] ?? '')->toStartWith('https://old.example.org/')->not->toContain('query.php')
             ->and($read['LoginService']['SearchURL'] ?? '')->toBe($info['search'] ?? '')
             ->and($report)->toContain('[GridInfoService] search = ${Const|WebURL}/helper/query.php (corrected', 'XML-RPC', '[LoginService] SearchURL = ${Const|BaseURL}:${Const|PublicPort}/ (corrected', 'the address of Robust')
+            // The profiles: the page of the helpers in the place of Robust, said
+            ->and($info['web_profile_url'] ?? '')->toBe('https://old.example.org/helpers/profile/[AGENT_NAME]')
+            ->and($report)->toContain('[GridInfoService] web_profile_url = ${Const|BaseURL}:${Const|PublicPort}/profile/[AGENT_NAME] (corrected')
             // Served where they are
             ->and($grid->servedByHelpers('https://old.example.org/helper/offline.php'))->toBeTrue()
             // The three configs of the web servers, each saying what to add to its server (3bd3129), as a setup makes them
             ->and($options)->toContain('webserver-caddy', 'webserver-apache', 'webserver-nginx')
             // What the kit adds, the old one had not: said as added, with its value
             ->and($report)->toContain('added by this install');
+    });
+
+    test('puts the script of the helpers in the place of a search in the world at a page, and says it', function () {
+        [$machine, $robust] = old_robust_install();
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        file_put_contents($robust, str_replace("[Const]\n", "[Const]\n    WebURL = \"https://old.example.org\"\n", file_get_contents($robust)));
+        $bin = dirname($robust);
+        mkdir("$bin/Regions");
+        // The search of the simulators given a page of the site, not the script they call
+        file_put_contents("$bin/OpenSim.ini", "[Const]\n    WebURL = \"https://old.example.org\"\n[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n" .
+            "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n" .
+            "[Messaging]\n    OfflineMessageModule = OfflineMessageModule\n    OfflineMessageURL = \"\${Const|WebURL}/helpers/helper/offline.php\"\n" .
+            "[Search]\n    Module = OpenSimSearch\n    SearchURL = \"\${Const|WebURL}/helpers/search\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']], helpersHere: true);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $runs = ConfigReader::expand(ConfigReader::load([W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory()), ...$sim->files()], [], false, false, $sim->lastFiles()));
+
+        expect($runs['Search']['SearchURL'] ?? '')->toEndWith('/query.php')
+            ->and((string) file_get_contents($import->document()['report']))->toContain('Search/SearchURL: https://old.example.org/helpers/search is wrong', 'query.php');
     });
 
     test('keeps a web search that is no page when this install has none to give, the health saying it', function () {

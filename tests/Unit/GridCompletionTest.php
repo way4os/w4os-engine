@@ -81,4 +81,26 @@ describe('The completion of the grids at an upgrade', function () {
             ->and(implode("\n", $second))->not->toContain('single quotes')
             ->and((string) file_get_contents($alpha))->toContain('GroupsExternalURI = "${Const|BaseURL}:${Const|PublicPort}"');
     });
+
+    test('puts the pages of a grid that has helpers right, once: its profiles and its web search, its search in the world', function () {
+        $machine = new Machine();
+        $robust = $machine->grid . '/Robust.HG.ini';
+        $text = str_replace("[Const]\n", "[Const]\n    WebURL = \"https://demo.example.org\"\n    BaseURL = \"http://demo.example.org\"\n", (string) file_get_contents($robust));
+        file_put_contents($robust, $text . "\n[GridInfoService]\n    web_profile_url = \"\${Const|BaseURL}:\${Const|PublicPort}/\"\n    search = \"https://demo.example.org/helper/query.php\"\n    welcome = \"https://demo.example.org/helper/query.php\"\n");
+        file_put_contents($machine->grid . '/Helpers.ini', "[Helpers]\n");
+        $alpha = GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        file_put_contents($alpha, (string) file_get_contents($alpha) . "\n[Search]\n    SearchURL = \"https://demo.example.org/search\"\n");
+
+        $first = implode("\n", GridCompletion::run($machine->environment, $machine->etc));
+        $second = implode("\n", GridCompletion::run($machine->environment, $machine->etc));
+        $info = W4OS\Engine\Config\ConfigReader::load($robust)['GridInfoService'] ?? [];
+
+        expect($first)->toContain('[GridInfoService] web_profile_url was', 'address of Robust', '[GridInfoService] search was https://demo.example.org/helper/query.php', '[Search] SearchURL of ')
+            ->and($second)->not->toContain('web_profile_url was')->not->toContain('SearchURL of')
+            ->and([$info['web_profile_url'] ?? null, $info['search'] ?? null])->toBe(['https://demo.example.org/helpers/profile/[AGENT_NAME]', 'https://demo.example.org/helpers/search'])
+            // Not a page it checks: as it is
+            ->and($info['welcome'] ?? null)->toBe('https://demo.example.org/helper/query.php')
+            ->and((string) file_get_contents($robust))->toContain('web_profile_url = "${Const|WebURL}/helpers/profile/[AGENT_NAME]"')
+            ->and((string) file_get_contents($alpha))->toContain('SearchURL = "${Const|WebURL}/helpers/query.php"');
+    });
 });
