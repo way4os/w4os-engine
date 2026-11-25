@@ -119,6 +119,7 @@ final class IniEditor
      */
     public function set(string $section, string $key, string $value, ?string $near = null): void
     {
+        $value = self::standard($value);
         $newLine = "$key = $value";
         // A key the section has (active) is the one to set, whatever commented example comes before it
         $keyRe = '/^\s*' . preg_quote($key, '/') . '\s*=/';
@@ -190,6 +191,33 @@ final class IniEditor
             $at--;
         }
         array_splice($this->lines, $at, 0, [$newLine]);
+    }
+
+    /**
+     * A value as OpenSimulator writes it: in double quotes when it has quotes. Single quotes, which Nini keeps as part of the value,
+     * become double quotes (`'x'`, `"'x'"`: `"x"`).
+     */
+    public static function standard(string $value): string
+    {
+        return preg_match('/^("?)\'(.*)\'\1$/s', trim($value), $m) === 1 ? '"' . $m[2] . '"' : $value;
+    }
+
+    /**
+     * The text of an ini whose values in single quotes are in double quotes (standard()), the comments and the rest left as they are.
+     *
+     * @param int $count how many lines changed
+     */
+    public static function doubleQuoted(string $text, int &$count = 0): string
+    {
+        return (string) preg_replace_callback(
+            '/^([ \t]*[^\s;#=\[][^=\r\n]*?[ \t]*=[ \t]*)("?)\'([^\'\r\n]*)\'\2([ \t]*(?:[;#][^\r\n]*)?)$/m',
+            static function (array $m) use (&$count): string {
+                $count++;
+
+                return $m[1] . '"' . $m[3] . '"' . $m[4];
+            },
+            $text,
+        );
     }
 
     /** Whether a section has a line that matches. */

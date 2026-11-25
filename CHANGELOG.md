@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (config): ini values in double quotes, as OpenSimulator reads them; single-quoted ones rewritten at an upgrade
 - fix (migrate): Gloebit loaded without its keys stays off, said in the report; not loaded, its settings left out
 - fix (health): the profile asked with the name of the owner of the grid, never bare; a public GroupsExternalURI is ok
 - fix (migrate): only the files OpenSimulator reads, never all of a ConfigDirectory; all of [Gloebit] left out of Robust

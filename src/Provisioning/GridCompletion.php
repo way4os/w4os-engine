@@ -10,7 +10,7 @@ use W4OS\Engine\Runtime\Environment;
 
 /**
  * What a package that is installed or upgraded adds to the grids of the machine, without the setup and without anybody: the files
- * a grid is missing (the MoneyServer.ini the helpers need), its ini files readable by the web server and nobody else (mode 640),
+ * a grid is missing (the MoneyServer.ini the helpers need), the values in single quotes in double quotes, its ini files readable by the web server and nobody else (mode 640),
  * `SslMode=None;` in the connection strings to a database of this machine (ConnectionString::withLocalTls()), and the options of a
  * grid its simulators miss, laid again in their files
  * (GridOptions::repair(), planned then applied: a simulator made before an option became standard, or by an older engine). What is
@@ -34,6 +34,10 @@ final class GridCompletion
             // A database of this machine takes no TLS: without SslMode=None, a Robust on Mono starts without it
             foreach (self::localTls($dir) as $file => $count) {
                 $done[] = basename($dir) . ": SslMode=None added to $count connection string" . ($count > 1 ? 's' : '') . ' of a local database in ' . substr($file, strlen($dir) + 1) . ' (restart what reads it: opensim restart)';
+            }
+            // OpenSimulator reads double quotes only: a value in single quotes keeps them (a broken address)
+            foreach (self::quotes($dir) as $file => $count) {
+                $done[] = basename($dir) . ": $count value" . ($count > 1 ? 's' : '') . ' in single quotes put in double quotes in ' . substr($file, strlen($dir) + 1) . ' (restart what reads it: opensim restart)';
             }
             // What stops a simulator of its core (an older config: Warp3DImageModule on 0.9.3), commented with why
             foreach (self::retired($environment, $dir) as $file => $count) {
@@ -107,6 +111,30 @@ final class GridCompletion
         }
 
         return $added === [] ? [] : ['search tables: added ' . implode(', ', $added)];
+    }
+
+    /**
+     * The values of the ini files of a grid (its folder, its simulators, its includes) in single quotes, put in double quotes
+     * (IniEditor::doubleQuoted()); the owner and the mode of a file left as they are.
+     *
+     * @return array<string,int> the files changed, with how many lines
+     */
+    private static function quotes(string $dir): array
+    {
+        $changed = [];
+        foreach ([...(glob("$dir/*.ini") ?: []), ...(glob("$dir/*/*.ini") ?: []), ...(glob("$dir/*/*/*.ini") ?: [])] as $file) {
+            $text = (string) @file_get_contents($file);
+            $count = 0;
+            $new = \W4OS\Engine\Config\IniEditor::doubleQuoted($text, $count);
+            if ($count > 0 && $new !== $text && ($handle = @fopen($file, 'c')) !== false) {
+                ftruncate($handle, 0);
+                fwrite($handle, $new);
+                fclose($handle);
+                $changed[$file] = $count;
+            }
+        }
+
+        return $changed;
     }
 
     /**

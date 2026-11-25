@@ -41,6 +41,24 @@ describe('IniEditor set', function () {
 
         expect($ini->toString())->toContain('ConsolePort = 8004')->not->toContain(';ConsolePort');
     });
+
+    test('writes in double quotes a value given in single quotes, which OpenSimulator would keep in the value', function () {
+        $ini = new IniEditor("[Groups]\n    Enabled = true\n");
+
+        $ini->set('Groups', 'GroupsExternalURI', "'\${Const|BaseURL}:\${Const|PublicPort}'");
+        $ini->set('Groups', 'Module', "\"'Groups Module V2'\"");
+
+        expect($ini->toString())->toContain('GroupsExternalURI = "${Const|BaseURL}:${Const|PublicPort}"', 'Module = "Groups Module V2"')
+            ->and(IniEditor::standard("it's"))->toBe("it's");
+    });
+
+    test('puts in double quotes the values of a text in single quotes, its comments and the quotes inside a value left as they are', function () {
+        $count = 0;
+        $text = IniEditor::doubleQuoted("[Groups]\n    GroupsExternalURI = '\${Const|BaseURL}:\${Const|PublicPort}'\n    ; Example = 'kept'\n    Name = it's\n    Other = \"fine\"\n", $count);
+
+        expect($count)->toBe(1)
+            ->and($text)->toBe("[Groups]\n    GroupsExternalURI = \"\${Const|BaseURL}:\${Const|PublicPort}\"\n    ; Example = 'kept'\n    Name = it's\n    Other = \"fine\"\n");
+    });
 });
 
 describe('IniEditor in layers', function () {

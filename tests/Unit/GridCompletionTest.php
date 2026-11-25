@@ -68,4 +68,17 @@ describe('The completion of the grids at an upgrade', function () {
             expect(array_map(static fn(string $file): int => filegroup($file), $files))->toBe([$gid, $gid, $gid]);
         }
     });
+
+    test('puts in double quotes the values in single quotes of the files of a grid, once', function () {
+        $machine = new Machine();
+        $alpha = GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        file_put_contents($alpha, (string) file_get_contents($alpha) . "\n[Groups]\n    GroupsExternalURI = '\${Const|BaseURL}:\${Const|PublicPort}'\n");
+
+        $first = GridCompletion::run($machine->environment, $machine->etc);
+        $second = GridCompletion::run($machine->environment, $machine->etc);
+
+        expect(implode("\n", $first))->toContain('demo: 1 value in single quotes put in double quotes in ')
+            ->and(implode("\n", $second))->not->toContain('single quotes')
+            ->and((string) file_get_contents($alpha))->toContain('GroupsExternalURI = "${Const|BaseURL}:${Const|PublicPort}"');
+    });
 });
