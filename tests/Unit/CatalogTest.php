@@ -137,8 +137,8 @@ describe('the catalog of the texts of the sites', function () {
             'connection_regions', 'connection_screen', 'connection_sqlite', 'economy_help_modules', 'economy_module_gloebit',
             'economy_module_podex', 'filter_hypergrid', 'flux_menu', 'group_robust', 'health_helpers', 'setting_gatekeeper',
             'unit_dimensions', 'unit_km2', 'unit_percent',
-            // The name of the 3D map module
-            'map_module_warp3d',
+            // The names of the map modules, as the config writes them
+            'map_module_simple', 'map_module_warp3d',
         ],
         'cy_GB' => [
             'column_grid', 'column_map', 'map_title', 'settings_menu_map', 'column_prims', 'label_value', 'role_model', 'settings_menu_grid', 'unit_mb',
@@ -161,7 +161,6 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_online', 'web_search_partner', 'web_search_status',
         ],
         'fr_FR' => [
-            'map_module_simple',
             // The word for a visitor of the welcome of a page
             'motd_avatar_visitor',
             // The units of a duration, the same symbols

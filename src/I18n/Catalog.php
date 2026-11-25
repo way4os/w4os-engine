@@ -214,9 +214,10 @@ final class Catalog
         'settings_menu_map' => 'Map',
         // The page of the map (GridSettings, Settings [Map])
         'setting_map_module' => 'Renderer',
-        'setting_map_module_help' => 'The 3D map shows the regions as they are built; the simple one, their terrain and the outline of their objects.',
-        'map_module_simple' => 'Simple',
-        'map_module_warp3d' => '3D (Warp3D)',
+        'setting_map_module_help' => 'Warp3D gives a more detailed rendering but uses more server resources. Use the default module on servers with limited resources.',
+        // The names of the modules, as the config writes them
+        'map_module_simple' => 'MapImageModule',
+        'map_module_warp3d' => 'Warp3DImageModule',
         'setting_map_terrain' => 'Terrain textures',
         'setting_map_prims' => 'Objects',
         'setting_map_prims_help' => 'Slow to draw on a region with many objects.',

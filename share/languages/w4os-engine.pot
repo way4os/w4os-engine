@@ -543,15 +543,15 @@ msgid "Renderer"
 msgstr ""
 
 msgctxt "setting_map_module_help"
-msgid "The 3D map shows the regions as they are built; the simple one, their terrain and the outline of their objects."
+msgid "Warp3D gives a more detailed rendering but uses more server resources. Use the default module on servers with limited resources."
 msgstr ""
 
 msgctxt "map_module_simple"
-msgid "Simple"
+msgid "MapImageModule"
 msgstr ""
 
 msgctxt "map_module_warp3d"
-msgid "3D (Warp3D)"
+msgid "Warp3DImageModule"
 msgstr ""
 
 msgctxt "setting_map_terrain"
