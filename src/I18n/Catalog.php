@@ -559,7 +559,7 @@ final class Catalog
         'block_grid_info_help' => 'General information (grid name and login uri)',
         'block_grid_status_help' => 'Online avatars, regions, etc.',
         'block_popular_places_help' => 'Most visited regions in your grid.',
-        'block_motd_help' => 'A welcome title naming the avatar signed in, else the welcome message of the grid.',
+        'block_motd_help' => 'A welcome title, the message of the grid when it has its own, else the avatar signed in.',
         'block_destination_guide_help' => 'Places to visit, the same list the viewers show in their destinations guide.',
         'block_directory_info_help' => 'The other grids whose places can be found in the search of this grid.',
         'block_search_help' => 'A search form for the places, events, classifieds and people of the grid.',

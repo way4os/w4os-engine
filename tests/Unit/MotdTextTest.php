@@ -66,6 +66,6 @@ describe('The welcome message of the grid', function () {
 
         expect($entry)->toMatchArray(['section' => 'LoginService', 'name' => 'welcomeMessage', 'type' => 'text', 'admin' => 'grid', 'description' => 'setting_welcome_message_help'])
             ->and(Catalog::MESSAGES['setting_welcome_message_help'])->toBe('<USERNAME> is replaced by the name of the avatar')
-            ->and(Catalog::MESSAGES['block_motd_help'])->toBe('A welcome title naming the avatar signed in, else the welcome message of the grid.');
+            ->and(Catalog::MESSAGES['block_motd_help'])->toBe('A welcome title, the message of the grid when it has its own, else the avatar signed in.');
     });
 });
