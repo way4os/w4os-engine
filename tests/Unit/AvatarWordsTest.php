@@ -11,8 +11,8 @@ use W4OS\Engine\I18n\Catalog;
 
 describe('The texts of the catalog', function () {
     test('call the people of the world avatars, never users', function () {
-        // What is no person of the world: the user of a database, of a console, of the machine, the services of OpenSimulator by their names
-        $apart = ['tip_web_search', 'db_user', 'setting_console_user', 'setting_uas', 'setting_uas_help', 'service_user_account', 'service_grid_user', 'notice_import_read_access', 'notice_import_stop_source'];
+        // What is no person of the world: the user of a database, of a console, of the machine, the services of OpenSimulator by their names, its <USERNAME>
+        $apart = ['setting_welcome_message_help', 'tip_web_search', 'db_user', 'setting_console_user', 'setting_uas', 'setting_uas_help', 'service_user_account', 'service_grid_user', 'notice_import_read_access', 'notice_import_stop_source'];
         $users = static fn(array $texts, string $word): array => array_keys(array_filter(
             array_diff_key($texts, array_flip($apart)),
             static fn(string $text, string $key): bool => !str_starts_with($key, 'health_') && preg_match("/\\b$word/iu", $text) === 1,

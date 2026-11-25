@@ -12,7 +12,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "22c0f2e",
+        "version": "1717eeb",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -10084,6 +10084,63 @@
                 }
             }
         },
+        "/grids/{grid}/welcome": {
+            "get": {
+                "operationId": "getWelcome",
+                "tags": [
+                    "Message of the day"
+                ],
+                "summary": "Welcome of a page",
+                "description": "Plain text, the title of a page that welcomes its visitor: \"Welcome, <avatar>\" when `avatar` is given; else `WelcomeMessage` of `[LoginService]`, the word for a visitor in place of `<USERNAME>`; else \"Welcome, Avatar\". The message of the viewers is `/grids/{grid}/motd`.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "avatar",
+                        "in": "query",
+                        "required": false,
+                        "description": "The name of the avatar signed in",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The welcome",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid is not known here",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [],
+                "x-access": {
+                    "level": null,
+                    "self": false
+                }
+            }
+        },
         "/logos/{name}": {
             "get": {
                 "operationId": "getLogo",
@@ -10566,6 +10623,13 @@
                             "label": "setting_grid_nick"
                         },
                         {
+                            "group": "grid",
+                            "name": "welcomeMessage",
+                            "type": "string",
+                            "label": "setting_welcome_message",
+                            "description": "setting_welcome_message_help"
+                        },
+                        {
                             "group": "robust",
                             "label": "setting_robust_uri",
                             "description": "setting_robust_uri_help",
@@ -10786,6 +10850,9 @@
                                                         "type": "string"
                                                     },
                                                     "gridNick": {
+                                                        "type": "string"
+                                                    },
+                                                    "welcomeMessage": {
                                                         "type": "string"
                                                     },
                                                     "gridServerUri": {

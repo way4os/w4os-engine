@@ -714,6 +714,18 @@ final class Api
         return Response::binary($found->motd($username), 'text/plain; charset=utf-8');
     }
 
+    /** The welcome of a page of a grid, as plain text: the avatar signed in when it is given (Grid::welcome()). */
+    public function welcome(string $grid, string $avatar = ''): Response
+    {
+        try {
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, self::path('welcome', null, $grid)));
+        }
+
+        return Response::binary($found->welcome($avatar), 'text/plain; charset=utf-8');
+    }
+
     /**
      * The picture of a text, the texture of a prim: square, the text centered.
      *

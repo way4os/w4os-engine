@@ -27,3 +27,40 @@ describe('The message of the day', function () {
             ->and($own->motd('', 'fr_FR'))->toBe('Hello ' . Catalog::messages('fr_FR')['motd_visitor']);
     });
 });
+
+describe('The welcome of a page', function () {
+    test('names the avatar signed in, else says the message of the grid with the word for a visitor, else welcomes an avatar', function () {
+        $environment = (new Machine())->environment;
+        $welcome = static fn(?string $message): Grid => Grid::described($environment, ['nick' => 'fowl', 'name' => 'Friendly Fowl', 'remote' => true], new GridConfig(['Robust' => $message === null ? [] : ['LoginService' => ['WelcomeMessage' => $message]]]));
+        $fr = Catalog::messages('fr_FR');
+
+        expect($welcome(null)->welcome('Ada Lovelace'))->toBe('Welcome, Ada Lovelace')
+            ->and($welcome('Hello <USERNAME>')->welcome(' Ada Lovelace '))->toBe('Welcome, Ada Lovelace')
+            ->and($welcome('Hello <USERNAME>, enjoy')->welcome())->toBe('Hello Avatar, enjoy')
+            ->and($welcome('Hello everyone')->welcome())->toBe('Hello everyone')
+            ->and($welcome(null)->welcome())->toBe('Welcome, Avatar')
+            ->and($welcome(null)->welcome('', 'fr_FR'))->toBe(sprintf($fr['motd_avatar'], $fr['motd_avatar_visitor']))
+            // The message of the day of the viewers stays what it was
+            ->and($welcome(null)->motd())->toBe('Welcome to Friendly Fowl, <USERNAME>!');
+    });
+
+    test('is in the API, as plain text, the avatar given or not', function () {
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api((new Machine())->environment));
+        $named = $router->get('/grids/demo/welcome', ['avatar' => 'Ada Lovelace']);
+
+        expect($named->status)->toBe(200)
+            ->and($named->body())->toBe('Welcome, Ada Lovelace')
+            ->and($router->get('/grids/demo/welcome')->body())->toBe('Welcome, Avatar')
+            ->and($router->get('/grids/nowhere/welcome')->status)->toBe(404);
+    });
+});
+
+describe('The welcome message of the grid', function () {
+    test('is on the Grid page of the settings, its help saying what <USERNAME> becomes', function () {
+        $entry = array_values(array_filter(W4OS\Engine\Config\Settings::entries(), static fn(array $e): bool => $e['key'] === 'WelcomeMessage'))[0];
+
+        expect($entry)->toMatchArray(['section' => 'LoginService', 'name' => 'welcomeMessage', 'type' => 'text', 'admin' => 'grid', 'description' => 'setting_welcome_message_help'])
+            ->and(Catalog::MESSAGES['setting_welcome_message_help'])->toBe('<USERNAME> is replaced by the name of the avatar')
+            ->and(Catalog::MESSAGES['block_motd_help'])->toBe('A welcome title naming the avatar signed in, else the welcome message of the grid.');
+    });
+});

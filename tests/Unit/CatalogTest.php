@@ -144,6 +144,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_partner',
         ],
         'de_DE' => [
+            // The word for a visitor of the welcome of a page
+            'motd_avatar_visitor',
             'asset_animation', 'asset_link', 'asset_material', 'asset_mesh', 'asset_sound', 'asset_sound_wav', 'column_estates',
             'column_flags', 'column_grid', 'column_name', 'column_port', 'column_presence_short', 'column_prims', 'column_region',
             'column_server', 'column_status', 'count_avatars_short', 'count_prims', 'dashboard_title', 'db_host', 'db_port',
@@ -157,6 +159,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_online', 'web_search_partner', 'web_search_status',
         ],
         'fr_FR' => [
+            // The word for a visitor of the welcome of a page
+            'motd_avatar_visitor',
             // The units of a duration, the same symbols
             'unit_hours', 'unit_hours_minutes', 'unit_minutes',
             'actions', 'asset_animation', 'asset_image_jpeg', 'asset_image_tga', 'asset_mesh', 'asset_script', 'asset_texture',
@@ -171,6 +175,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_day', 'web_search_description', 'web_search_land_type',
         ],
         'it_IT' => [
+            // The word for a visitor of the welcome of a page
+            'motd_avatar_visitor',
             // The units of a duration, the same symbols
             'unit_hours', 'unit_hours_minutes', 'unit_minutes',
             'asset_mesh', 'asset_script', 'asset_texture', 'asset_texture_tga', 'column_file', 'column_presence_short',
@@ -185,6 +191,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_account', 'web_search_online', 'web_search_partner',
         ],
         'nl_NL' => [
+            // The word for a visitor of the welcome of a page
+            'motd_avatar_visitor',
             // The unit of minutes, the same symbol
             'unit_minutes',
             'asset_landmark', 'asset_link', 'asset_mesh', 'asset_object', 'asset_script', 'avatars_count', 'avatars_menu',
@@ -200,6 +208,8 @@ describe('the catalog of the texts of the sites', function () {
             'web_search_account', 'web_search_online', 'web_search_partner', 'web_search_status',
         ],
         'pt_BR' => [
+            // The word for a visitor of the welcome of a page
+            'motd_avatar_visitor',
             // The units of a duration, the same symbols
             'unit_hours', 'unit_hours_minutes', 'unit_minutes',
             'asset_link', 'asset_material', 'asset_mesh', 'asset_script', 'column_grid', 'column_presence_short', 'column_prims',

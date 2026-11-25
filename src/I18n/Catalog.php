@@ -311,6 +311,9 @@ final class Catalog
         // The message of the day of a grid that sets none (Grid::motd()): the name of the grid, the name of the avatar or the word for a visitor
         'motd_welcome' => 'Welcome to %1$s, %2$s!',
         'motd_visitor' => 'traveler',
+        // The welcome of a page (Grid::welcome()): the name of the avatar signed in, or the word when nobody is
+        'motd_avatar' => 'Welcome, %s',
+        'motd_avatar_visitor' => 'Avatar',
         'guide_source_help_pipe' => 'Destination name and teleport URL are separated by a pipe (|) character.',
         'guide_source_help_categories' => 'Lines containing only text are interpreted as categories.',
         'guide_source_help_comments' => 'Lines beginning with "#" or "//" are ignored.',
@@ -555,7 +558,7 @@ final class Catalog
         'block_grid_info_help' => 'General information (grid name and login uri)',
         'block_grid_status_help' => 'Online avatars, regions, etc.',
         'block_popular_places_help' => 'Most visited regions in your grid.',
-        'block_motd_help' => 'The message of the day the viewers show at login.',
+        'block_motd_help' => 'A welcome title naming the avatar signed in, else the welcome message of the grid.',
         'block_destination_guide_help' => 'Places to visit, the same list the viewers show in their destinations guide.',
         'block_directory_info_help' => 'The other grids whose places can be found in the search of this grid.',
         'block_search_help' => 'A search form for the places, events, classifieds and people of the grid.',
@@ -746,6 +749,7 @@ final class Catalog
         'setting_grid_name' => 'Grid Name',
         'setting_grid_nick' => 'Grid Nickname',
         'setting_welcome_message' => 'Welcome Message',
+        'setting_welcome_message_help' => '<USERNAME> is replaced by the name of the avatar',
         'setting_currency_symbol' => 'Currency Symbol',
         'setting_search_module' => 'Search Module',
         'setting_index_sims' => 'Index Regions',

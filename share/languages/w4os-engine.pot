@@ -892,6 +892,15 @@ msgctxt "motd_visitor"
 msgid "traveler"
 msgstr ""
 
+#, php-format
+msgctxt "motd_avatar"
+msgid "Welcome, %s"
+msgstr ""
+
+msgctxt "motd_avatar_visitor"
+msgid "Avatar"
+msgstr ""
+
 msgctxt "guide_source_help_pipe"
 msgid "Destination name and teleport URL are separated by a pipe (|) character."
 msgstr ""
@@ -1769,7 +1778,7 @@ msgid "Most visited regions in your grid."
 msgstr ""
 
 msgctxt "block_motd_help"
-msgid "The message of the day the viewers show at login."
+msgid "A welcome title naming the avatar signed in, else the welcome message of the grid."
 msgstr ""
 
 msgctxt "block_destination_guide_help"
@@ -2507,6 +2516,10 @@ msgstr ""
 
 msgctxt "setting_welcome_message"
 msgid "Welcome Message"
+msgstr ""
+
+msgctxt "setting_welcome_message_help"
+msgid "<USERNAME> is replaced by the name of the avatar"
 msgstr ""
 
 msgctxt "setting_currency_symbol"

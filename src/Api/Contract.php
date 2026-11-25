@@ -975,6 +975,30 @@ final class Contract
                 '404' => self::problem('The grid is not known here'),
             ],
         ];
+        $paths['/grids/{grid}/welcome']['get'] = [
+            'operationId' => 'getWelcome',
+            'tags' => ['Message of the day'],
+            'summary' => 'Welcome of a page',
+            'description' =>
+                'Plain text, the title of a page that welcomes its visitor: "Welcome, <avatar>" when `avatar` is given; else `WelcomeMessage` of `[LoginService]`, the word for a visitor in place of `<USERNAME>`; else "Welcome, Avatar". The message of the viewers is `/grids/{grid}/motd`.',
+            'parameters' => [
+                self::gridParameter(),
+                [
+                    'name' => 'avatar',
+                    'in' => 'query',
+                    'required' => false,
+                    'description' => 'The name of the avatar signed in',
+                    'schema' => ['type' => 'string'],
+                ],
+            ],
+            'responses' => [
+                '200' => [
+                    'description' => 'The welcome',
+                    'content' => ['text/plain' => ['schema' => ['type' => 'string']]],
+                ],
+                '404' => self::problem('The grid is not known here'),
+            ],
+        ];
         $paths['/logos/{name}']['get'] = [
             'operationId' => 'getLogo',
             'tags' => ['Logos'],

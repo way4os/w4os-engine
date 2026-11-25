@@ -1220,6 +1220,23 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     }
 
     /**
+     * The welcome of a page: "Welcome, <avatar>" for an avatar signed in; else `WelcomeMessage` of `[LoginService]`, the word for a
+     * visitor in place of `<USERNAME>`; else "Welcome, Avatar".
+     */
+    public function welcome(string $avatar = '', ?string $locale = null): string
+    {
+        $texts = $locale === null ? Catalog::MESSAGES : Catalog::messages($locale) + Catalog::MESSAGES;
+        if (trim($avatar) !== '') {
+            return sprintf($texts['motd_avatar'], trim($avatar));
+        }
+        $own = $this->setting('LoginService', 'WelcomeMessage');
+
+        return $own !== null
+            ? str_replace('<USERNAME>', $texts['motd_avatar_visitor'], $own)
+            : sprintf($texts['motd_avatar'], $texts['motd_avatar_visitor']);
+    }
+
+    /**
      * The destinations of the guide of the grid, by category: the file or the URL `GuideSource` of `[Helpers]` gives, "Name|Region URL"
      * lines; the guide of 2do.directory when it gives none (the default of the setting). When the list cannot be read, the places its
      * search knows: the popular places and the places shown in search, ten of each.

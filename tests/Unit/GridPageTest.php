@@ -39,7 +39,7 @@ describe('The page of the grid', function () {
         $en = static fn(string $key): string => Catalog::MESSAGES[$key] ?? $key;
 
         expect(array_map(static fn(array $field): array => [$field['name'], $field['group'] ?? null], $form['fields']))->toBe([
-            ['loginUri', 'grid'], ['gridName', 'grid'], ['gridNick', 'grid'],
+            ['loginUri', 'grid'], ['gridName', 'grid'], ['gridNick', 'grid'], ['welcomeMessage', 'grid'],
             ['gridServerUri', 'robust'], ['database', 'robust'], ['consoleUser', 'robust'], ['consolePass', 'robust'], ['consolePort', 'robust'],
             ['assetServerUri', 'services'], ['profileServiceUrl', 'services'],
             ['webProfileUrl', 'avatars'], ['excludeFromStats', 'avatars'],
@@ -47,7 +47,7 @@ describe('The page of the grid', function () {
         ])
             ->and(array_map(static fn(array $group): string => $en($group['label']), $form['groups']))->toBe(['Grid Info', 'Robust', 'Services', 'Avatars', 'Links to the places'])
             ->and(array_map(static fn(array $field): string => $en($field['label']), $form['fields']))->toBe([
-                'Login URI', 'Grid Name', 'Grid Nickname', 'Robust URI', 'ROBUST Database', 'Console User', 'Console Password', 'Console Port',
+                'Login URI', 'Grid Name', 'Grid Nickname', 'Welcome Message', 'Robust URI', 'ROBUST Database', 'Console User', 'Console Password', 'Console Port',
                 'Assets Service URI', 'Profile Service URI', 'Profile Page', 'Exclude from stats',
                 'Links in a web browser', 'Links in the viewer',
             ])

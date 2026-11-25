@@ -44,6 +44,7 @@ final class Router
         'GET /grids/{grid}/destinations',
         'GET /grids/{grid}/destinations/{id}',
         'GET /grids/{grid}/motd',
+        'GET /grids/{grid}/welcome',
         'GET /grids/{grid}/addresses',
         'GET /grids/{grid}/info',
         'GET /grids/{grid}/place',
@@ -189,6 +190,7 @@ final class Router
                     [
                         'destinations',
                         'motd',
+                        'welcome',
                         'search',
                         'offline-messages',
                         'currency.php',
@@ -282,6 +284,9 @@ final class Router
         } elseif ($grid !== null && $tail === ['motd']) {
             $template = '/grids/{grid}/motd';
             $routes = ['GET' => fn() => $this->api->motd($grid, (string) ($query['username'] ?? ''))];
+        } elseif ($grid !== null && $tail === ['welcome']) {
+            $template = '/grids/{grid}/welcome';
+            $routes = ['GET' => fn() => $this->api->welcome($grid, (string) ($query['avatar'] ?? ''))];
         } elseif ($grid !== null && count($tail) === 2 && $tail[0] === 'settings') {
             $template = '/grids/{grid}/settings/' . $tail[1];
             $routes = [

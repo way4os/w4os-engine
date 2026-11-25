@@ -98,7 +98,7 @@ final class GridSettings
     private const ORDER = [
         'economy' => ['economyModule', 'currencySymbol', 'moneyDatabase', 'moneyBanker', 'gloebitEnvironment', 'gloebitKey', 'gloebitSecret', 'gloebitOwnerName', 'gloebitOwnerEmail', 'gloebitDatabase', 'currencyRate', 'moneyScriptKey', 'podexMessage', 'podexUrl'],
         'search' => ['searchDatabase', 'webSearchUrl', 'eventsUrl'],
-        'grid' => ['loginUri', 'gridName', 'gridNick', 'gridServerUri', 'database', 'consoleUser', 'consolePass', 'consolePort', 'assetServerUri', 'profileServiceUrl', 'webProfileUrl', 'excludeFromStats', 'linkFormatBrowser', 'linkFormatViewer'],
+        'grid' => ['loginUri', 'gridName', 'gridNick', 'welcomeMessage', 'gridServerUri', 'database', 'consoleUser', 'consolePass', 'consolePort', 'assetServerUri', 'profileServiceUrl', 'webProfileUrl', 'excludeFromStats', 'linkFormatBrowser', 'linkFormatViewer'],
     ];
 
     /**
@@ -110,6 +110,7 @@ final class GridSettings
             'loginUri' => ['group' => 'grid'],
             'gridName' => ['group' => 'grid'],
             'gridNick' => ['group' => 'grid'],
+            'welcomeMessage' => ['group' => 'grid'],
             'gridServerUri' => ['group' => 'robust', 'label' => 'setting_robust_uri', 'description' => 'setting_robust_uri_help'],
             'database' => ['group' => 'robust', 'label' => 'setting_robust_database'],
             'consoleUser' => ['group' => 'robust'],

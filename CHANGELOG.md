@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (motd): the welcome of a page, Grid::welcome() and GET /grids/{grid}/welcome: "Welcome, <avatar>", else WelcomeMessage
+- change (settings): the welcome message of the grid on its Grid page, with its help
 - change (search): its text UTF-8 everywhere: no Latin-1 for the events, utf8mb4 on the connection, its tables converted (InnoDB)
 - fix (settings): the module of the offline messages without a default (it was the empty choice of its select)
 - new (events): the slots of one show (same name, same place, an hour apart at most) are one longer event, as the 2do board has them

@@ -100,7 +100,7 @@ final class Settings
                 'DestinationGuide' => ['name' => 'destinationGuide', 'type' => 'url', 'label' => 'setting_destination_guide', 'service' => 'guide', 'admin' => 'guide', 'health' => 'address'],
                 'MessageUrl' => ['name' => 'messageUrl', 'type' => 'url', 'label' => 'setting_message_url', 'service' => 'motd', 'health' => 'address'],
                 'SearchURL' => ['name' => 'loginSearchUrl', 'type' => 'url', 'label' => 'setting_web_search', 'service' => 'search', 'health' => 'login-search'],
-                'WelcomeMessage' => ['name' => 'welcomeMessage', 'type' => 'text', 'label' => 'setting_welcome_message'],
+                'WelcomeMessage' => ['name' => 'welcomeMessage', 'type' => 'text', 'label' => 'setting_welcome_message', 'admin' => 'grid'],
                 'Currency' => ['name' => 'currencySymbol', 'type' => 'text', 'label' => 'setting_currency_symbol', 'example' => 'YC$', 'admin' => 'economy'],
             ],
         ],
