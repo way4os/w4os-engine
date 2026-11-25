@@ -171,3 +171,24 @@ describe('The accounts of a list, into a grid this install does not manage', fun
             ->toBeFalse();
     });
 });
+
+describe('The accounts of a list with their groups, through the API', function () {
+    test('give the groups of each account, and make the missing ones when asked', function () {
+        $asked = [];
+        $importer = new AccountImporter(
+            static fn(): array => ['Jane Doe'],
+            static fn(): ?string => null,
+            static function (): void {},
+            static function ($grid, $config, bool $create) use (&$asked): ?W4OS\Engine\Provisioning\GroupMemberships {
+                $asked[] = $create;
+
+                return null;
+            },
+        );
+        $router = new Router(new Api((new Machine())->environment, accounts: $importer));
+        $plan = accounts_import($router, ['text' => "first,last,groups\nJane,Doe,Speakers|VIP:Hosts\n", 'createGroups' => true]);
+
+        expect($asked)->toBe([true])
+            ->and($plan->document['data']['attributes']['results'][0]['groups'][0])->toMatchArray(['status' => 'error', 'detail' => 'the groups of the grid cannot be read']);
+    });
+});

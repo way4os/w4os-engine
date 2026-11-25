@@ -57,6 +57,8 @@ final class AccountList
                 'password_hash' => $hash,
                 'password_salt' => $salt,
                 'line' => $line,
+                // Its groups, `Group` or `Group:Role` (GroupMemberships): a list, or a cell separated by |
+                'groups' => self::groupsOf($row['groups'] ?? null),
             ];
         }
 
@@ -142,6 +144,14 @@ final class AccountList
         return $rows;
     }
 
+    /** @return list<string> the groups of an account: a list, or a text separated by | (or ;) */
+    private static function groupsOf(mixed $value): array
+    {
+        $items = is_array($value) ? $value : (preg_split('/[|;]/', (string) $value) ?: []);
+
+        return array_values(array_filter(array_map(static fn($item): string => trim((string) $item), $items), static fn(string $item): bool => $item !== ''));
+    }
+
     /**
      * The keys a list may use for a value, brought to first, last, email, password.
      *
@@ -167,6 +177,7 @@ final class AccountList
             'password', 'pass', 'pwd' => 'password',
             'passwordhash', 'hash' => 'password_hash',
             'passwordsalt', 'salt' => 'password_salt',
+            'groups', 'group' => 'groups',
             default => strtolower(trim($key)),
         };
     }

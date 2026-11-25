@@ -28,7 +28,8 @@ final class AccountImporter
      * @param \Closure(?Grid,?GridConfig):?string $home the id of the default region of the grid, null when it has none
      * @param \Closure(?Grid,array<string,mixed>,?GridConfig):void $create makes an avatar (the values of Avatar::create()), throws when it cannot
      */
-    public function __construct(private \Closure $names, private \Closure $home, private \Closure $create) {}
+    /** @param ?\Closure(?Grid,?GridConfig,bool):?GroupMemberships $groups the groups of the grid, for the groups of the accounts (none: not handled) */
+    public function __construct(private \Closure $names, private \Closure $home, private \Closure $create, private ?\Closure $groups = null) {}
 
     /**
      * The importer of a real grid: its avatars are read and made by the model, in the databases of its config.
@@ -62,6 +63,16 @@ final class AccountImporter
             static function (?Grid $grid, array $values, ?GridConfig $given = null) use ($config): void {
                 Avatar::create($config($grid, $given), $values + ['reservedName' => true]);
             },
+            // The tables of Groups V2 of the grid, where it keeps them
+            static function (?Grid $grid, ?GridConfig $given, bool $create) use ($config): ?GroupMemberships {
+                try {
+                    $pdo = Connections::pdo($config($grid, $given), \W4OS\Engine\Data\Database::forTable('os_groups_groups') ?? \W4OS\Engine\Data\Database::Robust);
+                } catch (ChannelUnavailable) {
+                    return null;
+                }
+
+                return $pdo === null || !$pdo->table_exists('os_groups_groups') ? null : new GroupMemberships($pdo, $create);
+            },
         );
     }
 
@@ -72,7 +83,7 @@ final class AccountImporter
      * @param bool $keepGoing go on after an account that failed
      * @return array{error:?string,results:list<array{line:int,first:string,last:string,email:string,status:string,detail:string,password:string,generated:bool}>}
      */
-    public function run(Grid|GridConfig $target, array $accounts, bool $apply, bool $keepGoing = false): array
+    public function run(Grid|GridConfig $target, array $accounts, bool $apply, bool $keepGoing = false, bool $createGroups = false): array
     {
         [$grid, $config] = $target instanceof Grid ? [$target, null] : [null, $target];
         $names = ($this->names)($grid, $config);
@@ -146,6 +157,23 @@ final class AccountImporter
                 $stopped = !$keepGoing;
             }
             $results[] = $row;
+        }
+
+        // The groups of each account that exists, or would (GroupMemberships): nothing taken away, written only once it is made
+        $memberships = $this->groups === null ? null : ($this->groups)($grid, $config, $createGroups);
+        foreach ($results as $i => $row) {
+            $results[$i]['groups'] = [];
+            $specs = $accounts[$i]['groups'] ?? [];
+            if ($specs === [] || !in_array($row['status'], [self::EXISTS, self::CREATED, self::WOULD_CREATE], true)) {
+                continue;
+            }
+            if ($memberships === null) {
+                $results[$i]['groups'] = [['group' => implode(', ', $specs), 'role' => null, 'status' => 'error', 'detail' => 'the groups of the grid cannot be read']];
+                continue;
+            }
+            $id = $memberships->avatar($row['first'], $row['last']);
+            $writes = $apply && $row['status'] !== self::WOULD_CREATE && $id !== null;
+            $results[$i]['groups'] = $memberships->join($id ?? 'new:' . strtolower("{$row['first']}.{$row['last']}"), $specs, $writes);
         }
 
         return ['error' => null, 'results' => $results];

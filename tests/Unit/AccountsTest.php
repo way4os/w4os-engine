@@ -41,6 +41,7 @@ describe('A list of accounts', function () {
             'password_hash' => '',
             'password_salt' => '',
             'line' => 2,
+            'groups' => [],
         ]);
         expect($with['accounts'][1]['email'])->toBe('');
         expect(array_column($without['accounts'], 'last'))->toBe(['Doe', 'Roe']);

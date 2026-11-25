@@ -1405,7 +1405,7 @@ final class Api
         $format === null || in_array($format, ['csv', 'json', 'yaml'], true) || throw InvalidValue::because('invalid-request', "'$format' is not a format: csv, json or yaml");
         $list = \W4OS\Engine\Provisioning\AccountList::parse((string) ($attributes['text'] ?? ''), $format);
         $list['accounts'] !== [] || throw InvalidValue::because('invalid-request', 'nothing to make' . ($list['errors'] === [] ? '' : ': every line has a problem (' . implode('; ', $list['errors']) . ')'));
-        $done = ($this->accounts ?? \W4OS\Engine\Provisioning\AccountImporter::forModels(fn(Grid $grid): ?GridConfig => ($this->config)($grid)))->run($target, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false));
+        $done = ($this->accounts ?? \W4OS\Engine\Provisioning\AccountImporter::forModels(fn(Grid $grid): ?GridConfig => ($this->config)($grid)))->run($target, $list['accounts'], $mode === 'apply', !Result::isFalse($attributes['keepGoing'] ?? false), Result::isTrue($attributes['createGroups'] ?? false));
         $done['error'] === null || throw \W4OS\Engine\Exceptions\ChannelUnavailable::for('import the accounts', $done['error'] . ': its server must be reachable from here and its user allowed to read it');
 
         $counts = [];
@@ -1414,7 +1414,7 @@ final class Api
             $counts[$row['status']] = ($counts[$row['status']] ?? 0) + 1;
             $made = $row['generated'] && $row['status'] === \W4OS\Engine\Provisioning\AccountImporter::CREATED;
             // A password is given back only when it was made here and its account exists
-            $results[] = ['line' => $row['line'], 'first' => $row['first'], 'last' => $row['last'], 'email' => $row['email'], 'status' => $row['status'], 'detail' => $row['detail'], 'generated' => $row['generated'] && $row['status'] !== \W4OS\Engine\Provisioning\AccountImporter::EXISTS]
+            $results[] = ['line' => $row['line'], 'first' => $row['first'], 'last' => $row['last'], 'email' => $row['email'], 'status' => $row['status'], 'detail' => $row['detail'], 'generated' => $row['generated'] && $row['status'] !== \W4OS\Engine\Provisioning\AccountImporter::EXISTS, 'groups' => $row['groups'] ?? []]
                 + ($made ? ['password' => $row['password']] : []);
         }
         $applied = $mode === 'apply';
