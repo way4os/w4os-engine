@@ -1240,6 +1240,13 @@ describe('The health of the kimbe copy', function () {
             ->and($row['display'])->toBe('https://kimbe.example.org/opensim/profile');
     });
 
+    test('shows a profile given without [AGENT_NAME] when the grid has no owner to ask it with, never asks the bare address', function () use ($rows) {
+        $row = array_column($rows(['live' => ['web_profile_url' => 'https://kimbe.example.org/opensim/profile']]), null, 'label')['web_profile_url'];
+
+        expect($row)->not->toHaveKey('url')
+            ->and([$row['text'], $row['level']])->toBe(['https://kimbe.example.org/opensim/profile', 'none']);
+    });
+
     test('takes a refusal of a service called with nothing (401 too), and leaves the key of a money server the grid has not', function () use ($rows) {
         $config = new GridConfig(['Robust' => ['Economy' => ['economymodule' => 'Gloebit']]]);
 

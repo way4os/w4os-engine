@@ -82,6 +82,18 @@ final class HealthCheck
         return null;
     }
 
+    /** The name of the owner of the grid (First.Last), to ask a profile with; null when its databases do not tell it. */
+    private static function owner(?GridConfig $config): ?string
+    {
+        try {
+            $avatar = $config === null ? null : \W4OS\Engine\Models\Avatar::gridOwner($config);
+        } catch (\W4OS\Engine\Exceptions\ChannelUnavailable) {
+            return null;
+        }
+
+        return $avatar === null ? null : $avatar->firstName() . '.' . $avatar->lastName();
+    }
+
     /**
      * The lines of the health of a grid, not asked yet, each with its id: what the grid says, its files, its pages, what the engine
      * needs (shown as it is).
@@ -99,6 +111,7 @@ final class HealthCheck
                 'live' => $live,
                 'login' => (string) $grid->loginUrl(),
                 'register' => $register,
+                'owner' => self::owner($config),
                 'servedByHelpers' => static fn(string $url): bool => $grid->servedByHelpers($url),
             ]),
             // The pages for people the grid declares: the helpers' under their base, the site's elsewhere

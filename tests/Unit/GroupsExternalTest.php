@@ -49,6 +49,16 @@ describe('The address of the groups for the other grids', function () {
         expect($row([])['level'] ?? null)->toBe('error')
             ->and($row([])['detail'] ?? '')->toContain('${Const|BaseURL}:${Const|PublicPort}')
             ->and($row(['GroupsExternalURI' => 'http://127.0.0.1'])['level'] ?? null)->toBe('error')
-            ->and($row(['GroupsExternalURI' => 'http://grid.example.org:8002'])['level'] ?? null)->not->toBe('error');
+            ->and($row(['GroupsExternalURI' => 'http://grid.example.org:8002'])['level'] ?? null)->toBe('ok');
+    });
+
+    test('is read in the OpenSim.ini of the grid with the constants of its Robust, which has none', function () {
+        $dir = test_tmp();
+        file_put_contents("$dir/Robust.HG.ini", "[Const]\n    BaseURL = \"http://grid.example.org\"\n    PublicPort = \"9700\"\n[Hypergrid]\n    GatekeeperURI = \"\${Const|BaseURL}:\${Const|PublicPort}\"\n");
+        file_put_contents("$dir/OpenSim.ini", "[Groups]\n    Enabled = true\n    GroupsExternalURI = \"\${Const|BaseURL}:\${Const|PublicPort}\"\n");
+        $rows = array_merge(...array_column(Health::grid(['live' => [], 'config' => GridConfig::fromFolder($dir)]), 'rows'));
+        $line = array_column($rows, null, 'label')['GroupsExternalURI'] ?? [];
+
+        expect([$line['text'] ?? null, $line['level'] ?? null])->toBe(['http://grid.example.org:9700', 'ok']);
     });
 });

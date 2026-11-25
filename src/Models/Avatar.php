@@ -458,6 +458,14 @@ final class Avatar extends Model
         return $this->gridOwner !== null && $id !== '' && $this->gridOwner === $id;
     }
 
+    /** The owner of the grid (Estate::firstOwner()), null when its estates or its accounts do not tell it. */
+    public static function gridOwner(GridConfig $config): ?static
+    {
+        $id = Estate::firstOwner($config);
+
+        return $id === null ? null : static::find($config, $id);
+    }
+
     /**
      * The level its access is decided by (the levels of the contract, Access): its user level, a god's for the owner of the grid
      * (isOwner()) whose level is below; its user level stays as it is.

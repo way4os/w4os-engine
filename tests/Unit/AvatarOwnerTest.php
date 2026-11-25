@@ -37,7 +37,9 @@ describe('The owner of a grid', function () {
             // A god keeps its own level, higher than an owner's; the owner stays one while gods exist
             ->and([$rows['Bob Root']['owner'], $rows['Bob Root']['accessLevel']])->toBe([false, 250])
             ->and([$ada?->isOwner(), $ada?->accessLevel(), $ada?->level()])->toBe([true, Avatar::GOD_FULL, 0])
-            ->and($ada?->detail())->toMatchArray(['owner' => true, 'level' => 0, 'accessLevel' => Avatar::GOD_FULL, 'isGod' => false]);
+            ->and($ada?->detail())->toMatchArray(['owner' => true, 'level' => 0, 'accessLevel' => Avatar::GOD_FULL, 'isGod' => false])
+            // The avatar itself, the name the health asks a profile with
+            ->and(Avatar::gridOwner($config)?->name())->toBe('Ada Love');
     });
 
     test('is read from the database of its Robust on a grid whose simulators are not known (the description a site works with)', function () {

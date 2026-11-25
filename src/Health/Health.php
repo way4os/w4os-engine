@@ -259,7 +259,7 @@ class Health
 
                 return $value === '' || \W4OS\Engine\Provisioning\RetiredSettings::privateAddress($value)
                     ? [['label' => $entry['key'], 'kind' => 'value', 'text' => $value !== '' ? $value : 'http://127.0.0.1', 'level' => 'error', 'status' => self::say('health_groups_external_status'), 'detail' => self::say('health_groups_external', [$public])]]
-                    : [self::valueRow($entry['key'], $value) + ['level' => 'ok']];
+                    : [['level' => 'ok'] + self::valueRow($entry['key'], $value)];
             case 'secret':
                 // The key of the currency, where the MoneyServer has it: never shown, only whether the grid has one. Without it the
                 // helpers tie the quotes with their default key, which a money server of the grid does not share: an error for a grid
@@ -344,8 +344,11 @@ class Health
             $row['tag'] = self::say('health_web_search');
             // query.php is that service (XML-RPC): what to give instead
             preg_match('#/query\.php/?$#i', (string) parse_url($value, PHP_URL_PATH)) === 1 && ($row['detail'] = self::say('health_search_is_service'));
-        } elseif ($key === 'web_profile_url' && $owner !== null && !str_contains($value, '[AGENT_NAME]')) {
-            // An address without the name: the viewers add it, as the name of the owner of the grid here
+        } elseif ($key === 'web_profile_url' && !str_contains($value, '[AGENT_NAME]')) {
+            // An address without the name: the viewers add it, as the name of the owner of the grid here; shown only without one
+            if ($owner === null) {
+                return [self::valueRow($key, $value)];
+            }
             $row['url'] = \W4OS\Engine\Models\Avatar::profileAt(rtrim($value, '/') . '/[AGENT_NAME]', $owner) ?? $value;
             $row['display'] = $value;
         } elseif (str_contains($value, '[AGENT_NAME]')) {
