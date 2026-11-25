@@ -565,3 +565,27 @@ describe('The pictures of the guide of a grid', function () {
     });
 });
 
+
+describe('The kept picture of a hypergrid destination', function () {
+    test('is found whatever the spelling of its address, one kept by an earlier version too: the guide shows it, not the image of its title', function () {
+        $machine = new Machine();
+        // As the guide of 2do.directory writes them: host:port:Region
+        $machine->write($machine->grid . '/Helpers.ini', "[Helpers]\nGuideSource = \"destinations.txt\"\n");
+        $machine->write($machine->grid . '/destinations.txt', "Visit\nFar beach|far.example.net:8002:Far\nFar hill|far.example.net:8002:Hill\n");
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $cache = W4OS\Engine\Data\Cache::for($machine->environment, $grid->config());
+        RemotePictures::keep($cache, REMOTE_BEACH, 'JP2-BYTES', 0, 'Beach');
+        RemotePictures::keep($cache, REMOTE_HILL, 'JP2-BYTES', 0, 'Hill');
+        // Kept before the keys had one form: by the address as the guide wrote it
+        $cache->set('guide.picture.' . md5('far.example.net:8002:far|far beach'), ['picture' => REMOTE_BEACH, 'checked' => time(), 'failed' => null], RemotePictures::KEEP);
+        // Kept by the task under another spelling of the same place
+        $cache->set(RemotePictures::key('hop://far.example.net:8002/Hill', 'Far hill'), ['picture' => REMOTE_HILL, 'checked' => time(), 'failed' => null], RemotePictures::KEEP);
+
+        $guide = array_column($grid->guide()['Visit']['destinations'] ?? [], 'picture', 'name');
+
+        expect($guide)->toBe(['Far beach' => REMOTE_BEACH, 'Far hill' => REMOTE_HILL])
+            ->and(RemotePictures::key('far.example.net:8002:Hill', 'Far hill'))->toBe(RemotePictures::key('far.example.net:8002/Hill', 'Far hill'))
+            ->and(RemotePictures::lookup($cache, 'far.example.net:8002/Far', 'Far beach'))->toBeNull()
+            ->and(RemotePictures::lookup($cache, 'far.example.net:8002:Far', 'Far beach'))->toBe(REMOTE_BEACH);
+    });
+});

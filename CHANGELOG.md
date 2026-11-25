@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (guide): a kept picture of another grid found whatever the spelling of its address, an earlier one too
 - fix (map): MapTileURL of the config first; a grid only described here has its tiles where it logs in
 - change (motd): the help of its block says the grid's own message first
 - fix (motd): the welcome of a page keeps the grid's own WelcomeMessage, for an avatar signed in too

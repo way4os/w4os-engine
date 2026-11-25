@@ -99,8 +99,16 @@ final class RemotePictures
         return $own !== null && strtolower((string) $own['host']) === strtolower((string) ($at['host'] ?? '')) && (int) ($own['port'] ?? 80) === (int) ($at['port'] ?? 0);
     }
 
-    /** The key of what is kept of a destination. */
+    /** The key of what is kept of a destination: one for every spelling of its address (host:port:Region, host:port/Region, hop://). */
     public static function key(string $url, string $name): string
+    {
+        $uri = Destination::uri($url);
+
+        return self::rawKey($uri !== null && $uri !== '' ? $uri : $url, $name);
+    }
+
+    /** The key of an address as it is written, the one kept before the keys had one form. */
+    private static function rawKey(string $url, string $name): string
     {
         return 'guide.picture.' . md5(strtolower(trim($url)) . '|' . strtolower(trim($name)));
     }
@@ -177,7 +185,8 @@ final class RemotePictures
     /** The picture of a hypergrid destination, as it was kept, null when none was found. Asks nothing. */
     public static function lookup(Cache $cache, string $url, string $name = ''): ?string
     {
-        $kept = $cache->get(self::key($url, $name));
+        // Else what was kept by the address as it is written, before the keys had one form (kept KEEP seconds at most)
+        $kept = $cache->get(self::key($url, $name)) ?? $cache->get(self::rawKey($url, $name));
 
         return is_array($kept) && is_string($kept['picture'] ?? null) ? $kept['picture'] : null;
     }

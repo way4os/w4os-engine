@@ -72,9 +72,10 @@ final class Place implements Reachable
      */
     public function realPicture(): ?string
     {
+        // Its address as it was given (the line of the guide): what was kept of it may be kept by it
         $uri = (string) $this->tpUri();
 
-        return $this->on === null || $uri === '' ? null : $this->on->shownPicture($uri, $this->name, null, title: false);
+        return $this->on === null || $uri === '' ? null : $this->on->shownPicture(trim($this->destination) !== '' ? $this->destination : $uri, $this->name, null, title: false);
     }
 
     /** Its picture, else the image of its name (a card). */
