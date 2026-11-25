@@ -91,7 +91,19 @@ final class GridSettingsImport
                 $notes[] = "$setting: what follows its closing quote is left out, as OpenSimulator reads it";
             }
         }
-        $gloebit = strtolower(trim($values['economy']['economymodule'][2] ?? '')) === 'gloebit';
+        $gloebit = strtolower(trim($values['economy']['economymodule'][2] ?? '', " \t\"")) === 'gloebit';
+        // Gloebit set up in the old config (loaded, with its keys) comes; else its settings stay there, said
+        $unanswered = $gloebit ? (new GridOptions($grid))->unanswered('economy-gloebit', [$file]) : [];
+        if (isset($values['gloebit']) && (!$gloebit || $unanswered !== [])) {
+            $notes[] = $gloebit
+                ? 'Gloebit: the old simulators load it without ' . implode(', ', $unanswered) . ', not turned on (its settings left out)'
+                : 'Gloebit: the old simulators do not load it ([Economy] economymodule), its settings left out';
+        }
+        if ($unanswered !== []) {
+            unset($values['economy']['economymodule']);
+            $gloebit = false;
+        }
+        $gloebit || ($values = array_diff_key($values, ['gloebit' => true]));
         // The 3D map kept where its simulators can draw it: on a core that reads MapTilesDirectory, in their cache (MapRenderer)
         $core = $grid->coreDirectory();
         $map = ['folder' => MapRenderer::hasFolderSetting($core) ? MapRenderer::FOLDER : '', 'account' => $environment->layout->systemUser()];

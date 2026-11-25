@@ -484,6 +484,33 @@ describe('The import of a grid', function () {
             ->and((string) file_get_contents($plan['report']))->not->toContain('Gloebit');
     });
 
+    test('leaves Gloebit off when its simulators load it without its keys, and says it in the report', function () {
+        [$machine, $robust] = old_robust_install();
+        $machine->write($machine->core . '/bin/OpenSimDefaults.ini', "[Startup]\n    Other = core\n");
+        $machine->write($machine->core . '/bin/OpenSim.ini.example', "[Startup]\n;Other = example\n");
+        $bin = dirname($robust);
+        $common = dirname($bin) . '/etc/grids/KimbeRed/GridCommon.ini';
+        mkdir(dirname($common), 0o755, true);
+        // Loaded through the file the simulators include, its keys given nowhere
+        file_put_contents($common, "[Economy]\n    economymodule = Gloebit\n[Gloebit]\n    Enabled = true\n    GLBEnvironment = production\n");
+        mkdir("$bin/Regions");
+        file_put_contents("$bin/OpenSim.ini", "[Startup]\n    regionload_regionsdir = \"$bin/Regions\"\n[Network]\n    http_listener_port = 9100\n" .
+            "[DatabaseService]\n    ConnectionString = \"Data Source=db.example.org;Database=oldsim;User ID=olduser;Password=oldpass;Old Guids=true;\"\n[Includes]\n    Include-Common = \"$common\"\n");
+        file_put_contents("$bin/Regions/Welcome.ini", "[Welcome]\nRegionUUID = 22222222-2222-4222-8222-222222222222\nLocation = 1000,1000\nInternalPort = 9101\n");
+
+        $import = GridImport::prepare($machine->environment, $robust, simulators: [['file' => "$bin/OpenSim.ini", 'name' => 'Welcome']], helpersHere: false);
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $grid = Grid::find($machine->environment, 'oldgrid');
+        $sim = $grid->simulator('oldgrid.welcome')->controller();
+        $read = ConfigReader::expand(ConfigReader::load([W4OS\Engine\Provisioning\SimulatorMaster::path($grid->directory()), ...$sim->files()], [], false, false, $sim->lastFiles()));
+        $module = ($read['Startup']['economymodule'] ?? '') ?: ($read['Economy']['economymodule'] ?? '');
+
+        expect((new W4OS\Engine\Provisioning\GridOptions($grid))->enabled())->not->toContain('economy-gloebit')
+            ->and(strtolower($module))->not->toBe('gloebit')
+            ->and($read['Gloebit']['Enabled'] ?? null)->not->toBe('true')
+            ->and((string) file_get_contents($import->document()['report']))->toContain('economy-gloebit', 'GLBKey', 'not turned on');
+    });
+
     /** An old install whose simulators keep their offline messages V1 with the helper at $url: [machine, Robust config, simulators]. */
     $offlineV1 = static function (string $url): array {
         [$machine, $robust] = old_robust_install();

@@ -37,6 +37,7 @@ final class GridImport
      * @param list<array<string,mixed>> $dropped
      * @param list<string> $unreadable
      * @param list<string> $gridInfo the values of its grid info made ASCII, said (GridInfoText::said())
+     * @param list<string> $aside the options its simulators load without what they ask, not turned on, said
      */
     private function __construct(
         public readonly GridPlan $plan,
@@ -50,6 +51,7 @@ final class GridImport
         public readonly array $constants = [],
         public readonly array $gridInfo = [],
         public readonly array $helpers = [],
+        public readonly array $aside = [],
     ) {}
 
     /** @var list<string> what this install added that the old config had not (addedSettings()), for the report */
@@ -86,11 +88,22 @@ final class GridImport
         // tell, else none of its group, their settings brought into the OpenSim.ini of the grid telling it there (apply())
         $sources = array_values(array_filter(array_map(static fn(array $s): string => (string) ($s['file'] ?? ''), $simulators), 'is_file'));
         $helpers = [];
+        $aside = [];
         if ($sources !== []) {
             $helpersHere ??= is_dir(\W4OS\Engine\Provisioning\Web\Snippets::WEBROOT);
             $options = new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables());
             $withHelpers = new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, GridPlan::fromArray(['helpers' => true] + $plan->toArray())), layered: true, extra: $plan->variables());
             $told = $options->toldBy($sources);
+            // An option they load without what it asks (Gloebit without its keys) is not set up there: said, never turned on
+            $aside = [];
+            foreach ($told as $i => $name) {
+                $missing = $options->unanswered($name, $sources);
+                if ($missing !== []) {
+                    $aside[] = "$name: the old simulators load it without " . implode(', ', $missing) . ', not turned on';
+                    unset($told[$i]);
+                }
+            }
+            $told = array_values($told);
             // A choice the helpers serve: they are on when this install serves them and the old one had them on the site of the grid,
             // else the helper of the old config stays where it is, outside this install
             foreach ($told as $name) {
@@ -240,7 +253,7 @@ final class GridImport
             }
         }
 
-        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $constants, $gridInfo, $helpers);
+        return new self($plan, $file, $customizations, $dropped, $backup, SimulatorImport::unreadable($backup->files), $imports, $data, $constants, $gridInfo, $helpers, $aside);
     }
 
     /**
@@ -267,6 +280,8 @@ final class GridImport
             'gridInfo' => $this->gridInfo,
             // What the choices kept say of the helpers: on here, or the old config's outside this install
             'helpers' => $this->helpers,
+            // The options its simulators load without what they ask, left off
+            'aside' => $this->aside,
             'dropped' => array_map(SimulatorImport::masked(...), $this->dropped),
             'report' => $this->reportPath(),
             'backup' => $this->backup?->document(),
@@ -537,6 +552,8 @@ final class GridImport
             ...($this->gridInfo === [] ? [] : ['Grid info made ASCII:', ...array_map(static fn(string $said): string => "  $said", $this->gridInfo), '']),
             // The helpers the choices kept need: this install's, or the old config's where they are
             ...($this->helpers === [] ? [] : ['Helpers:', ...array_map(static fn(string $said): string => "  $said", $this->helpers), '']),
+            // What its simulators load without what it needs: left off, to set up here
+            ...($this->aside === [] ? [] : ['Not turned on:', ...array_map(static fn(string $said): string => "  $said", $this->aside), '']),
             count($this->customizations) . ' setting(s) of the original kept in the new config:',
         ];
         foreach ($this->customizations as $setting) {

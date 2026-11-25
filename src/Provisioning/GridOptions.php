@@ -483,6 +483,33 @@ final class GridOptions
     }
 
     /**
+     * The settings an option asks its administrator for (Asks) that files do not give, with the files they include: an option
+     * they tell without them is not set up there (Gloebit without its keys).
+     *
+     * @param list<string> $files
+     * @return list<string> `Section/Key`
+     */
+    public function unanswered(string $name, array $files): array
+    {
+        $option = $this->template($name);
+        if ($option === null || $option->asks() === []) {
+            return [];
+        }
+        $given = [];
+        foreach ($files as $file) {
+            foreach (array_change_key_case(\W4OS\Engine\Config\ConfigReader::load($file, $this->gridConstants(), expand: false)) as $section => $keys) {
+                is_array($keys) && ($given[$section] = array_merge($given[$section] ?? [], array_change_key_case($keys)));
+            }
+        }
+
+        return array_values(array_filter($option->asks(), static function (string $pair) use ($given): bool {
+            [$section, $key] = array_pad(explode('/', $pair, 2), 2, '');
+
+            return trim((string) ($given[strtolower($section)][strtolower($key)] ?? ''), " \t\"") === '';
+        }));
+    }
+
+    /**
      * @param ?list<string> $files the files read, the ones of the grid without them
      * @return list<string> told()
      */
