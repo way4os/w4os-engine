@@ -29,15 +29,20 @@ describe('The message of the day', function () {
 });
 
 describe('The welcome of a page', function () {
-    test('names the avatar signed in, else says the message of the grid with the word for a visitor, else welcomes an avatar', function () {
+    test('is the message of the grid when it has its own, the avatar or the word for a visitor in it; else names the avatar', function () {
         $environment = (new Machine())->environment;
         $welcome = static fn(?string $message): Grid => Grid::described($environment, ['nick' => 'fowl', 'name' => 'Friendly Fowl', 'remote' => true], new GridConfig(['Robust' => $message === null ? [] : ['LoginService' => ['WelcomeMessage' => $message]]]));
         $fr = Catalog::messages('fr_FR');
 
-        expect($welcome(null)->welcome('Ada Lovelace'))->toBe('Welcome, Ada Lovelace')
-            ->and($welcome('Hello <USERNAME>')->welcome(' Ada Lovelace '))->toBe('Welcome, Ada Lovelace')
+        // Its own message, kept for an avatar signed in too
+        expect($welcome('Hello <USERNAME>, enjoy')->welcome(' Ada Lovelace '))->toBe('Hello Ada Lovelace, enjoy')
             ->and($welcome('Hello <USERNAME>, enjoy')->welcome())->toBe('Hello Avatar, enjoy')
-            ->and($welcome('Hello everyone')->welcome())->toBe('Hello everyone')
+            ->and($welcome('Bienvenue sous les tropiques')->welcome('Ada Lovelace'))->toBe('Bienvenue sous les tropiques')
+            ->and($welcome('Bienvenue sous les tropiques')->welcome())->toBe('Bienvenue sous les tropiques')
+            // The example of OpenSimulator's files is no message of the grid
+            ->and($welcome(' Welcome, Avatar! ')->welcome('Ada Lovelace'))->toBe('Welcome, Ada Lovelace')
+            ->and($welcome('Welcome, Avatar!')->welcome())->toBe('Welcome, Avatar')
+            ->and($welcome(null)->welcome('Ada Lovelace'))->toBe('Welcome, Ada Lovelace')
             ->and($welcome(null)->welcome())->toBe('Welcome, Avatar')
             ->and($welcome(null)->welcome('', 'fr_FR'))->toBe(sprintf($fr['motd_avatar'], $fr['motd_avatar_visitor']))
             // The message of the day of the viewers stays what it was

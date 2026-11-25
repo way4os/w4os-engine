@@ -980,7 +980,7 @@ final class Contract
             'tags' => ['Message of the day'],
             'summary' => 'Welcome of a page',
             'description' =>
-                'Plain text, the title of a page that welcomes its visitor: "Welcome, <avatar>" when `avatar` is given; else `WelcomeMessage` of `[LoginService]`, the word for a visitor in place of `<USERNAME>`; else "Welcome, Avatar". The message of the viewers is `/grids/{grid}/motd`.',
+                'Plain text, the title of a page that welcomes its visitor: `WelcomeMessage` of `[LoginService]` when the grid has its own (not the example of OpenSimulator\'s files, "Welcome, Avatar!"), the name of the avatar or the word for a visitor in place of `<USERNAME>`; else "Welcome, <avatar>" when `avatar` is given, else "Welcome, Avatar". The message of the viewers is `/grids/{grid}/motd`.',
             'parameters' => [
                 self::gridParameter(),
                 [

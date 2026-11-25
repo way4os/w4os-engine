@@ -58,6 +58,9 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /** The files that hold the Robust config, the first that exists is the one. */
     private const ROBUST_FILES = ['Robust.HG.ini', 'Robust.ini'];
 
+    /** The `WelcomeMessage` of the examples of OpenSimulator's files: no message of the grid's own. */
+    private const STOCK_WELCOME = 'Welcome, Avatar!';
+
     /** Where a grid is known from. */
     public const FOLDER = 'folder';
     public const PLAN = 'plan';
@@ -1223,20 +1226,17 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     }
 
     /**
-     * The welcome of a page: "Welcome, <avatar>" for an avatar signed in; else `WelcomeMessage` of `[LoginService]`, the word for a
-     * visitor in place of `<USERNAME>`; else "Welcome, Avatar".
+     * The welcome of a page: `WelcomeMessage` of `[LoginService]` when the grid has its own (not the example of OpenSimulator's
+     * files), the name of the avatar signed in or the word for a visitor in place of `<USERNAME>`; else "Welcome, <avatar>", else
+     * "Welcome, Avatar".
      */
     public function welcome(string $avatar = '', ?string $locale = null): string
     {
         $texts = $locale === null ? Catalog::MESSAGES : Catalog::messages($locale) + Catalog::MESSAGES;
-        if (trim($avatar) !== '') {
-            return sprintf($texts['motd_avatar'], trim($avatar));
-        }
-        $own = $this->setting('LoginService', 'WelcomeMessage');
+        $name = trim($avatar) !== '' ? trim($avatar) : $texts['motd_avatar_visitor'];
+        $own = trim((string) $this->setting('LoginService', 'WelcomeMessage'));
 
-        return $own !== null
-            ? str_replace('<USERNAME>', $texts['motd_avatar_visitor'], $own)
-            : sprintf($texts['motd_avatar'], $texts['motd_avatar_visitor']);
+        return $own !== '' && $own !== self::STOCK_WELCOME ? str_replace('<USERNAME>', $name, $own) : sprintf($texts['motd_avatar'], $name);
     }
 
     /**

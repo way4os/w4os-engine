@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (motd): the welcome of a page keeps the grid's own WelcomeMessage, for an avatar signed in too
 - new (map): the web map of a grid, Grid::mapTile() and Grid::mapRegions(), GET /grids/{grid}/map and its tiles
 - new (motd): the welcome of a page, Grid::welcome() and GET /grids/{grid}/welcome: "Welcome, <avatar>", else WelcomeMessage
 - change (settings): the welcome message of the grid on its Grid page, with its help
