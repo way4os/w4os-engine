@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (health): the offline.php of the helpers asked with a POST for V1; with V2, an address of it is an error to remove
 - new (map): the type, the estate and the owner of each region of the map, what the world map of the viewers says
 - new (settings): the page of the map (Regions › Map): the renderer, its options, the refresh; why the 3D map cannot run
 - change (status): the simple maps by grid; the option map-warp3d where the core can already draw the 3D one

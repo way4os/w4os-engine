@@ -3124,6 +3124,11 @@ msgctxt "health_offline_robust"
 msgid "served by Robust (module V2)"
 msgstr ""
 
+#, php-format
+msgctxt "health_offline_unused"
+msgid "set, but the module V2 does not use it (Robust keeps the offline messages): remove %s"
+msgstr ""
+
 msgctxt "health_set"
 msgid "set"
 msgstr ""

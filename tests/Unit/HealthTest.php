@@ -1193,3 +1193,31 @@ describe('A page the site serves', function () {
     });
 });
 
+
+describe('The offline messages of the helpers in the grid info', function () {
+    test('are their service, asked with a POST for the module V1; a setting to remove where Robust keeps them (V2), never asked', function () {
+        $live = ['message' => 'https://grid.example.org/helpers/offline.php'];
+        $row = static fn(string $module): array => array_column(Health::grid([
+            'live' => $live,
+            'config' => new W4OS\Engine\Config\GridConfig(['OpenSim' => ['Messaging' => ['OfflineMessageModule' => $module]]]),
+        ])[0]['rows'], null, 'label')['message'];
+        $v2 = $row('Offline Message Module V2');
+        $v1 = $row('OfflineMessageModule');
+
+        expect($v2)->toMatchArray(['url' => 'https://grid.example.org/helpers/offline.php', 'level' => 'error'])
+            ->and($v2)->not->toHaveKey('method')
+            ->and($v2['status'] ?? '')->toContain('remove message')
+            ->and($v1['method'] ?? null)->toBe('post');
+    });
+
+    test('in the config of the simulators: the address of Robust with the module V2, the helpers there to remove, none fine', function () {
+        $offline = static fn(string $url): array => array_values(array_filter(
+            array_merge(...array_column(Health::grid(['live' => [], 'config' => new W4OS\Engine\Config\GridConfig(['OpenSim' => ['Messaging' => ['OfflineMessageModule' => 'Offline Message Module V2'] + ($url === '' ? [] : ['OfflineMessageURL' => $url])]])]), 'rows')),
+            static fn(array $row): bool => in_array($row['label'], ['OfflineMessageURL', 'OfflineMessageModule'], true),
+        ))[0];
+
+        expect($offline('https://grid.example.org/helpers/offline.php'))->toMatchArray(['label' => 'OfflineMessageURL', 'level' => 'error'])
+            ->and($offline('http://127.0.0.1:8003')['level'])->not->toBe('error')
+            ->and($offline('')['level'])->not->toBe('error');
+    });
+});

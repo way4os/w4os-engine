@@ -905,6 +905,7 @@ final class Catalog
         'health_differs_grid_info' => 'differs from %s of get_grid_info',
         'health_web_search' => 'Web search',
         'health_offline_robust' => 'served by Robust (module V2)',
+        'health_offline_unused' => 'set, but the module V2 does not use it (Robust keeps the offline messages): remove %s',
         'health_set' => 'set',
         'health_missing' => 'missing',
         'health_signed_out' => 'signed out',

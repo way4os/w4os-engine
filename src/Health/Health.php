@@ -53,7 +53,7 @@ class Health
     /** What a service answers to a call with nothing in it, or with the wrong method. */
     const BARE = [400, 405];
 
-    /** @var array{register?:string,helpers?:?callable} the site of the grid being checked (grid()) */
+    /** @var array{register?:string,helpers?:?callable,offlineByRobust?:bool} the site of the grid being checked (grid()), and whether Robust keeps its offline messages (V2) */
     private static $site = [];
 
     /** What an address that sends elsewhere answers. */
@@ -134,7 +134,7 @@ class Health
         $live = array_filter($in['live'] ?? [], 'is_string');
         $login = (string) ($in['login'] ?? '');
         $owner = $in['owner'] ?? null;
-        self::$site = ['register' => (string) ($in['register'] ?? ($live['register'] ?? ($config?->find('GridInfoService', 'register') ?? ''))), 'helpers' => $in['servedByHelpers'] ?? null];
+        self::$site = ['register' => (string) ($in['register'] ?? ($live['register'] ?? ($config?->find('GridInfoService', 'register') ?? ''))), 'helpers' => $in['servedByHelpers'] ?? null, 'offlineByRobust' => self::offlineByRobust($config)];
         $file = self::names($config);
         $groups = [];
 
@@ -240,11 +240,9 @@ class Health
 
                 return $rows ?: [self::emptyRow($entry['key'] . '*')];
             case 'offline':
-                // The module V2 talks to Robust, which is not the helpers: nothing here to ask
-                $robust = stripos((string) $config->find($entry['section'], 'OfflineMessageModule'), 'V2') !== false;
-
-                return $robust
-                    ? [self::valueRow('OfflineMessageModule', self::say('health_offline_robust'))]
+                // The module V2 talks to Robust, which is not the helpers: nothing here to ask, an address of their helper left to remove
+                return self::offlineByRobust($config)
+                    ? [self::isOfflineHelper($value) ? self::offlineToRemove($entry['key'], $value) : self::valueRow('OfflineMessageModule', self::say('health_offline_robust'))]
                     : ($value === '' ? [self::emptyRow($entry['key'])] : self::post($entry['key'], $value, self::retrieveMessages(), 'RetrieveMessages/'));
             case 'secret':
                 // The key of the currency, where the MoneyServer has it: never shown, only whether the grid has one. Without it the
@@ -300,6 +298,13 @@ class Health
         }
         if (!self::isUrl($value)) {
             return [self::valueRow($key, $value)];
+        }
+        // The offline messages of the helpers (offline.php), whatever the key that names them: their service, never a page; a
+        // setting to remove where Robust keeps them (the module V2)
+        if (self::isOfflineHelper($value)) {
+            return self::$site['offlineByRobust'] ?? false
+                ? [self::offlineToRemove($key, $value)]
+                : self::post($key, $value, self::retrieveMessages(), 'RetrieveMessages/');
         }
         $row = self::page($key, $value);
         if (
@@ -400,6 +405,24 @@ class Health
     public static function emptyRow($label)
     {
         return ['label' => $label, 'kind' => 'address', 'level' => 'unset', 'reason' => 'health_unset'];
+    }
+
+    /** Whether an address is the service of the offline messages of the helpers (offline.php). */
+    private static function isOfflineHelper($value)
+    {
+        return preg_match('#/offline\.php/?$#i', (string) parse_url((string) $value, PHP_URL_PATH)) === 1;
+    }
+
+    /** The row of an address of the helper of the offline messages the module V2 does not use: an error, to remove, never asked. */
+    private static function offlineToRemove($key, $value)
+    {
+        return ['label' => $key, 'kind' => 'address', 'url' => (string) $value, 'level' => 'error', 'status' => self::say('health_offline_unused', [$key])];
+    }
+
+    /** Whether Robust keeps the offline messages of the simulators (the module V2), not the helpers; false without a config. */
+    private static function offlineByRobust($config)
+    {
+        return $config !== null && stripos((string) $config->find('Messaging', 'OfflineMessageModule'), 'V2') !== false;
     }
 
     /** The row of a setting that is not an address: its value, shown, nothing to ask. */
