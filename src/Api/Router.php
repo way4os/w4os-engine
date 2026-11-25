@@ -145,6 +145,12 @@ final class Router
         return $this->route('PATCH', $path, [], is_array($body) ? json_encode($body, JSON_THROW_ON_ERROR) : $body);
     }
 
+    /** Give a resource as it is now. @param array<string,mixed>|string $body a JSON:API document, or the body as it is */
+    public function put(string $path, array|string $body): Response
+    {
+        return $this->route('PUT', $path, [], is_array($body) ? json_encode($body, JSON_THROW_ON_ERROR) : $body);
+    }
+
     public function delete(string $path): Response
     {
         return $this->route('DELETE', $path);
@@ -308,6 +314,13 @@ final class Router
                 'GET' => fn() => $this->api->settings($grid, $tail[1]),
                 'PATCH' => fn() => $this->check($body, $parsed, $path, 'settings') ??
                     $this->api->updateSettings($grid, $tail[1], $this->attributes($body, $parsed)),
+            ];
+        } elseif ($grid !== null && count($tail) === 2 && $tail[0] === 'site-pages') {
+            $template = '/grids/{grid}/site-pages/{page}';
+            $routes = [
+                'GET' => fn() => $this->api->sitePage($grid, $tail[1]),
+                'PUT' => fn() => $this->check($body, $parsed, $path, 'site-pages') ??
+                    $this->api->declareSitePage($grid, $tail[1], $this->attributes($body, $parsed)),
             ];
         } elseif ($grid !== null && $tail === ['site-description']) {
             $template = '/grids/{grid}/site-description';

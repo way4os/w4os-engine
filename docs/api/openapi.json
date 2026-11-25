@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "0c7af1e",
+        "version": "18fe33d",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -13162,6 +13162,205 @@
                 }
             }
         },
+        "/grids/{grid}/site-pages/{page}": {
+            "get": {
+                "operationId": "getSitePage",
+                "tags": [
+                    "Setup"
+                ],
+                "summary": "A page the site serves for the grid",
+                "description": "The address of a page of the grid as it reads it (`url`, its constants replaced; null when it has none): its profiles (`[AGENT_NAME]` standing for the name), its welcome, its search, its destinations guide, its status, its directory, its registration, its password, about, its help. `declared` whether it is the one the site declared (it may change it), `servedBy` `helpers` (under their base) or `site`.",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "path",
+                        "required": true,
+                        "description": "The page: search, profile, guide, welcome, status, directory, register, password, about, help",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "search",
+                                "profile",
+                                "guide",
+                                "welcome",
+                                "status",
+                                "directory",
+                                "register",
+                                "password",
+                                "about",
+                                "help"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The page"
+                    },
+                    "404": {
+                        "description": "The grid is not known here, or the page is not one",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "The grid has no files on this machine (`channel-unavailable`)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-access": {
+                    "level": 100,
+                    "self": false,
+                    "needs": [
+                        "files"
+                    ]
+                }
+            },
+            "put": {
+                "operationId": "declareSitePage",
+                "tags": [
+                    "Setup"
+                ],
+                "summary": "Declare a page the site serves",
+                "description": "The site gives the address of a page it serves (`url`): written in the one setting the grid tells its viewers it in (Robust; `${Const|WebURL}` and its path when it is on the web site of the grid, so that it follows the site), kept as the site's. The site replaces an empty address, its own of before, or the one this install gave (the default of the helpers, an address its import added); an address given otherwise, by the grid it was migrated from or by a manager, is never replaced (`page-set-elsewhere`, 409: it is changed in the settings of the grid). The options of the grid never lay theirs over a page the site declared. `meta.reminders` what is left to do (`restart-grid`: the viewers are told at the next start of Robust), `meta.previous` the address it replaced, which the viewers that read it before still reach (the previous addresses of the grid).",
+                "parameters": [
+                    {
+                        "name": "grid",
+                        "in": "path",
+                        "required": true,
+                        "description": "The nick of the grid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "path",
+                        "required": true,
+                        "description": "The page: search, profile, guide, welcome, status, directory, register, password, about, help",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "search",
+                                "profile",
+                                "guide",
+                                "welcome",
+                                "status",
+                                "directory",
+                                "register",
+                                "password",
+                                "about",
+                                "help"
+                            ]
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "const": "site-pages"
+                                            },
+                                            "attributes": {
+                                                "type": "object",
+                                                "required": [
+                                                    "url"
+                                                ],
+                                                "properties": {
+                                                    "url": {
+                                                        "type": "string",
+                                                        "format": "uri",
+                                                        "description": "The address of the page on the site (https://...)"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The page now"
+                    },
+                    "400": {
+                        "description": "Not an address (`invalid-request`)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The grid is not known here, or the page is not one",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The page has an address given otherwise than by the site (`page-set-elsewhere`): nothing was written",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "The grid has no files on this machine (`channel-unavailable`)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-access": {
+                    "level": 200,
+                    "self": false,
+                    "needs": [
+                        "files"
+                    ]
+                }
+            }
+        },
         "/grids/{grid}/options/repair": {
             "post": {
                 "operationId": "repairOptions",
@@ -18301,6 +18500,7 @@
                             "owner-unknown",
                             "config-not-writable",
                             "instance-user-required",
+                            "page-set-elsewhere",
                             "restore-conflict",
                             "source-not-readable",
                             "estate-shared",
@@ -18313,7 +18513,7 @@
                             "no-confirmation-pending",
                             "mail-failed"
                         ],
-                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar): `resource` names its kind, a type of the API, when it is one; `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `post-invalid`: The post is empty or too long (1 to 1000 characters); `account-banned`: The account is banned: only an unban (banned false) lets it in again; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `email-taken`: An avatar has this email already, and the grid allows one avatar for an email; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `source-not-readable`: The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god, maintenance; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
+                        "description": "What went wrong, stable: what a site tells its people in its own language (the detail is the English one). `not-found`: What is asked is not there (a grid, a resource, an avatar): `resource` names its kind, a type of the API, when it is one; `invalid-request`: A value of the request is wrong, the detail says which; `invalid-document`: The body is not a JSON:API document; `type-conflict`: The type of the resource of the body is not the one of the address; `unauthorized`: The operation needs an API key; `method-not-allowed`: The address does not take this method; `channel-unavailable`: Nothing can do it now: a database, a simulator, a file cannot be reached; `instance-failed`: An instance (Robust, a simulator) failed; `internal-error`: The server failed, the log says why; `sign-in-refused`: The name (or the email) or the password is wrong; `account-disabled`: The password is right, but a manager disabled the account; `post-invalid`: The post is empty or too long (1 to 1000 characters); `account-banned`: The account is banned: only an unban (banned false) lets it in again; `email-unconfirmed`: The password is right, but the account waits for the confirmation of its email; `name-invalid`: The name is not a first and a last name of letters, digits and -; `name-reserved`: A part of the name is reserved: Default, Test, Admin, the name of the grid; `name-taken`: An avatar has this name already; `email-taken`: An avatar has this email already, and the grid allows one avatar for an email; `password-required`: A password is needed; `password-invalid`: The password is too short, too long, or has a double quote; `email-invalid`: The email is not an address; `email-required`: An email is needed to be confirmed; `model-unknown`: The model is not an avatar model of the grid; `link-invalid`: The link is not a web address; `field-unknown`: A value given cannot be changed; `field-read-only`: The value is the one of a file its operator changes (the name, the place, the size of a region); `flag-unknown`: The flag is not one of a region (DefaultRegion, FallbackRegion, Persistent...); `owner-unknown`: The grid has no avatar of this UUID; `config-not-writable`: A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file; `instance-user-required`: The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done; `page-set-elsewhere`: The page has an address given otherwise than by the site (the grid it was migrated from, a manager): the site does not replace it, nothing was written; `restore-conflict`: The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced; `source-not-readable`: The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them; `estate-shared`: The owner of a region is the one of its estate, which has other regions: they would change owner too; `filter-unknown`: The list has no such filter (the detail names the ones it has); `filter-value-unknown`: The filter does not take this value (the detail names the ones it takes); `sort-unknown`: The list cannot be sorted so (the detail names the sorts it takes); `role-unknown`: The role is not one of resident, god-like, customer-service, liaison, god, maintenance; `role-level-conflict`: The level given with a role is not one of that role; `token-refused`: The token is not valid, was used, or has expired; `no-confirmation-pending`: The avatar does not wait for the confirmation of its email; `mail-failed`: The mail could not be sent"
                     },
                     "detail": {
                         "type": "string",

@@ -73,6 +73,23 @@ describe('A grid that is made', function () {
         },
     );
 
+    test('leaves the pages its site declared to the site when the helpers are laid again', function () use ($plan) {
+        $plan = $plan();
+        $plan->helpers = true;
+        $plan->helpersPath = '/helpers';
+        $made = robust_made($plan);
+        $grid = Grid::planned(EnvironmentFake::with(), $plan);
+        // The site serves the profiles: its page, declared
+        file_put_contents($plan->robustIni(), str_replace('web_profile_url = "${Const|WebURL}/helpers/profile/[AGENT_NAME]"', 'web_profile_url = "${Const|WebURL}/opensim/profile/[AGENT_NAME]"', $made));
+        file_put_contents($plan->gridDir . '/' . W4OS\Engine\Provisioning\Web\SitePages::DECLARED, json_encode(['profile' => W4OS\Engine\Provisioning\Web\SitePages::current($grid, 'profile')]));
+
+        (new GridOptions($grid, layered: true, extra: $plan->variables()))->enable('helpers');
+
+        expect((string) file_get_contents($plan->robustIni()))
+            ->toContain('web_profile_url = "${Const|WebURL}/opensim/profile/[AGENT_NAME]"')
+            ->toContain('welcome = "${Const|WebURL}/helpers/welcome"');
+    });
+
     test('tells the gatekeeper of a hypergrid in the grid info, and nothing of it when it is not one', function () use (
         $plan,
     ) {

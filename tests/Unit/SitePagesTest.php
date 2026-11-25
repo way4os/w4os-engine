@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 /**
  * Who serves each page of a grid, the helpers or the site: a page whose address is under the base of the helpers is theirs, any
- * other is the site's. The base is HelpersURL of Helpers.ini, else the economy, else WebURL/helpers.
+ * other is the site's. The base is HelpersURL of Helpers.ini, else WebURL/helpers for a grid that has helpers, never the economy.
+ * The site declares the pages it serves, never over an address given otherwise.
  */
 
 use W4OS\Engine\Config\IniEditor;
@@ -198,5 +199,73 @@ describe('The addresses of a grid, for the pages', function () {
             ->toBe('config')
             ->and($attributes['servedBy'])
             ->toMatchArray(['search' => 'site', 'welcome' => 'helpers', 'guide' => null]);
+    });
+});
+
+describe('The pages a site declares', function () {
+    /** Declare a page through the API: [status, attributes or detail, meta]. */
+    $put = static function (Grid $grid, string $page, string $url): array {
+        $router = new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($grid->environment()));
+        $answer = $router->put("/grids/demo/site-pages/$page", ['data' => ['type' => 'site-pages', 'attributes' => ['url' => $url]]]);
+
+        return [$answer->status, $answer->document['data']['attributes'] ?? ($answer->document['code'] ?? null), $answer->document['meta'] ?? [], $answer->document['detail'] ?? ''];
+    };
+
+    test('are written on the site of the grid, kept as the site\'s, the restart said; the site changes its own again', function () use ($put) {
+        [$machine, $grid] = pages_grid('', 'LogoURL = "https://demo.example.org/logo.png"');
+
+        [$status, $page, $meta] = $put($grid(), 'profile', 'https://demo.example.org/opensim/profile');
+        $again = $put($grid(), 'profile', 'https://demo.example.org/site/profile');
+        $read = (new W4OS\Engine\Api\Router(new W4OS\Engine\Api\Api($machine->environment)))->get('/grids/demo/site-pages/profile')->document['data']['attributes'] ?? [];
+
+        expect($status)->toBe(200)
+            ->and($page)->toMatchArray(['url' => 'https://demo.example.org/opensim/profile/[AGENT_NAME]', 'declared' => true, 'servedBy' => 'site'])
+            ->and(array_column($meta['reminders'] ?? [], 'code'))->toBe(['restart-grid'])
+            // Written from the web site of the grid, which it follows
+            ->and(IniEditor::load($machine->grid . '/Robust.HG.ini')->get('GridInfoService', 'web_profile_url'))->toBe('${Const|WebURL}/site/profile/[AGENT_NAME]')
+            ->and([$again[0], $again[2]['previous'] ?? null])->toBe([200, 'https://demo.example.org/opensim/profile/[AGENT_NAME]'])
+            ->and($read)->toMatchArray(['url' => 'https://demo.example.org/site/profile/[AGENT_NAME]', 'declared' => true]);
+    });
+
+    test('take the place of the address this install gave (the default of the helpers), never of one given otherwise', function () use ($put) {
+        [, $grid] = pages_grid("[GridInfoService]\n    web_profile_url = \"https://demo.example.org/helpers/profile/[AGENT_NAME]\"\n    register = \"https://elsewhere.example.org/join\"", 'LogoURL = "https://demo.example.org/logo.png"');
+
+        $default = $put($grid(), 'profile', 'https://demo.example.org/opensim/profile');
+        [$status, $code, , $detail] = $put($grid(), 'register', 'https://demo.example.org/opensim/register');
+
+        expect($default[0])->toBe(200)
+            ->and([$status, $code])->toBe([409, 'page-set-elsewhere'])
+            ->and($detail)->toContain('https://elsewhere.example.org/join', 'given otherwise than by the site')
+            ->and(SitePages::current($grid(), 'register'))->toBe('https://elsewhere.example.org/join');
+    });
+
+    test('never take the place of the address the grid it was migrated from had, but of one its import added', function () use ($put) {
+        [$machine, $grid] = pages_grid("[GridInfoService]\n    about = \"https://old.example.org/about\"\n    welcome = \"https://demo.example.org/opensim/economy/welcome\"", 'LogoURL = "https://demo.example.org/logo.png"');
+        // The report of its import: what it kept of the old grid, what this install added
+        file_put_contents($machine->grid . '/demo.import-report.txt', "Grid Demo (demo), imported from /old/Robust.HG.ini\n\n1 setting(s) of the original kept in the new config:\n  [GridInfoService] about = https://old.example.org/about\n\n1 setting(s) added by this install, which the old config had not (what w4os needs, its options):\n  [GridInfoService] welcome = https://demo.example.org/opensim/economy/welcome (Robust)\n\n0 setting(s) of the original not kept\n");
+
+        [$status, $code, , $detail] = $put($grid(), 'about', 'https://demo.example.org/opensim/about');
+        $welcome = $put($grid(), 'welcome', 'https://demo.example.org/opensim/welcome');
+
+        expect([$status, $code])->toBe([409, 'page-set-elsewhere'])
+            ->and($detail)->toContain('the one of the grid it was migrated from')
+            ->and($welcome[0])->toBe(200)
+            ->and(SitePages::current($grid(), 'welcome'))->toBe('https://demo.example.org/opensim/welcome');
+    });
+
+    test('are left to the site by the options: they never lay theirs over a page it declared', function () {
+        [$machine, $grid] = pages_grid('', 'LogoURL = "https://demo.example.org/logo.png"');
+        SitePages::declare($grid(), 'profile', 'https://demo.example.org/opensim/profile');
+
+        expect(SitePages::declaredKeys($grid()))->toBe(['gridinfoservice|web_profile_url'])
+            ->and(SitePages::declare($grid(), 'help', 'https://demo.example.org/opensim/help')['keys'])->toBe(['[GridInfoService] help']);
+    });
+
+    test('are pages a site serves only: not the base of the helpers, nor a page there is not', function () use ($put) {
+        [, $grid] = pages_grid('', 'LogoURL = "https://demo.example.org/logo.png"');
+
+        expect($put($grid(), 'helpers', 'https://demo.example.org/x')[0])->toBe(404)
+            ->and($put($grid(), 'nowhere', 'https://demo.example.org/x')[0])->toBe(404)
+            ->and($put($grid(), 'profile', 'not an address')[0])->toBe(400);
     });
 });

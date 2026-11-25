@@ -165,6 +165,41 @@ final class Endpoints
                 '503' => Contract::problem('The grid has no files on this machine (`channel-unavailable`)'),
             ],
         ];
+        // The pages a site serves for the grid: their address in the config of the grid, which the site declares
+        $sitePages = [...array_keys(\W4OS\Engine\Provisioning\Web\SitePages::PAGES), ...array_keys(\W4OS\Engine\Provisioning\Web\SitePages::INFO_PAGES)];
+        $pageParameter = ['name' => 'page', 'in' => 'path', 'required' => true, 'description' => 'The page: ' . implode(', ', $sitePages), 'schema' => ['type' => 'string', 'enum' => $sitePages]];
+        $paths['/grids/{grid}/site-pages/{page}'] = [
+            'get' => [
+                'operationId' => 'getSitePage',
+                'tags' => ['Setup'],
+                'summary' => 'A page the site serves for the grid',
+                'description' => 'The address of a page of the grid as it reads it (`url`, its constants replaced; null when it has none): its profiles (`[AGENT_NAME]` standing for the name), its welcome, its search, its destinations guide, its status, its directory, its registration, its password, about, its help. `declared` whether it is the one the site declared (it may change it), `servedBy` `helpers` (under their base) or `site`.',
+                'parameters' => [Contract::gridParameter(), $pageParameter],
+                'responses' => [
+                    '200' => ['description' => 'The page'],
+                    '404' => Contract::problem('The grid is not known here, or the page is not one'),
+                    '503' => Contract::problem('The grid has no files on this machine (`channel-unavailable`)'),
+                ],
+            ],
+            'put' => [
+                'operationId' => 'declareSitePage',
+                'tags' => ['Setup'],
+                'summary' => 'Declare a page the site serves',
+                'description' => 'The site gives the address of a page it serves (`url`): written in the one setting the grid tells its viewers it in (Robust; `${Const|WebURL}` and its path when it is on the web site of the grid, so that it follows the site), kept as the site\'s. The site replaces an empty address, its own of before, or the one this install gave (the default of the helpers, an address its import added); an address given otherwise, by the grid it was migrated from or by a manager, is never replaced (`page-set-elsewhere`, 409: it is changed in the settings of the grid). The options of the grid never lay theirs over a page the site declared. `meta.reminders` what is left to do (`restart-grid`: the viewers are told at the next start of Robust), `meta.previous` the address it replaced, which the viewers that read it before still reach (the previous addresses of the grid).',
+                'parameters' => [Contract::gridParameter(), $pageParameter],
+                'requestBody' => ['required' => true, 'content' => [Response::JSON_API => ['schema' => ['type' => 'object', 'properties' => ['data' => ['type' => 'object', 'properties' => [
+                    'type' => ['const' => 'site-pages'],
+                    'attributes' => ['type' => 'object', 'required' => ['url'], 'properties' => ['url' => ['type' => 'string', 'format' => 'uri', 'description' => 'The address of the page on the site (https://...)']]],
+                ]]]]]]],
+                'responses' => [
+                    '200' => ['description' => 'The page now'],
+                    '400' => Contract::problem('Not an address (`invalid-request`)'),
+                    '404' => Contract::problem('The grid is not known here, or the page is not one'),
+                    '409' => Contract::problem('The page has an address given otherwise than by the site (`page-set-elsewhere`): nothing was written'),
+                    '503' => Contract::problem('The grid has no files on this machine (`channel-unavailable`)'),
+                ],
+            ],
+        ];
         $paths['/grids/{grid}/options/repair']['post'] = [
             'operationId' => 'repairOptions',
             'tags' => ['Setup'],

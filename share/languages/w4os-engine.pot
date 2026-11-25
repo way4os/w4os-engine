@@ -3942,6 +3942,10 @@ msgctxt "error_instance_user_required"
 msgid "This cannot be done from here: the simulators are started and stopped on their server."
 msgstr ""
 
+msgctxt "error_page_set_elsewhere"
+msgid "This page has an address given elsewhere (the grid it came from, a manager): the site does not replace it."
+msgstr ""
+
 msgctxt "error_restore_conflict"
 msgid "This backup holds what this server has already: nothing was replaced."
 msgstr ""

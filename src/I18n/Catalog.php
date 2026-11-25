@@ -1120,6 +1120,7 @@ final class Catalog
         'error_owner_unknown' => 'This avatar does not exist.',
         'error_config_not_writable' => 'This cannot be changed from here: the files of the grid belong to its server.',
         'error_instance_user_required' => 'This cannot be done from here: the simulators are started and stopped on their server.',
+        'error_page_set_elsewhere' => 'This page has an address given elsewhere (the grid it came from, a manager): the site does not replace it.',
         'error_restore_conflict' => 'This backup holds what this server has already: nothing was replaced.',
         'error_source_not_readable' => 'Some files of the older install cannot be read by the server: give it read access to them first.',
         'error_estate_shared' => 'The owner of this region is the owner of its estate, which has other regions: change the owner of the estate.',

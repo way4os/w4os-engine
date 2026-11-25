@@ -1055,6 +1055,54 @@ final class Api
         return Response::document(['data' => ['type' => 'settings', 'id' => $group, 'attributes' => $values], 'links' => ['self' => $instance]] + ($meta === [] ? [] : ['meta' => $meta]));
     }
 
+    /** The address of a page of the site of a grid (SitePages), as the grid reads it, and whether the site declared it. */
+    public function sitePage(string $grid, string $page): Response
+    {
+        return $this->sitePageDocument($grid, $page, null);
+    }
+
+    /**
+     * The address of a page as the site of the grid declares it (SitePages::declare()): `url`, the page on the site.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    public function declareSitePage(string $grid, string $page, array $attributes): Response
+    {
+        return $this->sitePageDocument($grid, $page, $attributes);
+    }
+
+    /** @param ?array<string,mixed> $attributes the declaration, null to read */
+    private function sitePageDocument(string $grid, string $page, ?array $attributes): Response
+    {
+        $instance = self::path('grids', $grid, null) . "/site-pages/$page";
+        $meta = [];
+        try {
+            $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
+            isset(SitePages::PAGES[$page]) || isset(SitePages::INFO_PAGES[$page]) || throw NotFound::for("page of a site called '$page'");
+            if ($attributes !== null) {
+                $url = $attributes['url'] ?? null;
+                is_string($url) && $url !== '' || throw InvalidValue::because('invalid-request', 'url: the address of the page on the site (https://...)');
+                in_array('files', $found->access(), true) || throw ChannelUnavailable::because("declare a page of $grid", 'options-no-files');
+                $set = SitePages::declare($found, $page, $url);
+                // The grid tells its viewers at its next start
+                $set['restart'] === null || ($meta['reminders'] = [Notice::of($set['restart'] === 'Robust' ? 'restart-grid' : 'restart-simulators', ['restart' => 'opensim restart ' . $found->nick()])]);
+                $set['previous'] === null || ($meta['previous'] = $set['previous']);
+            }
+            $url = SitePages::current($found, $page);
+            $declared = SitePages::declared($found)[$page] ?? null;
+        } catch (\Throwable $error) {
+            return Response::problem(Problem::from($error, $instance));
+        }
+        $attributes = [
+            'url' => $url === '' ? null : $url,
+            // The address is the one the site declared, which it may change again
+            'declared' => $url !== '' && $declared === $url,
+            'servedBy' => $url === '' ? null : ($found->servedByHelpers($url) ? 'helpers' : 'site'),
+        ];
+
+        return Response::document(['data' => ['type' => 'site-pages', 'id' => $page, 'attributes' => $attributes], 'links' => ['self' => $instance]] + ($meta === [] ? [] : ['meta' => $meta]));
+    }
+
     /**
      * The options of the grid its simulators miss in their files, `mode` plan (the default) or apply (GridOptions::repair()).
      *

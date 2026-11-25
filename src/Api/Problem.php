@@ -52,6 +52,7 @@ final class Problem
         'owner-unknown' => 'The grid has no avatar of this UUID',
         'config-not-writable' => 'A config file of the grid cannot be written by the process of the API (it belongs to the user of the grid): nothing was changed, the detail names the file',
         'instance-user-required' => 'The instances are started and stopped by the user that runs them: this process is another (the web server of a site); nothing was done',
+        'page-set-elsewhere' => 'The page has an address given otherwise than by the site (the grid it was migrated from, a manager): the site does not replace it, nothing was written',
         'restore-conflict' => 'The backup holds what this machine has already (a grid, a simulator, a database with tables): nothing was replaced',
         'source-not-readable' => 'The import cannot read files of the older install (its config, its regions, the state of its scripts): nothing was written, the detail names them',
         'estate-shared' => 'The owner of a region is the one of its estate, which has other regions: they would change owner too',
@@ -66,10 +67,10 @@ final class Problem
     ];
 
     /** The status of a refusal that is not a wrong value of the request: it is right, this process cannot do it. */
-    private const REASON_STATUSES = ['config-not-writable' => 403, 'instance-user-required' => 403, 'account-banned' => 403];
+    private const REASON_STATUSES = ['config-not-writable' => 403, 'instance-user-required' => 403, 'account-banned' => 403, 'page-set-elsewhere' => 409];
 
     /** The titles of the statuses of a refusal. */
-    private const TITLES = [400 => 'Invalid request', 403 => 'Forbidden'];
+    private const TITLES = [400 => 'Invalid request', 403 => 'Forbidden', 409 => 'Conflict'];
 
     /** The code of a problem that has none of its own, by its status (else invalid-request, or internal-error for the server). */
     private const STATUS_CODES = [

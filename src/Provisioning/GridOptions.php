@@ -1152,6 +1152,10 @@ final class GridOptions
                 }
             }
             $settings = $option->settings($file, $variables, $on, $fact);
+            // A page the site of the grid declared is its own: the options never lay theirs over it
+            if ($services && ($declared = \W4OS\Engine\Provisioning\Web\SitePages::declaredKeys($this->grid)) !== []) {
+                $settings = array_values(array_filter($settings, static fn(array $s): bool => !in_array(strtolower("$s[0]|$s[1]"), $declared, true)));
+            }
             // What the grid has no value for, and the option says to take off when it has none
             $cleared = $on
                 ? array_values(array_filter(
