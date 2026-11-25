@@ -2437,7 +2437,22 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /** The map tiles of the grid, on the public port of Robust. */
     public function mapUrl(): ?string
     {
-        return $this->address('map');
+        // What the viewers are given at login (MapTileURL of [LoginService]), when the config says it
+        $given = $this->setting('LoginService', 'MapTileURL');
+        $given = $given === null ? '' : trim(ConfigReader::replaceConstants($given, $this->config()?->section('Const') ?? []), " \t\"");
+        if ($given !== '' && !str_contains($given, '${')) {
+            return $given;
+        }
+        $address = $this->address('map');
+        if ($address !== null || ($this->in(self::FOLDER) && !$this->isRemote())) {
+            return $address;
+        }
+        // A grid only described here: its Robust serves the tiles where it logs in, its public port (the default MapTileURL)
+        $parts = parse_url((string) $this->loginUrl());
+
+        return is_array($parts) && ($parts['host'] ?? '') !== ''
+            ? ($parts['scheme'] ?? 'http') . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '')
+            : null;
     }
 
     /** Whether the grid has a web map: its Robust serves the tiles, or their folder is here (WebMap). */

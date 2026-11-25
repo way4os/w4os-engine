@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (map): MapTileURL of the config first; a grid only described here has its tiles where it logs in
 - change (motd): the help of its block says the grid's own message first
 - fix (motd): the welcome of a page keeps the grid's own WelcomeMessage, for an avatar signed in too
 - new (map): the web map of a grid, Grid::mapTile() and Grid::mapRegions(), GET /grids/{grid}/map and its tiles

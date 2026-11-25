@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 use W4OS\Engine\Api\Api;
 use W4OS\Engine\Api\Router;
+use W4OS\Engine\Config\GridConfig;
 use W4OS\Engine\Data\Connections;
 use W4OS\Engine\Data\OSPDO;
 use W4OS\Engine\Models\Grid;
@@ -166,5 +167,23 @@ describe('The map in the API', function () {
             ->and(array_column(array_column($map->document['data'], 'attributes'), 'name'))->toBe(['Big Island', 'Plaza', 'Welcome'])
             ->and($map->document['meta'])->toMatchArray(['hasMap' => true, 'bounds' => ['minX' => 1000, 'minY' => 1000, 'maxX' => 1004, 'maxY' => 1002], 'center' => ['x' => 1000.5, 'y' => 1000.5]])
             ->and($nothing->document['meta']['hasMap'])->toBeFalse();
+    });
+});
+
+describe('The address of the tiles', function () {
+    test('of a grid only described here is where it logs in, the public port of its Robust; its MapTileURL wins', function () {
+        $machine = new Machine();
+        // It says its login, never the address of its tiles (MapTileURL is given at login only)
+        $machine->http['http://dev-demo.w4os.org:3405/get_grid_info'] = '<gridinfo><gridname>W4OS Demo</gridname><login>http://dev-demo.w4os.org:3405/</login></gridinfo>';
+        $described = static fn(?GridConfig $config = null): Grid => Grid::described($machine->environment, ['nick' => 'w4osdemogrid', 'name' => 'W4OS Demo', 'remote' => true, 'baseHostname' => 'dev-demo.w4os.org', 'publicPort' => 3405], $config);
+        $given = $described(new GridConfig(['Robust' => ['Const' => ['BaseURL' => 'http://tiles.example.org', 'PublicPort' => '8080'], 'LoginService' => ['MapTileURL' => '${Const|BaseURL}:${Const|PublicPort}/']]]));
+
+        expect($described()->mapUrl())->toBe('http://dev-demo.w4os.org:3405')
+            ->and($described()->hasMap())->toBeTrue()
+            ->and($given->mapUrl())->toBe('http://tiles.example.org:8080/')
+            // One that does not answer has no login: no map
+            ->and(Grid::described($machine->environment, ['nick' => 'gone', 'name' => 'Gone', 'remote' => true, 'baseHostname' => 'gone.example.org', 'publicPort' => 8002])->hasMap())->toBeFalse()
+            // A grid of this machine says it: its Robust serves no map, it has none
+            ->and(map_grid(map: false)[1]->mapUrl())->toBeNull();
     });
 });
