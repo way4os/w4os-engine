@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (de): Test-Website, not Testseite, in the messages of a test site
 - change (settings): the map renderers by their module names; the help says Warp3D costs more of the server
 - fix (health): the offline.php of the helpers asked with a POST for V1; with V2, an address of it is an error to remove
 - new (map): the type, the estate and the owner of each region of the map, what the world map of the viewers says
