@@ -27,7 +27,7 @@ final class NullUi implements UiInterface
     public function stage(int $k, int $n, string $label): void
     {
         $this->stage = "[$k/$n] $label";
-        $this->live && fwrite(STDERR, 'opensim: ' . (self::client() ? '~' : '') . "{$this->stage}\n");
+        $this->live && defined('STDERR') && fwrite(STDERR, 'opensim: ' . (self::client() ? '~' : '') . "{$this->stage}\n");
     }
 
     /** @var list<string> what is for the final report of the setup, not for its log */
@@ -46,7 +46,7 @@ final class NullUi implements UiInterface
         $this->said[] = ['note', $message];
         // On the live line of its client, rewritten in place (a "~" line): a note says where the setup is, never one to keep
         // "~": the live line of a client reading the error output (the setup); a terminal (a postinst) reads a line as it is
-        $this->live && fwrite(STDERR, 'opensim: ' . (self::client() ? '~' : '') . ($this->stage !== '' ? "{$this->stage}: " : '') . ltrim($message) . "\n");
+        $this->live && defined('STDERR') && fwrite(STDERR, 'opensim: ' . (self::client() ? '~' : '') . ($this->stage !== '' ? "{$this->stage}: " : '') . ltrim(ltrim($message), '~') . "\n");
     }
 
     public function entity(string $name): string
