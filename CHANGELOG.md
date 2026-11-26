@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (web): the upgrade restarts PHP-FPM when it writes a pool, a reload keeping the sockets of before
 - fix (layout): a folder its account owns is walked when it holds what another account owns (moved in by a migration)
 - fix (i18n): the other link to add a grid says what it is, secondlife:// link, in every language
 - fix (setup): a new simulator of a grid takes the database account of its grid; a region from an OAR takes its size

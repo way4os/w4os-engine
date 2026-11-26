@@ -38,11 +38,11 @@ migrate_web_configs() { # sed expressions, then -- and the pattern a file to mig
     done
 }
 
-# The running PHP-FPM told to read its pools again
+# The running PHP-FPM restarted for the pools written anew: a reload keeps the sockets it has open, with their group of before
 reload_pools() {
     [ -d /run/systemd/system ] || return 0
     for unit in $(systemctl list-units --type=service --state=active --plain --no-legend 'php*-fpm.service' | awk '{print $1}'); do
-        systemctl reload "$unit" || echo "$package: could not reload $unit" >&2
+        systemctl restart "$unit" || echo "$package: could not restart $unit" >&2
     done
 }
 
