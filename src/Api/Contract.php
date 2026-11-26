@@ -326,7 +326,7 @@ final class Contract
                 'banned' => ['boolean', 'true: a hard ban (a god); false: the unban, the avatar active again'],
                 'estateBanned' => ['boolean', 'true: in the ban lists of every estate of the grid; false: out of all of them (a god)'],
                 'estateBans' => ['array', 'The ids of the estates whose ban lists have it, the others leaving it out (a god)'],
-                'password' => ['string', 'A new password: 6 to 16 characters, without double quote, as at the registration (`password-invalid`)'],
+                'password' => ['string', 'A new password: any text, kept as it is typed, as at the registration (`password-invalid`)'],
                 'published' => [
                     'boolean',
                     'Its profile is public, "show in search" in the viewer (the first bit of UserFlags); a viewer that has the avatar sees the change once the caches of its simulator let it go',

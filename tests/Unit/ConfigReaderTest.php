@@ -178,6 +178,19 @@ describe('A connection string', function () {
             ->toBe('opensim@localhost/grid');
     });
 
+    test('keeps any password of the database: quoted as the connector of MySQL reads it when it has a separator, a quote or spaces', function () {
+        $back = [];
+        foreach (['plain', 'a;b', "it's", ' spaced ', 'x=y', 'back\\slash'] as $password) {
+            $back[$password] = ConnectionString::parse((string) ConnectionString::for('localhost', 'grid', 'opensim', $password))->password;
+        }
+
+        expect((string) ConnectionString::for('localhost', 'grid', 'opensim', "a;it's"))->toContain("Password='a;it''s';")
+            ->and((string) ConnectionString::for('localhost', 'grid', 'opensim', 'pw'))->toContain('Password=pw;')
+            ->and($back)->toBe(array_combine(array_keys($back), array_keys($back)))
+            // In the quotes of an ini, as a config has it
+            ->and(ConnectionString::parse('"Data Source=localhost;Database=grid;User ID=opensim;Password=\'a;b\';"')?->password)->toBe('a;b');
+    });
+
     test('reads an OpenSimulator SQLite URI as an OSPDO file connection', function () {
         $db = ConnectionString::parse(
             'URI=file:/var/lib/opensim/solo/OpenSim.db,version=3,UseUTF16Encoding=True',

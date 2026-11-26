@@ -1501,7 +1501,7 @@ final class Endpoints
             'Changes the password of the avatar a token of a forgotten password was given to. The token is valid once; a password that is not one is refused before the token is taken.',
             [
                 'token' => ['string', 'The token of the mail'],
-                'password' => ['string', 'The new password: 6 to 16 characters, no double quote'],
+                'password' => ['string', 'The new password: any text, kept as it is typed'],
             ],
             [
                 '200' => $avatar,

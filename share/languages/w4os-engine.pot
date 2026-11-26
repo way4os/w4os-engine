@@ -72,7 +72,7 @@ msgid "Confirm password"
 msgstr ""
 
 msgctxt "password_help"
-msgid "6 to 16 characters, without double quote. The same password logs you in here and in-world."
+msgid "The same password logs you in here and in-world."
 msgstr ""
 
 msgctxt "model"
@@ -3899,7 +3899,7 @@ msgid "Please fill in every field."
 msgstr ""
 
 msgctxt "error_password_invalid"
-msgid "The password must have 6 to 16 characters, without double quote."
+msgid "The password is missing."
 msgstr ""
 
 msgctxt "error_email_invalid"

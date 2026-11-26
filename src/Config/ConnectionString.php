@@ -62,14 +62,25 @@ final class ConnectionString
     public static function pairs(string $text): array
     {
         $pairs = [];
-        foreach (explode(';', trim($text, " \t\r\n\"")) as $part) {
-            $pair = explode('=', $part, 2);
-            if (count($pair) === 2 && trim($pair[0]) !== '') {
-                $pairs[trim($pair[0])] = trim($pair[1]);
-            }
+        // The quotes of the ini around the whole string
+        $text = trim($text, " \t\r\n");
+        strlen($text) > 1 && $text[0] === '"' && str_ends_with($text, '"') && ($text = substr($text, 1, -1));
+        // As the connectors read it: key=value;, a value in single or double quotes (its quote doubled inside) taken as it is
+        preg_match_all("/\\s*([^=;]+?)\\s*=\\s*('(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"|[^;]*)\\s*(?:;|$)/", $text, $matches, PREG_SET_ORDER);
+        foreach ($matches as [, $key, $value]) {
+            $quote = $value[0] ?? '';
+            $pairs[$key] = ($quote === "'" || $quote === '"') && strlen($value) > 1 && str_ends_with($value, $quote)
+                ? str_replace($quote . $quote, $quote, substr($value, 1, -1))
+                : trim($value);
         }
 
         return $pairs;
+    }
+
+    /** A value as the connectors read it: as it is, or in single quotes (doubled inside) when it has a separator, a quote or spaces. */
+    private static function value(string $value): string
+    {
+        return preg_match('/[;\'"=]|^\s|\s$/', $value) === 1 ? "'" . str_replace("'", "''", $value) . "'" : $value;
     }
 
     /** What is written in the config. */
@@ -85,7 +96,7 @@ final class ConnectionString
             $this->port !== null && $this->host !== '' ? "{$this->host};Port={$this->port}" : $this->source,
             $this->database,
             $this->user,
-            $this->password,
+            self::value($this->password),
         ) . (self::isLocal($this->host) ? 'SslMode=None;' : '');
     }
 

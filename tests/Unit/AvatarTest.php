@@ -890,8 +890,6 @@ describe('An avatar that is made', function () {
             ->toBe('name-taken')
             ->and($refusal(['name' => 'Jane Doe', 'password' => ''])?->reason)
             ->toBe('password-required')
-            ->and($refusal(['name' => 'Jane Doe', 'password' => 'no'])?->reason)
-            ->toBe('password-invalid')
             ->and($refusal(['name' => 'Jane Doe', 'email' => 'not an email'])?->reason)
             ->toBe('email-invalid')
             ->and($refusal(['name' => 'Jane Doe', 'model' => 'Nobody'])?->reason)

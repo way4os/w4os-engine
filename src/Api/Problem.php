@@ -41,7 +41,7 @@ final class Problem
         'name-taken' => 'An avatar has this name already',
         'email-taken' => 'An avatar has this email already, and the grid allows one avatar for an email',
         'password-required' => 'A password is needed',
-        'password-invalid' => 'The password is too short, too long, or has a double quote',
+        'password-invalid' => 'The password is missing',
         'email-invalid' => 'The email is not an address',
         'email-required' => 'An email is needed to be confirmed',
         'model-unknown' => 'The model is not an avatar model of the grid',

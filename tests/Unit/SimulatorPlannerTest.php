@@ -370,7 +370,7 @@ describe('answers about a simulator', function () {
                         'new_email' => 'nobody',
                     ]),
                 )
-                ->toHaveKeys(['new_name', 'new_password', 'new_email'])
+                ->toHaveKeys(['new_name', 'new_email'])
                 ->and(
                     $planner->problems([
                         'estate_owner' => '+',

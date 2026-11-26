@@ -168,6 +168,29 @@ describe('The API, for the sign-in of an avatar', function () {
             ->toContain('not confirmed');
     });
 
+    test('grants every password OpenSim takes, as typed: the hash Robust keeps, never trimmed, cut or escaped', function () {
+        $pdo = signin_database();
+        avatars_in($pdo);
+        $router = new Router(machine_api(avatar_grid()));
+        $passwords = [
+            "it's mine", 'say "hi"', 'back\slash', '<b>bold</b>', 'a&b&amp;c', 'in side', ' leading', 'trailing ', 'Noël été', 'emoji 🙂🌴',
+            'sixteen-chars-ok', 'seventeen-chars-x', str_repeat('long-', 13), '$HOME%20${x}', "tab\there",
+        ];
+        $refused = [];
+        foreach ($passwords as $password) {
+            $salt = bin2hex(random_bytes(16));
+            // As Robust writes it (AuthenticationService): MD5(MD5(password) + ":" + salt), the bytes of the password as they are
+            $pdo->prepareAndExecute('UPDATE auth SET passwordHash = :h, passwordSalt = :s WHERE UUID = :id', ['h' => md5(md5($password) . ':' . $salt), 's' => $salt, 'id' => ADA]);
+            // Through JSON, as a site sends it
+            $body = json_decode((string) json_encode(['data' => ['type' => 'sign-ins', 'attributes' => ['name' => 'Ada Love', 'password' => $password]]]), true);
+            $router->post('/grids/demo/sign-ins', $body)->status === 200 || ($refused[] = $password);
+            // A neighbour of it is not taken for it
+            $router->post('/grids/demo/sign-ins', ['data' => ['type' => 'sign-ins', 'attributes' => ['name' => 'Ada Love', 'password' => trim($password) . 'x']]])->status === 403 || ($refused[] = "$password (its neighbour granted)");
+        }
+
+        expect($refused)->toBe([]);
+    });
+
     test('is unavailable without a database, and unknown for a grid that is not here', function () {
         Connections::using(static fn() => null);
         $router = new Router(machine_api(avatar_grid()));

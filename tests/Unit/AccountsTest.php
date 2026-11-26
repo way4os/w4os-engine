@@ -150,6 +150,21 @@ describe('statements of an account', function () {
         expect($made['sql'])->not->toContain("'secret'");
     });
 
+    test('made through the console of Robust: any password, one the console cannot take set in the database after', function () {
+        [$plain] = W4OS\Engine\Provisioning\GridAccounts::consoleLine('Jane Doe', 'it is mine', 'jane@example.org');
+        [$line, $typed] = W4OS\Engine\Provisioning\GridAccounts::consoleLine('Jane Doe', 'say "hi"', 'jane@example.org');
+        $salt = str_repeat('cd', 16);
+
+        expect($plain)->toBe("create user Jane Doe \"it is mine\" jane@example.org\n\n\n\n")
+            // The console ends a quoted value at a double quote and has no escape: a password of its own, replaced after
+            ->and($line)->not->toContain('say "hi"')->toContain(" $typed ")
+            ->and($typed)->toMatch('/^[A-Za-z0-9]{16}$/')
+            // A line break would end the command
+            ->and(W4OS\Engine\Provisioning\GridAccounts::consoleLine('Jane Doe', "two\nlines", '')[0])->not->toContain("two\nlines")
+            ->and(W4OS\Engine\Provisioning\GridAccounts::passwordSql('11111111-1111-1111-1111-111111111111', 'say "hi"', $salt))
+            ->toBe("UPDATE auth SET passwordHash = '" . md5(md5('say "hi"') . ':' . $salt) . "', passwordSalt = '$salt' WHERE UUID = '11111111-1111-1111-1111-111111111111'");
+    });
+
     test('makes the inventory', function () {
         $made = accounts_writer()->statements('Jane', 'Doe', '', 'secret');
 

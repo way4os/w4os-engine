@@ -39,17 +39,11 @@ describe('Avatar', function () {
         expect(Avatar::normalizeName($given))->toBe($expected);
     })->with([['José Lapointe', 'Jose Lapointe'], ['Ada Love', 'Ada Love'], ['Ada  Love', 'Ada  Love']]);
 
-    test('has a password of 6 characters at least without a double quote, and an email without a space or a quote', function () {
-        expect(Avatar::validatePassword('secret'))
-            ->toBeNull()
-            ->and(Avatar::validatePassword('short'))
-            ->toBe('too short (6 min)')
-            ->and(Avatar::validatePassword(str_repeat('a', 16)))
-            ->toBeNull()
-            ->and(Avatar::validatePassword(str_repeat('a', 17)))
-            ->toBe('too long (16 max)')
-            ->and(Avatar::validatePassword('with"quote'))
-            ->toBe('invalid (no double quote)')
+    test('has any password OpenSim takes, and an email without a space or a quote', function () {
+        expect(array_map(Avatar::validatePassword(...), ['ab', 'with"quote', "it's", str_repeat('long-', 13), ' spaced ', 'Noël 🙂', "two\nlines"]))
+            ->toBe([null, null, null, null, null, null, null])
+            ->and(Avatar::validatePassword(''))
+            ->toBe('missing')
             ->and(Avatar::validateEmail(''))
             ->toBeNull()
             ->and(Avatar::validateEmail('ada@example.org'))

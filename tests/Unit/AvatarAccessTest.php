@@ -217,7 +217,7 @@ describe('The API, for a forgotten password', function () {
 
         $router->post('/grids/demo/password-resets', access_body('password-resets', ['name' => 'Ada Love']));
         $token = $mailer->token();
-        $weak = $complete($token, 'no');
+        $weak = $complete($token, '');
         $done = $complete($token, 'brand-new');
         $again = $complete($token, 'other-one');
         $router->post('/grids/demo/password-resets', access_body('password-resets', ['name' => 'Ada Love']));
@@ -227,7 +227,7 @@ describe('The API, for a forgotten password', function () {
         expect($weak->status)
             ->toBe(400)
             ->and($weak->document['detail'])
-            ->toContain('too short')
+            ->toContain('missing')
             ->and($done->status)
             ->toBe(200)
             ->and($done->document['data']['id'])
@@ -392,7 +392,6 @@ describe('The API, for a new avatar whose email is to be confirmed', function ()
             $code(['name' => 'Nobody']),
             $code(['name' => 'Admin Person']),
             $code(['name' => 'Ada Love']),
-            $code(['password' => 'no']),
             $code(['password' => '']),
             $code(['email' => '']),
             $code(['model' => 'Nobody Here']),
@@ -401,7 +400,6 @@ describe('The API, for a new avatar whose email is to be confirmed', function ()
                 'name-invalid',
                 'name-reserved',
                 'name-taken',
-                'password-invalid',
                 'password-required',
                 'email-required',
                 'model-unknown',
@@ -1038,14 +1036,19 @@ describe('The API, for a manager who changes the password of an avatar', functio
             ->authenticate('Ada Love', $password)
             ->isGranted();
 
-        $short = $change('no');
-        $quote = $change('with"quote');
-        $long = $change(str_repeat('x', 17));
         $kept = $signIn('ada-secret');
+        // Any password OpenSim takes: short, with a double quote, long, each signs in
+        $taken = [];
+        foreach (['no', 'with"quote', str_repeat('x', 17)] as $password) {
+            $taken[] = $change($password)->status === 200 && $signIn($password);
+        }
+        $empty = $change('');
         $changed = $change('new-secret');
 
-        expect(array_map(static fn($answer): ?string => $answer->document['code'] ?? null, [$short, $quote, $long]))
-            ->toBe(['password-invalid', 'password-invalid', 'password-invalid'])
+        expect($taken)
+            ->toBe([true, true, true])
+            ->and($empty->document['code'] ?? null)
+            ->toBe('password-required')
             ->and($kept)
             ->toBeTrue()
             ->and($changed->status)
@@ -1157,7 +1160,7 @@ describe('The problems of the access of the avatars', function () {
             ]),
             'password-invalid' => $post('password-resets/complete', 'password-resets', [
                 'token' => 'nope',
-                'password' => 'no',
+                'password' => '',
             ]),
             'no-confirmation-pending' => $post('email-confirmations', 'email-confirmations', ['avatar' => CY]),
             'field-unknown' => $router->patch(

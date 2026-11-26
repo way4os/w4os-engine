@@ -961,18 +961,10 @@ final class Avatar extends Model
         );
     }
 
-    /**
-     * The password of an account that is made. The double quote is out: the implementations and the console do not agree on it.
-     * 16 characters at most: the password box of the login panel of the viewers does not take more.
-     */
+    /** The password of an account that is made: any text OpenSimulator takes, kept as it is typed (never trimmed, cut or escaped). */
     public static function validatePassword(mixed $value): ?string
     {
-        return match (true) {
-            preg_match('/["\r\n]/', (string) $value) === 1 => _('invalid (no double quote)'),
-            mb_strlen((string) $value) < 6 => _('too short (6 min)'),
-            mb_strlen((string) $value) > 16 => _('too long (16 max)'),
-            default => null,
-        };
+        return (string) $value === '' ? _('missing') : null;
     }
 
     /** Whether an email is an address: no space, quote or backslash around the at sign. */

@@ -178,6 +178,47 @@ final class GridAccounts
         return $this->database->select($grid->databasePlan('GridUserService'), self::raiseHomeSql($id[0])) !== null;
     }
 
+    /**
+     * The line that makes an account in the console of Robust, and the password it gives it: the one asked, when the console can take
+     * it, else one of its own that setPassword() replaces. The console cuts a line at the spaces, except between double quotes, which
+     * end a quoted value: it has no escape for a double quote, and a line break ends the command. The answers of the prompts that follow: the email, a random ID, the
+     * default model, an empty line each.
+     *
+     * @return array{0:string,1:string} the line, the password it gives
+     */
+    public static function consoleLine(string $name, string $password, string $email): array
+    {
+        $typed = preg_match('/["\r\n]/', $password) === 1 ? AccountImporter::password(16) : $password;
+        $word = preg_match('/\s/', $typed) === 1 ? '"' . $typed . '"' : $typed;
+
+        return ["create user $name $word $email\n\n\n\n", $typed];
+    }
+
+    /** The statement that gives an account the password asked, as Robust keeps it (AccountWriter::passwordHash()). */
+    public static function passwordSql(string $id, string $password, string $salt): string
+    {
+        return 'UPDATE auth SET passwordHash = ' . AccountWriter::quote(AccountWriter::passwordHash($password, $salt)) . ', passwordSalt = ' .
+            AccountWriter::quote($salt) . ' WHERE UUID = ' . AccountWriter::quote($id);
+    }
+
+    /** The password of an account set in the database of its grid, as Robust keeps it; false when the account is not found. */
+    public function setPassword(Grid $grid, string $name, string $password): ?bool
+    {
+        if (Avatar::validateName($name) !== null) {
+            return false;
+        }
+        [$first, $last] = explode(' ', $name);
+        $id = $this->database->select(
+            $grid->databasePlan('UserAccountService'),
+            'SELECT PrincipalID FROM UserAccounts WHERE FirstName = ' . AccountWriter::quote($first) . ' AND LastName = ' . AccountWriter::quote($last),
+        );
+        if ($id === null || $id === []) {
+            return $id === null ? null : false;
+        }
+
+        return $this->database->select($grid->databasePlan('AuthenticationService'), self::passwordSql($id[0], $password, AccountWriter::salt())) !== null;
+    }
+
     /** The statement that moves a home from the position Robust gives to HOME_POSITION, and leaves any other home. */
     public static function raiseHomeSql(string $userId): string
     {
@@ -197,11 +238,7 @@ final class GridAccounts
     public function create(Grid $grid, string $name, string $password, string $email, int $level = 0): bool
     {
         $instance = $grid->robustInstance();
-        // The answers of the prompts that follow: the email, a random ID, the default model
-        // The console cuts a line at the spaces, except between double quotes
-        $typed = preg_match('/\s/', $password) ? '"' . $password . '"' : $password;
-        // Without an email the console asks for it too: three answers, an empty line each
-        $lines = "create user $name $typed $email\n\n\n\n";
+        [$lines, $typed] = self::consoleLine($name, $password, $email);
 
         if (!InstanceConsoleService::send($instance, $lines)) {
             $this->ui->note(sprintf(_("Starting the grid '%s' to create the account."), $grid->nick()));
@@ -223,6 +260,7 @@ final class GridAccounts
                 $this->raiseHome($grid, $name);
                 $this->publish($grid, $name);
                 $level > 0 && $this->setLevel($grid, $name, $level);
+                $typed === $password || $this->setPassword($grid, $name, $password);
 
                 return true;
             }

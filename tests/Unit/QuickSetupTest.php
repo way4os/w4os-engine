@@ -217,7 +217,7 @@ describe('quick setup, what is wrong', function () {
             'type' => 'island',
             'login_uri' => 'https://login.example.org',
             'avatar' => 'Ada',
-            'password' => 'abc',
+            'password' => '',
             'email' => 'not an address',
         ]);
 
@@ -437,12 +437,11 @@ describe('quick setup, the words of the problems', function () {
             'type' => 'invalid',
             'login_uri' => 'invalid (host:port)',
             'avatar' => 'invalid (First Last)',
-            'password' => 'too short (6 min)',
             'email' => 'invalid',
         ]);
-        expect(QuickSetup::plan((new Machine())->environment, quick_answers(['password' => 'ab"cdef']))['problems'])->toBe([
-            'password' => 'invalid (no double quote)',
-        ])->and(array_keys(QuickSetup::plan((new Machine())->environment, [])['problems']))->toBe(['avatar', 'password']);
+        // Any password OpenSim takes: a short one, a double quote, a line break
+        expect(QuickSetup::plan((new Machine())->environment, quick_answers(['password' => 'ab"cdef', 'password2' => 'ab"cdef']))['problems'])->toBe([])
+            ->and(QuickSetup::plan((new Machine())->environment, quick_answers(['password' => "ab\ncd", 'password2' => "ab\ncd"]))['problems'])->toBe([])->and(array_keys(QuickSetup::plan((new Machine())->environment, [])['problems']))->toBe(['avatar', 'password']);
         expect(QuickSetup::plan((new Machine())->environment, [])['problems']['avatar'])->toBe('required');
     });
 });
