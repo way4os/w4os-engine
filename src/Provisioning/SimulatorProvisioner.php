@@ -64,7 +64,7 @@ final class SimulatorProvisioner
         if ($plan->createOwner && !$plan->standalone) {
             $accounts = new GridAccounts(new DatabaseService($this->ui), $this->ui);
             // The first account of a grid is the one of its administrator
-            $level = ($accounts->names($grid) ?? ['?']) === [] ? GridAccounts::FIRST_LEVEL : 0;
+            $level = GridAccounts::levelFor($accounts->names($grid));
             if (!$accounts->create($grid, $plan->estateOwner, $plan->ownerPassword, $plan->ownerEmail, $level)) {
                 throw new SetupFailedException('account');
             }

@@ -106,6 +106,17 @@ final class GridAccounts
         return $this->database->select($users, self::homeSql($id[0], $regionId)) !== null;
     }
 
+    /**
+     * The level a new account is given: the first of a grid is its administrator, a god (FIRST_LEVEL); the others, and any when the
+     * accounts cannot be read, a user (0).
+     *
+     * @param ?list<string> $names the accounts the grid has (names()), null when they cannot be read
+     */
+    public static function levelFor(?array $names): int
+    {
+        return $names === [] ? self::FIRST_LEVEL : 0;
+    }
+
     /** The statement that gives an account a level (the names are those of an avatar: letters, digits and hyphens). */
     public static function levelSql(string $first, string $last, int $level): string
     {

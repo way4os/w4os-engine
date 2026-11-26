@@ -123,6 +123,12 @@ describe('statements of an account', function () {
         );
     });
 
+    test('of the first account of a grid is the one of a god, the others and the unknown ones a user', function () {
+        expect(W4OS\Engine\Provisioning\GridAccounts::levelFor([]))->toBe(200)
+            ->and(W4OS\Engine\Provisioning\GridAccounts::levelFor(['Jane Doe']))->toBe(0)
+            ->and(W4OS\Engine\Provisioning\GridAccounts::levelFor(null))->toBe(0);
+    });
+
     test('gives the first account the level of an administrator', function () {
         expect(W4OS\Engine\Provisioning\GridAccounts::levelSql('Jane', 'Doe', W4OS\Engine\Provisioning\GridAccounts::FIRST_LEVEL))->toBe(
             "UPDATE UserAccounts SET UserLevel = 200 WHERE FirstName = 'Jane' AND LastName = 'Doe'",

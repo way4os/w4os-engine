@@ -1087,10 +1087,13 @@ final class QuickSetup
                     $found = Grid::find($environment, $plan->gridNick);
                     $made =
                         self::$account ??
-                        static fn(Grid $grid, SimulatorPlan $sim, UiInterface $said): bool => (new GridAccounts(
-                            new DatabaseService($said),
-                            $said,
-                        ))->create($grid, $sim->estateOwner, $sim->ownerPassword, $sim->ownerEmail);
+                        static function (Grid $grid, SimulatorPlan $sim, UiInterface $said): bool {
+                            $accounts = new GridAccounts(new DatabaseService($said), $said);
+                            // The first account of a grid is its administrator, a god (FIRST_LEVEL), as a simulator setup makes it
+                            $level = GridAccounts::levelFor($accounts->names($grid));
+
+                            return $accounts->create($grid, $sim->estateOwner, $sim->ownerPassword, $sim->ownerEmail, $level);
+                        };
                     if ($found === null || !$made($found, $simulator, $ui)) {
                         throw new SetupFailedException('account');
                     }
