@@ -869,18 +869,17 @@ final class QuickSetup
     private static function screenWeb(Environment $environment, array $answers, string $notice): array
     {
         $grid = self::plan($environment, self::answersOf($answers))['setup']['grid'] ?? [];
-        $hypergrid = _('2do.directory searches every destination of the hypergrid, not only this grid\'s');
         $value = static fn(string $name, string $proposed): string => (string) ($answers[$name] ?? $proposed);
         $helpersPath = $value('helpers_path', (string) ($grid['helpers_path'] ?? '/helpers'));
         $fields = [
             ['name' => 'site', 'label' => _('Quick Start website'), 'value' => Result::isTrue($answers['site'] ?? (($grid['web_site'] ?? '') === 'website')) ? 'yes' : 'no', 'options' => ['yes' => _('Yes'), 'no' => _('No')]],
-            ['name' => 'site_path', 'label' => _('Path'), 'value' => $value('site_path', (string) ($grid['site_path'] ?? '/')), 'help' => _('Choose a subfolder to keep separate from existing main website')],
+            ['name' => 'site_path', 'label' => _('Path'), 'value' => $value('site_path', (string) ($grid['site_path'] ?? '/'))],
             ['name' => 'helpers_path', 'label' => _('Helpers path'), 'value' => $helpersPath],
             ['name' => 'register', 'label' => _('Register the regions'), 'value' => $value('register', (string) ($grid['register'] ?? 'both')), 'options' => ['both' => _('Helpers and 2do.directory'), 'helpers' => _('Helpers only'), '2do' => _('2do.directory only')]],
-            ['name' => 'search', 'label' => _('In-world search'), 'value' => $value('search', (string) ($grid['search'] ?? 'internal')), 'options' => ['internal' => _('Helpers'), 'shared' => '2do.directory'], 'help' => $hypergrid],
-            ['name' => 'web_search', 'label' => _('Web search'), 'value' => $value('web_search', (string) ($grid['web_search'] ?? 'internal')), 'options' => array_intersect_key(['internal' => _('Helpers'), 'shared' => '2do.directory'], array_flip(GridPlanner::webSearches()))] + (count(GridPlanner::webSearches()) > 1 ? ['help' => $hypergrid] : []),
-            ['name' => 'events_url', 'label' => _('Events'), 'value' => $value('events_url', (string) ($grid['events_url'] ?? \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE)), 'help' => _('A HYPEvents calendar; this grid has no events of its own yet')],
-            ['name' => 'economy_path', 'label' => _('Economy path'), 'value' => $value('economy_path', (string) (($grid['economy_path'] ?? '') ?: $helpersPath)), 'help' => _('Defaults to helpers path, use a full URL for an external service')],
+            ['name' => 'search', 'label' => _('In-world search'), 'value' => $value('search', (string) ($grid['search'] ?? 'internal')), 'options' => ['internal' => _('Helpers'), 'shared' => '2do.directory']],
+            ['name' => 'web_search', 'label' => _('Web search'), 'value' => $value('web_search', (string) ($grid['web_search'] ?? 'internal')), 'options' => array_intersect_key(['internal' => _('Helpers'), 'shared' => '2do.directory'], array_flip(GridPlanner::webSearches()))],
+            ['name' => 'events_url', 'label' => _('Events'), 'value' => $value('events_url', (string) ($grid['events_url'] ?? \W4OS\Engine\Services\SearchTasks::EVENTS_SOURCE))],
+            ['name' => 'economy_path', 'label' => _('Economy path'), 'value' => $value('economy_path', (string) (($grid['economy_path'] ?? '') ?: $helpersPath))],
         ];
 
         return [
@@ -908,15 +907,47 @@ final class QuickSetup
             'title' => _('Review'),
             'text' => implode("\n", $quick['warnings'] ?? []),
             'notice' => '',
-            'rows' => [...$quick['rows'], ...self::accountRows($environment, $answers)],
+            // The answers given are the review: what is made, in a few lines
+            'rows' => [...self::shortRows($quick['rows']), ...self::accountRows($environment, $answers)],
             'buttons' => [
-                'next' => ($answers['existing_region'] ?? '') !== '' ? _('Stage import') : _('Install'),
+                'next' => ($answers['existing_region'] ?? '') !== '' ? _('Stage import') : _('Start'),
                 'back' => _('Back'),
                 'show' => $shown ? _('Hide passwords') : _('Show passwords'),
             ],
             'wait' => _('Installing, this can take a few minutes…'),
             'state' => self::encode('review', $answers),
         ];
+    }
+
+    /** The rows of the review a person reads: what is made (the grid, its login, its website, its simulator and region, its owner). */
+    private const SHORT_ROWS = [
+        'Grid name' => 'Grid',
+        'Grid' => 'Grid',
+        'Login URI' => 'Login',
+        'Quick Start website' => 'Website',
+        'Search' => 'Search',
+        'Simulator' => 'Simulator',
+        'Region' => 'Region',
+        'Taken over' => 'Taken over',
+        'Archive' => 'Archive',
+        'Database from' => 'Database from',
+        'Location' => 'Location',
+        'Address' => 'Address',
+        'Avatar' => 'Owner',
+    ];
+
+    /**
+     * @param list<array{section:string,label:string,value:string}> $rows
+     * @return list<array{section:string,label:string,value:string}> the ones of SHORT_ROWS, by their short label
+     */
+    private static function shortRows(array $rows): array
+    {
+        $short = [];
+        foreach ($rows as $row) {
+            isset(self::SHORT_ROWS[$row['label'] ?? '']) && ($short[] = ['label' => self::SHORT_ROWS[$row['label']]] + $row);
+        }
+
+        return $short;
     }
 
     /**
@@ -1148,21 +1179,20 @@ final class QuickSetup
             ];
         }
 
+        // What there is now, in a few lines: the grid, its login, its website and the way in of its owner when it has one
+        $site = $plan !== null && $plan->webSite === 'website' ? rtrim($plan->webUrl, '/') . Web\Services::normalize($plan->sitePath) : '';
+        $site === '' || str_ends_with($site, '/') || $site .= '/';
+
         return [
             'action' => 'quit',
             'message' => implode("\n", [
-                sprintf(_('Written in %s.'), $gridDir),
-                $plan === null ? _('The simulator is running.') : _('The grid and its simulator are running.'),
                 ...$notes,
-                ...$ui->report === [] ? [] : ['', ...$ui->report],
-                '',
-                sprintf('Grid name:  %s', $plan?->gridName ?? $grid?->name()),
-                sprintf(
-                    'Login URI:  %s:%d',
-                    $plan?->baseHostname ?? $grid?->baseHostname(),
-                    $plan?->publicPort ?? $grid?->publicPort(),
-                ),
-                sprintf('Avatar:     %s', $simulator->estateOwner),
+                ...$ui->report,
+                ...$notes === [] && $ui->report === [] ? [] : [''],
+                sprintf('Grid       %s (%s)', $plan?->gridName ?? $grid?->name(), $plan?->gridNick ?? $grid?->nick()),
+                sprintf('Login      http://%s:%d', $plan?->baseHostname ?? $grid?->baseHostname(), $plan?->publicPort ?? $grid?->publicPort()),
+                ...$site === '' ? [] : [sprintf('Website    %s', $site), sprintf('Admin      %slogin (%s)', $site, $simulator->estateOwner)],
+                ...$site !== '' ? [] : [sprintf('Owner      %s', $simulator->estateOwner)],
             ]),
         ];
     }

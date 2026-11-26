@@ -979,10 +979,8 @@ describe('quick setup, the scenario', function () {
             ->and(array_keys($fields['register']['options'] ?? []))->toBe(['both', 'helpers', '2do'])
             // The helpers' or 2do.directory's, which searches the whole hypergrid
             ->and(array_keys($fields['web_search']['options'] ?? []))->toBe(['internal', 'shared'])
-            ->and($fields['web_search']['help'] ?? '')->toContain('hypergrid')
-            ->and($fields['site_path']['help'] ?? '')->toBe('Choose a subfolder to keep separate from existing main website')
-            ->and($fields['economy_path']['help'] ?? '')->toBe('Defaults to helpers path, use a full URL for an external service')
-            ->and($fields['search']['help'] ?? '')->toContain('hypergrid')
+            // Short lines: no help under the fields
+            ->and(array_filter(array_column($fields, 'help', 'name')))->toBe([])
             ->and(quick_step($machine, $web, ['register' => 'helpers'])['kind'])->toBe('review');
     });
 
@@ -1109,9 +1107,10 @@ describe('quick setup, the scenario', function () {
             ->and($review)
             ->toMatchArray(['kind' => 'review', 'title' => 'Review'])
             ->and($review['buttons']['next'])
-            ->toBe('Install')
-            ->and(array_column(array_filter($review['rows'], static fn(array $r): bool => $r['section'] === 'options'), 'value', 'label'))
-            ->toMatchArray(['Hypergrid' => 'no', 'Economy: Gloebit' => 'yes', 'Extended OSSL' => 'yes']);
+            ->toBe('Start')
+            // The options just answered are not said again
+            ->and(array_column($review['rows'], 'section'))
+            ->not->toContain('options');
         // Back: the web services, then the options
         expect(quick_step($machine, $review, [], 'back')['title'])->toBe('Web services')
             ->and(quick_step($machine, $web, [], 'back')['kind'])->toBe('checks');
@@ -1126,14 +1125,12 @@ describe('quick setup, the scenario', function () {
         expect($done['action'])
             ->toBe('quit')
             ->and($done['message'])
-            ->toContain('Grid name:  Magic Grid', 'Login URI:  login.example.org:8102', 'Avatar:     Ada Love')
-            ->toContain('The grid and its simulator are running.')
-            ->toEndWith("Grid name:  Magic Grid\nLogin URI:  login.example.org:8102\nAvatar:     Ada Love")
+            ->toContain("Grid       Magic Grid (magic_grid)\nLogin      http://login.example.org:8102\n")
             ->not->toContain('MoneyServer');
         // The group of the web server is asked for only on a machine that has one this user may not give
         $ungiven = W4OS\Engine\Config\GridFileService::webGroup() !== null && !W4OS\Engine\Config\GridFileService::canGiveWebGroup();
         expect(str_contains($done['message'], 'chgrp'))->toBe($ungiven);
-        preg_match('/Written in (\S+)\./', $done['message'], $m);
+        $m = [1 => array_values(array_diff(glob("{$machine->etc}/grids/*", GLOB_ONLYDIR), ["{$machine->etc}/grids/demo"]))[0] ?? ''];
         $folder = $m[1];
 
         expect($folder)
@@ -1157,12 +1154,12 @@ describe('quick setup, the scenario', function () {
         $machine = new Machine();
         $done = quick_step($machine, quick_until($machine, 'review', 'standalone', ['name' => 'Solo World', 'login_uri' => 'solo.example.org:9100']));
 
-        preg_match('/Written in (\S+)\./', $done['message'], $m);
+        $m = [1 => array_values(array_diff(glob("{$machine->etc}/grids/*", GLOB_ONLYDIR), ["{$machine->etc}/grids/demo"]))[0] ?? ''];
 
         expect($done['action'])
             ->toBe('quit')
             ->and($done['message'])
-            ->toContain('The grid and its simulator are running.')
+            ->toContain('Grid       Solo World')
             ->and(glob("{$m[1]}/Robust*.ini"))
             ->toBe([])
             ->and(glob("{$m[1]}/sims/*.ini"))
@@ -1332,7 +1329,7 @@ describe('quick setup, the scenario', function () {
         file_put_contents("$bin/assets/Sounds/click.ogg", 'sound');
         file_put_contents("$bin/inventory/Libraries.xml", '<Nini/>');
         $done = quick_step($machine, quick_until($machine, 'review'));
-        preg_match('/Written in (\S+)\./', $done['message'], $m);
+        $m = [1 => array_values(array_diff(glob("{$machine->etc}/grids/*", GLOB_ONLYDIR), ["{$machine->etc}/grids/demo"]))[0] ?? ''];
         $robust = (string) file_get_contents(glob("{$m[1]}/Robust*.ini")[0]);
         $data = $machine->root . '/data/magic_grid';
 
@@ -1369,14 +1366,14 @@ describe('quick setup, the scenario', function () {
             ->toBe('Error: Avatar name invalid (First Last)')
             ->and($review['kind'])
             ->toBe('review')
-            ->and(array_column($review['rows'], 'value', 'label')['Estate owner'])
-            ->toBe('Ada Love (an account of the grid)')
+            ->and(array_column($review['rows'], 'value', 'label')['Owner'])
+            ->toBe('Ada Love')
             ->and(array_column($review['rows'], 'section'))
             ->not->toContain('options')
             ->and($done['action'])
             ->toBe('quit')
             ->and($done['message'])
-            ->toContain('Avatar:     Ada Love', 'The simulator is running.')
+            ->toContain('Owner      Ada Love')
             ->and(glob("{$machine->etc}/grids/speculoos/sims/*.ini"))
             ->toHaveCount(1);
         expect(quick_step($machine, $review, [], 'back')['kind'])->toBe('form');
@@ -1401,7 +1398,7 @@ describe('quick setup, the scenario', function () {
             ->and($done['action'])
             ->toBe('quit')
             ->and($done['message'])
-            ->toContain('Grid name:  Remote World', 'Login URI:  remote.example.org:8002')
+            ->toContain('Grid       Remote World (remote)', 'Login      http://remote.example.org:8002')
             ->and(glob("{$machine->etc}/grids/remote/sims/*.ini"))
             ->toHaveCount(1);
     });
@@ -1476,7 +1473,7 @@ describe('quick setup, the scenario', function () {
 
         expect($refused['kind'])->toBe('form')
             ->and($review['kind'])->toBe('review')
-            ->and([$rows['Region'], $rows['Location'], $rows['Estate owner']])->toBe(['Old Plaza', '1300,1301', 'Bob Root (an account of the grid)'])
+            ->and([$rows['Region'], $rows['Location'], $rows['Owner']])->toBe(['Old Plaza', '1300,1301', 'Bob Root'])
             ->and($rows['Taken over'])->toContain('11111111-2222-3333-4444-555555555555')
             ->and(file_get_contents("{$machine->etc}/grids/remote/sims/remote.old_plaza/regions/OldPlaza.ini"))
             ->toContain('RegionUUID = 11111111-2222-3333-4444-555555555555', 'Location = 1300,1301', 'SizeX = 512');
