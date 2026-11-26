@@ -1772,6 +1772,28 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $config !== null && Connections::key($config, Database::Robust) !== null;
     }
 
+    /** The key of `[Grid]` of `<nick>.conf` that keeps the address of its Quick Start website. */
+    public const SITE_ADDRESS = 'SiteAddress';
+
+    /** The address of its Quick Start website (w4os-site), ending with a slash; nothing when it has none. */
+    public function siteAddress(): string
+    {
+        $conf = $this->directory() !== '' ? $this->directory() . '/' . $this->nick() . '.conf' : '';
+
+        return $conf !== '' && is_file($conf) ? trim((string) (ConfigReader::file($conf)['Grid'][self::SITE_ADDRESS] ?? ''), " \t\"") : '';
+    }
+
+    /** The address of its Quick Start website kept in its conf, ending with a slash (written when the conf can be written). */
+    public static function keepSiteAddress(string $conf, string $address): void
+    {
+        $address = rtrim($address, '/') . '/';
+        if (is_file($conf) ? is_writable($conf) : is_writable(dirname($conf))) {
+            $ini = is_file($conf) ? \W4OS\Engine\Config\IniEditor::load($conf) : new \W4OS\Engine\Config\IniEditor('');
+            $ini->set('Grid', self::SITE_ADDRESS, $address);
+            $ini->save($conf);
+        }
+    }
+
     public function hasHelpers(): bool
     {
         return (bool) $this->get('helpers');
@@ -1914,6 +1936,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             'databaseName' => $this->databaseName(),
             'databaseUser' => $this->databaseUser(),
             'webUrl' => $this->webUrl() ?: null,
+            'site' => $this->siteAddress() ?: null,
             'logoUrl' => $this->logoUrl(),
             'allowUserProfileWebUrls' => $this->allowUserProfileWebUrls(),
             'helpers' => $this->hasHelpers(),

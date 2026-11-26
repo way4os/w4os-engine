@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "OpenSim engine",
-        "version": "f309260",
+        "version": "970ef05",
         "license": {
             "name": "AGPL-3.0-or-later",
             "identifier": "AGPL-3.0-or-later"
@@ -17016,6 +17016,10 @@
                                                         "type": "string",
                                                         "description": "robust: the name of the grid here, ASCII, instead of the one of its config made ASCII"
                                                     },
+                                                    "site": {
+                                                        "type": "string",
+                                                        "description": "robust, applied: the address of its Quick Start website, kept with the grid (`site` of the grid) for the step that installs it"
+                                                    },
                                                     "switch": {
                                                         "type": "boolean",
                                                         "description": "robust: enable and start the grid and its simulators here, once the old Robust is stopped"
@@ -18690,6 +18694,13 @@
                                     "null"
                                 ],
                                 "description": "The web site of its helpers"
+                            },
+                            "site": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The address of its Quick Start website (w4os-site), ending with a slash, once the setup made it"
                             },
                             "logoUrl": {
                                 "type": [

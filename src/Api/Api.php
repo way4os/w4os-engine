@@ -1318,6 +1318,8 @@ final class Api
         $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply', copyData: Result::isTrue($attributes['copyData'] ?? false), name: ($attributes['gridName'] ?? '') !== '' ? (string) $attributes['gridName'] : null);
         // Its grid moves into the layout of this install, its data with it: the account of this install runs it
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
+        // The address of its Quick Start website, kept with the grid for the step that installs it
+        $mode === 'apply' && ($attributes['site'] ?? '') !== '' && \W4OS\Engine\Models\Grid::keepSiteAddress("{$planned->plan->gridDir}/{$planned->plan->gridNick}.conf", (string) $attributes['site']);
         $results = $switch ? $planned->switch($this->environment, new NullUi()) : [];
         $started = array_keys(array_filter($results, static fn($result): bool => $result instanceof \W4OS\Engine\Runtime\Outcome && $result !== \W4OS\Engine\Runtime\Outcome::Starting));
         // Up and running, not answering yet when the delay was over, or failed with the error of its log

@@ -42,6 +42,8 @@ final class GridProvisioner
         SetupFile::record($plan->gridDir, static fn(array $data): array => SetupFile::withGrid($data, $plan));
         // The port of its engine API, one of its block, kept with it
         \W4OS\Engine\Network\ApiPort::of($environment, "{$plan->gridDir}/{$plan->gridNick}.conf", 'Grid', $plan->gridNick, $plan->publicPort, $plan->privatePort);
+        // The address of its Quick Start website, for the step that installs it and for whoever asks the grid
+        $plan->webSite === 'website' && \W4OS\Engine\Models\Grid::keepSiteAddress("{$plan->gridDir}/{$plan->gridNick}.conf", rtrim($plan->webUrl, '/') . Web\Services::normalize($plan->sitePath));
 
         $systemUser = $environment->layout->systemUser();
         $this->giveToSystemUser($systemUser, [$plan->etcDirectory, $plan->dataDirectory, $plan->cacheDirectory], true);
@@ -145,21 +147,12 @@ apache:
             return;
         }
 
-        $this->ui->error(
-            $pending
-                ? sprintf(
-                    _("Grid '%s' is configured but was not ready after two minutes. Try: %s -v start %s"),
-                    $nick,
-                    'opensim',
-                    $nick,
-                )
-                : sprintf(_("Grid '%s' is configured but did not start. Try: %s -v start %s"), $nick, 'opensim', $nick),
-        );
+        // The error once, with where its log is: never the log itself, which the start already told the last errors of
         $log = $plan->logsDirectory . '/' . Slug::snake($plan->gridSlug) . '_robust.log';
-        if (is_file($log)) {
-            $this->ui->note(_('Recent log:'));
-            ShellService::run('tail -n 30 ' . ShellService::arg($log));
-        }
+        $this->ui->error(
+            ($pending ? sprintf(_("Grid '%s' is configured but was not ready after two minutes."), $nick) : sprintf(_("Grid '%s' is configured but did not start."), $nick)) .
+                (is_file($log) ? ' ' . sprintf(_('Log: %s'), $log) : ''),
+        );
 
         throw new SetupFailedException("Grid '$nick' did not start.");
     }

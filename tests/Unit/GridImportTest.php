@@ -777,7 +777,7 @@ describe('The import of a grid', function () {
 
         $plan = $ask([]);
         $named = $ask(['gridName' => 'Named Grid']);
-        $applied = $ask(['mode' => 'apply']);
+        $applied = $ask(['mode' => 'apply', 'site' => 'https://old.example.org/opensim']);
         $again = $ask(['mode' => 'apply']);
 
         expect($plan->status)
@@ -788,6 +788,8 @@ describe('The import of a grid', function () {
             ->toBe('Named Grid')
             ->and($applied->document['data']['attributes']['applied'])
             ->toBeTrue()
+            ->and(W4OS\Engine\Models\Grid::find($machine->environment, 'oldgrid')?->siteAddress())
+            ->toBe('https://old.example.org/opensim/')
             ->and($again->status)
             ->toBe(400);
     });

@@ -1136,6 +1136,7 @@ final class Endpoints
                                                 'kind' => ['type' => 'string', 'enum' => ['simulator', 'flux', 'grid-settings', 'accounts', 'robust']],
                                                 'nick' => ['type' => 'string', 'description' => 'robust: the nick of the grid here, when it is not the one of its config'],
                                                 'gridName' => ['type' => 'string', 'description' => 'robust: the name of the grid here, ASCII, instead of the one of its config made ASCII'],
+                                                'site' => ['type' => 'string', 'description' => 'robust, applied: the address of its Quick Start website, kept with the grid (`site` of the grid) for the step that installs it'],
                                                 'switch' => ['type' => 'boolean', 'description' => 'robust: enable and start the grid and its simulators here, once the old Robust is stopped'],
                                                 'copyData' => ['type' => 'boolean', 'description' => 'robust, migrated: copy the folders of its data instead of moving them, the old install left whole'],
                                                 'inPlace' => ['type' => 'boolean', 'description' => 'robust: register the install where it is instead of migrating it: its `[Grid <nick>]` section of the config of the suite is written (its Robust config, its core, its simulators), disabled, and its accounts taken (`SystemUser`, `WebUser`, `WebGroup`); the install is never changed'],

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (setup): the address of the Quick Start website kept with the grid (site of the API, import site); no web config lines at the end
+- fix (setup): a failed start said once, with its log file, never the log three times
 - fix (setup): a database password with a double quote refused there and then: OpenSim cannot read it from its configs
 - fix (accounts): any password OpenSim takes (no rule of quotes or length); the console path sets what it cannot type
 - fix (config): a database password with ; ' or spaces quoted in its connection string, read back as it is

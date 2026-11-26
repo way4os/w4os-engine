@@ -68,6 +68,7 @@ final class Contract
                 'databaseName' => ['string', 'The name of its database'],
                 'databaseUser' => ['string', 'The user of its database'],
                 'webUrl' => ['string?', 'The web site of its helpers'],
+                'site' => ['string?', 'The address of its Quick Start website (w4os-site), ending with a slash, once the setup made it'],
                 'logoUrl' => ['string?', 'The logo of the grid, for the top bar of its sites: `LogoURL` of `[Helpers]` (Helpers.ini)'],
                 'allowUserProfileWebUrls' => ['boolean', 'Its avatars may give a web address in their profile: AllowUserProfileWebURLs of `[UserProfiles]` as its simulators read it (its OpenSim.ini, then the file of each), true when they say nothing, false when one says false; the field of the form that needs it says so (`setting`)'],
                 'helpers' => ['boolean', 'Its helpers are installed'],

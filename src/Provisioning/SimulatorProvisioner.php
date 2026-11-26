@@ -246,18 +246,15 @@ final class SimulatorProvisioner
         $this->failed(
             $plan,
             $pending
-                ? "Simulator '{$plan->simulatorName}' is configured but was not ready after two minutes. Try: opensim -v start {$plan->slug}"
-                : "Simulator '{$plan->simulatorName}' is configured but did not start. Try: opensim -v start {$plan->slug}",
+                ? "Simulator '{$plan->simulatorName}' is configured but was not ready after two minutes."
+                : "Simulator '{$plan->simulatorName}' is configured but did not start.",
         );
     }
     private function failed(SimulatorPlan $plan, string $message): never
     {
-        $this->ui->error($message);
+        // The error once, with where its log is: never the log itself, which the start already told the last errors of
         $log = $plan->logsDirectory . '/' . $plan->slug . '.log';
-        if (is_file($log)) {
-            $this->ui->note(_('Recent log:'));
-            ShellService::run('tail -n 30 ' . ShellService::arg($log));
-        }
+        $this->ui->error($message . (is_file($log) ? ' ' . sprintf(_('Log: %s'), $log) : ''));
 
         throw new SetupFailedException($message);
     }

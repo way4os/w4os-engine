@@ -1115,6 +1115,19 @@ describe('quick setup, the scenario', function () {
             ->and(quick_step($machine, $web, [], 'back')['kind'])->toBe('checks');
     });
 
+    test('keeps the address of the Quick Start website with the grid, which the API gives (the step of the site reads it)', function () {
+        $machine = new Machine();
+        quick_core($machine);
+        $web = quick_until($machine, 'web');
+        $done = quick_step($machine, quick_step($machine, $web, ['site' => 'yes', 'site_path' => '/opensim']));
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'magic_grid');
+
+        expect($done['action'])->toBe('quit')
+            ->and($grid?->siteAddress())->toEndWith('/opensim/')
+            ->and($grid?->detail()['site'] ?? null)->toBe($grid?->siteAddress())
+            ->and($done['message'])->toContain('Website    ' . $grid?->siteAddress());
+    });
+
     test('makes the folders and the files of a grid and of its first simulator when the review is confirmed', function () {
         $machine = new Machine();
         quick_core($machine);

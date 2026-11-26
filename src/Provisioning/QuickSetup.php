@@ -1145,12 +1145,10 @@ final class QuickSetup
             }
             $later && $provisioner->start($simulator, $environment);
         } catch (SetupFailedException $failed) {
-            $errors = array_column(array_filter($ui->said, static fn(array $said): bool => $said[0] === 'error'), 1);
-            // The log of what did not start, when the setup showed it
-            $at = array_search('Recent log:', array_column($ui->said, 1), true);
-            $log = $at === false ? [] : array_column(array_slice($ui->said, $at + 1), 1);
+            // The errors once each: the last errors the start told, the one of the step with where its log is
+            $errors = array_values(array_unique(array_column(array_filter($ui->said, static fn(array $said): bool => $said[0] === 'error'), 1)));
 
-            return ['action' => 'abort', 'error' => implode("\n", [...$errors ?: [$failed->getMessage()], ...$log])];
+            return ['action' => 'abort', 'error' => implode("\n", $errors ?: [$failed->getMessage()])];
         } finally {
             ShellService::showOutputWith(null);
         }
@@ -1187,8 +1185,7 @@ final class QuickSetup
             'action' => 'quit',
             'message' => implode("\n", [
                 ...$notes,
-                ...$ui->report,
-                ...$notes === [] && $ui->report === [] ? [] : [''],
+                ...$notes === [] ? [] : [''],
                 sprintf('Grid       %s (%s)', $plan?->gridName ?? $grid?->name(), $plan?->gridNick ?? $grid?->nick()),
                 sprintf('Login      http://%s:%d', $plan?->baseHostname ?? $grid?->baseHostname(), $plan?->publicPort ?? $grid?->publicPort()),
                 ...$site === '' ? [] : [sprintf('Website    %s', $site), sprintf('Admin      %slogin (%s)', $site, $simulator->estateOwner)],
