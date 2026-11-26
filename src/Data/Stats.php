@@ -109,8 +109,10 @@ final class Stats
         $zero = NULL_KEY;
         $one = static function (OSPDO $db, string $sql, array $params = []): int|float|string {
             $statement = $db->prepareAndExecute($sql, $params);
+            // A sum of no line is null, no line is false: none
+            $value = $statement ? $statement->fetchColumn() : 0;
 
-            return $statement ? $statement->fetchColumn() : 0;
+            return $value === null || $value === false ? 0 : $value;
         };
         // The accounts kept (`u.`): the ones left out are counted nowhere
         $kept = '';

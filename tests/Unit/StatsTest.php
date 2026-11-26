@@ -80,6 +80,13 @@ describe('numbers of a grid', function () {
         },
     )->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
 
+    test('of a grid with no region yet are zero, never a null of the database (a sum of no line)', function () {
+        $db = stats_database(['accounts', 'visits', 'presence']);
+        $db->exec('CREATE TABLE regions (uuid VARCHAR(36), sizeX INT, sizeY INT)');
+
+        expect(Stats::counts(static fn() => $db, STATS_NOW))->toMatchArray(['regions' => 0, 'area' => 0]);
+    })->skip(fn() => !extension_loaded('pdo_sqlite'), 'pdo_sqlite is missing');
+
     test('are none when a database cannot be reached', function () {
         expect(Stats::counts(static fn() => null, STATS_NOW))->toBeNull();
     });
