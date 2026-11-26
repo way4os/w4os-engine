@@ -318,6 +318,7 @@ final class StartService
         $env = $this->environment;
         $name = $instance->name();
         $failed = [];
+        $refused = null;
 
         if ($base === 'Robust') {
             // Every service its config lists must report it loaded, in the log
@@ -347,6 +348,9 @@ final class StartService
             if ($code === 0) {
                 $code = $this->waitRegions($instance, $progress, $stuck, $remote);
             }
+            // Up, but out of its grid: the grid refused its regions (its connector says it, the line of the simulator does not)
+            $refused = $code === 0 ? StartupProgress::refusal($log->since($mark)) : null;
+            $refused === null || $code = 8;
             $progress->finish();
         }
         $env->reporter->stepEnd();
@@ -356,6 +360,13 @@ final class StartService
                 $env->reporter->info("$name started");
 
                 return Outcome::Started;
+            case 8:
+                $this->fail(
+                    $name,
+                    "$name runs, but its grid refused its regions ($refused): the log of its grid says why",
+                    "Its log: {$log->path()}",
+                    'regions-refused',
+                );
             case 4:
                 $this->fail(
                     $name,
@@ -512,6 +523,12 @@ final class StartService
                 }
             }
             if ($pending === []) {
+                // A connector is said loaded even when the service behind it could not be made (OpenSim logs it apart)
+                preg_match_all('/\[SERVER UTILS\]: Error loading plugin \S+ from (\S+?)\.? Exception: ([^\r\n]+)/', $content, $plugins, PREG_SET_ORDER);
+                foreach ($plugins as [, $assembly, $why]) {
+                    in_array($assembly, $failed, true) || $failed[] = $assembly . ' (' . trim($why) . ')';
+                }
+
                 return [$failed === [] ? 0 : 4, $failed];
             }
             if (!$instance->isRunning()) {

@@ -64,6 +64,25 @@ describe('A Robust that runs', function () {
             ->and($asked[0])->toBe('http://127.0.0.1:8003/grid get_default_regions');
     });
 
+    test('whose services did not all load since its start is in the status, as its log says it', function () {
+        $machine = new Machine();
+        $machine->processes->add('dotnet Robust.dll -inifile=' . $machine->etc . '/robust.d/demo.ini');
+        $status = W4OS\Engine\OpenSim::status($machine->environment);
+        $log = $status->instances[0]->logFile()->path();
+        is_dir(dirname($log)) || mkdir(dirname($log), 0o755, true);
+        file_put_contents($log, implode("\n", [
+            '2026-11-26 10:00:00,000 INFO  (1) - OpenSim.Framework.Servers.ServerBase [SERVER BASE]: Logging started to file ' . $log,
+            '2026-11-26 10:00:04,000 ERROR (1) - OpenSim.Server.Base.ServerUtils [SERVER UTILS]: Error loading plugin OpenSim.Services.Interfaces.IGridService from OpenSim.Services.GridService.dll. Exception: GatekeeperURI configuration error',
+            '2026-11-26 11:00:00,000 INFO  (1) - OpenSim.Framework.Servers.ServerBase [SERVER BASE]: Logging started to file ' . $log,
+        ]) . "\n");
+        $before = $status->brokenServices();
+        file_put_contents($log, '2026-11-26 11:00:04,000 ERROR (1) - OpenSim.Server.Base.ServerUtils [SERVER UTILS]: Error loading plugin OpenSim.Services.Interfaces.IGridService from OpenSim.Services.GridService.dll. Exception: GatekeeperURI configuration error' . "\n", FILE_APPEND);
+
+        // The start before it does not count
+        expect($before)->toBe([])
+            ->and($status->brokenServices())->toBe(['demo' => ['OpenSim.Services.GridService.dll']]);
+    });
+
     test('without its database is in the status, one that is stopped is not', function () {
         $machine = new Machine();
         $machine->processes->add('dotnet Robust.dll -inifile=' . $machine->etc . '/robust.d/demo.ini');

@@ -11,7 +11,7 @@ final class NullUi implements UiInterface
     /** @var list<array{0:string,1:string}> level, message */
     public array $said = [];
 
-    /** @param bool $live the notes are also told on the error output as they come (a setup whose client shows its progress) */
+    /** @param bool $live the notes are also told on the error output as they come, as the live line of a client that shows its progress */
     public function __construct(private readonly bool $live = false) {}
 
     /** @var list<string> what is for the final report of the setup, not for its log */
@@ -28,7 +28,8 @@ final class NullUi implements UiInterface
     public function note(string $message): void
     {
         $this->said[] = ['note', $message];
-        $this->live && fwrite(STDERR, "opensim: $message\n");
+        // On the live line of its client, rewritten in place (a "~" line): a note says where the setup is, never one to keep
+        $this->live && fwrite(STDERR, 'opensim: ~' . ltrim($message) . "\n");
     }
 
     public function entity(string $name): string

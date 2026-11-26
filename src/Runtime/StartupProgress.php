@@ -32,7 +32,18 @@ final class StartupProgress
         $second = false;
         $latest = [];
 
+        // The line of the simulator itself comes first: the region is in the grid only when its connector says nothing after it
+        $pending = null;
         foreach (explode("\n", $text) as $line) {
+            if ($pending !== null && trim($line) !== '') {
+                if (str_contains($line, '[GRID CONNECTOR]: Registration failed')) {
+                    $steps[] = sprintf('  %s: refused by the grid', $pending);
+                } else {
+                    $registered++;
+                    $steps[] = sprintf('  %s: registered in the grid (%d/%d)', $pending, $registered, $regions);
+                }
+                $pending = null;
+            }
             if (preg_match('/' . self::FIRST_SIGNS . '/i', $line)) {
                 $line = (string) preg_replace('/\e\[[0-9;?]*[A-Za-z]/', '', $line);
                 $line = str_replace("\r", '', $line);
@@ -69,8 +80,7 @@ final class StartupProgress
                 preg_match('/\[GRID SERVICE\]: Region (.*?) \([0-9a-fA-F-]+, /', $line, $m) &&
                 str_contains($line, 'registered at')
             ) {
-                $registered++;
-                $steps[] = sprintf('  %s: registered in the grid (%d/%d)', $m[1], $registered, $regions);
+                $pending = $m[1];
             } elseif (preg_match('/\[RegionReady\]: Region "(.*?)".* is ready/', $line, $m)) {
                 $ready++;
                 $steps[] = sprintf('  %s: ready (%d/%d)', $m[1], $ready, $regions);
@@ -78,5 +88,13 @@ final class StartupProgress
         }
 
         return $steps;
+    }
+
+    /** What the grid answered when it refused the registration of a region (the connector of the simulator says it), null when none. */
+    public static function refusal(string $log): ?string
+    {
+        return preg_match('/\[GRID CONNECTOR\]: (Registration failed):?\s*(.*?)\s*$/m', $log, $m) === 1
+            ? trim($m[1] . ' ' . preg_replace('/\s+/', ' ', $m[2]))
+            : null;
     }
 }

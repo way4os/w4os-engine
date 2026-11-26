@@ -70,6 +70,23 @@ describe('Starting Robust', function () {
         expect($machine->reporter->errors)->toContain('  GridServiceConnector: failed to load (2/2)');
     });
 
+    test('says the service a loaded connector could not start, as OpenSim logs it (Error loading plugin): never up', function () {
+        $machine = new Machine();
+        $machine->startLog(
+            'demo',
+            '[SERVER]: AssetServiceConnector loaded successfully',
+            'ERROR (1) - OpenSim.Server.Base.ServerUtils [SERVER UTILS]: Error loading plugin OpenSim.Services.Interfaces.IGridService from OpenSim.Services.GridService.dll. Exception: GatekeeperURI configuration error',
+            '[SERVER]: GridServiceConnector loaded successfully',
+        );
+
+        $robust = Grid::find($machine->environment, 'demo')->robust();
+
+        expect(fn() => $robust->start())->toThrow(
+            InstanceFailed::class,
+            'demo is up but these services failed to load: OpenSim.Services.GridService.dll (GatekeeperURI configuration error)',
+        );
+    });
+
     test('is not done for an instance that runs already', function () {
         $machine = new Machine();
         $machine->processes->add('dotnet Robust.dll -inifile=' . $machine->etc . '/robust.d/demo.ini');
@@ -121,6 +138,23 @@ describe('Starting Robust', function () {
 });
 
 describe('Starting a simulator', function () {
+    test('whose grid refused its regions fails and says so, never started', function () {
+        $machine = new Machine();
+        $machine->startLog(
+            'alpha',
+            '[REGION LOADER FILE SYSTEM]: Loaded config for region Plaza',
+            'DEBUG [GRID SERVICE]: Region Plaza (607c44e9-3d01-45eb-a07e-937dc72dbadb, 256x256) registered at 1000,1000 with flags RegionOnline',
+            'ERROR [GRID CONNECTOR]: Registration failed:  when contacting http://grid.example.org:8003/grid',
+            '[RegionReady]: Region "Plaza" is ready',
+        );
+
+        expect(fn() => Grid::find($machine->environment, 'demo')->simulator('alpha')->start())->toThrow(
+            InstanceFailed::class,
+            'alpha runs, but its grid refused its regions (Registration failed when contacting http://grid.example.org:8003/grid)',
+        );
+        expect($machine->reporter->steps)->toContain('  Plaza: refused by the grid')->not->toContain('  Plaza: registered in the grid (1/1)');
+    });
+
     test('with a remote console runs detached and waits for its region to be ready', function () {
         $machine = new Machine();
         $machine->startLog(

@@ -47,6 +47,33 @@ final class Status
     }
 
     /**
+     * The Robusts that run with services that could not be made since their start, as their log says it (Error loading plugin): a
+     * connector is said loaded even then, and answers nothing.
+     *
+     * @return array<string,list<string>> name => the assemblies of the services
+     */
+    public function brokenServices(): array
+    {
+        $broken = [];
+        foreach ($this->instances as $instance) {
+            if (!$instance instanceof \W4OS\Engine\Controllers\RobustController || $instance->process() === null) {
+                continue;
+            }
+            // Its end only: a log grows without a limit
+            $path = $instance->logFile()->path();
+            $size = is_file($path) ? (int) filesize($path) : 0;
+            $text = $size === 0 ? '' : (string) @file_get_contents($path, false, null, max(0, $size - 4_000_000));
+            // Since its last start: the last line that begins a log
+            $at = strrpos($text, '[SERVER BASE]: Logging started to file');
+            $text = $at === false ? $text : substr($text, $at);
+            preg_match_all('/\[SERVER UTILS\]: Error loading plugin \S+ from (\S+?)\.? Exception:/', $text, $m);
+            $m[1] === [] || $broken[$instance->name()] = array_values(array_unique($m[1]));
+        }
+
+        return $broken;
+    }
+
+    /**
      * The simulators whose process runs and that do not answer at /simstatus/ within two seconds: hung, or still loading.
      *
      * @param ?\Closure(string):?string $get reads an address (Http::get() without it)

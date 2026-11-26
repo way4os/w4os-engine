@@ -59,6 +59,21 @@ describe('steps of a start', function () {
         ]);
     });
 
+    test('never say registered what the grid refused: its connector says it after the line of the simulator itself', function () {
+        $log = <<<'LOG'
+        2026-10-01 INFO  [REGION LOADER FILE SYSTEM]: Loaded config for region Sim North
+        2026-10-01 20:51:08,845 DEBUG [GRID SERVICE]: Region Sim North (607c44e9-3d01-45eb-a07e-937dc72dbadb, 256x256) registered at 1000,1001 with flags RegionOnline
+        2026-10-01 20:51:08,862 ERROR [GRID CONNECTOR]: Registration failed:  when contacting http://grid.example.org:8003/grid
+        2026-10-01 20:51:09,100 DEBUG [RegionReady]: Region "Sim North" is ready: "OnlineDelay" on channel -800
+        LOG;
+
+        expect(StartupProgress::steps($log, 1))->toBe([
+            '  Sim North: configured (1/1)',
+            '  Sim North: refused by the grid',
+            '  Sim North: ready (1/1)',
+        ])->and(StartupProgress::refusal($log))->toBe('Registration failed when contacting http://grid.example.org:8003/grid');
+    });
+
     test('say nothing of other lines', function () {
         expect(StartupProgress::steps('2026-10-01 20:51:08,617 DEBUG [WORLD MAP]: Generating map image for Far'))->toBe(
             [],

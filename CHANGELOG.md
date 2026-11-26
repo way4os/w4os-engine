@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (start): a region the grid refused is never said registered, the start fails; a Robust whose services did not load is not up
+- change (setup): its progress on the live line of its client, rewritten in place
 - new (setup): the address of the grid checked before Start: a name that does not resolve, or another machine of the network, said
 - new (i18n): one rule for the language of a page: ?lang=, the w4os_lang cookie, the lang cookie (saved into it), the browser
 - new (setup): the address of the Quick Start website kept with the grid (site of the API, import site); no web config lines at the end
