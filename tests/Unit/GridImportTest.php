@@ -71,6 +71,14 @@ describe('The import of a grid', function () {
             ->and(ConfigReader::expand(ConfigReader::file($import->plan->robustIni()))['GridInfoService']['welcome'] ?? '')->toBe('http://old.example.org/opensim/welcome');
     });
 
+    test('proposes its website in the folder of the pages the old one gave, else at the root of its site', function () use ($kimbe) {
+        [$machine, $robust] = $kimbe();
+        [$plain, $bare] = old_robust_install();
+
+        expect(GridImport::prepare($machine->environment, $robust, 'kimberedcharm')->document()['site'])->toBe('https://old.example.org/opensim/')
+            ->and(GridImport::prepare($plain->environment, $bare)->document()['site'])->toBe('https://old.example.org/');
+    });
+
     test('refuses the data it cannot tell, never leaves it behind silently', function () use ($kimbe) {
         // Its launcher named after nothing this config knows: the folder of its config is another
         [$machine, $robust, $old] = $kimbe(literal: false, configs: 'common');

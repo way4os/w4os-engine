@@ -295,6 +295,8 @@ final class GridImport
             'gridInfo' => $this->gridInfo,
             // What the choices kept say of the helpers: on here, or the old config's outside this install
             'helpers' => $this->helpers,
+            // Where its website is proposed: the folder of the pages the old one gave (its welcome, its about), else the root of its site
+            'site' => $this->siteAddress(),
             // The options its simulators load without what they ask, left off
             'aside' => $this->aside,
             'dropped' => array_map(SimulatorImport::masked(...), $this->dropped),
@@ -483,6 +485,26 @@ final class GridImport
     }
 
     /** Whether an address is on the web site of the grid (the host of its WebURL). */
+    /**
+     * The address proposed for the website of the grid: on its web site, the folder of the welcome or the about page its old config
+     * gives (https://kimbe.red/opensim/ for …/opensim/welcome), else the root of its site; with a slash at the end.
+     */
+    public function siteAddress(): string
+    {
+        $web = rtrim($this->plan->webUrl, '/');
+        $info = ConfigReader::expand(ConfigReader::load($this->source, [], false))['GridInfoService'] ?? [];
+        foreach (['welcome', 'about'] as $key) {
+            $url = trim((string) ($info[$key] ?? ''), " \t\"");
+            if ($url !== '' && self::onSite($url, $web)) {
+                $folder = rtrim(dirname(rtrim((string) parse_url($url, PHP_URL_PATH), '/')), '/');
+
+                return (string) preg_replace('#^(https?://[^/]+).*$#i', '$1', $web) . ($folder === '' ? '/' : "$folder/");
+            }
+        }
+
+        return "$web/";
+    }
+
     private static function onSite(string $url, string $webUrl): bool
     {
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
