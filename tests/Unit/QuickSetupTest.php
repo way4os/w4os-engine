@@ -32,6 +32,25 @@ function quick_answers(array $set = []): array
     ];
 }
 
+describe('quick setup, the address of the grid', function () {
+    afterEach(fn() => QuickSetup::through());
+
+    test('says in one line when its name does not resolve, or points to another machine of the network, before Start', function () {
+        $environment = (new Machine())->environment;
+        $warn = static function (array $ips) use ($environment): array {
+            QuickSetup::through(['resolve' => static fn(string $host): array => $ips]);
+
+            return QuickSetup::plan($environment, quick_answers(['login_uri' => 'grid.example.org:8102']))['warnings'] ?? [];
+        };
+
+        expect($warn([]))->toBe(['grid.example.org does not resolve yet: the grid will not answer at this address until its DNS does.'])
+            ->and($warn(['192.168.200.9']))->toBe(['grid.example.org points to 192.168.200.9, not to this machine.'])
+            // A public address may be this machine behind its router: nothing said
+            ->and($warn(['203.0.113.7']))->toBe([])
+            ->and($warn(['127.0.0.1']))->toBe([]);
+    });
+});
+
 describe('quick setup, its web services', function () {
     test('are in the plan as they are chosen, and without the helpers 2do.directory\'s', function () {
         $environment = (new Machine())->environment;

@@ -158,6 +158,8 @@ final class QuickSetup
                 $built['labels'],
             ),
             'types' => self::publicTypes($built['types']),
+            // What its address is now: said before Start, the person goes on or changes it
+            'warnings' => self::addressWarnings($built['plan']->baseHostname),
             'options' => array_map(
                 static fn(string $name, array $option): array => [
                     'name' => $name,
@@ -991,6 +993,48 @@ final class QuickSetup
         self::$region = $doubles['region'] ?? [];
         self::$dumper = $doubles['dumper'] ?? null;
         self::$loader = $doubles['loader'] ?? null;
+        self::$resolve = $doubles['resolve'] ?? null;
+    }
+
+    /** The addresses a name resolves to (null: gethostbynamel()). */
+    private static ?\Closure $resolve = null;
+
+    /**
+     * What the name of a grid resolves to, in a line when it cannot work yet: no address (its DNS is not ready), or an address of
+     * the network that is not this machine. A public address may be this machine behind its router: nothing is said of it.
+     *
+     * @return list<string>
+     */
+    private static function addressWarnings(string $host): array
+    {
+        $host = strtolower(trim($host));
+        if ($host === '' || $host === 'localhost' || str_ends_with($host, '.localhost') || filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            return [];
+        }
+        // Asked once a name: each screen plans the setup again
+        static $known = [];
+        $ips = self::$resolve !== null ? (self::$resolve)($host) : ($known[$host] ??= gethostbynamel($host) ?: []);
+        if ($ips === []) {
+            return [sprintf(_('%s does not resolve yet: the grid will not answer at this address until its DNS does.'), $host)];
+        }
+        $own = array_merge(gethostbynamel((string) gethostname()) ?: [], self::localAddresses());
+        foreach ($ips as $ip) {
+            $private = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+            if (!$private || str_starts_with($ip, '127.') || in_array($ip, $own, true)) {
+                return [];
+            }
+        }
+
+        return [sprintf(_('%s points to %s, not to this machine.'), $host, $ips[0])];
+    }
+
+    /** The addresses of the interfaces of this machine (ip -o addr), none where it cannot tell. @return list<string> */
+    private static function localAddresses(): array
+    {
+        $said = function_exists('shell_exec') ? (string) @shell_exec('ip -o -4 addr show 2>/dev/null') : '';
+        preg_match_all('/inet (\d+\.\d+\.\d+\.\d+)/', $said, $m);
+
+        return $m[1];
     }
 
     /** How the database of a simulator is made from a dump (null: DatabaseDump::intoEmpty()). */
