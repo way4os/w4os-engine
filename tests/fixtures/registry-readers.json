@@ -889,10 +889,13 @@
                     {
                         "label": "economy",
                         "kind": "address",
-                        "url": "https://play.example.org/helpers/",
+                        "url": "https://play.example.org/helpers/currency.php",
                         "method": "get",
+                        "display": "https://play.example.org/helpers/",
                         "expect": [
-                            418
+                            400,
+                            401,
+                            405
                         ],
                         "context": {
                             "instance": "grid_info",
@@ -1913,10 +1916,13 @@
                     {
                         "label": "economy",
                         "kind": "address",
-                        "url": "https://play.example.org/helpers/",
+                        "url": "https://play.example.org/helpers/currency.php",
                         "method": "get",
+                        "display": "https://play.example.org/helpers/",
                         "expect": [
-                            418
+                            400,
+                            401,
+                            405
                         ],
                         "context": {
                             "instance": "grid_info",

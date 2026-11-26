@@ -82,11 +82,14 @@ final class HealthCheck
         return null;
     }
 
-    /** The name of the owner of the grid (First.Last), to ask a profile with; null when its databases do not tell it. */
+    /**
+     * The name (First.Last) to ask a profile with: the owner of the grid, else an avatar of it; null when its databases do not tell
+     * one.
+     */
     private static function owner(?GridConfig $config): ?string
     {
         try {
-            $avatar = $config === null ? null : \W4OS\Engine\Models\Avatar::gridOwner($config);
+            $avatar = $config === null ? null : (\W4OS\Engine\Models\Avatar::gridOwner($config) ?? \W4OS\Engine\Models\Avatar::anyone($config));
         } catch (\W4OS\Engine\Exceptions\ChannelUnavailable) {
             return null;
         }

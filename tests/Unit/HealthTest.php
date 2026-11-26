@@ -318,29 +318,25 @@ describe('The pages of a grid', function () {
 });
 
 describe('The profile the grid tells', function () {
-    test('is not a page without a name: a teapot for the helpers, the registration of a site for whoever is signed out', function () {
+    test('is asked with the name of an avatar, its profile, and without a name, which sends to the signing in', function () {
         [$process, $port] = code_server();
         $url = fn(string $path) => "http://127.0.0.1:$port/$path";
-        $ask = static fn(string $profile, bool $helpers) => array_column(Health::answers(Health::grid([
-            'live' => ['web_profile_url' => $profile],
-            'register' => $url('register'),
-            'servedByHelpers' => static fn(string $address): bool => $helpers,
-        ])), null, 'file')['get_grid_info']['rows'];
-        $site = array_column($ask($url('to-register/[AGENT_NAME]'), false), null, 'label')['web_profile_url'];
-        $helpers = array_column($ask($url('418/[AGENT_NAME]'), true), null, 'label')['web_profile_url'];
-        // The redirections of the site on the way (a slash taken away), the registration at the end
-        $chain = array_column($ask($url('profile-slash/[AGENT_NAME]'), false), null, 'label')['web_profile_url'];
-        $away = array_column($ask($url('chain-away/[AGENT_NAME]'), false), null, 'label')['web_profile_url'];
+        $ask = static fn(string $profile, ?string $owner) => array_values(array_filter(
+            Health::answers(Health::grid(['live' => ['web_profile_url' => $profile], 'owner' => $owner]))[0]['rows'],
+            static fn(array $row): bool => $row['label'] === 'web_profile_url',
+        ));
+        // A site: the profile of the avatar a page, the address alone sends to its signing in
+        $site = $ask($url('to-register/[AGENT_NAME]'), 'Jane.Doe');
+        $wrong = $ask($url('404/[AGENT_NAME]'), 'Jane.Doe');
+        // No avatar to ask it with: the address alone
+        $nobody = $ask($url('to-register/[AGENT_NAME]'), null);
         proc_terminate($process);
 
-        expect($site)
-            ->toMatchArray(['level' => 'ok', 'status' => '302', 'expectedStatus' => '3xx', 'expectedLocation' => $url('register')])
-            ->and($chain)
-            ->toMatchArray(['level' => 'ok', 'status' => '301', 'expectedLocation' => $url('register'), 'location' => $url('register?return=profile')])
-            ->and($away)
-            ->toMatchArray(['level' => 'error', 'location' => $url('200')])
-            ->and($helpers)
-            ->toMatchArray(['level' => 'ok', 'status' => '418']);
+        expect(array_map(static fn(array $row): array => [$row['url'], $row['level']], $site))
+            ->toBe([[$url('to-register/Jane.Doe'), 'ok'], [$url('to-register'), 'ok']])
+            ->and([$site[0]['display'], $site[1]['status'], $site[1]['tag']])->toBe([$url('to-register/[AGENT_NAME]'), '302', 'signed out'])
+            ->and(array_column($wrong, 'level'))->toBe(['error', 'error'])
+            ->and(array_map(static fn(array $row): string => $row['url'], $nobody))->toBe([$url('to-register')]);
     });
 });
 
@@ -471,7 +467,7 @@ describe('sections of a grid', function () {
         },
     );
 
-    test('ask the profile without a name only in what the grid says, which is not a page (a teapot)', function () use (
+    test('ask the profile the grid says with the name of the owner of the grid, and without a name for its redirection', function () use (
         $live,
     ) {
         $says = array_values(
@@ -481,12 +477,14 @@ describe('sections of a grid', function () {
             ),
         );
 
-        // The address without the name, whatever there is to ask with
+        // Asked with the name of the owner, shown as the grid says it; and without a name, a redirection to the signing in
         expect($says)
-            ->toHaveCount(1)
+            ->toHaveCount(2)
             ->and($says[0])
-            ->toMatchArray(['url' => 'https://play.example.org/profile', 'expect' => [418]])
-            ->not->toHaveKey('display');
+            ->toMatchArray(['url' => 'https://play.example.org/profile/Jane.Doe', 'display' => 'https://play.example.org/profile/[AGENT_NAME]'])
+            ->not->toHaveKey('expect')
+            ->and($says[1])
+            ->toMatchArray(['url' => 'https://play.example.org/profile', 'expect' => Health::REDIRECTS, 'stay' => true]);
     });
 
     test(
@@ -592,8 +590,9 @@ describe('sections of a grid', function () {
                 'label',
             );
 
-            expect($rows['economy']['expect'])
-                ->toBe([418])
+            // The economy is a base the viewers add its scripts to: its currency script is asked
+            expect([$rows['economy']['url'], $rows['economy']['expect']])
+                ->toBe([$live['economy'] . '/currency.php', Health::BARE])
                 ->and($rows['search'])
                 ->toMatchArray(['tag' => 'Web search', 'method' => 'get']);
         },
@@ -708,9 +707,10 @@ describe('sections of a grid', function () {
             );
 
             expect($rows['economy'])->toMatchArray([
-                'url' => 'https://play.example.org/helpers',
+                'url' => 'https://play.example.org/helpers/currency.php',
+                'display' => 'https://play.example.org/helpers',
                 'method' => 'get',
-                'expect' => [418],
+                'expect' => Health::BARE,
             ]);
         },
     );
@@ -1233,18 +1233,15 @@ describe('The health of the kimbe copy', function () {
             ->and($all['SearchURL']['detail'] ?? '')->toContain('address of Robust');
     });
 
-    test('asks a profile given without [AGENT_NAME] with the name of an avatar, as the viewers add it', function () use ($rows) {
-        $row = array_column($rows(['live' => ['web_profile_url' => 'https://kimbe.example.org/opensim/profile'], 'owner' => 'Jane.Doe']), null, 'label')['web_profile_url'];
+    test('asks a profile given without [AGENT_NAME] with the name of an avatar, as the viewers add it, and the address alone for its redirection', function () use ($rows) {
+        $profile = static fn(array $in): array => array_values(array_filter($rows($in), static fn(array $row): bool => $row['label'] === 'web_profile_url'));
+        $named = $profile(['live' => ['web_profile_url' => 'https://kimbe.example.org/opensim/profile'], 'owner' => 'Jane.Doe']);
+        $nobody = $profile(['live' => ['web_profile_url' => 'https://kimbe.example.org/opensim/profile']]);
 
-        expect($row['url'])->toBe('https://kimbe.example.org/opensim/profile/Jane.Doe')
-            ->and($row['display'])->toBe('https://kimbe.example.org/opensim/profile');
-    });
-
-    test('shows a profile given without [AGENT_NAME] when the grid has no owner to ask it with, never asks the bare address', function () use ($rows) {
-        $row = array_column($rows(['live' => ['web_profile_url' => 'https://kimbe.example.org/opensim/profile']]), null, 'label')['web_profile_url'];
-
-        expect($row)->not->toHaveKey('url')
-            ->and([$row['text'], $row['level']])->toBe(['https://kimbe.example.org/opensim/profile', 'none']);
+        expect([$named[0]['url'], $named[0]['display']])->toBe(['https://kimbe.example.org/opensim/profile/Jane.Doe', 'https://kimbe.example.org/opensim/profile'])
+            ->and([$named[1]['url'], $named[1]['expect']])->toBe(['https://kimbe.example.org/opensim/profile', Health::REDIRECTS])
+            // No avatar to ask it with: the address alone, for its redirection
+            ->and(array_column($nobody, 'url'))->toBe(['https://kimbe.example.org/opensim/profile']);
     });
 
     test('takes a refusal of a service called with nothing (401 too), and leaves the key of a money server the grid has not', function () use ($rows) {

@@ -458,6 +458,23 @@ final class Avatar extends Model
         return $this->gridOwner !== null && $id !== '' && $this->gridOwner === $id;
     }
 
+    /**
+     * An avatar of the grid others can see, the oldest: active, confirmed, not the technical account of its services; null when
+     * the grid has none or its accounts cannot be read.
+     */
+    public static function anyone(GridConfig $config): ?static
+    {
+        $accounts = self::optional($config, 'UserAccountService', null, 'read an avatar');
+        $statement = $accounts?->prepareAndExecute(
+            'SELECT PrincipalID FROM UserAccounts WHERE active = 1 AND UserLevel >= 0 AND (UserFlags & ' . self::PENDING_FLAG . ') = 0'
+            . ' AND NOT (FirstName = :first AND LastName = :last) ORDER BY Created LIMIT 1',
+            ['first' => self::TECHNICAL[0], 'last' => self::TECHNICAL[1]],
+        );
+        $id = $statement ? $statement->fetchColumn() : false;
+
+        return is_string($id) && $id !== '' ? static::find($config, $id) : null;
+    }
+
     /** The owner of the grid (Estate::firstOwner()), null when its estates or its accounts do not tell it. */
     public static function gridOwner(GridConfig $config): ?static
     {

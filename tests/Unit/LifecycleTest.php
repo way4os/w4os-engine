@@ -245,24 +245,31 @@ describe('Starting a simulator', function () {
             ->and($failed?->getMessage())->not->toContain('sudo');
     })->skip(fn() => posix_geteuid() === 0, 'root writes everywhere');
 
-    test('keeps off a module its config does not set up, Gloebit without its key, and says how to set it', function () {
+    test('keeps off a module its config does not set up, Gloebit without its key, and says how to set it when it uses it', function () {
         $layout = static fn(Machine $machine) => $machine->environment->withLayout(new \W4OS\Engine\Config\Layout(['EnabledModules' => 'gloebit'] + $machine->environment->layout->all()));
         $machine = new Machine();
         mkdir($machine->root . '/modules/0.9.3.0/gloebit', 0o755, true);
         touch($machine->root . '/modules/0.9.3.0/gloebit/Gloebit.dll');
         $machine->startLog('alpha', '[RegionReady]: Region "Plaza" is ready');
-        Grid::find($layout($machine), 'demo')->simulator('alpha')->start();
         $addins = $machine->root . '/data/alpha/addins';
+        $ini = $machine->grid . '/sims/alpha.ini';
+        // Installed, not used: off, nothing to say
+        Grid::find($layout($machine), 'demo')->simulator('alpha')->start();
+        $unused = [is_link("$addins/Gloebit.dll"), implode("\n", $machine->reporter->errors)];
+        file_put_contents($ini, file_get_contents($ini) . "\n[Economy]\n    economymodule = Gloebit\n");
+        $machine->processes->processes = [];
+        Grid::find($layout($machine), 'demo')->simulator('alpha')->start();
         $off = is_link("$addins/Gloebit.dll");
         $said = implode("\n", $machine->reporter->errors);
 
         // Once its key and its secret are set, it is linked at the next start
-        $ini = $machine->grid . '/sims/alpha.ini';
         file_put_contents($ini, file_get_contents($ini) . "\n[Gloebit]\n    GLBKey = \"key\"\n    GLBSecret = \"secret\"\n");
         $machine->processes->processes = [];
         Grid::find($layout($machine), 'demo')->simulator('alpha')->start();
 
-        expect($off)->toBeFalse()
+        expect($unused[0])->toBeFalse()
+            ->and($unused[1])->not->toContain('gloebit')
+            ->and($off)->toBeFalse()
             ->and($said)->toContain('the module gloebit is installed but not configured ([Gloebit] GLBKey, [Gloebit] GLBSecret)', 'opensim settings demo economy --set gloebitKey=')
             ->and(is_link("$addins/Gloebit.dll"))->toBeTrue();
     });

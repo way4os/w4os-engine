@@ -57,7 +57,9 @@ describe('The owner of a grid', function () {
     test('is nobody on a grid whose estates cannot be read: each its own level', function () {
         $rows = array_column(Avatar::all(owned_grid(avatar_database(), ''))->array(), null, 'name');
 
-        expect([$rows['Ada Love']['owner'], $rows['Ada Love']['accessLevel'], $rows['Bob Root']['accessLevel']])->toBe([false, 0, 250]);
+        expect([$rows['Ada Love']['owner'], $rows['Ada Love']['accessLevel'], $rows['Bob Root']['accessLevel']])->toBe([false, 0, 250])
+            // An avatar to ask a page of an avatar with: the oldest active one (Cy is not)
+            ->and(Avatar::anyone(owned_grid(avatar_database(), ''))?->name())->toBe('Bob Root');
     });
 
     test('is described by the contract of the avatars', function () {

@@ -23,17 +23,42 @@ final class ModuleLinker
      */
     public const REQUIRED = ['gloebit' => ['Gloebit' => ['GLBKey', 'GLBSecret']]];
 
+    /** What puts a module in use in a simulator, any of them (section, key, value): Gloebit is the money module its config names. */
+    public const IN_USE = ['gloebit' => [['Economy', 'economymodule', 'gloebit'], ['Startup', 'economymodule', 'gloebit']]];
+
     /**
-     * The modules enabled that the config of an instance does not set up, with the settings each misses.
+     * Whether the config of an instance uses a module (IN_USE): one installed that it does not use needs nothing of it.
+     *
+     * @param array<string,array<string,string>> $settings the config of the instance, its references replaced
+     */
+    public static function inUse(string $module, array $settings): bool
+    {
+        $ways = self::IN_USE[strtolower($module)] ?? null;
+        if ($ways === null) {
+            return true;
+        }
+        $lower = array_map(static fn($keys): array => is_array($keys) ? array_change_key_case($keys) : [], array_change_key_case($settings));
+        foreach ($ways as [$section, $key, $value]) {
+            if (strcasecmp(trim((string) ($lower[strtolower($section)][strtolower($key)] ?? ''), " \t\""), $value) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The modules enabled that the config of an instance uses (inUse()) and does not set up, with the settings each misses.
      *
      * @param list<string> $modules the modules enabled
      * @param array<string,array<string,string>> $settings the config of the instance, its references replaced
+     * @param bool $all the ones it does not use too (kept off all the same)
      * @return array<string,list<string>> module => its settings missing ("[Gloebit] GLBKey")
      */
-    public static function unconfigured(array $modules, array $settings): array
+    public static function unconfigured(array $modules, array $settings, bool $all = false): array
     {
         $missing = [];
-        foreach ($modules as $module) {
+        foreach ($all ? $modules : array_filter($modules, static fn(string $module): bool => self::inUse($module, $settings)) as $module) {
             foreach (self::REQUIRED[strtolower($module)] ?? [] as $section => $keys) {
                 foreach ($keys as $key) {
                     trim((string) ($settings[$section][$key] ?? ''), " \t\"") !== '' || $missing[$module][] = "[$section] $key";

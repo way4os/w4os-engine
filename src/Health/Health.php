@@ -149,7 +149,7 @@ class Health
         );
         $rows = [];
         foreach ($keys as $key) {
-            // The profile is asked here without a name only: asked with the name of an avatar, it is in the config below
+            // The profile is asked with the name of the owner of the grid, never without a name
             array_push($rows, ...self::address($key, $live[$key], $owner, $home));
         }
         if ($rows) {
@@ -337,38 +337,39 @@ class Health
             $row['probe'] = rtrim($value, '/') . '/get_grid_info';
             $key === 'login' && ($row['gridInfo'] = true);
         } elseif ($key === 'economy') {
-            // The address of the helpers, to which the viewers add the name of the script: no page of its own
-            $row['expect'] = self::TEAPOT;
+            // A base the viewers add the names of its scripts to (currency.php, landtool.php), no page: its currency script is asked,
+            // which refuses a request with nothing
+            $row['url'] = rtrim($value, '/') . '/currency.php';
+            $row['display'] = $value;
+            $row['expect'] = self::BARE;
         } elseif ($key === 'search') {
             // The web page of the search, not the service the simulators call
             $row['tag'] = self::say('health_web_search');
             // query.php is that service (XML-RPC): what to give instead
             preg_match('#/query\.php/?$#i', (string) parse_url($value, PHP_URL_PATH)) === 1 && ($row['detail'] = self::say('health_search_is_service'));
-        } elseif ($key === 'web_profile_url' && !str_contains($value, '[AGENT_NAME]')) {
-            // An address without the name: the viewers add it, as the name of the owner of the grid here; shown only without one
-            if ($owner === null) {
-                return [self::valueRow($key, $value)];
-            }
-            $row['url'] = \W4OS\Engine\Models\Avatar::profileAt(rtrim($value, '/') . '/[AGENT_NAME]', $owner) ?? $value;
-            $row['display'] = $value;
-        } elseif (str_contains($value, '[AGENT_NAME]')) {
-            // What the grid says is the address without the name, which is not a page (a teapot); the one with the name of an avatar
-            // is the one of the config
+        } elseif ($key === 'web_profile_url') {
+            // The page of an avatar: asked with the name of the owner of the grid (else of an avatar of it), the avatar's profile; the
+            // address without a name, which no viewer opens, sends whoever is signed out to the signing in of the site
+            $page = str_contains($value, '[AGENT_NAME]') ? $value : rtrim($value, '/') . '/[AGENT_NAME]';
             if ($variants) {
-                return [
-                    $owner === null ? self::valueRow($key, $value) : self::profileRow($key, $value, $owner),
-                ];
+                return [$owner === null ? self::valueRow($key, $value) : self::profileRow($key, $page, $owner) + ['display' => $value]];
             }
-            $row['url'] = rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $value), '/');
-            $row['expect'] = self::TEAPOT;
-            // A site answers the profile of whoever asks: signed out, as the check is, its registration
-            $helpers = self::$site['helpers'] ?? null;
-            if ($helpers !== null && !$helpers($value)) {
-                $row = ['expect' => self::REDIRECTS, 'stay' => true, 'refuse' => true, 'leadsTo' => (string) (self::$site['register'] ?? ''), 'tag' => self::say('health_signed_out')] + $row;
-                $row['display'] = $value;
-            }
+            $bare = [
+                'label' => $key,
+                'kind' => 'address',
+                'url' => rtrim((string) preg_replace('#\[AGENT_NAME\].*$#', '', $page), '/'),
+                'method' => 'get',
+                'expect' => self::REDIRECTS,
+                'stay' => true,
+                'refuse' => true,
+                'tag' => self::say('health_signed_out'),
+            ];
+            $named = $owner === null ? null : Avatar::profileAt($page, $owner);
 
-            return [$row];
+            return $named === null ? [$bare] : [['url' => $named, 'display' => $value] + $row, $bare];
+        } elseif (str_contains($value, '[AGENT_NAME]')) {
+            // Another address with the name of an avatar: asked with the owner's, shown without one
+            return [$owner === null ? self::valueRow($key, $value) : self::profileRow($key, $value, $owner)];
         }
 
         return [$row];
