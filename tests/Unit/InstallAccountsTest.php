@@ -75,6 +75,17 @@ describe('The units of the suite', function () {
         expect(array_values(array_filter($commands, static fn(string $c): bool => str_starts_with($c, "find '$base/var/data'"))))->toBe([]);
     })->skip(fn() => !function_exists('posix_getpwuid'), 'posix is missing');
 
+    test('a folder its account owns is walked still when it holds what another account owns (moved in by a migration)', function () {
+        $base = accounts_dir('foreign');
+        mkdir("$base/data/moved", 0o755, true);
+        file_put_contents("$base/data/moved/file", '');
+        $me = (string) (posix_getpwuid(posix_geteuid())['name'] ?? '');
+
+        expect(SystemLayout::foreign("$base/data", $me))->toBeFalse()
+            ->and(SystemLayout::foreign("$base/data", 'nobody'))->toBeTrue()
+            ->and(SystemLayout::foreign("$base/absent", 'nobody'))->toBeFalse();
+    })->skip(fn() => !function_exists('posix_getpwuid'), 'posix is missing');
+
     test('follow the account of w4os.conf each time the layout is made, whichever it names', function () {
         $base = accounts_dir('layout');
         mkdir("$base/etc/w4os", 0o755, true);

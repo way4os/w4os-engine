@@ -99,7 +99,7 @@ final class SystemLayout
         $accounts = [self::SYSTEM => [$user, $group], self::WEB => [$web, $webGroup]];
         foreach (self::folders($layout, $conf) as $dir => [$owner, $made]) {
             [$account, $accountGroup] = $accounts[$owner];
-            // Its owner before: a folder its account owns already holds what it owns (an upgrade walks nothing then)
+            // Its owner before; a folder its account owns may still hold what another one owns (moved in by a migration)
             $before = is_dir($dir) && function_exists('posix_getpwuid') ? (string) (posix_getpwuid((int) fileowner($dir))['name'] ?? '') : '';
             // The folders of the site are made by its package: given to their account when they are there
             if (!$made) {
@@ -124,7 +124,7 @@ final class SystemLayout
             }
             // What it holds follows its account when that changes: what another account owns is given to it, the group with it when it
             // was that account's own (the group of the web server on the files of a grid stays); an install that exists is never here
-            if (($made || is_dir($dir)) && $before !== $account) {
+            if (($made || is_dir($dir)) && ($before !== $account || self::foreign($dir, $account))) {
                 $this->ui->note(sprintf(_('Giving %s to %s…'), $dir, $account));
                 $this->execute(self::follow($dir, $account, $accountGroup));
             }
@@ -196,6 +196,18 @@ final class SystemLayout
      * account owns already is not looked at again. In batches (chown of many files at once): first, for each former owner, its files
      * in its own group, given to the account and its group; then the others, to the account alone.
      */
+    /** Whether a folder holds something another account than $user owns: the walk stops at the first one, nothing changed. */
+    public static function foreign(string $dir, string $user): bool
+    {
+        if (!is_dir($dir)) {
+            return false;
+        }
+        $found = [];
+        exec(sprintf('find %s -mindepth 1 ! -user %s -print -quit 2>/dev/null', ShellService::arg($dir), ShellService::arg($user)), $found);
+
+        return $found !== [];
+    }
+
     public static function follow(string $dir, string $user, string $group): string
     {
         $dir = ShellService::arg($dir);
