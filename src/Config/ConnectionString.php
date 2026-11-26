@@ -83,6 +83,15 @@ final class ConnectionString
         return preg_match('/[;\'"=]|^\s|\s$/', $value) === 1 ? "'" . str_replace("'", "''", $value) . "'" : $value;
     }
 
+    /**
+     * Why OpenSimulator cannot read a password from its configs, null when it can: Nini ends a value at a double quote, in quotes or
+     * not, and has no escape for it.
+     */
+    public static function unreadable(string $password): ?string
+    {
+        return str_contains($password, '"') ? _('OpenSim cannot read a database password with a double quote from its configs') : null;
+    }
+
     /** What is written in the config. */
     public function __toString(): string
     {

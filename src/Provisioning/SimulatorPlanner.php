@@ -283,6 +283,7 @@ final class SimulatorPlanner
     {
         $values = $this->resolve($answers);
         $problems = $this->fields()->problems(array_intersect_key($answers, $values) + $values);
+        ($why = \W4OS\Engine\Config\ConnectionString::unreadable((string) ($values['database_password'] ?? ''))) === null || $problems['database_password'] = $why;
         $grid = $this->context['grid'];
         // A standalone is one simulator: no other can join it
         if (

@@ -326,6 +326,14 @@ describe('A new grid', function () {
             )
             ->toHaveKeys(['public_port', 'spacing', 'center', 'helpers_path']);
     });
+
+    test('refuses a database password OpenSim cannot read from its configs (a double quote), any other is kept', function () {
+        expect(planner()->problems(['database_password' => 'say "hi"'])['database_password'] ?? null)
+            ->toContain('OpenSim cannot read')
+            ->and(planner()->problems(['database_password' => "it's;a=b \\ x"]))->not->toHaveKey('database_password')
+            ->and(W4OS\Engine\Config\ConnectionString::unreadable('say "hi"'))->toContain('double quote')
+            ->and(W4OS\Engine\Config\ConnectionString::unreadable('plain'))->toBeNull();
+    });
 });
 
 describe('The options of a new grid', function () {

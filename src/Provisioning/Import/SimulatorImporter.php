@@ -35,6 +35,9 @@ final class SimulatorImporter
         if (($db = ConnectionString::parse($ini['DatabaseService']['ConnectionString'] ?? '')) === null) {
             return 'no database in [DatabaseService] ConnectionString (the simulator has its own)';
         }
+        if (($why = ConnectionString::unreadable($db->password)) !== null) {
+            return "$why ([DatabaseService] ConnectionString): give the account another password";
+        }
         $port = (int) ($ini['Network']['http_listener_port'] ?? 0);
         if ($port <= 0) {
             return 'no http_listener_port in [Network]';

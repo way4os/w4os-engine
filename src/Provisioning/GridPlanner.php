@@ -319,6 +319,7 @@ final class GridPlanner
         } elseif (!$values['standalone'] && $values['database_driver'] !== 'mysql') {
             $problems['database_driver'] = _('A grid with Robust requires a server database.');
         }
+        ($why = \W4OS\Engine\Config\ConnectionString::unreadable((string) $values['database_password'])) === null || $problems['database_password'] = $why;
 
         return $problems + $this->fields()->problems(array_intersect_key($answers, $values) + $values);
     }

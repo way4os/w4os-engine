@@ -62,6 +62,9 @@ final class RobustImporter
         if (($db = ConnectionString::parse($ini['DatabaseService']['ConnectionString'] ?? '')) === null) {
             return 'no database in [DatabaseService] ConnectionString';
         }
+        if (($why = \W4OS\Engine\Config\ConnectionString::unreadable($db->password)) !== null) {
+            return "$why ([DatabaseService] ConnectionString): give the account another password";
+        }
 
         $plan = new GridPlan();
         // What its grid info sends: ASCII only (GridInfoText)
