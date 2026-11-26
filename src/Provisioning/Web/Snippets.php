@@ -84,9 +84,39 @@ final class Snippets
      */
     public static function pool(string $systemUser, string $webGroup = 'www-data', string $socket = self::API_SOCKET): string
     {
-        return self::apiPreset()->text('api/w4os-api.conf', [
-            'system_user' => $systemUser,
-            'web_group' => $webGroup,
+        return self::poolText('w4os-api', $systemUser, $systemUser, $webGroup, $socket, sprintf(
+            'The engine API of the grids of this machine, run as the user of their instances (%s), whose files they are: what a site changes is done by that user, never by the web server, which only reaches this socket; the site calls it with a key (opensim api-key create).',
+            $systemUser,
+        ));
+    }
+
+    /** Where the helpers of the grids of this machine are reached once their pool is installed (helpersPool()). */
+    public const HELPERS_SOCKET = '/run/php/w4os-helpers.sock';
+
+    /**
+     * The PHP-FPM pool that runs the helpers of the grids of this machine as the web user and its group (WebUser, WebGroup), the
+     * group that reads the settings of the grids: whatever user and groups the pool of the host runs with, the helpers read them.
+     *
+     * @param string $listenGroup the group of the web server that reaches the socket (www-data, caddy...)
+     */
+    public static function helpersPool(string $webUser, string $webGroup, string $listenGroup = 'www-data'): string
+    {
+        return self::poolText('w4os-helpers', $webUser, $webGroup, $listenGroup, self::HELPERS_SOCKET, sprintf(
+            'The helpers of the grids of this machine, run as %s of the group %s, which reads the settings of the grids, whatever the pool of the host runs as.',
+            $webUser,
+            $webGroup,
+        ));
+    }
+
+    /** A pool of the suite: its name, the account it runs as, the group of the web server that reaches its socket. */
+    private static function poolText(string $name, string $user, string $group, string $listenGroup, string $socket, string $about): string
+    {
+        return self::apiPreset()->text('api/w4os-pool.conf', [
+            'pool_name' => $name,
+            'pool_user' => $user,
+            'pool_group' => $group,
+            'pool_about' => wordwrap($about, 125, "\n; "),
+            'web_group' => $listenGroup,
             'php_socket' => $socket,
         ]) . "\n";
     }
@@ -212,6 +242,7 @@ final class Snippets
         }
 
         $webUrl = $webUrl !== '' ? $webUrl : HelpersConfig::webUrl($gridDirectory);
+        $helpers = PhpPools::installed('w4os-helpers');
         $services = HelpersConfig::services($gridDirectory);
         $routes = self::routes(
             $services->base(),
@@ -222,7 +253,9 @@ final class Snippets
             'grid_nick' => $nick,
             'grid_dir' => rtrim($gridDirectory, '/'),
             'docroot' => $docroot !== '' ? $docroot : self::helpersRoot(),
-            'php_socket' => $socket !== '' ? $socket : '/run/php/php-fpm.sock',
+            // The pool of the helpers once installed, else the socket given (the pool of the host), else the default one of Debian
+            'php_socket' => $helpers ? self::HELPERS_SOCKET : ($socket !== '' ? $socket : '/run/php/php-fpm.sock'),
+            'php_handler' => $helpers ? "\t<FilesMatch \"\\.php\$\">\n\t\tSetHandler \"proxy:unix:" . self::HELPERS_SOCKET . "|fcgi://w4os-helpers\"\n\t</FilesMatch>\n" : '',
             'web_globs' => implode(' ', $routes['globs']),
             'web_regex' => implode('|', $routes['regex']),
         ];

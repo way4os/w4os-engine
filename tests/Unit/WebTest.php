@@ -5,6 +5,7 @@
 
 use W4OS\Engine\Provisioning\Web\HelpersConfig;
 use W4OS\Engine\Provisioning\Web\Services;
+use W4OS\Engine\Provisioning\Web\PhpPools;
 use W4OS\Engine\Provisioning\Web\Snippets;
 
 /** Whether the file system holds two files whose names differ by the case only. */
@@ -190,6 +191,58 @@ describe('The engine API for the sites of this machine', function () {
         expect($pool)
             ->toContain('[w4os-api]', 'user = opensim', 'group = opensim', 'listen = /run/php/w4os-api.sock', 'listen.owner = opensim', 'listen.group = caddy', 'listen.mode = 0660')
             ->not->toContain('{{');
+    });
+
+    test('the helpers run in a pool of their own, as the web user and its group, whatever group the host pool has', function () {
+        $pool = Snippets::helpersPool('www-data', 'www-data', 'caddy');
+
+        expect($pool)
+            ->toContain('[w4os-helpers]', 'user = www-data', 'group = www-data', 'listen = /run/php/w4os-helpers.sock', 'listen.owner = www-data', 'listen.group = caddy', 'pm = ondemand')
+            ->not->toContain('{{', '[w4os-api]');
+    });
+
+    test('both pools written by one function, into the pools of the newest PHP-FPM, only when they change', function () {
+        $etc = sys_get_temp_dir() . '/pools-' . getmypid();
+        mkdir("$etc/8.2/fpm/pool.d", 0o755, true);
+        mkdir("$etc/8.4/fpm/pool.d", 0o755, true);
+        file_put_contents("$etc/8.4/fpm/pool.d/www.conf", "[www]\nuser = www-data\ngroup = magic\nlisten = /run/php/php8.4-fpm.sock\n");
+        $texts = ['w4os-api' => Snippets::pool('opensim', 'caddy'), 'w4os-helpers' => Snippets::helpersPool('www-data', 'www-data', 'caddy')];
+
+        $folder = PhpPools::folder($etc);
+        $first = PhpPools::write($folder, $texts);
+        $again = PhpPools::write($folder, $texts);
+
+        expect($folder)->toBe("$etc/8.4/fpm/pool.d")
+            ->and($first)->toBe(["$folder/w4os-api.conf", "$folder/w4os-helpers.conf"])
+            ->and($again)->toBe([])
+            ->and(PhpPools::installed('w4os-helpers', $etc))->toBeTrue()
+            ->and(PhpPools::listenGroup("$folder/w4os-api.conf"))->toBe('caddy')
+            ->and(file_get_contents("$folder/www.conf"))->toContain('group = magic');
+        exec('rm -rf ' . escapeshellarg($etc));
+    });
+
+    test('without PHP-FPM there is no folder of pools, and nothing is written', function () {
+        expect(PhpPools::folder(sys_get_temp_dir() . '/no-php-' . getmypid()))->toBe('');
+    });
+
+    test('the files of the helpers point at their pool once it is installed, else at the socket given', function () {
+        $etc = sys_get_temp_dir() . '/pools-render-' . getmypid();
+        mkdir("$etc/8.4/fpm/pool.d", 0o755, true);
+        $grid = sys_get_temp_dir() . '/grid-render-' . getmypid();
+        mkdir($grid, 0o755, true);
+        putenv("W4OS_PHP_ETC=$etc");
+        $before = Snippets::render('caddy', 'test_grid', $grid, socket: '/run/php/php8.4-fpm.sock');
+        $apacheBefore = Snippets::render('apache', 'test_grid', $grid);
+        file_put_contents("$etc/8.4/fpm/pool.d/w4os-helpers.conf", Snippets::helpersPool('www-data', 'www-data', 'caddy'));
+        $after = Snippets::render('caddy', 'test_grid', $grid, socket: '/run/php/php8.4-fpm.sock');
+        $apache = Snippets::render('apache', 'test_grid', $grid);
+        putenv('W4OS_PHP_ETC');
+        exec('rm -rf ' . escapeshellarg($etc) . ' ' . escapeshellarg($grid));
+
+        expect($before)->toContain('unix//run/php/php8.4-fpm.sock')
+            ->and($after)->toContain('unix//run/php/w4os-helpers.sock')->not->toContain('php8.4-fpm')
+            ->and($apacheBefore)->not->toContain('SetHandler')
+            ->and($apache)->toContain('SetHandler "proxy:unix:/run/php/w4os-helpers.sock|fcgi://w4os-helpers"');
     });
 
     test('is served on 127.0.0.1 only, its paths and no other, through that pool, by each web server', function () {

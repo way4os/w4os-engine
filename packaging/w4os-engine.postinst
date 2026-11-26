@@ -38,6 +38,14 @@ migrate_web_configs() { # sed expressions, then -- and the pattern a file to mig
     done
 }
 
+# The running PHP-FPM told to read its pools again
+reload_pools() {
+    [ -d /run/systemd/system ] || return 0
+    for unit in $(systemctl list-units --type=service --state=active --plain --no-legend 'php*-fpm.service' | awk '{print $1}'); do
+        systemctl reload "$unit" || echo "$package: could not reload $unit" >&2
+    done
+}
+
 case "$1" in
     configure)
         php "$engine/opensim-layout.php" || {
@@ -55,6 +63,12 @@ case "$1" in
         fi
         migrate_web_configs 's#/usr/share/opensim-engine\b#/usr/share/w4os-engine#g' 's#/run/php/opensim-api\.sock#/run/php/w4os-api.sock#g' \
             's#^\[opensim-api\]#[w4os-api]#' -- '/usr/share/opensim-engine\b|/run/php/opensim-api\.sock|^\[opensim-api\]'
+        # The pools of the suite (the API, the helpers) where the one of the API is there already, then PHP-FPM told
+        written=$(php "$engine/opensim-pools.php" --if-installed) || echo "$package: could not write the pools of PHP-FPM" >&2
+        if [ -n "$written" ]; then
+            echo "$package: wrote $(echo $written)" >&2
+            reload_pools
+        fi
         ;;
     triggered)
         [ -f /etc/w4os/w4os.conf ] && php "$engine/opensim-profiles.php" || true

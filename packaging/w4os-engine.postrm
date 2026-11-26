@@ -1,7 +1,21 @@
 #!/bin/sh
-# postrm of w4os-engine: on purge, removes the cache and the owner the postinst gave to the folders of the layout (the folders
-# themselves are kept while they hold config, data or logs). Config, data, logs, backups and the account are kept.
+# postrm of w4os-engine: its pools of PHP-FPM removed with it; on purge, the cache and the owner the postinst gave to the folders
+# of the layout (the folders themselves are kept while they hold config, data or logs). Config, data, logs, backups and the
+# account are kept.
 set -e
+
+# The pools of PHP-FPM of the suite (the API, the helpers) go with the engine that wrote them
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    removed=
+    for file in /etc/php/*/fpm/pool.d/w4os-api.conf /etc/php/*/fpm/pool.d/w4os-helpers.conf; do
+        [ -f "$file" ] && rm -f "$file" && removed=yes
+    done
+    if [ -n "$removed" ] && [ -d /run/systemd/system ]; then
+        for unit in $(systemctl list-units --type=service --state=active --plain --no-legend 'php*-fpm.service' | awk '{print $1}'); do
+            systemctl reload "$unit" || true
+        done
+    fi
+fi
 
 if [ "$1" = "purge" ]; then
     rm -rf /var/cache/opensim
