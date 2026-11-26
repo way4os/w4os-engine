@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (start): a sign of life of a simulator said once, not again from its console with the time
 - change (setup): the run in numbered steps from the databases: Databases, Config, Start, then the website
 - fix (layout): an upgrade walks no folder its account owns already; what it waits on on its client's live line only
 - change (setup): a grid asked in six short lines, the website by its address, the options a first install chooses

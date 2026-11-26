@@ -101,6 +101,13 @@ describe('steps of a start', function () {
         ]);
     });
 
+    test('say a sign of the console as the same one of the log', function () {
+        $console = StartupProgress::steps("21:18:13 - [OPENSIM MAIN]: System Locale is en-US\n", 1, true);
+
+        expect($console)->toBe(StartupProgress::steps('2026-11-26 21:18:13,100 INFO  [OPENSIM MAIN]: System Locale is en-US'))
+            ->and($console)->toBe(['  System Locale is en-US']);
+    });
+
     test('remove the control codes of a screen session', function () {
         expect(StartupProgress::steps("\033[1;32mSTARTING OPENSIM\033[0m\r", 1, true))->toBe(['  STARTING OPENSIM']);
     });

@@ -47,7 +47,8 @@ final class StartupProgress
             if (preg_match('/' . self::FIRST_SIGNS . '/i', $line)) {
                 $line = (string) preg_replace('/\e\[[0-9;?]*[A-Za-z]/', '', $line);
                 $line = str_replace("\r", '', $line);
-                $line = (string) preg_replace('/^[0-9-]+ [0-9:,.]+ +[A-Z]+ +(\[[^\]]*\]: *)?/', '', $line);
+                // The time and the source of a line of the log (2026-11-26 21:18:13,100 INFO) or of the console (21:18:13 -)
+                $line = (string) preg_replace('/^(?:[0-9-]+ [0-9:,.]+ +[A-Z]+|[0-9:]+ +-) +(\[[^\]]*\]: *)?/', '', $line);
                 $line = trim($line);
                 if ($line !== '') {
                     $steps[] = "  $line";
