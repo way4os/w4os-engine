@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (i18n): the other link to add a grid says what it is, secondlife:// link, in every language
 - fix (setup): a new simulator of a grid takes the database account of its grid; a region from an OAR takes its size
 - fix (web): a page that cannot read a file of its grid says so, never dies on STDIN or STDERR under PHP-FPM
 - new (setup): the review lists the options set without a question (Hypergrid, Helpers, OSSL, Gloebit), on or off, changed there

@@ -977,8 +977,8 @@ msgid "Add %1$s to your viewer"
 msgstr "Füge %1$s zu deinem Viewer hinzu"
 
 msgctxt "viewer_add_grid_other"
-msgid "Other link"
-msgstr "Anderer Link"
+msgid "secondlife:// link"
+msgstr "secondlife://-Link"
 
 msgctxt "viewer_login_uri_by_hand"
 msgid "Or add it in the grid manager of your viewer with its login URI:"
@@ -4798,6 +4798,10 @@ msgstr "Die Konfiguration des Grids sagt nicht, wo diese Datenbank ist."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Die Datenbank ist nicht erreichbar."
+
+#~ msgctxt "viewer_add_grid_other"
+#~ msgid "Other link"
+#~ msgstr "Anderer Link"
 
 #~ msgctxt "error_password_invalid"
 #~ msgid "The password is missing or has a line break."

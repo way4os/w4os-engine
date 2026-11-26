@@ -285,7 +285,7 @@ final class Catalog
         // The button that adds a grid to the viewer (%1$s its name), and the Connect block of a site: its steps, a button each in the same
         // mood (start_avatar, start_add_grid, start_login); %s the avatar in start_avatar_done
         'viewer_add_grid' => 'Add %1$s to your viewer',
-        'viewer_add_grid_other' => 'Other link',
+        'viewer_add_grid_other' => 'secondlife:// link',
         'viewer_login_uri_by_hand' => 'Or add it in the grid manager of your viewer with its login URI:',
         'copy' => 'Copy',
         'copied' => 'Copied',

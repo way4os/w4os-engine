@@ -809,7 +809,7 @@ msgid "Add %1$s to your viewer"
 msgstr ""
 
 msgctxt "viewer_add_grid_other"
-msgid "Other link"
+msgid "secondlife:// link"
 msgstr ""
 
 msgctxt "viewer_login_uri_by_hand"

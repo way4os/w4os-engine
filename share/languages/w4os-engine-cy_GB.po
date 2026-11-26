@@ -963,8 +963,8 @@ msgid "Add %1$s to your viewer"
 msgstr "Ychwanegu %1$s at dy viewer"
 
 msgctxt "viewer_add_grid_other"
-msgid "Other link"
-msgstr "Dolen arall"
+msgid "secondlife:// link"
+msgstr "Dolen secondlife://"
 
 msgctxt "viewer_login_uri_by_hand"
 msgid "Or add it in the grid manager of your viewer with its login URI:"
@@ -4786,6 +4786,10 @@ msgstr "Nid yw ffurfweddiad y grid yn dweud ble mae'r gronfa ddata hon."
 msgctxt "notice_database_unreachable"
 msgid "The database cannot be reached."
 msgstr "Ni ellir cyrraedd y gronfa ddata."
+
+#~ msgctxt "viewer_add_grid_other"
+#~ msgid "Other link"
+#~ msgstr "Dolen arall"
 
 #~ msgctxt "error_password_invalid"
 #~ msgid "The password is missing or has a line break."
