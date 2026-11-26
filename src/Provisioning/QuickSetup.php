@@ -1359,7 +1359,11 @@ final class QuickSetup
         $check =
             self::$database ??
             static fn(GridPlan $db, UiInterface $said): int => (new DatabaseService($said))->ensure($db);
-        foreach ($databases as $db) {
+        // The steps of the run, numbered on the live line; the website, its last one, is the client's (kickstart)
+        $steps = 3 + ($plan !== null && $plan->webSite === 'website' ? 1 : 0);
+        $ui->stage(1, $steps, _('Databases'));
+        foreach ($databases as $i => $db) {
+            $ui->note(sprintf('%s (%d/%d)', $db->dbName, $i + 1, count($databases)));
             $code = $check($db, $ui);
             if ($code === DatabaseService::OK) {
                 continue;
@@ -1397,9 +1401,7 @@ final class QuickSetup
             // Everything written first, then each instance started once: Robust (for the account of the avatar) reads the roles of
             // the region at its first start, never started again for them; a standalone makes the account itself when it starts
             $later = $plan !== null && !$plan->standalone && $simulator->existingRegionConfig === '';
-            // The steps of the run, numbered on the live line; the website, its last one, is the client's (kickstart)
-            $steps = 2 + ($plan !== null && $plan->webSite === 'website' ? 1 : 0);
-            $ui->stage(1, $steps, _('Config'));
+            $ui->stage(2, $steps, _('Config'));
             if ($plan !== null) {
                 $plan->enable = true;
                 $plan->start = !$later;
@@ -1414,7 +1416,7 @@ final class QuickSetup
             $provisioner = new SimulatorProvisioner($ui);
             $provisioner->apply($simulator, $environment);
             // Robust started for the account of the avatar, then the simulator: the start of the grid
-            $ui->stage(2, $steps, _('Start'));
+            $ui->stage(3, $steps, _('Start'));
             if ($plan !== null) {
                 // The account of the avatar: Robust starts for it (GridAccounts), and makes it
                 if (!$plan->standalone) {
