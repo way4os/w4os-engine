@@ -99,6 +99,8 @@ final class SystemLayout
         $accounts = [self::SYSTEM => [$user, $group], self::WEB => [$web, $webGroup]];
         foreach (self::folders($layout, $conf) as $dir => [$owner, $made]) {
             [$account, $accountGroup] = $accounts[$owner];
+            // Its owner before: a folder its account owns already holds what it owns (an upgrade walks nothing then)
+            $before = is_dir($dir) && function_exists('posix_getpwuid') ? (string) (posix_getpwuid((int) fileowner($dir))['name'] ?? '') : '';
             // The folders of the site are made by its package: given to their account when they are there
             if (!$made) {
                 is_dir($dir) && $this->execute(sprintf('chown %s:%s %s', ShellService::arg($account), ShellService::arg($accountGroup), ShellService::arg($dir)));
@@ -122,7 +124,10 @@ final class SystemLayout
             }
             // What it holds follows its account when that changes: what another account owns is given to it, the group with it when it
             // was that account's own (the group of the web server on the files of a grid stays); an install that exists is never here
-            (!$made && !is_dir($dir)) || $this->execute(self::follow($dir, $account, $accountGroup));
+            if (($made || is_dir($dir)) && $before !== $account) {
+                $this->ui->note(sprintf(_('Giving %s to %s…'), $dir, $account));
+                $this->execute(self::follow($dir, $account, $accountGroup));
+            }
         }
         // The files of the grids the web server reads (the helpers): its group, whichever it is now
         foreach (glob("$etc/grids/*", GLOB_ONLYDIR) ?: [] as $grid) {

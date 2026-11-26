@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (layout): an upgrade walks no folder its account owns already; what it waits on on its client's live line only
 - change (setup): a grid asked in six short lines, the website by its address, the options a first install chooses
 - new (setup): one review of what the setup set by itself, grouped, each line changed as in a form, then Start; numbered steps
 - fix (start): a region the grid refused is never said registered, the start fails; a Robust whose services did not load is not up

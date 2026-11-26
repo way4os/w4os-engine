@@ -14,6 +14,12 @@ final class NullUi implements UiInterface
     /** @param bool $live the notes are also told on the error output as they come, as the live line of a client that shows its progress */
     public function __construct(private readonly bool $live = false) {}
 
+    /** Whether the error output is read by a client (a file, a pipe: the setup draws the live line), not a terminal. */
+    private static function client(): bool
+    {
+        return !(function_exists('stream_isatty') && @stream_isatty(STDERR));
+    }
+
     /** The step the notes are part of, `[k/n] Label`, '' for none. */
     private string $stage = '';
 
@@ -21,7 +27,7 @@ final class NullUi implements UiInterface
     public function stage(int $k, int $n, string $label): void
     {
         $this->stage = "[$k/$n] $label";
-        $this->live && fwrite(STDERR, "opensim: ~{$this->stage}\n");
+        $this->live && fwrite(STDERR, 'opensim: ' . (self::client() ? '~' : '') . "{$this->stage}\n");
     }
 
     /** @var list<string> what is for the final report of the setup, not for its log */
@@ -39,7 +45,8 @@ final class NullUi implements UiInterface
     {
         $this->said[] = ['note', $message];
         // On the live line of its client, rewritten in place (a "~" line): a note says where the setup is, never one to keep
-        $this->live && fwrite(STDERR, 'opensim: ~' . ($this->stage !== '' ? "{$this->stage}: " : '') . ltrim($message) . "\n");
+        // "~": the live line of a client reading the error output (the setup); a terminal (a postinst) reads a line as it is
+        $this->live && fwrite(STDERR, 'opensim: ' . (self::client() ? '~' : '') . ($this->stage !== '' ? "{$this->stage}: " : '') . ltrim($message) . "\n");
     }
 
     public function entity(string $name): string

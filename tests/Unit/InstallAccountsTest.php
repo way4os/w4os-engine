@@ -54,6 +54,27 @@ describe('The units of the suite', function () {
             ->and($commands)->toBe(['systemctl daemon-reload', 'systemctl daemon-reload']);
     });
 
+    test('walk nothing of a folder its account owns already: an upgrade does not go through the data again', function () {
+        $base = accounts_dir('owned');
+        $me = (string) (posix_getpwuid(posix_geteuid())['name'] ?? '');
+        mkdir("$base/etc/w4os", 0o755, true);
+        foreach (['etc/opensim', 'var/data', 'log', 'cache', 'core'] as $dir) {
+            is_dir("$base/$dir") || mkdir("$base/$dir", 0o755, true);
+        }
+        file_put_contents("$base/etc/w4os/w4os.conf", "[Defaults]\nSystemUser = $me\n");
+        $commands = [];
+        (new SystemLayout(new NullUi(), function (string $c) use (&$commands): int {
+            $commands[] = $c;
+
+            return 0;
+        }, fn() => true, true, fn() => false, "$base/etc/w4os/w4os.conf", new ServiceUnits("$base/systemd", static fn(): int => 0, false)))->prepare(new Layout([
+            'EtcRoot' => "$base/etc/opensim", 'VarRoot' => "$base/var", 'DataRoot' => "$base/var/data", 'LogsRoot' => "$base/log",
+            'CacheRoot' => "$base/cache", 'CoreRoot' => "$base/core", 'SystemUser' => $me,
+        ]));
+
+        expect(array_values(array_filter($commands, static fn(string $c): bool => str_starts_with($c, "find '$base/var/data'"))))->toBe([]);
+    })->skip(fn() => !function_exists('posix_getpwuid'), 'posix is missing');
+
     test('follow the account of w4os.conf each time the layout is made, whichever it names', function () {
         $base = accounts_dir('layout');
         mkdir("$base/etc/w4os", 0o755, true);
