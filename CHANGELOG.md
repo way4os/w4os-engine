@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (setup): the review lists the options set without a question (Hypergrid, Helpers, OSSL, Gloebit), on or off, changed there
 - new (diagnostics): a file the process cannot read names the account it runs as and its groups
 - new (web): the helpers in a PHP-FPM pool of their own, as the web user and its group; both pools written by one function
 - fix (start): a sign of life of a simulator said once, not again from its console with the time

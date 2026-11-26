@@ -1146,6 +1146,16 @@ final class QuickSetup
             // Without the helpers, the search and the registration of the regions are the ones of 2do.directory
             $row(_('Web'), _('Search, register'), '2do.directory');
         }
+        // The options that keep their default without a question (the ones asked are not said again), each on or off
+        $onOff = ['yes' => _('on'), 'no' => _('off')];
+        foreach (self::options($environment) as $name => $option) {
+            if (!empty($option['shown']) || !$option['implemented']) {
+                continue;
+            }
+            $given = $answers[$name] ?? null;
+            $on = Result::isTrue($given) || (Result::isFalse($given) ? false : $option['default']);
+            $row(_('Options'), $option['label'], $on ? $onOff['yes'] : $onOff['no'], $name, $on ? 'yes' : 'no', ['options' => $onOff]);
+        }
         $database = _('Database');
         $sqlite = $simulator->databasePlan()->dbDriver === 'sqlite';
         $row($database, _('Server'), $sqlite ? 'SQLite' : "{$plan->dbHost} (MariaDB)", $sqlite ? null : 'database_host', $plan->dbHost);

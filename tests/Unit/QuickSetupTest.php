@@ -1010,13 +1010,25 @@ describe('quick setup, the scenario', function () {
         $wrong = quick_step($machine, $changed, ['private_port' => 'abc'], 'edit');
         $rows = array_column($changed['rows'], 'value', 'name');
 
-        expect(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Simulator', 'Web', 'Database'])
+        expect(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Simulator', 'Web', 'Options', 'Database'])
             ->and($review['buttons'])->toBe(['next' => 'Start', 'back' => 'Back'])
             ->and($changed['kind'])->toBe('review')
             ->and([$rows['private_port'], $rows['simulator_ports']])->toBe(['8199', '9100 http, 9101 udp, 9104 console'])
             ->and($wrong['notice'])->toStartWith('Error: Private port')
             // Start: the setup with the lines changed
             ->and(QuickSetup::plan($machine->environment, ['type' => 'grid'] + quick_answers(['private_port' => '8199']))['setup']['grid']['private_port'])->toBe(8199);
+    });
+
+    test('lists the options that keep their default without a question, each on or off, changed there', function () {
+        $machine = new Machine();
+        $review = quick_until($machine, 'review');
+        $options = array_values(array_filter($review['rows'], static fn(array $row): bool => $row['section'] === 'Options'));
+        $changed = quick_step($machine, $review, ['hypergrid' => 'no'], 'edit');
+
+        expect(array_column($options, 'value', 'label'))->toBe(['Hypergrid' => 'on', 'Helpers' => 'on', 'Economy: Gloebit' => 'off', 'Extended OSSL' => 'on'])
+            ->and(array_column($options, 'current', 'name'))->toBe(['hypergrid' => 'yes', 'helpers' => 'yes', 'economy-gloebit' => 'no', 'ossl-extended' => 'yes'])
+            ->and(array_keys($options[0]['options']))->toBe(['yes', 'no'])
+            ->and(array_column($changed['rows'], 'value', 'name')['hypergrid'])->toBe('off');
     });
 
     test('without the helpers asks no web service: the search, the web search and the register are 2do.directory\'s, said', function () {
