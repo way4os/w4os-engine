@@ -98,7 +98,8 @@ final class GridFileService
         }
         $text = ($elevated ?? self::sudoRead(...))($path);
         if ($text === null) {
-            fwrite(
+            // A command line is told how to read it; a page (PHP-FPM has no STDERR) says it in its error
+            defined('STDERR') && fwrite(
                 STDERR,
                 sprintf(
                     _('opensim: cannot read %s, it is for the system user only (mode 640): run the setup with sudo.'),
@@ -117,7 +118,8 @@ final class GridFileService
     {
         $owner = function_exists('posix_getpwuid') ? posix_getpwuid((int) @fileowner($path))['name'] ?? '' : '';
         $me = function_exists('posix_geteuid') ? posix_getpwuid(posix_geteuid())['name'] ?? '' : '';
-        if ($owner === '' || $me === $owner || $me === 'root') {
+        // A page never asks sudo (PHP-FPM has no STDIN), nor an owner that is the caller or root
+        if ($owner === '' || $me === $owner || $me === 'root' || !defined('STDIN')) {
             return null;
         }
         // A password is asked on the terminal when there is one, else sudo must not need it
