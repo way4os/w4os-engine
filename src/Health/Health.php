@@ -946,7 +946,19 @@ class Health
             'readable' => $readable,
             'level' => $readable ? 'ok' : 'error',
             'status' => $readable ? self::say('health_readable') : (is_file($path) ? self::say('health_not_readable') : self::say('health_missing')),
-        ];
+        ] + ($readable || !is_file($path) ? [] : ['detail' => self::account()]);
+    }
+
+    /** The account this process runs as and its groups, as a reader of a file sees them: `www-data (groups www-data, magic)`. */
+    public static function account(): string
+    {
+        if (!function_exists('posix_geteuid')) {
+            return get_current_user();
+        }
+        $name = static fn(int $gid): string => (string) (posix_getgrgid($gid)['name'] ?? $gid);
+        $groups = array_map($name, array_values(array_unique([posix_getegid(), ...(posix_getgroups() ?: [])])));
+
+        return (posix_getpwuid(posix_geteuid())['name'] ?? (string) posix_geteuid()) . ' (groups ' . implode(', ', $groups) . ')';
     }
 
     /**

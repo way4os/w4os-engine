@@ -894,6 +894,21 @@ describe('What an install needs', function () {
             ->each->not->toHaveKeys(['url', 'ms']);
     });
 
+    test('a file this process cannot read names the account it runs as and its groups', function () {
+        $dir = sys_get_temp_dir() . '/health-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        file_put_contents("$dir/Robust.HG.ini", '');
+        chmod("$dir/Robust.HG.ini", 0o000);
+        $row = Health::path('Robust.HG.ini', "$dir/Robust.HG.ini");
+        $account = Health::account();
+        chmod("$dir/Robust.HG.ini", 0o600);
+        exec('rm -rf ' . escapeshellarg($dir));
+        $user = posix_getpwuid(posix_geteuid())['name'];
+        $groups = array_map(static fn(int $gid): string => posix_getgrgid($gid)['name'] ?? (string) $gid, array_unique([posix_getegid(), ...posix_getgroups()]));
+        expect($row)->toMatchArray(['level' => 'error', 'readable' => false, 'detail' => $account])
+            ->and($account)->toBe("$user (groups " . implode(', ', $groups) . ')');
+    })->skip(fn() => posix_geteuid() === 0, 'root reads every file');
+
     test('says whether the pictures of the world can be shown: imagick that reads JPEG 2000', function () {
         $row = array_column(Health::extensions(), null, 'label')['imagick JPEG 2000'] ?? null;
         $reads = class_exists('Imagick') && Imagick::queryFormats('JP2') !== [];
