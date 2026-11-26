@@ -112,9 +112,10 @@ final class SimulatorImports
      * name is dumped once: the backup of each holds a copy of that dump, so that each can be put back on its own.
      *
      * @param ?\Closure $dump writes the dump of a database (default: DatabaseDump::write())
+     * @param ?\Closure $each told before each simulator: (its number, how many, its slug)
      * @throws InvalidValue when something is wrong: nothing is written then
      */
-    public function apply(Environment $environment, UiInterface $ui, ?\Closure $dump = null): void
+    public function apply(Environment $environment, UiInterface $ui, ?\Closure $dump = null, ?\Closure $each = null): void
     {
         if ($this->problems !== []) {
             throw InvalidValue::because('invalid-request', 'the imports have problems: ' . implode('; ', array_map(
@@ -140,7 +141,9 @@ final class SimulatorImports
             copy($dumped[$key], $file) || throw new \RuntimeException("cannot copy the dump of {$db['name']}");
         };
         try {
+            $i = 0;
             foreach ($this->imports as $import) {
+                $each === null || $each(++$i, count($this->imports), $import->plan->slug);
                 $import->apply($environment, $ui, $once);
             }
         } finally {

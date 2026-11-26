@@ -117,6 +117,30 @@ describe('The folders of the suite', function () {
     });
 });
 
+describe('What a folder holds, given to its account', function () {
+    test('is changed in batches, the files of the account left as they are, never one process a file', function () {
+        $command = SystemLayout::follow('/var/lib/opensim/data', 'opensim', 'opensim');
+
+        expect($command)->toStartWith("find '/var/lib/opensim/data' -mindepth 1 ! -user 'opensim'")
+            ->toContain("-exec chown -h 'opensim:opensim' {} +", "! -user 'opensim' -exec chown -h 'opensim' {} +")
+            ->not->toContain('sh -c')
+            ->not->toContain('stat -c');
+    });
+
+    test('gives a former owner\'s own group with its files, and keeps another group', function () {
+        $dir = accounts_dir('follow');
+        mkdir("$dir/a", 0o755, true);
+        file_put_contents("$dir/a/file", 'x');
+        $me = (string) (posix_getpwuid(posix_geteuid())['name'] ?? '');
+        $group = (string) (posix_getgrgid(posix_getegid())['name'] ?? '');
+        // Everything is the account's already: nothing to do, nothing changed
+        exec(SystemLayout::follow($dir, $me, $group), $out, $status);
+
+        expect($status)->toBe(0)
+            ->and(fileowner("$dir/a/file"))->toBe(posix_geteuid());
+    })->skip(fn() => PHP_OS_FAMILY !== 'Linux', 'GNU find');
+});
+
 describe('The account a web server serves a site as', function () {
     test('is the AssignUserID of an Apache site of mpm-itk', function () {
         $etc = accounts_dir('etc');

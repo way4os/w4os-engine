@@ -345,8 +345,16 @@ final class GridImport
             static fn(string $dir): bool => $dir !== '' && !file_exists($dir),
         ));
         $brought = [];
+        // What it is at, a line the client shows in place ("~"): the step of the six, the database, the simulator
+        $step = static fn(int $k, string $what) => $ui->note(sprintf('~[%d/6] %s', $k, $what));
+        $inner = $dump ?? \W4OS\Engine\Archives\DatabaseDump::write(...);
+        $dump = static function (array $db, string $to) use ($inner, $step): void {
+            $step(1, sprintf(_('Backup: database %s'), $db['name']));
+            $inner($db, $to);
+        };
         try {
             if ($this->backup !== null) {
+                $step(1, _('Backup'));
                 $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
                 foreach ($this->backup->document()['remote'] as $database) {
                     $ui->warn(sprintf(_('Not in the backup: %s, a database of another server (its own backups keep it)'), $database));
@@ -354,16 +362,19 @@ final class GridImport
             }
             $plan->enable = false;
             $plan->start = false;
+            $step(2, _('Config'));
             (new GridProvisioner($ui))->apply($plan, $environment);
             $launch = ['BinDir' => $plan->binDir, 'MachineName' => $plan->gridNick];
             file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations, $this->constants, [], $launch));
             file_put_contents($this->reportPath(), $this->report());
             $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
+            $step(3, _('Data'));
             $this->data->apply($ui, $brought);
             // The settings of the grid its simulators read (its options: the offline messages, the search, the economy...) come into
             // its OpenSim.ini, as opensim import --grid-settings brings them, and its options are the ones they tell (the module V1)
             if ($this->simulators !== null && $this->simulators->imports !== []) {
                 // The first simulator's over what the options of the kit wrote; the others give what it does not say
+                $step(4, _('Settings of the simulators'));
                 foreach (array_values($this->simulators->imports) as $i => $simulator) {
                     $settings = GridSettingsImport::prepare($environment, $simulator->source, $plan->gridNick, overKit: $i === 0);
                     $settings->apply();
@@ -373,7 +384,8 @@ final class GridImport
                 // The master its simulators read made again with them
                 \W4OS\Engine\Provisioning\SimulatorMaster::exists($plan->gridDir) && (new \W4OS\Engine\Provisioning\SimulatorMaster($environment))->ensure($plan->gridDir, $plan->binDir);
             }
-            $this->simulators?->apply($environment, $ui, $dump);
+            $this->simulators?->apply($environment, $ui, $dump, static fn(int $i, int $n, string $slug) => $step(5, sprintf(_('Simulators: %s (%d/%d)'), $slug, $i, $n)));
+            $step(6, _('Checks'));
             // What this install added that the old config had not, said with what it is, in the report written again
             $this->added = $this->addedSettings($environment);
             file_put_contents($this->reportPath(), $this->report());
@@ -538,6 +550,7 @@ final class GridImport
             $simulator->isEnabled() || $simulator->enable();
             $simulators[] = $simulator->name();
         }
+        $ui->note('~' . sprintf(_('Start: %s (1/%d)'), $plan->gridNick, count($simulators) + 1));
         $results = OpenSim::start([$plan->gridNick], $environment);
         $robust = $results[$plan->gridNick] ?? null;
         if ($robust instanceof \W4OS\Engine\Exceptions\InstanceFailed) {
@@ -545,6 +558,7 @@ final class GridImport
                 $results[$name] = new \W4OS\Engine\Exceptions\InstanceFailed($name, "not started: the Robust of {$plan->gridNick} did not start", 'robust-not-started');
             }
         } elseif ($simulators !== []) {
+            $ui->note('~' . sprintf(_('Start: %d simulators'), count($simulators)));
             $results += OpenSim::start($simulators, $environment);
         }
         foreach ($results as $name => $result) {

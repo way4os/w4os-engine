@@ -186,16 +186,20 @@ final class SystemLayout
         return $folders;
     }
 
-    /** The command that gives what a folder holds to an account, the group with it where it was the former owner's own. */
-    private static function follow(string $dir, string $user, string $group): string
+    /**
+     * The command that gives what a folder holds to an account, the group with it where it was the former owner's own; what the
+     * account owns already is not looked at again. In batches (chown of many files at once): first, for each former owner, its files
+     * in its own group, given to the account and its group; then the others, to the account alone.
+     */
+    public static function follow(string $dir, string $user, string $group): string
     {
-        // POSIX: run by /bin/sh; the account and its group given to the loop as its $0, user:group
-        return sprintf(
-            'find %1$s -mindepth 1 ! -user %2$s -exec sh -c \'for p; do if [ "$(stat -c %%G "$p")" = "$(id -gn "$(stat -c %%U "$p")" 2>/dev/null)" ]; then chown -h "$0" "$p"; else chown -h "${0%%%%:*}" "$p"; fi; done\' %3$s {} + 2>/dev/null || true',
-            ShellService::arg($dir),
-            ShellService::arg($user),
-            ShellService::arg("$user:$group"),
-        );
+        $dir = ShellService::arg($dir);
+        $owner = ShellService::arg($user);
+        $both = ShellService::arg("$user:$group");
+
+        return "find $dir -mindepth 1 ! -user $owner -printf '%u\\n' 2>/dev/null | sort -u | while IFS= read -r o; do"
+            . " g=\$(id -gn \"\$o\" 2>/dev/null) && find $dir -mindepth 1 -user \"\$o\" -group \"\$g\" -exec chown -h $both {} + 2>/dev/null; done;"
+            . " find $dir -mindepth 1 ! -user $owner -exec chown -h $owner {} + 2>/dev/null || true";
     }
 
     /** Whether the layout makes its backup root: the default one, named by w4os.conf (as a new one is written) or not. */
