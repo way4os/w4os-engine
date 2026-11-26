@@ -358,16 +358,16 @@ final class GridImport
             static fn(string $dir): bool => $dir !== '' && !file_exists($dir),
         ));
         $brought = [];
-        // What it is at, a line the client shows in place ("~"): the step of the six, the database, the simulator
-        $step = static fn(int $k, string $what) => $ui->note(sprintf('~[%d/6] %s', $k, $what));
+        // What it is at, a line the client shows in place ("~"): its step by name (Backup, Config, Data), then what in it
+        $step = static fn(string $what) => $ui->note('~' . $what);
         $inner = $dump ?? \W4OS\Engine\Archives\DatabaseDump::write(...);
         $dump = static function (array $db, string $to) use ($inner, $step): void {
-            $step(1, sprintf(_('Backup: database %s'), $db['name']));
+            $step(sprintf(_('Backup: database %s'), $db['name']));
             $inner($db, $to);
         };
         try {
             if ($this->backup !== null) {
-                $step(1, _('Backup'));
+                $step(_('Backup'));
                 $ui->note(sprintf(_('Wrote %s'), $this->backup->write($dump)));
                 foreach ($this->backup->document()['remote'] as $database) {
                     $ui->warn(sprintf(_('Not in the backup: %s, a database of another server (its own backups keep it)'), $database));
@@ -375,19 +375,17 @@ final class GridImport
             }
             $plan->enable = false;
             $plan->start = false;
-            $step(2, _('Config'));
+            $step(_('Config'));
             (new GridProvisioner($ui))->apply($plan, $environment);
             $launch = ['BinDir' => $plan->binDir, 'MachineName' => $plan->gridNick];
             file_put_contents($plan->robustIni(), RobustImporter::inject((string) file_get_contents($plan->robustIni()), $this->customizations, $this->constants, [], $launch));
             file_put_contents($this->reportPath(), $this->report());
             $ui->note(sprintf(_('Wrote %s'), $this->reportPath()));
-            $step(3, _('Data'));
-            $this->data->apply($ui, $brought);
             // The settings of the grid its simulators read (its options: the offline messages, the search, the economy...) come into
             // its OpenSim.ini, as opensim import --grid-settings brings them, and its options are the ones they tell (the module V1)
             if ($this->simulators !== null && $this->simulators->imports !== []) {
                 // The first simulator's over what the options of the kit wrote; the others give what it does not say
-                $step(4, _('Settings of the simulators'));
+                $step(_('Config: the settings of the simulators'));
                 foreach (array_values($this->simulators->imports) as $i => $simulator) {
                     $settings = GridSettingsImport::prepare($environment, $simulator->source, $plan->gridNick, overKit: $i === 0);
                     $settings->apply();
@@ -397,8 +395,8 @@ final class GridImport
                 // The master its simulators read made again with them
                 \W4OS\Engine\Provisioning\SimulatorMaster::exists($plan->gridDir) && (new \W4OS\Engine\Provisioning\SimulatorMaster($environment))->ensure($plan->gridDir, $plan->binDir);
             }
-            $this->simulators?->apply($environment, $ui, $dump, static fn(int $i, int $n, string $slug) => $step(5, sprintf(_('Simulators: %s (%d/%d)'), $slug, $i, $n)));
-            $step(6, _('Checks'));
+            $this->simulators?->apply($environment, $ui, $dump, static fn(int $i, int $n, string $slug) => $step(sprintf(_('Config: %s (%d/%d)'), $slug, $i, $n)));
+            $step(_('Config: checks'));
             // What this install added that the old config had not, said with what it is, in the report written again
             $this->added = $this->addedSettings($environment);
             file_put_contents($this->reportPath(), $this->report());
@@ -407,6 +405,9 @@ final class GridImport
             // Each instance reads what it is written: a reference none of its files resolves would stop it at its start
             ($unresolved = self::unresolved($environment, $plan->gridNick)) === [] ||
                 throw InvalidValue::because('config-unresolved', 'the configs written refer to what they do not define: ' . implode('; ', $unresolved));
+            // Its data last, once its configs are written and checked: a failure before moves nothing
+            $step(_('Data'));
+            $this->data->apply($ui, $brought);
         } catch (\Throwable $error) {
             $this->data->undo($brought, $ui);
             foreach ($made as $dir) {

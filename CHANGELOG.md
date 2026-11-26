@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (import): its steps said by name (Backup, Config, Data); its data moved last, once its configs are written and checked
 - new (web): the website in a PHP-FPM pool of its own as the web user, from the one writer; a diagnostics row per pool
 - fix (web): the upgrade restarts PHP-FPM when it writes a pool, a reload keeping the sockets of before
 - fix (layout): a folder its account owns is walked when it holds what another account owns (moved in by a migration)
