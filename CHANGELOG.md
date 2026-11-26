@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (modules): a module enabled or taken out for the install (--enable-module); an option that needs one enables it
 - fix (health): the economy's scripts asked; the profile with a name (2xx) and alone (a redirect); Gloebit unused, no error
 - fix (migrate): wrong page addresses (profile, web and in-world search) put right at import and upgrade, said
 - new (api): GET/PUT /grids/{grid}/site-pages/{page}, the pages a site declares; never over an address given otherwise

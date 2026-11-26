@@ -105,6 +105,30 @@ final class PackagedProfiles
     }
 
     /**
+     * Enable a module for the install, or disable it: added to EnabledModules of [Defaults], or taken out of it, the others kept as
+     * they are.
+     *
+     * @return bool whether the setting changed
+     */
+    public function enableModule(string $module, bool $on = true): bool
+    {
+        $module = strtolower(trim($module));
+        if ($module === '' || !is_file($this->conf)) {
+            return false;
+        }
+        $ini = IniEditor::load($this->conf);
+        $now = array_values(array_filter(preg_split('/[\s,]+/', (string) $ini->get('Defaults', 'EnabledModules')) ?: []));
+        $then = $on ? array_values(array_unique([...$now, $module])) : array_values(array_filter($now, static fn(string $m): bool => strcasecmp($m, $module) !== 0));
+        if ($then === $now) {
+            return false;
+        }
+        $ini->set('Defaults', 'EnabledModules', '"' . implode(' ', $then) . '"');
+        $ini->save($this->conf);
+
+        return true;
+    }
+
+    /**
      * The releases installed, in the order of sort -V (numbers first, then names), the lowest first: a folder of the root with the OpenSim assembly in its bin.
      *
      * @return array<string,string> version => folder

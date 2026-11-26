@@ -1337,7 +1337,11 @@ final class GridOptions
         $core = basename($layout->coreDirectory());
         foreach ($option->modules() as $module) {
             if (!in_array($module, $layout->enabledModules(), true)) {
-                $notes[] = "the module $module is not in EnabledModules of w4os.conf, the simulators do not load it";
+                // The option needs it: enabled for the install where this process can write its config, else the command that does it
+                $conf = (string) $layout->file();
+                $notes[] = $conf !== '' && is_writable($conf) && (new \W4OS\Engine\Config\PackagedProfiles($conf))->enableModule($module)
+                    ? "the module $module is enabled for the install (EnabledModules of w4os.conf): the simulators load it at their next start"
+                    : "the module $module is not in EnabledModules of w4os.conf, the simulators do not load it (sudo opensim module enable $module)";
             }
             if ($core !== '' && !is_dir($layout->modulesRoot() . "/$core/$module")) {
                 $notes[] = "the module $module is not installed for $core (apt install opensim-$core-$module)";
