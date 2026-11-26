@@ -14,6 +14,7 @@ use W4OS\Engine\Models\Grid;
 use W4OS\Engine\OpenSim;
 use W4OS\Engine\Provisioning\GridPlan;
 use W4OS\Engine\Provisioning\GridProvisioner;
+use W4OS\Engine\Provisioning\Slug;
 use W4OS\Engine\Provisioning\UiInterface;
 use W4OS\Engine\Provisioning\Web\PageAddress;
 use W4OS\Engine\Runtime\Environment;
@@ -72,7 +73,7 @@ final class GridImport
      * @param ?bool $helpersHere this install serves the helpers (w4os-helpers is installed; by default, whether its folder is there)
      * @throws InvalidValue for what cannot be imported, said
      */
-    public static function prepare(Environment $environment, string $file, ?string $nick = null, ?string $core = null, array $simulators = [], bool $written = false, bool $copyData = false, ?bool $helpersHere = null): self
+    public static function prepare(Environment $environment, string $file, ?string $nick = null, ?string $core = null, array $simulators = [], bool $written = false, bool $copyData = false, ?bool $helpersHere = null, ?string $name = null): self
     {
         if (!is_file($file) || !is_readable($file)) {
             throw InvalidValue::because('invalid-request', "cannot read the Robust config: $file");
@@ -86,6 +87,13 @@ final class GridImport
         $raw = ConfigReader::load($file, [], false);
         $plan = RobustImporter::plan($raw, $file, $environment, $nick, $core);
         is_string($plan) && throw InvalidValue::because('invalid-request', $plan);
+        // The name given instead of the one of its config: ASCII, what its grid info sends
+        $name = trim((string) $name);
+        if ($name !== '') {
+            GridInfoText::sendable($name) || throw InvalidValue::because('invalid-value', "the grid name '$name' is not ASCII: " . GridInfoText::WHY);
+            $plan->gridName = $name;
+            $plan->gridSlug = Slug::slug($name);
+        }
         // The options this install lays by default (its Robust config, its folders, its database...), as the setup of a grid does
         $plan->options === [] && ($plan->options = (new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables()))->selection([]));
         // The choice its simulators made in a group (the offline messages V1 where V2 is the default) is the grid's: the option they
@@ -239,6 +247,9 @@ final class GridImport
                 $said = GridInfoText::said(['section' => $setting['section'], 'key' => $setting['key'], 'from' => $setting['value'], 'to' => $customizations[$i]['value']]);
                 in_array($said, $gridInfo, true) || $gridInfo[] = $said;
             }
+        }
+        foreach ($customizations as $i => $setting) {
+            $name !== '' && $setting['section'] === 'GridInfoService' && strcasecmp($setting['key'], 'gridname') === 0 && ($customizations[$i]['value'] = $name);
         }
 
         // The way back: its database and its files, as they are, before anything is written (the first start may upgrade the tables)

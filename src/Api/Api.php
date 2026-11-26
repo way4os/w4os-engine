@@ -1315,7 +1315,7 @@ final class Api
             return $this->registerInPlace($file, $nick, $simulators, $mode, Result::isTrue($attributes['forget'] ?? false), $instance, $core);
         }
         // Switched once applied: the grid is here, written by the import
-        $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply', copyData: Result::isTrue($attributes['copyData'] ?? false));
+        $planned = \W4OS\Engine\Provisioning\Import\GridImport::prepare($this->environment, $file, $nick, $core, $switch && $mode !== 'apply' ? [] : $simulators, written: $switch && $mode !== 'apply', copyData: Result::isTrue($attributes['copyData'] ?? false), name: ($attributes['gridName'] ?? '') !== '' ? (string) $attributes['gridName'] : null);
         // Its grid moves into the layout of this install, its data with it: the account of this install runs it
         $mode === 'apply' && $planned->apply($this->environment, new NullUi(), $this->dumper);
         $results = $switch ? $planned->switch($this->environment, new NullUi()) : [];

@@ -136,6 +136,20 @@ describe('The import of a grid', function () {
             ->and(file_get_contents($import->document()['report']))->toContain('Grid info made ASCII:');
     });
 
+    test('takes the ASCII name given instead of its transliteration, and refuses one that is not ASCII', function () {
+        [$machine, $robust] = old_robust_install();
+        file_put_contents($robust, str_replace('gridname = "Old Grid"', 'gridname = "Kimbé Rèd, pa moli"', file_get_contents($robust)));
+        $import = GridImport::prepare($machine->environment, $robust, 'kimbered', name: 'Kimbe Red');
+        $import->apply($machine->environment, new NullUi(), grid_import_no_dump());
+        $written = ConfigReader::file($import->plan->robustIni());
+
+        expect($import->plan->gridName)->toBe('Kimbe Red')
+            ->and($import->document()['name'])->toBe('Kimbe Red')
+            ->and(trim($written['GridInfoService']['gridname'] ?? '', '"'))->toBe('Kimbe Red')
+            ->and(fn() => GridImport::prepare($machine->environment, $robust, 'other', name: 'Kimbé'))
+            ->toThrow(W4OS\Engine\Exceptions\InvalidValue::class, 'not ASCII');
+    });
+
     test('defines in its config the constants of the old one its kept settings use, and refuses what none defines', function () {
         [$machine, $robust] = old_robust_install();
         $text = str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://old.example.org\"\n    PrivURL = \${Const|BaseURL}\n    WebURL = \"http://site.example.org\"\n", file_get_contents($robust));
@@ -762,6 +776,7 @@ describe('The import of a grid', function () {
         $ask = static fn(array $more) => $router->post('/setups/imports', ['data' => ['type' => 'imports', 'attributes' => $more + ['kind' => 'robust', 'file' => $robust]]]);
 
         $plan = $ask([]);
+        $named = $ask(['gridName' => 'Named Grid']);
         $applied = $ask(['mode' => 'apply']);
         $again = $ask(['mode' => 'apply']);
 
@@ -769,6 +784,8 @@ describe('The import of a grid', function () {
             ->toBe(200)
             ->and($plan->document['data']['attributes'])
             ->toMatchArray(['kind' => 'robust', 'grid' => 'oldgrid', 'applied' => false])
+            ->and($named->document['data']['attributes']['name'])
+            ->toBe('Named Grid')
             ->and($applied->document['data']['attributes']['applied'])
             ->toBeTrue()
             ->and($again->status)
