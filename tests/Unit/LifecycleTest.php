@@ -288,7 +288,21 @@ describe('Starting a simulator', function () {
             $failed = $e;
         }
 
-        expect($failed?->reason)->toBe('console-prompt')
+        // A new estate that says it has no owner, then takes the one its config names: no question, it runs on
+        $named = new Machine();
+        $named->launcher->behavior = function ($spec) use ($named): void {
+            file_put_contents($spec->output, "Estate Test Two Estate has no owner set.\n17:56:28 - [ESTATE CONNECTOR]: PostRequest http://grid:8013/estates/estate returned True\nCurrently selected region is Welcome Region (Welcome) # ");
+            file_put_contents($named->root . '/logs/alpha.log', "2026-11-26 17:56:28,519 DEBUG [RegionReady]: Region \"Plaza\" is ready: \"server_startup,0,\" on channel -800\n", FILE_APPEND);
+        };
+        $kept = null;
+        try {
+            Grid::find($named->environment, 'demo')->simulator('alpha')->start();
+        } catch (InstanceFailed $e) {
+            $kept = $e;
+        }
+
+        expect($kept?->reason)->not->toBe('console-prompt')
+            ->and($failed?->reason)->toBe('console-prompt')
             ->and($failed?->getMessage())->toContain('Estate owner first name [Test]', 'DefaultEstateOwnerName', 'failed to load estate settings')
             ->and(Grid::find($machine->environment, 'demo')->simulator('alpha')->isRunning())->toBeFalse()
             // Its wait is the delay at most, not minutes more

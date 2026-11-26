@@ -181,7 +181,7 @@ final class StopService
             }
             $last = $log?->lastLine();
             $text =
-                "  Waiting for $name to stop" . ($env->reporter->isTerminal() ? ' (' . intdiv($tick, 2) . 's)' : '');
+                "  Waiting for $name to stop (" . intdiv($tick, 2) . 's)';
             $env->reporter->step($text . ($last !== null && $last !== '' ? ": $last" : ''));
             $env->clock->sleep(0.5);
         }

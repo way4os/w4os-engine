@@ -31,10 +31,10 @@ final class UiReporter implements PendingReporterInterface
 
     public function debug(string $message): void {}
 
-    /** A step of the wait (a service loaded, a region ready): told as it comes, one line each. */
+    /** A step of the wait (a service loaded, a region ready): a line the client shows in place ("~"), each the next one's place. */
     public function step(string $text): void
     {
-        $this->ui->note($text);
+        $this->ui->note('~' . ltrim($text));
     }
 
     /** What is being waited for: the message starts with `~`, the client replaces it with the next one. */

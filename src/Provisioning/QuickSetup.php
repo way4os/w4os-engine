@@ -1079,10 +1079,23 @@ final class QuickSetup
             trim($chunk) !== '' && $ui->note(trim($chunk));
         });
         try {
+            // Everything written first, then each instance started once: Robust (for the account of the avatar) reads the roles of
+            // the region at its first start, never started again for them; a standalone makes the account itself when it starts
+            $later = $plan !== null && !$plan->standalone && $simulator->existingRegionConfig === '';
             if ($plan !== null) {
-                $plan->enable = $plan->start = true;
+                $plan->enable = true;
+                $plan->start = !$later;
                 (new GridProvisioner($ui))->apply($plan, $environment);
-                // The account of the avatar: Robust is up, and makes it. A standalone makes it itself when it starts
+            }
+            if ($simulator->existingRegionConfig === '') {
+                $simulator->enable = true;
+                $simulator->start = !$later;
+            }
+            $simulator->createOwner = false;
+            $provisioner = new SimulatorProvisioner($ui);
+            $provisioner->apply($simulator, $environment);
+            if ($plan !== null) {
+                // The account of the avatar: Robust starts for it (GridAccounts), and makes it
                 if (!$plan->standalone) {
                     $found = Grid::find($environment, $plan->gridNick);
                     $made =
@@ -1099,11 +1112,7 @@ final class QuickSetup
                     }
                 }
             }
-            if ($simulator->existingRegionConfig === '') {
-                $simulator->enable = $simulator->start = true;
-            }
-            $simulator->createOwner = false;
-            (new SimulatorProvisioner($ui))->apply($simulator, $environment);
+            $later && $provisioner->start($simulator, $environment);
         } catch (SetupFailedException $failed) {
             $errors = array_column(array_filter($ui->said, static fn(array $said): bool => $said[0] === 'error'), 1);
             // The log of what did not start, when the setup showed it

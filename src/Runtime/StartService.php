@@ -29,9 +29,10 @@ final class StartService
 
     /**
      * What a simulator asks on its console that nothing answers: the owner of an estate that has none. Under the service no one reads
-     * its console; with a remote console, the questions of a first start (QUESTIONS) are not answered either.
+     * its console; with a remote console, the questions of a first start (QUESTIONS) are not answered either. "has no owner set" is
+     * no question: a new estate says it, then takes the owner its config names (DefaultEstateOwnerName) and goes on.
      */
-    private const PROMPTS = ['has no owner set', 'Estate owner first name', 'Estate owner last name'];
+    private const PROMPTS = ['Estate owner first name', 'Estate owner last name'];
 
     /** What a region says once it is up: registered with its grid, then ready (scripts started). */
     public const REGION_UP = '/\[GRID SERVICE\]: Region (.+?) \([0-9a-f-]{36}.*registered at|\[RegionReady\]: Region "(.+?)" is ready/';

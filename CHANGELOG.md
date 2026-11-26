@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (start): the first start of a new grid's simulator kept, Robust started once; "has no owner set" is no question
 - fix (setup): the owner of a new grid made a god (200), as a simulator setup makes it
 - fix (migrate): ownership changed in batches, not file by file; the steps of an import said as they go (k/6, k/n)
 - new (modules): a module enabled or taken out for the install (--enable-module); an option that needs one enables it

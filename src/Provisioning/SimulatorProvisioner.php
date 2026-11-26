@@ -154,15 +154,28 @@ final class SimulatorProvisioner
      * Start the simulator and report whether it came up: the launcher's
      * answer, then, for a new region, its registration in the grid.
      */
+    /** Whether the roles given to the region were written while its Robust ran: it starts again to read them (giveRoles()). */
+    private bool $robustToRestart = false;
+
+    /**
+     * Start the simulator written by apply() with `start` off: the grid first when it is ours (once, its roles written before it
+     * started), then the simulator, and say whether it came up (the setup of a grid writes everything, then starts each once).
+     */
+    public function start(SimulatorPlan $plan, Environment $environment): void
+    {
+        $grid = Grid::find($environment, $plan->gridNick) ?? throw new SetupFailedException('grid');
+        $this->startSimulator($plan, $grid, $environment);
+    }
+
     private function startSimulator(SimulatorPlan $plan, Grid $grid, Environment $environment): void
     {
         // A region registers with the grid when it starts: the grid has to run (when
         // it is ours: a Robust on another machine is its administrator's). A standalone is the grid: it starts with it
         if (!$grid->isRemote() && !$plan->standalone) {
-            // Robust reads the roles of its regions when it starts: it starts again to give them
+            // Robust reads the roles of its regions when it starts: it starts again when they were written while it ran
             [$code] = InstanceControl::run(
                 $this->ui,
-                $plan->regionRoles !== [] ? 'restart' : 'start',
+                $this->robustToRestart ? 'restart' : 'start',
                 $grid->nick(),
                 true,
             );
@@ -456,6 +469,8 @@ final class SimulatorProvisioner
         if ($plan->regionRoles === [] || $grid->isRemote() || $ini === null) {
             return;
         }
+        // Robust reads them when it starts: one that runs already starts again to read them, one that does not reads them at its start
+        $this->robustToRestart = !$plan->standalone && (bool) $grid->robust()?->isRunning();
         Region::giveRoles($ini, $plan->regionName, $plan->regionRoles);
         $this->ui->note(
             sprintf(_('Updated %s: %s is %s.'), $ini, $plan->regionName, implode(', ', $plan->regionRoles)),
