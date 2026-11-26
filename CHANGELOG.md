@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (health): OpenSim.ini read as the simulators read it, their constants over the core template's (GroupsExternalURI)
 - new (migrate): the grid named in ASCII as the person chose it (gridName), its config's name made ASCII by default
 - change (setup): a short review with Start, web services without help lines, a summary of a few lines at the end
 - fix (start): the first start of a new grid's simulator kept, Robust started once; "has no owner set" is no question

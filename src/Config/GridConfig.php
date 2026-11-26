@@ -108,8 +108,25 @@ class GridConfig
                 $add($role, "$dir/$name");
             }
         }
+        isset($files['OpenSim']) && ($tree['OpenSim'] = self::asSimulatorsRead($files['OpenSim'], $tree['Robust']['Const'] ?? [], $simulators[0] ?? null));
 
         return new static($tree, $files);
+    }
+
+    /**
+     * The OpenSim.ini of a grid as its simulators read it: OpenSimulator loads it, then the file of the simulator, and replaces the
+     * constants at the end, so the constants of the simulator replace its own (the ones of the core template, 127.0.0.1 and 9000).
+     *
+     * @param array<string,string> $robust the constants of Robust
+     */
+    private static function asSimulatorsRead(string $path, array $robust, ?string $simulator): array
+    {
+        $raw = ConfigReader::load($path, $robust, false);
+        $theirs = $simulator !== null && is_file($simulator) ? ConfigReader::load($simulator, $robust, false)['Const'] ?? [] : [];
+        // Its own constants, the simulator's value where it has one; the ones of Robust only resolve what neither defines
+        $raw['Const'] = array_merge($raw['Const'] ?? [], array_intersect_key($theirs, $raw['Const'] ?? []));
+
+        return ConfigReader::expand($raw, array_merge($robust, $theirs));
     }
 
     /**

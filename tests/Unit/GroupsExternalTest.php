@@ -61,4 +61,16 @@ describe('The address of the groups for the other grids', function () {
 
         expect([$line['text'] ?? null, $line['level'] ?? null])->toBe(['http://grid.example.org:9700', 'ok']);
     });
+
+    test('is read with the constants of the simulators, which replace the ones of the core template in OpenSim.ini, as OpenSim does', function () {
+        $dir = test_tmp();
+        file_put_contents("$dir/Robust.HG.ini", "[Const]\n    BaseURL = \"http://grid.example.org\"\n    PublicPort = \"9700\"\n[Hypergrid]\n    GatekeeperURI = \"\${Const|BaseURL}:\${Const|PublicPort}\"\n");
+        file_put_contents("$dir/OpenSim.ini", "[Const]\n    BaseHostname = \"127.0.0.1\"\n    BaseURL = http://\${Const|BaseHostname}\n    PublicPort = \"9000\"\n[Groups]\n    Enabled = true\n    GroupsExternalURI = \"\${Const|BaseURL}:\${Const|PublicPort}\"\n");
+        is_dir(GridConfig::simulatorsDirectory($dir)) || mkdir(GridConfig::simulatorsDirectory($dir), 0o755, true);
+        file_put_contents(GridConfig::simulatorsDirectory($dir) . '/grid.welcome.ini', "[Const]\n    BaseHostname = \"grid.example.org\"\n    BaseURL = http://\${Const|BaseHostname}\n    PublicPort = \"9700\"\n");
+        $rows = array_merge(...array_column(Health::grid(['live' => [], 'config' => GridConfig::fromFolder($dir)]), 'rows'));
+        $line = array_column($rows, null, 'label')['GroupsExternalURI'] ?? [];
+
+        expect([$line['text'] ?? null, $line['level'] ?? null])->toBe(['http://grid.example.org:9700', 'ok']);
+    });
 });
