@@ -14,6 +14,16 @@ final class NullUi implements UiInterface
     /** @param bool $live the notes are also told on the error output as they come, as the live line of a client that shows its progress */
     public function __construct(private readonly bool $live = false) {}
 
+    /** The step the notes are part of, `[k/n] Label`, '' for none. */
+    private string $stage = '';
+
+    /** The notes that follow are part of a step of the run, said before them on the live line (`[2/3] Start: …`). */
+    public function stage(int $k, int $n, string $label): void
+    {
+        $this->stage = "[$k/$n] $label";
+        $this->live && fwrite(STDERR, "opensim: ~{$this->stage}\n");
+    }
+
     /** @var list<string> what is for the final report of the setup, not for its log */
     public array $report = [];
 
@@ -29,7 +39,7 @@ final class NullUi implements UiInterface
     {
         $this->said[] = ['note', $message];
         // On the live line of its client, rewritten in place (a "~" line): a note says where the setup is, never one to keep
-        $this->live && fwrite(STDERR, 'opensim: ~' . ltrim($message) . "\n");
+        $this->live && fwrite(STDERR, 'opensim: ~' . ($this->stage !== '' ? "{$this->stage}: " : '') . ltrim($message) . "\n");
     }
 
     public function entity(string $name): string

@@ -35,7 +35,13 @@ final class QuickSetup
      */
     private static function options(Environment $environment): array
     {
+        // The ones a first install asks (shown), then the ones that keep their default without a question
         $options = [
+            'profiles' => ['label' => _('profiles'), 'default' => true, 'implemented' => true, 'plan' => null, 'shown' => true, 'presets' => ['profiles']],
+            'groups' => ['label' => _('groups'), 'default' => true, 'implemented' => true, 'plan' => null, 'shown' => true, 'presets' => ['groups-hypergrid', 'groups-local', 'groups-local-hypergrid', 'groups-remote']],
+            'search_module' => ['label' => _('search'), 'default' => true, 'implemented' => true, 'plan' => null, 'shown' => true, 'presets' => ['search']],
+            'offline' => ['label' => _('offline messages'), 'default' => true, 'implemented' => true, 'plan' => null, 'shown' => true, 'presets' => ['offline-robust', 'offline-helpers']],
+            'map' => ['label' => _('3D map'), 'default' => false, 'implemented' => true, 'plan' => null, 'shown' => true, 'presets' => ['map-warp3d']],
             'ssl' => ['label' => 'SSL', 'default' => false, 'implemented' => false, 'plan' => null],
             'hypergrid' => [
                 'label' => 'Hypergrid',
@@ -222,6 +228,16 @@ final class QuickSetup
         }
         $fromOptions = [];
         foreach ($options as $name => $option) {
+            if ($option['plan'] === null && isset($option['presets'])) {
+                // The presets it stands for: on as their defaults have them, off by name (the standard ones off after, recorded)
+                if (!$chosen[$name] || $name === 'map') {
+                    foreach ($option['presets'] as $preset) {
+                        $fromOptions['options'][$preset] = $chosen[$name];
+                    }
+                }
+
+                continue;
+            }
             if ($option['plan'] === null) {
                 // A preset: it is on or off by name, and what needs the helpers cannot be on without them
                 $fromOptions['options'][$name] = $chosen[$name];
@@ -244,7 +260,7 @@ final class QuickSetup
         $gridDatabase = $standalone ? $dbGiven : array_diff_key($dbGiven, ['database_driver' => true]);
         $gridAnswers = ['standalone' => $standalone] + self::portValues($answers, ['private_port' => 'private_port', 'console_port' => 'grid_console_port']) + $gridDatabase + $fromOptions;
         // The web services (screenWeb()): as they are given; the planner gives what is not, and 2do.directory's without the helpers
-        $gridAnswers += array_intersect_key($answers, array_flip([...self::WEB, 'web_site']));
+        $gridAnswers += array_intersect_key($answers, array_flip([...self::WEB, 'web_site', 'web_url']));
         trim((string) ($answers['name'] ?? '')) !== '' && ($gridAnswers['name'] = trim((string) $answers['name']));
         [$uri, $uriProblem] = Grid::parseLoginUri((string) ($answers['login_uri'] ?? ''));
         $uriProblem !== null && ($problems['login_uri'] = $uriProblem);
@@ -392,7 +408,7 @@ final class QuickSetup
     private static function advance(Environment $environment, array $request, bool $prepare): array
     {
         $state = self::decode((string) ($request['state'] ?? ''));
-        $button = in_array($request['button'] ?? 'next', ['next', 'back', 'quit', 'show'], true)
+        $button = in_array($request['button'] ?? 'next', ['next', 'back', 'quit', 'show', 'edit'], true)
             ? $request['button'] ?? 'next'
             : 'next';
         $answers = $state['answers'];
@@ -479,7 +495,7 @@ final class QuickSetup
                 ];
 
             case 'form':
-                $answers = self::keep($answers, $given, self::editable(self::fields($environment, $answers)));
+                $answers = self::fromShort(self::keep($answers, $given, [...self::editable(self::fields($environment, $answers)), ...self::SHORT]));
                 if ($button === 'back') {
                     return self::screenType($environment, $answers, '');
                 }
@@ -524,7 +540,7 @@ final class QuickSetup
                     : self::screenReview($environment, self::pinned($environment, $answers));
 
             case 'web':
-                $answers = self::keep($answers, $given, self::WEB);
+                $answers = self::fromShort(self::keep($answers, $given, [...self::WEB, 'website']));
                 if ($button === 'back') {
                     return self::screenOptions($environment, $answers, '');
                 }
@@ -540,6 +556,19 @@ final class QuickSetup
                 return $prepare ? self::prepared($environment, $answers) : self::install($environment, $answers);
 
             case 'review':
+                // Lines of the review changed: checked as if they had been asked, then the review again with what is wrong
+                if ($button === 'edit') {
+                    $answers = self::fromShort(self::keep($answers, $given, self::reviewNames($environment, $answers)));
+                    $quick = self::plan($environment, self::answersOf(self::pinned($environment, $answers)));
+                    $answers = array_replace($answers, $quick['corrected']);
+                    $labels = array_column(self::reviewRows($environment, $answers), 'label', 'name');
+                    $lines = [];
+                    foreach ($quick['problems'] as $question => $message) {
+                        $lines[] = sprintf('Error: %s %s', $labels[$question] ?? $question, $message);
+                    }
+
+                    return self::screenReview($environment, $answers, implode("\n", $lines));
+                }
                 // The passwords of the accounts shown or masked again, nothing else changed
                 if ($button === 'show') {
                     $answers['show_passwords'] = !Result::isTrue($answers['show_passwords'] ?? false);
@@ -800,6 +829,19 @@ final class QuickSetup
             'console_port' => $simulator['console_port'] ?? null,
             'region_port' => $simulator['regions'][0]['port'] ?? null,
         ];
+        $short = self::shortForm($environment, $answers, $proposals);
+        if ($short !== null) {
+            return [
+                'action' => 'screen',
+                'kind' => 'form',
+                'title' => array_column(self::types($environment), 'label', 'name')[$type] ?? _('Grid'),
+                'text' => '',
+                'notice' => $notice,
+                'fields' => $short,
+                'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+                'state' => self::encode('form', $answers),
+            ];
+        }
         $fields = [];
         foreach (self::fields($environment, $answers) as $name => [$label, $secret, $readonly, $fixed]) {
             $value = $answers[$name] ?? $fixed ?? '';
@@ -839,6 +881,9 @@ final class QuickSetup
     {
         $items = [];
         foreach (self::options($environment) as $name => $option) {
+            if (!($option['shown'] ?? false) || !$option['implemented']) {
+                continue;
+            }
             $given = $answers[$name] ?? null;
             $items[] = [
                 'name' => $name,
@@ -873,6 +918,25 @@ final class QuickSetup
         $grid = self::plan($environment, self::answersOf($answers))['setup']['grid'] ?? [];
         $value = static fn(string $name, string $proposed): string => (string) ($answers[$name] ?? $proposed);
         $helpersPath = $value('helpers_path', (string) ($grid['helpers_path'] ?? '/helpers'));
+        // Folded: the address of the website alone, its proposals for the rest (the review shows them, and changes them)
+        if (in_array(self::kindOf($environment, (string) ($answers['type'] ?? '')), ['grid', 'standalone'], true)) {
+            return [
+                'action' => 'screen',
+                'kind' => 'form',
+                'title' => _('Web'),
+                'text' => '',
+                'notice' => $notice,
+                'fields' => [[
+                    'name' => 'website',
+                    'label' => _('Website address'),
+                    'value' => self::websiteOf($answers, $grid),
+                    'secret' => false,
+                    'readonly' => false,
+                ]],
+                'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+                'state' => self::encode('web', $answers),
+            ];
+        }
         $fields = [
             ['name' => 'site', 'label' => _('Quick Start website'), 'value' => Result::isTrue($answers['site'] ?? (($grid['web_site'] ?? '') === 'website')) ? 'yes' : 'no', 'options' => ['yes' => _('Yes'), 'no' => _('No')]],
             ['name' => 'site_path', 'label' => _('Path'), 'value' => $value('site_path', (string) ($grid['site_path'] ?? '/'))],
@@ -897,28 +961,202 @@ final class QuickSetup
     }
 
     /** What the setup will do, to confirm. */
-    private static function screenReview(Environment $environment, array $answers): array
+    private static function screenReview(Environment $environment, array $answers, string $notice = ''): array
     {
         $answers = self::pinned($environment, $answers);
         $quick = self::plan($environment, self::answersOf($answers));
         $shown = Result::isTrue($answers['show_passwords'] ?? false);
+
+        $short = in_array(self::kindOf($environment, (string) ($answers['type'] ?? '')), ['grid', 'standalone'], true);
 
         return [
             'action' => 'screen',
             'kind' => 'review',
             'title' => _('Review'),
             'text' => implode("\n", $quick['warnings'] ?? []),
-            'notice' => '',
-            // The answers given are the review: what is made, in a few lines
-            'rows' => [...self::shortRows($quick['rows']), ...self::accountRows($environment, $answers)],
+            'notice' => $notice,
+            // What the setup set by itself beside the answers, each line changed as in a form; the others say what is made
+            'rows' => $short ? self::reviewRows($environment, $answers) : [...self::shortRows($quick['rows']), ...self::accountRows($environment, $answers)],
             'buttons' => [
                 'next' => ($answers['existing_region'] ?? '') !== '' ? _('Stage import') : _('Start'),
                 'back' => _('Back'),
-                'show' => $shown ? _('Hide passwords') : _('Show passwords'),
-            ],
-            'wait' => _('Installing, this can take a few minutes…'),
+            ] + ($short ? [] : ['show' => $shown ? _('Hide passwords') : _('Show passwords')]),
+            // The live line of the run says where it is: a sentence before it for the others only
+            ...$short ? [] : ['wait' => _('Installing, this can take a few minutes…')],
             'state' => self::encode('review', $answers),
         ];
+    }
+
+    /**
+     * The options every grid has (the profiles, the groups, the offline messages) the person unchecked: turned off in the grid just
+     * written, and recorded so (OptionsOff), never laid again by a repair.
+     */
+    private static function turnOff(Environment $environment, string $nick, array $answers): void
+    {
+        $grid = Grid::find($environment, $nick);
+        if ($grid === null) {
+            return;
+        }
+        $options = new GridOptions($grid);
+        foreach (self::options($environment) as $name => $option) {
+            if (!isset($option['presets']) || $name === 'map' || !Result::isFalse($answers[$name] ?? null)) {
+                continue;
+            }
+            foreach (array_intersect($option['presets'], $options->enabled()) as $preset) {
+                $options->disable($preset);
+            }
+        }
+    }
+
+    /** The answers the short screens give, which stand for others (fromShort()). */
+    private const SHORT = ['address', 'ports'];
+
+    /**
+     * The form of a grid or a standalone in a few lines: its name, its address, its ports (proposed free), its owner, the password and
+     * the email of the owner. The rest takes what is proposed, which the review shows and changes. Null for the other kinds.
+     *
+     * @param array<string,mixed> $proposals the ports proposed, by the name of their answer
+     * @return ?list<array<string,mixed>>
+     */
+    private static function shortForm(Environment $environment, array $answers, array $proposals): ?array
+    {
+        $kind = self::kindOf($environment, (string) ($answers['type'] ?? ''));
+        if (!in_array($kind, ['grid', 'standalone'], true)) {
+            return null;
+        }
+        $fields = self::fields($environment, $answers);
+        $login = (string) ($answers['login_uri'] ?? '');
+        $host = (string) preg_replace('#^[a-z]+://#i', '', (string) preg_replace('#:\d+$#', '', $login));
+        $public = preg_match('#:(\d+)$#', $login, $m) === 1 ? $m[1] : '';
+        $private = (string) ($answers['private_port'] ?? $proposals['private_port'] ?? '');
+        $field = static fn(string $name, string $label, string $value, bool $secret = false): array => ['name' => $name, 'label' => $label, 'value' => $value, 'secret' => $secret, 'readonly' => false];
+
+        return [
+            $field('name', _('Name'), (string) ($answers['name'] ?? $fields['name'][3] ?? '')),
+            $field('address', _('Address'), $host),
+            $field('ports', _('Ports'), trim($kind === 'standalone' ? $public : "$public $private")),
+            $field('avatar', _('Owner'), (string) ($answers['avatar'] ?? $fields['avatar'][3] ?? '')),
+            $field('password', _('Password'), (string) ($answers['password'] ?? $fields['password'][3] ?? ''), true),
+            $field('email', _('Email'), (string) ($answers['email'] ?? '')),
+        ];
+    }
+
+    /**
+     * The answers of the short screens as the setup takes them: the address and the ports as its login and private port, the address
+     * of the website as its site, its folder and its web address, the ports of the simulator as its own. Nothing given, nothing changed.
+     */
+    private static function fromShort(array $answers): array
+    {
+        if (isset($answers['address']) || isset($answers['ports'])) {
+            $login = (string) ($answers['login_uri'] ?? '');
+            $host = trim((string) ($answers['address'] ?? preg_replace('#:\d+$#', '', (string) preg_replace('#^[a-z]+://#i', '', $login))));
+            $host = (string) preg_replace('#^[a-z]+://#i', '', rtrim($host, '/'));
+            $ports = preg_split('/[\s,;]+/', trim((string) ($answers['ports'] ?? '')), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $public = $ports[0] ?? (preg_match('#:(\d+)$#', $login, $m) === 1 ? $m[1] : '');
+            $answers['login_uri'] = $public !== '' ? "$host:$public" : $host;
+            isset($ports[1]) && $answers['private_port'] = $ports[1];
+        }
+        if (array_key_exists('website', $answers)) {
+            $website = trim((string) $answers['website']);
+            if ($website === '' || in_array(strtolower($website), ['no', 'none', '-'], true)) {
+                $answers['site'] = false;
+            } else {
+                $website = preg_match('#^[a-z]+://#i', $website) === 1 ? $website : "https://$website";
+                $answers['site'] = true;
+                $answers['web_url'] = (string) preg_replace('#^([a-z]+://[^/]+).*$#i', '$1', $website);
+                $answers['site_path'] = '/' . trim((string) (parse_url($website, PHP_URL_PATH) ?? ''), '/');
+            }
+        }
+        if (isset($answers['simulator_ports'])) {
+            [$http, $udp, $console] = array_pad(preg_split('/[\s,;]+/', trim((string) $answers['simulator_ports']), -1, PREG_SPLIT_NO_EMPTY) ?: [], 3, '');
+            $http === '' || $answers['http_port'] = $http;
+            $udp === '' || $answers['region_port'] = $udp;
+            $console === '' || $answers['console_port'] = $console;
+        }
+        unset($answers['address'], $answers['ports'], $answers['website'], $answers['simulator_ports']);
+
+        return $answers;
+    }
+
+    /** The address of the Quick Start website as it is asked: the one answered, else its proposal (the root of the web site). */
+    private static function websiteOf(array $answers, array $grid): string
+    {
+        if (array_key_exists('site', $answers) && !Result::isTrue($answers['site'])) {
+            return '';
+        }
+        $web = rtrim((string) ($answers['web_url'] ?? $grid['web_url'] ?? ''), '/');
+        $path = Web\Services::normalize((string) ($answers['site_path'] ?? $grid['site_path'] ?? '/'));
+
+        return $web === '' ? '' : $web . ($path === '/' ? '/' : "$path/");
+    }
+
+    /** The answers the review changes, by the name its lines give. @return list<string> */
+    private static function reviewNames(Environment $environment, array $answers): array
+    {
+        return [...array_values(array_filter(array_column(self::reviewRows($environment, $answers), 'name'))), 'site', 'site_path', 'web_url'];
+    }
+
+    /**
+     * The review of a grid or a standalone: every value the setup set by itself beside the answers, under short headings (Grid,
+     * Simulator, Web, Database), one value a line; a line that names its answer (`name`, its value to change `current`) is changed as
+     * in a form, a password masked with where it is kept.
+     *
+     * @return list<array<string,mixed>>
+     */
+    private static function reviewRows(Environment $environment, array $answers): array
+    {
+        $built = self::build($environment, self::answersOf($answers));
+        $plan = $built['plan'];
+        $simulator = $built['simulator'];
+        $standalone = $built['standalone'];
+        $rows = [];
+        $row = static function (string $section, string $label, string $value, ?string $name = null, ?string $current = null, array $more = []) use (&$rows): void {
+            $rows[] = ['section' => $section, 'label' => $label, 'value' => $value] + ($name === null ? [] : ['name' => $name, 'current' => $current ?? $value]) + $more;
+        };
+        $email = trim((string) ($answers['email'] ?? ''));
+        $grid = $standalone ? _('Standalone') : _('Grid');
+        $row($grid, _('Name'), $standalone ? $simulator->regionName : "{$plan->gridName} ({$plan->gridNick})", 'name', $standalone ? $simulator->regionName : $plan->gridName);
+        $row($grid, _('Login'), "{$plan->baseHostname}:{$plan->publicPort}", 'login_uri');
+        if (!$standalone) {
+            $row($grid, _('Private port'), (string) $plan->privatePort, 'private_port');
+            $row($grid, _('Console port'), (string) $plan->consolePort, 'grid_console_port');
+        }
+        $row($grid, _('Owner'), $simulator->estateOwner . ($email !== '' ? " <$email>" : ''), 'avatar', $simulator->estateOwner);
+        $simulatorSection = _('Simulator');
+        $standalone || $row($simulatorSection, _('Name'), "{$simulator->simulatorName} ({$simulator->slug})");
+        $row(
+            $simulatorSection,
+            _('Ports'),
+            sprintf('%d http, %d udp, %d console', $simulator->httpPort, $simulator->regionPort, $simulator->consolePort),
+            'simulator_ports',
+            "{$simulator->httpPort} {$simulator->regionPort} {$simulator->consolePort}",
+        );
+        $row($simulatorSection, _('Region'), sprintf('%s at %s', $simulator->regionName, $simulator->regionLocation));
+        if ($plan->helpers) {
+            $web = _('Web');
+            $site = $plan->webSite === 'website' ? rtrim($plan->webUrl, '/') . Web\Services::normalize($plan->sitePath) : '';
+            $site === '' || str_ends_with($site, '/') || $site .= '/';
+            $row($web, _('Website'), $site !== '' ? $site : _('none'), 'website', $site);
+            $row($web, _('Helpers'), $plan->helpersPath, 'helpers_path');
+            $row($web, _('Economy'), $plan->economyPath !== '' ? $plan->economyPath : $plan->helpersPath, 'economy_path');
+            $registers = ['both' => _('helpers and 2do.directory'), 'helpers' => _('helpers'), '2do' => '2do.directory'];
+            $row($web, _('Search, register'), $registers[$plan->register] ?? $plan->register, 'register', $plan->register, ['options' => $registers]);
+            $plan->search === 'internal' && $row($web, _('Events'), $plan->eventsUrl, 'events_url');
+        } else {
+            // Without the helpers, the search and the registration of the regions are the ones of 2do.directory
+            $row(_('Web'), _('Search, register'), '2do.directory');
+        }
+        $database = _('Database');
+        $sqlite = $simulator->databasePlan()->dbDriver === 'sqlite';
+        $row($database, _('Server'), $sqlite ? 'SQLite' : "{$plan->dbHost} (MariaDB)", $sqlite ? null : 'database_host', $plan->dbHost);
+        $names = array_values(array_unique(array_filter([$standalone ? '' : $plan->dbName, $simulator->databasePlan()->dbName])));
+        $sqlite || $row($database, _('Databases'), implode(', ', $names));
+        if (!$sqlite) {
+            $kept = ($answers['database_password_source'] ?? '') === 'environment' ? sprintf(_('password kept in %s'), '~/.opensimrc') : _('password made at random');
+            $row($database, _('Account'), "{$plan->dbUser} ($kept)", 'database_user', $plan->dbUser);
+        }
+
+        return $rows;
     }
 
     /** The rows of the review a person reads: what is made (the grid, its login, its website, its simulator and region, its owner). */
@@ -962,13 +1200,15 @@ final class QuickSetup
         $answers = array_replace($answers, $quick['corrected']);
         $fields = self::fields($environment, $answers);
         $labels =
+            // The short form says the address and the ports where the setup has a login and a private port
+            (in_array(self::kindOf($environment, (string) ($answers['type'] ?? '')), ['grid', 'standalone'], true) ? ['login_uri' => _('Address'), 'private_port' => _('Ports'), 'avatar' => _('Owner'), 'name' => _('Name')] : []) +
             array_map(static fn(array $field): string => $field[0], $fields) +
             array_map(static fn(array $o): string => $o['label'], self::options($environment));
         $lines = [];
         foreach ($quick['problems'] as $question => $message) {
             $lines[] = sprintf('Error: %s %s', $labels[$question] ?? $question, $message);
         }
-        if ((string) ($answers['password'] ?? '') !== (string) ($answers['password2'] ?? '')) {
+        if (array_key_exists('password2', $answers) && (string) ($answers['password'] ?? '') !== (string) $answers['password2']) {
             $lines[] = 'Error: Passwords differ';
             $answers['password'] = $answers['password2'] = '';
         }
@@ -1157,10 +1397,14 @@ final class QuickSetup
             // Everything written first, then each instance started once: Robust (for the account of the avatar) reads the roles of
             // the region at its first start, never started again for them; a standalone makes the account itself when it starts
             $later = $plan !== null && !$plan->standalone && $simulator->existingRegionConfig === '';
+            // The steps of the run, numbered on the live line; the website, its last one, is the client's (kickstart)
+            $steps = 2 + ($plan !== null && $plan->webSite === 'website' ? 1 : 0);
+            $ui->stage(1, $steps, _('Config'));
             if ($plan !== null) {
                 $plan->enable = true;
                 $plan->start = !$later;
                 (new GridProvisioner($ui))->apply($plan, $environment);
+                self::turnOff($environment, $plan->gridNick, $answers);
             }
             if ($simulator->existingRegionConfig === '') {
                 $simulator->enable = true;
@@ -1169,6 +1413,8 @@ final class QuickSetup
             $simulator->createOwner = false;
             $provisioner = new SimulatorProvisioner($ui);
             $provisioner->apply($simulator, $environment);
+            // Robust started for the account of the avatar, then the simulator: the start of the grid
+            $ui->stage(2, $steps, _('Start'));
             if ($plan !== null) {
                 // The account of the avatar: Robust starts for it (GridAccounts), and makes it
                 if (!$plan->standalone) {

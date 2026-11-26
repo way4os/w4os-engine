@@ -82,7 +82,8 @@ describe('quick setup of a grid', function () {
         $fields = array_column($form['fields'], null, 'name');
         $grid = QuickSetup::plan($environment, quick_answers(['database_driver' => 'sqlite']));
 
-        expect($fields['database_driver']['options'])->toHaveKeys(['mysql', 'sqlite'])
+        // The short form of a grid asks no driver: the one proposed, another one given by a configuration
+        expect(array_keys($fields))->toBe(['name', 'address', 'ports', 'avatar', 'password', 'email'])
             ->and($grid['valid'])->toBeTrue()
             ->and($grid['setup']['grid']['database']['driver'])->toBe('mysql')
             ->and($grid['setup']['simulators'][0]['database']['driver'])->toBe('sqlite');
@@ -132,9 +133,18 @@ describe('quick setup of a grid', function () {
             'mode' => 'prepare', 'state' => $menu['state'], 'answers' => ['type' => 'grid'], 'occupied_ports' => [8002, 9000],
         ]);
         $values = array_column($form['fields'], 'value', 'name');
+        // The ports of the simulator, proposed free too, in the review
+        $step = static fn(array $screen, array $answers = []): array => QuickSetup::next($machine->environment, [
+            'mode' => 'prepare', 'state' => $screen['state'], 'answers' => $answers, 'occupied_ports' => [8002, 9000],
+        ]);
+        $review = $form;
+        foreach ([array_replace(array_column($form['fields'], 'value', 'name'), ['avatar' => 'Ada Love', 'password' => 'secret123']), [], []] as $answers) {
+            $review['kind'] === 'review' || ($review = $step($review, $answers));
+        }
 
-        expect($values['login_uri'])->toEndWith(':8012')
-            ->and($values['http_port'])->toBe('9010');
+        expect($values['ports'])->toStartWith('8012 ')
+            ->and($review['kind'])->toBe('review')
+            ->and(array_column($review['rows'], 'value', 'name')['simulator_ports'] ?? '')->toStartWith('9010 http');
     });
 
     test('rejects a selected port already occupied on the deployment host', function () {
@@ -331,7 +341,7 @@ describe('quick setup, what is wrong', function () {
             ->and($quick['setup']['grid']['options'])
             ->toContain('ossl-extended', 'search', 'profiles', 'offline-robust')
             ->and(array_column($quick['options'], 'value', 'name'))
-            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => false, 'ossl-extended' => true]);
+            ->toBe(['profiles' => true, 'groups' => true, 'search_module' => true, 'offline' => true, 'map' => false, 'ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => false, 'ossl-extended' => true]);
     });
 
     test('has no search of its own when the helpers are off and the shared one is not wanted, and refuses Gloebit without the helpers', function () {
@@ -354,6 +364,11 @@ describe('quick setup, what is wrong', function () {
 
         expect(array_column($quick['options'], 'label', 'name'))
             ->toBe([
+                'profiles' => 'profiles',
+                'groups' => 'groups',
+                'search_module' => 'search',
+                'offline' => 'offline messages',
+                'map' => '3D map',
                 'ssl' => 'SSL',
                 'hypergrid' => 'Hypergrid',
                 'helpers' => 'Helpers',
@@ -361,7 +376,7 @@ describe('quick setup, what is wrong', function () {
                 'ossl-extended' => 'Extended OSSL',
             ])
             ->and(array_column($quick['options'], 'implemented', 'name'))
-            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => true, 'ossl-extended' => true])
+            ->toBe(['profiles' => true, 'groups' => true, 'search_module' => true, 'offline' => true, 'map' => true, 'ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => true, 'ossl-extended' => true])
             ->and($quick['setup']['grid']['options'])
             ->toContain('ossl-extended')
             ->and($quick['types'])
@@ -629,7 +644,7 @@ function quick_until(Machine $machine, string $screen, string $type = 'grid', ar
     $reply = quick_step($machine, $reply, $options);
 
     // The web services, when the helpers are on, as they are proposed
-    return $screen !== 'web' && ($reply['title'] ?? '') === 'Web services' ? quick_step($machine, $reply, []) : $reply;
+    return $screen !== 'web' && in_array($reply['title'] ?? '', ['Web', 'Web services'], true) ? quick_step($machine, $reply, []) : $reply;
 }
 
 /** The work that needs a machine, done by doubles: the databases are fine, the account is made, the grid says who it is, the instances start. */
@@ -973,33 +988,35 @@ describe('quick setup, the scenario', function () {
         InstanceControl::runThrough(null);
     });
 
-    test('asks the web services after the options when the helpers are on: the website, the helpers, the search, the economy', function () {
+    test('asks the address of the website alone after the options, the other web services proposed in the review', function () {
         $machine = new Machine();
         $web = quick_step($machine, quick_until($machine, 'checks'), []);
-        $fields = array_column($web['fields'] ?? [], null, 'name');
+        $review = quick_step($machine, $web, ['website' => 'https://login.example.org/opensim/']);
+        $rows = array_column($review['rows'] ?? [], 'value', 'name');
 
-        expect($web['title'] ?? null)->toBe('Web services')
-            ->and(array_keys($fields))->toBe(['site', 'site_path', 'helpers_path', 'register', 'search', 'web_search', 'events_url', 'economy_path'])
-            ->and(array_column($fields, 'label', 'name'))->toBe([
-                'site' => 'Quick Start website',
-                'site_path' => 'Path',
-                'helpers_path' => 'Helpers path',
-                'register' => 'Register the regions',
-                'search' => 'In-world search',
-                'web_search' => 'Web search',
-                'events_url' => 'Events',
-                'economy_path' => 'Economy path',
-            ])
-            ->and(array_column($fields, 'value', 'name'))->toMatchArray([
-                'site_path' => '/', 'helpers_path' => '/helpers', 'register' => 'both', 'search' => 'internal', 'web_search' => 'internal',
-                'events_url' => 'https://2do.directory/events', 'economy_path' => '/helpers',
-            ])
-            ->and(array_keys($fields['register']['options'] ?? []))->toBe(['both', 'helpers', '2do'])
-            // The helpers' or 2do.directory's, which searches the whole hypergrid
-            ->and(array_keys($fields['web_search']['options'] ?? []))->toBe(['internal', 'shared'])
-            // Short lines: no help under the fields
-            ->and(array_filter(array_column($fields, 'help', 'name')))->toBe([])
-            ->and(quick_step($machine, $web, ['register' => 'helpers'])['kind'])->toBe('review');
+        expect($web['title'] ?? null)->toBe('Web')
+            ->and(array_column($web['fields'] ?? [], 'label', 'name'))->toBe(['website' => 'Website address'])
+            ->and(array_column($web['fields'] ?? [], 'value', 'name')['website'])->toBe('https://login.example.org/')
+            ->and($review['kind'])->toBe('review')
+            ->and($rows)->toMatchArray(['website' => 'https://login.example.org/opensim/', 'helpers_path' => '/helpers', 'economy_path' => '/helpers', 'events_url' => 'https://2do.directory/events'])
+            ->and($rows['register'])->toBe('helpers and 2do.directory')
+            ->and(array_keys(array_column($review['rows'], 'options', 'name')['register'] ?? []))->toBe(['both', 'helpers', '2do']);
+    });
+
+    test('reviews what the setup set by itself, under short headings, each line changed as in a form, then Start', function () {
+        $machine = new Machine();
+        $review = quick_until($machine, 'review');
+        $changed = quick_step($machine, $review, ['private_port' => '8199', 'simulator_ports' => '9100 9101 9104'], 'edit');
+        $wrong = quick_step($machine, $changed, ['private_port' => 'abc'], 'edit');
+        $rows = array_column($changed['rows'], 'value', 'name');
+
+        expect(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Simulator', 'Web', 'Database'])
+            ->and($review['buttons'])->toBe(['next' => 'Start', 'back' => 'Back'])
+            ->and($changed['kind'])->toBe('review')
+            ->and([$rows['private_port'], $rows['simulator_ports']])->toBe(['8199', '9100 http, 9101 udp, 9104 console'])
+            ->and($wrong['notice'])->toStartWith('Error: Private port')
+            // Start: the setup with the lines changed
+            ->and(QuickSetup::plan($machine->environment, ['type' => 'grid'] + quick_answers(['private_port' => '8199']))['setup']['grid']['private_port'])->toBe(8199);
     });
 
     test('without the helpers asks no web service: the search, the web search and the register are 2do.directory\'s, said', function () {
@@ -1038,16 +1055,17 @@ describe('quick setup, the scenario', function () {
 
         expect($grid)
             ->toMatchArray(['kind' => 'form', 'title' => 'Grid', 'notice' => ''])
+            // A few short lines: the rest is proposed, and shown in the review
             ->and(array_column($grid['fields'], 'label', 'name'))
-            ->toBe(['name' => 'Grid name', 'login_uri' => 'Login URI', 'avatar' => 'Avatar name', 'password' => 'Password', 'password2' => 'Password again', 'email' => 'Email', 'private_port' => 'Grid private port', 'grid_console_port' => 'Grid console port', 'database_driver' => 'Simulator database driver', 'http_port' => 'Simulator HTTP port', 'console_port' => 'Simulator console port', 'region_port' => 'Region UDP port'])
+            ->toBe(['name' => 'Name', 'address' => 'Address', 'ports' => 'Ports', 'avatar' => 'Owner', 'password' => 'Password', 'email' => 'Email'])
             ->and(array_column($grid['fields'], 'secret', 'name'))
-            ->toMatchArray(['password' => true, 'password2' => true, 'name' => false])
-            ->and(array_column($grid['fields'], 'value', 'name')['login_uri'])
-            ->toContain(':')
+            ->toMatchArray(['password' => true, 'name' => false])
+            ->and(array_column($grid['fields'], 'value', 'name')['ports'])
+            ->toMatch('/^\d+ \d+$/')
             ->and($standalone['title'])
             ->toBe('Standalone')
             ->and($standalone['fields'][0]['label'])
-            ->toBe('Region name');
+            ->toBe('Name');
     });
 
     test('ends with an error when the person quits, at the first screen or any other', function () {
@@ -1072,9 +1090,9 @@ describe('quick setup, the scenario', function () {
         expect($reply['kind'])
             ->toBe('form')
             ->and($reply['notice'])
-            ->toBe("Error: Avatar name invalid (First Last)\nError: Passwords differ")
+            ->toBe("Error: Owner invalid (First Last)\nError: Passwords differ")
             ->and(array_column($reply['fields'], 'value', 'name'))
-            ->toMatchArray(['avatar' => 'Ada', 'name' => 'Magic Grid', 'password' => '', 'password2' => ''])
+            ->toMatchArray(['avatar' => 'Ada', 'name' => 'Magic Grid', 'password' => ''])
             ->and($reply['buttons']['back'])
             ->toBe('Back');
     });
@@ -1084,7 +1102,7 @@ describe('quick setup, the scenario', function () {
         $reply = quick_step($machine, quick_until($machine, 'form'), quick_form(['avatar' => 'José García']));
 
         expect($reply['notice'])
-            ->toBe('Error: Avatar name transliterated')
+            ->toBe('Error: Owner transliterated')
             ->and(array_column($reply['fields'], 'value', 'name')['avatar'])
             ->toBe('Jose Garcia')
             ->and(quick_step($machine, $reply, quick_form(['avatar' => 'Jose Garcia']))['kind'])
@@ -1118,10 +1136,11 @@ describe('quick setup, the scenario', function () {
             ->toBe('checks')
             ->and($options['title'])
             ->toBe('Options')
+            // The ones a first install chooses, nothing that is not implemented; the others keep their default, silently
             ->and(array_column($options['items'], 'checked', 'name'))
-            ->toBe(['ssl' => false, 'hypergrid' => true, 'helpers' => true, 'economy-gloebit' => false, 'ossl-extended' => true])
-            ->and(array_column($options['items'], 'note', 'name')['ssl'])
-            ->toBe('not implemented')
+            ->toBe(['profiles' => true, 'groups' => true, 'search_module' => true, 'offline' => true, 'map' => false])
+            ->and(array_filter(array_column($options['items'], 'note', 'name')))
+            ->toBe([])
             ->and($review)
             ->toMatchArray(['kind' => 'review', 'title' => 'Review'])
             ->and($review['buttons']['next'])
@@ -1130,7 +1149,7 @@ describe('quick setup, the scenario', function () {
             ->and(array_column($review['rows'], 'section'))
             ->not->toContain('options');
         // Back: the web services, then the options
-        expect(quick_step($machine, $review, [], 'back')['title'])->toBe('Web services')
+        expect(quick_step($machine, $review, [], 'back')['title'])->toBe('Web')
             ->and(quick_step($machine, $web, [], 'back')['kind'])->toBe('checks');
     });
 
@@ -1245,6 +1264,20 @@ describe('quick setup, the scenario', function () {
         ]);
     });
 
+    test('turns off in the grid it writes an option every grid has that the person unchecked, and keeps it off', function () {
+        $machine = new Machine();
+        quick_core($machine);
+        $review = quick_until($machine, 'review', options: ['groups' => false, 'profiles' => true]);
+        $done = quick_step($machine, $review);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'magic_grid');
+        $enabled = (new W4OS\Engine\Provisioning\GridOptions($grid))->enabled();
+
+        expect($done['action'])->toBe('quit')
+            ->and(array_filter($enabled, static fn(string $name): bool => str_starts_with($name, 'groups')))->toBe([])
+            ->and($enabled)->toContain('profiles')
+            ->and((string) file_get_contents($grid->directory() . '/magic_grid.conf'))->toContain('OptionsOff');
+    });
+
     test('puts the helpers on, and says so, when Gloebit needs them', function () {
         $machine = new Machine();
         $options = quick_until($machine, 'checks');
@@ -1253,11 +1286,9 @@ describe('quick setup, the scenario', function () {
 
         expect($again)
             ->toMatchArray(['kind' => 'checks', 'notice' => 'Economy: Gloebit needs the helpers: Helpers is on.'])
-            ->and(array_column($again['items'], 'checked', 'name'))
-            ->toMatchArray(['helpers' => true, 'economy-gloebit' => true])
             // The helpers on: their web services next
             ->and(quick_step($machine, $again, ['helpers' => true, 'economy-gloebit' => true])['title'])
-            ->toBe('Web services');
+            ->toBe('Web');
     });
 
     test('asks the database again, with what the server said, when it cannot be reached or made, and goes on with the administrator', function () {

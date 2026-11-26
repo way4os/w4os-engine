@@ -65,31 +65,26 @@ describe('setup ports', function () {
         expect(array_keys($result['problems']))->toContain('private_port', 'grid_console_port', 'http_port', 'console_port', 'region_port');
     });
 
-    test('offers port overrides before confirmation', function () {
+    test('offers port overrides before confirmation, in the review', function () {
         $env = (new Machine())->environment;
-        $type = QuickSetup::next($env, ['mode' => 'prepare']);
-        $form = QuickSetup::next($env, ['mode' => 'prepare', 'state' => $type['state'], 'answers' => ['type' => 'grid']]);
-        expect(array_column($form['fields'], 'name'))->toContain('private_port', 'grid_console_port', 'http_port', 'console_port', 'region_port');
+        $review = port_review($env);
+        expect($review['kind'])->toBe('review')
+            ->and(array_filter(array_column($review['rows'], 'name')))->toContain('private_port', 'grid_console_port', 'simulator_ports');
     });
     test('prefills editable port proposals', function () {
         $env = (new Machine())->environment;
         $screen = QuickSetup::next($env, ['mode' => 'prepare']);
         $form = QuickSetup::next($env, ['mode' => 'prepare', 'state' => $screen['state'], 'answers' => ['type' => 'grid']]);
         $values = array_column($form['fields'], 'value', 'name');
-        foreach (['private_port', 'grid_console_port', 'http_port', 'console_port', 'region_port'] as $name) {
-            expect($values[$name])->not->toBe('');
-        }
-        $planned = QuickSetup::plan($env, ['type' => 'grid'] + $values)['setup'];
-        expect($values['private_port'])->toBe((string) $planned['grid']['private_port'])
-            ->and($values['grid_console_port'])->toBe((string) $planned['grid']['console_port'])
-            ->and($values['http_port'])->toBe((string) $planned['simulators'][0]['http_port'])
-            ->and($values['console_port'])->toBe((string) $planned['simulators'][0]['console_port'])
-            ->and($values['region_port'])->toBe((string) $planned['simulators'][0]['regions'][0]['port']);
-        foreach ($form['fields'] as $field) {
-            if (str_contains($field['name'], 'port')) {
-                expect($field['readonly'])->toBeFalse()->and($field['label'])->not->toContain('auto');
-            }
-        }
+        $review = array_column(port_review($env)['rows'], 'current', 'name');
+        [$public, $private] = explode(' ', $values['ports']);
+        $planned = QuickSetup::plan($env, ['type' => 'grid', 'login_uri' => "{$values['address']}:$public", 'private_port' => $private] + port_setup_answers())['setup'];
+        [$http, $udp, $console] = explode(' ', $review['simulator_ports']);
+        expect($private)->toBe((string) $planned['grid']['private_port'])
+            ->and($review['grid_console_port'])->toBe((string) $planned['grid']['console_port'])
+            ->and($http)->toBe((string) $planned['simulators'][0]['http_port'])
+            ->and($console)->toBe((string) $planned['simulators'][0]['console_port'])
+            ->and($udp)->toBe((string) $planned['simulators'][0]['regions'][0]['port']);
     });
 
     test('saves confirmed ports', function () {
@@ -119,7 +114,7 @@ test('setup proposes the destination hostname', function () {
         'type' => 'grid', 'hostname' => 'podman.example.test',
     ]]);
     $values = array_column($form['fields'], 'value', 'name');
-    expect($values['login_uri'])->toStartWith('podman.example.test:');
+    expect($values['address'])->toBe('podman.example.test');
 });
 
 test('setup keeps an explicit login address', function () {
@@ -128,5 +123,17 @@ test('setup keeps an explicit login address', function () {
     $form = QuickSetup::next($env, ['mode' => 'prepare', 'state' => $screen['state'], 'answers' => [
         'type' => 'grid', 'hostname' => 'podman.example.test', 'login_uri' => 'grid.example.test:18302',
     ]]);
-    expect(array_column($form['fields'], 'value', 'name')['login_uri'])->toBe('grid.example.test:18302');
+    $values = array_column($form['fields'], 'value', 'name');
+    expect([$values['address'], explode(' ', $values['ports'])[0]])->toBe(['grid.example.test', '18302']);
 });
+
+/** The review of a grid in prepare mode, the form answered with port_setup_answers(), the options and the web as proposed. */
+function port_review(W4OS\Engine\Runtime\Environment $env): array
+{
+    $screen = QuickSetup::next($env, ['mode' => 'prepare']);
+    foreach ([['type' => 'grid'], port_setup_answers(), [], []] as $answers) {
+        $screen['kind'] === 'review' || ($screen = QuickSetup::next($env, ['mode' => 'prepare', 'state' => $screen['state'], 'answers' => $answers]));
+    }
+
+    return $screen;
+}

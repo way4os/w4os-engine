@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- change (setup): a grid asked in six short lines, the website by its address, the options a first install chooses
+- new (setup): one review of what the setup set by itself, grouped, each line changed as in a form, then Start; numbered steps
 - fix (start): a region the grid refused is never said registered, the start fails; a Robust whose services did not load is not up
 - change (setup): its progress on the live line of its client, rewritten in place
 - new (setup): the address of the grid checked before Start: a name that does not resolve, or another machine of the network, said
