@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (i18n): one rule for the language of a page: ?lang=, the w4os_lang cookie, the lang cookie (saved into it), the browser
 - new (setup): the address of the Quick Start website kept with the grid (site of the API, import site); no web config lines at the end
 - fix (setup): a failed start said once, with its log file, never the log three times
 - fix (setup): a database password with a double quote refused there and then: OpenSim cannot read it from its configs

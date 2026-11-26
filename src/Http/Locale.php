@@ -12,10 +12,11 @@ final class Locale
         mb_internal_encoding('UTF-8');
         $encoding = mb_internal_encoding();
 
-        if (isset($_GET['l'])) {
-            $locale = $_GET['l'];
-        }
-        $languages = array_filter(array_merge([$locale], explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')));
+        // The rule of the suite: the address, the cookie of the suite, the lang cookie of another app, the browser (LanguageChoice)
+        $asked = $_GET['lang'] ?? $_GET['l'] ?? null;
+        [$chosen, $save] = \W4OS\Engine\I18n\LanguageChoice::pick(is_string($asked) ? $asked : null, $_COOKIE, (string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? ''), \W4OS\Engine\I18n\LanguageChoice::engineHas(...));
+        $save !== null && !headers_sent() && header('Set-Cookie: ' . \W4OS\Engine\I18n\LanguageChoice::cookie($save), false);
+        $languages = array_filter(array_merge([$locale], explode(',', $chosen)));
 
         // $results = putenv("LC_ALL=$locale");
         // if (!$results) {
