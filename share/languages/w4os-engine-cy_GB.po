@@ -3636,6 +3636,14 @@ msgctxt "health_not_readable"
 msgid "not readable"
 msgstr "ddim yn ddarllenadwy"
 
+msgctxt "health_pool_reached"
+msgid "reached by the web server"
+msgstr "o fewn cyrraedd y gweinydd gwe"
+
+msgctxt "health_pool_unreached"
+msgid "not reached by the web server"
+msgstr "y tu hwnt i gyrraedd y gweinydd gwe"
+
 msgctxt "health_helpers"
 msgid "helpers"
 msgstr "helpers"

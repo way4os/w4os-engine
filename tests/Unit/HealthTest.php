@@ -909,6 +909,22 @@ describe('What an install needs', function () {
             ->and($account)->toBe("$user (groups " . implode(', ', $groups) . ')');
     })->skip(fn() => posix_geteuid() === 0, 'root reads every file');
 
+    test('says of each pool of the suite whether the web server reaches its socket, by the account it runs as', function () {
+        $etc = sys_get_temp_dir() . '/health-pools-' . bin2hex(random_bytes(4));
+        mkdir("$etc/8.4/fpm/pool.d", 0o755, true);
+        $socket = "$etc/w4os-site.sock";
+        touch($socket);
+        $group = (string) (posix_getgrgid((int) filegroup($socket))['name'] ?? '');
+        file_put_contents("$etc/8.4/fpm/pool.d/w4os-site.conf", "[w4os-site]\nlisten = $socket\n");
+        $reached = Health::pools(['user' => 'webby', 'groups' => [$group]], $etc);
+        $refused = Health::pools(['user' => 'webby', 'groups' => ['webby']], $etc);
+        exec('rm -rf ' . escapeshellarg($etc));
+
+        expect($reached)->toHaveCount(1)
+            ->and($reached[0])->toMatchArray(['label' => 'w4os-site', 'kind' => 'file', 'path' => $socket, 'level' => 'ok'])
+            ->and($refused[0])->toMatchArray(['level' => 'error', 'detail' => 'webby (groups webby)']);
+    })->skip(fn() => !function_exists('posix_getgrgid'), 'posix is missing');
+
     test('says whether the pictures of the world can be shown: imagick that reads JPEG 2000', function () {
         $row = array_column(Health::extensions(), null, 'label')['imagick JPEG 2000'] ?? null;
         $reads = class_exists('Imagick') && Imagick::queryFormats('JP2') !== [];

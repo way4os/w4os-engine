@@ -949,6 +949,56 @@ class Health
         ] + ($readable || !is_file($path) ? [] : ['detail' => self::account()]);
     }
 
+    /**
+     * A row for each PHP-FPM pool of the suite this machine has (the engine API, the helpers, the website): its socket, and whether the
+     * web server reaches it (its owner, or a group of the account the web server runs as).
+     *
+     * @param ?array{user:string,groups:list<string>} $server the account of the web server, found among the processes when not given
+     * @return list<array<string,mixed>>
+     */
+    public static function pools(?array $server = null, ?string $etc = null): array
+    {
+        $rows = [];
+        foreach (['w4os-api', 'w4os-helpers', 'w4os-site'] as $name) {
+            $conf = (glob(($etc ?? \W4OS\Engine\Provisioning\Web\PhpPools::etc()) . "/*/fpm/pool.d/$name.conf") ?: [])[0] ?? null;
+            if ($conf === null || preg_match('/^\s*listen\s*=\s*(\S+)/m', (string) file_get_contents($conf), $m) !== 1) {
+                continue;
+            }
+            $socket = $m[1];
+            $server ??= self::webServer();
+            $owner = file_exists($socket) && function_exists('posix_getpwuid') ? (string) (posix_getpwuid((int) fileowner($socket))['name'] ?? '') : '';
+            $group = file_exists($socket) && function_exists('posix_getgrgid') ? (string) (posix_getgrgid((int) filegroup($socket))['name'] ?? '') : '';
+            $reached = $server !== null && file_exists($socket) && ($owner === $server['user'] || in_array($group, $server['groups'], true));
+            $rows[] = [
+                'label' => $name,
+                'kind' => 'file',
+                'path' => $socket,
+                'level' => $server === null ? 'unset' : ($reached ? 'ok' : 'error'),
+                'status' => !file_exists($socket) ? self::say('health_missing') : self::say($reached ? 'health_pool_reached' : 'health_pool_unreached'),
+            ] + ($server === null || $reached ? [] : ['detail' => $server['user'] . ' (groups ' . implode(', ', $server['groups']) . ')']);
+        }
+
+        return $rows;
+    }
+
+    /** The account the web server of this machine runs as (Apache, Caddy, nginx), with its groups; null when none runs. */
+    private static function webServer(): ?array
+    {
+        $lines = [];
+        exec('ps -eo user=,comm= 2>/dev/null', $lines);
+        foreach ($lines as $line) {
+            [$user, $command] = array_pad(preg_split('/\s+/', trim($line), 2) ?: [], 2, '');
+            if ($user !== 'root' && in_array($command, ['apache2', 'httpd', 'caddy', 'nginx'], true)) {
+                $groups = [];
+                exec('id -nG ' . escapeshellarg($user) . ' 2>/dev/null', $groups);
+
+                return ['user' => $user, 'groups' => preg_split('/\s+/', trim($groups[0] ?? '')) ?: []];
+            }
+        }
+
+        return null;
+    }
+
     /** The account this process runs as and its groups, as a reader of a file sees them: `www-data (groups www-data, magic)`. */
     public static function account(): string
     {

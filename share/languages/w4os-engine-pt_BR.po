@@ -3614,6 +3614,14 @@ msgctxt "health_not_readable"
 msgid "not readable"
 msgstr "ilegível"
 
+msgctxt "health_pool_reached"
+msgid "reached by the web server"
+msgstr "acessível pelo servidor web"
+
+msgctxt "health_pool_unreached"
+msgid "not reached by the web server"
+msgstr "não acessível pelo servidor web"
+
 msgctxt "health_helpers"
 msgid "helpers"
 msgstr "helpers"

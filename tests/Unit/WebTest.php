@@ -201,19 +201,26 @@ describe('The engine API for the sites of this machine', function () {
             ->not->toContain('{{', '[w4os-api]');
     });
 
-    test('both pools written by one function, into the pools of the newest PHP-FPM, only when they change', function () {
+    test('the site runs in a pool of its own too, as the web user, never the pool of the host', function () {
+        expect(Snippets::sitePool('www-data', 'www-data', 'magic'))
+            ->toContain('[w4os-site]', 'user = www-data', 'group = www-data', 'listen = /run/php/w4os-site.sock', 'listen.group = magic')
+            ->and(array_keys(PhpPools::texts(new \W4OS\Engine\Config\Layout(['SystemUser' => 'opensim']), 'magic')))
+            ->toBe(['w4os-api', 'w4os-helpers', 'w4os-site']);
+    });
+
+    test('the pools written by one function, into the pools of the newest PHP-FPM, only when they change', function () {
         $etc = sys_get_temp_dir() . '/pools-' . getmypid();
         mkdir("$etc/8.2/fpm/pool.d", 0o755, true);
         mkdir("$etc/8.4/fpm/pool.d", 0o755, true);
         file_put_contents("$etc/8.4/fpm/pool.d/www.conf", "[www]\nuser = www-data\ngroup = magic\nlisten = /run/php/php8.4-fpm.sock\n");
-        $texts = ['w4os-api' => Snippets::pool('opensim', 'caddy'), 'w4os-helpers' => Snippets::helpersPool('www-data', 'www-data', 'caddy')];
+        $texts = ['w4os-api' => Snippets::pool('opensim', 'caddy'), 'w4os-helpers' => Snippets::helpersPool('www-data', 'www-data', 'caddy'), 'w4os-site' => Snippets::sitePool('www-data', 'www-data', 'caddy')];
 
         $folder = PhpPools::folder($etc);
         $first = PhpPools::write($folder, $texts);
         $again = PhpPools::write($folder, $texts);
 
         expect($folder)->toBe("$etc/8.4/fpm/pool.d")
-            ->and($first)->toBe(["$folder/w4os-api.conf", "$folder/w4os-helpers.conf"])
+            ->and($first)->toBe(["$folder/w4os-api.conf", "$folder/w4os-helpers.conf", "$folder/w4os-site.conf"])
             ->and($again)->toBe([])
             ->and(PhpPools::installed('w4os-helpers', $etc))->toBeTrue()
             ->and(PhpPools::listenGroup("$folder/w4os-api.conf"))->toBe('caddy')

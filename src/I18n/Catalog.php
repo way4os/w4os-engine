@@ -931,6 +931,8 @@ final class Catalog
         'health_ok' => 'OK',
         'health_readable' => 'readable',
         'health_not_readable' => 'not readable',
+        'health_pool_reached' => 'reached by the web server',
+        'health_pool_unreached' => 'not reached by the web server',
         'health_helpers' => 'helpers',
         'health_site' => 'site',
         'health_helpers_signed_out' => 'helpers, signed out',

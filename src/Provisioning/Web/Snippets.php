@@ -108,6 +108,19 @@ final class Snippets
         ));
     }
 
+    /** Where the Quick Start website of this machine is reached (sitePool()). */
+    public const SITE_SOCKET = '/run/php/w4os-site.sock';
+
+    /** The PHP-FPM pool of the Quick Start website, as the web user whose files it are: the PHP and the account of the host stay out of it. */
+    public static function sitePool(string $webUser, string $webGroup, string $listenGroup = 'www-data'): string
+    {
+        return self::poolText('w4os-site', $webUser, $webGroup, $listenGroup, self::SITE_SOCKET, sprintf(
+            'The Quick Start website of this machine, run as %s of the group %s, whose files it are, whatever the web server runs as.',
+            $webUser,
+            $webGroup,
+        ));
+    }
+
     /** A pool of the suite: its name, the account it runs as, the group of the web server that reaches its socket. */
     private static function poolText(string $name, string $user, string $group, string $listenGroup, string $socket, string $about): string
     {

@@ -7,8 +7,9 @@ namespace W4OS\Engine\Provisioning\Web;
 use W4OS\Engine\Config\Layout;
 
 /**
- * The PHP-FPM pools of the suite on this machine: the engine API, as the user of the instances, and the helpers, as the web user
- * and its group (Snippets::pool(), Snippets::helpersPool()), in the pools of the newest PHP-FPM, written only when they change.
+ * The PHP-FPM pools of the suite on this machine: the engine API, as the user of the instances, the helpers and the website, as
+ * the web user and its group (Snippets::pool(), helpersPool(), sitePool()), in the pools of the newest PHP-FPM, each written only
+ * when it changes.
  */
 final class PhpPools
 {
@@ -52,6 +53,7 @@ final class PhpPools
         return [
             'w4os-api' => Snippets::pool($layout->systemUser() ?: 'opensim', $listenGroup),
             'w4os-helpers' => Snippets::helpersPool($layout->webUser(), $layout->webGroup(), $listenGroup),
+            'w4os-site' => Snippets::sitePool($layout->webUser(), $layout->webGroup(), $listenGroup),
         ];
     }
 

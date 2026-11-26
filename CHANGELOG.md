@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (web): the website in a PHP-FPM pool of its own as the web user, from the one writer; a diagnostics row per pool
 - fix (web): the upgrade restarts PHP-FPM when it writes a pool, a reload keeping the sockets of before
 - fix (layout): a folder its account owns is walked when it holds what another account owns (moved in by a migration)
 - fix (i18n): the other link to add a grid says what it is, secondlife:// link, in every language
