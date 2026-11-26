@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (setup): a new simulator of a grid takes the database account of its grid; a region from an OAR takes its size
 - fix (web): a page that cannot read a file of its grid says so, never dies on STDIN or STDERR under PHP-FPM
 - new (setup): the review lists the options set without a question (Hypergrid, Helpers, OSSL, Gloebit), on or off, changed there
 - new (diagnostics): a file the process cannot read names the account it runs as and its groups

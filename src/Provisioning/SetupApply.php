@@ -74,6 +74,31 @@ final class SetupApply
         foreach ($data['simulators'] ?? [] as $i => $simulator) {
             trim((string) ($simulator['name'] ?? '')) !== '' && $grid->simulator((string) $simulator['name']) !== null && ($existing[] = $i);
         }
+        // A region loaded from an archive takes the size the archive says (size_in_meters of archive.xml), unless the file gives one
+        foreach ($data['simulators'] ?? [] as $i => $simulator) {
+            foreach ((array) ($simulator['regions'] ?? []) as $j => $region) {
+                if (trim((string) ($region['oar'] ?? '')) === '' || trim((string) ($region['size'] ?? '')) !== '') {
+                    continue;
+                }
+                try {
+                    $size = \W4OS\Engine\Archives\Oar::info((string) $region['oar'])['size'] ?? null;
+                } catch (\RuntimeException) {
+                    $size = null;
+                }
+                is_array($size) && ($data['simulators'][$i]['regions'][$j]['size'] = max($size));
+            }
+        }
+        // A new simulator takes the database account of its grid, the one its configs hold, unless the file names another
+        foreach ($data['simulators'] ?? [] as $i => $simulator) {
+            if (in_array($i, $existing, true) || $grid->databaseUser() === '') {
+                continue;
+            }
+            foreach (['host' => $grid->databaseHost(), 'user' => $grid->databaseUser(), 'password' => $grid->databasePassword()] as $key => $value) {
+                if (trim((string) ($simulator['database'][$key] ?? '')) === '' && trim((string) ($data['grid']['database'][$key] ?? '')) === '' && $value !== '') {
+                    $data['simulators'][$i]['database'][$key] = $value;
+                }
+            }
+        }
         $steps = [];
         $problems = [];
         $admins = [];

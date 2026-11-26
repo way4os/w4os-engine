@@ -72,6 +72,20 @@ describe('A setup file applied', function () {
             ->toBe([]);
     });
 
+    test('gives a new simulator the database account of its grid when the file names none', function () {
+        $machine = new Machine();
+        // The account of the grid, in its Robust config as a grid made by the setup has it
+        file_put_contents("{$machine->grid}/Robust.HG.ini", "\n[DatabaseService]\n    StorageProvider = \"OpenSim.Data.MySQL.dll\"\n    ConnectionString = \"Data Source=localhost;Database=demo;User ID=demo_user;Password=demo-secret;Old Guids=true;\"\n", FILE_APPEND);
+        $file = setup_apply_file();
+        unset($file['simulators'][0]['database']);
+        $grid = \W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $plan = SetupApply::prepare($machine->environment, $file)->document();
+
+        expect($grid->databaseUser())->toBe('demo_user')
+            ->and($plan['problems'])->toBe([])
+            ->and($plan['steps'][0]['database'])->toMatchArray(['host' => $grid->databaseHost(), 'user' => $grid->databaseUser(), 'name' => 'demo_north']);
+    });
+
     test('gives a simulator whose owner it names an estate of that owner, unless it names the estate', function () {
         $machine = new Machine();
         $file = static fn(array $estate): array => [
@@ -125,6 +139,20 @@ describe('A setup file applied', function () {
             ->and($setup->steps[0]['plan']->estateOwner)->toBe('Bob Root')
             ->and(file_get_contents($region['file']))
             ->toContain('[Old Garden]', 'RegionUUID = 11111111-2222-3333-4444-555555555555', 'Location = 1300,1300', 'SizeX = 512');
+    });
+
+    test('gives a region loaded from an archive the size the archive says, unless the file gives one', function () {
+        $machine = new Machine();
+        $dir = test_tmp() . '/big-oar-' . bin2hex(random_bytes(4));
+        mkdir("$dir/objects", 0o755, true);
+        file_put_contents("$dir/archive.xml", '<?xml version="1.0"?><archive major_version="0" minor_version="8"><region_info><size_in_meters>512,512</size_in_meters></region_info></archive>');
+        \W4OS\Engine\Archives\Oar::pack($dir, "$dir.oar");
+        $read = SetupApply::prepare($machine->environment, setup_apply_file(['oar' => "$dir.oar", 'size' => null]))->document();
+        $given = SetupApply::prepare($machine->environment, setup_apply_file(['oar' => "$dir.oar", 'size' => 256]))->document();
+
+        expect($read['problems'])->toBe([])
+            ->and($read['steps'][0]['region']['size'])->toBe(512)
+            ->and($given['steps'][0]['region']['size'])->toBe(256);
     });
 
     test('loads a region with its archive once it runs, or makes the database of a new simulator from a dump, never both', function () {
