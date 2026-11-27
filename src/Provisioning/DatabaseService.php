@@ -157,6 +157,12 @@ final class DatabaseService
 
             return self::RETRY;
         }
+        // The user of a grid makes the databases named after it by itself (its grant): no administrator for a simulator added
+        if ($this->run($plan, null, "CREATE DATABASE `{$plan->dbName}` CHARACTER SET utf8")[0] === 0 && $this->run($plan, $plan->dbName)[0] === 0) {
+            $this->ui->note(sprintf(_('Database %s made on %s by its user %s.'), $plan->dbName, $plan->dbHost, $plan->dbUser));
+
+            return self::OK;
+        }
 
         return $this->database($plan);
     }
