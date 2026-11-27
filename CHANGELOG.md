@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (start): an instance runs in a session of its own, without a terminal: none is kept after the command that started it
 - change (setup): the question of the line of Apache names the modules it enables; asked again when the review changes the website
 - fix (grid): the host of a config with a BaseURL alone is its host, not localhost
 - fix (setup): a migration keeps the website of its review; a rerun says the website as it stands

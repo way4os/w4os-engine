@@ -7,12 +7,21 @@ namespace W4OS\Engine\Runtime;
 use W4OS\Engine\Console\ScreenConsole;
 
 /**
- * Starts the instances on this machine: detached (nohup) when they have a remote console, in a screen session otherwise.
+ * Starts the instances on this machine: detached (nohup) when they have a remote console, in a screen session otherwise; either way
+ * in a session of their own, without a terminal (setsid, their input /dev/null): a terminal they kept (the one of the command that
+ * started them, or the one sudo gives it with use_pty) would never be given back.
  */
 final class SystemLauncher implements LauncherInterface
 {
+    private static ?string $setsid = null;
+
     public function launch(LaunchSpec $spec): bool
     {
+        if (self::$setsid === null) {
+            $found = [];
+            exec('command -v setsid 2>/dev/null', $found);
+            self::$setsid = $found !== [] ? 'setsid ' : '';
+        }
         $command = implode(' ', array_map('escapeshellarg', $spec->command));
         if ($spec->environment !== []) {
             $command =
@@ -37,10 +46,10 @@ final class SystemLauncher implements LauncherInterface
         $spec->output === '' || $script .= ': >' . $output . ' || exit 1; ';
         if ($spec->screen) {
             // The output of the session is kept, so that an early crash can be reported
-            $script .= 'screen -L -Logfile ' . $output . ' -S ' . escapeshellarg($spec->name) . ' -d -m ' . $command;
+            $script .= self::$setsid . 'screen -L -Logfile ' . $output . ' -S ' . escapeshellarg($spec->name) . ' -d -m ' . $command . ' </dev/null';
         } else {
             // No terminal session: the output goes to a file, the console is the remote one
-            $script .= '(nohup ' . $command . ' >' . $output . ' 2>&1 &)';
+            $script .= '(' . self::$setsid . 'nohup ' . $command . ' >' . $output . ' 2>&1 </dev/null &)';
         }
         exec($script . ' >/dev/null 2>&1', $lines, $code);
         if ($spec->screen && $code === 0) {
