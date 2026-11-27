@@ -117,7 +117,12 @@ final class StartService
         // Dead sessions are dropped so that they are not mistaken for a running one
         $env->consoles->wipeSessions();
         if ($instance->isRunning()) {
-            $env->reporter->debug("$name is already running");
+            // Said, never left to a debug line: a start that does not start it is told, and why when it is not the service's
+            $owner = $instance->process()?->user ?? '';
+            $system = $env->layout->systemUser();
+            $env->reporter->info($owner !== '' && $system !== '' && $owner !== $system
+                ? "$name runs already, as $owner, not as $system: the service cannot stop it (sudo opensim stop $name, then opensim start $name)"
+                : "$name runs already");
 
             return Outcome::Running;
         }

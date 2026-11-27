@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (start): root never runs an instance in place of its account; one running already is said, and as whom
+- fix (stop): an instance not running said at once; one another account runs said at once, never waited for
 - fix (start): an instance runs in a session of its own, without a terminal: none is kept after the command that started it
 - change (setup): the question of the line of Apache names the modules it enables; asked again when the review changes the website
 - fix (grid): the host of a config with a BaseURL alone is its host, not localhost

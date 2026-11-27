@@ -67,6 +67,14 @@ final class SystemProcessTable implements ProcessTableInterface
         return trim((string) @shell_exec('ps -p ' . $pid . ' -o pid= 2>/dev/null')) !== '';
     }
 
+    public function controls(int $pid): bool
+    {
+        // Signal 0: nothing sent, only whether it may be (EPERM: another account's)
+        exec('kill -0 ' . $pid . ' 2>&1', $output, $code);
+
+        return $code === 0 || !str_contains(strtolower(implode(' ', $output)), 'not permitted');
+    }
+
     public function signal(int $pid, string $signal): bool
     {
         exec('kill -' . escapeshellarg($signal) . ' ' . $pid . ' 2>/dev/null', $output, $code);

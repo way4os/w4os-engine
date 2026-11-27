@@ -15,6 +15,19 @@ final class SystemLauncher implements LauncherInterface
 {
     private static ?string $setsid = null;
 
+    /** @param string $user the account the instances run as (SystemUser): root never runs one in its place */
+    public function __construct(private readonly string $user = '') {}
+
+    /** The account this process runs as. */
+    public static function account(): string
+    {
+        if (function_exists('posix_geteuid') && function_exists('posix_getpwuid')) {
+            return (string) (posix_getpwuid(posix_geteuid())['name'] ?? '');
+        }
+
+        return trim((string) @shell_exec('id -un 2>/dev/null'));
+    }
+
     public function launch(LaunchSpec $spec): bool
     {
         if (self::$setsid === null) {
@@ -50,6 +63,11 @@ final class SystemLauncher implements LauncherInterface
         } else {
             // No terminal session: the output goes to a file, the console is the remote one
             $script .= '(' . self::$setsid . 'nohup ' . $command . ' >' . $output . ' 2>&1 </dev/null &)';
+        }
+        // Run by root for another account (a setup, a migration as root without the launch master): the instance is that account's,
+        // its files and its screen session too, never root's (the service, as that account, could neither stop nor reach it)
+        if ($this->user !== '' && $this->user !== 'root' && self::account() === 'root') {
+            $script = 'runuser -u ' . escapeshellarg($this->user) . ' -- sh -c ' . escapeshellarg($script);
         }
         exec($script . ' >/dev/null 2>&1', $lines, $code);
         if ($spec->screen && $code === 0) {

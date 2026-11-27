@@ -22,6 +22,9 @@ interface ProcessTableInterface
     /** Send a signal (TERM, KILL) to a process. */
     public function signal(int $pid, string $signal): bool;
 
+    /** Whether this process may signal it (another account's is not, unless this one is root). */
+    public function controls(int $pid): bool;
+
     /**
      * The ports bound on the machine: a TCP socket that listens, a UDP socket.
      *

@@ -27,6 +27,9 @@ final class ProcessTableFake implements ProcessTableInterface
     /** @var list<string> the signals that make a process go: the others are ignored by it */
     public array $obeys = ['TERM', 'KILL'];
 
+    /** @var list<int> the processes of another account, this one may not signal */
+    public array $foreign = [];
+
     /** @var list<int> the ports bound on the machine */
     public array $listening = [];
 
@@ -63,6 +66,11 @@ final class ProcessTableFake implements ProcessTableInterface
     public function listening(): array
     {
         return $this->listening;
+    }
+
+    public function controls(int $pid): bool
+    {
+        return !in_array($pid, $this->foreign, true);
     }
 
     public function signal(int $pid, string $signal): bool

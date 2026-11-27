@@ -511,11 +511,46 @@ describe('Stopping a simulator', function () {
             ->toContain('alpha still running after 120s, forcing it', 'alpha stopped (forced)');
     });
 
-    test('is a result of its own when it does not run', function () {
+    test('is a result of its own when it does not run, said in a word, at once', function () {
         $machine = new Machine();
 
         expect(Grid::find($machine->environment, 'demo')->simulator('alpha')->stop(true))
             ->toBe(Outcome::NotRunning)
+            ->and($machine->consoles->console('alpha')->sent)
+            ->toBe([])
+            ->and($machine->reporter->info)
+            ->toContain('alpha not running')
+            ->and($machine->clock->slept)
+            ->toBe([]);
+    });
+
+    test('that runs already is said by its start, with the account it runs as when it is not the one of the instances', function () {
+        $machine = new Machine();
+        $machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini', 'root');
+        // The install's instances run as opensim (SystemUser): one root started is not the service's
+        $environment = new W4OS\Engine\Runtime\Environment(
+            new W4OS\Engine\Config\Layout(['EtcRoot' => $machine->etc, 'CoreRoot' => $machine->root . '/core', 'SystemUser' => 'opensim']),
+            $machine->processes,
+            $machine->launcher,
+            $machine->consoles,
+            $machine->clock,
+            $machine->reporter,
+        );
+
+        expect(Grid::find($environment, 'demo')->simulator('alpha')->start())
+            ->toBe(Outcome::Running)
+            ->and($machine->reporter->info)
+            ->toContain('alpha runs already, as root, not as opensim: the service cannot stop it (sudo opensim stop alpha, then opensim start alpha)');
+    });
+
+    test('run by an account this one cannot stop is said at once, never waited for nor forced', function () {
+        $machine = new Machine();
+        $machine->processes->foreign = [$machine->processes->add('dotnet OpenSim.dll -inifile=' . $machine->etc . '/opensim.d/alpha.ini')->pid];
+
+        expect(fn() => Grid::find($machine->environment, 'demo')->simulator('alpha')->stop(true))
+            ->toThrow(InstanceFailed::class, 'an account this one cannot stop: sudo opensim stop alpha')
+            ->and($machine->processes->signals)
+            ->toBe([])
             ->and($machine->consoles->console('alpha')->sent)
             ->toBe([]);
     });

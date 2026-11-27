@@ -36,12 +36,22 @@ final class StopService
         $name = $instance->name();
         $console = $instance->console();
         $running = $instance->isRunning();
+        $process = $instance->process();
+        // Not running: said in a word, at once, never a wait nor a failure
+        if (!$running && $process === null) {
+            $env->reporter->info("$name not running");
+
+            return Outcome::NotRunning;
+        }
+        // Running as an account this one cannot stop (root's, when this is the service's): said at once, never waited for
+        if ($process !== null && !$env->processes->controls($process->pid)) {
+            throw new InstanceFailed($name, "$name runs as {$process->user}, an account this one cannot stop: sudo opensim stop $name");
+        }
 
         // Only a running simulator has users to warn
         if ($instance instanceof OpenSimController && $running && $instance->executableBase() === 'OpenSim') {
             $this->warn($instance, $now ? 0 : self::DELAY);
         }
-        $process = $instance->process();
         $env->reporter->debug("shutting down $name");
         if ($running) {
             $console->send('shutdown');
