@@ -973,8 +973,8 @@ final class QuickSetup
             'action' => 'screen',
             'kind' => 'form',
             'name' => 'db-admin',
-            'title' => _('Database'),
-            'text' => _('DB admin user for databases and users management'),
+            'title' => _('DB admin user for databases and users management'),
+            'text' => '',
             'notice' => $notice,
             'fields' => [
                 ['name' => 'admin_user', 'label' => _('User'), 'value' => (string) $answers['admin_user'], 'secret' => false],
@@ -1471,9 +1471,12 @@ final class QuickSetup
         $row($database, _('Server'), $sqlite ? 'SQLite' : "{$plan->dbHost} (MariaDB)", $sqlite ? null : 'database_host', $plan->dbHost);
         $names = array_values(array_unique(array_filter([$standalone ? '' : $plan->dbName, $simulator->databasePlan()->dbName])));
         $sqlite || $row($database, _('Databases'), implode(', ', $names));
+        // The database user and its password as a name and a value each, the password masked until asked; the DB admin user
         if (!$sqlite) {
-            $kept = ($answers['database_password_source'] ?? '') === 'environment' ? sprintf(_('password kept in %s'), '~/.opensimrc') : _('password made at random');
-            $row($database, _('Account'), "{$plan->dbUser} ($kept)", 'database_user', $plan->dbUser);
+            $row($database, _('User'), $plan->dbUser, 'database_user', $plan->dbUser);
+            $row($database, _('Password'), Result::isTrue($answers['show_passwords'] ?? false) ? $plan->dbPass : '********');
+            $admin = (string) ($answers['admin_user'] ?? (getenv('OPENSIM_DB_ADMIN_USER') ?: ''));
+            $admin === '' || $row($database, _('DB admin user'), $admin);
         }
 
         return $rows;

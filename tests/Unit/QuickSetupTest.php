@@ -1703,7 +1703,7 @@ describe('quick setup, the database users', function () {
         $manages = true;
         $form = quick_step($machine, $step, []);
 
-        expect($admin)->toMatchArray(['kind' => 'form', 'name' => 'db-admin', 'title' => 'Database', 'text' => 'DB admin user for databases and users management'])
+        expect($admin)->toMatchArray(['kind' => 'form', 'name' => 'db-admin', 'title' => 'DB admin user for databases and users management', 'text' => ''])
             ->and(array_column($admin['fields'], 'label', 'name'))->toBe(['admin_user' => 'User', 'admin_password' => 'Password'])
             ->and(array_column($admin['fields'], 'secret', 'name'))->toBe(['admin_user' => false, 'admin_password' => true])
             ->and($values['admin_user'])->toBe('opensim_admin')
