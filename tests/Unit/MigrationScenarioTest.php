@@ -100,6 +100,25 @@ describe('The scenario of an install of before the kit', function () {
             ->and($step['message'])->toContain('Website    https://w4os.org/opensim/', 'Old install  ');
     });
 
+    test('keeps the steps it started with, the instances it stops being stopped by then', function () {
+        $calls = [];
+        $doubles = migration_doubles($calls);
+        QuickSetup::through($doubles);
+        $machine = new Machine();
+        $legacy = ($doubles['legacy'])();
+        $questions = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['existing' => 'migrate']);
+        $step = migration_step($machine, migration_step($machine, $questions, []));
+        $names = [];
+        while (($step['action'] ?? '') === 'step') {
+            $names[] = $step['step']['name'];
+            // The old instances stopped once their step is done: their processes gone
+            $step['step']['name'] === 'stop-old-instances' && exec('rm -rf ' . escapeshellarg(dirname($legacy->root, 2) . '/proc'));
+            $step = migration_step($machine, $step);
+        }
+
+        expect($names)->toBe(['set-aside-starters', 'stop-old-instances', 'import-apply', 'give-ownership', 'install-packages', 'install-website', 'switch']);
+    });
+
     test('gives the choice after a step that failed: retry, skip when the run goes on without it, abort with what stands', function () {
         $calls = [];
         QuickSetup::through(migration_doubles($calls));

@@ -92,6 +92,12 @@ final class MigrationScenario
                     return self::review($legacy, self::planned($legacy, $answers), $answers, self::problem($legacy, $answers));
                 }
 
+                // The steps of the run fixed at its start: what they act on changes as they go (the instances stopped)
+                $plan = self::planned($legacy, $answers);
+                $answers['run'] = self::steps($legacy, $answers, $plan);
+                // What the summary says, from the plan of before the run (the grid is here after it, its plan refused then)
+                $answers['facts'] = array_intersect_key($plan, array_flip(['grid', 'name', 'login', 'site']));
+
                 return self::step($legacy, $answers, 0);
             case self::PREFIX . '-run':
                 return self::run($environment, $legacy, $answers, $button, $request);
@@ -203,10 +209,9 @@ final class MigrationScenario
     /** The k-th step for the client, numbered among the names of the run ("[3/8] Config"), or the summary once there is none left. */
     private static function step(LegacyInstall $legacy, array $answers, int $k, string $notice = ''): array
     {
-        $plan = self::planned($legacy, $answers);
-        $steps = self::steps($legacy, $answers, $plan);
+        $steps = $answers['run'] ?? self::steps($legacy, $answers, self::planned($legacy, $answers));
         if ($k >= count($steps)) {
-            return ['action' => 'quit', 'message' => self::summary($legacy, $plan, $answers)];
+            return ['action' => 'quit', 'message' => self::summary($legacy, $answers['facts'] ?? self::planned($legacy, $answers), $answers)];
         }
         $labels = array_values(array_unique([...array_map(static fn(array $s): string => $s['label'], $steps)]));
         // Backup and Data are the engine's own steps inside Config: named on its live line, numbered here
@@ -227,12 +232,12 @@ final class MigrationScenario
     private static function run(Environment $environment, LegacyInstall $legacy, array $answers, string $button, array $request): array
     {
         $k = (int) ($answers['k'] ?? 0);
-        $plan = self::planned($legacy, $answers);
-        $steps = self::steps($legacy, $answers, $plan);
+        $steps = $answers['run'] ?? [];
         $step = $steps[$k] ?? null;
         if ($step === null) {
-            return ['action' => 'quit', 'message' => self::summary($legacy, $plan, $answers)];
+            return ['action' => 'quit', 'message' => self::summary($legacy, $answers['facts'] ?? self::planned($legacy, $answers), $answers)];
         }
+        $plan = [];
         $choice = (string) ($request['answers']['error'] ?? '');
         if ($choice === 'abort') {
             return ['action' => 'abort', 'error' => self::stopped($k, $steps)];
@@ -370,8 +375,7 @@ final class MigrationScenario
             $sizes[] = $data + ['place' => basename((string) $data['from']), 'size' => self::size((string) $data['from'])];
         }
 
-        return $document + [
-            'data' => $sizes,
+        return ['data' => $sizes] + $document + [
             'login' => $import->plan->baseHostname . ':' . $import->plan->publicPort,
             'maptiles' => MapRenderer::package($import->plan->binDir !== '' ? dirname($import->plan->binDir) : '') ?? '',
             // A name made ASCII for the viewers: asked, the one proposed being the ASCII one
