@@ -311,6 +311,8 @@ final class GridImport
             // The options its simulators load without what they ask, left off
             'aside' => $this->aside,
             'dropped' => array_map(SimulatorImport::masked(...), $this->dropped),
+            // The OSSL permissions of its first simulator carried into the grid, the functions OpenSimulator no longer has left out
+            'ossl' => ['kept' => $this->ossl()?->kept() ?? [], 'dropped' => $this->ossl()?->dropped() ?? []],
             'report' => $this->reportPath(),
             'backup' => $this->backup?->document(),
             'simulators' => $simulators,
@@ -391,6 +393,9 @@ final class GridImport
                     $settings->apply();
                     array_push($this->settingsNotes, ...$settings->document()['notes']);
                 }
+                // Its OSSL permissions (its first simulator's), in the grid's osslEnable.ini, [XEngine] read as [OSSL]
+                $step(_('Config: the OSSL permissions'));
+                $this->ossl()?->apply();
                 (new \W4OS\Engine\Provisioning\GridOptions(Grid::find($environment, $plan->gridNick) ?? throw new \RuntimeException("the grid {$plan->gridNick} was not written")))->repair(true);
                 // The master its simulators read made again with them
                 \W4OS\Engine\Provisioning\SimulatorMaster::exists($plan->gridDir) && (new \W4OS\Engine\Provisioning\SimulatorMaster($environment))->ensure($plan->gridDir, $plan->binDir);
@@ -631,6 +636,10 @@ final class GridImport
                 $lines[] = "  $said";
             }
         }
+        if (($ossl = $this->ossl()?->report() ?? '') !== '') {
+            $lines[] = '';
+            $lines[] = rtrim($ossl);
+        }
         if ($this->settingsNotes !== []) {
             $lines[] = '';
             $lines[] = 'The settings of its simulators brought into the grid:';
@@ -647,6 +656,16 @@ final class GridImport
 
         return implode("\n", $lines) . "\n";
     }
+
+    /** The OSSL permissions of its first simulator (OsslImport), null without a simulator. */
+    private function ossl(): ?OsslImport
+    {
+        $first = $this->simulators !== null ? (array_values($this->simulators->imports)[0] ?? null) : null;
+
+        return $first === null ? null : ($this->osslImport ??= new OsslImport($first->source, $this->plan->gridDir, $this->plan->binDir));
+    }
+
+    private ?OsslImport $osslImport = null;
 
     private function reportPath(): string
     {

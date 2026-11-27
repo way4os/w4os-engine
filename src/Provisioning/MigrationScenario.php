@@ -164,6 +164,8 @@ final class MigrationScenario
         foreach ($plan['dropped'] ?? [] as $dropped) {
             ($dropped['reason'] ?? '') === 'corrected' && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => (string) $dropped['key'], 'value' => sprintf(_('%s → the value the kit needs'), $dropped['value'])]);
         }
+        $ossl = $plan['ossl'] ?? ['kept' => [], 'dropped' => []];
+        ($ossl['kept'] !== [] || $ossl['dropped'] !== []) && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => _('OSSL permissions'), 'value' => sprintf(_('%d kept, [XEngine] read as [OSSL]'), count($ossl['kept'])) . ($ossl['dropped'] === [] ? '' : '; ' . sprintf(_('left out: %s'), implode(', ', $ossl['dropped'])))]);
         ($plan['maptiles'] ?? '') !== '' && ($rows[] = ['section' => _('Options'), 'label' => _('3D map'), 'value' => $onOff[Result::isTrue($answers['maptiles'] ?? 'yes') ? 'yes' : 'no'], 'name' => 'maptiles', 'current' => Result::isTrue($answers['maptiles'] ?? 'yes') ? 'yes' : 'no', 'options' => $onOff]);
         $legacy->running() !== [] && ($rows[] = ['section' => _('Old install'), 'label' => _('Instances'), 'value' => _('stopped, their start at boot set aside')]);
         $rows[] = ['section' => _('Old install'), 'label' => _('Folder'), 'value' => sprintf(_('%s, kept'), $legacy->root)];
