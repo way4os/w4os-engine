@@ -19,7 +19,7 @@ final class OsslImport
     private const KEYS = '/^(Allow_os\w+|Allow_\w+|ossl\w+|OSFunctionThreatLevel|AllowOSFunctions|AllowMODFunctions|AllowLightShareFunctions|PermissionErrorToOwner)$/i';
 
     /** The line of the grid's osslEnable.ini below which the local changes go. */
-    private const MARKER = '/^\s*;\s*add lines .*below this/m';
+    private const MARKER = '/^\s*;\s*add lines .*below this.*$/m';
 
     /** @var ?array{kept:array<string,string>,dropped:list<string>} */
     private ?array $plan = null;
@@ -76,8 +76,9 @@ final class OsslImport
             return;
         }
         $block = "    ; the OSSL permissions of the old install (opensim import)\n" . implode("\n", $lines) . "\n";
+        // After the whole line of the marker, never inside it (what follows on it would be a line Nini refuses)
         $text = preg_match(self::MARKER, $text, $m, PREG_OFFSET_CAPTURE) === 1
-            ? substr($text, 0, $m[0][1] + strlen($m[0][0])) . "\n" . $block . substr($text, $m[0][1] + strlen($m[0][0]) + 1)
+            ? substr($text, 0, $m[0][1] + strlen($m[0][0])) . "\n" . $block . ltrim(substr($text, $m[0][1] + strlen($m[0][0])), "\n")
             : rtrim($text) . "\n" . $block;
         file_put_contents($file, $text);
     }
@@ -112,7 +113,7 @@ final class OsslImport
         $kept = [];
         $dropped = [];
         foreach ($old as $key => $value) {
-            if (str_starts_with(strtolower($key), 'allow_') && !array_key_exists(strtolower($key), $known)) {
+            if (str_starts_with(strtolower($key), 'allow_') && !array_key_exists(strtolower($key), $known) && !$this->inCore(substr($key, 6))) {
                 $dropped[] = $key;
             } elseif (($grid[strtolower($key)] ?? null) !== $value) {
                 $kept[$key] = $value;
@@ -121,6 +122,16 @@ final class OsslImport
 
         return $this->plan = ['kept' => $kept, 'dropped' => $dropped];
     }
+
+    /** Whether the core has a function, by its name in its script API (one the files of the core do not list). */
+    private function inCore(string $function): bool
+    {
+        $this->api ??= (string) @file_get_contents("$this->binDir/OpenSim.Region.ScriptEngine.Shared.Api.dll");
+
+        return $function !== '' && str_contains($this->api, "\0$function\0");
+    }
+
+    private ?string $api = null;
 
     /** A value as the grid compares and writes it: quotes taken off, the macros of [XEngine] made the ones of [OSSL]. */
     private static function value(string $value): string

@@ -400,7 +400,12 @@ final class GridImport
                 // The master its simulators read made again with them
                 \W4OS\Engine\Provisioning\SimulatorMaster::exists($plan->gridDir) && (new \W4OS\Engine\Provisioning\SimulatorMaster($environment))->ensure($plan->gridDir, $plan->binDir);
             }
-            $this->simulators?->apply($environment, $ui, $dump, static fn(int $i, int $n, string $slug) => $step(sprintf(_('Config: %s (%d/%d)'), $slug, $i, $n)));
+            // The databases of its simulators saved as an item of Config, where they are made (the live line never goes back to Backup)
+            $simulatorDump = static function (array $db, string $to) use ($inner, $step): void {
+                $step(sprintf(_('Config: backup of database %s'), $db['name']));
+                $inner($db, $to);
+            };
+            $this->simulators?->apply($environment, $ui, $simulatorDump, static fn(int $i, int $n, string $slug) => $step(sprintf(_('Config: %s (%d/%d)'), $slug, $i, $n)));
             $step(_('Config: checks'));
             // What this install added that the old config had not, said with what it is, in the report written again
             $this->added = $this->addedSettings($environment);

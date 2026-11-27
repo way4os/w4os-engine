@@ -373,6 +373,8 @@ final class MigrationScenario
         $site = trim((string) ($answers['website'] ?? ($plan['site'] ?? '')));
         $left = in_array('install-website', (array) ($answers['skipped'] ?? []), true);
         $lines = [
+            '✓ Done',
+            '',
             sprintf('Grid       %s (%s)', (string) ($answers['name'] ?? $plan['name']), $plan['grid']),
             sprintf('Login      http://%s', (string) ($plan['login'] ?? '')),
         ];

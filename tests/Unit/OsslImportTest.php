@@ -24,8 +24,11 @@ function ossl_fixture(): array
         '    Allow_osSetSunParam = ESTATE_MANAGER,ESTATE_OWNER',
         '    Allow_osGetGridName = true',
         '    Allow_osGoneLongAgo = true',
+        '    Allow_osUnixTimeToTimestamp = true',
         '',
     ]));
+    // A function the core has without a line in its files: in its API, by its name
+    file_put_contents("$base/core/bin/OpenSim.Region.ScriptEngine.Shared.Api.dll", "\0osUnixTimeToTimestamp\0osGetGridName\0");
     file_put_contents("$base/old/etc/Welcome.OpenSim.ini", "[Startup]\n    Include-osslEnable = \"$base/old/etc/osslEnable.ini\"\n");
     file_put_contents("$base/core/bin/config-include/osslDefaultEnable.ini", implode("\n", [
         '[OSSL]',
@@ -48,9 +51,10 @@ test('keeps the permissions the old install had, its [XEngine] read as [OSSL], t
     expect($import->kept())->toBe([
         'Allow_osAvatarPlayAnimation' => '${OSSL|osslParcelOG}ESTATE_MANAGER,ESTATE_OWNER',
         'Allow_osSetSunParam' => 'ESTATE_MANAGER,ESTATE_OWNER',
+        'Allow_osUnixTimeToTimestamp' => 'true',
     ])
         ->and($import->dropped())->toBe(['Allow_osGoneLongAgo'])
-        ->and($import->report())->toContain('2 OSSL permission(s) of the old install kept', '[XEngine] read as [OSSL]', 'Allow_osGoneLongAgo');
+        ->and($import->report())->toContain('3 OSSL permission(s) of the old install kept', '[XEngine] read as [OSSL]', 'Allow_osGoneLongAgo');
 });
 
 test('writes them below the line of the local changes of the grid, once', function () {
@@ -59,6 +63,11 @@ test('writes them below the line of the local changes of the grid, once', functi
     $import->apply();
     $text = (string) file_get_contents("$base/grid/config-include/osslEnable.ini");
 
-    expect(substr_count($text, 'Allow_osAvatarPlayAnimation = ${OSSL|osslParcelOG}ESTATE_MANAGER,ESTATE_OWNER'))->toBe(1)
+    // Every line a section, a key = value, a comment or nothing, as Nini reads it: the marker's line kept whole
+    $odd = array_filter(explode("\n", $text), static fn(string $line): bool => preg_match('/^\s*(\[.+\]|[^;=\s][^=]*=.*|;.*)?\s*$/', $line) !== 1);
+
+    expect($odd)->toBe([])
+        ->and($text)->toContain('; add lines with our region local changes, below this to replace the default on osslDefaultEnable.ini or code.')
+        ->and(substr_count($text, 'Allow_osAvatarPlayAnimation = ${OSSL|osslParcelOG}ESTATE_MANAGER,ESTATE_OWNER'))->toBe(1)
         ->and(strpos($text, 'Allow_osSetSunParam'))->toBeGreaterThan(strpos($text, 'below this'));
 });
