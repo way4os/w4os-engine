@@ -186,4 +186,66 @@ describe('The scenario of an install of before the kit', function () {
             ->and($done['message'])->toContain('Website    not installed (rerun to install it)')
             ->and($stopped['error'])->toContain('the grid is written here, not started');
     });
+
+    test('describes the answers a run without anybody takes, the defaults of this install filled', function () {
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls));
+        $machine = new Machine();
+        $keys = QuickSetup::next($machine->environment, ['existing' => true, 'keys' => true]);
+        $defaults = array_column($keys['keys'], 'default', 'name');
+
+        expect($keys['action'])->toBe('keys')
+            ->and(array_keys($defaults))->toBe(array_keys(MigrationScenario::KEYS))
+            ->and($defaults)->toMatchArray(['existing' => 'migrate', 'website' => 'https://demo.w4os.org/', 'name' => 'W4OS Demo Grid', 'vhosts' => 'no'])
+            ->and(array_column($keys['keys'], 'values', 'name')['maptiles'])->toBe(['yes', 'no']);
+    });
+
+    test('without anybody takes its answers at once, a default for each one missing, no line of Apache unless answered', function () {
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls) + ['vhosts' => static fn(string $site): ?array => ['/etc/apache2/sites-available/w4os.org-le-ssl.conf']]);
+        $machine = new Machine();
+        $step = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => ['website' => 'https://w4os.org/opensim/', 'maptiles' => false]]);
+        $names = [];
+        while (($step['action'] ?? '') === 'step') {
+            $names[] = $step['step']['name'];
+            $step = migration_step($machine, $step);
+        }
+        $answered = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => ['vhosts' => 'yes']]);
+        $lines = explode("\n", $step['message']);
+
+        expect($names)->toBe(['set-aside-starters', 'stop-old-instances', 'import-apply', 'give-ownership', 'switch'])
+            ->and(end($lines))->toBe('Website    not installed (no answer for vhosts)')
+            ->and($step['message'])->not->toContain('Admin')
+            ->and($answered['step']['name'])->toBe('set-aside-starters')
+            ->and(array_column(QuickSetup::decode($answered['state'])['answers']['run'], 'name'))->toContain('install-website');
+    });
+
+    test('without anybody refuses an answer it does not know or a value it does not take, nothing done', function () {
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls));
+        $machine = new Machine();
+        $unknown = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => ['websit' => 'https://w4os.org/']]);
+        $value = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => ['maptiles' => 'maybe']]);
+        $address = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => ['website' => 'not an address']]);
+
+        expect($unknown)->toBe(['action' => 'abort', 'code' => 2, 'error' => 'Unknown answer: websit (opensim setup --legacy --config-keys lists them).'])
+            ->and($value['error'])->toBe('maptiles: maybe is not one of yes, no.')
+            ->and($address['error'])->toBe('Not an address: not an address')
+            ->and(array_column($calls, 0))->not->toContain('apply', 'switch');
+    });
+
+    test('without anybody stops at a step that fails, in one line with its number and what stands', function () {
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls));
+        $machine = new Machine();
+        $step = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => []]);
+        while ($step['step']['name'] !== 'give-ownership') {
+            $step = migration_step($machine, $step);
+        }
+        $failed = migration_step($machine, $step, ['error_text' => 'chown: no such user'], 'failed');
+
+        expect($failed['action'])->toBe('abort')
+            ->and($failed['code'])->toBe(1)
+            ->and($failed['error'])->toBe('[5/8] Ownership: chown: no such user. Stopped: the grid is written here, not started; the old install is kept. A rerun goes on from here.');
+    });
 });

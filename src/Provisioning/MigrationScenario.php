@@ -33,6 +33,82 @@ final class MigrationScenario
     /** The files of the sites of Apache that serve a website, null beside another web server (null: w4os-site --vhosts). @var ?\Closure(string): ?list<string> */
     public static ?\Closure $vhosts = null;
 
+    /** The answers of a run without anybody, by name: what each takes, its default ('' when the plan gives it), what it is. */
+    public const KEYS = [
+        'existing' => ['values' => ['migrate', 'in-place', 'new'], 'default' => 'migrate', 'label' => 'What to do with the old install'],
+        'stop' => ['values' => ['yes', 'no'], 'default' => 'yes', 'label' => 'Stop the old instances (a migration needs it)'],
+        'name' => ['values' => 'text', 'default' => '', 'label' => 'Grid name, ASCII (the old one when it is)'],
+        'website' => ['values' => 'address', 'default' => '', 'label' => 'Website address (the old one); empty for none'],
+        'vhosts' => ['values' => ['yes', 'no'], 'default' => 'no', 'label' => 'Beside Apache, add the line of the website to its sites'],
+        'maptiles' => ['values' => ['yes', 'no'], 'default' => 'yes', 'label' => 'Install the 3D map of the core'],
+    ];
+
+    /**
+     * The answers a run without anybody takes, the defaults of this install filled when there is one.
+     *
+     * @return list<array{name:string,values:string|list<string>,default:string,label:string}>
+     */
+    public static function keys(?LegacyInstall $legacy): array
+    {
+        $plan = [];
+        try {
+            $legacy !== null && ($plan = self::planned($legacy, []));
+        } catch (\Throwable) {
+        }
+        $keys = [];
+        foreach (self::KEYS as $name => $key) {
+            $default = match ($name) {
+                'name' => (string) ($plan['name'] ?? ''),
+                'website' => (string) ($plan['site'] ?? ''),
+                default => $key['default'],
+            };
+            $keys[] = ['name' => $name, 'values' => $key['values'], 'default' => $default, 'label' => $key['label']];
+        }
+
+        return $keys;
+    }
+
+    /**
+     * The run without anybody: its answers checked (an unknown one, a value refused: nothing done), the default of each one missing (no
+     * line added to the sites of Apache without an answer), then its steps; a step that fails stops it.
+     *
+     * @param array<string,mixed> $given
+     * @return array<string,mixed>
+     */
+    public static function unattended(Environment $environment, LegacyInstall $legacy, array $given): array
+    {
+        $refused = static fn(string $error): array => ['action' => 'abort', 'code' => 2, 'error' => $error];
+        $answers = [];
+        foreach ($given as $name => $value) {
+            $key = self::KEYS[$name] ?? null;
+            if ($key === null) {
+                return $refused(sprintf(_('Unknown answer: %s (opensim setup --legacy --config-keys lists them).'), $name));
+            }
+            $value = is_bool($value) ? ($value ? 'yes' : 'no') : trim((string) $value);
+            if (is_array($key['values']) && !in_array($value, $key['values'], true)) {
+                return $refused(sprintf(_('%s: %s is not one of %s.'), $name, $value, implode(', ', $key['values'])));
+            }
+            $answers[$name] = $value;
+        }
+        $answers += ['vhosts' => 'no', 'stop' => 'yes'];
+        isset($given['vhosts']) || ($answers['unanswered'] = ['vhosts']);
+        $choice = (string) ($answers['existing'] ?? 'migrate');
+        if ($choice !== 'migrate') {
+            return $choice === 'in-place' ? ['action' => 'handoff', 'path' => 'in-place'] : $refused(_('A new grid beside it is made by its own setup (kickstart --new).'));
+        }
+        unset($answers['existing']);
+        $problem = self::problem($legacy, $answers);
+        if ($problem !== '') {
+            return $refused($problem);
+        }
+        $plan = self::planned($legacy, $answers);
+        $answers['unattended'] = true;
+        $answers['run'] = self::steps($legacy, $answers, $plan);
+        $answers['facts'] = array_intersect_key($plan, array_flip(['grid', 'name', 'login', 'site']));
+
+        return self::step($environment, $legacy, $answers, 0);
+    }
+
     /** The first screen: the install found, and what to do with it. */
     public static function first(LegacyInstall $legacy): array
     {
@@ -291,6 +367,13 @@ final class MigrationScenario
             return self::step($environment, $legacy, $answers, $k);
         }
         if ($failed !== '') {
+            // Nobody to choose: the run stops there, said in one line
+            if ($answers['unattended'] ?? false) {
+                $numbered = self::step($environment, $legacy, $answers, $k)['step'];
+
+                return ['action' => 'abort', 'code' => 1, 'error' => sprintf('[%d/%d] %s: %s. %s', $numbered['number'], $numbered['count'], $step['label'], rtrim(trim($failed), '.'), self::stopped($k, $steps))];
+            }
+
             return self::failure($answers, $step, $failed);
         }
 
@@ -398,11 +481,15 @@ final class MigrationScenario
             sprintf('Grid       %s (%s)', (string) ($answers['name'] ?? $plan['name']), $plan['grid']),
             sprintf('Login      http://%s', (string) ($plan['login'] ?? '')),
         ];
-        if ($site !== '') {
-            $lines[] = $left ? 'Website    not installed (rerun to install it)' : sprintf('Website    %s', rtrim($site, '/') . '/');
-            $left || ($lines[] = sprintf('Admin      %slogin', rtrim($site, '/') . '/') . ($owner === '' ? '' : " ($owner)"));
+        // Why the website is not there, said last (a script finds it there): skipped, its line of Apache not answered or refused
+        $why = $left ? 'rerun to install it' : ($site === '' ? '' : (in_array('vhosts', (array) ($answers['unanswered'] ?? []), true) && self::websiteLeft($site, $answers) !== '' ? 'no answer for vhosts' : self::websiteLeft($site, $answers)));
+        $why = (string) preg_replace('/^not installed: /', '', $why);
+        if ($site !== '' && $why === '') {
+            $lines[] = sprintf('Website    %s', rtrim($site, '/') . '/');
+            $lines[] = sprintf('Admin      %slogin', rtrim($site, '/') . '/') . ($owner === '' ? '' : " ($owner)");
         }
         $lines[] = sprintf('Old install  %s, stopped, kept', $legacy->root);
+        $why === '' || ($lines[] = "Website    not installed ($why)");
 
         return implode("\n", $lines);
     }

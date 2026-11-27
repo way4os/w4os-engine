@@ -414,8 +414,20 @@ final class QuickSetup
         $answers = $state['answers'];
         $given = is_array($request['answers'] ?? null) ? $request['answers'] : [];
         // An install of before the kit here, when the client asks (kickstart): its scenario first, the choice of what to do with it
-        if ($state['step'] === '' && Result::isTrue($request['existing'] ?? false) && ($legacy = (self::$legacy ?? Import\LegacyInstall::here(...))())->found()) {
-            return MigrationScenario::first($legacy);
+        if ($state['step'] === '' && Result::isTrue($request['existing'] ?? false)) {
+            $legacy = (self::$legacy ?? Import\LegacyInstall::here(...))();
+            // Its answers described, or given all at once (nobody there): the run without its screens
+            if (Result::isTrue($request['keys'] ?? false)) {
+                return ['action' => 'keys', 'keys' => MigrationScenario::keys($legacy->found() ? $legacy : null)];
+            }
+            if (Result::isTrue($request['unattended'] ?? false)) {
+                return $legacy->found()
+                    ? MigrationScenario::unattended($environment, $legacy, $given)
+                    : ['action' => 'abort', 'code' => 2, 'error' => sprintf(_('No install of before the kit in %s.'), $legacy->root)];
+            }
+            if ($legacy->found()) {
+                return MigrationScenario::first($legacy);
+            }
         }
         if (str_starts_with($state['step'], MigrationScenario::PREFIX)) {
             $next = MigrationScenario::advance($environment, $state['step'], $answers, $button, $given, $request, (self::$legacy ?? Import\LegacyInstall::here(...))());

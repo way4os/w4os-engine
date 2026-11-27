@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (setup): a migration without anybody: its answers at once, a default for each one missing, its keys described
 - change (setup): a migration's review folds its data in one line with their total; a corrected setting shows its new value
 - change (setup): the summary of a migration names the owner of its estates on the line of its admin
 - change (grid): the centre of a grid without one is its default region's place, else its first region's, else drawn and kept
