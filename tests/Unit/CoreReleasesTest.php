@@ -99,4 +99,17 @@ describe('The releases of OpenSimulator', function () {
             // Then the questions of the type as on any machine
             ->and($next['name'])->toBe('db-admin');
     });
+
+    test('come after the folders, made first when root sets up a machine no config of the install was written for', function () {
+        $machine = new Machine();
+        QuickSetup::through(['region' => ['root' => true]]);
+        try {
+            $step = QuickSetup::next($machine->environment, ['state' => QuickSetup::next($machine->environment, [])['state'], 'answers' => ['type' => 'grid']]);
+        } finally {
+            QuickSetup::through();
+        }
+
+        expect($step['action'])->toBe('step')
+            ->and($step['step'])->toMatchArray(['name' => 'give-ownership', 'root' => true, 'label' => 'Folders']);
+    });
 });

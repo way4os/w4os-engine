@@ -1249,6 +1249,17 @@ describe('quick setup, the scenario', function () {
             ->and($done['message'])->toContain('Website    ' . $grid?->siteAddress());
     });
 
+    test('leaves the website out, and says why, on a machine that has no w4os-site: no step that would fail', function () {
+        quick_doubles(['siteTool' => static fn(): bool => false]);
+        $machine = new Machine();
+        quick_core($machine);
+        $web = quick_until($machine, 'web');
+        $done = quick_step($machine, quick_step($machine, $web, ['site' => 'yes', 'site_path' => '/opensim']));
+
+        expect($done['action'])->toBe('quit')
+            ->and($done['message'])->toContain('Website    not installed (w4os-site is not installed here)');
+    });
+
     test('asks beside Apache the line of the website before the start, and leaves the website out without it', function () {
         quick_doubles(['vhosts' => static fn(string $site): ?array => ['/etc/apache2/sites-available/example.org-le-ssl.conf']]);
         $machine = new Machine();

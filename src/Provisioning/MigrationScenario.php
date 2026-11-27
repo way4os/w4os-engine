@@ -623,6 +623,9 @@ final class MigrationScenario
     /** Why the website is left out ('' when it is not): beside Apache, no site serving its host, or its line refused. */
     private static function websiteLeft(string $site, array $answers): string
     {
+        if ($site !== '' && !self::siteTool()) {
+            return _('not installed: w4os-site is not installed here');
+        }
         $files = $site === '' ? null : self::vhostFiles($site);
         if ($files === null) {
             return '';
@@ -688,6 +691,15 @@ final class MigrationScenario
         exec('w4os-site web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --vhosts 2>/dev/null', $out);
 
         return array_values(array_filter(array_map('trim', $out)));
+    }
+
+    /** Whether the Quick Start website can be installed here (null: the command w4os-site is there). @var ?\Closure(): bool */
+    public static ?\Closure $siteTool = null;
+
+    /** Whether w4os-site, which installs the website of a grid, is on this machine: an install from a clone has none. */
+    public static function siteTool(): bool
+    {
+        return (self::$siteTool ?? static fn(): bool => self::has('w4os-site'))();
     }
 
     private static function has(string $command): bool

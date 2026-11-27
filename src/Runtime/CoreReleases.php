@@ -17,7 +17,7 @@ final class CoreReleases
 
     /**
      * @param string $cache the folder the list and the archives are kept in
-     * @param ?\Closure(string):string $fetch the page of the releases, '' when it cannot be had (default: the site)
+     * @param ?\Closure(string):string $fetch the page of the releases, '' when it cannot be had (default: the site, by curl)
      * @param ?\Closure(string,string):bool $download an archive to a file (default: curl)
      */
     public function __construct(
@@ -92,7 +92,8 @@ final class CoreReleases
         if (is_file($kept) && time() - (int) filemtime($kept) < self::TTL) {
             return (string) file_get_contents($kept);
         }
-        $page = ($this->fetch ?? static fn(string $url): string => (string) @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 60]])))(self::URL . '/');
+        // The site may take half a minute to answer: tried again once
+        $page = ($this->fetch ?? static fn(string $url): string => ShellService::capture('curl -fsSL --retry 1 --max-time 90 ' . ShellService::arg($url))[1])(self::URL . '/');
         if ($page === '') {
             return is_file($kept) ? (string) file_get_contents($kept) : '';
         }

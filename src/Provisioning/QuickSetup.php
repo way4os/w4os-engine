@@ -601,7 +601,7 @@ final class QuickSetup
                     return self::screenAdmin($answers, _('Password: needed.'));
                 }
                 // The one of the environment, as it works: kept; any other made or checked as root, and kept for the commands
-                if ($answers['admin_user'] === getenv('OPENSIM_DB_ADMIN_USER') && $answers['admin_password'] === getenv('OPENSIM_DB_ADMIN_PASS') && self::manages($answers)) {
+                if ($answers['admin_user'] === getenv('OPENSIM_DB_ADMIN_USER') && $answers['admin_password'] === getenv('OPENSIM_DB_ADMIN_PASS') && self::manages($environment, $answers)) {
                     return self::screenForm($environment, $answers + ['admin_checked' => true], '');
                 }
 
@@ -618,7 +618,7 @@ final class QuickSetup
                     return self::screenAdmin($answers, trim((string) ($given['error_text'] ?? '')) ?: _('The DB admin user was not made.'));
                 }
 
-                return self::manages($answers)
+                return self::manages($environment, $answers)
                     ? self::screenForm($environment, $answers + ['admin_checked' => true, 'admin_made' => true], '')
                     : self::screenAdmin($answers, sprintf(_('%s: its password is refused.'), $answers['admin_user']));
 
@@ -1029,7 +1029,10 @@ final class QuickSetup
     private static function machine(Environment $environment, array $answers): ?array
     {
         $layout = $environment->layout;
-        if (SystemLayout::needed($layout)) {
+        // Missing: its place cannot be written, or root runs a setup no config of the install was ever written for (no package made
+        // its account and folders)
+        $unmade = $layout->file() === null && (self::$region['root'] ?? (function_exists('posix_geteuid') && posix_geteuid() === 0));
+        if (SystemLayout::needed($layout) || $unmade) {
             if (isset($answers['folders_asked'])) {
                 return ['action' => 'abort', 'error' => sprintf(_('Cannot write in %s: its folders were not made.'), $layout->etcRoot())];
             }
@@ -1193,9 +1196,10 @@ final class QuickSetup
     }
 
     /** Whether the administrator answered manages the server (null: DatabaseService::manages()). */
-    private static function manages(array $answers): bool
+    private static function manages(Environment $environment, array $answers): bool
     {
-        $host = (string) ($answers['database_host'] ?? 'localhost');
+        // The server the install names (DataSource), this machine's when it names none
+        $host = (string) ($answers['database_host'] ?? ($environment->layout->dataSource() ?: 'localhost'));
 
         return isset(self::$region['manages'])
             ? (bool) (self::$region['manages'])((string) $answers['admin_user'], (string) $answers['admin_password'])
@@ -1768,6 +1772,7 @@ final class QuickSetup
         MigrationScenario::$importer = $doubles['importer'] ?? null;
         MigrationScenario::$vhosts = $doubles['vhosts'] ?? null;
         MigrationScenario::$modules = $doubles['modules'] ?? static fn(string $site): array => [];
+        MigrationScenario::$siteTool = $doubles['siteTool'] ?? static fn(): bool => true;
     }
 
     /** @return list<string> the centres of the grids of this machine ("x,y") */
@@ -2036,6 +2041,9 @@ final class QuickSetup
     /** Why the website is left out beside Apache ('' when it is not): no site serving its host, its line refused or not answered. */
     private static function lineLeft(string $site, array $answers): string
     {
+        if (!MigrationScenario::siteTool()) {
+            return _('w4os-site is not installed here');
+        }
         $files = MigrationScenario::vhostFiles($site);
         if ($files === null) {
             return '';

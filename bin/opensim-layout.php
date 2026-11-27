@@ -14,7 +14,8 @@ use W4OS\Engine\Config\Layout;
 use W4OS\Engine\Provisioning\NullUi;
 use W4OS\Engine\Provisioning\SystemLayout;
 
-foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
+// Its own libraries, the ones of the project it is a dependency of, or the ones that project names (a clone linked to it)
+foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php', (string) getenv('W4OS_AUTOLOAD')] as $autoload) {
     if (is_file($autoload)) {
         require $autoload;
 
