@@ -51,7 +51,9 @@ final class SystemLauncher implements LauncherInterface
                 $command;
         }
         $output = $spec->output !== '' ? escapeshellarg($spec->output) : '/dev/null';
-        $script = 'cd ' . escapeshellarg($spec->directory) . ' || exit 1; ';
+        // Nothing of whoever starts it is kept open: a descriptor it inherited (the terminal of a setup) would hold that terminal
+        // as long as the instance runs
+        $script = 'exec 3>&- 4>&- 5>&- 6>&- 7>&- 8>&- 9>&-; cd ' . escapeshellarg($spec->directory) . ' || exit 1; ';
         if ($spec->bigStack) {
             $script .= 'ulimit -s 1048576 2>/dev/null; ';
         }

@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (start): an instance keeps no descriptor of whoever starts it: the terminal of a setup comes back at once
 - new (setup): the folders of the install in the review, each changed there while no grid is here, made first as root
 - fix (setup): a step done leaves its line (Folders, .NET runtime, OpenSimulator <version>); no task warning before the folders
 - fix (layout): a core root of one's own not made yet is kept; only a usual root gives way to the other
