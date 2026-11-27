@@ -216,6 +216,9 @@ final class StartService
             $logPath = LogConfig::logFile($logConfig) ?? $logPath;
             if (is_dir(dirname($logPath)) && !is_file($logPath)) {
                 touch($logPath);
+                // Made by root (a setup run as root): the account of the instances writes it, as it would have made it
+                $owner = $env->layout->systemUser();
+                function_exists('posix_geteuid') && posix_geteuid() === 0 && $owner !== '' && $owner !== 'root' && @chown($logPath, $owner) && @chgrp($logPath, $owner);
             }
         }
         // An instance that cannot write its files hangs or stops without a word: what it would not write is said before
