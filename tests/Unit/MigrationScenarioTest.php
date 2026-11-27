@@ -111,10 +111,14 @@ describe('The scenario of an install of before the kit', function () {
             $step = migration_step($machine, $step);
         }
         $without = migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/', 'vhosts' => 'no']);
+        // The address changed to a host Apache serves: the question asked before the review
+        $asked = migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/']);
 
         expect(array_column($questions['fields'], 'label', 'name')['vhosts'])->toBe('Add one line to /etc/apache2/sites-available/w4os.org-le-ssl.conf')
             ->and($step['step']['args'])->toBe(['grid' => 'w4osdemogrid', 'edit_vhosts' => true])
-            ->and(array_column($without['rows'], 'value', 'label')['Website'])->toContain('not installed');
+            ->and(array_column($without['rows'], 'value', 'label')['Website'])->toContain('not installed')
+            ->and($asked['kind'])->toBe('form')
+            ->and(array_column($asked['fields'], 'name'))->toContain('vhosts');
     });
 
     test('keeps the steps it started with, the instances it stops being stopped by then', function () {

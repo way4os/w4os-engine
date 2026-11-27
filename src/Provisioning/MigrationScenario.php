@@ -83,6 +83,11 @@ final class MigrationScenario
                 $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'stop', 'maptiles', 'vhosts'])));
                 $plan = self::planned($legacy, $answers);
                 $problem = self::problem($legacy, $answers);
+                // A website whose host Apache serves: its line asked before the review, never taken for granted
+                $files = self::vhostFiles((string) ($answers['website'] ?? ($plan['site'] ?? '')));
+                if ($problem === '' && $files !== null && $files !== [] && !isset($answers['vhosts'])) {
+                    return self::questions($legacy, $plan, $answers, '');
+                }
 
                 return $problem !== '' ? self::questions($legacy, $plan, $answers, $problem) : self::review($legacy, $plan, $answers, '');
             case self::PREFIX . '-review':
