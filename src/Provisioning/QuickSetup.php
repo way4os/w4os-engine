@@ -430,6 +430,12 @@ final class QuickSetup
         }
         if (str_starts_with($state['step'], MigrationScenario::PREFIX)) {
             $legacy = self::legacyOf($answers);
+            // What to do with it chosen: what this machine misses first (its folders; a core, for a migration), as for a new grid
+            $choice = (string) ($given['existing'] ?? '');
+            if ($state['step'] === MigrationScenario::PREFIX && $button === 'next' && in_array($choice, ['migrate', 'in-place'], true)
+                && ($missing = self::machine($environment, ['then' => $choice] + $answers)) !== null) {
+                return $missing;
+            }
             $next = MigrationScenario::advance($environment, $state['step'], $answers, $button, $given, $request, $legacy);
             // Back, or a new grid beside it: the first menu
             return $next === null ? self::screenType($environment, [], '') : self::withLocation($next, $legacy);
@@ -545,7 +551,7 @@ final class QuickSetup
                     return ['action' => 'abort', 'error' => sprintf(isset($answers['runtime_asked']) ? _('The .NET runtime was not installed: %s') : _('The folders of w4os were not made: %s'), trim((string) ($given['error_text'] ?? '')))];
                 }
 
-                return self::machine($environment, $answers) ?? self::typed($environment, $answers, $prepare);
+                return self::machine($environment, $answers) ?? self::readied($environment, $answers, $prepare, $request);
 
             case 'core':
                 if ($button === 'back') {
@@ -560,7 +566,7 @@ final class QuickSetup
                 }
 
                 // Said once done, by the client, with what follows
-                return ['done' => sprintf('OpenSimulator %s', (string) ($given['core'] ?? ''))] + (self::machine($environment, $answers) ?? self::typed($environment, $answers, $prepare));
+                return ['done' => sprintf('OpenSimulator %s', (string) ($given['core'] ?? ''))] + (self::machine($environment, $answers) ?? self::readied($environment, $answers, $prepare, $request));
 
             case 'location':
                 $answers = self::keep($answers, $given, ['bin']);
@@ -1046,6 +1052,10 @@ final class QuickSetup
                 'state' => self::encode('machine', ['folders_asked' => true] + $answers),
             ];
         }
+        // An install taken where it is runs on its own core: none of ours needed
+        if (($answers['then'] ?? '') === 'in-place') {
+            return null;
+        }
         $core = Core::latest($layout->coreRoot()) ?? Core::at($layout->coreDirectory());
         if (!$core->exists()) {
             return $layout->coreRoot() === '' ? null : self::screenCore($environment, $answers, '');
@@ -1063,6 +1073,20 @@ final class QuickSetup
         }
 
         return null;
+    }
+
+    /** What follows once the machine is ready: the scenario of the install chosen (migrate, in place), else the questions of the type. */
+    private static function readied(Environment $environment, array $answers, bool $prepare, array $request): array
+    {
+        $then = (string) ($answers['then'] ?? '');
+        if (!in_array($then, ['migrate', 'in-place'], true)) {
+            return self::typed($environment, $answers, $prepare);
+        }
+        $legacy = self::legacyOf($answers);
+        $kept = array_diff_key($answers, array_flip(['then', 'folders_asked', 'runtime_asked']));
+        $next = MigrationScenario::advance($environment, MigrationScenario::PREFIX, $kept, 'next', ['existing' => $then], $request, $legacy);
+
+        return $next === null ? self::screenType($environment, [], '') : self::withLocation($next, $legacy);
     }
 
     /** The releases of OpenSimulator (null: the site's, kept in the cache of the install). */

@@ -7,6 +7,8 @@ use W4OS\Engine\Runtime\Core;
 use W4OS\Engine\Runtime\CoreReleases;
 use W4OS\Engine\Testing\Machine;
 
+require_once __DIR__ . '/MigrationScenarioTest.php';
+
 /** A release as its site publishes it: an archive of one folder, opensim-<version>, with its bin. */
 function core_archive(string $folder, string $version): string
 {
@@ -112,5 +114,30 @@ describe('The releases of OpenSimulator', function () {
 
         expect($step['action'])->toBe('step')
             ->and($step['step'])->toMatchArray(['name' => 'give-ownership', 'root' => true, 'label' => 'Folders', 'done' => 'Folders']);
+    });
+
+    test('are offered before a migration on a machine that has no core, never for an install taken where it is', function () {
+        $machine = new Machine();
+        $folder = sys_get_temp_dir() . '/core-migrate-' . bin2hex(random_bytes(4));
+        mkdir($folder, 0o755, true);
+        rename($machine->core, "$folder/kept");
+        $downloads = 0;
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls) + ['region' => ['releases' => static fn(): CoreReleases => core_releases($folder, $downloads)]]);
+        $step = static fn(array $screen, array $answers): array => QuickSetup::next($machine->environment, ['state' => $screen['state'], 'answers' => $answers]);
+        try {
+            $choice = $step(QuickSetup::next($machine->environment, []), ['type' => 'found']);
+            $inPlace = $step($choice, ['existing' => 'in-place']);
+            $menu = $step($choice, ['existing' => 'migrate']);
+            $questions = $step($menu, ['core' => '0.9.3.0']);
+        } finally {
+            QuickSetup::through();
+        }
+
+        expect($inPlace['kind'])->toBe('review')
+            ->and($menu)->toMatchArray(['kind' => 'menu', 'name' => 'core'])
+            ->and($questions['done'])->toBe('OpenSimulator 0.9.3.0')
+            ->and($questions)->toMatchArray(['kind' => 'form', 'title' => 'Migration of w4osdemogrid'])
+            ->and(is_file($machine->core . '/bin/OpenSim.dll'))->toBeTrue();
     });
 });

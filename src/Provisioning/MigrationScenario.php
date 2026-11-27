@@ -824,7 +824,8 @@ final class MigrationScenario
         return ['data' => $sizes] + $document + [
             'login' => $import->plan->baseHostname . ':' . $import->plan->publicPort,
             'center' => $import->plan->center !== '' ? $import->plan->center : self::centreOf($import),
-            'maptiles' => MapRenderer::package($import->plan->binDir !== '' ? dirname($import->plan->binDir) : '') ?? '',
+            // The 3D map is a package of the packaged core: none for a core unpacked from a release
+            'maptiles' => str_starts_with($import->plan->binDir, SystemLayout::PACKAGED_CORES . '/') ? (MapRenderer::package(dirname($import->plan->binDir)) ?? '') : '',
             // A name made ASCII for the viewers: asked, the one proposed being the ASCII one
             'asciiName' => preg_grep('/^\[GridInfoService\] gridname /', $document['gridInfo'] ?? []) !== [] ? $document['name'] : '',
         ];
