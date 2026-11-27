@@ -226,7 +226,7 @@ final class MigrationScenario
             'text' => '',
             'notice' => '',
             'items' => [
-                ['key' => 'migrate', 'label' => _('Migrate folders to w4os standard structure'), 'note' => ''],
+                ['key' => 'migrate', 'label' => _('Migrate folders to w4os standard structure (recommended)'), 'note' => ''],
                 ['key' => 'in-place', 'label' => _('Install w4os over current structure'), 'note' => ''],
             ],
             'value' => 'migrate',

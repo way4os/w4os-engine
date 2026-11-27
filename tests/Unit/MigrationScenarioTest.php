@@ -107,7 +107,7 @@ describe('The scenario of an install of before the kit', function () {
             ->and(array_column($found['fields'], 'value', 'label'))->toBe(['Robust.ini file' => "$base/opensim/bin/Robust.HG.ini"])
             ->and($found['notice'])->toBe('')
             ->and($choice)->toMatchArray(['kind' => 'menu', 'title' => "$base/opensim"])
-            ->and(array_column($choice['items'], 'label', 'key'))->toBe(['migrate' => 'Migrate folders to w4os standard structure', 'in-place' => 'Install w4os over current structure'])
+            ->and(array_column($choice['items'], 'label', 'key'))->toBe(['migrate' => 'Migrate folders to w4os standard structure (recommended)', 'in-place' => 'Install w4os over current structure'])
             ->and(QuickSetup::decode($questions['state'])['answers']['location'])->toBe(['bin' => "$base/opensim/bin", 'robust' => "$base/etc/Robust.HG.ini"])
             ->and(array_unique($robusts))->toBe(["$base/etc/Robust.HG.ini"])
             ->and(migration_step($machine, $bin, [], 'back')['title'])->toBe('OpenSim setup')
