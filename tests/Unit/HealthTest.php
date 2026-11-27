@@ -909,6 +909,19 @@ describe('What an install needs', function () {
             ->and($account)->toBe("$user (groups " . implode(', ', $groups) . ')');
     })->skip(fn() => posix_geteuid() === 0, 'root reads every file');
 
+    test('says of the copy of a guide of another server its source, its age and the last failure of its server', function () {
+        $now = 1_800_000_000;
+        $fresh = Health::guideCopy(['source' => 'https://2do.directory/destinations/guide', 'fetched' => $now - 60, 'failed' => null], $now);
+        $kept = Health::guideCopy(['source' => 'https://2do.directory/destinations/guide', 'fetched' => $now - 3600, 'failed' => $now - 60], $now);
+        $old = Health::guideCopy(['source' => 'https://2do.directory/destinations/guide', 'fetched' => $now - 8 * 86400, 'failed' => $now - 60], $now);
+        $none = Health::guideCopy(['source' => 'https://2do.directory/destinations/guide', 'fetched' => null, 'failed' => null], $now);
+
+        expect([$fresh['level'], $kept['level'], $old['level'], $none['level']])->toBe(['ok', 'slow', 'error', 'error'])
+            ->and($fresh)->toMatchArray(['label' => 'guide', 'text' => 'https://2do.directory/destinations/guide', 'status' => 'copy of ' . gmdate('Y-m-d H:i', $now - 60) . ' UTC'])
+            ->and($kept['status'])->toContain('its server did not answer at ' . gmdate('Y-m-d H:i', $now - 60) . ' UTC')
+            ->and($none['status'])->toBe('no copy yet');
+    });
+
     test('says of each pool of the suite whether the web server reaches its socket, by the account it runs as', function () {
         $etc = sys_get_temp_dir() . '/health-pools-' . bin2hex(random_bytes(4));
         mkdir("$etc/8.4/fpm/pool.d", 0o755, true);

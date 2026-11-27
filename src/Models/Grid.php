@@ -1277,6 +1277,19 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
      * @param bool $layout for the boards: the place in its own column and their layout hints kept (DestinationList::parse())
      * @return array<string,list<array<string,string>>> empty when the grid has no guide, or it cannot be read
      */
+    /**
+     * The copy of the guide of another server this grid keeps (destinations()), for the diagnostics; null when its guide is its own.
+     *
+     * @return ?array{source:string,fetched:?int,failed:?int}
+     */
+    public function guideCopy(): ?array
+    {
+        $source = trim((string) $this->setting('Helpers', 'GuideSource'));
+        $source === '' && ($source = (string) \W4OS\Engine\Config\Settings::named('guideSource')['default']);
+
+        return preg_match('#^https?://#i', $source) === 1 ? DestinationList::state($source, \W4OS\Engine\Assets\WebAssets::folder($this) . '/guide') : null;
+    }
+
     public function destinations(?GridConfig $config = null, bool $layout = false): array
     {
         // The text a description gives (SiteDescription), else the list its source gives, the default one when it gives none

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (diagnostics): the copy of the guide of another server, its source, its age and the last failure of its server
+- fix (import): the OSSL permissions of the old install kept in the grid's osslEnable.ini, [XEngine] read as [OSSL], gone ones named
 - fix (helpers): a page reads each config once and never waits on the guide of another server: blocks 10 times faster
 - new (setup): the scenario of an install of before the kit in the setup's screens: choice, questions, review, steps, summary
 - fix (import): its steps told as they come on the command line, for the live line of its client; nothing told by a page

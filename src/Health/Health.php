@@ -529,6 +529,24 @@ class Health
         return $groups;
     }
 
+    /**
+     * The copy of the guide of another server (DestinationList::cached()): its source, when the copy was fetched, when its server last
+     * failed: a copy older than a day, or none, is an error, one kept while its server fails a warning (slow).
+     *
+     * @param array{source:string,fetched:?int,failed:?int} $state
+     */
+    public static function guideCopy(array $state, int $now): array
+    {
+        $when = static fn(int $time): string => gmdate('Y-m-d H:i', $time) . ' UTC';
+        $fetched = $state['fetched'];
+        $failing = $state['failed'] !== null && ($fetched === null || $state['failed'] > $fetched);
+        $level = $fetched === null || $fetched < $now - 86400 ? 'error' : ($failing ? 'slow' : 'ok');
+        $status = $fetched === null ? self::say('health_guide_none') : self::say('health_guide_copy', [$when($fetched)]);
+        $failing && ($status .= '; ' . self::say('health_guide_failed', [$when((int) $state['failed'])]));
+
+        return ['label' => 'guide', 'kind' => 'value', 'text' => $state['source'], 'level' => $level, 'status' => $status];
+    }
+
     public static function valueRow($label, $value)
     {
         return ['label' => $label, 'kind' => 'value', 'text' => (string) $value, 'level' => 'none'];

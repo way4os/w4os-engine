@@ -3234,6 +3234,20 @@ msgctxt "health_pool_reached"
 msgid "reached by the web server"
 msgstr ""
 
+#, php-format
+msgctxt "health_guide_copy"
+msgid "copy of %s"
+msgstr ""
+
+#, php-format
+msgctxt "health_guide_failed"
+msgid "its server did not answer at %s"
+msgstr ""
+
+msgctxt "health_guide_none"
+msgid "no copy yet"
+msgstr ""
+
 msgctxt "health_pool_unreached"
 msgid "not reached by the web server"
 msgstr ""

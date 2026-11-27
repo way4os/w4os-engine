@@ -50,11 +50,28 @@ final class DestinationList
         if ($kept !== null && (int) @filemtime($file) >= $now - self::FRESH) {
             return $kept !== '' ? $kept : null;
         }
-        $text = self::read($source, null, $http ?? static fn(string $url): ?string => Http::text($url, self::MAX, 3));
-        $text = $text ?? $kept ?? '';
-        (is_dir($folder) || @mkdir($folder, 0o775, true)) && @file_put_contents($file, $text) !== false && @touch($file, $now);
+        $fetched = self::read($source, null, $http ?? static fn(string $url): ?string => Http::text($url, self::MAX, 3));
+        $text = $fetched ?? $kept ?? '';
+        $state = self::state($source, $folder);
+        $state = $fetched !== null ? ['source' => $source, 'fetched' => $now, 'failed' => null] : ['source' => $source, 'fetched' => $state['fetched'], 'failed' => $now];
+        (is_dir($folder) || @mkdir($folder, 0o775, true)) && @file_put_contents($file, $text) !== false && @touch($file, $now)
+            && @file_put_contents("$file.state", json_encode($state));
 
         return $text !== '' ? $text : null;
+    }
+
+    /**
+     * What is known of the copy of a list of another server (cached()): its source, when the copy was fetched, when the server last did
+     * not answer since; nulls when there is none.
+     *
+     * @return array{source:string,fetched:?int,failed:?int}
+     */
+    public static function state(string $source, string $folder): array
+    {
+        $file = rtrim($folder, '/') . '/' . hash('xxh128', $source) . '.txt.state';
+        $state = is_file($file) ? json_decode((string) @file_get_contents($file), true) : null;
+
+        return ['source' => $source, 'fetched' => is_int($state['fetched'] ?? null) ? $state['fetched'] : null, 'failed' => is_int($state['failed'] ?? null) ? $state['failed'] : null];
     }
 
     public static function read(?string $source, ?string $folder = null, ?\Closure $http = null): ?string
