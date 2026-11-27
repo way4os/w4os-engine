@@ -145,7 +145,35 @@ final class Layout
             }
         }
 
-        return new self($given + $layout->all(), $layout->file(), $layout->profile(), $layout->grids());
+        // A core root the environment gives is kept as it is given
+        return new self($given + (isset($given['CoreRoot']) ? $layout->all() : self::coresFound($layout->all())), $layout->file(), $layout->profile(), $layout->grids());
+    }
+
+    /**
+     * A core root that does not exist on this machine (a config written for another kind of install) gives way to the usual root
+     * that has a core, the core it names with it: the settings are left as they are in their file.
+     *
+     * @param array<string,string> $values
+     * @return array<string,string>
+     */
+    private static function coresFound(array $values): array
+    {
+        $root = rtrim((string) ($values['CoreRoot'] ?? ''), '/');
+        if ($root === '' || is_dir($root)) {
+            return $values;
+        }
+        foreach (['/usr/share/opensim', DirectoryLayout::roots()['CoreRoot']] as $usual) {
+            $latest = $usual === $root ? null : \W4OS\Engine\Runtime\Core::latest($usual);
+            if ($latest !== null) {
+                $values['CoreRoot'] = $usual;
+                $named = $usual . '/' . basename((string) ($values['CoreDirectory'] ?? ''));
+                isset($values['CoreDirectory']) && ($values['CoreDirectory'] = \W4OS\Engine\Runtime\Core::at($named)->exists() ? $named : $latest->directory());
+
+                return $values;
+            }
+        }
+
+        return $values;
     }
 
     /** The name a setting of w4os.conf has in an environment: EtcRoot is OPENSIM_ETC_ROOT. */
@@ -274,6 +302,17 @@ final class Layout
     public function systemUser(): string
     {
         return $this->get('SystemUser');
+    }
+
+    /**
+     * The account the commands run as: SystemUser when this machine has it, else none (whoever calls them): a config may name
+     * an account the machine never had.
+     */
+    public function runAs(): string
+    {
+        $user = $this->systemUser();
+
+        return $user !== '' && function_exists('posix_getpwnam') && posix_getpwnam($user) === false ? '' : $user;
     }
 
     /** The account of the web server that serves the sites of the grids: `WebUser`, www-data when the install names none. */

@@ -19,6 +19,33 @@ function system_layout_roots(string $base): Layout
 }
 
 describe('The system layout', function () {
+    test('gives the folders to the caller where no account can be made, the core root with them, and names the caller in w4os.conf', function () {
+        $base = sys_get_temp_dir() . '/syslayout-caller-' . bin2hex(random_bytes(4));
+        $commands = [];
+        $ui = new NullUi();
+        $before = getenv('SUDO_USER');
+        putenv('SUDO_USER=ada');
+        try {
+            $made = (new SystemLayout($ui, function (string $c) use (&$commands): int {
+                $commands[] = $c;
+
+                return 0;
+            }, fn(string $user) => $user === 'ada', true, conf: "$base/etc/w4os/w4os.conf", canMake: fn() => false))->prepare(system_layout_roots($base));
+            $none = (new SystemLayout(new NullUi(), fn(): int => 0, fn() => false, true, conf: "$base/none/w4os.conf", canMake: fn() => false))->prepare(system_layout_roots("$base/none"));
+        } finally {
+            putenv($before === false ? 'SUDO_USER' : "SUDO_USER=$before");
+        }
+
+        expect($made)->toBeTrue()
+            ->and(implode("\n", $commands))->not->toContain('adduser', 'useradd')
+            ->and(implode("\n", $commands))->toContain("chown 'ada':", "'$base/core'")
+            ->and(is_dir("$base/core"))->toBeTrue()
+            ->and(file_get_contents("$base/etc/w4os/w4os.conf"))->toContain('SystemUser = ada')
+            ->and(implode("\n", array_column($ui->said, 1)))->toContain('No account can be made here: the folders are given to ada')
+            // Nobody to give them to: said, nothing made
+            ->and($none)->toBeFalse();
+    });
+
     test('is needed when the place of the grids cannot be written', function () {
         $base = sys_get_temp_dir() . '/syslayout-' . getmypid();
         mkdir($base, 0o555);
@@ -39,7 +66,7 @@ describe('The system layout', function () {
             $commands[] = $c;
 
             return 0;
-        }, fn() => false, true, conf: "$base/etc/w4os/w4os.conf"))->prepare(system_layout_roots($base));
+        }, fn() => false, true, conf: "$base/etc/w4os/w4os.conf", canMake: fn() => true))->prepare(system_layout_roots($base));
 
         expect($made)->toBeTrue()
             ->and(is_dir("$base/etc/opensim/grids"))->toBeTrue()

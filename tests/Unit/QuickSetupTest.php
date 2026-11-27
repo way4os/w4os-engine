@@ -1350,7 +1350,7 @@ describe('quick setup, the scenario', function () {
             ->toContain('Cannot write in', "{$machine->etc}/grids");
     });
 
-    test('requires the install to create the system layout', function () {
+    test('has the folders of the install made first, as root by the client, when they are missing', function () {
         $machine = new Machine();
         $etc = "{$machine->root}/not-a-directory";
         file_put_contents($etc, '');
@@ -1373,13 +1373,14 @@ describe('quick setup, the scenario', function () {
             $current->probe,
             $current->http,
         );
-        $review = quick_until($machine, 'review');
-        $done = quick_step($machine, $review);
+        // Its folders first, made as root by the client; still missing after it, or refused: said, nothing written
+        $step = quick_step($machine, quick_step($machine, null), ['type' => 'grid']);
+        $missing = quick_step($machine, $step);
+        $refused = quick_step($machine, $step, ['error_text' => 'no sudo here'], 'failed');
 
-        expect($done)->toMatchArray([
-            'action' => 'abort',
-            'error' => 'The OpenSim system layout is missing: install w4os-engine before running setup.',
-        ]);
+        expect($step['step'])->toMatchArray(['name' => 'give-ownership', 'root' => true, 'label' => 'Folders'])
+            ->and($missing)->toMatchArray(['action' => 'abort', 'error' => "Cannot write in $etc: its folders were not made."])
+            ->and($refused)->toMatchArray(['action' => 'abort', 'error' => 'The folders of w4os were not made: no sudo here']);
     });
 
     test('turns off in the grid it writes an option every grid has that the person unchecked, and keeps it off', function () {

@@ -22,7 +22,7 @@ final class MigrationScenario
     public const PREFIX = 'existing';
 
     /** The steps a client runs as root, with the arguments it checks: nothing else is run by it. */
-    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website', 'restart-service', 'db-admin'];
+    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website', 'restart-service', 'db-admin', 'install-dotnet'];
 
     /** The packages a step may install: the ones the choices of a migration name. */
     public const PACKAGES = '/^(opensim-[0-9.]+-maptiles|w4os-site)$/';

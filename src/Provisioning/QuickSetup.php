@@ -7,6 +7,8 @@ use W4OS\Engine\Exceptions\SetupFailedException;
 use W4OS\Engine\Forms\FieldSet;
 use W4OS\Engine\Models\Grid;
 use W4OS\Engine\Result;
+use W4OS\Engine\Runtime\Core;
+use W4OS\Engine\Runtime\CoreReleases;
 use W4OS\Engine\Runtime\Environment;
 use W4OS\Engine\Runtime\ShellService;
 
@@ -533,21 +535,31 @@ final class QuickSetup
                 if (self::kindOf($environment, $type) === 'import') {
                     return self::screenImport($answers, '');
                 }
-                if (in_array(self::kindOf($environment, $type), ['remote', 'preset'], true)) {
-                    $answers += ['name' => 'Welcome'];
-                } else {
-                    // A centre of its own, drawn once and kept with the answers: two grids rarely share a place
-                    $answers += ['center' => LocationFinder::proposedCenter(self::centres($environment))];
-                    // The proposals of the engine are what the form starts with
-                    $proposed = self::plan($environment, $answers)['setup']['grid'];
-                    $answers += [
-                        'name' => $proposed['name'],
-                        'login_uri' => $proposed['hostname'] . ':' . $proposed['public_port'],
-                    ];
+
+                // What this machine misses first (its folders, a core), then the questions of the type
+                return ($prepare ? null : self::machine($environment, $answers)) ?? self::typed($environment, $answers, $prepare);
+
+            case 'machine':
+                // The folders made as root by the client
+                if ($button === 'failed') {
+                    return ['action' => 'abort', 'error' => sprintf(isset($answers['runtime_asked']) ? _('The .NET runtime was not installed: %s') : _('The folders of w4os were not made: %s'), trim((string) ($given['error_text'] ?? '')))];
                 }
 
-                // The administrator of the database server first: it makes the databases and their users later
-                return $prepare || isset($answers['admin_checked']) ? self::screenForm($environment, $answers, '') : self::screenAdmin($answers, '');
+                return self::machine($environment, $answers) ?? self::typed($environment, $answers, $prepare);
+
+            case 'core':
+                if ($button === 'back') {
+                    return self::screenType($environment, [], '');
+                }
+                $ui = new NullUi(live: true);
+                try {
+                    $ui->stage(1, 1, _('OpenSimulator'));
+                    self::releases($environment)->install((string) ($given['core'] ?? ''), $environment->layout->coreRoot(), static fn(string $said) => $ui->note($said));
+                } catch (\RuntimeException $error) {
+                    return self::screenCore($environment, $answers, $error->getMessage());
+                }
+
+                return self::machine($environment, $answers) ?? self::typed($environment, $answers, $prepare);
 
             case 'location':
                 $answers = self::keep($answers, $given, ['bin']);
@@ -1006,6 +1018,98 @@ final class QuickSetup
         $stays = isset($answers['admin_made']) ? ' ' . sprintf(_('The DB admin user %s stays, kept for the next run.'), (string) ($answers['admin_user'] ?? '')) : '';
 
         return ['action' => 'abort', 'code' => 4, 'stopped' => true, 'error' => _('Stopped at your request.') . $stays];
+    }
+
+    /**
+     * What a new grid needs of this machine before its questions, null when it is all there: its folders (made as root by the
+     * client when they are missing), then a core (a release chosen, downloaded and unpacked) when its root has none.
+     *
+     * @return ?array<string,mixed>
+     */
+    private static function machine(Environment $environment, array $answers): ?array
+    {
+        $layout = $environment->layout;
+        if (SystemLayout::needed($layout)) {
+            if (isset($answers['folders_asked'])) {
+                return ['action' => 'abort', 'error' => sprintf(_('Cannot write in %s: its folders were not made.'), $layout->etcRoot())];
+            }
+
+            return [
+                'action' => 'step',
+                'step' => ['name' => 'give-ownership', 'root' => true, 'label' => _('Folders'), 'args' => [], 'skippable' => false, 'number' => 1, 'count' => 1],
+                'labels' => [_('Folders')],
+                'notice' => '',
+                'state' => self::encode('machine', ['folders_asked' => true] + $answers),
+            ];
+        }
+        $core = Core::latest($layout->coreRoot()) ?? Core::at($layout->coreDirectory());
+        if (!$core->exists()) {
+            return $layout->coreRoot() === '' ? null : self::screenCore($environment, $answers, '');
+        }
+        // The runtime the core targets, installed by the client where it can be for the whole system (Linux, as root); elsewhere
+        // what is missing is said by the start
+        if (PHP_OS_FAMILY === 'Linux' && !isset($answers['runtime_asked']) && $environment->probe->problem($core, $core->executable('OpenSim')) !== null) {
+            return [
+                'action' => 'step',
+                'step' => ['name' => 'install-dotnet', 'root' => true, 'label' => _('.NET runtime'), 'args' => [], 'skippable' => false, 'number' => 1, 'count' => 1],
+                'labels' => [_('.NET runtime')],
+                'notice' => '',
+                'state' => self::encode('machine', ['runtime_asked' => true] + $answers),
+            ];
+        }
+
+        return null;
+    }
+
+    /** The releases of OpenSimulator (null: the site's, kept in the cache of the install). */
+    private static function releases(Environment $environment): CoreReleases
+    {
+        return isset(self::$region['releases'])
+            ? (self::$region['releases'])()
+            : new CoreReleases(rtrim($environment->layout->cacheRoot() ?: sys_get_temp_dir(), '/') . '/cores');
+    }
+
+    /** The release of OpenSimulator to install, when this machine has no core: the newest proposed. */
+    private static function screenCore(Environment $environment, array $answers, string $notice): array
+    {
+        $releases = self::releases($environment)->available();
+        if ($releases === []) {
+            return ['action' => 'abort', 'error' => sprintf(_('No OpenSim core in %s, and the list of the releases cannot be had from %s.'), $environment->layout->coreRoot(), CoreReleases::URL)];
+        }
+
+        return [
+            'action' => 'screen',
+            'kind' => 'menu',
+            'name' => 'core',
+            'title' => _('OpenSimulator version'),
+            'text' => sprintf(_('No OpenSimulator core in %s yet.'), $environment->layout->coreRoot()),
+            'notice' => $notice,
+            'items' => array_map(static fn(array $release): array => ['key' => $release['version'], 'label' => $release['version'], 'note' => ''], $releases),
+            'value' => $releases[0]['version'],
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'wait' => _('Downloading and unpacking OpenSimulator: this can take a few minutes…'),
+            'state' => self::encode('core', $answers),
+        ];
+    }
+
+    /** The questions of the type chosen, with what the engine proposes: the DB admin user first, then its form. */
+    private static function typed(Environment $environment, array $answers, bool $prepare): array
+    {
+        if (in_array(self::kindOf($environment, (string) ($answers['type'] ?? '')), ['remote', 'preset'], true)) {
+            $answers += ['name' => 'Welcome'];
+        } else {
+            // A centre of its own, drawn once and kept with the answers: two grids rarely share a place
+            $answers += ['center' => LocationFinder::proposedCenter(self::centres($environment))];
+            // The proposals of the engine are what the form starts with
+            $proposed = self::plan($environment, $answers)['setup']['grid'];
+            $answers += [
+                'name' => $proposed['name'],
+                'login_uri' => $proposed['hostname'] . ':' . $proposed['public_port'],
+            ];
+        }
+
+        // The administrator of the database server first: it makes the databases and their users later
+        return $prepare || isset($answers['admin_checked']) ? self::screenForm($environment, $answers, '') : self::screenAdmin($answers, '');
     }
 
     /** An existing install given by its path: its OpenSim bin folder first. */

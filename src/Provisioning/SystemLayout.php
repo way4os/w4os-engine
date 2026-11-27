@@ -28,6 +28,7 @@ final class SystemLayout
      * @param ?\Closure(string):array|false $groupInfo the members of a system group (default: the system's)
      * @param ?string $conf the config file of the suite (default: the system one, Layout::systemFile())
      * @param ?ServiceUnits $units the units made to run as the account (default: the system's, when this process is root)
+     * @param ?\Closure():bool $canMake whether an account can be made here (default: adduser or useradd is there)
      */
     public function __construct(
         private readonly UiInterface $ui,
@@ -37,6 +38,7 @@ final class SystemLayout
         private readonly ?\Closure $groupInfo = null,
         private readonly ?string $conf = null,
         private readonly ?ServiceUnits $units = null,
+        private readonly ?\Closure $canMake = null,
     ) {}
 
     /** Whether the place of the grids cannot be written by whoever calls: the layout has to be made. */
@@ -79,6 +81,17 @@ final class SystemLayout
         }
         $user = $layout->systemUser() !== '' ? $layout->systemUser() : self::USER;
         $home = $layout->varRoot();
+        // Where no account can be made (no adduser nor useradd: macOS), the folders are the caller's, who runs the instances
+        if (!$this->account($user) && !($this->canMake ?? static fn(): bool => ShellService::commandExists('adduser') || ShellService::commandExists('useradd'))()) {
+            $caller = (string) (getenv('SUDO_USER') ?: (function_exists('posix_getpwuid') ? (posix_getpwuid(posix_getuid())['name'] ?? '') : get_current_user()));
+            if ($caller === '' || $caller === 'root' || !$this->account($caller)) {
+                $this->ui->error(sprintf(_('No account %s here, and none can be made: run it with sudo from the account that runs the grids.'), $user));
+
+                return false;
+            }
+            $this->ui->note(sprintf(_('No account can be made here: the folders are given to %s, who runs the instances.'), $caller));
+            $user = $caller;
+        }
         if (!$this->account($user)) {
             $this->ui->note(sprintf(_('Creating the account %s.'), $user));
             $made = $this->execute(
@@ -184,6 +197,9 @@ final class SystemLayout
         foreach ([dirname($conf), $etc, "$etc/grids", "$etc/presets", "$etc/opensim.d", "$etc/robust.d", $layout->varRoot(), $layout->dataRoot(), $layout->logsRoot(), $layout->cacheRoot(), $layout->tasksRoot()] as $dir) {
             $folders[$dir] = [self::SYSTEM, true];
         }
+        // Without the packages of the cores, their root is the account's: it unpacks the releases there
+        $cores = $layout->coreRoot();
+        $cores === '' || $cores === self::PACKAGED_CORES || $folders[$cores] = [self::SYSTEM, true];
         // The backup root is made when it is the default one; a chosen one (a mount) is the administrator's
         self::makesBackupRoot($layout) && $folders[$layout->backupRoot()] = [self::SYSTEM, true];
         $folders[$layout->get('SiteRoot') ?: self::SITE_ROOT] = [self::WEB, false];
@@ -230,7 +246,8 @@ final class SystemLayout
     {
         $roots = DirectoryLayout::roots(DirectoryLayout::SYSTEM);
         // The cores of the packages are in /usr/share/opensim (they may come after the engine), the others where the layout puts them
-        $packaged = Core::latest(self::PACKAGED_CORES) !== null || (PHP_OS_FAMILY === 'Linux' && ShellService::commandExists('dpkg'));
+        // (after the engine: its package is then under /usr/share; an engine run from a clone has no package of a core coming)
+        $packaged = Core::latest(self::PACKAGED_CORES) !== null || (PHP_OS_FAMILY === 'Linux' && ShellService::commandExists('dpkg') && str_starts_with(__DIR__, '/usr/share/'));
         $coreRoot = $packaged ? self::PACKAGED_CORES : $layout->coreRoot();
         $lines = ['[Defaults]', 'DirectoryLayout = ' . DirectoryLayout::SYSTEM, 'CoreRoot = ' . $coreRoot];
         foreach (['EtcRoot', 'VarRoot', 'LogsRoot', 'CacheRoot', 'DataRoot', 'BackupRoot'] as $key) {

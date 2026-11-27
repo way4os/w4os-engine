@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- new (setup): a machine without a core is offered the releases of opensimulator.org, the one chosen downloaded and unpacked
+- new (setup): the folders of the install and the .NET runtime of the core are steps of a setup without packages
+- fix (layout): where no account can be made the folders are the caller's; a config naming an unknown account or core root tolerated
 - new (setup): Specify existing installation path: its bin folder, then the Robust.ini found from it, to confirm
 - change (setup): a stop asked at a screen is said in one line with what stays, not as an error (code 4)
 - change (setup): Migrate folders to w4os standard structure (recommended), Install w4os over current structure
