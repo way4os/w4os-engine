@@ -470,9 +470,15 @@ final class MigrationScenario
     {
         $site = trim((string) ($answers['website'] ?? ($plan['site'] ?? '')));
         $left = in_array('install-website', (array) ($answers['skipped'] ?? []), true);
-        // The owner of its estates, as its migrated simulators say it
+        // The owner of the grid: the one of its first estate (its databases), else the one its simulators name
+        $grid = Grid::find($environment, (string) $plan['grid']);
+        $config = $grid?->config();
         $owner = '';
-        foreach (Grid::find($environment, (string) $plan['grid'])?->simulators() ?? [] as $simulator) {
+        try {
+            $owner = $config === null ? '' : (string) \W4OS\Engine\Models\Avatar::gridOwner($config)?->name();
+        } catch (\Throwable) {
+        }
+        foreach ($owner === '' ? $grid?->simulators() ?? [] : [] as $simulator) {
             $owner !== '' || ($owner = (string) $simulator->estateOwner());
         }
         $lines = [
