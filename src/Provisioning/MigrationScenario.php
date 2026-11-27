@@ -435,16 +435,41 @@ final class MigrationScenario
         $document['problems'] === [] || throw new \RuntimeException(implode('; ', $document['problems']));
         $sizes = [];
         foreach ($document['data'] ?? [] as $data) {
-            $sizes[] = $data + ['place' => basename((string) $data['from']), 'size' => self::size((string) $data['from'])];
+            // Its place under the folder of the grid in the old install (fsassets/data), its name when it is not under one
+            $from = (string) $data['from'];
+            $parts = explode('/', trim($from, '/'));
+            $grid = array_search(strtolower($document['grid']), array_map('strtolower', $parts), true);
+            $sizes[] = $data + ['place' => $grid !== false && $grid < count($parts) - 1 ? implode('/', array_slice($parts, $grid + 1)) : basename($from), 'size' => self::size($from)];
         }
 
         return ['data' => $sizes] + $document + [
             'login' => $import->plan->baseHostname . ':' . $import->plan->publicPort,
-            'center' => $import->plan->center,
+            'center' => $import->plan->center !== '' ? $import->plan->center : self::centreOf($import),
             'maptiles' => MapRenderer::package($import->plan->binDir !== '' ? dirname($import->plan->binDir) : '') ?? '',
             // A name made ASCII for the viewers: asked, the one proposed being the ASCII one
             'asciiName' => preg_grep('/^\[GridInfoService\] gridname /', $document['gridInfo'] ?? []) !== [] ? $document['name'] : '',
         ];
+    }
+
+    /** The centre the regions of the old install give: its default region's place (DefaultRegion of its Robust), else its first region's. */
+    private static function centreOf(Import\GridImport $import): string
+    {
+        $places = [];
+        foreach ($import->simulators?->imports ?? [] as $simulator) {
+            foreach ($simulator->regions as $region) {
+                ($region['location'] ?? '') !== '' && ($places[(string) $region['name']] ??= (string) $region['location']);
+            }
+        }
+        foreach ($import->customizations as $setting) {
+            if (($setting['section'] ?? '') === 'GridService' && str_starts_with((string) ($setting['key'] ?? ''), 'Region_') && str_contains((string) ($setting['value'] ?? ''), 'DefaultRegion')) {
+                $name = str_replace('_', ' ', substr((string) $setting['key'], 7));
+                if (isset($places[$name])) {
+                    return $places[$name];
+                }
+            }
+        }
+
+        return (string) (array_values($places)[0] ?? '');
     }
 
     /** The size of a folder as a person reads it: 412 MB, 11 GB. */
