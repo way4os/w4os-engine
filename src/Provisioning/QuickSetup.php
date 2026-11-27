@@ -1235,6 +1235,24 @@ final class QuickSetup
         ];
     }
 
+    /**
+     * The database user of the first grid of the machine kept beside w4os.conf (database.rc, read by the commands before a
+     * person's own file): the one a simulator added later is given, without any environment. Only for the install of the system,
+     * never over a file that is there.
+     */
+    private static function keepAccount(Environment $environment, GridPlan $database): void
+    {
+        $file = dirname(\W4OS\Engine\Config\Layout::systemFile()) . '/database.rc';
+        if ($database->dbDriver === 'sqlite' || $environment->layout->file() !== \W4OS\Engine\Config\Layout::systemFile() || is_file($file) || !is_writable(dirname($file))) {
+            return;
+        }
+        $lines = ['# The database user of the grids of this machine, kept by the setup'];
+        foreach (['OPENSIM_DB_HOST' => $database->dbHost, 'OPENSIM_DB_USER' => $database->dbUser, 'OPENSIM_DB_PASS' => $database->dbPass] as $name => $value) {
+            $lines[] = "export $name=" . escapeshellarg($value);
+        }
+        @touch($file) && @chmod($file, 0o640) && @file_put_contents($file, implode("\n", $lines) . "\n");
+    }
+
     /** An existing install given by its path: its OpenSim bin folder first. */
     private static function screenLocation(array $answers, string $notice): array
     {
@@ -2047,6 +2065,7 @@ final class QuickSetup
 
             return self::screenDatabase($db, $answers, $said);
         }
+        $databases === [] || self::keepAccount($environment, $databases[0]);
 
         // The database of the simulator made from the dump of the one its region comes from
         if ($simulator->regionDump !== '') {
@@ -2352,7 +2371,8 @@ final class QuickSetup
         // The account the command line has (the ~/.opensimrc of kickstart): the one the setup uses, said where it comes from
         $user = getenv('OPENSIM_DB_USER');
         isset($answers['database_user']) || !is_string($user) || $user === '' || ($answers['database_user'] = $user);
-        $password = getenv('OPENSIM_DB_PASS');
+        // Its password is the one of that account alone: another user chosen takes none of it
+        $password = ($answers['database_user'] ?? $user) === $user ? getenv('OPENSIM_DB_PASS') : false;
         if (!isset($answers['database_password']) && is_string($password) && $password !== '') {
             $answers['database_password'] = $password;
             $answers['database_password_source'] = 'environment';

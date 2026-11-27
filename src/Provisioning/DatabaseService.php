@@ -145,6 +145,8 @@ final class DatabaseService
         [$code, , $err] = $this->run($plan, $plan->dbName);
         if ($code === 0) {
             $this->ui->note(sprintf(_('Database %s on %s: connection OK.'), $plan->dbName, $plan->dbHost));
+            // An install of before: the databases of its simulators to come, when an administrator was given
+            isset(self::$admins[$plan->dbHost]) && $this->grantGrid($plan, $this->quote($plan->dbUser) . '@' . $this->quote($this->accountHost($plan)));
 
             return self::OK;
         }
@@ -325,6 +327,7 @@ final class DatabaseService
             return $this->failed('give the user access to the database', $err, $plan, $host, false, !$exists);
         }
 
+        $this->grantGrid($plan, $account);
         [$code, , $err] = $this->run($plan, $plan->dbName);
         if ($code !== 0) {
             $this->ui->error(sprintf(_('Still cannot use database %s: %s'), $plan->dbName, trim($err)));
@@ -334,6 +337,30 @@ final class DatabaseService
         $this->ui->note(sprintf(_('Database %s ready on %s.'), $plan->dbName, $plan->dbHost));
 
         return self::OK;
+    }
+
+    /**
+     * The user of a grid may make the databases named after it (`<grid>_…`, the underscore not a wildcard): a simulator added later
+     * needs no administrator. Given with the database of its Robust; a refusal is said, nothing stops for it.
+     */
+    private function grantGrid(GridPlan $plan, string $account): void
+    {
+        $pattern = self::gridPattern($plan->dbName);
+        if ($pattern === null) {
+            return;
+        }
+        [$code, , $err] = $this->admin($plan, "GRANT ALL ON `$pattern`.* TO $account");
+        $code === 0
+            ? $this->ui->note(sprintf(_('User %s may make the databases of the grid (%s).'), $plan->dbUser, substr($plan->dbName, 0, -6) . '*'))
+            : $this->ui->note(sprintf(_('User %s was not given the databases of the grid to come: %s'), $plan->dbUser, $this->errorLine($err)));
+    }
+
+    /** The databases of a grid, as a GRANT names them, from the one of its Robust (kimbe_test_robust: kimbe\_test\_%); null for another. */
+    public static function gridPattern(string $database): ?string
+    {
+        return str_ends_with($database, '_robust') && strlen($database) > 7
+            ? str_replace(['\\', '_', '%'], ['\\\\', '\\_', '\\%'], substr($database, 0, -6)) . '%'
+            : null;
     }
 
     /** A creation failed: the setup ends here, with what to run from an administrator account. */

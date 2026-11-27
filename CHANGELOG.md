@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (database): the user of a grid may make its databases (GRANT on <grid>\_%): a simulator added needs no administrator
+- new (setup): the accounts of the machine in /etc/w4os (database.rc), read before a person's own file, which wins
 - fix (start): an instance keeps no descriptor of whoever starts it: the terminal of a setup comes back at once
 - new (setup): the folders of the install in the review, each changed there while no grid is here, made first as root
 - fix (setup): a step done leaves its line (Folders, .NET runtime, OpenSimulator <version>); no task warning before the folders
