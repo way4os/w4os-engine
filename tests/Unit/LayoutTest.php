@@ -116,6 +116,13 @@ describe('layout a front-end works with', function () {
             ->not->toHaveKey('Grid');
     });
 
+    test('keeps a core root of its own that is not made yet: only a usual root gives way to the other', function () {
+        $layout = Layout::resolve(['OPENSIM_CONF' => layout_conf("[Defaults]\nCoreRoot = /srv/nowhere/cores\nCoreDirectory = /srv/nowhere/cores/0.9.3.0\n")]);
+
+        expect($layout->coreRoot())->toBe('/srv/nowhere/cores')
+            ->and($layout->coreDirectory())->toBe('/srv/nowhere/cores/0.9.3.0');
+    });
+
     test(
         'is the defaults of the system layout when nothing says otherwise, and the roots alone are enough',
         function () {

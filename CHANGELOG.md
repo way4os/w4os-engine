@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (setup): a step done leaves its line (Folders, .NET runtime, OpenSimulator <version>); no task warning before the folders
+- fix (layout): a core root of one's own not made yet is kept; only a usual root gives way to the other
 - new (setup): a machine without a core is offered the releases of opensimulator.org, the one chosen downloaded and unpacked
 - new (setup): the folders of the install and the .NET runtime of the core are steps of a setup without packages
 - fix (layout): where no account can be made the folders are the caller's; a config naming an unknown account or core root tolerated

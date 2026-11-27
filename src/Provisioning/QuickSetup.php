@@ -559,7 +559,8 @@ final class QuickSetup
                     return self::screenCore($environment, $answers, $error->getMessage());
                 }
 
-                return self::machine($environment, $answers) ?? self::typed($environment, $answers, $prepare);
+                // Said once done, by the client, with what follows
+                return ['done' => sprintf('OpenSimulator %s', (string) ($given['core'] ?? ''))] + (self::machine($environment, $answers) ?? self::typed($environment, $answers, $prepare));
 
             case 'location':
                 $answers = self::keep($answers, $given, ['bin']);
@@ -1039,7 +1040,7 @@ final class QuickSetup
 
             return [
                 'action' => 'step',
-                'step' => ['name' => 'give-ownership', 'root' => true, 'label' => _('Folders'), 'args' => [], 'skippable' => false, 'number' => 1, 'count' => 1],
+                'step' => ['name' => 'give-ownership', 'root' => true, 'label' => _('Folders'), 'done' => _('Folders'), 'args' => [], 'skippable' => false, 'number' => 1, 'count' => 1],
                 'labels' => [_('Folders')],
                 'notice' => '',
                 'state' => self::encode('machine', ['folders_asked' => true] + $answers),
@@ -1054,7 +1055,7 @@ final class QuickSetup
         if (PHP_OS_FAMILY === 'Linux' && !isset($answers['runtime_asked']) && $environment->probe->problem($core, $core->executable('OpenSim')) !== null) {
             return [
                 'action' => 'step',
-                'step' => ['name' => 'install-dotnet', 'root' => true, 'label' => _('.NET runtime'), 'args' => [], 'skippable' => false, 'number' => 1, 'count' => 1],
+                'step' => ['name' => 'install-dotnet', 'root' => true, 'label' => _('.NET runtime'), 'done' => _('.NET runtime'), 'args' => [], 'skippable' => false, 'number' => 1, 'count' => 1],
                 'labels' => [_('.NET runtime')],
                 'notice' => '',
                 'state' => self::encode('machine', ['runtime_asked' => true] + $answers),

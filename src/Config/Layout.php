@@ -151,8 +151,9 @@ final class Layout
     }
 
     /**
-     * A core root that does not exist on this machine (a config written for another kind of install) gives way to the usual root
-     * that has a core, the core it names with it: the settings are left as they are in their file.
+     * A usual core root that does not exist on this machine (a config written for another kind of install: the packages', or a
+     * clone's) gives way to the other usual root when it has a core, the core it names with it: the settings are left as they
+     * are in their file.
      *
      * @param array<string,string> $values
      * @return array<string,string>
@@ -160,10 +161,12 @@ final class Layout
     private static function coresFound(array $values): array
     {
         $root = rtrim((string) ($values['CoreRoot'] ?? ''), '/');
-        if ($root === '' || is_dir($root)) {
+        $usuals = ['/usr/share/opensim', DirectoryLayout::roots()['CoreRoot']];
+        // Only between the usual roots: a root of one's own that is not made yet is the one its cores will go in
+        if ($root === '' || is_dir($root) || !in_array($root, $usuals, true)) {
             return $values;
         }
-        foreach (['/usr/share/opensim', DirectoryLayout::roots()['CoreRoot']] as $usual) {
+        foreach ($usuals as $usual) {
             $latest = $usual === $root ? null : \W4OS\Engine\Runtime\Core::latest($usual);
             if ($latest !== null) {
                 $values['CoreRoot'] = $usual;

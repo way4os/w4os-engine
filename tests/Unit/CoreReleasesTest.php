@@ -96,8 +96,9 @@ describe('The releases of OpenSimulator', function () {
             ->and(array_column($menu['items'], 'key'))->toBe(['0.9.3.0', '0.9.2.2', '0.9.1.1'])
             ->and($failed)->toMatchArray(['name' => 'core', 'notice' => 'Could not download http://opensimulator.org/dist/opensim-0.9.2.2.tar.gz.'])
             ->and(is_file($machine->core . '/bin/OpenSim.dll'))->toBeTrue()
-            // Then the questions of the type as on any machine
-            ->and($next['name'])->toBe('db-admin');
+            // Then the questions of the type as on any machine, the core said as done
+            ->and($next['name'])->toBe('db-admin')
+            ->and($next['done'])->toBe('OpenSimulator 0.9.3.0');
     });
 
     test('come after the folders, made first when root sets up a machine no config of the install was written for', function () {
@@ -110,6 +111,6 @@ describe('The releases of OpenSimulator', function () {
         }
 
         expect($step['action'])->toBe('step')
-            ->and($step['step'])->toMatchArray(['name' => 'give-ownership', 'root' => true, 'label' => 'Folders']);
+            ->and($step['step'])->toMatchArray(['name' => 'give-ownership', 'root' => true, 'label' => 'Folders', 'done' => 'Folders']);
     });
 });

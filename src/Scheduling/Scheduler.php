@@ -267,7 +267,8 @@ final class Scheduler
         $ready = is_dir($this->directory)
             ? is_writable($this->directory)
             : $this->writable() && (@mkdir($this->directory, 0o775, true) || is_dir($this->directory));
-        if (!$ready && !isset(self::$warned[$this->directory])) {
+        // Nothing to say of an install whose folders are not made yet: it has no task
+        if (!$ready && !isset(self::$warned[$this->directory]) && is_dir(dirname($this->directory))) {
             // Said once: no task runs until the folder is writable (TasksRoot for a site the web server runs)
             self::$warned[$this->directory] = true;
             $user = function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? (string) posix_geteuid()) : get_current_user();

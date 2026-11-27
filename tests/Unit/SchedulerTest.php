@@ -270,6 +270,18 @@ describe('The scheduler', function () {
         expect("$root/cron/kept.json")->toBeFile();
     });
 
+    test('says nothing of an install whose folders are not made yet: it has no task to keep', function () {
+        $none = test_tmp() . '/cron-none-' . bin2hex(random_bytes(4));
+        file_put_contents($none, 'a file where the folders would be');
+        $log = test_tmp() . '/cron-log-' . bin2hex(random_bytes(4));
+        $before = ini_set('error_log', $log);
+        $ticks = (new Scheduler("$none/var/cron", new ClockFake()))->tick();
+        ini_set('error_log', (string) $before);
+
+        expect($ticks)->toBe([])
+            ->and((string) @file_get_contents($log))->toBe('');
+    });
+
     test('says once in the log that it cannot keep the state of its tasks, and tells whether it can', function () {
         $locked = test_tmp() . '/cron-locked-' . bin2hex(random_bytes(4));
         mkdir($locked, 0o555, true);
