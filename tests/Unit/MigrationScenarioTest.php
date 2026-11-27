@@ -100,6 +100,23 @@ describe('The scenario of an install of before the kit', function () {
             ->and($step['message'])->toContain('Website    https://w4os.org/opensim/', 'Old install  ');
     });
 
+    test('asks beside Apache the one line its sites need, and gives the website step the answer, never asking in it', function () {
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls) + ['vhosts' => static fn(string $site): ?array => ['/etc/apache2/sites-available/w4os.org-le-ssl.conf']]);
+        $machine = new Machine();
+        $questions = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['existing' => 'migrate']);
+        $review = migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/', 'vhosts' => 'yes']);
+        $step = migration_step($machine, $review);
+        while ($step['step']['name'] !== 'install-website') {
+            $step = migration_step($machine, $step);
+        }
+        $without = migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/', 'vhosts' => 'no']);
+
+        expect(array_column($questions['fields'], 'label', 'name')['vhosts'])->toBe('Add one line to /etc/apache2/sites-available/w4os.org-le-ssl.conf')
+            ->and($step['step']['args'])->toBe(['grid' => 'w4osdemogrid', 'edit_vhosts' => true])
+            ->and(array_column($without['rows'], 'value', 'label')['Website'])->toContain('not installed');
+    });
+
     test('keeps the steps it started with, the instances it stops being stopped by then', function () {
         $calls = [];
         $doubles = migration_doubles($calls);

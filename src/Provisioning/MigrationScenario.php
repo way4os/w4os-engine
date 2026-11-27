@@ -30,6 +30,9 @@ final class MigrationScenario
     /** How the import is planned, applied and switched (null: GridImport). @var ?\Closure(string, array<string,mixed>): array<string,mixed> */
     public static ?\Closure $importer = null;
 
+    /** The files of the sites of Apache that serve a website, null beside another web server (null: w4os-site --vhosts). @var ?\Closure(string): ?list<string> */
+    public static ?\Closure $vhosts = null;
+
     /** The first screen: the install found, and what to do with it. */
     public static function first(LegacyInstall $legacy): array
     {
@@ -77,7 +80,7 @@ final class MigrationScenario
                     default => ['action' => 'abort', 'error' => _('Stopped: nothing changed.')],
                 };
             case self::PREFIX . '-questions':
-                $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'stop', 'maptiles'])));
+                $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'stop', 'maptiles', 'vhosts'])));
                 $plan = self::planned($legacy, $answers);
                 $problem = self::problem($legacy, $answers);
 
@@ -131,6 +134,9 @@ final class MigrationScenario
         $legacy->running() !== [] && ($fields[] = ['name' => 'stop', 'label' => _('Stop them now (their start at boot set aside)'), 'value' => (string) ($answers['stop'] ?? 'yes'), 'secret' => false, 'readonly' => false, 'options' => $yesNo]);
         ($plan['asciiName'] ?? '') !== '' && ($fields[] = ['name' => 'name', 'label' => _('Grid name'), 'value' => (string) ($answers['name'] ?? $plan['name']), 'secret' => false, 'readonly' => false]);
         $fields[] = ['name' => 'website', 'label' => _('Website address'), 'value' => (string) ($answers['website'] ?? ($plan['site'] ?? '')), 'secret' => false, 'readonly' => false];
+        // Beside Apache, the one line its sites serving the host need, asked here: never in the step that installs the website
+        $files = self::vhostFiles((string) ($answers['website'] ?? ($plan['site'] ?? '')));
+        $files !== null && $files !== [] && ($fields[] = ['name' => 'vhosts', 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => (string) ($answers['vhosts'] ?? 'yes'), 'secret' => false, 'readonly' => false, 'options' => $yesNo]);
         ($plan['maptiles'] ?? '') !== '' && ($fields[] = ['name' => 'maptiles', 'label' => sprintf(_('3D map (installs %s)'), $plan['maptiles']), 'value' => (string) ($answers['maptiles'] ?? 'yes'), 'secret' => false, 'readonly' => false, 'options' => $yesNo]);
         $running = array_map(static fn(string $config): string => basename($config, '.ini'), $legacy->running());
 
@@ -151,11 +157,12 @@ final class MigrationScenario
     {
         $name = (string) ($answers['name'] ?? $plan['name']);
         $site = trim((string) ($answers['website'] ?? ($plan['site'] ?? '')));
+        $left = self::websiteLeft($site, $answers);
         $onOff = ['yes' => _('on'), 'no' => _('off')];
         $rows = [
             ['section' => _('Grid'), 'label' => _('Name'), 'value' => "$name ({$plan['grid']})", 'name' => 'name', 'current' => $name],
             ['section' => _('Grid'), 'label' => _('Login'), 'value' => (string) ($plan['login'] ?? '')],
-            ['section' => _('Web'), 'label' => _('Website'), 'value' => $site !== '' ? $site : _('none'), 'name' => 'website', 'current' => $site],
+            ['section' => _('Web'), 'label' => _('Website'), 'value' => $site === '' ? _('none') : ($left !== '' ? "$site, " . $left : $site), 'name' => 'website', 'current' => $site],
         ];
         foreach ($plan['data'] ?? [] as $data) {
             $rows[] = ['section' => _('Data'), 'label' => (string) $data['place'], 'value' => sprintf('%s, %s', $data['size'], ($data['acrossFilesystems'] ?? false) ? _('copied (another disk)') : _('moved (same disk)'))];
@@ -200,8 +207,10 @@ final class MigrationScenario
         if (($plan['maptiles'] ?? '') !== '' && Result::isTrue($answers['maptiles'] ?? 'yes')) {
             $steps[] = ['name' => 'install-packages', 'root' => true, 'label' => '3D map', 'args' => ['packages' => [$plan['maptiles']], 'option' => 'map-warp3d', 'grid' => $plan['grid']], 'skippable' => true];
         }
-        if (trim((string) ($answers['website'] ?? ($plan['site'] ?? ''))) !== '') {
-            $steps[] = ['name' => 'install-website', 'root' => true, 'label' => 'Website', 'args' => ['grid' => $plan['grid']], 'skippable' => true];
+        $site = trim((string) ($answers['website'] ?? ($plan['site'] ?? '')));
+        if ($site !== '' && self::websiteLeft($site, $answers) === '') {
+            $files = self::vhostFiles($site);
+            $steps[] = ['name' => 'install-website', 'root' => true, 'label' => 'Website', 'args' => ['grid' => $plan['grid']] + ($files !== null ? ['edit_vhosts' => true] : []), 'skippable' => true];
         }
         $steps[] = ['name' => 'switch', 'root' => false, 'label' => 'Start', 'args' => [], 'skippable' => false];
 
@@ -306,6 +315,49 @@ final class MigrationScenario
             'switch' => self::import('switch', $args),
             default => throw new \RuntimeException("unknown step $name"),
         };
+    }
+
+    /** Why the website is left out ('' when it is not): beside Apache, no site serving its host, or its line refused. */
+    private static function websiteLeft(string $site, array $answers): string
+    {
+        $files = $site === '' ? null : self::vhostFiles($site);
+        if ($files === null) {
+            return '';
+        }
+        if ($files === []) {
+            return sprintf(_('not installed: no site of Apache serves %s'), (string) parse_url($site, PHP_URL_HOST));
+        }
+
+        return Result::isTrue($answers['vhosts'] ?? 'yes') ? '' : _('not installed: it needs its line in the sites of Apache');
+    }
+
+    /** @return ?list<string> the files of the sites of Apache that would include the website, null beside another web server */
+    private static function vhostFiles(string $site): ?array
+    {
+        if ($site === '' || filter_var($site, FILTER_VALIDATE_URL) === false) {
+            return null;
+        }
+        if (self::$vhosts !== null) {
+            return (self::$vhosts)($site);
+        }
+        // Caddy first, as the step of the website takes it; Apache otherwise, its sites named by the site's own command
+        if ((is_file('/etc/caddy/Caddyfile') && self::has('caddy')) || !self::has('apache2ctl') || !self::has('w4os-site')) {
+            return null;
+        }
+        $host = (string) parse_url($site, PHP_URL_SCHEME) . '://' . (string) parse_url($site, PHP_URL_HOST);
+        $prefix = rtrim((string) parse_url($site, PHP_URL_PATH), '/');
+        $out = [];
+        exec('w4os-site web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --vhosts 2>/dev/null', $out);
+
+        return array_values(array_filter(array_map('trim', $out)));
+    }
+
+    private static function has(string $command): bool
+    {
+        $out = [];
+        exec('command -v ' . escapeshellarg($command) . ' 2>/dev/null', $out);
+
+        return $out !== [];
     }
 
     /** The summary of a migration. */

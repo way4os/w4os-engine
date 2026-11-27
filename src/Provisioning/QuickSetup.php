@@ -1255,6 +1255,7 @@ final class QuickSetup
         self::$resolve = $doubles['resolve'] ?? null;
         self::$legacy = $doubles['legacy'] ?? null;
         MigrationScenario::$importer = $doubles['importer'] ?? null;
+        MigrationScenario::$vhosts = $doubles['vhosts'] ?? null;
     }
 
     /** The install of before the kit of this machine (null: LegacyInstall::here()). */
