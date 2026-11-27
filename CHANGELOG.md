@@ -1,6 +1,6 @@
 ## Changelog
 
-### Unreleased
+### 3.0.0-beta.15
 
 - fix (start): root never runs an instance in place of its account; one running already is said, and as whom
 - fix (stop): an instance not running said at once; one another account runs said at once, never waited for
