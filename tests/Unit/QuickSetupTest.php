@@ -1097,7 +1097,7 @@ describe('quick setup, the scenario', function () {
                 'grid' => 'New grid',
                 'standalone' => 'New standalone',
                 'join' => 'New simulator (connected to another grid)',
-                'existing' => 'Other install (its config files)',
+                'location' => 'Other location (its opensim/bin folder)',
             ])
             ->and($reply['buttons'])
             ->toBe(['next' => 'OK', 'back' => 'Quit'])

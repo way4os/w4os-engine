@@ -808,8 +808,9 @@ describe('The setup from an existing install', function () {
         $done = W4OS\Engine\Provisioning\QuickSetup::next($env, ['state' => $review['state'], 'button' => 'next']);
         W4OS\Engine\Provisioning\QuickSetup::through();
 
+        // The menu offers a location instead; the import by its configs stays the answer existing
         expect(array_column($type['items'], 'key'))
-            ->toContain('existing')
+            ->toContain('location')
             ->and($form['kind'])
             ->toBe('form')
             ->and(array_column($form['fields'], 'name'))

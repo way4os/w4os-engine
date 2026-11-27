@@ -468,7 +468,7 @@ final class MigrationScenario
             $steps[] = ['name' => 'in-place-apply', 'root' => false, 'label' => 'Config', 'args' => [], 'skippable' => false];
             // The service and its folders made to follow the accounts the kit took from it
             $steps[] = ['name' => 'give-ownership', 'root' => true, 'label' => 'Ownership', 'args' => [], 'skippable' => false];
-            $restart && $running !== [] && ($steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Start', 'args' => ['configs' => $running], 'skippable' => false]);
+            $restart && $running !== [] && ($steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Start', 'args' => ['configs' => $running] + ($legacy->location() === [] ? [] : ['location' => $legacy->location()]), 'skippable' => false]);
             $restart && ($steps[] = ['name' => 'restart-service', 'root' => true, 'label' => 'Start', 'args' => [], 'skippable' => false]);
             $restart && ($steps[] = ['name' => 'in-place-check', 'root' => false, 'label' => 'Start', 'args' => ['grid' => $plan['grid']], 'skippable' => false]);
 
@@ -476,7 +476,7 @@ final class MigrationScenario
         }
         if ($running !== []) {
             $steps[] = ['name' => 'set-aside-starters', 'root' => true, 'label' => 'Stop', 'args' => ['files' => $legacy->starters()], 'skippable' => false];
-            $steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Stop', 'args' => ['configs' => $running], 'skippable' => false];
+            $steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Stop', 'args' => ['configs' => $running] + ($legacy->location() === [] ? [] : ['location' => $legacy->location()]), 'skippable' => false];
         }
         $steps[] = ['name' => 'import-apply', 'root' => false, 'label' => 'Config', 'args' => [], 'skippable' => false];
         $steps[] = ['name' => 'give-ownership', 'root' => true, 'label' => 'Ownership', 'args' => [], 'skippable' => false];

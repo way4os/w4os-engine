@@ -22,7 +22,38 @@ final class LegacyInstall
         private readonly string $cron = '/etc/cron.hourly/opensim',
         private readonly array $units = self::UNITS,
         private readonly string $proc = '/proc',
+        public readonly string $bin = '',
+        private readonly string $robust = '',
     ) {}
+
+    /**
+     * An install given by its location: its bin folder (OpenSim.dll or OpenSim.exe there), its Robust config when it is not there
+     * (Robust.HG.ini, else Robust.ini of the folder); its simulator the OpenSim.ini of the folder; no start at boot known.
+     *
+     * @throws \InvalidArgumentException what is wrong with the location, said for the person
+     */
+    public static function locate(string $bin, string $robust = '', string $proc = ''): self
+    {
+        $bin = rtrim(trim($bin), '/');
+        $robust = trim($robust);
+        if ($bin === '' || !is_dir($bin) || (!is_file("$bin/OpenSim.dll") && !is_file("$bin/OpenSim.exe"))) {
+            throw new \InvalidArgumentException(sprintf(_('Not an OpenSim bin folder (no OpenSim.dll): %s'), $bin));
+        }
+        if ($robust === '') {
+            $robust = is_file("$bin/Robust.HG.ini") ? "$bin/Robust.HG.ini" : (is_file("$bin/Robust.ini") ? "$bin/Robust.ini" : '');
+            $robust !== '' || throw new \InvalidArgumentException(sprintf(_('No Robust.HG.ini nor Robust.ini in %s: give its Robust file.'), $bin));
+        } elseif (!is_file($robust) || !is_readable($robust) || !str_ends_with($robust, '.ini')) {
+            throw new \InvalidArgumentException(sprintf(_('Not a Robust config file: %s'), $robust));
+        }
+
+        return new self(dirname($bin), '', [], $proc !== '' ? $proc : (string) (getenv('W4OS_LEGACY_PROC') ?: '/proc'), $bin, $robust);
+    }
+
+    /** @return array{bin:string,robust:string} the location given, empty for the one of this machine */
+    public function location(): array
+    {
+        return $this->bin === '' ? [] : ['bin' => $this->bin, 'robust' => $this->robust];
+    }
 
     /** The one of this machine: W4OS_LEGACY_ROOT, W4OS_LEGACY_CRON and W4OS_LEGACY_UNITS for the tests. */
     public static function here(): self
@@ -40,18 +71,30 @@ final class LegacyInstall
     /** Whether there is one: its library, or a cron that names it. */
     public function found(): bool
     {
+        if ($this->bin !== '') {
+            return is_readable($this->robust);
+        }
+
         return is_file("$this->root/lib/os-helpers") || (is_file($this->cron) && str_contains((string) file_get_contents($this->cron), $this->root));
     }
 
     /** @return list<string> the configs of its Robusts */
     public function robusts(): array
     {
+        if ($this->bin !== '') {
+            return [$this->robust];
+        }
+
         return $this->configs('robust.d');
     }
 
     /** @return list<string> the configs of its simulators */
     public function simulators(): array
     {
+        if ($this->bin !== '') {
+            return is_file("$this->bin/OpenSim.ini") ? ["$this->bin/OpenSim.ini"] : [];
+        }
+
         return $this->configs('opensim.d');
     }
 
@@ -96,8 +139,13 @@ final class LegacyInstall
                     $value = $args[$i + 1] ?? null;
                 }
             }
+            // Given none, a core reads the config of its folder named after it (OpenSim.ini, Robust.ini)
             if ($value === null || $value === '') {
-                continue;
+                $core = preg_grep('/(^|\/)(OpenSim|Robust)\.(dll|exe)$/', $args);
+                if ($core === []) {
+                    continue;
+                }
+                $value = (str_contains((string) reset($core), 'Robust') ? 'Robust' : 'OpenSim') . '.ini';
             }
             $value = trim($value, "'\"");
             if (!str_starts_with($value, '/')) {
@@ -122,6 +170,9 @@ final class LegacyInstall
     /** @return list<string> what starts it at boot: its cron, its own units */
     public function starters(): array
     {
+        if ($this->bin !== '') {
+            return [];
+        }
         $starters = is_file($this->cron) ? [$this->cron] : [];
         foreach ($this->units as $unit) {
             is_file($unit) && !is_link($unit) && !str_contains((string) file_get_contents($unit), 'opensim service') && ($starters[] = $unit);

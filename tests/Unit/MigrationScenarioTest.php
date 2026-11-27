@@ -60,7 +60,7 @@ describe('The scenario of an install of before the kit', function () {
 
         expect($opening['text'])->toBe('Found 2 pre-existing installations:')
             ->and(array_column($opening['items'], 'label', 'key'))->toMatchArray(['found' => "{$legacy->root} (active)", 'here:demo' => "{$machine->grid} (localhost:8002, inactive)"])
-            ->and(array_slice(array_column($opening['items'], 'key'), 2))->toBe(['grid', 'standalone', 'join', 'existing'])
+            ->and(array_slice(array_column($opening['items'], 'key'), 2))->toBe(['grid', 'standalone', 'join', 'location'])
             // One idea a screen: what to do with it, Back to the first menu
             ->and($first)->toMatchArray(['kind' => 'menu', 'title' => $legacy->root, 'text' => ''])
             ->and(array_column($first['items'], 'key'))->toBe(['migrate', 'in-place'])
@@ -68,6 +68,38 @@ describe('The scenario of an install of before the kit', function () {
             ->and(migration_step($machine, $first, [], 'back')['title'])->toBe('OpenSim setup')
             ->and(migration_step($machine, $first, ['existing' => 'abort']))->toBe(['action' => 'abort', 'error' => 'Stopped: nothing changed.'])
             ->and(migration_step($machine, $opening, ['existing' => 'new'])['name'])->toBe('type');
+    });
+
+    test('takes an install given by its location: checked, then the same choice, the location kept through its screens', function () {
+        $calls = [];
+        $doubles = migration_doubles($calls);
+        $robusts = [];
+        $importer = $doubles['importer'];
+        $doubles['importer'] = static function (string $action, array $args) use ($importer, &$robusts): array {
+            $robusts[] = $args['robust'];
+
+            return $importer($action, $args);
+        };
+        QuickSetup::through($doubles);
+        $base = sys_get_temp_dir() . '/legacy-at-' . bin2hex(random_bytes(4));
+        mkdir("$base/opensim/bin", 0o755, true);
+        file_put_contents("$base/opensim/bin/OpenSim.dll", '');
+        file_put_contents("$base/opensim/bin/Robust.HG.ini", "[GridInfoService]\n    gridnick = \"Elsewhere\"\n");
+        $machine = new Machine();
+        $form = migration_step($machine, QuickSetup::next($machine->environment, []), ['type' => 'location']);
+        $wrong = migration_step($machine, $form, ['bin' => "$base/opensim", 'robust' => '']);
+        $choice = migration_step($machine, $form, ['bin' => "$base/opensim/bin", 'robust' => '']);
+        $robusts = [];
+        $questions = migration_step($machine, $choice, ['existing' => 'migrate']);
+
+        expect($form)->toMatchArray(['kind' => 'form', 'name' => 'location', 'title' => 'Other location'])
+            ->and(array_column($form['fields'], 'label', 'name'))->toBe(['bin' => 'opensim/bin folder', 'robust' => 'Robust file (if elsewhere)'])
+            ->and($wrong['notice'])->toBe("Not an OpenSim bin folder (no OpenSim.dll): $base/opensim")
+            ->and($choice)->toMatchArray(['kind' => 'menu', 'title' => "$base/opensim"])
+            ->and(array_column($choice['items'], 'key'))->toBe(['migrate', 'in-place'])
+            ->and(QuickSetup::decode($questions['state'])['answers']['location'])->toBe(['bin' => "$base/opensim/bin", 'robust' => "$base/opensim/bin/Robust.HG.ini"])
+            ->and(array_unique($robusts))->toBe(["$base/opensim/bin/Robust.HG.ini"])
+            ->and(migration_step($machine, $form, [], 'back')['title'])->toBe('OpenSim setup');
     });
 
     test('asks what a migration needs, then reviews it, each line changed there and checked again', function () {

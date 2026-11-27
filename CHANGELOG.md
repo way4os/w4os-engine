@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- new (setup): Other location in the first menu: an install given by its opensim/bin folder, its Robust file if elsewhere
 - change (setup): the first menu lists what is here (grids, a pre-existing install), then New grid, standalone, simulator
 - new (setup): the DB admin user asked first, made as root when missing; a grid's database user once its name is known
 - change (setup): the review shows the database users as name and value pairs; no kit as an actor in any text

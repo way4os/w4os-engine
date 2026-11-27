@@ -427,9 +427,10 @@ final class QuickSetup
             }
         }
         if (str_starts_with($state['step'], MigrationScenario::PREFIX)) {
-            $next = MigrationScenario::advance($environment, $state['step'], $answers, $button, $given, $request, (self::$legacy ?? Import\LegacyInstall::here(...))());
-            // A new grid beside it: the questions of a grid
-            return $next ?? self::screenType($environment, [], '');
+            $legacy = self::legacyOf($answers);
+            $next = MigrationScenario::advance($environment, $state['step'], $answers, $button, $given, $request, $legacy);
+            // Back, or a new grid beside it: the first menu
+            return $next === null ? self::screenType($environment, [], '') : self::withLocation($next, $legacy);
         }
         if ($state['step'] === '') {
             return self::screenType($environment, $answers, '');
@@ -508,6 +509,9 @@ final class QuickSetup
                 if ($chosen === 'join') {
                     return self::screenType($environment, ['menu' => 'join'] + $answers, '');
                 }
+                if ($chosen === 'location') {
+                    return self::screenLocation($answers, '');
+                }
                 $type = strtolower(trim((string) ($given['type'] ?? ($answers['type'] ?? ''))));
                 $answers['type'] = $type;
                 $answers = array_replace($answers, array_intersect_key($given, array_flip(['hostname', 'login_uri', 'oar', 'dump', 'show_passwords'])));
@@ -544,6 +548,19 @@ final class QuickSetup
 
                 // The administrator of the database server first: it makes the databases and their users later
                 return $prepare || isset($answers['admin_checked']) ? self::screenForm($environment, $answers, '') : self::screenAdmin($answers, '');
+
+            case 'location':
+                $answers = self::keep($answers, $given, ['bin', 'robust']);
+                if ($button === 'back') {
+                    return self::screenType($environment, [], '');
+                }
+                try {
+                    $legacy = Import\LegacyInstall::locate((string) ($answers['bin'] ?? ''), (string) ($answers['robust'] ?? ''));
+                } catch (\InvalidArgumentException $error) {
+                    return self::screenLocation($answers, $error->getMessage());
+                }
+
+                return self::withLocation(MigrationScenario::first($legacy, $environment), $legacy);
 
             case 'db-admin':
                 if ($button === 'back') {
@@ -916,7 +933,7 @@ final class QuickSetup
             ['key' => 'grid', 'label' => _('New grid'), 'note' => ''],
             ['key' => 'standalone', 'label' => _('New standalone'), 'note' => ''],
             ['key' => 'join', 'label' => _('New simulator (connected to another grid)'), 'note' => ''],
-            ['key' => 'existing', 'label' => _('Other install (its config files)'), 'note' => ''],
+            ['key' => 'location', 'label' => _('Other location (its opensim/bin folder)'), 'note' => ''],
         ];
 
         return [
@@ -961,6 +978,51 @@ final class QuickSetup
         ksort($found);
 
         return array_values($found);
+    }
+
+    /** An install given by its location: its opensim/bin folder, its Robust file when it is not in that folder. */
+    private static function screenLocation(array $answers, string $notice): array
+    {
+        return [
+            'action' => 'screen',
+            'kind' => 'form',
+            'name' => 'location',
+            'title' => _('Other location'),
+            'text' => '',
+            'notice' => $notice,
+            'fields' => [
+                ['name' => 'bin', 'label' => _('opensim/bin folder'), 'value' => (string) ($answers['bin'] ?? ''), 'secret' => false],
+                ['name' => 'robust', 'label' => _('Robust file (if elsewhere)'), 'value' => (string) ($answers['robust'] ?? ''), 'secret' => false],
+            ],
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'state' => self::encode('location', $answers),
+        ];
+    }
+
+    /** The install of the scenario: the location given (kept in its state), else the one of this machine. */
+    private static function legacyOf(array $answers): Import\LegacyInstall
+    {
+        $location = $answers['location'] ?? null;
+        if (is_array($location) && ($location['bin'] ?? '') !== '') {
+            try {
+                return Import\LegacyInstall::locate((string) $location['bin'], (string) ($location['robust'] ?? ''));
+            } catch (\InvalidArgumentException) {
+            }
+        }
+
+        return (self::$legacy ?? Import\LegacyInstall::here(...))();
+    }
+
+    /** The next screen or step of the scenario of a location given, the location kept in its state for the requests after it. */
+    private static function withLocation(array $next, Import\LegacyInstall $legacy): array
+    {
+        if ($legacy->location() === [] || !isset($next['state'])) {
+            return $next;
+        }
+        $state = self::decode((string) $next['state']);
+        $next['state'] = self::encode($state['step'], ['location' => $legacy->location()] + $state['answers']);
+
+        return $next;
     }
 
     /** The administrator of the database server: the one of the environment, else opensim_admin with a password made at random. */
