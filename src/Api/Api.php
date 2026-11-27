@@ -1142,11 +1142,23 @@ final class Api
             $found = $this->grid($grid) ?? throw NotFound::for("grid called '$grid'", 'grids');
             in_array('files', $found->access(), true) || throw ChannelUnavailable::because("change the address of $grid", 'options-no-files');
             $to = array_intersect_key($attributes, ['host' => 1, 'port' => 1, 'site' => 1]);
-            $change = (new \W4OS\Engine\Provisioning\GridAddress($found))->change($to, $mode === 'apply');
+            // The address of its Quick Start website, its own setting: no other address of the grid follows it
+            $website = array_key_exists('website', $attributes) ? \W4OS\Engine\Models\Grid::validWebsite((string) $attributes['website']) : null;
+            $change = $to === [] && $website !== null
+                ? ['from' => [], 'to' => [], 'changes' => [], 'rows' => [], 'applied' => $mode === 'apply']
+                : (new \W4OS\Engine\Provisioning\GridAddress($found))->change($to, $mode === 'apply');
+            if ($website !== null) {
+                $conf = $found->directory() . '/' . $found->nick() . '.conf';
+                $before = $found->siteAddress();
+                $change['from']['website'] = $before;
+                $change['to']['website'] = $website;
+                $before === $website || ($change['changes'][] = ['file' => $conf, 'line' => 0, 'before' => "SiteAddress = $before", 'after' => "SiteAddress = $website"]);
+                $mode === 'apply' && $before !== $website && \W4OS\Engine\Models\Grid::keepSiteAddress($conf, $website);
+            }
         } catch (\Throwable $error) {
             return Response::problem(Problem::from($error, $instance));
         }
-        $meta = $change['applied'] && $change['changes'] !== [] ? ['reminders' => [
+        $meta = $change['applied'] && $to !== [] && $change['changes'] !== [] ? ['reminders' => [
             Notice::of('restart-grid', ['restart' => 'opensim restart ' . $found->nick()]),
             Notice::of('restart-simulators', ['restart' => 'opensim restart ' . $found->nick() . ' --simulators']),
         ]] : [];

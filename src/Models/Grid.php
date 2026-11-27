@@ -1864,10 +1864,42 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return $conf !== '' && is_file($conf) ? trim((string) (ConfigReader::file($conf)['Grid'][self::SITE_ADDRESS] ?? ''), " \t\"") : '';
     }
 
+    /** An address of a Quick Start website as it is kept (http or https, ending with a slash); '' for none. */
+    public static function validWebsite(string $address): string
+    {
+        $address = trim($address);
+        if ($address === '') {
+            return '';
+        }
+        $scheme = strtolower((string) parse_url($address, PHP_URL_SCHEME));
+        filter_var($address, FILTER_VALIDATE_URL) !== false && in_array($scheme, ['http', 'https'], true) ||
+            throw \W4OS\Engine\Exceptions\InvalidValue::because('invalid-request', "not an address of a website: $address");
+
+        return rtrim($address, '/') . '/';
+    }
+
+    /** Where its Quick Start website stands: '' (none chosen), chosen (its address kept, not installed), installed. */
+    public function siteState(): string
+    {
+        $site = $this->siteAddress();
+
+        return $site === '' ? '' : (self::websiteInstalled($this->nick()) ? 'installed' : 'chosen');
+    }
+
+    /** Whether the Quick Start website of a grid is installed: the site connected to it, its file in the web server. */
+    public static function websiteInstalled(string $nick): bool
+    {
+        $file = (getenv('W4OS_SITE_ROOT') ?: '/var/lib/w4os/www') . '/user/config/plugins/w4os.yaml';
+        $yaml = is_readable($file) ? (string) file_get_contents($file) : '';
+
+        return preg_match('/^grid:\s*[\'"]?' . preg_quote($nick, '/') . '[\'"]?\s*$/m', $yaml) === 1
+            && ((glob('/etc/caddy/sites/*.w4os.*') ?: []) !== [] || (glob('/etc/apache2/w4os/*.conf') ?: []) !== [] || is_file('/etc/apache2/conf-enabled/w4os-site.conf'));
+    }
+
     /** The address of its Quick Start website kept in its conf, ending with a slash (written when the conf can be written). */
     public static function keepSiteAddress(string $conf, string $address): void
     {
-        $address = rtrim($address, '/') . '/';
+        $address = trim($address) === '' ? '' : rtrim($address, '/') . '/';
         if (is_file($conf) ? is_writable($conf) : is_writable(dirname($conf))) {
             $ini = is_file($conf) ? \W4OS\Engine\Config\IniEditor::load($conf) : new \W4OS\Engine\Config\IniEditor('');
             $ini->set('Grid', self::SITE_ADDRESS, $address);
@@ -2018,6 +2050,7 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             'databaseUser' => $this->databaseUser(),
             'webUrl' => $this->webUrl() ?: null,
             'site' => $this->siteAddress() ?: null,
+            'siteState' => $this->siteState() ?: null,
             'logoUrl' => $this->logoUrl(),
             'allowUserProfileWebUrls' => $this->allowUserProfileWebUrls(),
             'helpers' => $this->hasHelpers(),

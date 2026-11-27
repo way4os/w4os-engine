@@ -270,8 +270,8 @@ describe('The scenario of an install of before the kit', function () {
             ->and($rows['SystemUser'])->toBe('opensim → magic')
             ->and($rows['Restart under the kit'])->toBe('on')
             ->and(array_column($kept['rows'], 'value', 'label')['Restart under the kit'])->toBe('off')
-            ->and($names)->toBe(['[1/3] Stop set-aside-starters', '[2/3] Config in-place-apply', '[3/3] Start stop-old-instances', '[3/3] Start in-place-start'])
-            ->and(array_column($calls, 0))->toContain('in-place-apply', 'in-place-start')
+            ->and($names)->toBe(['[1/4] Stop set-aside-starters', '[2/4] Config in-place-apply', '[3/4] Ownership give-ownership', '[4/4] Start stop-old-instances', '[4/4] Start restart-service', '[4/4] Start in-place-check'])
+            ->and(array_column($calls, 0))->toContain('in-place-apply', 'in-place-check')
             ->and($step['message'])->toContain('In place   ')
             ->and($step['message'])->not->toContain('still run as before');
     });
@@ -287,7 +287,7 @@ describe('The scenario of an install of before the kit', function () {
             $step = migration_step($machine, $step);
         }
 
-        expect($names)->toBe(['set-aside-starters', 'in-place-apply'])
+        expect($names)->toBe(['set-aside-starters', 'in-place-apply', 'give-ownership'])
             ->and($step['message'])->toContain('Instances  still run as before: opensim restart w4osdemogrid runs them under the kit');
     });
 
@@ -311,5 +311,29 @@ describe('The scenario of an install of before the kit', function () {
             ->and($done['action'])->toBe('quit')
             ->and(array_column($calls, 0))->toContain('switch')->not->toContain('plan', 'apply')
             ->and($unattended['step']['name'])->toBe('switch');
+    });
+
+    test('asks again on a rerun the address of a website a run before left, and keeps it alone before its step', function () {
+        $calls = [];
+        $doubles = migration_doubles($calls);
+        $legacy = ($doubles['legacy'])();
+        file_put_contents($legacy->robusts()[0], "[GridInfoService]\n    gridnick = \"demo\"\n");
+        // No site of Apache serves the address of the run before; the new one has its site
+        $doubles['vhosts'] = static fn(string $site): ?array => str_contains($site, 'w4os.org/') && !str_contains($site, 'www.') ? [] : ['/etc/apache2/sites-available/www.w4os.org-le-ssl.conf'];
+        QuickSetup::through($doubles);
+        $machine = new Machine();
+        W4OS\Engine\Models\Grid::keepSiteAddress("{$machine->grid}/demo.conf", 'https://w4os.org/');
+        $here = QuickSetup::next($machine->environment, ['existing' => true]);
+        $changed = migration_step($machine, $here, ['website' => 'https://www.w4os.org/opensim/', 'vhosts' => 'yes'], 'edit');
+        $step = migration_step($machine, $changed);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
+        $next = migration_step($machine, migration_step($machine, $step));
+
+        expect(array_column($here['rows'], 'value', 'label')['Website'])->toBe('https://w4os.org/, not installed: no site of Apache serves w4os.org')
+            ->and(array_column($changed['rows'], 'value', 'name')['website'])->toBe('https://www.w4os.org/opensim/')
+            ->and($step['step']['name'])->toBe('keep-website')
+            ->and($grid?->siteAddress())->toBe('https://www.w4os.org/opensim/')
+            ->and($grid?->siteState())->toBe('chosen')
+            ->and(migration_step($machine, $step)['step']['name'] ?? null)->toBe('install-website');
     });
 });

@@ -22,7 +22,7 @@ final class MigrationScenario
     public const PREFIX = 'existing';
 
     /** The steps a client runs as root, with the arguments it checks: nothing else is run by it. */
-    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website'];
+    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website', 'restart-service'];
 
     /** The packages a step may install: the ones the choices of a migration name. */
     public const PACKAGES = '/^(opensim-[0-9.]+-maptiles|w4os-site)$/';
@@ -147,24 +147,50 @@ final class MigrationScenario
         $inPlace = Grid::inPlace($environment, $nick) !== null;
         $site = $grid->siteAddress();
         $facts = ['grid' => $nick, 'name' => $grid->name(), 'login' => $grid->baseHostname() . ':' . $grid->publicPort(), 'site' => $site];
-        $answers = array_replace($answers, ['facts' => $facts, 'mode' => $inPlace ? 'in-place' : 'migrate', 'here' => true, 'website' => $site]);
+        $answers = array_replace($answers, ['facts' => $facts, 'mode' => $inPlace ? 'in-place' : 'migrate', 'here' => true]);
+        // The address of its website as it was chosen, or as it is given again (a rerun asks it, prefilled)
+        $answers['website'] = trim((string) ($answers['website'] ?? $site));
+        $wanted = $answers['website'];
+        $askSite = !$inPlace && $site !== '' && !self::siteInstalled($nick);
+        $valid = $wanted === '' || filter_var($wanted, FILTER_VALIDATE_URL) !== false;
         $steps = [];
-        if (!($grid->robust()?->isRunning() ?? false)) {
-            $steps[] = $inPlace
-                ? ['name' => 'in-place-start', 'root' => false, 'label' => 'Start', 'args' => ['grid' => $nick], 'skippable' => false]
-                : ['name' => 'switch', 'root' => false, 'label' => 'Start', 'args' => [], 'skippable' => false];
+        if ($inPlace && !($grid->robust()?->isRunning() ?? false)) {
+            // In place, what is left: enabled, and restarted under the kit when asked (a person: yes)
+            $answers['restart'] ??= ($answers['unattended'] ?? false) ? 'no' : 'yes';
+            $steps = array_values(array_filter(self::steps($legacy, $answers, $facts), static fn(array $step): bool => $step['name'] !== 'set-aside-starters' || $step['args']['files'] !== []));
+        } elseif (!($grid->robust()?->isRunning() ?? false)) {
+            $steps[] = ['name' => 'switch', 'root' => false, 'label' => 'Start', 'args' => [], 'skippable' => false];
         }
-        // Its website left by a run before (a failure, a line of Apache not given): its step again
-        if (!$inPlace && $site !== '' && !self::siteInstalled($nick) && self::websiteLeft($site, $answers) === '') {
-            $files = self::vhostFiles($site);
+        // Its website left by a run before (a failure, no site of Apache serving it, its line not given): its address asked again,
+        // kept alone when it changes (no other address of the grid follows it), then its step
+        $files = $askSite && $wanted !== '' && filter_var($wanted, FILTER_VALIDATE_URL) !== false ? self::vhostFiles($wanted) : null;
+        if ($askSite && $valid && $wanted !== '' && self::websiteLeft($wanted, $answers) === '') {
             array_unshift($steps, ['name' => 'install-website', 'root' => true, 'label' => 'Website', 'args' => ['grid' => $nick] + ($files !== null ? ['edit_vhosts' => true] : []), 'skippable' => true]);
         }
+        if ($askSite && $valid && rtrim($wanted, '/') !== rtrim($site, '/')) {
+            array_unshift($steps, ['name' => 'keep-website', 'root' => false, 'label' => 'Website', 'args' => ['grid' => $nick, 'website' => $wanted], 'skippable' => false]);
+        }
         $said = sprintf(_('%s is here already.'), $nick);
-        if ($steps === []) {
+        if ($steps === [] && !($askSite && !($answers['unattended'] ?? false))) {
             return ['action' => 'quit', 'message' => $said . "\n\n" . self::summary($environment, $legacy, $facts, $answers)];
         }
         $answers['run'] = $steps;
-        $rows = array_map(static fn(array $step): array => ['section' => _('Left to do'), 'label' => $step['label'], 'value' => $step['name'] === 'install-website' ? $site : _('the grid is written here, not started')], $steps);
+        $left = static fn(array $step): string => match ($step['name']) {
+            'install-website' => $site,
+            'in-place-apply' => _('registered here, enabled'),
+            'stop-old-instances' => _('its instances stopped'),
+            'in-place-check' => _('started under the kit'),
+            'give-ownership' => _('the service runs as its account'),
+            'restart-service' => _('the service restarted'),
+            'set-aside-starters' => _('its start at boot set aside'),
+            default => _('the grid is written here, not started'),
+        };
+        $rows = array_map(static fn(array $step): array => ['section' => _('Left to do'), 'label' => $step['label'], 'value' => $left($step)], array_values(array_filter($steps, static fn(array $step): bool => !in_array($step['name'], ['install-website', 'keep-website'], true))));
+        if ($askSite) {
+            $why = $wanted === '' ? _('none') : ($valid ? self::websiteLeft($wanted, $answers) : sprintf(_('Not an address: %s'), $wanted));
+            $rows[] = ['section' => _('Web'), 'label' => _('Website'), 'value' => $why === '' ? $wanted : ($wanted === '' ? $why : "$wanted, $why"), 'name' => 'website', 'current' => $wanted];
+            $files !== null && $files !== [] && ($rows[] = ['section' => _('Web'), 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => Result::isTrue($answers['vhosts'] ?? 'yes') ? _('Yes') : _('No'), 'name' => 'vhosts', 'current' => Result::isTrue($answers['vhosts'] ?? 'yes') ? 'yes' : 'no', 'options' => ['yes' => _('Yes'), 'no' => _('No')]]);
+        }
 
         return [
             'action' => 'screen',
@@ -173,18 +199,15 @@ final class MigrationScenario
             'text' => $said,
             'notice' => '',
             'rows' => $rows,
-            'buttons' => ['next' => _('Start'), 'back' => _('Quit')],
+            'buttons' => ['next' => _('Start'), 'back' => _('Quit')] + ($askSite ? ['edit' => _('Change')] : []),
             'state' => QuickSetup::encode(self::PREFIX . '-review', $answers),
         ];
     }
 
-    /** Whether the website of a grid is installed: the site connected to it, its file in the web server. */
+    /** Whether the website of a grid is installed (Grid::websiteInstalled()). */
     public static function siteInstalled(string $nick): bool
     {
-        $yaml = (string) @file_get_contents((getenv('W4OS_SITE_ROOT') ?: '/var/lib/w4os/www') . '/user/config/plugins/w4os.yaml');
-
-        return preg_match('/^grid:\s*[\'"]?' . preg_quote($nick, '/') . '[\'"]?\s*$/m', $yaml) === 1
-            && ((glob('/etc/caddy/sites/*.w4os.*') ?: []) !== [] || is_file('/etc/apache2/conf-enabled/w4os-site.conf'));
+        return Grid::websiteInstalled($nick);
     }
 
     /** The first screen: the install found, and what to do with it. */
@@ -255,6 +278,12 @@ final class MigrationScenario
                 }
                 if ($button === 'back') {
                     return self::questions($legacy, self::planned($legacy, $answers), $answers, '');
+                }
+                if ($button === 'edit' && ($answers['here'] ?? false)) {
+                    $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'vhosts'])));
+                    unset($answers['run']);
+
+                    return self::here($environment, $legacy, $answers) ?? ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
                 }
                 if ($button === 'edit' && ($answers['mode'] ?? '') === 'in-place') {
                     $answers = array_replace($answers, array_intersect_key($given, array_flip(['restart'])));
@@ -416,8 +445,11 @@ final class MigrationScenario
             $restart = Result::isTrue($answers['restart'] ?? 'no');
             $steps[] = ['name' => 'set-aside-starters', 'root' => true, 'label' => 'Stop', 'args' => ['files' => $legacy->starters()], 'skippable' => false];
             $steps[] = ['name' => 'in-place-apply', 'root' => false, 'label' => 'Config', 'args' => [], 'skippable' => false];
+            // The service and its folders made to follow the accounts the kit took from it
+            $steps[] = ['name' => 'give-ownership', 'root' => true, 'label' => 'Ownership', 'args' => [], 'skippable' => false];
             $restart && $running !== [] && ($steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Start', 'args' => ['configs' => $running], 'skippable' => false]);
-            $restart && ($steps[] = ['name' => 'in-place-start', 'root' => false, 'label' => 'Start', 'args' => ['grid' => $plan['grid']], 'skippable' => false]);
+            $restart && ($steps[] = ['name' => 'restart-service', 'root' => true, 'label' => 'Start', 'args' => [], 'skippable' => false]);
+            $restart && ($steps[] = ['name' => 'in-place-check', 'root' => false, 'label' => 'Start', 'args' => ['grid' => $plan['grid']], 'skippable' => false]);
 
             return $steps;
         }
@@ -486,7 +518,7 @@ final class MigrationScenario
         $failed = $button === 'failed' ? (string) ($request['answers']['error_text'] ?? _('the step failed')) : '';
         if ($failed === '' && $choice !== 'retry' && !$step['root']) {
             try {
-                self::engineStep($environment, $legacy, $answers, $plan, $step['name']);
+                self::engineStep($environment, $legacy, $answers, $plan, $step);
             } catch (\Throwable $error) {
                 $failed = $error->getMessage();
             }
@@ -536,6 +568,9 @@ final class MigrationScenario
         if (in_array('in-place-apply', $done, true)) {
             return _('Stopped: the grid is registered here, run where it is; the kit does not start it yet. A rerun goes on from here.');
         }
+        if ($done === ['set-aside-starters']) {
+            return _('Stopped: the start at boot of the old install is set aside (*.w4os-disabled), its instances run as before; a rerun goes on from here.');
+        }
 
         return in_array('import-apply', $done, true)
             ? _('Stopped: the grid is written here, not started; the old install is kept. A rerun goes on from here.')
@@ -543,16 +578,25 @@ final class MigrationScenario
     }
 
     /** A step of the engine: the import written (its backup, config, data), the 3D map's option, the start. */
-    private static function engineStep(Environment $environment, LegacyInstall $legacy, array $answers, array $plan, string $name): void
+    private static function engineStep(Environment $environment, LegacyInstall $legacy, array $answers, array $plan, array $step): void
     {
         $args = self::importArgs($legacy, $answers);
+        $name = (string) $step['name'];
         match ($name) {
             'import-apply' => self::import('apply', $args),
             'switch' => self::import('switch', $args),
             'in-place-apply' => self::import('in-place-apply', $args),
-            'in-place-start' => self::import('in-place-start', $args),
+            'in-place-check' => self::import('in-place-check', $args),
+            'keep-website' => self::keepWebsite($environment, $step),
             default => throw new \RuntimeException("unknown step $name"),
         };
+    }
+
+    /** The address of the website of a grid kept alone (its SiteAddress): no other address of the grid follows it. */
+    private static function keepWebsite(Environment $environment, array $step): void
+    {
+        $grid = Grid::find($environment, (string) $step['args']['grid']) ?? throw new \RuntimeException("no grid {$step['args']['grid']} here");
+        Grid::keepSiteAddress($grid->directory() . '/' . $grid->nick() . '.conf', Grid::validWebsite((string) $step['args']['website']));
     }
 
     /** Why the website is left out ('' when it is not): beside Apache, no site serving its host, or its line refused. */
@@ -614,11 +658,13 @@ final class MigrationScenario
         foreach ($owner === '' ? $grid?->simulators() ?? [] : [] as $simulator) {
             $owner !== '' || ($owner = (string) $simulator->estateOwner());
         }
+        // In place, its address as the kit reads it once registered (its plan only had the files of the old install)
+        $login = ($answers['mode'] ?? '') === 'in-place' && $grid !== null ? $grid->baseHostname() . ':' . $grid->publicPort() : (string) ($plan['login'] ?? '');
         $lines = [
             '✓ Done',
             '',
             sprintf('Grid       %s (%s)', (string) ($answers['name'] ?? $plan['name']), $plan['grid']),
-            sprintf('Login      http://%s', (string) ($plan['login'] ?? '')),
+            sprintf('Login      http://%s', $login),
         ];
         // Why the website is not there, said last (a script finds it there): skipped, its line of Apache not answered or refused
         $why = $left ? 'rerun to install it' : ($site === '' ? '' : (in_array('vhosts', (array) ($answers['unanswered'] ?? []), true) && self::websiteLeft($site, $answers) !== '' ? 'no answer for vhosts' : self::websiteLeft($site, $answers)));
@@ -733,13 +779,27 @@ final class MigrationScenario
         }
         if ($action === 'apply') {
             $plan = $register('apply');
+            // The config of the suite read again: its section is written now
+            $environment = Environment::system(\W4OS\Engine\Config\Layout::resolve());
             $grid = Grid::find($environment, (string) $plan['grid']) ?? throw new \RuntimeException("the grid {$plan['grid']} is not registered");
             $grid->isEnabled() || $grid->enable() || throw new \RuntimeException("the grid {$plan['grid']} could not be enabled");
+            foreach ($grid->simulators() as $simulator) {
+                $simulator->isEnabled() || $simulator->enable();
+            }
 
             return [];
         }
-        $failed = array_filter(\W4OS\Engine\OpenSim::start([(string) $args['grid']], $environment, true), static fn($result): bool => $result instanceof \W4OS\Engine\Exceptions\InstanceFailed);
-        $failed === [] || throw new \RuntimeException(implode('; ', array_map(static fn(\Throwable $failure): string => $failure->getMessage(), $failed)));
+        // Up under the service once it restarted: its Robust, then its enabled simulators, a while given to each
+        $grid = Grid::find($environment, (string) $args['grid']) ?? throw new \RuntimeException("the grid {$args['grid']} is not registered");
+        $down = [];
+        for ($i = 0; $i < 90; $i++) {
+            $down = array_map(static fn($instance): string => $instance->name(), array_filter($grid->instances(true), static fn($instance): bool => !$instance->isRunning()));
+            if ($down === []) {
+                break;
+            }
+            self::$importer === null && sleep(2);
+        }
+        $down === [] || throw new \RuntimeException('not started under the kit: ' . implode(', ', $down));
 
         return [];
     }

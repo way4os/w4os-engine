@@ -440,10 +440,38 @@ final class QuickSetup
         // The website of a grid: its line in the sites of Apache answered, its step run, the summary
         if ($state['step'] === 'website-left') {
             return match ((string) ($given['website'] ?? 'quit')) {
-                'install' => self::websiteStep($answers),
+                'install' => self::websiteAddress($answers, '', false),
                 'other' => self::screenType($environment, [], ''),
                 default => ['action' => 'abort', 'error' => _('Stopped: nothing changed.')],
             };
+        }
+        // The address of a website left, asked again: kept alone (no other address of the grid follows it), its line of Apache with it
+        if ($state['step'] === 'website-address') {
+            if ($button === 'back') {
+                return ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+            }
+            try {
+                $site = \W4OS\Engine\Models\Grid::validWebsite((string) ($given['website'] ?? $answers['site']));
+            } catch (\Throwable $error) {
+                return self::websiteAddress($answers, $error->getMessage(), false);
+            }
+            $site !== '' || ($site = (string) $answers['site']);
+            $changed = $site !== $answers['site'];
+            $answers = array_replace($answers, ['site' => $site, 'done' => [sprintf('Website    %s', $site), sprintf('Admin      %slogin', $site)]]);
+            $files = MigrationScenario::vhostFiles($site);
+            if ($files === []) {
+                return self::websiteAddress($answers, sprintf(_('No site of Apache serves %s.'), (string) parse_url($site, PHP_URL_HOST)), false);
+            }
+            if ($files !== null && ($changed || !isset($given['vhosts']))) {
+                return self::websiteAddress($answers, '', true);
+            }
+            if ($files !== null && !Result::isTrue($given['vhosts'] ?? 'yes')) {
+                return ['action' => 'quit', 'message' => implode("\n", [...(array) $answers['head'], 'Website    not installed (it needs its line in the sites of Apache)'])];
+            }
+            $grid = \W4OS\Engine\Models\Grid::find($environment, (string) $answers['grid']);
+            $grid === null || \W4OS\Engine\Models\Grid::keepSiteAddress($grid->directory() . '/' . $grid->nick() . '.conf', $site);
+
+            return self::websiteStep($answers);
         }
         if ($state['step'] === 'website-line') {
             if ($button === 'back' || ($given['vhosts'] ?? '') === 'quit') {
@@ -1604,6 +1632,20 @@ final class QuickSetup
             'action' => 'screen', 'kind' => 'form', 'title' => _('Website'), 'text' => '', 'notice' => '',
             'fields' => [['name' => 'vhosts', 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => 'yes', 'secret' => false, 'readonly' => false, 'options' => ['yes' => _('Yes'), 'no' => _('No')]]],
             'buttons' => ['next' => _('OK'), 'back' => _('Quit')], 'state' => $state,
+        ];
+    }
+
+    /** The address of a website left, prefilled, and beside Apache the line it needs in the sites serving its host. */
+    private static function websiteAddress(array $website, string $notice, bool $line): array
+    {
+        $fields = [['name' => 'website', 'label' => _('Website address'), 'value' => (string) $website['site'], 'secret' => false, 'readonly' => false]];
+        $files = $line ? MigrationScenario::vhostFiles((string) $website['site']) : null;
+        $files !== null && $files !== [] && ($fields[] = ['name' => 'vhosts', 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => 'yes', 'secret' => false, 'readonly' => false, 'options' => ['yes' => _('Yes'), 'no' => _('No')]]);
+
+        return [
+            'action' => 'screen', 'kind' => 'form', 'title' => _('Website'), 'text' => '', 'notice' => $notice,
+            'fields' => $fields, 'buttons' => ['next' => _('OK'), 'back' => _('Quit')],
+            'state' => self::encode('website-address', $website),
         ];
     }
 

@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (grid): the address of its Quick Start website its own setting (address website), its state chosen or installed
+- fix (setup): a rerun asks again the address of a website left, kept alone; in place, its service follows its accounts
 - new (setup): an install in place is the scenario's: its review, its accounts taken, its restart under the kit
 - new (setup): a rerun beside an old install migrated says its grid is here, starts it or installs its website left
 - change (setup): the website of a new grid is the last step of its run, its line of Apache asked before the start

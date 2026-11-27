@@ -1225,13 +1225,19 @@ describe('quick setup, the scenario', function () {
         $machine = new Machine();
         W4OS\Engine\Models\Grid::keepSiteAddress("{$machine->grid}/demo.conf", 'https://example.org/opensim/');
         $first = QuickSetup::next($machine->environment, []);
-        $step = quick_step($machine, $first, ['website' => 'install']);
+        $address = quick_step($machine, $first, ['website' => 'install']);
+        $wrong = quick_step($machine, $address, ['website' => 'not an address']);
+        $step = quick_step($machine, $address, ['website' => 'https://example.org/world']);
         $other = quick_step($machine, $first, ['website' => 'other']);
+        $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');
 
         expect($first['kind'])->toBe('menu')
             ->and($first['text'])->toBe('demo is here, its website not installed yet.')
             ->and(array_column($first['items'], 'key'))->toBe(['install', 'other', 'quit'])
+            ->and($address['fields'][0])->toMatchArray(['name' => 'website', 'value' => 'https://example.org/opensim/'])
+            ->and($wrong['notice'])->toBe('not an address of a website: not an address')
             ->and($step['step'])->toMatchArray(['name' => 'install-website', 'args' => ['grid' => 'demo']])
+            ->and($grid?->siteAddress())->toBe('https://example.org/world/')
             ->and($other['name'] ?? null)->toBe('type');
     });
 
