@@ -66,11 +66,11 @@ describe('The scenario of an install of before the kit', function () {
             ->and(array_column($first['items'], 'key'))->toBe(['migrate', 'in-place'])
             ->and($first['buttons'])->toBe(['next' => 'OK', 'back' => 'Back'])
             ->and(migration_step($machine, $first, [], 'back')['title'])->toBe('OpenSim setup')
-            ->and(migration_step($machine, $first, ['existing' => 'abort']))->toBe(['action' => 'abort', 'error' => 'Stopped: nothing changed.'])
+            ->and(migration_step($machine, $first, ['existing' => 'abort']))->toBe(['action' => 'abort', 'code' => 4, 'stopped' => true, 'error' => 'Stopped at your request.'])
             ->and(migration_step($machine, $opening, ['existing' => 'new'])['name'])->toBe('type');
     });
 
-    test('takes an install given by its location: checked, then the same choice, the location kept through its screens', function () {
+    test('takes an install given by its path: its bin folder, then the Robust config found from it to confirm, then the same choice', function () {
         $calls = [];
         $doubles = migration_doubles($calls);
         $robusts = [];
@@ -83,23 +83,35 @@ describe('The scenario of an install of before the kit', function () {
         QuickSetup::through($doubles);
         $base = sys_get_temp_dir() . '/legacy-at-' . bin2hex(random_bytes(4));
         mkdir("$base/opensim/bin", 0o755, true);
+        mkdir("$base/etc", 0o755, true);
         file_put_contents("$base/opensim/bin/OpenSim.dll", '');
-        file_put_contents("$base/opensim/bin/Robust.HG.ini", "[GridInfoService]\n    gridnick = \"Elsewhere\"\n");
+        file_put_contents("$base/etc/Robust.HG.ini", "[GridInfoService]\n    gridnick = \"Elsewhere\"\n");
         $machine = new Machine();
-        $form = migration_step($machine, QuickSetup::next($machine->environment, []), ['type' => 'location']);
-        $wrong = migration_step($machine, $form, ['bin' => "$base/opensim", 'robust' => '']);
-        $choice = migration_step($machine, $form, ['bin' => "$base/opensim/bin", 'robust' => '']);
+        $bin = migration_step($machine, QuickSetup::next($machine->environment, []), ['type' => 'location']);
+        $wrong = migration_step($machine, $bin, ['bin' => "$base/opensim"]);
+        $none = migration_step($machine, $bin, ['bin' => "$base/opensim/bin"]);
+        $refused = migration_step($machine, $none, ['robust' => '']);
+        $choice = migration_step($machine, $none, ['robust' => "$base/etc/Robust.HG.ini"]);
+        file_put_contents("$base/opensim/bin/Robust.HG.ini", "[GridInfoService]\n    gridnick = \"There\"\n");
+        $found = migration_step($machine, $bin, ['bin' => "$base/opensim/bin"]);
         $robusts = [];
         $questions = migration_step($machine, $choice, ['existing' => 'migrate']);
 
-        expect($form)->toMatchArray(['kind' => 'form', 'name' => 'location', 'title' => 'Other location'])
-            ->and(array_column($form['fields'], 'label', 'name'))->toBe(['bin' => 'opensim/bin folder', 'robust' => 'Robust file (if elsewhere)'])
+        expect($bin)->toMatchArray(['kind' => 'form', 'name' => 'location', 'title' => 'Specify existing installation path'])
+            ->and(array_column($bin['fields'], 'label', 'name'))->toBe(['bin' => 'OpenSim bin folder'])
             ->and($wrong['notice'])->toBe("Not an OpenSim bin folder (no OpenSim.dll): $base/opensim")
+            // None found: the field empty, said; one found: proposed, to confirm
+            ->and($none)->toMatchArray(['name' => 'location-robust', 'notice' => "No Robust.HG.ini nor Robust.ini in $base/opensim/bin."])
+            ->and(array_column($none['fields'], 'value', 'label'))->toBe(['Robust.ini file' => ''])
+            ->and($refused['notice'])->toBe("No Robust.HG.ini nor Robust.ini in $base/opensim/bin: give its Robust file.")
+            ->and(array_column($found['fields'], 'value', 'label'))->toBe(['Robust.ini file' => "$base/opensim/bin/Robust.HG.ini"])
+            ->and($found['notice'])->toBe('')
             ->and($choice)->toMatchArray(['kind' => 'menu', 'title' => "$base/opensim"])
-            ->and(array_column($choice['items'], 'key'))->toBe(['migrate', 'in-place'])
-            ->and(QuickSetup::decode($questions['state'])['answers']['location'])->toBe(['bin' => "$base/opensim/bin", 'robust' => "$base/opensim/bin/Robust.HG.ini"])
-            ->and(array_unique($robusts))->toBe(["$base/opensim/bin/Robust.HG.ini"])
-            ->and(migration_step($machine, $form, [], 'back')['title'])->toBe('OpenSim setup');
+            ->and(array_column($choice['items'], 'label', 'key'))->toBe(['migrate' => 'Migrate folders to w4os standard structure', 'in-place' => 'Install w4os over current structure'])
+            ->and(QuickSetup::decode($questions['state'])['answers']['location'])->toBe(['bin' => "$base/opensim/bin", 'robust' => "$base/etc/Robust.HG.ini"])
+            ->and(array_unique($robusts))->toBe(["$base/etc/Robust.HG.ini"])
+            ->and(migration_step($machine, $bin, [], 'back')['title'])->toBe('OpenSim setup')
+            ->and(migration_step($machine, $none, [], 'back')['name'])->toBe('location');
     });
 
     test('asks what a migration needs, then reviews it, each line changed there and checked again', function () {

@@ -2,7 +2,9 @@
 
 ### Unreleased
 
-- new (setup): Other location in the first menu: an install given by its opensim/bin folder, its Robust file if elsewhere
+- new (setup): Specify existing installation path: its bin folder, then the Robust.ini found from it, to confirm
+- change (setup): a stop asked at a screen is said in one line with what stays, not as an error (code 4)
+- change (setup): Migrate folders to w4os standard structure, Install w4os over current structure; Databases admin user
 - change (setup): the first menu lists what is here (grids, a pre-existing install), then New grid, standalone, simulator
 - new (setup): the DB admin user asked first, made as root when missing; a grid's database user once its name is known
 - change (setup): the review shows the database users as name and value pairs; no kit as an actor in any text

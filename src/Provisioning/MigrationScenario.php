@@ -226,8 +226,8 @@ final class MigrationScenario
             'text' => '',
             'notice' => '',
             'items' => [
-                ['key' => 'migrate', 'label' => _('Migrate'), 'note' => ''],
-                ['key' => 'in-place', 'label' => _('In place'), 'note' => ''],
+                ['key' => 'migrate', 'label' => _('Migrate folders to w4os standard structure'), 'note' => ''],
+                ['key' => 'in-place', 'label' => _('Install w4os over current structure'), 'note' => ''],
             ],
             'value' => 'migrate',
             'buttons' => ['next' => _('OK'), 'back' => _('Back')],
@@ -256,7 +256,7 @@ final class MigrationScenario
     public static function advance(Environment $environment, string $step, array $answers, string $button, array $given, array $request, LegacyInstall $legacy): ?array
     {
         if ($button === 'quit') {
-            return ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+            return QuickSetup::stopped();
         }
         switch ($step) {
             case self::PREFIX:
@@ -270,7 +270,7 @@ final class MigrationScenario
                     // Run where it is: its review, its restart under the kit the one thing asked
                     'in-place' => self::inPlaceReview($legacy, self::planned($legacy, ['mode' => 'in-place']), ['mode' => 'in-place'], ''),
                     'new' => null,
-                    default => ['action' => 'abort', 'error' => _('Stopped: nothing changed.')],
+                    default => QuickSetup::stopped(),
                 };
             case self::PREFIX . '-questions':
                 $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'stop', 'maptiles', 'vhosts'])));
@@ -285,7 +285,7 @@ final class MigrationScenario
                 return $problem !== '' ? self::questions($legacy, $plan, $answers, $problem) : self::review($legacy, $plan, $answers, '');
             case self::PREFIX . '-review':
                 if ($button === 'back' && (($answers['here'] ?? false) || ($answers['mode'] ?? '') === 'in-place')) {
-                    return ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+                    return QuickSetup::stopped();
                 }
                 if ($button === 'back') {
                     return self::questions($legacy, self::planned($legacy, $answers), $answers, '');

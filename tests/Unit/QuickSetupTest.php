@@ -1097,7 +1097,7 @@ describe('quick setup, the scenario', function () {
                 'grid' => 'New grid',
                 'standalone' => 'New standalone',
                 'join' => 'New simulator (connected to another grid)',
-                'location' => 'Other location (its opensim/bin folder)',
+                'location' => 'Specify existing installation path',
             ])
             ->and($reply['buttons'])
             ->toBe(['next' => 'OK', 'back' => 'Quit'])
@@ -1144,9 +1144,9 @@ describe('quick setup, the scenario', function () {
         $machine = new Machine();
 
         expect(quick_step($machine, quick_step($machine, null), [], 'back'))
-            ->toBe(['action' => 'abort', 'error' => 'Stopped: nothing changed.'])
+            ->toBe(['action' => 'abort', 'code' => 4, 'stopped' => true, 'error' => 'Stopped at your request.'])
             ->and(quick_step($machine, quick_until($machine, 'form'), [], 'quit'))
-            ->toBe(['action' => 'abort', 'error' => 'Cancelled']);
+            ->toBe(['action' => 'abort', 'code' => 4, 'stopped' => true, 'error' => 'Stopped at your request. The DB admin user opensim_admin stays, kept for the next run.']);
     });
 
     test('starts again at the first screen for a state that is not one', function () {
@@ -1703,7 +1703,7 @@ describe('quick setup, the database users', function () {
         $manages = true;
         $form = quick_step($machine, $step, []);
 
-        expect($admin)->toMatchArray(['kind' => 'form', 'name' => 'db-admin', 'title' => 'DB admin user for databases and users management', 'text' => ''])
+        expect($admin)->toMatchArray(['kind' => 'form', 'name' => 'db-admin', 'title' => 'Databases admin user', 'text' => 'w4os needs credentials with admin privileges to create the databases and users.'])
             ->and(array_column($admin['fields'], 'label', 'name'))->toBe(['admin_user' => 'User', 'admin_password' => 'Password'])
             ->and(array_column($admin['fields'], 'secret', 'name'))->toBe(['admin_user' => false, 'admin_password' => true])
             ->and($values['admin_user'])->toBe('opensim_admin')
@@ -1713,7 +1713,9 @@ describe('quick setup, the database users', function () {
             ->and(MigrationScenario::ROOT_STEPS)->toContain('db-admin')
             ->and($failed['notice'])->toBe('opensim_admin exists: its password is needed')
             ->and($refused['notice'])->toBe('opensim_admin: its password is refused.')
-            ->and($form['title'])->toBe('Grid');
+            ->and($form['title'])->toBe('Grid')
+            // Stopped after it: said, not an error, the DB admin user made said to stay
+            ->and(quick_step($machine, $form, [], 'quit'))->toBe(['action' => 'abort', 'code' => 4, 'stopped' => true, 'error' => 'Stopped at your request. The DB admin user opensim_admin stays, kept for the next run.']);
     });
 
     test('takes the DB admin user of the environment as it works, with nothing made', function () use ($doubles) {

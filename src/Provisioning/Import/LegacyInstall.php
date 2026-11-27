@@ -40,13 +40,21 @@ final class LegacyInstall
             throw new \InvalidArgumentException(sprintf(_('Not an OpenSim bin folder (no OpenSim.dll): %s'), $bin));
         }
         if ($robust === '') {
-            $robust = is_file("$bin/Robust.HG.ini") ? "$bin/Robust.HG.ini" : (is_file("$bin/Robust.ini") ? "$bin/Robust.ini" : '');
+            $robust = self::robustIn($bin);
             $robust !== '' || throw new \InvalidArgumentException(sprintf(_('No Robust.HG.ini nor Robust.ini in %s: give its Robust file.'), $bin));
         } elseif (!is_file($robust) || !is_readable($robust) || !str_ends_with($robust, '.ini')) {
             throw new \InvalidArgumentException(sprintf(_('Not a Robust config file: %s'), $robust));
         }
 
         return new self(dirname($bin), '', [], $proc !== '' ? $proc : (string) (getenv('W4OS_LEGACY_PROC') ?: '/proc'), $bin, $robust);
+    }
+
+    /** The Robust config of a bin folder: its Robust.HG.ini, else its Robust.ini, '' for none. */
+    public static function robustIn(string $bin): string
+    {
+        $bin = rtrim(trim($bin), '/');
+
+        return is_file("$bin/Robust.HG.ini") ? "$bin/Robust.HG.ini" : (is_file("$bin/Robust.ini") ? "$bin/Robust.ini" : '');
     }
 
     /** @return array{bin:string,robust:string} the location given, empty for the one of this machine */

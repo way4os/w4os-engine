@@ -440,13 +440,13 @@ final class QuickSetup
             return match ((string) ($given['website'] ?? 'quit')) {
                 'install' => self::websiteAddress($answers, '', false),
                 'other' => self::screenType($environment, [], ''),
-                default => ['action' => 'abort', 'error' => _('Stopped: nothing changed.')],
+                default => self::stopped($answers),
             };
         }
         // The address of a website left, asked again: kept alone (no other address of the grid follows it), its line of Apache with it
         if ($state['step'] === 'website-address') {
             if ($button === 'back') {
-                return ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+                return self::stopped($answers);
             }
             try {
                 $site = \W4OS\Engine\Models\Grid::validWebsite((string) ($given['website'] ?? $answers['site']));
@@ -473,7 +473,7 @@ final class QuickSetup
         }
         if ($state['step'] === 'website-line') {
             if ($button === 'back' || ($given['vhosts'] ?? '') === 'quit') {
-                return ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+                return self::stopped($answers);
             }
 
             return self::install($environment, array_replace($answers, ['vhosts' => Result::isTrue($given['vhosts'] ?? 'yes') ? 'yes' : 'no']));
@@ -482,7 +482,7 @@ final class QuickSetup
             return self::websiteRun($answers, $button, $given, $request);
         }
         if ($button === 'quit') {
-            return ['action' => 'abort', 'error' => _('Cancelled')];
+            return self::stopped($answers);
         }
         $kind = self::kindOf($environment, (string) ($answers['type'] ?? ''));
         $remote = in_array($kind, ['remote', 'preset'], true);
@@ -492,7 +492,7 @@ final class QuickSetup
                 if ($button === 'back') {
                     return ($answers['menu'] ?? '') === 'join'
                         ? self::screenType($environment, array_diff_key($answers, ['menu' => true]), '')
-                        : ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+                        : self::stopped($answers);
                 }
                 unset($answers['menu']);
                 // What is here already: the install of before (what to do with it), a grid of this machine (what is left of it)
@@ -550,14 +550,28 @@ final class QuickSetup
                 return $prepare || isset($answers['admin_checked']) ? self::screenForm($environment, $answers, '') : self::screenAdmin($answers, '');
 
             case 'location':
-                $answers = self::keep($answers, $given, ['bin', 'robust']);
+                $answers = self::keep($answers, $given, ['bin']);
                 if ($button === 'back') {
                     return self::screenType($environment, [], '');
+                }
+                $bin = rtrim(trim((string) ($answers['bin'] ?? '')), '/');
+                if ($bin === '' || !is_dir($bin) || (!is_file("$bin/OpenSim.dll") && !is_file("$bin/OpenSim.exe"))) {
+                    return self::screenLocation($answers, sprintf(_('Not an OpenSim bin folder (no OpenSim.dll): %s'), $bin));
+                }
+                // The Robust config found from it, to confirm or give
+                $robust = Import\LegacyInstall::robustIn($bin);
+
+                return self::screenRobust(['bin' => $bin, 'robust' => $robust] + $answers, $robust === '' ? sprintf(_('No Robust.HG.ini nor Robust.ini in %s.'), $bin) : '');
+
+            case 'location-robust':
+                $answers = self::keep($answers, $given, ['robust']);
+                if ($button === 'back') {
+                    return self::screenLocation($answers, '');
                 }
                 try {
                     $legacy = Import\LegacyInstall::locate((string) ($answers['bin'] ?? ''), (string) ($answers['robust'] ?? ''));
                 } catch (\InvalidArgumentException $error) {
-                    return self::screenLocation($answers, $error->getMessage());
+                    return self::screenRobust($answers, $error->getMessage());
                 }
 
                 return self::withLocation(MigrationScenario::first($legacy, $environment), $legacy);
@@ -593,7 +607,7 @@ final class QuickSetup
                 }
 
                 return self::manages($answers)
-                    ? self::screenForm($environment, $answers + ['admin_checked' => true], '')
+                    ? self::screenForm($environment, $answers + ['admin_checked' => true, 'admin_made' => true], '')
                     : self::screenAdmin($answers, sprintf(_('%s: its password is refused.'), $answers['admin_user']));
 
             case 'db-user':
@@ -933,7 +947,7 @@ final class QuickSetup
             ['key' => 'grid', 'label' => _('New grid'), 'note' => ''],
             ['key' => 'standalone', 'label' => _('New standalone'), 'note' => ''],
             ['key' => 'join', 'label' => _('New simulator (connected to another grid)'), 'note' => ''],
-            ['key' => 'location', 'label' => _('Other location (its opensim/bin folder)'), 'note' => ''],
+            ['key' => 'location', 'label' => _('Specify existing installation path'), 'note' => ''],
         ];
 
         return [
@@ -941,7 +955,8 @@ final class QuickSetup
             'kind' => 'menu',
             'name' => 'type',
             'title' => _('OpenSim setup'),
-            'text' => $found === [] ? '' : sprintf(ngettext('Found %d pre-existing installation:', 'Found %d pre-existing installations:', count($found)), count($found)),
+            // dialog needs a line above a menu: what was found, else that nothing was
+            'text' => $found === [] ? _('No pre-existing installation found.') : sprintf(ngettext('Found %d pre-existing installation:', 'Found %d pre-existing installations:', count($found)), count($found)),
             'notice' => $notice,
             'items' => [...$found, ...$new],
             // Always on the first item, coming back too: the answers are kept, not the place in the menu
@@ -980,22 +995,48 @@ final class QuickSetup
         return array_values($found);
     }
 
-    /** An install given by its location: its opensim/bin folder, its Robust file when it is not in that folder. */
+    /**
+     * A stop the person asked for: one line, not an error (code 4), with what stays of the run when something does (the DB admin
+     * user made).
+     *
+     * @return array<string,mixed>
+     */
+    public static function stopped(array $answers = []): array
+    {
+        $stays = isset($answers['admin_made']) ? ' ' . sprintf(_('The DB admin user %s stays, kept for the next run.'), (string) ($answers['admin_user'] ?? '')) : '';
+
+        return ['action' => 'abort', 'code' => 4, 'stopped' => true, 'error' => _('Stopped at your request.') . $stays];
+    }
+
+    /** An existing install given by its path: its OpenSim bin folder first. */
     private static function screenLocation(array $answers, string $notice): array
     {
         return [
             'action' => 'screen',
             'kind' => 'form',
             'name' => 'location',
-            'title' => _('Other location'),
+            'title' => _('Specify existing installation path'),
             'text' => '',
             'notice' => $notice,
-            'fields' => [
-                ['name' => 'bin', 'label' => _('opensim/bin folder'), 'value' => (string) ($answers['bin'] ?? ''), 'secret' => false],
-                ['name' => 'robust', 'label' => _('Robust file (if elsewhere)'), 'value' => (string) ($answers['robust'] ?? ''), 'secret' => false],
-            ],
+            'fields' => [['name' => 'bin', 'label' => _('OpenSim bin folder'), 'value' => (string) ($answers['bin'] ?? ''), 'secret' => false]],
             'buttons' => ['next' => _('OK'), 'back' => _('Back')],
             'state' => self::encode('location', $answers),
+        ];
+    }
+
+    /** The Robust config of the install given, as it was found from its bin folder (empty when none was), to confirm or change. */
+    private static function screenRobust(array $answers, string $notice): array
+    {
+        return [
+            'action' => 'screen',
+            'kind' => 'form',
+            'name' => 'location-robust',
+            'title' => _('Specify existing installation path'),
+            'text' => '',
+            'notice' => $notice,
+            'fields' => [['name' => 'robust', 'label' => _('Robust.ini file'), 'value' => (string) ($answers['robust'] ?? ''), 'secret' => false]],
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'state' => self::encode('location-robust', $answers),
         ];
     }
 
@@ -1035,8 +1076,8 @@ final class QuickSetup
             'action' => 'screen',
             'kind' => 'form',
             'name' => 'db-admin',
-            'title' => _('DB admin user for databases and users management'),
-            'text' => '',
+            'title' => _('Databases admin user'),
+            'text' => _('w4os needs credentials with admin privileges to create the databases and users.'),
             'notice' => $notice,
             'fields' => [
                 ['name' => 'admin_user', 'label' => _('User'), 'value' => (string) $answers['admin_user'], 'secret' => false],
