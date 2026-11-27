@@ -189,7 +189,7 @@ final class MigrationScenario
         if ($askSite) {
             $why = $wanted === '' ? _('none') : ($valid ? self::websiteLeft($wanted, $answers) : sprintf(_('Not an address: %s'), $wanted));
             $rows[] = ['section' => _('Web'), 'label' => _('Website'), 'value' => $why === '' ? $wanted : ($wanted === '' ? $why : "$wanted, $why"), 'name' => 'website', 'current' => $wanted];
-            $files !== null && $files !== [] && ($rows[] = ['section' => _('Web'), 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => Result::isTrue($answers['vhosts'] ?? 'yes') ? _('Yes') : _('No'), 'name' => 'vhosts', 'current' => Result::isTrue($answers['vhosts'] ?? 'yes') ? 'yes' : 'no', 'options' => ['yes' => _('Yes'), 'no' => _('No')]]);
+            $files !== null && $files !== [] && ($rows[] = ['section' => _('Web'), 'label' => self::lineQuestion($files, $wanted), 'value' => Result::isTrue($answers['vhosts'] ?? 'yes') ? _('Yes') : _('No'), 'name' => 'vhosts', 'current' => Result::isTrue($answers['vhosts'] ?? 'yes') ? 'yes' : 'no', 'options' => ['yes' => _('Yes'), 'no' => _('No')]]);
         }
 
         return [
@@ -292,7 +292,17 @@ final class MigrationScenario
                 }
                 if ($button === 'edit') {
                     // The line of the data only shows its folders: nothing of it is an answer
+                    $before = (string) ($answers['website'] ?? '');
                     $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'maptiles', 'vhosts'])));
+                    // A website changed to a host Apache serves: its line asked first, never taken for granted
+                    $site = trim((string) ($answers['website'] ?? ''));
+                    if ($site !== $before && !isset($given['vhosts'])) {
+                        unset($answers['vhosts']);
+                    }
+                    $files = self::vhostFiles($site);
+                    if ($files !== null && $files !== [] && !isset($answers['vhosts'])) {
+                        return self::questions($legacy, self::planned($legacy, $answers), $answers, '');
+                    }
 
                     return self::review($legacy, self::planned($legacy, $answers), $answers, self::problem($legacy, $answers));
                 }
@@ -332,7 +342,7 @@ final class MigrationScenario
         $fields[] = ['name' => 'website', 'label' => _('Website address'), 'value' => (string) ($answers['website'] ?? ($plan['site'] ?? '')), 'secret' => false, 'readonly' => false];
         // Beside Apache, the one line its sites serving the host need, asked here: never in the step that installs the website
         $files = self::vhostFiles((string) ($answers['website'] ?? ($plan['site'] ?? '')));
-        $files !== null && $files !== [] && ($fields[] = ['name' => 'vhosts', 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => (string) ($answers['vhosts'] ?? 'yes'), 'secret' => false, 'readonly' => false, 'options' => $yesNo]);
+        $files !== null && $files !== [] && ($fields[] = ['name' => 'vhosts', 'label' => self::lineQuestion($files, (string) ($answers['website'] ?? ($plan['site'] ?? ''))), 'value' => (string) ($answers['vhosts'] ?? 'yes'), 'secret' => false, 'readonly' => false, 'options' => $yesNo]);
         ($plan['maptiles'] ?? '') !== '' && ($fields[] = ['name' => 'maptiles', 'label' => sprintf(_('3D map (installs %s)'), $plan['maptiles']), 'value' => (string) ($answers['maptiles'] ?? 'yes'), 'secret' => false, 'readonly' => false, 'options' => $yesNo]);
         $running = array_map(static fn(string $config): string => basename($config, '.ini'), $legacy->running());
 
@@ -611,6 +621,41 @@ final class MigrationScenario
         }
 
         return Result::isTrue($answers['vhosts'] ?? 'yes') ? '' : _('not installed: it needs its line in the sites of Apache');
+    }
+
+    /** The modules of Apache doubles give the tests (null: w4os-site --modules). @var ?\Closure(string): list<string> */
+    public static ?\Closure $modules = null;
+
+    /**
+     * The question of the line of the website beside Apache: the files it goes in, and the modules of Apache it enables (said, as
+     * a change of the host).
+     *
+     * @param list<string> $files
+     */
+    public static function lineQuestion(array $files, string $site): string
+    {
+        $modules = $site === '' ? [] : self::apacheModules($site);
+
+        return $modules === []
+            ? sprintf(_('Add one line to %s'), implode(', ', $files))
+            : sprintf(_('Add one line to %s and enable the modules %s of Apache'), implode(', ', $files), implode(', ', $modules));
+    }
+
+    /** @return list<string> the modules of Apache the website needs that it has not enabled (w4os-site --modules) */
+    private static function apacheModules(string $site): array
+    {
+        if (self::$modules !== null) {
+            return (self::$modules)($site);
+        }
+        if (!self::has('w4os-site')) {
+            return [];
+        }
+        $host = (string) parse_url($site, PHP_URL_SCHEME) . '://' . (string) parse_url($site, PHP_URL_HOST);
+        $prefix = rtrim((string) parse_url($site, PHP_URL_PATH), '/');
+        $out = [];
+        exec('w4os-site web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --modules 2>/dev/null', $out);
+
+        return array_values(array_filter(array_map('trim', $out)));
     }
 
     /** @return ?list<string> the files of the sites of Apache that would include the website, null beside another web server */

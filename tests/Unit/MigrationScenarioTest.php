@@ -133,20 +133,28 @@ describe('The scenario of an install of before the kit', function () {
         QuickSetup::through(migration_doubles($calls) + ['vhosts' => static fn(string $site): ?array => ['/etc/apache2/sites-available/w4os.org-le-ssl.conf']]);
         $machine = new Machine();
         $questions = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['existing' => 'migrate']);
+        // The modules of Apache it enables named in the same question: a change of the host, said
+        MigrationScenario::$modules = static fn(string $site): array => ['proxy', 'proxy_fcgi'];
+        $withModules = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['existing' => 'migrate']);
+        MigrationScenario::$modules = static fn(string $site): array => [];
         $review = migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/', 'vhosts' => 'yes']);
         $step = migration_step($machine, $review);
         while ($step['step']['name'] !== 'install-website') {
             $step = migration_step($machine, $step);
         }
         $without = migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/', 'vhosts' => 'no']);
-        // The address changed to a host Apache serves: the question asked before the review
+        // The address changed to a host Apache serves: the question asked before the review, from the review too
         $asked = migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/']);
+        $fromReview = migration_step($machine, $without, ['website' => 'https://www.w4os.org/opensim/'], 'edit');
 
         expect(array_column($questions['fields'], 'label', 'name')['vhosts'])->toBe('Add one line to /etc/apache2/sites-available/w4os.org-le-ssl.conf')
+            ->and(array_column($withModules['fields'], 'label', 'name')['vhosts'])->toBe('Add one line to /etc/apache2/sites-available/w4os.org-le-ssl.conf and enable the modules proxy, proxy_fcgi of Apache')
             ->and($step['step']['args'])->toBe(['grid' => 'w4osdemogrid', 'edit_vhosts' => true])
             ->and(array_column($without['rows'], 'value', 'label')['Website'])->toContain('not installed')
             ->and($asked['kind'])->toBe('form')
-            ->and(array_column($asked['fields'], 'name'))->toContain('vhosts');
+            ->and(array_column($asked['fields'], 'name'))->toContain('vhosts')
+            ->and($fromReview['kind'])->toBe('form')
+            ->and(array_column($fromReview['fields'], 'value', 'name')['website'])->toBe('https://www.w4os.org/opensim/');
     });
 
     test('keeps the steps it started with, the instances it stops being stopped by then', function () {

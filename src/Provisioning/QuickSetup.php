@@ -1323,6 +1323,7 @@ final class QuickSetup
         self::$legacy = $doubles['legacy'] ?? null;
         MigrationScenario::$importer = $doubles['importer'] ?? null;
         MigrationScenario::$vhosts = $doubles['vhosts'] ?? null;
+        MigrationScenario::$modules = $doubles['modules'] ?? static fn(string $site): array => [];
     }
 
     /** @return list<string> the centres of the grids of this machine ("x,y") */
@@ -1630,7 +1631,7 @@ final class QuickSetup
 
         return [
             'action' => 'screen', 'kind' => 'form', 'title' => _('Website'), 'text' => '', 'notice' => '',
-            'fields' => [['name' => 'vhosts', 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => 'yes', 'secret' => false, 'readonly' => false, 'options' => ['yes' => _('Yes'), 'no' => _('No')]]],
+            'fields' => [['name' => 'vhosts', 'label' => MigrationScenario::lineQuestion($files, $site), 'value' => 'yes', 'secret' => false, 'readonly' => false, 'options' => ['yes' => _('Yes'), 'no' => _('No')]]],
             'buttons' => ['next' => _('OK'), 'back' => _('Quit')], 'state' => $state,
         ];
     }
@@ -1640,7 +1641,7 @@ final class QuickSetup
     {
         $fields = [['name' => 'website', 'label' => _('Website address'), 'value' => (string) $website['site'], 'secret' => false, 'readonly' => false]];
         $files = $line ? MigrationScenario::vhostFiles((string) $website['site']) : null;
-        $files !== null && $files !== [] && ($fields[] = ['name' => 'vhosts', 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => 'yes', 'secret' => false, 'readonly' => false, 'options' => ['yes' => _('Yes'), 'no' => _('No')]]);
+        $files !== null && $files !== [] && ($fields[] = ['name' => 'vhosts', 'label' => MigrationScenario::lineQuestion($files, (string) $website['site']), 'value' => 'yes', 'secret' => false, 'readonly' => false, 'options' => ['yes' => _('Yes'), 'no' => _('No')]]);
 
         return [
             'action' => 'screen', 'kind' => 'form', 'title' => _('Website'), 'text' => '', 'notice' => $notice,
