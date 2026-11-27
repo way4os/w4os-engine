@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (helpers): a page reads each config once and never waits on the guide of another server: blocks 10 times faster
 - new (setup): the scenario of an install of before the kit in the setup's screens: choice, questions, review, steps, summary
 - fix (import): its steps told as they come on the command line, for the live line of its client; nothing told by a page
 - change (import): its steps said by name (Backup, Config, Data); its data moved last, once its configs are written and checked

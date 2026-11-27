@@ -251,10 +251,17 @@ abstract class AbstractController implements Enablable
     /** The grid it belongs to, null for a config that is not in the folder of one. */
     public function grid(): ?Grid
     {
+        // Found once: its link and its name ask it again and again
+        if ($this->grid !== false) {
+            return $this->grid;
+        }
         $dir = $this->gridDirectory();
 
-        return $dir === null ? null : Grid::at($this->environment, $dir);
+        return $this->grid = $dir === null ? null : Grid::at($this->environment, $dir);
     }
+
+    /** @var Grid|null|false the grid it is of (grid()), false before */
+    private Grid|null|false $grid = false;
 
     /**
      * The core it runs from: the one it names (BinDirectory), else the one chosen for its grid (`CoreDirectory` in

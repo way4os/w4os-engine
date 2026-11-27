@@ -182,3 +182,30 @@ describe('The pictures of a guide', function () {
             ->toBe(['aaaaaaaa-0000-0000-0000-000000000001', null]);
     });
 });
+
+describe('A list of destinations of another server', function () {
+    test('is asked once while it is fresh, its last copy given when the server does not answer, a failure kept too', function () {
+        $folder = sys_get_temp_dir() . '/guide-' . bin2hex(random_bytes(4));
+        $asked = 0;
+        $answer = "Welcome\nPlaza|hop://grid.example:8002/Plaza\n";
+        $http = static function (string $url) use (&$asked, &$answer): ?string {
+            $asked++;
+
+            return $answer;
+        };
+        $now = 1_000_000;
+        $clock = static function () use (&$now): int { return $now; };
+
+        $first = DestinationList::cached('https://2do.directory/destinations/guide', $folder, $http, $clock);
+        $again = DestinationList::cached('https://2do.directory/destinations/guide', $folder, $http, $clock);
+        $now += DestinationList::FRESH + 1;
+        $answer = null;
+        $stale = DestinationList::cached('https://2do.directory/destinations/guide', $folder, $http, $clock);
+        $kept = DestinationList::cached('https://2do.directory/destinations/guide', $folder, $http, $clock);
+        exec('rm -rf ' . escapeshellarg($folder));
+
+        expect([$first, $again, $stale, $kept])->each->toContain('Plaza|hop://grid.example:8002/Plaza')
+            // Asked the first time, then once more when it was old (no answer): never at each page
+            ->and($asked)->toBe(2);
+    });
+});

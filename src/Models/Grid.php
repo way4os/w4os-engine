@@ -164,6 +164,35 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
      */
     public function config(): ?GridConfig
     {
+        // Made once while its files do not change (a page asks it again and again; a setup that writes them is read anew)
+        $key = $this->configKey();
+        if ($this->config !== null && $this->config[0] === $key) {
+            return $this->config[1];
+        }
+        $this->config = [$key, $this->makeConfig()];
+
+        return $this->config[1];
+    }
+
+    /** @var ?array{0:string,1:?GridConfig} the config made (config()), with the files it was made from */
+    private ?array $config = null;
+
+    /** What config() is made from: the files of the folder of the grid and of its simulators (time, size, inode), its settings. */
+    private function configKey(): string
+    {
+        $parts = [];
+        if ($this->directory !== '') {
+            foreach ([...(glob("$this->directory/*") ?: []), ...(glob("$this->directory/*/*") ?: []), ...(glob("$this->directory/sims/*/*") ?: [])] as $file) {
+                $stat = @stat($file);
+                $stat !== false && ($parts[] = "$file:{$stat['mtime']}:{$stat['size']}:{$stat['ino']}");
+            }
+        }
+
+        return hash('xxh128', implode('|', $parts) . '|' . json_encode($this->environment->settings?->all() ?? []) . '|' . spl_object_id($this->environment));
+    }
+
+    private function makeConfig(): ?GridConfig
+    {
         $config = $this->given ?? ($this->placed !== null ? $this->placedConfig() : ($this->directory !== '' && is_dir($this->directory) ? GridConfig::fromFolder($this->directory, ['Helpers' => 'Helpers.ini']) : null));
         // The settings the application keeps, read first
         $kept = $this->environment->settings?->all() ?? [];
@@ -1254,12 +1283,12 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         $text = $this->get('destinationsText');
         $source = trim((string) $this->setting('Helpers', 'GuideSource'));
         $source === '' && ($source = (string) \W4OS\Engine\Config\Settings::named('guideSource')['default']);
+        // A list of another server kept a while in the cache of the grid (the web user writes it): a page never waits on it each time
+        $remote = preg_match('#^https?://#i', $source) === 1;
         $listed = DestinationList::parse(
-            is_string($text) && $text !== '' ? $text : (string) DestinationList::read(
-                $source,
-                $this->directory !== '' ? $this->directory : null,
-                $this->environment->http,
-            ),
+            is_string($text) && $text !== '' ? $text : (string) ($remote
+                ? DestinationList::cached($source, \W4OS\Engine\Assets\WebAssets::folder($this) . '/guide', $this->environment->http)
+                : DestinationList::read($source, $this->directory !== '' ? $this->directory : null, $this->environment->http)),
             null,
             $layout,
         );
@@ -2177,6 +2206,19 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
 
     /** Its Robust on this machine, null for a remote grid. Run with the link that enables it when it is enabled. */
     public function robust(): ?RobustController
+    {
+        // Made once for the grid: its services ask it again and again
+        if ($this->robust !== false) {
+            return $this->robust;
+        }
+
+        return $this->robust = $this->makeRobust();
+    }
+
+    /** @var RobustController|null|false the one made (robust()), false before */
+    private RobustController|null|false $robust = false;
+
+    private function makeRobust(): ?RobustController
     {
         $file = $this->robustIni();
         if ($file === null || !is_file($file)) {

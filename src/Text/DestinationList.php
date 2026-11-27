@@ -32,6 +32,31 @@ final class DestinationList
      *        takes a text/* answer only)
      * @return ?string null when there is no source or it cannot be read
      */
+    /** Seconds a list of another server is kept before it is asked again. */
+    public const FRESH = 900;
+
+    /**
+     * The text of a list of another server, kept in a folder: asked once while it is fresh (FRESH), with a short wait; when the server
+     * does not answer, its last copy, and the failure kept as well, so that a page never waits on it again before FRESH.
+     *
+     * @param ?\Closure(string):?string $http
+     * @param ?\Closure():int $clock
+     */
+    public static function cached(string $source, string $folder, ?\Closure $http = null, ?\Closure $clock = null): ?string
+    {
+        $now = $clock !== null ? $clock() : time();
+        $file = rtrim($folder, '/') . '/' . hash('xxh128', $source) . '.txt';
+        $kept = is_file($file) ? (string) @file_get_contents($file) : null;
+        if ($kept !== null && (int) @filemtime($file) >= $now - self::FRESH) {
+            return $kept !== '' ? $kept : null;
+        }
+        $text = self::read($source, null, $http ?? static fn(string $url): ?string => Http::text($url, self::MAX, 3));
+        $text = $text ?? $kept ?? '';
+        (is_dir($folder) || @mkdir($folder, 0o775, true)) && @file_put_contents($file, $text) !== false && @touch($file, $now);
+
+        return $text !== '' ? $text : null;
+    }
+
     public static function read(?string $source, ?string $folder = null, ?\Closure $http = null): ?string
     {
         $source = trim((string) $source);

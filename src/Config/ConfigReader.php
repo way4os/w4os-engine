@@ -63,10 +63,27 @@ final class ConfigReader
      */
     public static function file(string $path): array
     {
+        // Parsed once while its text does not change: a page asks the same files of its grid many times (reading is cheap, parsing
+        // is not)
         $text = is_file($path) && is_readable($path) ? @file_get_contents($path) : false;
+        if ($text === false) {
+            return [];
+        }
+        $key = strlen($text) . ':' . hash('xxh128', $text);
+        if ((self::$read[$path][0] ?? null) === $key) {
+            return self::$read[$path][1];
+        }
+        self::$parsed++;
+        self::$read[$path] = [$key, self::parse($text)];
 
-        return $text === false ? [] : self::parse($text);
+        return self::$read[$path][1];
     }
+
+    /** How many files were parsed (file()), for what a page costs. */
+    public static int $parsed = 0;
+
+    /** @var array<string,array{0:string,1:array<string,array<string,string>>}> what file() parsed, by path, with the hash of its text */
+    private static array $read = [];
 
     /**
      * A file and the files it includes. Several files are the way OpenSimulator reads a master and its config: the first is
