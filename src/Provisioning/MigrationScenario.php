@@ -190,7 +190,7 @@ final class MigrationScenario
         $steps[] = ['name' => 'import-apply', 'root' => false, 'label' => 'Config', 'args' => [], 'skippable' => false];
         $steps[] = ['name' => 'give-ownership', 'root' => true, 'label' => 'Ownership', 'args' => [], 'skippable' => false];
         if (($plan['maptiles'] ?? '') !== '' && Result::isTrue($answers['maptiles'] ?? 'yes')) {
-            $steps[] = ['name' => 'install-packages', 'root' => true, 'label' => '3D map', 'args' => ['packages' => [$plan['maptiles']], 'option' => 'map-warp3d'], 'skippable' => true];
+            $steps[] = ['name' => 'install-packages', 'root' => true, 'label' => '3D map', 'args' => ['packages' => [$plan['maptiles']], 'option' => 'map-warp3d', 'grid' => $plan['grid']], 'skippable' => true];
         }
         if (trim((string) ($answers['website'] ?? ($plan['site'] ?? ''))) !== '') {
             $steps[] = ['name' => 'install-website', 'root' => true, 'label' => 'Website', 'args' => ['grid' => $plan['grid']], 'skippable' => true];
