@@ -26,6 +26,23 @@ final class LocationFinder
         return [$publicPort, $publicPort];
     }
 
+    /**
+     * The centre a new grid is proposed: each axis drawn between 1000 and 10000, rounded to 100, so that two grids rarely share a
+     * place (a hypergrid teleport between two regions at the same place is refused); never one of the grids of this machine.
+     *
+     * @param list<string> $taken the centres of the grids of this machine ("x,y")
+     * @param ?\Closure(int, int): int $rng random_int, for the tests
+     */
+    public static function proposedCenter(array $taken = [], ?\Closure $rng = null): string
+    {
+        $rng ??= random_int(...);
+        do {
+            $center = ($rng(10, 100) * 100) . ',' . ($rng(10, 100) * 100);
+        } while (in_array($center, $taken, true));
+
+        return $center;
+    }
+
     /** The key of a place. */
     public static function key(int $x, int $y): string
     {

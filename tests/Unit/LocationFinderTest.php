@@ -85,3 +85,21 @@ describe('LocationFinder places', function () {
         expect(LocationFinder::parse('a,b'))->toBeNull();
     });
 });
+
+describe('The centre a new grid is proposed', function () {
+    test('is drawn on each axis between 1000 and 10000, rounded to 100, never one a grid of this machine has', function () {
+        $draws = [43, 71, 43, 71, 25, 99];
+        $rng = static function (int $min, int $max) use (&$draws): int {
+            return (int) array_shift($draws);
+        };
+        $first = LocationFinder::proposedCenter([], $rng);
+        $second = LocationFinder::proposedCenter([$first], $rng);
+
+        expect($first)->toBe('4300,7100')
+            ->and($second)->toBe('2500,9900');
+        foreach (range(1, 50) as $_) {
+            [$x, $y] = LocationFinder::parse(LocationFinder::proposedCenter());
+            expect([$x % 100, $y % 100, $x >= 1000 && $x <= 10000, $y >= 1000 && $y <= 10000])->toBe([0, 0, true, true]);
+        }
+    });
+});

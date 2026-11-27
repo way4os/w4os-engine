@@ -1019,6 +1019,26 @@ describe('quick setup, the scenario', function () {
             ->and(QuickSetup::plan($machine->environment, ['type' => 'grid'] + quick_answers(['private_port' => '8199']))['setup']['grid']['private_port'])->toBe(8199);
     });
 
+    test('gives a new grid a centre of its own, a line of the review changed there and checked, its region placed there', function () {
+        $machine = new Machine();
+        $review = quick_until($machine, 'review');
+        $rows = array_column($review['rows'], 'value', 'name');
+        $wrong = quick_step($machine, $review, ['center' => '12,abc'], 'edit');
+        $changed = quick_step($machine, $review, ['center' => '4300,7100'], 'edit');
+        $again = quick_until(new Machine(), 'review');
+        // A centre another grid of this machine has
+        file_put_contents("{$machine->grid}/demo.conf", "[Grid]\nGridName = Demo\nCenter = 4300,7100\n", FILE_APPEND);
+        $taken = quick_step($machine, $review, ['center' => '4300,7100'], 'edit');
+
+        expect($rows['center'])->toMatch('/^\d{2,3}00,\d{2,3}00$/')
+            ->and(array_column($review['rows'], 'label'))->toContain('Centre')
+            ->and($wrong['notice'])->toContain('Centre')
+            ->and(array_column($changed['rows'], 'value', 'name')['center'])->toBe('4300,7100')
+            ->and(array_column($changed['rows'], 'value', 'label')['Region'])->toBe('Welcome at 4300,7100')
+            ->and(array_column($again['rows'], 'value', 'name')['center'])->not->toBe('8002,8002')
+            ->and($taken['notice'])->toContain('The grid demo of this machine has this centre');
+    });
+
     test('lists the options that keep their default without a question, each on or off, changed there', function () {
         $machine = new Machine();
         $review = quick_until($machine, 'review');

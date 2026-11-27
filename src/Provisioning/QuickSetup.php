@@ -260,7 +260,7 @@ final class QuickSetup
         $gridDatabase = $standalone ? $dbGiven : array_diff_key($dbGiven, ['database_driver' => true]);
         $gridAnswers = ['standalone' => $standalone] + self::portValues($answers, ['private_port' => 'private_port', 'console_port' => 'grid_console_port']) + $gridDatabase + $fromOptions;
         // The web services (screenWeb()): as they are given; the planner gives what is not, and 2do.directory's without the helpers
-        $gridAnswers += array_intersect_key($answers, array_flip([...self::WEB, 'web_site', 'web_url']));
+        $gridAnswers += array_intersect_key($answers, array_flip([...self::WEB, 'web_site', 'web_url', 'center']));
         trim((string) ($answers['name'] ?? '')) !== '' && ($gridAnswers['name'] = trim((string) $answers['name']));
         [$uri, $uriProblem] = Grid::parseLoginUri((string) ($answers['login_uri'] ?? ''));
         $uriProblem !== null && ($problems['login_uri'] = $uriProblem);
@@ -460,6 +460,8 @@ final class QuickSetup
                 if (in_array(self::kindOf($environment, $type), ['remote', 'preset'], true)) {
                     $answers += ['name' => 'Welcome'];
                 } else {
+                    // A centre of its own, drawn once and kept with the answers: two grids rarely share a place
+                    $answers += ['center' => LocationFinder::proposedCenter(self::centres($environment))];
                     // The proposals of the engine are what the form starts with
                     $proposed = self::plan($environment, $answers)['setup']['grid'];
                     $answers += [
@@ -1126,6 +1128,8 @@ final class QuickSetup
         $grid = $standalone ? _('Standalone') : _('Grid');
         $row($grid, _('Name'), $standalone ? $simulator->regionName : "{$plan->gridName} ({$plan->gridNick})", 'name', $standalone ? $simulator->regionName : $plan->gridName);
         $row($grid, _('Login'), "{$plan->baseHostname}:{$plan->publicPort}", 'login_uri');
+        // Where its regions are placed from, its first one there
+        $row($grid, _('Centre'), $plan->center, 'center');
         if (!$standalone) {
             $row($grid, _('Private port'), (string) $plan->privatePort, 'private_port');
             $row($grid, _('Console port'), (string) $plan->consolePort, 'grid_console_port');
@@ -1256,6 +1260,12 @@ final class QuickSetup
         self::$legacy = $doubles['legacy'] ?? null;
         MigrationScenario::$importer = $doubles['importer'] ?? null;
         MigrationScenario::$vhosts = $doubles['vhosts'] ?? null;
+    }
+
+    /** @return list<string> the centres of the grids of this machine ("x,y") */
+    private static function centres(Environment $environment): array
+    {
+        return array_values(array_filter(array_map(static fn(Grid $grid): string => $grid->center(), Grid::all($environment)->items())));
     }
 
     /** The install of before the kit of this machine (null: LegacyInstall::here()). */

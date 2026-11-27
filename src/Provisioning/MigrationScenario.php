@@ -167,6 +167,8 @@ final class MigrationScenario
         $rows = [
             ['section' => _('Grid'), 'label' => _('Name'), 'value' => "$name ({$plan['grid']})", 'name' => 'name', 'current' => $name],
             ['section' => _('Grid'), 'label' => _('Login'), 'value' => (string) ($plan['login'] ?? '')],
+            // The centre its regions were placed around, kept as the old install has it: shown, not asked
+            ...(($plan['center'] ?? '') !== '' ? [['section' => _('Grid'), 'label' => _('Centre'), 'value' => (string) $plan['center']]] : []),
             ['section' => _('Web'), 'label' => _('Website'), 'value' => $site === '' ? _('none') : ($left !== '' ? "$site, " . $left : $site), 'name' => 'website', 'current' => $site],
         ];
         foreach ($plan['data'] ?? [] as $data) {
@@ -436,6 +438,7 @@ final class MigrationScenario
 
         return ['data' => $sizes] + $document + [
             'login' => $import->plan->baseHostname . ':' . $import->plan->publicPort,
+            'center' => $import->plan->center,
             'maptiles' => MapRenderer::package($import->plan->binDir !== '' ? dirname($import->plan->binDir) : '') ?? '',
             // A name made ASCII for the viewers: asked, the one proposed being the ASCII one
             'asciiName' => preg_grep('/^\[GridInfoService\] gridname /', $document['gridInfo'] ?? []) !== [] ? $document['name'] : '',

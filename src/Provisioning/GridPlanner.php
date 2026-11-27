@@ -320,6 +320,11 @@ final class GridPlanner
             $problems['database_driver'] = _('A grid with Robust requires a server database.');
         }
         ($why = \W4OS\Engine\Config\ConnectionString::unreadable((string) $values['database_password'])) === null || $problems['database_password'] = $why;
+        // A centre of its own: another grid of this machine at the same place would refuse the hypergrid teleports between them
+        foreach (isset($answers['center']) ? Grid::all($this->environment())->items() : [] as $other) {
+            $other->nick() !== $values['nick'] && $other->center() !== '' && $other->center() === trim((string) $values['center']) &&
+                ($problems['center'] = sprintf(_('The grid %s of this machine has this centre: choose another.'), $other->nick()));
+        }
 
         return $problems + $this->fields()->problems(array_intersect_key($answers, $values) + $values);
     }
