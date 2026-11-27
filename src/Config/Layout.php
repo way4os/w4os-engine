@@ -127,16 +127,17 @@ final class Layout
      * The layout of a front-end: the OPENSIM_* variables of its environment, then w4os.conf, then the defaults of the system layout.
      *
      * @param ?array<string,mixed> $environment the variables of the environment, null for the ones of the process
+     * @param bool $defaults false for the environment and the file alone: what neither says stays unsaid
      * @throws \RuntimeException when OPENSIM_CONF names a file that does not exist
      */
-    public static function resolve(?array $environment = null, ?string $profile = null): self
+    public static function resolve(?array $environment = null, ?string $profile = null, bool $defaults = true): self
     {
         $environment ??= getenv();
         $file = (string) ($environment['OPENSIM_CONF'] ?? '');
         if ($file !== '' && !is_file($file)) {
             throw new \RuntimeException("OPENSIM_CONF names $file, which does not exist");
         }
-        $layout = self::load($file !== '' ? $file : null, DirectoryLayout::roots(), $profile);
+        $layout = self::load($file !== '' ? $file : null, $defaults ? DirectoryLayout::roots() : [], $profile);
         $given = [];
         foreach (self::ENVIRONMENT_KEYS as $key) {
             $value = (string) ($environment[self::environmentName($key)] ?? '');

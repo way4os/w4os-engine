@@ -34,8 +34,8 @@ final class OpenSim
     /** The environment of this machine, the install found in its usual place. */
     public static function environment(?ReporterInterface $reporter = null, ?Layout $layout = null): Environment
     {
-        // The layout a front-end works with: the environment (OPENSIM_CONF, OPENSIM_<ROOT>), then w4os.conf, then the defaults
-        return Environment::system($layout ?? Layout::resolve(), $reporter);
+        // The layout the setup wrote in: the environment (OPENSIM_CONF, OPENSIM_<ROOT>), then w4os.conf; nothing it does not say
+        return Environment::system($layout ?? Layout::resolve(defaults: false), $reporter);
     }
 
     /**
