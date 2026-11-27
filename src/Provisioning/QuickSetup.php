@@ -408,11 +408,20 @@ final class QuickSetup
     private static function advance(Environment $environment, array $request, bool $prepare): array
     {
         $state = self::decode((string) ($request['state'] ?? ''));
-        $button = in_array($request['button'] ?? 'next', ['next', 'back', 'quit', 'show', 'edit'], true)
+        $button = in_array($request['button'] ?? 'next', ['next', 'back', 'quit', 'show', 'edit', 'failed'], true)
             ? $request['button'] ?? 'next'
             : 'next';
         $answers = $state['answers'];
         $given = is_array($request['answers'] ?? null) ? $request['answers'] : [];
+        // An install of before the kit here, when the client asks (kickstart): its scenario first, the choice of what to do with it
+        if ($state['step'] === '' && Result::isTrue($request['existing'] ?? false) && ($legacy = (self::$legacy ?? Import\LegacyInstall::here(...))())->found()) {
+            return MigrationScenario::first($legacy);
+        }
+        if (str_starts_with($state['step'], MigrationScenario::PREFIX)) {
+            $next = MigrationScenario::advance($environment, $state['step'], $answers, $button, $given, $request, (self::$legacy ?? Import\LegacyInstall::here(...))());
+            // A new grid beside it: the questions of a grid
+            return $next ?? self::screenType($environment, [], '');
+        }
         if ($state['step'] === '') {
             return self::screenType($environment, $answers, '');
         }
@@ -1244,7 +1253,12 @@ final class QuickSetup
         self::$dumper = $doubles['dumper'] ?? null;
         self::$loader = $doubles['loader'] ?? null;
         self::$resolve = $doubles['resolve'] ?? null;
+        self::$legacy = $doubles['legacy'] ?? null;
+        MigrationScenario::$importer = $doubles['importer'] ?? null;
     }
+
+    /** The install of before the kit of this machine (null: LegacyInstall::here()). */
+    private static ?\Closure $legacy = null;
 
     /** The addresses a name resolves to (null: gethostbynamel()). */
     private static ?\Closure $resolve = null;
@@ -1772,8 +1786,8 @@ final class QuickSetup
         return sprintf(_('Not implemented yet: only %s for now.'), implode(', ', $done));
     }
 
-    /** The state a client holds between two steps: the step and the answers so far, as one string. */
-    private static function encode(string $step, array $answers): string
+    /** The state a client holds between two steps: the step and the answers so far, as one string (the other scenarios' too). */
+    public static function encode(string $step, array $answers): string
     {
         return rtrim(
             strtr(base64_encode((string) json_encode(['step' => $step, 'answers' => $answers])), '+/', '-_'),
@@ -1782,7 +1796,7 @@ final class QuickSetup
     }
 
     /** @return array{step:string,answers:array<string,mixed>} the start for a state that is not one */
-    private static function decode(string $state): array
+    public static function decode(string $state): array
     {
         $decoded = $state === '' ? null : json_decode((string) base64_decode(strtr($state, '-_', '+/')), true);
 
