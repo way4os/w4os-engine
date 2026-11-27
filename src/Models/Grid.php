@@ -310,12 +310,11 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
             ],
             [
                 'name' => 'center',
-                'follows' => ['public_port'],
                 'group' => 'network',
                 'type' => 'string',
-                'required' => true,
+                'required' => false,
                 'label' => _('Center of the grid (x,y)'),
-                'description' => _('Where new regions are searched from, kept'),
+                'description' => _('Where new regions are searched from, kept; none: the place of its default region'),
                 'callback' => [self::class, 'validateCenter'],
             ],
             [
@@ -633,7 +632,8 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
     /** A place of the map, x,y. */
     public static function validateCenter(mixed $value): ?string
     {
-        return LocationFinder::parse((string) $value) === null ? _('Use x,y (e.g. 8002,8002).') : null;
+        // None: the grid takes the place of its regions (centerPlace())
+        return trim((string) $value) === '' || LocationFinder::parse((string) $value) !== null ? null : _('Use x,y (e.g. 4300,7100).');
     }
 
     /** The path of the helpers on the web site. */
@@ -1642,10 +1642,49 @@ final class Grid extends InstalledModel implements \W4OS\Engine\Hypergrid\Reacha
         return (string) $this->get('center');
     }
 
-    /** The center of the grid: the one it was given, else the one its port gives. */
+    /**
+     * The centre of the grid, where its new regions are placed around: the one it was given; else the place of its default region
+     * (DefaultRegion in its Robust config), else of its first region; else one drawn (LocationFinder::proposedCenter()) and kept as
+     * its centre, so that it stays the same. Never its port on both axes.
+     *
+     * @return array{0:int,1:int}
+     */
     public function centerPlace(): array
     {
-        return LocationFinder::parse($this->center()) ?? LocationFinder::first($this->publicPort());
+        $given = LocationFinder::parse($this->center());
+        if ($given !== null) {
+            return $given;
+        }
+        $places = [];
+        foreach ($this->simulators() as $simulator) {
+            $directory = $simulator->regionsDirectory();
+            foreach ($directory !== '' ? Region::inDirectory($directory) : [] as $region) {
+                $region->hasPlace() && ($places[$region->name()] ??= [$region->x(), $region->y()]);
+            }
+        }
+        foreach ($this->robust()?->settings()['GridService'] ?? [] as $key => $value) {
+            if (str_starts_with($key, 'Region_') && in_array('DefaultRegion', array_map('trim', explode(',', (string) $value)), true)) {
+                $name = str_replace('_', ' ', substr($key, 7));
+                if (isset($places[$name])) {
+                    return $places[$name];
+                }
+            }
+        }
+        if ($places !== []) {
+            return array_values($places)[0];
+        }
+        // No region yet: one drawn, kept as its centre
+        $others = array_values(array_filter(array_map(static fn(self $grid): string => $grid->center(), self::all($this->environment)->items())));
+        $center = LocationFinder::proposedCenter($others);
+        [$file, $section] = $this->apiPortPlace();
+        if (is_file($file) ? is_writable($file) : is_dir(dirname($file)) && is_writable(dirname($file))) {
+            $ini = is_file($file) ? \W4OS\Engine\Config\IniEditor::load($file) : new \W4OS\Engine\Config\IniEditor('');
+            $ini->set($section, 'Center', $center);
+            $ini->save($file);
+            $this->values = null;
+        }
+
+        return LocationFinder::parse($center) ?? [5000, 5000];
     }
 
     /**

@@ -14,17 +14,6 @@ namespace W4OS\Engine\Provisioning;
  */
 final class LocationFinder
 {
-    /**
-     * The center a grid proposes at its setup: its public port on both axes (8002 gives 8002,8002), so that the
-     * grids of a machine do not start at the same place, which a teleport between them refuses. The operator
-     * confirms it, then it is kept (`Center` of the grid) and stays the place new regions are searched from.
-     *
-     * @return array{0:int,1:int}
-     */
-    public static function first(int $publicPort): array
-    {
-        return [$publicPort, $publicPort];
-    }
 
     /**
      * The centre a new grid is proposed: each axis drawn between 1000 and 10000, rounded to 100, so that two grids rarely share a

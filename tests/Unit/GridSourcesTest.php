@@ -166,8 +166,9 @@ describe('grid described or announced', function () {
                 ->toBe(9000)
                 ->and($grid->publicPort())
                 ->toBe(8002)
+                // No centre, no region: one drawn, never its port on both axes
                 ->and($grid->centerPlace())
-                ->toBe([8002, 8002]);
+                ->not->toBe([8002, 8002]);
         },
     );
 

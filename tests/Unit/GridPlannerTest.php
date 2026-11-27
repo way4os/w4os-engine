@@ -165,7 +165,7 @@ describe('A new grid', function () {
                     'public_port' => 8002,
                     'private_port' => 8003,
                     'console_port' => 8004,
-                    'center' => '8002,8002',
+                    'center' => '',
                     'console' => 'rest',
                     'web_url' => 'https://amy.example.org',
                     'helpers' => false,
@@ -196,7 +196,7 @@ describe('A new grid', function () {
                 'database_name' => 'my_grid_robust',
                 'private_port' => 8013,
                 'console_port' => 8014,
-                'center' => '8012,8012',
+                'center' => '',
                 'web_url' => 'https://play.example.org',
             ]);
         },

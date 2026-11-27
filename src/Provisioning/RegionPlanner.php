@@ -373,7 +373,7 @@ final class RegionPlanner
     /** @return array{0:int,1:int} */
     private function center(): array
     {
-        return $this->context['grid']?->centerPlace() ?? [8002, 8002];
+        return $this->context['grid']?->centerPlace() ?? LocationFinder::parse(LocationFinder::proposedCenter()) ?? [5000, 5000];
     }
 
     /** @return array{0:int,1:int,2:bool} the nearest free place, and whether the grid answered when it is on another machine */

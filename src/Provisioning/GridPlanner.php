@@ -197,7 +197,8 @@ final class GridPlanner
         $consolePort =
             (int) ($answers['console_port'] ??
                 ($public === $public0 ? $console0 : $this->consoleFor($public, $private)));
-        $center = $text('center', $c['savedCenter'] !== '' ? $c['savedCenter'] : "$public,$public");
+        // Its centre as kept, else none: a grid without one takes its regions' (Grid::centerPlace()), never its port
+        $center = $text('center', $c['savedCenter']);
         $web0 = (string) ($current?->webUrl() ?? "https://$host0");
         $web = $text('web_url', $host === $host0 ? $web0 : "https://$host");
 

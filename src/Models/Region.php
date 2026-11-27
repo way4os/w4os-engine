@@ -366,6 +366,12 @@ final class Region extends Model implements Reachable, \W4OS\Engine\Assets\Pictu
     }
 
     /** @return array{0:int,1:int} the place its file gives, in regions */
+    /** Whether it says where it is (a Location in its file, or its place in the table of the grid). */
+    public function hasPlace(): bool
+    {
+        return isset($this->row['locX']) || trim((string) ($this->local['Location'] ?? '')) !== '';
+    }
+
     private function place(): array
     {
         return array_map('intval', explode(',', (string) ($this->local['Location'] ?? '0,0'))) + [0, 0];
