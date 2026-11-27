@@ -423,10 +423,7 @@ final class QuickSetup
             if (Result::isTrue($request['unattended'] ?? false)) {
                 return $legacy->found()
                     ? MigrationScenario::unattended($environment, $legacy, $given)
-                    : ['action' => 'abort', 'code' => 2, 'error' => sprintf(_('No install of before the kit in %s.'), $legacy->root)];
-            }
-            if ($legacy->found()) {
-                return MigrationScenario::first($legacy, $environment);
+                    : ['action' => 'abort', 'code' => 2, 'error' => sprintf(_('No pre-existing install in %s.'), $legacy->root)];
             }
         }
         if (str_starts_with($state['step'], MigrationScenario::PREFIX)) {
@@ -435,7 +432,7 @@ final class QuickSetup
             return $next ?? self::screenType($environment, [], '');
         }
         if ($state['step'] === '') {
-            return self::websiteLeft($environment) ?? self::screenType($environment, $answers, '');
+            return self::screenType($environment, $answers, '');
         }
         // The website of a grid: its line in the sites of Apache answered, its step run, the summary
         if ($state['step'] === 'website-left') {
@@ -492,7 +489,24 @@ final class QuickSetup
         switch ($state['step']) {
             case 'type':
                 if ($button === 'back') {
-                    return ['action' => 'abort', 'error' => _('Cancelled')];
+                    return ($answers['menu'] ?? '') === 'join'
+                        ? self::screenType($environment, array_diff_key($answers, ['menu' => true]), '')
+                        : ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+                }
+                unset($answers['menu']);
+                // What is here already: the install of before (what to do with it), a grid of this machine (what is left of it)
+                $legacy = (self::$legacy ?? Import\LegacyInstall::here(...))();
+                $chosen = (string) ($given['type'] ?? '');
+                if ($legacy->found() && ($chosen === 'found' || in_array($given['existing'] ?? '', ['migrate', 'in-place', 'new', 'abort'], true))) {
+                    return isset($given['existing'])
+                        ? MigrationScenario::advance($environment, MigrationScenario::PREFIX, [], 'next', $given, $request, $legacy) ?? self::screenType($environment, [], '')
+                        : MigrationScenario::first($legacy, $environment);
+                }
+                if (str_starts_with($chosen, 'here:')) {
+                    return self::here($environment, substr($chosen, 5), $legacy);
+                }
+                if ($chosen === 'join') {
+                    return self::screenType($environment, ['menu' => 'join'] + $answers, '');
                 }
                 $type = strtolower(trim((string) ($given['type'] ?? ($answers['type'] ?? ''))));
                 $answers['type'] = $type;
@@ -528,7 +542,74 @@ final class QuickSetup
                     ];
                 }
 
-                return self::screenForm($environment, $answers, '');
+                // The administrator of the database server first: it makes the databases and their users later
+                return $prepare || isset($answers['admin_checked']) ? self::screenForm($environment, $answers, '') : self::screenAdmin($answers, '');
+
+            case 'db-admin':
+                if ($button === 'back') {
+                    return self::screenType($environment, [], '');
+                }
+                $answers = self::keep($answers, $given, ['admin_user', 'admin_password']);
+                $answers['admin_user'] = trim((string) $answers['admin_user']);
+                if (preg_match('/^[A-Za-z0-9_]{1,32}$/', $answers['admin_user']) !== 1) {
+                    return self::screenAdmin($answers, _('User: letters, digits and _ only.'));
+                }
+                if ((string) $answers['admin_password'] === '') {
+                    return self::screenAdmin($answers, _('Password: needed.'));
+                }
+                // The one of the environment, as it works: kept; any other made or checked as root, and kept for the commands
+                if ($answers['admin_user'] === getenv('OPENSIM_DB_ADMIN_USER') && $answers['admin_password'] === getenv('OPENSIM_DB_ADMIN_PASS') && self::manages($answers)) {
+                    return self::screenForm($environment, $answers + ['admin_checked' => true], '');
+                }
+
+                return [
+                    'action' => 'step',
+                    'step' => ['name' => 'db-admin', 'root' => true, 'label' => _('DB admin user'), 'args' => ['user' => $answers['admin_user'], 'password' => $answers['admin_password']], 'skippable' => false, 'number' => 1, 'count' => 1],
+                    'labels' => [_('DB admin user')],
+                    'notice' => '',
+                    'state' => self::encode('db-admin-run', $answers),
+                ];
+
+            case 'db-admin-run':
+                if ($button === 'failed') {
+                    return self::screenAdmin($answers, trim((string) ($given['error_text'] ?? '')) ?: _('The DB admin user was not made.'));
+                }
+
+                return self::manages($answers)
+                    ? self::screenForm($environment, $answers + ['admin_checked' => true], '')
+                    : self::screenAdmin($answers, sprintf(_('%s: its password is refused.'), $answers['admin_user']));
+
+            case 'db-user':
+                if ($button === 'back') {
+                    return self::screenForm($environment, $answers, '');
+                }
+                $chosen = (string) ($given['database_user'] ?? 'opensim');
+                if ($chosen === 'other') {
+                    return self::screenDbUserForm($environment, $answers, '');
+                }
+                // Another user: its password made again, or the one the grids of this machine use for it
+                ($answers['database_user'] ?? '') === $chosen || ($answers = array_diff_key($answers, ['database_password' => true, 'database_password_source' => true]));
+                $answers['database_user'] = $chosen;
+
+                return self::userExists($environment, $answers) === true
+                    ? self::screenDbUserForm($environment, array_diff_key($answers, ['database_password' => true]), '')
+                    : self::screenOptions($environment, $answers, '');
+
+            case 'db-user-form':
+                if ($button === 'back') {
+                    return self::screenDbUser($environment, $answers, '');
+                }
+                $answers = self::keep($answers, $given, ['database_user', 'database_password']);
+                $answers['database_user'] = trim((string) $answers['database_user']);
+                if (preg_match('/^[A-Za-z0-9_]{1,32}$/', $answers['database_user']) !== 1) {
+                    return self::screenDbUserForm($environment, $answers, _('User: letters, digits and _ only.'));
+                }
+                if ((string) ($answers['database_password'] ?? '') === '') {
+                    return self::screenDbUserForm($environment, $answers, _('Password: needed.'));
+                }
+                $answers['database_password_source'] = 'given';
+
+                return self::screenOptions($environment, $answers, '');
 
             case 'import':
                 $answers = self::keep($answers, $given, ['robust_config', 'simulator_configs', 'nick']);
@@ -572,16 +653,18 @@ final class QuickSetup
                     return $screen;
                 }
 
-                // What a simulator joins is the grid's: there are no options to choose
-                return $remote
-                    ? self::screenReview($environment, self::pinned($environment, $answers))
-                    : self::screenOptions($environment, $answers, '');
+                // What a simulator joins is the grid's: there are no options to choose; a grid's name known, its database user
+                return match (true) {
+                    $remote => self::screenReview($environment, self::pinned($environment, $answers)),
+                    ($answers['database_driver'] ?? 'mysql') === 'sqlite' => self::screenOptions($environment, $answers, ''),
+                    default => self::screenDbUser($environment, $answers, ''),
+                };
 
             case 'options':
                 $options = self::options($environment);
                 $answers = self::keep($answers, $given, array_keys($options), true);
                 if ($button === 'back') {
-                    return self::screenForm($environment, $answers, '');
+                    return ($answers['database_driver'] ?? 'mysql') === 'sqlite' ? self::screenForm($environment, $answers, '') : self::screenDbUser($environment, $answers, '');
                 }
                 // What is served by the helpers puts them on, and the person is told
                 foreach ($options as $name => $option) {
@@ -801,26 +884,177 @@ final class QuickSetup
     /** The first screen: what can be set up. */
     private static function screenType(Environment $environment, array $answers, string $notice): array
     {
+        // The simulators that join another grid, in a menu of their own: the grids of the presets, and one given by its address
+        if (($answers['menu'] ?? '') === 'join') {
+            $items = [];
+            foreach (self::types($environment) as $type) {
+                if (in_array($type['kind'], ['preset', 'remote'], true)) {
+                    $items[] = [
+                        'key' => $type['name'],
+                        'label' => $type['kind'] === 'remote' ? _('Other grid (its address)') : $type['label'],
+                        'note' => $type['implemented'] ? '' : _('not implemented'),
+                    ];
+                }
+            }
+            $remote = array_shift($items);
+
+            return [
+                'action' => 'screen',
+                'kind' => 'menu',
+                'name' => 'type',
+                'title' => _('New simulator'),
+                'text' => '',
+                'notice' => $notice,
+                'items' => [...$items, $remote],
+                'value' => '',
+                'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+                'state' => self::encode('type', $answers),
+            ];
+        }
+        $found = self::found($environment);
+        $new = [
+            ['key' => 'grid', 'label' => _('New grid'), 'note' => ''],
+            ['key' => 'standalone', 'label' => _('New standalone'), 'note' => ''],
+            ['key' => 'join', 'label' => _('New simulator (connected to another grid)'), 'note' => ''],
+            ['key' => 'existing', 'label' => _('Other install (its config files)'), 'note' => ''],
+        ];
+
         return [
             'action' => 'screen',
             'kind' => 'menu',
             'name' => 'type',
             'title' => _('OpenSim setup'),
-            'text' => '',
+            'text' => $found === [] ? '' : sprintf(ngettext('Found %d pre-existing installation:', 'Found %d pre-existing installations:', count($found)), count($found)),
             'notice' => $notice,
-            'items' => array_map(
-                static fn(array $type): array => [
-                    'key' => $type['name'],
-                    'label' => $type['label'],
-                    'note' => $type['implemented'] ? '' : _('not implemented'),
-                ],
-                self::types($environment),
-            ),
-            // Always on the first item, coming back too: the answers are kept, not the place in the menu, where two presses from the
-            // last choice could land on joining a public grid
+            'items' => [...$found, ...$new],
+            // Always on the first item, coming back too: the answers are kept, not the place in the menu
             'value' => '',
             'buttons' => ['next' => _('OK'), 'back' => _('Quit')],
-            'state' => self::encode('type', $answers),
+            'state' => self::encode('type', array_diff_key($answers, ['menu' => true])),
+        ];
+    }
+
+    /**
+     * What is here already, by its folder: the grids of this machine, and the install of before them (/opt/opensim) while its grid is
+     * not one of them; each with its address and whether it runs.
+     *
+     * @return list<array{key:string,label:string,note:string}>
+     */
+    private static function found(Environment $environment): array
+    {
+        $found = [];
+        $nicks = [];
+        foreach (\W4OS\Engine\Models\Grid::all($environment)->items() as $grid) {
+            $nicks[] = $grid->nick();
+            $state = ($grid->robust()?->isRunning() ?? false) ? _('active') : _('inactive');
+            $found[$grid->directory()] = ['key' => 'here:' . $grid->nick(), 'label' => sprintf('%s (%s:%d, %s)', $grid->directory(), $grid->baseHostname(), $grid->publicPort(), $state), 'note' => ''];
+        }
+        $legacy = (self::$legacy ?? Import\LegacyInstall::here(...))();
+        if ($legacy->found()) {
+            $robust = $legacy->robusts()[0] ?? null;
+            $nick = $robust === null ? '' : $legacy->nick($robust);
+            if ($nick === '' || !in_array($nick, $nicks, true)) {
+                $said = array_filter([MigrationScenario::login($legacy), $legacy->running() !== [] ? _('active') : _('inactive')]);
+                $found[$legacy->root] = ['key' => 'found', 'label' => sprintf('%s (%s)', $legacy->root, implode(', ', $said)), 'note' => ''];
+            }
+        }
+        ksort($found);
+
+        return array_values($found);
+    }
+
+    /** The administrator of the database server: the one of the environment, else opensim_admin with a password made at random. */
+    private static function screenAdmin(array $answers, string $notice): array
+    {
+        $answers['admin_user'] ??= (getenv('OPENSIM_DB_ADMIN_USER') ?: 'opensim_admin');
+        $answers['admin_password'] ??= (getenv('OPENSIM_DB_ADMIN_PASS') ?: bin2hex(random_bytes(16)));
+
+        return [
+            'action' => 'screen',
+            'kind' => 'form',
+            'name' => 'db-admin',
+            'title' => _('Database'),
+            'text' => _('DB admin user for databases and users management'),
+            'notice' => $notice,
+            'fields' => [
+                ['name' => 'admin_user', 'label' => _('User'), 'value' => (string) $answers['admin_user'], 'secret' => false],
+                ['name' => 'admin_password', 'label' => _('Password'), 'value' => (string) $answers['admin_password'], 'secret' => true],
+            ],
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'state' => self::encode('db-admin', $answers),
+        ];
+    }
+
+    /** Whether the administrator answered manages the server (null: DatabaseService::manages()). */
+    private static function manages(array $answers): bool
+    {
+        $host = (string) ($answers['database_host'] ?? 'localhost');
+
+        return isset(self::$region['manages'])
+            ? (bool) (self::$region['manages'])((string) $answers['admin_user'], (string) $answers['admin_password'])
+            : DatabaseService::manages($host, (string) $answers['admin_user'], (string) $answers['admin_password']);
+    }
+
+    /** Whether the database user answered exists on the server, null when it cannot be told (no DB admin user checked). */
+    private static function userExists(Environment $environment, array $answers): ?bool
+    {
+        if (!isset($answers['admin_checked'])) {
+            return null;
+        }
+        $plan = self::build($environment, self::answersOf($answers))['plan'];
+        isset($answers['admin_user']) && DatabaseService::rememberAdmin($plan->dbHost, (string) $answers['admin_user'], (string) ($answers['admin_password'] ?? ''));
+        $hosts = isset(self::$region['accountHosts']) ? (self::$region['accountHosts'])($plan) : (new DatabaseService(new NullUi()))->accountHosts($plan);
+
+        return $hosts === null ? null : $hosts !== [];
+    }
+
+    /** The database user of the grid, its name known: OpenSimulator's, w4os's (its nick) or another. */
+    private static function screenDbUser(Environment $environment, array $answers, string $notice): array
+    {
+        $plan = self::build($environment, self::answersOf($answers))['plan'];
+        $nick = $plan->gridNick !== '' ? $plan->gridNick : 'opensim';
+        $items = [['key' => 'opensim', 'label' => _("opensim (OpenSimulator's default)"), 'note' => '']];
+        $nick === 'opensim' || ($items[] = ['key' => $nick, 'label' => sprintf(_('%s (w4os default)'), $nick), 'note' => '']);
+        $items[] = ['key' => 'other', 'label' => _('Other'), 'note' => ''];
+        $current = (string) ($answers['database_user'] ?? '');
+        $keys = array_column($items, 'key');
+        $value = match (true) {
+            $current !== '' => in_array($current, $keys, true) ? $current : 'other',
+            // OpenSimulator's, unless another install has it already
+            self::userExists($environment, ['database_user' => 'opensim'] + $answers) === true => $nick,
+            default => 'opensim',
+        };
+
+        return [
+            'action' => 'screen',
+            'kind' => 'menu',
+            'name' => 'database_user',
+            'title' => sprintf(_('%s database user'), (string) ($answers['name'] ?? $nick)),
+            'text' => '',
+            'notice' => $notice,
+            'items' => $items,
+            'value' => $value,
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'state' => self::encode('db-user', $answers),
+        ];
+    }
+
+    /** A database user given, or one that exists: its name and its password. */
+    private static function screenDbUserForm(Environment $environment, array $answers, string $notice): array
+    {
+        return [
+            'action' => 'screen',
+            'kind' => 'form',
+            'name' => 'db-user-form',
+            'title' => sprintf(_('%s database user'), (string) ($answers['name'] ?? '')),
+            'text' => '',
+            'notice' => $notice,
+            'fields' => [
+                ['name' => 'database_user', 'label' => _('User'), 'value' => (string) ($answers['database_user'] ?? ''), 'secret' => false],
+                ['name' => 'database_password', 'label' => _('Password'), 'value' => (string) ($answers['database_password'] ?? ''), 'secret' => true],
+            ],
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
+            'state' => self::encode('db-user-form', $answers),
         ];
     }
 
@@ -1695,29 +1929,35 @@ final class QuickSetup
     }
 
     /**
-     * A grid of this machine whose website a run before left (its address kept, its site not installed): its step offered first.
+     * A grid of this machine, chosen in the first menu: what is left of it (its website left by a run before, its address kept), or
+     * that it is here already.
      *
-     * @return ?array<string,mixed>
+     * @return array<string,mixed>
      */
-    private static function websiteLeft(Environment $environment): ?array
+    private static function here(Environment $environment, string $nick, Import\LegacyInstall $legacy): array
     {
-        foreach (\W4OS\Engine\Models\Grid::all($environment)->items() as $grid) {
-            $site = $grid->siteAddress();
-            if ($site === '' || \W4OS\Engine\Models\Grid::inPlace($environment, $grid->nick()) !== null || MigrationScenario::siteInstalled($grid->nick())) {
-                continue;
-            }
-            $head = [sprintf('Grid       %s (%s)', $grid->name(), $grid->nick()), sprintf('Login      http://%s:%d', $grid->baseHostname(), $grid->publicPort())];
-
-            return [
-                'action' => 'screen', 'kind' => 'menu', 'name' => 'website', 'title' => _('Website'),
-                'text' => sprintf(_('%s is here, its website not installed yet.'), $grid->nick()), 'notice' => '',
-                'items' => [['key' => 'install', 'label' => _('Install it'), 'note' => $site], ['key' => 'other', 'label' => _('Set up another grid'), 'note' => ''], ['key' => 'quit', 'label' => _('Quit'), 'note' => '']],
-                'value' => 'install', 'buttons' => ['next' => _('OK'), 'back' => _('Quit')],
-                'state' => self::encode('website-left', ['grid' => $grid->nick(), 'site' => $site, 'head' => $head, 'done' => [sprintf('Website    %s', $site), sprintf('Admin      %slogin', $site)]]),
-            ];
+        $grid = \W4OS\Engine\Models\Grid::find($environment, $nick);
+        if ($grid === null) {
+            return self::screenType($environment, [], '');
+        }
+        // The grid of the install of before, migrated or run in place: what is left of it, its scenario's
+        $robust = $legacy->found() ? ($legacy->robusts()[0] ?? null) : null;
+        if ($robust !== null && $legacy->nick($robust) === $nick) {
+            return MigrationScenario::first($legacy, $environment);
+        }
+        $site = $grid->siteAddress();
+        $head = [sprintf('Grid       %s (%s)', $grid->name(), $grid->nick()), sprintf('Login      http://%s:%d', $grid->baseHostname(), $grid->publicPort())];
+        if ($site === '' || \W4OS\Engine\Models\Grid::inPlace($environment, $nick) !== null || MigrationScenario::siteInstalled($nick)) {
+            return ['action' => 'quit', 'message' => implode("\n", [sprintf(_('%s is here already.'), $nick), '', ...$head, ...($site === '' ? [] : [sprintf('Website    %s', $site)])])];
         }
 
-        return null;
+        return [
+            'action' => 'screen', 'kind' => 'menu', 'name' => 'website', 'title' => _('Website'),
+            'text' => sprintf(_('%s is here, its website not installed yet.'), $nick), 'notice' => '',
+            'items' => [['key' => 'install', 'label' => _('Install it'), 'note' => $site], ['key' => 'other', 'label' => _('Set up another grid'), 'note' => '']],
+            'value' => 'install', 'buttons' => ['next' => _('OK'), 'back' => _('Quit')],
+            'state' => self::encode('website-left', ['grid' => $nick, 'site' => $site, 'head' => $head, 'done' => [sprintf('Website    %s', $site), sprintf('Admin      %slogin', $site)]]),
+        ];
     }
 
     /** The access to the database, asked again: what the server said, and the settings with the account of its administrator. */
@@ -1887,11 +2127,6 @@ final class QuickSetup
         $plans = array_filter([$remote ? null : ($built['plan'] ?? null), ($built['simulator'] ?? null)?->databasePlan()]);
         $shown = Result::isTrue($answers['show_passwords'] ?? false);
         $mask = static fn(string $password): string => $shown ? $password : '********';
-        $sources = [
-            'generated' => _('made at random'),
-            'environment' => _('from the environment (~/.opensimrc)'),
-            'given' => _('given'),
-        ];
         $rows = [];
         $seen = [];
         foreach ($plans as $plan) {
@@ -1904,19 +2139,16 @@ final class QuickSetup
                 ? (self::$region['accountHosts'])($plan)
                 : (new DatabaseService(new NullUi()))->accountHosts($plan);
             $state = match (true) {
-                $hosts === null => _('checked before anything is made (no administrator access yet)'),
-                in_array($host, $hosts, true) => _('exists, used as it is, never changed'),
-                $hosts !== [] && $host === 'localhost' => sprintf(_('exists for %s: never made again for localhost, its own password is needed'), implode(', ', $hosts)),
-                default => _('new, made by the setup'),
+                $hosts === null || $hosts === [] => '',
+                in_array($host, $hosts, true) => ' ' . _('(existing)'),
+                default => ' ' . sprintf(_('(exists for %s only)'), implode(', ', $hosts)),
             };
-            $source = $sources[$answers['database_password_source'] ?? 'given'] ?? $sources['given'];
-            $rows[] = ['section' => 'database', 'label' => _('Database account'), 'value' => "{$plan->dbUser}@$host ({$plan->dbHost}): $state; " . sprintf(_('password %s: %s'), $source, $mask($plan->dbPass))];
+            $rows[] = ['section' => 'database', 'label' => _('Database user'), 'value' => $plan->dbUser . $state];
+            $rows[] = ['section' => 'database', 'label' => _('Database password'), 'value' => $mask($plan->dbPass)];
         }
         $admin = (string) ($answers['admin_user'] ?? (getenv('OPENSIM_DB_ADMIN_USER') ?: ''));
         if ($admin !== '') {
-            $password = (string) ($answers['admin_password'] ?? (getenv('OPENSIM_DB_ADMIN_PASS') ?: ''));
-            $source = isset($answers['admin_user']) ? $sources['given'] : $sources['environment'];
-            $rows[] = ['section' => 'database', 'label' => _('Database administrator'), 'value' => "$admin: " . _('used to make what is missing, never changed') . '; ' . sprintf(_('password %s: %s'), $source, $mask($password))];
+            $rows[] = ['section' => 'database', 'label' => _('DB admin user'), 'value' => $admin];
         }
 
         return $rows;

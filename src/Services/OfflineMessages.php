@@ -193,7 +193,7 @@ final class OfflineMessages
         $values = ['grid' => $this->gridName, 'sender' => $sender, 'title' => $title, 'message' => $text];
         $roots = $this->templates !== [] ? $this->templates : \W4OS\Engine\Provisioning\ResourceRegistry::directories('share/mail');
         $mail = (new MailTemplate($roots))->render("offline-$kind", $language, $values)
-            ?? throw new \RuntimeException("no template of the mail offline-$kind (share/mail of the kit)");
+            ?? throw new \RuntimeException("no template of the mail offline-$kind (share/mail of w4os)");
 
         return ['from' => $mail['from'], 'subject' => $mail['subject'], 'text' => $mail['text'], 'html' => $mail['html']];
     }

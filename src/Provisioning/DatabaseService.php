@@ -64,6 +64,14 @@ final class DatabaseService
         self::$admins[$host] = [$user, $password];
     }
 
+    /** Whether an account manages the databases and the users of a server: it logs in and reads the accounts. */
+    public static function manages(string $host, string $user, string $password): bool
+    {
+        $service = new self(new NullUi());
+
+        return $service->works($service->explicitAccess($host, $user, $password), 'SELECT Host FROM mysql.user LIMIT 1');
+    }
+
     /** Keep the password of an account for the rest of the session. */
     public static function remember(string $host, string $user, string $password): void
     {

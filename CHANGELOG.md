@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- change (setup): the first menu lists what is here (grids, a pre-existing install), then New grid, standalone, simulator
+- new (setup): the DB admin user asked first, made as root when missing; a grid's database user once its name is known
+- change (setup): the review shows the database users as name and value pairs; no kit as an actor in any text
 - fix (start): root never runs an instance in place of its account; one running already is said, and as whom
 - fix (stop): an instance not running said at once; one another account runs said at once, never waited for
 - fix (start): an instance runs in a session of its own, without a terminal: none is kept after the command that started it

@@ -22,7 +22,7 @@ final class MigrationScenario
     public const PREFIX = 'existing';
 
     /** The steps a client runs as root, with the arguments it checks: nothing else is run by it. */
-    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website', 'restart-service'];
+    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website', 'restart-service', 'db-admin'];
 
     /** The packages a step may install: the ones the choices of a migration name. */
     public const PACKAGES = '/^(opensim-[0-9.]+-maptiles|w4os-site)$/';
@@ -41,7 +41,7 @@ final class MigrationScenario
         'website' => ['values' => 'address', 'default' => '', 'label' => 'Website address (the old one); empty for none'],
         'vhosts' => ['values' => ['yes', 'no'], 'default' => 'no', 'label' => 'Beside Apache, add the line of the website to its sites'],
         'maptiles' => ['values' => ['yes', 'no'], 'default' => 'yes', 'label' => 'Install the 3D map of the core'],
-        'restart' => ['values' => ['yes', 'no'], 'default' => 'no', 'label' => 'In place: its instances restarted under the kit now'],
+        'restart' => ['values' => ['yes', 'no'], 'default' => 'no', 'label' => 'In place: its instances restarted now by w4os'],
     ];
 
     /**
@@ -179,7 +179,7 @@ final class MigrationScenario
             'install-website' => $site,
             'in-place-apply' => _('registered here, enabled'),
             'stop-old-instances' => _('its instances stopped'),
-            'in-place-check' => _('started under the kit'),
+            'in-place-check' => _('started by w4os'),
             'give-ownership' => _('the service runs as its account'),
             'restart-service' => _('the service restarted'),
             'set-aside-starters' => _('its start at boot set aside'),
@@ -210,7 +210,7 @@ final class MigrationScenario
         return Grid::websiteInstalled($nick);
     }
 
-    /** The first screen: the install found, and what to do with it. */
+    /** The install found, chosen in the first menu: what to do with it, or what is left of it when its grid is here already. */
     public static function first(LegacyInstall $legacy, ?Environment $environment = null): array
     {
         $here = $environment === null ? null : self::here($environment, $legacy, []);
@@ -222,23 +222,31 @@ final class MigrationScenario
             'action' => 'screen',
             'kind' => 'menu',
             'name' => 'existing',
-            'title' => _('Existing install'),
-            'text' => $legacy->summary(),
+            'title' => $legacy->root,
+            'text' => '',
             'notice' => '',
             'items' => [
                 ['key' => 'migrate', 'label' => _('Migrate'), 'note' => ''],
                 ['key' => 'in-place', 'label' => _('In place'), 'note' => ''],
-                ['key' => 'new', 'label' => _('New grid beside it'), 'note' => ''],
-                ['key' => 'abort', 'label' => _('Abort'), 'note' => ''],
             ],
             'value' => 'migrate',
-            'buttons' => ['next' => _('OK'), 'back' => _('Quit')],
+            'buttons' => ['next' => _('OK'), 'back' => _('Back')],
             'state' => QuickSetup::encode(self::PREFIX, []),
         ];
     }
 
+    /** The address of the grid of the install found (host:port), '' when its config does not tell. */
+    public static function login(LegacyInstall $legacy): string
+    {
+        try {
+            return (string) (self::import('login', self::importArgs($legacy, []))['login'] ?? '');
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
     /**
-     * The next screen of the scenario, null for a new grid beside it (the questions of a grid follow).
+     * The next screen of the scenario, null for the first menu (Back, or a new grid beside it).
      *
      * @param array<string,mixed> $answers
      * @param array<string,mixed> $given
@@ -252,6 +260,9 @@ final class MigrationScenario
         }
         switch ($step) {
             case self::PREFIX:
+                if ($button === 'back') {
+                    return null;
+                }
                 $choice = (string) ($given['existing'] ?? 'abort');
 
                 return match ($choice) {
@@ -391,7 +402,7 @@ final class MigrationScenario
         }
         $rows[] = ['section' => _('Data'), 'label' => _('Databases'), 'value' => sprintf(_('kept: %s'), $plan['database']['name'] ?? '')];
         foreach ($plan['dropped'] ?? [] as $dropped) {
-            ($dropped['reason'] ?? '') === 'corrected' && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => (string) $dropped['key'], 'value' => self::shortened((string) $dropped['value']) . ' → ' . self::shortened((string) ($dropped['replacement'] ?? _('the value of the kit')))]);
+            ($dropped['reason'] ?? '') === 'corrected' && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => (string) $dropped['key'], 'value' => self::shortened((string) $dropped['value']) . ' → ' . self::shortened((string) ($dropped['replacement'] ?? _('the value w4os needs')))]);
         }
         $ossl = $plan['ossl'] ?? ['kept' => [], 'dropped' => []];
         ($ossl['kept'] !== [] || $ossl['dropped'] !== []) && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => _('OSSL permissions'), 'value' => sprintf(_('%d kept, [XEngine] read as [OSSL]'), count($ossl['kept'])) . ($ossl['dropped'] === [] ? '' : '; ' . sprintf(_('left out: %s'), implode(', ', $ossl['dropped'])))]);
@@ -427,7 +438,7 @@ final class MigrationScenario
         foreach ($plan['gridInfo'] ?? [] as $line) {
             $rows[] = ['section' => _('Corrected from the old install'), 'label' => _('Grid info'), 'value' => self::shortened((string) $line, 60)];
         }
-        $rows[] = ['section' => _('Options'), 'label' => _('Restart under the kit'), 'value' => $onOff[$restart], 'name' => 'restart', 'current' => $restart, 'options' => $onOff];
+        $rows[] = ['section' => _('Options'), 'label' => _('Restart its instances now'), 'value' => $onOff[$restart], 'name' => 'restart', 'current' => $restart, 'options' => $onOff];
         $rows[] = ['section' => _('Old install'), 'label' => _('Folder'), 'value' => sprintf(_('%s, run where it is; its start at boot set aside'), $legacy->root)];
 
         return [
@@ -576,7 +587,7 @@ final class MigrationScenario
         $done = array_column(array_slice($steps, 0, $k), 'name');
 
         if (in_array('in-place-apply', $done, true)) {
-            return _('Stopped: the grid is registered here, run where it is; the kit does not start it yet. A rerun goes on from here.');
+            return _('Stopped: the grid is registered here, run where it is; w4os does not start it yet. A rerun goes on from here.');
         }
         if ($done === ['set-aside-starters']) {
             return _('Stopped: the start at boot of the old install is set aside (*.w4os-disabled), its instances run as before; a rerun goes on from here.');
@@ -724,8 +735,8 @@ final class MigrationScenario
         }
         if (($answers['mode'] ?? '') === 'in-place') {
             $started = ($answers['here'] ?? false) || Result::isTrue($answers['restart'] ?? 'no');
-            $lines[] = sprintf('In place   %s, run by the kit', $legacy->root);
-            $started || ($lines[] = sprintf('Instances  still run as before: opensim restart %s runs them under the kit', $plan['grid']));
+            $lines[] = sprintf('In place   %s, run by w4os', $legacy->root);
+            $started || ($lines[] = sprintf('Instances  still run as before: opensim restart %s runs them under w4os', $plan['grid']));
         } else {
             $lines[] = sprintf('Old install  %s, stopped, kept', $legacy->root);
         }
@@ -772,6 +783,9 @@ final class MigrationScenario
             return self::inPlace($environment, substr($action, 9), $args, $simulators);
         }
         $import = Import\GridImport::prepare($environment, $args['robust'], null, null, $simulators, written: $action === 'switch', name: $args['name']);
+        if ($action === 'login') {
+            return ['login' => $import->plan->baseHostname . ':' . $import->plan->publicPort];
+        }
         if ($action === 'apply') {
             $import->apply($environment, new NullUi(live: PHP_SAPI === 'cli'));
             $args['site'] === '' || Grid::keepSiteAddress("{$import->plan->gridDir}/{$import->plan->gridNick}.conf", rtrim($args['site'], '/') . '/');
@@ -849,7 +863,7 @@ final class MigrationScenario
             }
             self::$importer === null && sleep(2);
         }
-        $down === [] || throw new \RuntimeException('not started under the kit: ' . implode(', ', $down));
+        $down === [] || throw new \RuntimeException('not started by w4os: ' . implode(', ', $down));
 
         return [];
     }

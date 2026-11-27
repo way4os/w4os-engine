@@ -90,7 +90,7 @@ describe('setup ports', function () {
     test('saves confirmed ports', function () {
         $env = (new Machine())->environment;
         $screen = QuickSetup::next($env, ['mode' => 'prepare']);
-        foreach ([['type' => 'grid'], port_setup_answers(), [], [], [], [
+        foreach ([['type' => 'grid'], port_setup_answers(), [], [], [], [], [
             'database_host' => 'localhost', 'database_user' => 'opensim', 'database_password' => 'test-db-password',
         ]] as $answers) {
             $screen = QuickSetup::next($env, ['mode' => 'prepare', 'state' => $screen['state'], 'answers' => $answers]);
@@ -131,7 +131,7 @@ test('setup keeps an explicit login address', function () {
 function port_review(W4OS\Engine\Runtime\Environment $env): array
 {
     $screen = QuickSetup::next($env, ['mode' => 'prepare']);
-    foreach ([['type' => 'grid'], port_setup_answers(), [], []] as $answers) {
+    foreach ([['type' => 'grid'], port_setup_answers(), [], [], []] as $answers) {
         $screen['kind'] === 'review' || ($screen = QuickSetup::next($env, ['mode' => 'prepare', 'state' => $screen['state'], 'answers' => $answers]));
     }
 

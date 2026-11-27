@@ -11,6 +11,8 @@ use W4OS\Engine\Api\Router;
 use W4OS\Engine\Config\Layout;
 use W4OS\Engine\Models\Grid;
 use W4OS\Engine\Provisioning\GridPlan;
+use W4OS\Engine\Provisioning\Import\LegacyInstall;
+use W4OS\Engine\Provisioning\MigrationScenario;
 use W4OS\Engine\Provisioning\QuickSetup;
 use W4OS\Engine\Provisioning\SimulatorPlan;
 use W4OS\Engine\Provisioning\DatabaseService;
@@ -138,7 +140,7 @@ describe('quick setup of a grid', function () {
             'mode' => 'prepare', 'state' => $screen['state'], 'answers' => $answers, 'occupied_ports' => [8002, 9000],
         ]);
         $review = $form;
-        foreach ([array_replace(array_column($form['fields'], 'value', 'name'), ['avatar' => 'Ada Love', 'password' => 'secret123']), [], []] as $answers) {
+        foreach ([array_replace(array_column($form['fields'], 'value', 'name'), ['avatar' => 'Ada Love', 'password' => 'secret123']), [], [], []] as $answers) {
             $review['kind'] === 'review' || ($review = $step($review, $answers));
         }
 
@@ -633,11 +635,11 @@ function quick_until(Machine $machine, string $screen, string $type = 'grid', ar
     if ($screen === 'menu') {
         return $reply;
     }
-    $reply = quick_step($machine, $reply, ['type' => $type]);
+    $reply = quick_admin($machine, quick_step($machine, $reply, ['type' => $type]));
     if ($screen === 'form') {
         return $reply;
     }
-    $reply = quick_step($machine, $reply, quick_form($form));
+    $reply = quick_user($machine, quick_step($machine, $reply, quick_form($form)));
     if ($screen === 'checks') {
         return $reply;
     }
@@ -647,9 +649,28 @@ function quick_until(Machine $machine, string $screen, string $type = 'grid', ar
     return $screen !== 'web' && in_array($reply['title'] ?? '', ['Web', 'Web services'], true) ? quick_step($machine, $reply, []) : $reply;
 }
 
+/** The DB admin user proposed, confirmed, made as root by the client: the screen after it. */
+function quick_admin(Machine $machine, array $reply): array
+{
+    if (($reply['name'] ?? '') !== 'db-admin') {
+        return $reply;
+    }
+    $reply = quick_step($machine, $reply, []);
+
+    return ($reply['action'] ?? '') === 'step' ? quick_step($machine, $reply, []) : $reply;
+}
+
+/** The database user of a grid, as it is proposed: the screen after it. */
+function quick_user(Machine $machine, array $reply): array
+{
+    return ($reply['name'] ?? '') === 'database_user' ? quick_step($machine, $reply, []) : $reply;
+}
+
 /** The work that needs a machine, done by doubles: the databases are fine, the account is made, the grid says who it is, the instances start. */
 function quick_doubles(array $set = []): void
 {
+    // The DB admin user proposed manages the server, whatever else is doubled
+    isset($set['region']) && ($set['region'] += ['manages' => static fn(string $user, string $password): bool => true]);
     QuickSetup::through(
         $set + [
             'database' => static fn(): int => DatabaseService::OK,
@@ -660,7 +681,9 @@ function quick_doubles(array $set = []): void
                 'freePlace' => static fn(int $x, int $y, ?string $ignored): array => [$x, $y, true],
                 'hasAccount' => static fn(string $name): ?bool => true,
                 'accountHosts' => static fn($plan): ?array => [],
+                'manages' => static fn(string $user, string $password): bool => true,
             ],
+            'legacy' => static fn(): LegacyInstall => new LegacyInstall('/nonexistent/opt/opensim', '/nonexistent/cron'),
         ],
     );
     InstanceControl::runThrough(static fn(): array => [0, '']);
@@ -973,7 +996,7 @@ describe('setup preparation', function () {
         try {
             $machine = new Machine();
             $options = quick_until($machine, 'checks');
-            $form = quick_step($machine, $options, [], 'back');
+            $form = quick_step($machine, quick_step($machine, $options, [], 'back'), [], 'back');
             expect(array_column($form['fields'], 'value', 'name')['avatar'])->toBe('Ada Love');
         } finally {
             putenv($previous === false ? 'DEFAULT_OWNER_NAME' : 'DEFAULT_OWNER_NAME=' . $previous);
@@ -1060,14 +1083,31 @@ describe('quick setup, the scenario', function () {
     });
 
     test('starts with what can be set up, the choices not implemented said and kept in the list', function () {
-        $reply = quick_step(new Machine(), null);
+        $machine = new Machine();
+        $reply = quick_step($machine, null);
+        $join = quick_step($machine, $reply, ['type' => 'join']);
 
         expect($reply)
             ->toMatchArray(['action' => 'screen', 'kind' => 'menu', 'name' => 'type', 'title' => 'OpenSim setup'])
-            ->and(array_column($reply['items'], 'note', 'key'))
-            ->toBe(['grid' => '', 'standalone' => '', 'simulator' => '', 'existing' => '', 'speculoos' => '', 'osgrid' => ''])
+            // What is here first, by its folder, with its address and whether it runs; then the new ones
+            ->and($reply['text'])->toBe('Found 1 pre-existing installation:')
+            ->and(array_column($reply['items'], 'label', 'key'))
+            ->toBe([
+                'here:demo' => "{$machine->grid} (localhost:8002, inactive)",
+                'grid' => 'New grid',
+                'standalone' => 'New standalone',
+                'join' => 'New simulator (connected to another grid)',
+                'existing' => 'Other install (its config files)',
+            ])
             ->and($reply['buttons'])
-            ->toBe(['next' => 'OK', 'back' => 'Quit']);
+            ->toBe(['next' => 'OK', 'back' => 'Quit'])
+            // A simulator joins the grid of a preset, or one given by its address; Back is the first menu again
+            ->and(array_column($join['items'], 'note', 'key'))
+            ->toBe(['speculoos' => '', 'osgrid' => '', 'simulator' => ''])
+            ->and(array_column($join['items'], 'label', 'key')['simulator'])->toBe('Other grid (its address)')
+            ->and($join['buttons'])->toBe(['next' => 'OK', 'back' => 'Back'])
+            ->and(quick_step($machine, $join, [], 'back')['title'])->toBe('OpenSim setup')
+            ->and(quick_admin($machine, quick_step($machine, $join, ['type' => 'simulator']))['title'])->toBe('Simulator (join other grid)');
     });
 
     test('keeps the menu, and tells why, for a choice that is not one that can be set up', function () {
@@ -1104,7 +1144,7 @@ describe('quick setup, the scenario', function () {
         $machine = new Machine();
 
         expect(quick_step($machine, quick_step($machine, null), [], 'back'))
-            ->toBe(['action' => 'abort', 'error' => 'Cancelled'])
+            ->toBe(['action' => 'abort', 'error' => 'Stopped: nothing changed.'])
             ->and(quick_step($machine, quick_until($machine, 'form'), [], 'quit'))
             ->toBe(['action' => 'abort', 'error' => 'Cancelled']);
     });
@@ -1137,17 +1177,20 @@ describe('quick setup, the scenario', function () {
             ->toBe('Error: Owner transliterated')
             ->and(array_column($reply['fields'], 'value', 'name')['avatar'])
             ->toBe('Jose Garcia')
-            ->and(quick_step($machine, $reply, quick_form(['avatar' => 'Jose Garcia']))['kind'])
-            ->toBe('checks');
+            ->and(quick_step($machine, $reply, quick_form(['avatar' => 'Jose Garcia']))['name'])
+            ->toBe('database_user');
     });
 
     test('goes back one screen at a time, keeping the answers', function () {
         $machine = new Machine();
         $options = quick_until($machine, 'checks');
-        $form = quick_step($machine, $options, [], 'back');
+        $user = quick_step($machine, $options, [], 'back');
+        $form = quick_step($machine, $user, [], 'back');
         $menu = quick_step($machine, $form, quick_form(['avatar' => 'Grace Hopper']), 'back');
 
-        expect($form['kind'])
+        expect($user['name'])
+            ->toBe('database_user')
+            ->and($form['kind'])
             ->toBe('form')
             ->and(array_column($form['fields'], 'value', 'name')['avatar'])
             ->toBe('Ada Love')
@@ -1221,10 +1264,10 @@ describe('quick setup, the scenario', function () {
             ->and($without['message'])->toContain('Website    not installed (it needs its line in the sites of Apache)');
     });
 
-    test('offers first the website a run before left, before any other grid', function () {
+    test('offers the website a run before left, its grid chosen in the first menu', function () {
         $machine = new Machine();
         W4OS\Engine\Models\Grid::keepSiteAddress("{$machine->grid}/demo.conf", 'https://example.org/opensim/');
-        $first = QuickSetup::next($machine->environment, []);
+        $first = quick_step($machine, QuickSetup::next($machine->environment, []), ['type' => 'here:demo']);
         $address = quick_step($machine, $first, ['website' => 'install']);
         $wrong = quick_step($machine, $address, ['website' => 'not an address']);
         $step = quick_step($machine, $address, ['website' => 'https://example.org/world']);
@@ -1233,7 +1276,7 @@ describe('quick setup, the scenario', function () {
 
         expect($first['kind'])->toBe('menu')
             ->and($first['text'])->toBe('demo is here, its website not installed yet.')
-            ->and(array_column($first['items'], 'key'))->toBe(['install', 'other', 'quit'])
+            ->and(array_column($first['items'], 'key'))->toBe(['install', 'other'])
             ->and($address['fields'][0])->toMatchArray(['name' => 'website', 'value' => 'https://example.org/opensim/'])
             ->and($wrong['notice'])->toBe('not an address of a website: not an address')
             ->and($step['step'])->toMatchArray(['name' => 'install-website', 'args' => ['grid' => 'demo']])
@@ -1559,13 +1602,14 @@ describe('quick setup, the scenario', function () {
         putenv('OPENSIM_DB_USER');
         putenv('OPENSIM_DB_PASS');
         quick_doubles();
-        $account = static fn(array $screen): string => array_column($screen['rows'], 'value', 'label')['Database account'] ?? '';
+        $rows = static fn(array $screen): array => array_intersect_key(array_column($screen['rows'], 'value', 'label'), array_flip(['Database user', 'Database password', 'DB admin user']));
 
-        expect($account($review))->toBe('opensim_w4os@localhost (localhost): exists, used as it is, never changed; password from the environment (~/.opensimrc): ********')
+        // Each a name and its value, the password masked until asked
+        expect($rows($review))->toBe(['Database user' => 'opensim_w4os (existing)', 'Database password' => '********', 'DB admin user' => 'opensim_admin'])
             ->and($review['buttons']['show'])->toBe('Show passwords')
-            ->and($account($shown))->toEndWith('password from the environment (~/.opensimrc): rc-secret')
+            ->and($rows($shown)['Database password'])->toBe('rc-secret')
             ->and($shown['buttons']['show'])->toBe('Hide passwords')
-            ->and($account($masked))->toEndWith(': ********');
+            ->and($rows($masked)['Database password'])->toBe('********');
     });
 
     test('asks again for an avatar the joined grid does not have: its simulator would ask for it without end', function () {
@@ -1630,5 +1674,83 @@ describe('quick setup, the scenario', function () {
             ->toBe('menu')
             ->and($next['attributes']['kind'])
             ->toBe('form');
+    });
+});
+
+describe('quick setup, the database users', function () {
+    afterEach(fn() => QuickSetup::through());
+
+    /** The doubles of a machine, the ones of the database users given. */
+    $doubles = static fn(array $region): array => ['region' => $region + [
+        'remoteHas' => static fn(string $name): ?bool => false,
+        'freePlace' => static fn(int $x, int $y, ?string $ignored): array => [$x, $y, true],
+        'hasAccount' => static fn(string $name): ?bool => true,
+        'accountHosts' => static fn($plan): ?array => [],
+    ]];
+
+    test('asks first the DB admin user, proposed, made or checked as root by the client, refused with why', function () use ($doubles) {
+        $machine = new Machine();
+        $manages = false;
+        quick_doubles($doubles(['manages' => static function (string $user, string $password) use (&$manages): bool {
+            return $manages;
+        }]));
+        $admin = quick_step($machine, quick_step($machine, null), ['type' => 'grid']);
+        $values = array_column($admin['fields'], 'value', 'name');
+        $wrong = quick_step($machine, $admin, ['admin_user' => 'bad name']);
+        $step = quick_step($machine, $admin, []);
+        $failed = quick_step($machine, $step, ['error_text' => 'opensim_admin exists: its password is needed'], 'failed');
+        $refused = quick_step($machine, $step, []);
+        $manages = true;
+        $form = quick_step($machine, $step, []);
+
+        expect($admin)->toMatchArray(['kind' => 'form', 'name' => 'db-admin', 'title' => 'Database', 'text' => 'DB admin user for databases and users management'])
+            ->and(array_column($admin['fields'], 'label', 'name'))->toBe(['admin_user' => 'User', 'admin_password' => 'Password'])
+            ->and(array_column($admin['fields'], 'secret', 'name'))->toBe(['admin_user' => false, 'admin_password' => true])
+            ->and($values['admin_user'])->toBe('opensim_admin')
+            ->and(strlen($values['admin_password']))->toBe(32)
+            ->and($wrong['notice'])->toBe('User: letters, digits and _ only.')
+            ->and($step['step'])->toMatchArray(['name' => 'db-admin', 'root' => true, 'args' => ['user' => 'opensim_admin', 'password' => $values['admin_password']]])
+            ->and(MigrationScenario::ROOT_STEPS)->toContain('db-admin')
+            ->and($failed['notice'])->toBe('opensim_admin exists: its password is needed')
+            ->and($refused['notice'])->toBe('opensim_admin: its password is refused.')
+            ->and($form['title'])->toBe('Grid');
+    });
+
+    test('takes the DB admin user of the environment as it works, with nothing made', function () use ($doubles) {
+        $machine = new Machine();
+        quick_doubles($doubles(['manages' => static fn(string $user, string $password): bool => $user === 'kept_admin' && $password === 'kept-secret']));
+        putenv('OPENSIM_DB_ADMIN_USER=kept_admin');
+        putenv('OPENSIM_DB_ADMIN_PASS=kept-secret');
+        try {
+            $admin = quick_step($machine, quick_step($machine, null), ['type' => 'grid']);
+            $form = quick_step($machine, $admin, []);
+        } finally {
+            putenv('OPENSIM_DB_ADMIN_USER');
+            putenv('OPENSIM_DB_ADMIN_PASS');
+        }
+
+        expect(array_column($admin['fields'], 'value', 'name'))->toBe(['admin_user' => 'kept_admin', 'admin_password' => 'kept-secret'])
+            ->and($form['kind'])->toBe('form')
+            ->and($form['title'])->toBe('Grid');
+    });
+
+    test('asks the database user of a grid once its name is known: OpenSimulator\'s, its nick or another', function () use ($doubles) {
+        $machine = new Machine();
+        quick_doubles($doubles(['accountHosts' => static fn($plan): ?array => $plan->dbUser === 'opensim' ? ['%'] : []]));
+        $menu = quick_step($machine, quick_until($machine, 'form'), quick_form());
+        $nick = quick_step($machine, $menu, ['database_user' => 'magic_grid']);
+        $other = quick_step($machine, $menu, ['database_user' => 'other']);
+        $given = quick_step($machine, $other, ['database_user' => 'gridder', 'database_password' => 'given-secret']);
+        $existing = quick_step($machine, $menu, ['database_user' => 'opensim']);
+
+        // OpenSimulator's is another install's here: the nick proposed
+        expect($menu)->toMatchArray(['kind' => 'menu', 'name' => 'database_user', 'title' => 'Magic Grid database user', 'value' => 'magic_grid'])
+            ->and(array_column($menu['items'], 'label', 'key'))->toBe(['opensim' => "opensim (OpenSimulator's default)", 'magic_grid' => 'magic_grid (w4os default)', 'other' => 'Other'])
+            ->and($nick['kind'])->toBe('checks')
+            ->and(array_column($other['fields'], 'name'))->toBe(['database_user', 'database_password'])
+            ->and($given['kind'])->toBe('checks')
+            // One that exists: its own password
+            ->and($existing['name'])->toBe('db-user-form')
+            ->and(array_column($existing['fields'], 'value', 'name'))->toBe(['database_user' => 'opensim', 'database_password' => '']);
     });
 });

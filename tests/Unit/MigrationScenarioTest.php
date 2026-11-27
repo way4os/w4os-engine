@@ -49,19 +49,25 @@ function migration_step(Machine $machine, array $screen, array $answers = [], st
 describe('The scenario of an install of before the kit', function () {
     afterEach(fn() => QuickSetup::through());
 
-    test('starts with the install found and the choice of what to do with it, only when the client asks', function () {
+    test('lists the install found among what is here, then the choice of what to do with it', function () {
         $calls = [];
-        QuickSetup::through(migration_doubles($calls));
+        $doubles = migration_doubles($calls);
+        $legacy = ($doubles['legacy'])();
+        QuickSetup::through($doubles);
         $machine = new Machine();
-        $first = QuickSetup::next($machine->environment, ['existing' => true]);
-        $fresh = QuickSetup::next($machine->environment, []);
+        $opening = QuickSetup::next($machine->environment, []);
+        $first = migration_step($machine, $opening, ['type' => 'found']);
 
-        expect($first['kind'])->toBe('menu')
-            ->and(array_column($first['items'], 'key'))->toBe(['migrate', 'in-place', 'new', 'abort'])
-            ->and($first['text'])->toContain('Found an existing install in', 'grid w4osdemogrid, 1 simulator')
-            ->and($fresh['name'] ?? null)->toBe('type')
+        expect($opening['text'])->toBe('Found 2 pre-existing installations:')
+            ->and(array_column($opening['items'], 'label', 'key'))->toMatchArray(['found' => "{$legacy->root} (active)", 'here:demo' => "{$machine->grid} (localhost:8002, inactive)"])
+            ->and(array_slice(array_column($opening['items'], 'key'), 2))->toBe(['grid', 'standalone', 'join', 'existing'])
+            // One idea a screen: what to do with it, Back to the first menu
+            ->and($first)->toMatchArray(['kind' => 'menu', 'title' => $legacy->root, 'text' => ''])
+            ->and(array_column($first['items'], 'key'))->toBe(['migrate', 'in-place'])
+            ->and($first['buttons'])->toBe(['next' => 'OK', 'back' => 'Back'])
+            ->and(migration_step($machine, $first, [], 'back')['title'])->toBe('OpenSim setup')
             ->and(migration_step($machine, $first, ['existing' => 'abort']))->toBe(['action' => 'abort', 'error' => 'Stopped: nothing changed.'])
-            ->and(migration_step($machine, $first, ['existing' => 'new'])['name'])->toBe('type');
+            ->and(migration_step($machine, $opening, ['existing' => 'new'])['name'])->toBe('type');
     });
 
     test('asks what a migration needs, then reviews it, each line changed there and checked again', function () {
@@ -104,7 +110,7 @@ describe('The scenario of an install of before the kit', function () {
             '[1/8] Stop set-aside-starters', '[1/8] Stop stop-old-instances', '[3/8] Config import-apply', '[5/8] Ownership give-ownership',
             '[6/8] 3D map install-packages', '[7/8] Website install-website', '[8/8] Start switch',
         ])
-            ->and(array_column(array_filter($calls, static fn(array $c): bool => $c[0] !== 'plan'), 0))->toBe(['apply', 'switch'])
+            ->and(array_column(array_filter($calls, static fn(array $c): bool => !in_array($c[0], ['plan', 'login'], true)), 0))->toBe(['apply', 'switch'])
             ->and($step['action'])->toBe('quit')
             ->and($step['message'])->toContain('Website    https://w4os.org/opensim/', 'Old install  ');
     });
@@ -276,8 +282,8 @@ describe('The scenario of an install of before the kit', function () {
 
         expect($review['kind'])->toBe('review')
             ->and($rows['SystemUser'])->toBe('opensim → magic')
-            ->and($rows['Restart under the kit'])->toBe('on')
-            ->and(array_column($kept['rows'], 'value', 'label')['Restart under the kit'])->toBe('off')
+            ->and($rows['Restart its instances now'])->toBe('on')
+            ->and(array_column($kept['rows'], 'value', 'label')['Restart its instances now'])->toBe('off')
             ->and($names)->toBe(['[1/4] Stop set-aside-starters', '[2/4] Config in-place-apply', '[3/4] Ownership give-ownership', '[4/4] Start stop-old-instances', '[4/4] Start restart-service', '[4/4] Start in-place-check'])
             ->and(array_column($calls, 0))->toContain('in-place-apply', 'in-place-check')
             ->and($step['message'])->toContain('In place   ')
@@ -296,7 +302,7 @@ describe('The scenario of an install of before the kit', function () {
         }
 
         expect($names)->toBe(['set-aside-starters', 'in-place-apply', 'give-ownership'])
-            ->and($step['message'])->toContain('Instances  still run as before: opensim restart w4osdemogrid runs them under the kit');
+            ->and($step['message'])->toContain('Instances  still run as before: opensim restart w4osdemogrid runs them under w4os');
     });
 
     test('says the grid of a run before is here, starts it when it does not run, and has nothing to do once it does', function () {
@@ -307,7 +313,7 @@ describe('The scenario of an install of before the kit', function () {
         file_put_contents($legacy->robusts()[0], "[GridInfoService]\n    gridnick = \"demo\"\n");
         QuickSetup::through($doubles);
         $machine = new Machine();
-        $here = QuickSetup::next($machine->environment, ['existing' => true]);
+        $here = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['type' => 'here:demo']);
         $step = migration_step($machine, $here);
         $done = migration_step($machine, $step);
         $unattended = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => []]);
@@ -331,7 +337,7 @@ describe('The scenario of an install of before the kit', function () {
         QuickSetup::through($doubles);
         $machine = new Machine();
         W4OS\Engine\Models\Grid::keepSiteAddress("{$machine->grid}/demo.conf", 'https://w4os.org/');
-        $here = QuickSetup::next($machine->environment, ['existing' => true]);
+        $here = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['type' => 'here:demo']);
         $changed = migration_step($machine, $here, ['website' => 'https://www.w4os.org/opensim/', 'vhosts' => 'yes'], 'edit');
         $step = migration_step($machine, $changed);
         $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'demo');

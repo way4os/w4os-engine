@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace W4OS\Engine\Provisioning;
 
 /**
- * The settings of an older config that stop a simulator of a newer core, or that no core of the kit reads any more, left to the
+ * The settings of an older config that stop a simulator of a newer core, or that no core w4os installs reads any more, left to the
  * core's default: on an import (the setting is not kept) and at an upgrade (the line is commented, with why).
  *
  *     RetiredSettings::why('Modules', 'AssetServices', 'HGAssetBroker', '/usr/share/opensim/0.9.3.0');   // the reason, else null
@@ -25,7 +25,7 @@ final class RetiredSettings
         ['Modules', 'AssetServices', '/^hgassetbroker$/i', '0.9.3', 'OpenSimulator 0.9.3 has no HGAssetBroker: the one of its architecture, RegionAssetConnector'],
         ['Modules', 'GridServices', '/^remotegridservicesconnector$/i', '0.9.3', 'OpenSimulator 0.9.3 has no RemoteGridServicesConnector: the one of its architecture, RegionGridServicesConnector'],
         // Read by no core of the kit (0.9.2.2, 0.9.3): the helpers of before had a mute.php for it
-        ['Messaging', 'MuteListURL', '/.*/', '0.9.2', 'no core of the kit reads MuteListURL: the mute list is MuteListModule\'s, with the MuteListService of Robust'],
+        ['Messaging', 'MuteListURL', '/.*/', '0.9.2', 'no core w4os installs reads MuteListURL: the mute list is MuteListModule\'s, with the MuteListService of Robust'],
     ];
 
     /**

@@ -653,7 +653,7 @@ final class GridImport
             }
         }
         $lines[] = '';
-        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; corrected: the value of the kit stays, the one it needs to work; simulators: a setting of the simulators Robust does not use, theirs; default: as the core has it; layout, include: the old install\'s own):';
+        $lines[] = count($this->dropped) . ' setting(s) of the original not kept, with why (same: the new config has it so; replaced: the new config writes its own; corrected: the value w4os needs stays, the one it needs to work; simulators: a setting of the simulators Robust does not use, theirs; default: as the core has it; layout, include: the old install\'s own):';
         foreach ($this->dropped as $setting) {
             $lines[] = "  [{$setting['section']}] " . Secrets::mask("{$setting['key']} = {$setting['value']}") . " ({$setting['reason']}" .
                 (($setting['replacement'] ?? null) !== null ? ", now {$setting['replacement']}" : '') . (isset($setting['why']) ? ": {$setting['why']}" : '') . ')';
