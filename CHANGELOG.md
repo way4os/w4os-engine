@@ -2,6 +2,9 @@
 
 ### Unreleased
 
+- new (setup): an install in place is the scenario's: its review, its accounts taken, its restart under the kit
+- new (setup): a rerun beside an old install migrated says its grid is here, starts it or installs its website left
+- change (setup): the website of a new grid is the last step of its run, its line of Apache asked before the start
 - new (setup): a migration without anybody: its answers at once, a default for each one missing, its keys described
 - change (setup): a migration's review folds its data in one line with their total; a corrected setting shows its new value
 - change (setup): the summary of a migration names the owner of its estates on the line of its admin

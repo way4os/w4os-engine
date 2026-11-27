@@ -426,7 +426,7 @@ final class QuickSetup
                     : ['action' => 'abort', 'code' => 2, 'error' => sprintf(_('No install of before the kit in %s.'), $legacy->root)];
             }
             if ($legacy->found()) {
-                return MigrationScenario::first($legacy);
+                return MigrationScenario::first($legacy, $environment);
             }
         }
         if (str_starts_with($state['step'], MigrationScenario::PREFIX)) {
@@ -435,7 +435,25 @@ final class QuickSetup
             return $next ?? self::screenType($environment, [], '');
         }
         if ($state['step'] === '') {
-            return self::screenType($environment, $answers, '');
+            return self::websiteLeft($environment) ?? self::screenType($environment, $answers, '');
+        }
+        // The website of a grid: its line in the sites of Apache answered, its step run, the summary
+        if ($state['step'] === 'website-left') {
+            return match ((string) ($given['website'] ?? 'quit')) {
+                'install' => self::websiteStep($answers),
+                'other' => self::screenType($environment, [], ''),
+                default => ['action' => 'abort', 'error' => _('Stopped: nothing changed.')],
+            };
+        }
+        if ($state['step'] === 'website-line') {
+            if ($button === 'back' || ($given['vhosts'] ?? '') === 'quit') {
+                return ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+            }
+
+            return self::install($environment, array_replace($answers, ['vhosts' => Result::isTrue($given['vhosts'] ?? 'yes') ? 'yes' : 'no']));
+        }
+        if ($state['step'] === 'website') {
+            return self::websiteRun($answers, $button, $given, $request);
         }
         if ($button === 'quit') {
             return ['action' => 'abort', 'error' => _('Cancelled')];
@@ -625,7 +643,8 @@ final class QuickSetup
 
                     return self::screenDatabase($plan, $answers, '');
                 }
-                return self::install($environment, $answers);
+
+                return self::websiteLine($environment, $answers) ?? self::install($environment, $answers);
         }
 
         return self::screenType($environment, [], '');
@@ -741,6 +760,10 @@ final class QuickSetup
             return ['action' => 'abort', 'error' => _('The prepared instance identity does not match its settings.')];
         }
         $result = self::install($environment, $answers);
+        // Its website step, nobody there to choose when it fails
+        if (($result['action'] ?? '') === 'step') {
+            $result['state'] = self::encode('website', ['unattended' => true] + self::decode((string) $result['state'])['answers']);
+        }
         if (($result['action'] ?? '') === 'screen') {
             return ['action' => 'abort', 'error' => (string) ($result['notice'] ?? _('The prepared setup could not be applied.'))];
         }
@@ -1519,18 +1542,139 @@ final class QuickSetup
         // What there is now, in a few lines: the grid, its login, its website and the way in of its owner when it has one
         $site = $plan !== null && $plan->webSite === 'website' ? rtrim($plan->webUrl, '/') . Web\Services::normalize($plan->sitePath) : '';
         $site === '' || str_ends_with($site, '/') || $site .= '/';
+        $head = [
+            ...$notes,
+            ...$notes === [] ? [] : [''],
+            sprintf('Grid       %s (%s)', $plan?->gridName ?? $grid?->name(), $plan?->gridNick ?? $grid?->nick()),
+            sprintf('Login      http://%s:%d', $plan?->baseHostname ?? $grid?->baseHostname(), $plan?->publicPort ?? $grid?->publicPort()),
+        ];
+        if ($site === '') {
+            return ['action' => 'quit', 'message' => implode("\n", [...$head, sprintf('Owner      %s', $simulator->estateOwner)])];
+        }
+        $done = [sprintf('Website    %s', $site), sprintf('Admin      %slogin (%s)', $site, $simulator->estateOwner)];
+        // The website, the last step of the run: the client's, as root, by its name; left out beside Apache without its line
+        $left = self::lineLeft($site, $answers);
+
+        return $left !== ''
+            ? ['action' => 'quit', 'message' => implode("\n", [...$head, "Website    not installed ($left)"])]
+            : self::websiteStep(['grid' => (string) $plan?->gridNick, 'site' => $site, 'head' => $head, 'done' => $done, 'number' => $steps, 'count' => $steps]);
+    }
+
+    /** Why the website is left out beside Apache ('' when it is not): no site serving its host, its line refused or not answered. */
+    private static function lineLeft(string $site, array $answers): string
+    {
+        $files = MigrationScenario::vhostFiles($site);
+        if ($files === null) {
+            return '';
+        }
+        if ($files === []) {
+            return sprintf(_('no site of Apache serves %s'), (string) parse_url($site, PHP_URL_HOST));
+        }
+
+        return match ($answers['vhosts'] ?? null) {
+            'yes' => '',
+            'no' => _('it needs its line in the sites of Apache'),
+            default => _('no answer for vhosts'),
+        };
+    }
+
+    /** The one line the website needs in each site of Apache serving its host, asked before the start; null when nothing is asked. */
+    private static function websiteLine(Environment $environment, array $answers): ?array
+    {
+        if (isset($answers['vhosts'])) {
+            return null;
+        }
+        $plan = self::build($environment, self::answersOf(self::pinned($environment, $answers)))['plan'] ?? null;
+        $site = $plan !== null && $plan->webSite === 'website' ? rtrim($plan->webUrl, '/') . Web\Services::normalize($plan->sitePath) : '';
+        $files = $site === '' ? null : MigrationScenario::vhostFiles($site);
+        if ($files === null) {
+            return null;
+        }
+        $state = self::encode('website-line', $answers);
+        if ($files === []) {
+            return [
+                'action' => 'screen', 'kind' => 'menu', 'name' => 'vhosts', 'title' => _('Website'),
+                'text' => sprintf(_('No site of Apache serves %s.'), (string) parse_url($site, PHP_URL_HOST)), 'notice' => '',
+                'items' => [['key' => 'no', 'label' => _('Go on without the website'), 'note' => ''], ['key' => 'quit', 'label' => _('Quit'), 'note' => '']],
+                'value' => 'no', 'buttons' => ['next' => _('OK'), 'back' => _('Quit')], 'state' => $state,
+            ];
+        }
 
         return [
-            'action' => 'quit',
-            'message' => implode("\n", [
-                ...$notes,
-                ...$notes === [] ? [] : [''],
-                sprintf('Grid       %s (%s)', $plan?->gridName ?? $grid?->name(), $plan?->gridNick ?? $grid?->nick()),
-                sprintf('Login      http://%s:%d', $plan?->baseHostname ?? $grid?->baseHostname(), $plan?->publicPort ?? $grid?->publicPort()),
-                ...$site === '' ? [] : [sprintf('Website    %s', $site), sprintf('Admin      %slogin (%s)', $site, $simulator->estateOwner)],
-                ...$site !== '' ? [] : [sprintf('Owner      %s', $simulator->estateOwner)],
-            ]),
+            'action' => 'screen', 'kind' => 'form', 'title' => _('Website'), 'text' => '', 'notice' => '',
+            'fields' => [['name' => 'vhosts', 'label' => sprintf(_('Add one line to %s'), implode(', ', $files)), 'value' => 'yes', 'secret' => false, 'readonly' => false, 'options' => ['yes' => _('Yes'), 'no' => _('No')]]],
+            'buttons' => ['next' => _('OK'), 'back' => _('Quit')], 'state' => $state,
         ];
+    }
+
+    /** The step of the website for the client, as root by its name, the summary kept for after it. */
+    private static function websiteStep(array $website): array
+    {
+        $files = MigrationScenario::vhostFiles((string) $website['site']);
+
+        return [
+            'action' => 'step',
+            'step' => [
+                'name' => 'install-website', 'root' => true, 'label' => 'Website', 'skippable' => true,
+                'args' => ['grid' => $website['grid']] + ($files !== null ? ['edit_vhosts' => true] : []),
+                'number' => (int) ($website['number'] ?? 1), 'count' => (int) ($website['count'] ?? 1),
+            ],
+            'labels' => [],
+            'notice' => '',
+            'state' => self::encode('website', $website),
+        ];
+    }
+
+    /** The website step done (the summary), or failed: again, or the summary without it. */
+    private static function websiteRun(array $website, string $button, array $given, array $request): array
+    {
+        $choice = (string) ($request['answers']['error'] ?? '');
+        if ($choice === 'retry') {
+            return self::websiteStep($website);
+        }
+        if ($button === 'failed' && ($website['unattended'] ?? false)) {
+            return ['action' => 'abort', 'code' => 1, 'error' => sprintf('[%d/%d] Website: %s. %s', (int) ($website['number'] ?? 1), (int) ($website['count'] ?? 1), rtrim(trim((string) ($request['answers']['error_text'] ?? _('the step failed'))), '.'), _('The grid is set up; a rerun installs its website.'))];
+        }
+        if ($button === 'failed' || $choice === 'skip' || $choice === 'abort') {
+            if ($button === 'failed') {
+                return [
+                    'action' => 'screen', 'kind' => 'menu', 'name' => 'error', 'title' => _('Website failed'),
+                    'text' => (string) ($request['answers']['error_text'] ?? _('the step failed')), 'notice' => '',
+                    'items' => [['key' => 'retry', 'label' => _('Retry'), 'note' => ''], ['key' => 'skip', 'label' => _('Skip'), 'note' => '']],
+                    'value' => 'retry', 'buttons' => ['next' => _('OK'), 'back' => _('Skip')], 'state' => self::encode('website', $website),
+                ];
+            }
+
+            return ['action' => 'quit', 'message' => implode("\n", [...(array) ($website['head'] ?? []), 'Website    not installed (rerun to install it)'])];
+        }
+
+        return ['action' => 'quit', 'message' => implode("\n", [...(array) ($website['head'] ?? []), ...(array) ($website['done'] ?? [])])];
+    }
+
+    /**
+     * A grid of this machine whose website a run before left (its address kept, its site not installed): its step offered first.
+     *
+     * @return ?array<string,mixed>
+     */
+    private static function websiteLeft(Environment $environment): ?array
+    {
+        foreach (\W4OS\Engine\Models\Grid::all($environment)->items() as $grid) {
+            $site = $grid->siteAddress();
+            if ($site === '' || \W4OS\Engine\Models\Grid::inPlace($environment, $grid->nick()) !== null || MigrationScenario::siteInstalled($grid->nick())) {
+                continue;
+            }
+            $head = [sprintf('Grid       %s (%s)', $grid->name(), $grid->nick()), sprintf('Login      http://%s:%d', $grid->baseHostname(), $grid->publicPort())];
+
+            return [
+                'action' => 'screen', 'kind' => 'menu', 'name' => 'website', 'title' => _('Website'),
+                'text' => sprintf(_('%s is here, its website not installed yet.'), $grid->nick()), 'notice' => '',
+                'items' => [['key' => 'install', 'label' => _('Install it'), 'note' => $site], ['key' => 'other', 'label' => _('Set up another grid'), 'note' => ''], ['key' => 'quit', 'label' => _('Quit'), 'note' => '']],
+                'value' => 'install', 'buttons' => ['next' => _('OK'), 'back' => _('Quit')],
+                'state' => self::encode('website-left', ['grid' => $grid->nick(), 'site' => $site, 'head' => $head, 'done' => [sprintf('Website    %s', $site), sprintf('Admin      %slogin', $site)]]),
+            ];
+        }
+
+        return null;
     }
 
     /** The access to the database, asked again: what the server said, and the settings with the account of its administrator. */

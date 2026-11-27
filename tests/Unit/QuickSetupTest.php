@@ -1189,13 +1189,50 @@ describe('quick setup, the scenario', function () {
         $machine = new Machine();
         quick_core($machine);
         $web = quick_until($machine, 'web');
-        $done = quick_step($machine, quick_step($machine, $web, ['site' => 'yes', 'site_path' => '/opensim']));
+        $website = quick_step($machine, quick_step($machine, $web, ['site' => 'yes', 'site_path' => '/opensim']));
+        $done = quick_step($machine, $website);
+        $failed = quick_step($machine, $website, ['error_text' => 'Caddy refuses it'], 'failed');
+        $skipped = quick_step($machine, $failed, ['error' => 'skip']);
         $grid = W4OS\Engine\Models\Grid::find($machine->environment, 'magic_grid');
 
-        expect($done['action'])->toBe('quit')
+        // The website the last step of the run, the client's as root by its name; the summary once it is done, or without it
+        expect($website['action'])->toBe('step')
+            ->and($website['step'])->toMatchArray(['name' => 'install-website', 'root' => true, 'number' => 4, 'count' => 4, 'args' => ['grid' => 'magic_grid']])
+            ->and($done['action'])->toBe('quit')
+            ->and($failed['kind'])->toBe('menu')
+            ->and($skipped['message'])->toContain('Website    not installed (rerun to install it)')
             ->and($grid?->siteAddress())->toEndWith('/opensim/')
             ->and($grid?->detail()['site'] ?? null)->toBe($grid?->siteAddress())
             ->and($done['message'])->toContain('Website    ' . $grid?->siteAddress());
+    });
+
+    test('asks beside Apache the line of the website before the start, and leaves the website out without it', function () {
+        quick_doubles(['vhosts' => static fn(string $site): ?array => ['/etc/apache2/sites-available/example.org-le-ssl.conf']]);
+        $machine = new Machine();
+        quick_core($machine);
+        $web = quick_until($machine, 'web');
+        $review = quick_step($machine, $web, ['site' => 'yes', 'site_path' => '/opensim']);
+        $line = quick_step($machine, $review);
+        $without = quick_step($machine, $line, ['vhosts' => 'no']);
+
+        expect($line['kind'])->toBe('form')
+            ->and($line['fields'][0]['label'])->toBe('Add one line to /etc/apache2/sites-available/example.org-le-ssl.conf')
+            ->and($without['action'])->toBe('quit')
+            ->and($without['message'])->toContain('Website    not installed (it needs its line in the sites of Apache)');
+    });
+
+    test('offers first the website a run before left, before any other grid', function () {
+        $machine = new Machine();
+        W4OS\Engine\Models\Grid::keepSiteAddress("{$machine->grid}/demo.conf", 'https://example.org/opensim/');
+        $first = QuickSetup::next($machine->environment, []);
+        $step = quick_step($machine, $first, ['website' => 'install']);
+        $other = quick_step($machine, $first, ['website' => 'other']);
+
+        expect($first['kind'])->toBe('menu')
+            ->and($first['text'])->toBe('demo is here, its website not installed yet.')
+            ->and(array_column($first['items'], 'key'))->toBe(['install', 'other', 'quit'])
+            ->and($step['step'])->toMatchArray(['name' => 'install-website', 'args' => ['grid' => 'demo']])
+            ->and($other['name'] ?? null)->toBe('type');
     });
 
     test('makes the folders and the files of a grid and of its first simulator when the review is confirmed', function () {

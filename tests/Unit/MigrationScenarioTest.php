@@ -23,6 +23,9 @@ function migration_doubles(array &$calls): array
         'legacy' => static fn(): LegacyInstall => $legacy,
         'importer' => static function (string $action, array $args) use (&$calls): array {
             $calls[] = [$action, $args['site'], $args['name']];
+            if ($action === 'in-place-plan') {
+                return ['grid' => 'w4osdemogrid', 'name' => 'W4OS Demo Grid', 'login' => 'demo.w4os.org:3405', 'site' => '', 'accounts' => ['SystemUser' => ['from' => 'opensim', 'to' => 'magic']], 'gridInfo' => []];
+            }
 
             return $action !== 'plan' ? [] : [
                 'grid' => 'w4osdemogrid', 'name' => 'W4OS Demo Grid', 'site' => 'https://demo.w4os.org/', 'login' => 'demo.w4os.org:3405',
@@ -247,5 +250,66 @@ describe('The scenario of an install of before the kit', function () {
         expect($failed['action'])->toBe('abort')
             ->and($failed['code'])->toBe(1)
             ->and($failed['error'])->toBe('[5/8] Ownership: chown: no such user. Stopped: the grid is written here, not started; the old install is kept. A rerun goes on from here.');
+    });
+
+    test('runs an install in place: its review, its accounts taken, its restart under the kit, then its steps and summary', function () {
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls));
+        $machine = new Machine();
+        $review = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['existing' => 'in-place']);
+        $rows = array_column($review['rows'], 'value', 'label');
+        $kept = migration_step($machine, $review, ['restart' => 'no'], 'edit');
+        $step = migration_step($machine, $review);
+        $names = [];
+        while (($step['action'] ?? '') === 'step') {
+            $names[] = sprintf('[%d/%d] %s %s', $step['step']['number'], $step['step']['count'], $step['step']['label'], $step['step']['name']);
+            $step = migration_step($machine, $step);
+        }
+
+        expect($review['kind'])->toBe('review')
+            ->and($rows['SystemUser'])->toBe('opensim → magic')
+            ->and($rows['Restart under the kit'])->toBe('on')
+            ->and(array_column($kept['rows'], 'value', 'label')['Restart under the kit'])->toBe('off')
+            ->and($names)->toBe(['[1/3] Stop set-aside-starters', '[2/3] Config in-place-apply', '[3/3] Start stop-old-instances', '[3/3] Start in-place-start'])
+            ->and(array_column($calls, 0))->toContain('in-place-apply', 'in-place-start')
+            ->and($step['message'])->toContain('In place   ')
+            ->and($step['message'])->not->toContain('still run as before');
+    });
+
+    test('without anybody runs in place, its instances left as they run unless restart is answered', function () {
+        $calls = [];
+        QuickSetup::through(migration_doubles($calls));
+        $machine = new Machine();
+        $step = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => ['existing' => 'in-place']]);
+        $names = [];
+        while (($step['action'] ?? '') === 'step') {
+            $names[] = $step['step']['name'];
+            $step = migration_step($machine, $step);
+        }
+
+        expect($names)->toBe(['set-aside-starters', 'in-place-apply'])
+            ->and($step['message'])->toContain('Instances  still run as before: opensim restart w4osdemogrid runs them under the kit');
+    });
+
+    test('says the grid of a run before is here, starts it when it does not run, and has nothing to do once it does', function () {
+        $calls = [];
+        $doubles = migration_doubles($calls);
+        $legacy = ($doubles['legacy'])();
+        // The old install's grid is the machine's grid demo: migrated by a run before
+        file_put_contents($legacy->robusts()[0], "[GridInfoService]\n    gridnick = \"demo\"\n");
+        QuickSetup::through($doubles);
+        $machine = new Machine();
+        $here = QuickSetup::next($machine->environment, ['existing' => true]);
+        $step = migration_step($machine, $here);
+        $done = migration_step($machine, $step);
+        $unattended = QuickSetup::next($machine->environment, ['existing' => true, 'unattended' => true, 'answers' => []]);
+
+        expect($here['kind'])->toBe('review')
+            ->and($here['text'])->toBe('demo is here already.')
+            ->and(array_column($here['rows'], 'label'))->toBe(['Start'])
+            ->and($step['step']['name'])->toBe('switch')
+            ->and($done['action'])->toBe('quit')
+            ->and(array_column($calls, 0))->toContain('switch')->not->toContain('plan', 'apply')
+            ->and($unattended['step']['name'])->toBe('switch');
     });
 });

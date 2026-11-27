@@ -41,6 +41,7 @@ final class MigrationScenario
         'website' => ['values' => 'address', 'default' => '', 'label' => 'Website address (the old one); empty for none'],
         'vhosts' => ['values' => ['yes', 'no'], 'default' => 'no', 'label' => 'Beside Apache, add the line of the website to its sites'],
         'maptiles' => ['values' => ['yes', 'no'], 'default' => 'yes', 'label' => 'Install the 3D map of the core'],
+        'restart' => ['values' => ['yes', 'no'], 'default' => 'no', 'label' => 'In place: its instances restarted under the kit now'],
     ];
 
     /**
@@ -90,28 +91,110 @@ final class MigrationScenario
             }
             $answers[$name] = $value;
         }
-        $answers += ['vhosts' => 'no', 'stop' => 'yes'];
+        $answers += ['vhosts' => 'no', 'stop' => 'yes', 'restart' => 'no'];
         isset($given['vhosts']) || ($answers['unanswered'] = ['vhosts']);
+        $answers['unattended'] = true;
+        // Here already (a run before): what is left of it, without a question
+        $here = self::here($environment, $legacy, $answers);
+        if ($here !== null) {
+            return ($here['kind'] ?? '') === 'review' ? self::start($environment, $legacy, QuickSetup::decode((string) $here['state'])['answers']) : $here;
+        }
         $choice = (string) ($answers['existing'] ?? 'migrate');
+        if ($choice === 'in-place') {
+            unset($answers['existing']);
+
+            return self::start($environment, $legacy, $answers + ['mode' => 'in-place']);
+        }
         if ($choice !== 'migrate') {
-            return $choice === 'in-place' ? ['action' => 'handoff', 'path' => 'in-place'] : $refused(_('A new grid beside it is made by its own setup (kickstart --new).'));
+            return $refused(_('A new grid beside it is made by its own setup (kickstart --new).'));
         }
         unset($answers['existing']);
         $problem = self::problem($legacy, $answers);
         if ($problem !== '') {
             return $refused($problem);
         }
+
+        return self::start($environment, $legacy, $answers);
+    }
+
+    /** The run started: its steps fixed (what they act on changes as they go), the facts of its summary kept from the plan of before. */
+    private static function start(Environment $environment, LegacyInstall $legacy, array $answers): array
+    {
+        if (isset($answers['run'])) {
+            return self::step($environment, $legacy, $answers, 0);
+        }
         $plan = self::planned($legacy, $answers);
-        $answers['unattended'] = true;
         $answers['run'] = self::steps($legacy, $answers, $plan);
         $answers['facts'] = array_intersect_key($plan, array_flip(['grid', 'name', 'login', 'site']));
 
         return self::step($environment, $legacy, $answers, 0);
     }
 
-    /** The first screen: the install found, and what to do with it. */
-    public static function first(LegacyInstall $legacy): array
+    /**
+     * The grid of the old install here already (a run before): what is left of it reviewed (its start, its website), or said with
+     * its summary when nothing is; null when it is not here.
+     *
+     * @return ?array<string,mixed>
+     */
+    private static function here(Environment $environment, LegacyInstall $legacy, array $answers): ?array
     {
+        $robust = $legacy->robusts()[0] ?? null;
+        $nick = $robust === null ? '' : $legacy->nick($robust);
+        $grid = $nick === '' ? null : Grid::find($environment, $nick);
+        if ($grid === null) {
+            return null;
+        }
+        $inPlace = Grid::inPlace($environment, $nick) !== null;
+        $site = $grid->siteAddress();
+        $facts = ['grid' => $nick, 'name' => $grid->name(), 'login' => $grid->baseHostname() . ':' . $grid->publicPort(), 'site' => $site];
+        $answers = array_replace($answers, ['facts' => $facts, 'mode' => $inPlace ? 'in-place' : 'migrate', 'here' => true, 'website' => $site]);
+        $steps = [];
+        if (!($grid->robust()?->isRunning() ?? false)) {
+            $steps[] = $inPlace
+                ? ['name' => 'in-place-start', 'root' => false, 'label' => 'Start', 'args' => ['grid' => $nick], 'skippable' => false]
+                : ['name' => 'switch', 'root' => false, 'label' => 'Start', 'args' => [], 'skippable' => false];
+        }
+        // Its website left by a run before (a failure, a line of Apache not given): its step again
+        if (!$inPlace && $site !== '' && !self::siteInstalled($nick) && self::websiteLeft($site, $answers) === '') {
+            $files = self::vhostFiles($site);
+            array_unshift($steps, ['name' => 'install-website', 'root' => true, 'label' => 'Website', 'args' => ['grid' => $nick] + ($files !== null ? ['edit_vhosts' => true] : []), 'skippable' => true]);
+        }
+        $said = sprintf(_('%s is here already.'), $nick);
+        if ($steps === []) {
+            return ['action' => 'quit', 'message' => $said . "\n\n" . self::summary($environment, $legacy, $facts, $answers)];
+        }
+        $answers['run'] = $steps;
+        $rows = array_map(static fn(array $step): array => ['section' => _('Left to do'), 'label' => $step['label'], 'value' => $step['name'] === 'install-website' ? $site : _('the grid is written here, not started')], $steps);
+
+        return [
+            'action' => 'screen',
+            'kind' => 'review',
+            'title' => _('Review'),
+            'text' => $said,
+            'notice' => '',
+            'rows' => $rows,
+            'buttons' => ['next' => _('Start'), 'back' => _('Quit')],
+            'state' => QuickSetup::encode(self::PREFIX . '-review', $answers),
+        ];
+    }
+
+    /** Whether the website of a grid is installed: the site connected to it, its file in the web server. */
+    public static function siteInstalled(string $nick): bool
+    {
+        $yaml = (string) @file_get_contents((getenv('W4OS_SITE_ROOT') ?: '/var/lib/w4os/www') . '/user/config/plugins/w4os.yaml');
+
+        return preg_match('/^grid:\s*[\'"]?' . preg_quote($nick, '/') . '[\'"]?\s*$/m', $yaml) === 1
+            && ((glob('/etc/caddy/sites/*.w4os.*') ?: []) !== [] || is_file('/etc/apache2/conf-enabled/w4os-site.conf'));
+    }
+
+    /** The first screen: the install found, and what to do with it. */
+    public static function first(LegacyInstall $legacy, ?Environment $environment = null): array
+    {
+        $here = $environment === null ? null : self::here($environment, $legacy, []);
+        if ($here !== null) {
+            return $here;
+        }
+
         return [
             'action' => 'screen',
             'kind' => 'menu',
@@ -150,8 +233,8 @@ final class MigrationScenario
 
                 return match ($choice) {
                     'migrate' => self::questions($legacy, self::planned($legacy, $answers), $answers, ''),
-                    // Run where it is: the command line's own path, for now
-                    'in-place' => ['action' => 'handoff', 'path' => 'in-place'],
+                    // Run where it is: its review, its restart under the kit the one thing asked
+                    'in-place' => self::inPlaceReview($legacy, self::planned($legacy, ['mode' => 'in-place']), ['mode' => 'in-place'], ''),
                     'new' => null,
                     default => ['action' => 'abort', 'error' => _('Stopped: nothing changed.')],
                 };
@@ -167,8 +250,16 @@ final class MigrationScenario
 
                 return $problem !== '' ? self::questions($legacy, $plan, $answers, $problem) : self::review($legacy, $plan, $answers, '');
             case self::PREFIX . '-review':
+                if ($button === 'back' && (($answers['here'] ?? false) || ($answers['mode'] ?? '') === 'in-place')) {
+                    return ['action' => 'abort', 'error' => _('Stopped: nothing changed.')];
+                }
                 if ($button === 'back') {
                     return self::questions($legacy, self::planned($legacy, $answers), $answers, '');
+                }
+                if ($button === 'edit' && ($answers['mode'] ?? '') === 'in-place') {
+                    $answers = array_replace($answers, array_intersect_key($given, array_flip(['restart'])));
+
+                    return self::inPlaceReview($legacy, self::planned($legacy, $answers), $answers, '');
                 }
                 if ($button === 'edit') {
                     // The line of the data only shows its folders: nothing of it is an answer
@@ -177,13 +268,7 @@ final class MigrationScenario
                     return self::review($legacy, self::planned($legacy, $answers), $answers, self::problem($legacy, $answers));
                 }
 
-                // The steps of the run fixed at its start: what they act on changes as they go (the instances stopped)
-                $plan = self::planned($legacy, $answers);
-                $answers['run'] = self::steps($legacy, $answers, $plan);
-                // What the summary says, from the plan of before the run (the grid is here after it, its plan refused then)
-                $answers['facts'] = array_intersect_key($plan, array_flip(['grid', 'name', 'login', 'site']));
-
-                return self::step($environment, $legacy, $answers, 0);
+                return self::start($environment, $legacy, $answers);
             case self::PREFIX . '-run':
                 return self::run($environment, $legacy, $answers, $button, $request);
         }
@@ -287,6 +372,37 @@ final class MigrationScenario
         ];
     }
 
+    /** The review of a run in place: what the kit takes of it (its accounts, its grid info), its restart under the kit. */
+    private static function inPlaceReview(LegacyInstall $legacy, array $plan, array $answers, string $notice): array
+    {
+        $onOff = ['yes' => _('on'), 'no' => _('off')];
+        $restart = Result::isTrue($answers['restart'] ?? 'yes') ? 'yes' : 'no';
+        $rows = [
+            ['section' => _('Grid'), 'label' => _('Nick'), 'value' => (string) $plan['grid']],
+            ['section' => _('Grid'), 'label' => _('Robust config'), 'value' => (string) ($legacy->robusts()[0] ?? '')],
+            ['section' => _('Grid'), 'label' => _('Simulators'), 'value' => implode(', ', array_map(static fn(string $config): string => basename($config, '.ini'), $legacy->simulators()))],
+        ];
+        foreach ($plan['accounts'] ?? [] as $key => $change) {
+            $rows[] = ['section' => _('Accounts'), 'label' => (string) $key, 'value' => sprintf('%s → %s', $change['from'], $change['to'])];
+        }
+        foreach ($plan['gridInfo'] ?? [] as $line) {
+            $rows[] = ['section' => _('Corrected from the old install'), 'label' => _('Grid info'), 'value' => self::shortened((string) $line, 60)];
+        }
+        $rows[] = ['section' => _('Options'), 'label' => _('Restart under the kit'), 'value' => $onOff[$restart], 'name' => 'restart', 'current' => $restart, 'options' => $onOff];
+        $rows[] = ['section' => _('Old install'), 'label' => _('Folder'), 'value' => sprintf(_('%s, run where it is; its start at boot set aside'), $legacy->root)];
+
+        return [
+            'action' => 'screen',
+            'kind' => 'review',
+            'title' => _('Review'),
+            'text' => '',
+            'notice' => $notice,
+            'rows' => $rows,
+            'buttons' => ['next' => _('Start'), 'back' => _('Quit'), 'edit' => _('Change')],
+            'state' => QuickSetup::encode(self::PREFIX . '-review', array_replace($answers, ['restart' => $restart])),
+        ];
+    }
+
     /**
      * The steps of the run, by their place in it: each a name, done by the engine or as root by the client, with what it needs.
      *
@@ -296,6 +412,15 @@ final class MigrationScenario
     {
         $steps = [];
         $running = $legacy->running();
+        if (($answers['mode'] ?? '') === 'in-place') {
+            $restart = Result::isTrue($answers['restart'] ?? 'no');
+            $steps[] = ['name' => 'set-aside-starters', 'root' => true, 'label' => 'Stop', 'args' => ['files' => $legacy->starters()], 'skippable' => false];
+            $steps[] = ['name' => 'in-place-apply', 'root' => false, 'label' => 'Config', 'args' => [], 'skippable' => false];
+            $restart && $running !== [] && ($steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Start', 'args' => ['configs' => $running], 'skippable' => false]);
+            $restart && ($steps[] = ['name' => 'in-place-start', 'root' => false, 'label' => 'Start', 'args' => ['grid' => $plan['grid']], 'skippable' => false]);
+
+            return $steps;
+        }
         if ($running !== []) {
             $steps[] = ['name' => 'set-aside-starters', 'root' => true, 'label' => 'Stop', 'args' => ['files' => $legacy->starters()], 'skippable' => false];
             $steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Stop', 'args' => ['configs' => $running], 'skippable' => false];
@@ -323,9 +448,11 @@ final class MigrationScenario
             return ['action' => 'quit', 'message' => self::summary($environment, $legacy, $answers['facts'] ?? self::planned($legacy, $answers), $answers)];
         }
         $labels = array_values(array_unique([...array_map(static fn(array $s): string => $s['label'], $steps)]));
-        // Backup and Data are the engine's own steps inside Config: named on its live line, numbered here
-        array_splice($labels, (int) array_search('Config', $labels, true), 0, ['Backup']);
-        array_splice($labels, (int) array_search('Config', $labels, true) + 1, 0, ['Data']);
+        // Backup and Data are the engine's own steps inside the Config of a migration: named on its live line, numbered here
+        if (in_array('import-apply', array_column($steps, 'name'), true)) {
+            array_splice($labels, (int) array_search('Config', $labels, true), 0, ['Backup']);
+            array_splice($labels, (int) array_search('Config', $labels, true) + 1, 0, ['Data']);
+        }
         $step = $steps[$k];
 
         return [
@@ -406,6 +533,10 @@ final class MigrationScenario
     {
         $done = array_column(array_slice($steps, 0, $k), 'name');
 
+        if (in_array('in-place-apply', $done, true)) {
+            return _('Stopped: the grid is registered here, run where it is; the kit does not start it yet. A rerun goes on from here.');
+        }
+
         return in_array('import-apply', $done, true)
             ? _('Stopped: the grid is written here, not started; the old install is kept. A rerun goes on from here.')
             : (in_array('stop-old-instances', $done, true) ? _('Stopped: the old install is kept, its instances stopped; a rerun goes on from here.') : _('Stopped: nothing changed.'));
@@ -418,6 +549,8 @@ final class MigrationScenario
         match ($name) {
             'import-apply' => self::import('apply', $args),
             'switch' => self::import('switch', $args),
+            'in-place-apply' => self::import('in-place-apply', $args),
+            'in-place-start' => self::import('in-place-start', $args),
             default => throw new \RuntimeException("unknown step $name"),
         };
     }
@@ -437,7 +570,7 @@ final class MigrationScenario
     }
 
     /** @return ?list<string> the files of the sites of Apache that would include the website, null beside another web server */
-    private static function vhostFiles(string $site): ?array
+    public static function vhostFiles(string $site): ?array
     {
         if ($site === '' || filter_var($site, FILTER_VALIDATE_URL) === false) {
             return null;
@@ -494,7 +627,13 @@ final class MigrationScenario
             $lines[] = sprintf('Website    %s', rtrim($site, '/') . '/');
             $lines[] = sprintf('Admin      %slogin', rtrim($site, '/') . '/') . ($owner === '' ? '' : " ($owner)");
         }
-        $lines[] = sprintf('Old install  %s, stopped, kept', $legacy->root);
+        if (($answers['mode'] ?? '') === 'in-place') {
+            $started = ($answers['here'] ?? false) || Result::isTrue($answers['restart'] ?? 'no');
+            $lines[] = sprintf('In place   %s, run by the kit', $legacy->root);
+            $started || ($lines[] = sprintf('Instances  still run as before: opensim restart %s runs them under the kit', $plan['grid']));
+        } else {
+            $lines[] = sprintf('Old install  %s, stopped, kept', $legacy->root);
+        }
         $why === '' || ($lines[] = "Website    not installed ($why)");
 
         return implode("\n", $lines);
@@ -508,13 +647,14 @@ final class MigrationScenario
             'simulators' => $legacy->simulators(),
             'name' => isset($answers['name']) && $answers['name'] !== '' ? (string) $answers['name'] : null,
             'site' => trim((string) ($answers['website'] ?? '')),
+            'grid' => (string) ($answers['facts']['grid'] ?? ''),
         ];
     }
 
     /** The plan of the migration, as the review and the steps read it (a problem of the import aborts the scenario). */
     private static function planned(LegacyInstall $legacy, array $answers): array
     {
-        return self::import('plan', self::importArgs($legacy, $answers));
+        return self::import(($answers['mode'] ?? '') === 'in-place' ? 'in-place-plan' : 'plan', self::importArgs($legacy, $answers));
     }
 
     /** @return array<string,mixed> */
@@ -532,6 +672,9 @@ final class MigrationScenario
     {
         $environment = Environment::system(\W4OS\Engine\Config\Layout::resolve());
         $simulators = array_map(static fn(string $file): array => ['file' => $file], $args['simulators']);
+        if (str_starts_with($action, 'in-place-')) {
+            return self::inPlace($environment, substr($action, 9), $args, $simulators);
+        }
         $import = Import\GridImport::prepare($environment, $args['robust'], null, null, $simulators, written: $action === 'switch', name: $args['name']);
         if ($action === 'apply') {
             $import->apply($environment, new NullUi(live: PHP_SAPI === 'cli'));
@@ -563,6 +706,42 @@ final class MigrationScenario
             // A name made ASCII for the viewers: asked, the one proposed being the ASCII one
             'asciiName' => preg_grep('/^\[GridInfoService\] gridname /', $document['gridInfo'] ?? []) !== [] ? $document['name'] : '',
         ];
+    }
+
+    /**
+     * The install registered where it is, as the API does it (POST /setups/imports, inPlace): its plan, its section written and its
+     * grid enabled, its instances started under the kit.
+     *
+     * @return array<string,mixed>
+     */
+    private static function inPlace(Environment $environment, string $action, array $args, array $simulators): array
+    {
+        $register = static function (string $mode) use ($environment, $args, $simulators): array {
+            $document = json_decode((new \W4OS\Engine\Api\Api($environment))->import(['kind' => 'robust', 'file' => $args['robust'], 'inPlace' => true, 'simulators' => $simulators, 'mode' => $mode])->body(), true);
+            $error = $document['errors'][0] ?? null;
+            $error === null || throw new \RuntimeException((string) ($error['detail'] ?? $error['title'] ?? 'the registration in place failed'));
+
+            return (array) ($document['data']['attributes'] ?? []);
+        };
+        if ($action === 'plan') {
+            $plan = $register('plan');
+            $grid = $plan['grid'] ?? '';
+            $info = \W4OS\Engine\Config\ConfigReader::load($args['robust'])['GridInfoService'] ?? [];
+            $login = (string) preg_replace('#^https?://|/$#', '', (string) ($info['login'] ?? ''));
+
+            return $plan + ['name' => (string) ($info['gridname'] ?? $grid), 'login' => $login, 'site' => ''];
+        }
+        if ($action === 'apply') {
+            $plan = $register('apply');
+            $grid = Grid::find($environment, (string) $plan['grid']) ?? throw new \RuntimeException("the grid {$plan['grid']} is not registered");
+            $grid->isEnabled() || $grid->enable() || throw new \RuntimeException("the grid {$plan['grid']} could not be enabled");
+
+            return [];
+        }
+        $failed = array_filter(\W4OS\Engine\OpenSim::start([(string) $args['grid']], $environment, true), static fn($result): bool => $result instanceof \W4OS\Engine\Exceptions\InstanceFailed);
+        $failed === [] || throw new \RuntimeException(implode('; ', array_map(static fn(\Throwable $failure): string => $failure->getMessage(), $failed)));
+
+        return [];
     }
 
     /** The centre the regions of the old install give: its default region's place (DefaultRegion of its Robust), else its first region's. */
