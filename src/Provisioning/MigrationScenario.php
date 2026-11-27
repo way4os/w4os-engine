@@ -151,7 +151,7 @@ final class MigrationScenario
         // The address of its website as it was chosen, or as it is given again (a rerun asks it, prefilled)
         $answers['website'] = trim((string) ($answers['website'] ?? $site));
         $wanted = $answers['website'];
-        $askSite = !$inPlace && $site !== '' && !self::siteInstalled($nick);
+        $askSite = !$inPlace && ($site !== '' || $wanted !== '') && !self::siteInstalled($nick);
         $valid = $wanted === '' || filter_var($wanted, FILTER_VALIDATE_URL) !== false;
         $steps = [];
         if ($inPlace && !($grid->robust()?->isRunning() ?? false)) {
@@ -669,6 +669,10 @@ final class MigrationScenario
         // Why the website is not there, said last (a script finds it there): skipped, its line of Apache not answered or refused
         $why = $left ? 'rerun to install it' : ($site === '' ? '' : (in_array('vhosts', (array) ($answers['unanswered'] ?? []), true) && self::websiteLeft($site, $answers) !== '' ? 'no answer for vhosts' : self::websiteLeft($site, $answers)));
         $why = (string) preg_replace('/^not installed: /', '', $why);
+        // A rerun says the website as it stands: not there when its step did not put it there
+        if (($answers['here'] ?? false) && $site !== '' && $why === '' && !self::siteInstalled((string) $plan['grid'])) {
+            $why = 'rerun to install it';
+        }
         if ($site !== '' && $why === '') {
             $lines[] = sprintf('Website    %s', rtrim($site, '/') . '/');
             $lines[] = sprintf('Admin      %slogin', rtrim($site, '/') . '/') . ($owner === '' ? '' : " ($owner)");
@@ -692,7 +696,8 @@ final class MigrationScenario
             'robust' => $legacy->robusts()[0] ?? '',
             'simulators' => $legacy->simulators(),
             'name' => isset($answers['name']) && $answers['name'] !== '' ? (string) $answers['name'] : null,
-            'site' => trim((string) ($answers['website'] ?? '')),
+            // The website shown in the review: the one answered, else the old install's (kept with the grid: chosen)
+            'site' => trim((string) ($answers['website'] ?? ($answers['facts']['site'] ?? ''))),
             'grid' => (string) ($answers['facts']['grid'] ?? ''),
         ];
     }

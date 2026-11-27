@@ -22,4 +22,13 @@ describe('The name of a grid', function () {
         expect(InstanceSettings::of($robust)['gridName'] ?? null)->toBe('Kimbe Red, pa moli (kimbe-red-charm)')
             ->and(Grid::find($machine->environment, 'demo')?->name())->toBe('Kimbe Red, pa moli (kimbe-red-charm)');
     });
+
+    test('has the host of its BaseURL when its config has no BaseHostname (an install of before the kit)', function () {
+        $machine = new Machine();
+        $robust = $machine->grid . '/Robust.HG.ini';
+        $text = (string) preg_replace('/^\s*BaseHostname\s*=.*$/m', '', (string) file_get_contents($robust));
+        file_put_contents($robust, str_replace("[Const]\n", "[Const]\n    BaseURL = \"http://demo.w4os.org\"\n", $text));
+
+        expect(InstanceSettings::of($robust)['baseHostname'] ?? null)->toBe('demo.w4os.org');
+    });
 });

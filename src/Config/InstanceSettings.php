@@ -34,6 +34,10 @@ final class InstanceSettings
                 $current[$field] = $value;
             }
         }
+        // A config of before the kit that has its BaseURL alone: its host is the one of the grid
+        if (!isset($current['baseHostname']) && ($url = $grab('BaseURL')) !== null && ($host = parse_url(str_contains($url, '://') ? $url : "http://$url", PHP_URL_HOST)) !== null && $host !== false) {
+            $current['baseHostname'] = $host;
+        }
         foreach (
             ['publicPort' => 'PublicPort', 'privatePort' => 'PrivatePort', 'httpPort' => 'http_listener_port']
             as $field => $key

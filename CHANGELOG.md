@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- fix (grid): the host of a config with a BaseURL alone is its host, not localhost
+- fix (setup): a migration keeps the website of its review; a rerun says the website as it stands
 - new (grid): the address of its Quick Start website its own setting (address website), its state chosen or installed
 - fix (setup): a rerun asks again the address of a website left, kept alone; in place, its service follows its accounts
 - new (setup): an install in place is the scenario's: its review, its accounts taken, its restart under the kit
