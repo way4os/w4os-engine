@@ -26,8 +26,12 @@ function migration_doubles(array &$calls): array
 
             return $action !== 'plan' ? [] : [
                 'grid' => 'w4osdemogrid', 'name' => 'W4OS Demo Grid', 'site' => 'https://demo.w4os.org/', 'login' => 'demo.w4os.org:3405',
-                'data' => [['from' => '/opt/opensim/var/data/W4osDemoGrid/fsassets', 'to' => '/var/lib/opensim/data/w4osdemogrid/fsassets', 'place' => 'fsassets', 'size' => '11 GB']],
-                'database' => ['name' => 'w4osdemogrid_robust'], 'dropped' => [], 'maptiles' => 'opensim-0.9.3.0-maptiles', 'asciiName' => '',
+                'data' => [
+                    ['from' => '/opt/opensim/var/data/W4osDemoGrid/fsassets', 'to' => '/var/lib/opensim/data/w4osdemogrid/fsassets', 'place' => 'fsassets', 'size' => '11 GB', 'kilobytes' => 11 * 1048576],
+                    ['from' => '/opt/opensim/var/cache/W4osDemoGrid/maptiles', 'to' => '/var/cache/opensim/w4osdemogrid/maptiles', 'place' => 'cache/maptiles', 'size' => '32 KB', 'kilobytes' => 32],
+                ],
+                'database' => ['name' => 'w4osdemogrid_robust'],
+                'dropped' => [['section' => 'AssetService', 'key' => 'AssetLoaderArgs', 'value' => '${Const|EtcDirectory}/assets/AssetSets.xml', 'reason' => 'corrected', 'replacement' => '/usr/share/opensim/0.9.3.0/bin/assets/AssetSets.xml']], 'maptiles' => 'opensim-0.9.3.0-maptiles', 'asciiName' => '',
             ];
         },
     ];
@@ -72,9 +76,11 @@ describe('The scenario of an install of before the kit', function () {
             ->and(array_column($questions['fields'], 'value', 'name')['website'])->toBe('https://demo.w4os.org/')
             ->and($refused['notice'])->toContain('needs the old instances stopped')
             ->and($review['kind'])->toBe('review')
-            ->and(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Web', 'Data', 'Options', 'Old install'])
+            ->and(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Web', 'Data', 'Corrected from the old install', 'Options', 'Old install'])
+            ->and($rows['Data'])->toBe('11 GB in 2 folders, moved (same disk)')
+            ->and(array_column($review['rows'], 'options', 'label')['Data'])->toBe(['fsassets' => 'fsassets: 11 GB', 'cache/maptiles' => 'cache/maptiles: 32 KB'])
+            ->and($rows['AssetLoaderArgs'])->toBe('${Const|EtcDirectory}/assets/AssetSets.xml → /usr/share/opensim/0.…n/assets/AssetSets.xml')
             ->and($rows['Website'])->toBe('https://kimbe.example/opensim/')
-            ->and($rows['fsassets'])->toBe('11 GB, moved (same disk)')
             ->and($wrong['notice'])->toBe('Not an address: not an address');
     });
 
@@ -98,6 +104,25 @@ describe('The scenario of an install of before the kit', function () {
             ->and(array_column(array_filter($calls, static fn(array $c): bool => $c[0] !== 'plan'), 0))->toBe(['apply', 'switch'])
             ->and($step['action'])->toBe('quit')
             ->and($step['message'])->toContain('Website    https://w4os.org/opensim/', 'Old install  ');
+    });
+
+    test('names in its summary the owner of the estates of the grid migrated, on the line of its admin', function () {
+        $calls = [];
+        $doubles = migration_doubles($calls);
+        $importer = $doubles['importer'];
+        // The grid of the plan is the machine's, its simulator an owner
+        $doubles['importer'] = static fn(string $action, array $args): array => ['grid' => 'demo'] + $importer($action, $args);
+        QuickSetup::through($doubles);
+        $machine = new Machine();
+        $alpha = W4OS\Engine\Config\GridConfig::simulatorsDirectory($machine->grid) . '/alpha.ini';
+        file_put_contents($alpha, "[Estates]\n    DefaultEstateOwnerName = Gudule Lapointe\n", FILE_APPEND);
+        $questions = migration_step($machine, QuickSetup::next($machine->environment, ['existing' => true]), ['existing' => 'migrate']);
+        $step = migration_step($machine, migration_step($machine, $questions, ['website' => 'https://w4os.org/opensim/']));
+        while (($step['action'] ?? '') === 'step') {
+            $step = migration_step($machine, $step);
+        }
+
+        expect($step['message'])->toContain('Admin      https://w4os.org/opensim/login (Gudule Lapointe)');
     });
 
     test('asks beside Apache the one line its sites need, and gives the website step the answer, never asking in it', function () {

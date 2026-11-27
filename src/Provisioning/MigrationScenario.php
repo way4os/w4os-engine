@@ -95,7 +95,8 @@ final class MigrationScenario
                     return self::questions($legacy, self::planned($legacy, $answers), $answers, '');
                 }
                 if ($button === 'edit') {
-                    $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'maptiles'])));
+                    // The line of the data only shows its folders: nothing of it is an answer
+                    $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'maptiles', 'vhosts'])));
 
                     return self::review($legacy, self::planned($legacy, $answers), $answers, self::problem($legacy, $answers));
                 }
@@ -106,7 +107,7 @@ final class MigrationScenario
                 // What the summary says, from the plan of before the run (the grid is here after it, its plan refused then)
                 $answers['facts'] = array_intersect_key($plan, array_flip(['grid', 'name', 'login', 'site']));
 
-                return self::step($legacy, $answers, 0);
+                return self::step($environment, $legacy, $answers, 0);
             case self::PREFIX . '-run':
                 return self::run($environment, $legacy, $answers, $button, $request);
         }
@@ -171,12 +172,26 @@ final class MigrationScenario
             ...(($plan['center'] ?? '') !== '' ? [['section' => _('Grid'), 'label' => _('Centre'), 'value' => (string) $plan['center']]] : []),
             ['section' => _('Web'), 'label' => _('Website'), 'value' => $site === '' ? _('none') : ($left !== '' ? "$site, " . $left : $site), 'name' => 'website', 'current' => $site],
         ];
-        foreach ($plan['data'] ?? [] as $data) {
-            $rows[] = ['section' => _('Data'), 'label' => (string) $data['place'], 'value' => sprintf('%s, %s', $data['size'], ($data['acrossFilesystems'] ?? false) ? _('copied (another disk)') : _('moved (same disk)'))];
+        // Its folders of data in one line, their total and how they come; each one with Change
+        $folders = $plan['data'] ?? [];
+        if ($folders !== []) {
+            $across = array_filter($folders, static fn(array $data): bool => (bool) ($data['acrossFilesystems'] ?? false)) !== [];
+            $detail = [];
+            foreach ($folders as $data) {
+                $detail[(string) $data['place']] = sprintf('%s: %s', $data['place'], $data['size']);
+            }
+            $rows[] = [
+                'section' => _('Data'),
+                'label' => _('Data'),
+                'value' => sprintf(_('%s in %d folders, %s'), self::kilobytes(array_sum(array_map(static fn(array $data): int => (int) ($data['kilobytes'] ?? 0), $folders))), count($folders), $across ? _('copied (another disk)') : _('moved (same disk)')),
+                'name' => 'data',
+                'current' => (string) array_key_first($detail),
+                'options' => $detail,
+            ];
         }
         $rows[] = ['section' => _('Data'), 'label' => _('Databases'), 'value' => sprintf(_('kept: %s'), $plan['database']['name'] ?? '')];
         foreach ($plan['dropped'] ?? [] as $dropped) {
-            ($dropped['reason'] ?? '') === 'corrected' && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => (string) $dropped['key'], 'value' => sprintf(_('%s → the value the kit needs'), $dropped['value'])]);
+            ($dropped['reason'] ?? '') === 'corrected' && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => (string) $dropped['key'], 'value' => self::shortened((string) $dropped['value']) . ' → ' . self::shortened((string) ($dropped['replacement'] ?? _('the value of the kit')))]);
         }
         $ossl = $plan['ossl'] ?? ['kept' => [], 'dropped' => []];
         ($ossl['kept'] !== [] || $ossl['dropped'] !== []) && ($rows[] = ['section' => _('Corrected from the old install'), 'label' => _('OSSL permissions'), 'value' => sprintf(_('%d kept, [XEngine] read as [OSSL]'), count($ossl['kept'])) . ($ossl['dropped'] === [] ? '' : '; ' . sprintf(_('left out: %s'), implode(', ', $ossl['dropped'])))]);
@@ -225,11 +240,11 @@ final class MigrationScenario
     }
 
     /** The k-th step for the client, numbered among the names of the run ("[3/8] Config"), or the summary once there is none left. */
-    private static function step(LegacyInstall $legacy, array $answers, int $k, string $notice = ''): array
+    private static function step(Environment $environment, LegacyInstall $legacy, array $answers, int $k, string $notice = ''): array
     {
         $steps = $answers['run'] ?? self::steps($legacy, $answers, self::planned($legacy, $answers));
         if ($k >= count($steps)) {
-            return ['action' => 'quit', 'message' => self::summary($legacy, $answers['facts'] ?? self::planned($legacy, $answers), $answers)];
+            return ['action' => 'quit', 'message' => self::summary($environment, $legacy, $answers['facts'] ?? self::planned($legacy, $answers), $answers)];
         }
         $labels = array_values(array_unique([...array_map(static fn(array $s): string => $s['label'], $steps)]));
         // Backup and Data are the engine's own steps inside Config: named on its live line, numbered here
@@ -253,7 +268,7 @@ final class MigrationScenario
         $steps = $answers['run'] ?? [];
         $step = $steps[$k] ?? null;
         if ($step === null) {
-            return ['action' => 'quit', 'message' => self::summary($legacy, $answers['facts'] ?? self::planned($legacy, $answers), $answers)];
+            return ['action' => 'quit', 'message' => self::summary($environment, $legacy, $answers['facts'] ?? self::planned($legacy, $answers), $answers)];
         }
         $plan = [];
         $choice = (string) ($request['answers']['error'] ?? '');
@@ -263,7 +278,7 @@ final class MigrationScenario
         if ($choice === 'skip' && $step['skippable']) {
             $answers['skipped'] = [...(array) ($answers['skipped'] ?? []), $step['name']];
 
-            return self::step($legacy, $answers, $k + 1);
+            return self::step($environment, $legacy, $answers, $k + 1);
         }
         $failed = $button === 'failed' ? (string) ($request['answers']['error_text'] ?? _('the step failed')) : '';
         if ($failed === '' && $choice !== 'retry' && !$step['root']) {
@@ -273,13 +288,13 @@ final class MigrationScenario
                 $failed = $error->getMessage();
             }
         } elseif ($choice === 'retry') {
-            return self::step($legacy, $answers, $k);
+            return self::step($environment, $legacy, $answers, $k);
         }
         if ($failed !== '') {
             return self::failure($answers, $step, $failed);
         }
 
-        return self::step($legacy, $answers, $k + 1);
+        return self::step($environment, $legacy, $answers, $k + 1);
     }
 
     /** The choice after a step that failed: again, skip it when the run can go on without it, stop. */
@@ -368,10 +383,15 @@ final class MigrationScenario
     }
 
     /** The summary of a migration. */
-    private static function summary(LegacyInstall $legacy, array $plan, array $answers): string
+    private static function summary(Environment $environment, LegacyInstall $legacy, array $plan, array $answers): string
     {
         $site = trim((string) ($answers['website'] ?? ($plan['site'] ?? '')));
         $left = in_array('install-website', (array) ($answers['skipped'] ?? []), true);
+        // The owner of its estates, as its migrated simulators say it
+        $owner = '';
+        foreach (Grid::find($environment, (string) $plan['grid'])?->simulators() ?? [] as $simulator) {
+            $owner !== '' || ($owner = (string) $simulator->estateOwner());
+        }
         $lines = [
             '✓ Done',
             '',
@@ -380,7 +400,7 @@ final class MigrationScenario
         ];
         if ($site !== '') {
             $lines[] = $left ? 'Website    not installed (rerun to install it)' : sprintf('Website    %s', rtrim($site, '/') . '/');
-            $left || ($lines[] = sprintf('Admin      %slogin', rtrim($site, '/') . '/'));
+            $left || ($lines[] = sprintf('Admin      %slogin', rtrim($site, '/') . '/') . ($owner === '' ? '' : " ($owner)"));
         }
         $lines[] = sprintf('Old install  %s, stopped, kept', $legacy->root);
 
@@ -439,7 +459,8 @@ final class MigrationScenario
             $from = (string) $data['from'];
             $parts = explode('/', trim($from, '/'));
             $grid = array_search(strtolower($document['grid']), array_map('strtolower', $parts), true);
-            $sizes[] = $data + ['place' => $grid !== false && $grid < count($parts) - 1 ? implode('/', array_slice($parts, $grid + 1)) : basename($from), 'size' => self::size($from)];
+            $kilobytes = self::kilobytesOf($from);
+            $sizes[] = $data + ['place' => $grid !== false && $grid < count($parts) - 1 ? implode('/', array_slice($parts, $grid + 1)) : basename($from), 'size' => self::kilobytes($kilobytes), 'kilobytes' => $kilobytes];
         }
 
         return ['data' => $sizes] + $document + [
@@ -472,13 +493,24 @@ final class MigrationScenario
         return (string) (array_values($places)[0] ?? '');
     }
 
-    /** The size of a folder as a person reads it: 412 MB, 11 GB. */
-    private static function size(string $dir): string
+    /** The size of a folder, in kilobytes (du). */
+    private static function kilobytesOf(string $dir): int
     {
         $out = [];
         exec('du -sk ' . escapeshellarg($dir) . ' 2>/dev/null', $out);
-        $k = (int) ($out[0] ?? 0);
 
+        return (int) ($out[0] ?? 0);
+    }
+
+    /** A size as a person reads it: 412 MB, 11 GB. */
+    private static function kilobytes(int $k): string
+    {
         return $k >= 1048576 ? sprintf('%.0f GB', $k / 1048576) : ($k >= 1024 ? sprintf('%.0f MB', $k / 1024) : "$k KB");
+    }
+
+    /** A value of a config shortened in the middle when long, its start and its end kept (…/assets/AssetSets.xml). */
+    private static function shortened(string $value, int $max = 44): string
+    {
+        return mb_strlen($value) <= $max ? $value : mb_substr($value, 0, intdiv($max, 2) - 1) . '…' . mb_substr($value, -intdiv($max, 2));
     }
 }

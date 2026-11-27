@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- change (setup): a migration's review folds its data in one line with their total; a corrected setting shows its new value
+- change (setup): the summary of a migration names the owner of its estates on the line of its admin
 - change (grid): the centre of a grid without one is its default region's place, else its first region's, else drawn and kept
 - new (setup): a new grid gets a centre of its own, drawn between 1000 and 10000 by 100, a line of the review, its region there
 - new (diagnostics): the copy of the guide of another server, its source, its age and the last failure of its server
