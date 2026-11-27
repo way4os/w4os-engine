@@ -174,6 +174,35 @@ final class SystemLayout
         return true;
     }
 
+    /** The folders of the install a person may place: their settings of w4os.conf. */
+    public const ROOTS = ['EtcRoot', 'VarRoot', 'DataRoot', 'LogsRoot', 'CacheRoot', 'BackupRoot', 'CoreRoot'];
+
+    /**
+     * The folders of the install written in w4os.conf: in [Defaults], and in the profile in use where it says them too; the others
+     * as they are. A file that is not there yet is written by prepare(), from the layout it is given.
+     *
+     * @param array<string,string> $roots setting => full path
+     * @throws \InvalidArgumentException a setting that is not a folder of the install, a path that is not a full one
+     */
+    public static function setRoots(string $conf, array $roots): void
+    {
+        foreach ($roots as $key => $path) {
+            if (!in_array($key, self::ROOTS, true) || preg_match('#^/[^/\s][^\s]*$#', (string) $path) !== 1 || str_contains("$path/", '/../')) {
+                throw new \InvalidArgumentException("not a folder of the install: $key = $path");
+            }
+        }
+        if ($roots === [] || !is_file($conf)) {
+            return;
+        }
+        $ini = \W4OS\Engine\Config\IniEditor::load($conf);
+        $profile = trim((string) $ini->get('Defaults', 'DefaultProfile'), '" ');
+        foreach ($roots as $key => $path) {
+            $ini->set('Defaults', $key, rtrim((string) $path, '/'));
+            $profile !== '' && $ini->get($profile, $key) !== null && $ini->set($profile, $key, rtrim((string) $path, '/'));
+        }
+        $ini->save($conf);
+    }
+
     /** The folders of the account of the instances and the engine (SystemUser): the grids, their state, logs, caches, backups. */
     public const SYSTEM = 'system';
 

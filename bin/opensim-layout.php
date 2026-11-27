@@ -1,8 +1,9 @@
 <?php
 
 /**
- * opensim-layout: makes the system layout of the machine (the account the instances run as, the folders, w4os.conf) when it is
- * not there, as root. Run by the package after its installation; nothing is done twice.
+ * opensim-layout [SETTING=FOLDER...]: makes the system layout of the machine (the account the instances run as, the folders,
+ * w4os.conf) when it is not there, as root. Run by the package after its installation; nothing is done twice. With folders given
+ * (EtcRoot=/srv/opensim/etc), they are written in w4os.conf first and made.
  */
 
 declare(strict_types=1);
@@ -28,6 +29,23 @@ if (!class_exists(SystemLayout::class)) {
 }
 
 $ui = new NullUi(live: true);
+// The folders a person placed (EtcRoot=/srv/opensim/etc ...): written in w4os.conf first, or given to a file not made yet
+$roots = [];
+foreach (array_slice($argv, 1) as $argument) {
+    [$key, $path] = explode('=', $argument, 2) + ['', ''];
+    $roots[$key] = $path;
+}
+try {
+    SystemLayout::setRoots(Layout::systemFile(), $roots);
+} catch (InvalidArgumentException $error) {
+    fwrite(STDERR, 'opensim-layout: ' . $error->getMessage() . "\n");
+    exit(2);
+}
+if (!is_file(Layout::systemFile())) {
+    foreach ($roots as $key => $path) {
+        putenv(Layout::environmentName($key) . '=' . $path);
+    }
+}
 $made = (new SystemLayout($ui))->prepare(Layout::resolve());
 foreach ($ui->said as [$level, $message]) {
     $level === 'error' && fwrite(STDERR, "opensim-layout: $message\n");

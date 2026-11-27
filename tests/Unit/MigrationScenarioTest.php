@@ -129,7 +129,7 @@ describe('The scenario of an install of before the kit', function () {
             ->and(array_column($questions['fields'], 'value', 'name')['website'])->toBe('https://demo.w4os.org/')
             ->and($refused['notice'])->toContain('needs the old instances stopped')
             ->and($review['kind'])->toBe('review')
-            ->and(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Web', 'Data', 'Corrected from the old install', 'Options', 'Old install'])
+            ->and(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Web', 'Data', 'Corrected from the old install', 'Options', 'Old install', 'Folders'])
             ->and($rows['Data'])->toBe('11 GB in 2 folders, moved (same disk)')
             ->and(array_column($review['rows'], 'options', 'label')['Data'])->toBe(['fsassets' => 'fsassets: 11 GB', 'cache/maptiles' => 'cache/maptiles: 32 KB'])
             ->and($rows['AssetLoaderArgs'])->toBe('${Const|EtcDirectory}/assets/AssetSets.xml → /usr/share/opensim/0.…n/assets/AssetSets.xml')

@@ -22,7 +22,7 @@ final class MigrationScenario
     public const PREFIX = 'existing';
 
     /** The steps a client runs as root, with the arguments it checks: nothing else is run by it. */
-    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website', 'restart-service', 'db-admin', 'install-dotnet'];
+    public const ROOT_STEPS = ['stop-old-instances', 'set-aside-starters', 'give-ownership', 'install-packages', 'install-website', 'restart-service', 'db-admin', 'install-dotnet', 'set-folders'];
 
     /** The packages a step may install: the ones the choices of a migration name. */
     public const PACKAGES = '/^(opensim-[0-9.]+-maptiles|w4os-site)$/';
@@ -32,6 +32,9 @@ final class MigrationScenario
 
     /** The files of the sites of Apache that serve a website, null beside another web server (null: w4os-site --vhosts). @var ?\Closure(string): ?list<string> */
     public static ?\Closure $vhosts = null;
+
+    /** The install the scenario is run in, for what its screens show of it (its folders). */
+    private static ?Environment $current = null;
 
     /** The answers of a run without anybody, by name: what each takes, its default ('' when the plan gives it), what it is. */
     public const KEYS = [
@@ -78,6 +81,7 @@ final class MigrationScenario
      */
     public static function unattended(Environment $environment, LegacyInstall $legacy, array $given): array
     {
+        self::$current = $environment;
         $refused = static fn(string $error): array => ['action' => 'abort', 'code' => 2, 'error' => $error];
         $answers = [];
         foreach ($given as $name => $value) {
@@ -255,6 +259,7 @@ final class MigrationScenario
      */
     public static function advance(Environment $environment, string $step, array $answers, string $button, array $given, array $request, LegacyInstall $legacy): ?array
     {
+        self::$current = $environment;
         if ($button === 'quit') {
             return QuickSetup::stopped();
         }
@@ -304,7 +309,7 @@ final class MigrationScenario
                 if ($button === 'edit') {
                     // The line of the data only shows its folders: nothing of it is an answer
                     $before = (string) ($answers['website'] ?? '');
-                    $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'maptiles', 'vhosts'])));
+                    $answers = array_replace($answers, array_intersect_key($given, array_flip(['website', 'name', 'maptiles', 'vhosts', ...array_map(static fn(string $key): string => "folder_$key", array_keys(QuickSetup::FOLDERS))])));
                     // A website changed to a host Apache serves: its line asked first, never taken for granted
                     $site = trim((string) ($answers['website'] ?? ''));
                     if ($site !== $before && !isset($given['vhosts'])) {
@@ -340,7 +345,7 @@ final class MigrationScenario
             return sprintf(_('Not an address: %s'), $site);
         }
 
-        return '';
+        return self::$current === null ? '' : QuickSetup::folderProblem(self::$current, $answers);
     }
 
     /** The questions of a migration: the old instances stopped, the ASCII name when it needs one, the website, the 3D map. */
@@ -409,6 +414,8 @@ final class MigrationScenario
         ($plan['maptiles'] ?? '') !== '' && ($rows[] = ['section' => _('Options'), 'label' => _('3D map'), 'value' => $onOff[Result::isTrue($answers['maptiles'] ?? 'yes') ? 'yes' : 'no'], 'name' => 'maptiles', 'current' => Result::isTrue($answers['maptiles'] ?? 'yes') ? 'yes' : 'no', 'options' => $onOff]);
         $legacy->running() !== [] && ($rows[] = ['section' => _('Old install'), 'label' => _('Instances'), 'value' => _('stopped, their start at boot set aside')]);
         $rows[] = ['section' => _('Old install'), 'label' => _('Folder'), 'value' => sprintf(_('%s, kept'), $legacy->root)];
+        // Where it goes: the folders of the install, changed here while no grid is on this machine
+        self::$current === null || ($rows = [...$rows, ...QuickSetup::folderRows(self::$current, $answers)]);
 
         return [
             'action' => 'screen',
@@ -474,6 +481,9 @@ final class MigrationScenario
 
             return $steps;
         }
+        // The folders changed in the review, made first
+        $folders = self::$current === null ? [] : QuickSetup::foldersChanged(self::$current, $answers);
+        $folders === [] || ($steps[] = ['name' => 'set-folders', 'root' => true, 'label' => 'Folders', 'args' => ['roots' => $folders], 'skippable' => false]);
         if ($running !== []) {
             $steps[] = ['name' => 'set-aside-starters', 'root' => true, 'label' => 'Stop', 'args' => ['files' => $legacy->starters()], 'skippable' => false];
             $steps[] = ['name' => 'stop-old-instances', 'root' => true, 'label' => 'Stop', 'args' => ['configs' => $running] + ($legacy->location() === [] ? [] : ['location' => $legacy->location()]), 'skippable' => false];

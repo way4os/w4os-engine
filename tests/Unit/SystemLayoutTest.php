@@ -46,6 +46,32 @@ describe('The system layout', function () {
             ->and($none)->toBeFalse();
     });
 
+    test('writes the folders a person placed in w4os.conf, in the profile in use too, and refuses what is not one', function () {
+        $base = sys_get_temp_dir() . '/syslayout-roots-' . bin2hex(random_bytes(4));
+        mkdir($base, 0o755, true);
+        $conf = "$base/w4os.conf";
+        file_put_contents($conf, "[Defaults]\nDefaultProfile = opensim-0.9.3.0\nEtcRoot = /etc/opensim\nDataRoot = /var/lib/opensim/data\nSystemUser = opensim\n\n[opensim-0.9.3.0]\nDataRoot = /var/lib/opensim/data\n");
+        SystemLayout::setRoots($conf, ['DataRoot' => '/srv/opensim/data/', 'LogsRoot' => '/srv/opensim/log']);
+        $layout = Layout::load($conf);
+        $refused = static function (array $roots) use ($conf): string {
+            try {
+                SystemLayout::setRoots($conf, $roots);
+            } catch (InvalidArgumentException $error) {
+                return $error->getMessage();
+            }
+
+            return '';
+        };
+
+        expect($layout->dataRoot())->toBe('/srv/opensim/data')
+            ->and($layout->logsRoot())->toBe('/srv/opensim/log')
+            ->and($layout->etcRoot())->toBe('/etc/opensim')
+            ->and($layout->systemUser())->toBe('opensim')
+            ->and($refused(['SystemUser' => '/srv/x']))->toBe('not a folder of the install: SystemUser = /srv/x')
+            ->and($refused(['DataRoot' => 'relative']))->toBe('not a folder of the install: DataRoot = relative')
+            ->and($refused(['DataRoot' => '/srv/../etc']))->toBe('not a folder of the install: DataRoot = /srv/../etc');
+    });
+
     test('is needed when the place of the grids cannot be written', function () {
         $base = sys_get_temp_dir() . '/syslayout-' . getmypid();
         mkdir($base, 0o555);

@@ -768,6 +768,7 @@ final class QuickSetup
                     foreach ($quick['problems'] as $question => $message) {
                         $lines[] = sprintf('Error: %s %s', $labels[$question] ?? $question, $message);
                     }
+                    ($wrong = self::folderProblem($environment, $answers)) === '' || ($lines[] = $wrong);
 
                     return self::screenReview($environment, $answers, implode("\n", $lines));
                 }
@@ -803,6 +804,17 @@ final class QuickSetup
                     }
 
                     return self::screenDatabase($plan, $answers, '');
+                }
+
+                // The folders changed in the review: made first, as root by the client, w4os.conf saying them from there
+                if ($button === 'failed') {
+                    return self::screenReview($environment, $answers, sprintf(_('The folders were not made: %s'), trim((string) ($given['error_text'] ?? ''))));
+                }
+                if (self::folderProblem($environment, $answers) !== '') {
+                    return self::screenReview($environment, $answers, self::folderProblem($environment, $answers));
+                }
+                if (($folders = self::folderStep($environment, $answers, self::encode('review', $answers))) !== null) {
+                    return $folders;
                 }
 
                 return self::websiteLine($environment, $answers) ?? self::install($environment, $answers);
@@ -1138,6 +1150,89 @@ final class QuickSetup
 
         // The administrator of the database server first: it makes the databases and their users later
         return $prepare || isset($answers['admin_checked']) ? self::screenForm($environment, $answers, '') : self::screenAdmin($answers, '');
+    }
+
+    /** The folders of the install a review shows, by their setting of w4os.conf: what each is called. */
+    public const FOLDERS = [
+        'EtcRoot' => 'Config files',
+        'VarRoot' => 'State',
+        'DataRoot' => 'Data files',
+        'LogsRoot' => 'Logs',
+        'CacheRoot' => 'Cache',
+        'BackupRoot' => 'Backups',
+        'CoreRoot' => 'Cores',
+    ];
+
+    /** The folder a review shows for a setting: the one answered there, else the one of the install. */
+    private static function folderOf(Environment $environment, array $answers, string $key): string
+    {
+        return rtrim(trim((string) ($answers["folder_$key"] ?? $environment->layout->get($key))), '/');
+    }
+
+    /**
+     * The folders of the install as rows of a review: each changed there while no grid is on this machine (they are the machine's,
+     * not a grid's), shown as they are once one is; the cores of the packages stay where the packages put them.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function folderRows(Environment $environment, array $answers): array
+    {
+        $open = \W4OS\Engine\Models\Grid::all($environment)->items() === [];
+        $rows = [];
+        foreach (self::FOLDERS as $key => $label) {
+            $value = self::folderOf($environment, $answers, $key);
+            if ($value === '') {
+                continue;
+            }
+            $row = ['section' => _('Folders'), 'label' => _($label), 'value' => $value];
+            $packaged = $key === 'CoreRoot' && rtrim($environment->layout->coreRoot(), '/') === SystemLayout::PACKAGED_CORES;
+            $rows[] = $open && !$packaged ? $row + ['name' => "folder_$key", 'current' => $value] : $row;
+        }
+
+        return $rows;
+    }
+
+    /** What is wrong with the folders answered, '' for nothing: each a full path of its own, never the root of the system. */
+    public static function folderProblem(Environment $environment, array $answers): string
+    {
+        foreach (self::FOLDERS as $key => $label) {
+            $value = self::folderOf($environment, $answers, $key);
+            if (isset($answers["folder_$key"]) && (preg_match('#^/[^/\s][^\s]*$#', $value) !== 1 || str_contains($value, '/../') || str_ends_with($value, '/..'))) {
+                return sprintf(_('Error: %s is not a full path of a folder: %s'), _($label), (string) $answers["folder_$key"]);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * The folders answered that are not the install's yet, by their setting.
+     *
+     * @return array<string,string>
+     */
+    public static function foldersChanged(Environment $environment, array $answers): array
+    {
+        $changed = [];
+        foreach (array_keys(self::FOLDERS) as $key) {
+            $value = self::folderOf($environment, $answers, $key);
+            isset($answers["folder_$key"]) && $value !== rtrim($environment->layout->get($key), '/') && ($changed[$key] = $value);
+        }
+
+        return $changed;
+    }
+
+    /** The step that makes the folders changed in a review (as root, by the client), null when none is. */
+    private static function folderStep(Environment $environment, array $answers, string $state): ?array
+    {
+        $changed = self::foldersChanged($environment, $answers);
+
+        return $changed === [] ? null : [
+            'action' => 'step',
+            'step' => ['name' => 'set-folders', 'root' => true, 'label' => _('Folders'), 'done' => _('Folders'), 'args' => ['roots' => $changed], 'skippable' => false, 'number' => 1, 'count' => 1],
+            'labels' => [_('Folders')],
+            'notice' => '',
+            'state' => $state,
+        ];
     }
 
     /** An existing install given by its path: its OpenSim bin folder first. */
@@ -1715,7 +1810,7 @@ final class QuickSetup
             $admin === '' || $row($database, _('DB admin user'), $admin);
         }
 
-        return $rows;
+        return [...$rows, ...self::folderRows($environment, $answers)];
     }
 
     /** The rows of the review a person reads: what is made (the grid, its login, its website, its simulator and region, its owner). */

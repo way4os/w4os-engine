@@ -1033,7 +1033,7 @@ describe('quick setup, the scenario', function () {
         $wrong = quick_step($machine, $changed, ['private_port' => 'abc'], 'edit');
         $rows = array_column($changed['rows'], 'value', 'name');
 
-        expect(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Simulator', 'Web', 'Options', 'Database'])
+        expect(array_values(array_unique(array_column($review['rows'], 'section'))))->toBe(['Grid', 'Simulator', 'Web', 'Options', 'Database', 'Folders'])
             ->and($review['buttons'])->toBe(['next' => 'Start', 'back' => 'Back'])
             ->and($changed['kind'])->toBe('review')
             ->and([$rows['private_port'], $rows['simulator_ports']])->toBe(['8199', '9100 http, 9101 udp, 9104 console'])
@@ -1766,5 +1766,53 @@ describe('quick setup, the database users', function () {
             // One that exists: its own password
             ->and($existing['name'])->toBe('db-user-form')
             ->and(array_column($existing['fields'], 'value', 'name'))->toBe(['database_user' => 'opensim', 'database_password' => '']);
+    });
+});
+
+describe('quick setup, the folders of the install', function () {
+    afterEach(fn() => QuickSetup::through());
+
+    /** A machine with no grid yet: its folders are still to place. */
+    $empty = static function (): Machine {
+        $machine = new Machine();
+        exec('rm -rf ' . escapeshellarg($machine->grid) . ' ' . escapeshellarg("{$machine->etc}/robust.d") . ' ' . escapeshellarg("{$machine->etc}/opensim.d"));
+        mkdir("{$machine->etc}/robust.d");
+        mkdir("{$machine->etc}/opensim.d");
+
+        return $machine;
+    };
+
+    test('are rows of the review, changed there while no grid is on the machine, checked, then made first as root by the client', function () use ($empty) {
+        quick_doubles();
+        $machine = $empty();
+        quick_core($machine);
+        $review = quick_until($machine, 'review');
+        $folders = array_values(array_filter($review['rows'], static fn(array $row): bool => $row['section'] === 'Folders'));
+        $wrong = quick_step($machine, $review, ['folder_DataRoot' => 'relative/data'], 'edit');
+        $changed = quick_step($machine, $review, ['folder_DataRoot' => "{$machine->root}/srv/data/"], 'edit');
+        $step = quick_step($machine, $changed);
+        $failed = quick_step($machine, $step, ['error_text' => 'no sudo here'], 'failed');
+
+        expect(array_column($folders, 'label'))->toBe(['Config files', 'State', 'Data files', 'Logs', 'Cache', 'Cores'])
+            ->and(array_column($folders, 'name'))->toBe(['folder_EtcRoot', 'folder_VarRoot', 'folder_DataRoot', 'folder_LogsRoot', 'folder_CacheRoot', 'folder_CoreRoot'])
+            ->and(array_column($folders, 'value', 'label')['Config files'])->toBe($machine->etc)
+            ->and($wrong['notice'])->toBe('Error: Data files is not a full path of a folder: relative/data')
+            ->and(array_column($changed['rows'], 'value', 'name')['folder_DataRoot'])->toBe("{$machine->root}/srv/data")
+            ->and($step['step'])->toMatchArray(['name' => 'set-folders', 'root' => true, 'label' => 'Folders', 'done' => 'Folders', 'args' => ['roots' => ['DataRoot' => "{$machine->root}/srv/data"]]])
+            ->and(MigrationScenario::ROOT_STEPS)->toContain('set-folders')
+            ->and($failed)->toMatchArray(['kind' => 'review', 'notice' => 'The folders were not made: no sudo here']);
+    });
+
+    test('are shown as they are once a grid is here: they are the machine\'s, not a grid\'s', function () {
+        quick_doubles();
+        $machine = new Machine();
+        quick_core($machine);
+        $review = quick_until($machine, 'review');
+        $folders = array_values(array_filter($review['rows'], static fn(array $row): bool => $row['section'] === 'Folders'));
+        $ignored = quick_step($machine, $review, ['folder_DataRoot' => '/srv/elsewhere'], 'edit');
+
+        expect($folders)->not->toBe([])
+            ->and(array_filter(array_column($folders, 'name')))->toBe([])
+            ->and(array_column($ignored['rows'], 'value', 'label')['Data files'])->not->toBe('/srv/elsewhere');
     });
 });
