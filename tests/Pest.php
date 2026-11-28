@@ -5,6 +5,23 @@
  * - tests/Environment: what the project needs from its environment (PHP version, compatibility)
  */
 
+/**
+ * The components of the suite (helpers, website, modules) as the tests have them, whatever the machine: the helpers installed by
+ * their package, nothing else, and no clone beside this one. A test that gives others puts these back after it.
+ */
+function test_components(): void
+{
+    static $packages = null;
+    if ($packages === null) {
+        $packages = test_tmp() . '/w4os-packages-' . bin2hex(random_bytes(4));
+        mkdir("$packages/w4os-helpers/public", 0o755, true);
+    }
+    W4OS\Engine\Config\Components::$clones = '';
+    W4OS\Engine\Config\Components::$packages = $packages;
+    W4OS\Engine\Config\Components::$open = null;
+}
+test_components();
+
 /** The temporary folder by its real path (macOS: /var is a link to /private/var, the paths the code finds are not the same). */
 function test_tmp(): string
 {

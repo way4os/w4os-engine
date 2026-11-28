@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace W4OS\Engine\Provisioning;
 
 use W4OS\Engine\Result;
+use W4OS\Engine\Config\Components;
 use W4OS\Engine\Config\ConfigReader;
 use W4OS\Engine\Forms\FieldSet;
 use W4OS\Engine\Runtime\Core;
@@ -13,7 +14,6 @@ use W4OS\Engine\Network\Ports;
 use W4OS\Engine\Provisioning\Slug;
 use W4OS\Engine\Provisioning\Web\HelpersConfig;
 use W4OS\Engine\Provisioning\Web\Services;
-use W4OS\Engine\Provisioning\Web\Snippets;
 use W4OS\Engine\Runtime\Environment;
 use W4OS\Engine\Runtime\ShellService;
 
@@ -80,7 +80,7 @@ final class GridPlanner
             'defaultHost' => self::defaultHost(),
             'defaultPublic' => self::defaultPublicPort($environment),
             // The helpers are proposed when the machine has them; their path is the default one until a grid says another
-            'helpersAvailable' => is_dir(Snippets::WEBROOT),
+            'helpersAvailable' => Components::root($environment->layout, 'helpers') !== '',
             'helpersPath' => HelpersConfig::basePath('/nonexistent'),
             'webServer' => self::defaultWebServer(),
         ]);
@@ -110,7 +110,7 @@ final class GridPlanner
                 'currentGrid' => $grid,
                 'savedSpacing' => $grid?->regionSpacing() ?? 0,
                 'savedCenter' => trim((string) $center, " \t\""),
-                'helpersAvailable' => is_file(HelpersConfig::path($dir)) || is_dir(Snippets::WEBROOT),
+                'helpersAvailable' => is_file(HelpersConfig::path($dir)) || Components::root($this->environment()->layout, 'helpers') !== '',
                 'helpersPath' => HelpersConfig::basePath($dir),
             ] + $this->context,
         );

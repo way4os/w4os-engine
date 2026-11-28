@@ -104,7 +104,7 @@ final class GridProvisioner
 
     private function webReport(GridPlan $plan, Environment $environment): string
     {
-        $steps = self::siteSteps($plan, is_dir('/usr/share/w4os-site'));
+        $steps = self::siteSteps($plan, \W4OS\Engine\Config\Components::root($environment->layout, 'site') !== '');
         $site = $steps === [] ? '' : sprintf("\nThe Quick Start website under %s, as root:\n    %s", Web\Services::normalize($plan->sitePath), implode("\n    ", $steps));
 
         return $site === '' ? $this->webConfigs($plan) : $this->webConfigs($plan) . $site;

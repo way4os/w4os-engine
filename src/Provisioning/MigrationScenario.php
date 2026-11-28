@@ -415,7 +415,7 @@ final class MigrationScenario
         $legacy->running() !== [] && ($rows[] = ['section' => _('Old install'), 'label' => _('Instances'), 'value' => _('stopped, their start at boot set aside')]);
         $rows[] = ['section' => _('Old install'), 'label' => _('Folder'), 'value' => sprintf(_('%s, kept'), $legacy->root)];
         // Where it goes: the folders of the install, changed here while no grid is on this machine
-        self::$current === null || ($rows = [...$rows, ...QuickSetup::folderRows(self::$current, $answers)]);
+        self::$current === null || ($rows = [...$rows, ...QuickSetup::asideRows(self::$current), ...QuickSetup::folderRows(self::$current, $answers)]);
 
         return [
             'action' => 'screen',
@@ -634,7 +634,7 @@ final class MigrationScenario
     private static function websiteLeft(string $site, array $answers): string
     {
         if ($site !== '' && !self::siteTool()) {
-            return _('not installed: w4os-site is not installed here');
+            return sprintf(_('not installed: %s'), self::siteMissing());
         }
         $files = $site === '' ? null : self::vhostFiles($site);
         if ($files === null) {
@@ -671,13 +671,13 @@ final class MigrationScenario
         if (self::$modules !== null) {
             return (self::$modules)($site);
         }
-        if (!self::has('w4os-site')) {
+        if (($tool = self::siteCommand()) === '') {
             return [];
         }
         $host = (string) parse_url($site, PHP_URL_SCHEME) . '://' . (string) parse_url($site, PHP_URL_HOST);
         $prefix = rtrim((string) parse_url($site, PHP_URL_PATH), '/');
         $out = [];
-        exec('w4os-site web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --modules 2>/dev/null', $out);
+        exec($tool . ' web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --modules 2>/dev/null', $out);
 
         return array_values(array_filter(array_map('trim', $out)));
     }
@@ -692,24 +692,38 @@ final class MigrationScenario
             return (self::$vhosts)($site);
         }
         // Caddy first, as the step of the website takes it; Apache otherwise, its sites named by the site's own command
-        if ((is_file('/etc/caddy/Caddyfile') && self::has('caddy')) || !self::has('apache2ctl') || !self::has('w4os-site')) {
+        if ((is_file('/etc/caddy/Caddyfile') && self::has('caddy')) || !self::has('apache2ctl') || ($tool = self::siteCommand()) === '') {
             return null;
         }
         $host = (string) parse_url($site, PHP_URL_SCHEME) . '://' . (string) parse_url($site, PHP_URL_HOST);
         $prefix = rtrim((string) parse_url($site, PHP_URL_PATH), '/');
         $out = [];
-        exec('w4os-site web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --vhosts 2>/dev/null', $out);
+        exec($tool . ' web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --vhosts 2>/dev/null', $out);
 
         return array_values(array_filter(array_map('trim', $out)));
     }
 
-    /** Whether the Quick Start website can be installed here (null: the command w4os-site is there). @var ?\Closure(): bool */
+    /** Whether the Quick Start website can be installed here (null: w4os-site is on this machine). @var ?\Closure(): bool */
     public static ?\Closure $siteTool = null;
 
-    /** Whether w4os-site, which installs the website of a grid, is on this machine: an install from a clone has none. */
+    /** Whether w4os-site, which installs the website of a grid, is on this machine: its package, or its clone built beside this one. */
     public static function siteTool(): bool
     {
-        return (self::$siteTool ?? static fn(): bool => self::has('w4os-site'))();
+        return (self::$siteTool ?? static fn(): bool => self::siteCommand() !== '')();
+    }
+
+    /** Why the website cannot be installed here: its clone beside this one not built, else nothing of it on this machine. */
+    public static function siteMissing(): string
+    {
+        $why = self::$siteTool !== null ? '' : \W4OS\Engine\Config\Components::unready(\W4OS\Engine\Config\Layout::resolve(), 'site');
+
+        return $why !== '' ? sprintf(_('w4os-site is not ready here: %s'), $why) : _('w4os-site is not installed here');
+    }
+
+    /** The command of the website as a shell runs it, '' when it is not on this machine. */
+    private static function siteCommand(): string
+    {
+        return \W4OS\Engine\Config\Components::siteCommand(\W4OS\Engine\Config\Layout::resolve());
     }
 
     private static function has(string $command): bool

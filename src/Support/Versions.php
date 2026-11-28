@@ -56,7 +56,7 @@ final class Versions
         if (class_exists(\OpenSim_Rest::class)) {
             $versions['opensim-rest-php'] = self::of(dirname((string) (new \ReflectionClass(\OpenSim_Rest::class))->getFileName()), 'opensim-rest-php');
         }
-        is_dir('/usr/share/w4os-helpers') && ($versions['w4os-helpers'] = self::of('/usr/share/w4os-helpers', 'w4os-helpers'));
+        ($helpers = \W4OS\Engine\Config\Components::root($environment->layout, 'helpers')) !== '' && ($versions['w4os-helpers'] = self::of($helpers, 'w4os-helpers'));
         foreach (['w4os-site', 'opensim-kit'] as $package) {
             ($version = self::package($package)) !== null && ($versions[$package] = $version);
         }

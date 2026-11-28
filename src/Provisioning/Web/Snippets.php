@@ -2,6 +2,8 @@
 
 namespace W4OS\Engine\Provisioning\Web;
 
+use W4OS\Engine\Config\Components;
+use W4OS\Engine\Config\Layout;
 use W4OS\Engine\Provisioning\Presets;
 
 /**
@@ -16,7 +18,7 @@ final class Snippets
 {
     public const SERVERS = ['caddy', 'nginx', 'apache'];
 
-    /** Where the helpers are installed. */
+    /** Where the package of the helpers installs them (Components: where they are on this machine). */
     public const WEBROOT = '/usr/share/w4os-helpers';
 
     /** The entry point of the helpers when their preset does not say it (webroot-helpers). */
@@ -28,12 +30,25 @@ final class Snippets
         return dirname(__DIR__, 3) . '/public';
     }
 
-    /** The folder of the entry point of the helpers, as their preset says it (webroot-helpers, docroot). */
-    public static function helpersRoot(): string
+    /**
+     * The folder of the entry point of the helpers, as their preset says it (webroot-helpers, docroot): the one of the helpers of
+     * this install when the preset names the place of their package and they are elsewhere.
+     */
+    public static function helpersRoot(?Layout $layout = null): string
     {
-        $docroot = (new Presets())->options()['webroot-helpers']?->variables()['docroot'] ?? '';
+        return self::docroot((string) ((new Presets())->options()['webroot-helpers']?->variables()['docroot'] ?? ''), $layout);
+    }
 
-        return $docroot !== '' ? $docroot : self::HELPERS_PUBLIC;
+    /** The document root a preset names: the entry point of the helpers of this install where it names the one of their package. */
+    public static function docroot(string $docroot, ?Layout $layout = null): string
+    {
+        if (!in_array($docroot, ['', self::HELPERS_PUBLIC], true)) {
+            return $docroot;
+        }
+        $layout ??= Layout::resolve();
+        $root = Components::root($layout, 'helpers');
+
+        return $root !== '' && Components::source($layout, 'helpers') !== 'package' ? "$root/public" : self::HELPERS_PUBLIC;
     }
 
     /**
@@ -265,7 +280,7 @@ final class Snippets
         $variables = self::siteVariables($webUrl) + [
             'grid_nick' => $nick,
             'grid_dir' => rtrim($gridDirectory, '/'),
-            'docroot' => $docroot !== '' ? $docroot : self::helpersRoot(),
+            'docroot' => $docroot !== '' ? $docroot : self::helpersRoot($grid?->environment()->layout),
             // The pool of the helpers once installed, else the socket given (the pool of the host), else the default one of Debian
             'php_socket' => $helpers ? self::HELPERS_SOCKET : ($socket !== '' ? $socket : '/run/php/php-fpm.sock'),
             'php_handler' => $helpers ? "\t<FilesMatch \"\\.php\$\">\n\t\tSetHandler \"proxy:unix:" . self::HELPERS_SOCKET . "|fcgi://w4os-helpers\"\n\t</FilesMatch>\n" : '',

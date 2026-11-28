@@ -1816,3 +1816,55 @@ describe('quick setup, the folders of the install', function () {
             ->and(array_column($ignored['rows'], 'value', 'label')['Data files'])->not->toBe('/srv/elsewhere');
     });
 });
+
+describe('quick setup, the components a clone beside this one gives', function () {
+    afterEach(function () {
+        test_components();
+        QuickSetup::through();
+    });
+
+    test('keeps the place of the ones that are ready, each a line left, and says the others in its review, left aside', function () {
+        $machine = new Machine();
+        quick_doubles();
+        // An install that has its config, as the folders made leave it
+        $conf = $machine->write("{$machine->etc}/w4os.conf", "[Defaults]\n" . implode("\n", array_map(static fn(string $key, string $value): string => "$key = $value", array_keys($machine->environment->layout->all()), $machine->environment->layout->all())) . "\n");
+        $machine->environment = $machine->environment->withLayout(\W4OS\Engine\Config\Layout::load($conf));
+        mkdir("{$machine->root}/packages");
+        mkdir("{$machine->root}/clones/w4os-site", 0o755, true);
+        \W4OS\Engine\Config\Components::$clones = "{$machine->root}/clones";
+        \W4OS\Engine\Config\Components::$packages = "{$machine->root}/packages";
+        \W4OS\Engine\Config\Components::$open = static fn(string $folder): bool => true;
+        mkdir("{$machine->root}/clones/opensim-helpers/vendor", 0o755, true);
+        mkdir("{$machine->root}/clones/opensim-helpers/public");
+        touch("{$machine->root}/clones/opensim-helpers/vendor/autoload.php");
+        touch("{$machine->root}/clones/opensim-helpers/public/index.php");
+
+        $first = quick_step($machine, quick_step($machine, null), ['type' => 'grid']);
+        $machine->environment = $machine->environment->withLayout(\W4OS\Engine\Config\Layout::load($conf));
+        $again = quick_step($machine, quick_step($machine, null), ['type' => 'grid']);
+        $rows = QuickSetup::asideRows($machine->environment);
+
+        expect($first['done'] ?? null)->toBe("Helpers ({$machine->root}/clones/opensim-helpers)")
+            ->and(\W4OS\Engine\Config\Layout::load($conf)->get('HelpersRoot'))->toBe("{$machine->root}/clones/opensim-helpers")
+            ->and($again)->not->toHaveKey('done')
+            ->and($rows)->toBe([['section' => 'Left aside', 'label' => 'Website', 'value' => "packaging/build in {$machine->root}/clones/w4os-site first"]]);
+    });
+
+    test('starts a grid without the helpers on a machine that has none: no web service asked, 2do.directory said, the helpers a row of Left aside', function () {
+        $machine = new Machine();
+        quick_doubles();
+        mkdir("{$machine->root}/packages");
+        mkdir("{$machine->root}/clones/opensim-helpers", 0o755, true);
+        \W4OS\Engine\Config\Components::$clones = "{$machine->root}/clones";
+        \W4OS\Engine\Config\Components::$packages = "{$machine->root}/packages";
+
+        $review = quick_step($machine, quick_until($machine, 'checks'), []);
+        $rows = array_map(static fn(array $row): string => "{$row['section']} / {$row['label']}: {$row['value']}", $review['rows'] ?? []);
+
+        expect($review['kind'])->toBe('review')
+            ->and($rows)->toContain('Web / Search, register: 2do.directory')
+            ->and($rows)->toContain('Options / Helpers: off')
+            ->and($rows)->toContain("Left aside / Helpers: composer install in {$machine->root}/clones/opensim-helpers first")
+            ->and(array_filter($rows, static fn(string $row): bool => str_starts_with($row, 'Web / Website')))->toBe([]);
+    });
+});

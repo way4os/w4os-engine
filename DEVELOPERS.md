@@ -21,6 +21,10 @@ Two accounts, set in `w4os.conf` (both may be the same):
 
 `SystemLayout::folders()` is the one list of the folders of the suite, each with its account. The layout step (the postinst, `opensim-layout.php`, as root) gives each to its account, makes what it holds follow when that account changes, and writes the drop-ins. An install that exists, run in place, is never in that list: its files keep their owner.
 
+## The components beside the engine
+
+The helpers, the website (w4os-site) and the modules of OpenSimulator are not the engine's: `Config\Components` is the one place that says where each is on a machine. In order: the place `w4os.conf` names (`HelpersRoot`, `SiteShare`, `ModulesRoot`), the place of its package (`/usr/share/w4os-helpers`, `/usr/share/w4os-site`, `/usr/share/opensim-modules`), then the clone beside this engine's own when it is ready to serve: `../opensim-helpers` with its libraries (`composer install`) in a folder the web server reads, `../w4os-site/build/w4os-site` and `../opensim-kit/build/modules` once built (`packaging/build`). A setup writes the place it found beside a clone in `w4os.conf` (`Components::bring()`, a line of the scenario); a clone that is not ready is a row of the review, under Left aside, never a step. The modules of a clone are linked by core under `<VarRoot>/modules`, as their packages lay them; the 3D map, which replaces a file of the core, is its package's alone.
+
 ## Tests
 
 The suite needs nothing of the machine it runs on: `composer test` (Pest). The fakes of `W4OS\Engine\Testing` stand for the install, the processes, the consoles and the clock; the databases are SQLite in memory with the tables of OpenSimulator. A test that needs more (podman, a real database) is skipped, with the reason, where it cannot run.

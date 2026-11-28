@@ -2,6 +2,7 @@
 
 namespace W4OS\Engine\Provisioning;
 
+use W4OS\Engine\Config\Components;
 use W4OS\Engine\Config\ConnectionString;
 use W4OS\Engine\Exceptions\SetupFailedException;
 use W4OS\Engine\Forms\FieldSet;
@@ -390,7 +391,12 @@ final class QuickSetup
             return self::applyConfiguration($environment, $request['configuration']);
         }
         $prepare = $mode === 'prepare';
+        self::$left = [];
         $result = self::advance($environment, $request, $prepare);
+        // What this request did beside its own step (a component brought): each a line the client leaves
+        if (self::$left !== []) {
+            $result['done'] = implode("\n", [...array_filter([(string) ($result['done'] ?? '')], 'strlen'), ...self::$left]);
+        }
         if ($prepare) {
             $result['mode'] = 'prepare';
         }
@@ -1039,6 +1045,24 @@ final class QuickSetup
         return ['action' => 'abort', 'code' => 4, 'stopped' => true, 'error' => _('Stopped at your request.') . $stays];
     }
 
+    /** The lines a request leaves beside the one of its own step. @var list<string> */
+    private static array $left = [];
+
+    /**
+     * The components a clone beside this one would give, were it ready: each said with what it waits for, and left aside.
+     *
+     * @return list<array{section:string,label:string,value:string}>
+     */
+    public static function asideRows(Environment $environment): array
+    {
+        $rows = [];
+        foreach (Components::names() as $name) {
+            ($why = Components::unready($environment->layout, $name)) === '' || ($rows[] = ['section' => _('Left aside'), 'label' => _(Components::label($name)), 'value' => $why]);
+        }
+
+        return $rows;
+    }
+
     /**
      * What a new grid needs of this machine before its questions, null when it is all there: its folders (made as root by the
      * client when they are missing), then a core (a release chosen, downloaded and unpacked) when its root has none.
@@ -1063,6 +1087,10 @@ final class QuickSetup
                 'notice' => '',
                 'state' => self::encode('machine', ['folders_asked' => true] + $answers),
             ];
+        }
+        // The helpers, the website and the modules a clone beside this one gives: their place kept in the config of the install
+        foreach (Components::names() as $name) {
+            ($place = Components::bring($layout, $name)) === null || (self::$left[] = sprintf('%s (%s)', _(Components::label($name)), $place));
         }
         // An install taken where it is runs on its own core: none of ours needed
         if (($answers['then'] ?? '') === 'in-place') {
@@ -1135,6 +1163,8 @@ final class QuickSetup
     /** The questions of the type chosen, with what the engine proposes: the DB admin user first, then its form. */
     private static function typed(Environment $environment, array $answers, bool $prepare): array
     {
+        // A machine that has no helpers starts its grid without them: its search and its register are the ones of 2do.directory
+        Components::root($environment->layout, 'helpers') !== '' || ($answers += ['helpers' => false]);
         if (in_array(self::kindOf($environment, (string) ($answers['type'] ?? '')), ['remote', 'preset'], true)) {
             $answers += ['name' => 'Welcome'];
         } else {
@@ -1828,7 +1858,7 @@ final class QuickSetup
             $admin === '' || $row($database, _('DB admin user'), $admin);
         }
 
-        return [...$rows, ...self::folderRows($environment, $answers)];
+        return [...$rows, ...self::asideRows($environment), ...self::folderRows($environment, $answers)];
     }
 
     /** The rows of the review a person reads: what is made (the grid, its login, its website, its simulator and region, its owner). */
@@ -2181,7 +2211,7 @@ final class QuickSetup
     private static function lineLeft(string $site, array $answers): string
     {
         if (!MigrationScenario::siteTool()) {
-            return _('w4os-site is not installed here');
+            return MigrationScenario::siteMissing();
         }
         $files = MigrationScenario::vhostFiles($site);
         if ($files === null) {

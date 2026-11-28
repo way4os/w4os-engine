@@ -121,6 +121,8 @@ final class Layout
         'WebGroup',
         'ModulesRoot',
         'EnabledModules',
+        'HelpersRoot',
+        'SiteShare',
     ];
 
     /**

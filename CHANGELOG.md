@@ -2,6 +2,8 @@
 
 ### Unreleased
 
+- new (setup): the helpers, the website and the modules come from their package, else from the clone beside it
+- new (setup): the place of a component of a clone is kept in w4os.conf; one not ready is said, left aside
 - new (database): the user of a grid may make its databases (GRANT on <grid>\_%): a simulator added needs no administrator
 - new (setup): the accounts of the machine in /etc/w4os (database.rc), read before a person's own file, which wins
 - fix (start): an instance keeps no descriptor of whoever starts it: the terminal of a setup comes back at once

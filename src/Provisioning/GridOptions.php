@@ -1112,6 +1112,8 @@ final class GridOptions
         foreach ([...$this->enabled(), ...($also === null ? [] : [$also->name()])] as $name) {
             $variables += $this->template($name)?->variables() ?? [];
         }
+        // The helpers where this install has them, when it is not where their package puts them
+        isset($variables['docroot']) && ($variables['docroot'] = Snippets::docroot((string) $variables['docroot'], $this->grid->environment()->layout));
 
         return $variables;
     }

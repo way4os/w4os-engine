@@ -102,7 +102,7 @@ final class GridImport
         $helpers = [];
         $aside = [];
         if ($sources !== []) {
-            $helpersHere ??= is_dir(\W4OS\Engine\Provisioning\Web\Snippets::WEBROOT);
+            $helpersHere ??= \W4OS\Engine\Config\Components::root($environment->layout, 'helpers') !== '';
             $options = new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, $plan), layered: true, extra: $plan->variables());
             $withHelpers = new \W4OS\Engine\Provisioning\GridOptions(Grid::planned($environment, GridPlan::fromArray(['helpers' => true] + $plan->toArray())), layered: true, extra: $plan->variables());
             $told = $options->toldBy($sources);
