@@ -395,3 +395,32 @@ describe('The scenario of an install of before the kit', function () {
             ->and(migration_step($machine, $step)['step']['name'] ?? null)->toBe('install-website');
     });
 });
+
+describe('The website beside Apache', function () {
+    test('asks its command what it would change for a website under a path of its own only, never at the root of a host', function () {
+        $base = test_tmp() . '/site-probe-' . bin2hex(random_bytes(4));
+        mkdir("$base/w4os-site/bin", 0o755, true);
+        // A command of the website that leaves a trace of each call, and names a module
+        file_put_contents("$base/w4os-site/bin/w4os-site", "#!/bin/sh\necho \"\$*\" >> " . escapeshellarg("$base/calls") . "\necho rewrite\n");
+        chmod("$base/w4os-site/bin/w4os-site", 0o755);
+        W4OS\Engine\Config\Components::$packages = $base;
+        $before = [MigrationScenario::$modules, MigrationScenario::$siteTool];
+        [MigrationScenario::$modules, MigrationScenario::$siteTool] = [null, null];
+
+        try {
+            $root = MigrationScenario::lineQuestion(['/etc/apache2/sites-enabled/host.conf'], 'https://host.example/');
+            $called = is_file("$base/calls");
+            $under = MigrationScenario::lineQuestion(['/etc/apache2/sites-enabled/host.conf'], 'https://host.example/opensim/');
+        } finally {
+            // Put back here: this file is also read by another one of the tests, whose hooks are not its own
+            [MigrationScenario::$modules, MigrationScenario::$siteTool] = $before;
+            test_components();
+        }
+
+        expect($root)->toBe('Add one line to /etc/apache2/sites-enabled/host.conf')
+            ->and($called)->toBeFalse()
+            ->and($under)->toBe('Add one line to /etc/apache2/sites-enabled/host.conf and enable the modules rewrite of Apache')
+            ->and(trim((string) file_get_contents("$base/calls")))->toBe('web apache --host https://host.example --prefix /opensim --modules');
+    });
+});
+

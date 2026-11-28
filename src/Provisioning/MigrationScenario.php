@@ -676,8 +676,12 @@ final class MigrationScenario
         }
         $host = (string) parse_url($site, PHP_URL_SCHEME) . '://' . (string) parse_url($site, PHP_URL_HOST);
         $prefix = rtrim((string) parse_url($site, PHP_URL_PATH), '/');
+        // Asked for a website under a path of its own only: at the root of a host, the command of the website installs its site
+        if ($prefix === '') {
+            return [];
+        }
         $out = [];
-        exec($tool . ' web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --modules 2>/dev/null', $out);
+        exec($tool . ' web apache --host ' . escapeshellarg($host) . ' --prefix ' . escapeshellarg($prefix) . ' --modules 2>/dev/null', $out);
 
         return array_values(array_filter(array_map('trim', $out)));
     }
@@ -697,8 +701,13 @@ final class MigrationScenario
         }
         $host = (string) parse_url($site, PHP_URL_SCHEME) . '://' . (string) parse_url($site, PHP_URL_HOST);
         $prefix = rtrim((string) parse_url($site, PHP_URL_PATH), '/');
+        // Its line goes in the sites of Apache for a website under a path of its own: at the root of a host none is asked, where the
+        // command of the website would install its site
+        if ($prefix === '') {
+            return [];
+        }
         $out = [];
-        exec($tool . ' web apache --host ' . escapeshellarg($host) . ($prefix !== '' ? ' --prefix ' . escapeshellarg($prefix) : '') . ' --vhosts 2>/dev/null', $out);
+        exec($tool . ' web apache --host ' . escapeshellarg($host) . ' --prefix ' . escapeshellarg($prefix) . ' --vhosts 2>/dev/null', $out);
 
         return array_values(array_filter(array_map('trim', $out)));
     }
