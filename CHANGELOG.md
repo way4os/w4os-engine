@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- change (setup): the DB admin user of the machine (database-admin.rc) is for the account of the instances, not root alone
 - fix (setup): a release that cannot be downloaded gives its menu again with the reason, not the raw answer
 - fix (setup): asking Apache's sites for a website at the root of its host no longer installs a site of Apache
 - fix (setup): the ini files of a grid go to the group of the web server an account was just added to (sg)
