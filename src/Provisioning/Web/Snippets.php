@@ -102,7 +102,22 @@ final class Snippets
         return self::poolText('w4os-api', $systemUser, $systemUser, $webGroup, $socket, sprintf(
             'The engine API of the grids of this machine, run as the user of their instances (%s), whose files they are: what a site changes is done by that user, never by the web server, which only reaches this socket; the site calls it with a key (opensim api-key create).',
             $systemUser,
-        ));
+        )) . self::poolLibraries();
+    }
+
+    /**
+     * What the pool of the API of an engine without libraries of its own adds (a clone linked to the command line that runs this):
+     * where that command line has them.
+     */
+    public static function poolLibraries(?string $engine = null, ?string $named = null): string
+    {
+        $engine ??= dirname(__DIR__, 3);
+        $named ??= (string) getenv('W4OS_AUTOLOAD');
+        if ($named === '' || !is_file($named) || is_file("$engine/vendor/autoload.php") || is_file(dirname($engine, 2) . '/autoload.php')) {
+            return '';
+        }
+
+        return "; The libraries of this engine, a clone linked to the command line that has them\nenv[W4OS_AUTOLOAD] = $named\n";
     }
 
     /** Where the helpers of the grids of this machine are reached once their pool is installed (helpersPool()). */

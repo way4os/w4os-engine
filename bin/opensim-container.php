@@ -3,11 +3,14 @@
 
 declare(strict_types=1);
 
-$autoload = dirname(__DIR__) . '/vendor/autoload.php';
-if (!is_file($autoload)) {
-    $autoload = dirname(__DIR__, 3) . '/autoload.php';
+// Its own libraries, the ones of the project it is a dependency of, or the ones that project names (a clone linked to it)
+foreach ([dirname(__DIR__) . '/vendor/autoload.php', dirname(__DIR__, 3) . '/autoload.php', (string) getenv('W4OS_AUTOLOAD')] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+
+        break;
+    }
 }
-require $autoload;
 
 use W4OS\Engine\Container\Podman;
 

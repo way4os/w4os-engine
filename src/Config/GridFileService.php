@@ -73,10 +73,26 @@ final class GridFileService
     {
         $gid = $group ? self::webGroup() : null;
         // Mode 640 in any case: nobody else reads what may hold a password
-        $done = $gid === null || @chgrp($file, $gid);
+        $done = $gid === null || @chgrp($file, $gid) || self::chgrpAnew($file, $gid);
         @chmod($file, 0o640);
 
         return $done;
+    }
+
+    /**
+     * A file given to a group this account was added to since its session began (the layout step adds it to the group of the web
+     * server): by sg, which reads the groups of the account anew.
+     */
+    private static function chgrpAnew(string $file, int $gid): bool
+    {
+        $group = function_exists('posix_getgrgid') ? posix_getgrgid($gid) : false;
+        $account = function_exists('posix_getpwuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : '';
+        if ($group === false || $account === '' || !in_array($account, $group['members'], true) || !\W4OS\Engine\Runtime\ShellService::commandExists('sg')) {
+            return false;
+        }
+        $shell = \W4OS\Engine\Runtime\ShellService::class;
+
+        return $shell::run('sg ' . $shell::arg($group['name']) . ' -c ' . $shell::arg('chgrp ' . $shell::arg($group['name']) . ' ' . $shell::arg($file)) . ' >/dev/null 2>&1') === 0;
     }
 
     /**

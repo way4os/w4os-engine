@@ -193,6 +193,20 @@ describe('The engine API for the sites of this machine', function () {
             ->not->toContain('{{');
     });
 
+    test('is told where its libraries are when its engine is a clone that has none, linked to a command line that has them', function () {
+        $base = test_tmp() . '/pool-libraries-' . bin2hex(random_bytes(4));
+        mkdir("$base/cli/vendor", 0o755, true);
+        mkdir("$base/engine");
+        mkdir("$base/own/vendor", 0o755, true);
+        touch("$base/cli/vendor/autoload.php");
+        touch("$base/own/vendor/autoload.php");
+
+        expect(Snippets::poolLibraries("$base/engine", "$base/cli/vendor/autoload.php"))->toContain("env[W4OS_AUTOLOAD] = $base/cli/vendor/autoload.php\n")
+            ->and(Snippets::poolLibraries("$base/own", "$base/cli/vendor/autoload.php"))->toBe('')
+            ->and(Snippets::poolLibraries("$base/engine", ''))->toBe('')
+            ->and(Snippets::poolLibraries("$base/engine", "$base/missing/autoload.php"))->toBe('');
+    });
+
     test('the helpers run in a pool of their own, as the web user and its group, whatever group the host pool has', function () {
         $pool = Snippets::helpersPool('www-data', 'www-data', 'caddy');
 

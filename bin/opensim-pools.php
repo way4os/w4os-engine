@@ -17,8 +17,9 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 use W4OS\Engine\Config\Layout;
 use W4OS\Engine\Provisioning\Web\PhpPools;
 
-// The autoload of the project the engine is a dependency of first (the command line), else its own
-foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $autoload) {
+// The autoload of the project the engine is a dependency of first (the command line), else its own, else the one that project names
+// (a clone linked to it)
+foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php', (string) getenv('W4OS_AUTOLOAD')] as $autoload) {
     if (is_file($autoload)) {
         require $autoload;
 
