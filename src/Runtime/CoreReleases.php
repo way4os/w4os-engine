@@ -63,7 +63,8 @@ final class CoreReleases
         }
         if (!is_file($archive)) {
             $said !== null && $said(sprintf(_('downloading %s'), basename($release)));
-            $done = ($this->download ?? static fn(string $url, string $file): bool => ShellService::run('curl -fsSL ' . ShellService::arg($url) . ' -o ' . ShellService::arg("$file.part")) === 0 && rename("$file.part", $file))($release, $archive);
+            // What the commands say of a failure is never part of what this answers: the failure is said here
+            $done = ($this->download ?? static fn(string $url, string $file): bool => ShellService::capture('curl -fsSL ' . ShellService::arg($url) . ' -o ' . ShellService::arg("$file.part"))[0] === 0 && rename("$file.part", $file))($release, $archive);
             if (!$done || !is_file($archive)) {
                 @unlink("$archive.part");
                 @rmdir($directory);
@@ -73,7 +74,7 @@ final class CoreReleases
         }
         $said !== null && $said(sprintf(_('unpacking %s'), basename($release)));
         // The archive holds one folder, opensim-<version>: what it holds goes in the folder of the core. Never the owners it names.
-        $code = ShellService::run('tar xzf ' . ShellService::arg($archive) . ' --no-same-owner --strip-components=1 -C ' . ShellService::arg($directory));
+        $code = ShellService::capture('tar xzf ' . ShellService::arg($archive) . ' --no-same-owner --strip-components=1 -C ' . ShellService::arg($directory))[0];
         if ($code !== 0 || !Core::at($directory)->exists()) {
             throw new \RuntimeException(sprintf(_('Could not unpack %s in %s.'), basename($release), $directory));
         }

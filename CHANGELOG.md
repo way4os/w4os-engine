@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- fix (setup): a release that cannot be downloaded gives its menu again with the reason, not the raw answer
 - fix (setup): asking Apache's sites for a website at the root of its host no longer installs a site of Apache
 - fix (setup): the ini files of a grid go to the group of the web server an account was just added to (sg)
 - fix (web): the API and the pools of an engine cloned without libraries find the ones of its command line

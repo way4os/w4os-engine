@@ -40,6 +40,25 @@ function core_releases(string $folder, int &$downloads): CoreReleases
 }
 
 describe('The releases of OpenSimulator', function () {
+    test('say a failure themselves: what the commands say of it is never written with what the engine answers', function () {
+        $folder = sys_get_temp_dir() . '/core-releases-' . bin2hex(random_bytes(4));
+        mkdir($folder, 0o755, true);
+        $page = '<a href="opensim-0.9.3.0.tar.gz">x</a>';
+        // An archive that is none: tar refuses it, and says so on its own
+        $releases = new CoreReleases("$folder/cache", static fn(string $url): string => $page, static fn(string $url, string $file): bool => file_put_contents($file, 'not an archive') !== false);
+        $message = '';
+        ob_start();
+        try {
+            $releases->install('0.9.3.0', "$folder/cores");
+        } catch (RuntimeException $error) {
+            $message = $error->getMessage();
+        }
+        $written = (string) ob_get_clean();
+
+        expect($message)->toBe("Could not unpack opensim-0.9.3.0.tar.gz in $folder/cores/0.9.3.0.")
+            ->and($written)->toBe('');
+    });
+
     test('are the binary archives of its site, the newest first, one unpacked under a core root and kept when it is there', function () {
         $folder = sys_get_temp_dir() . '/core-releases-' . bin2hex(random_bytes(4));
         mkdir($folder, 0o755, true);
